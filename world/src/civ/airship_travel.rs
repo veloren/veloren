@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     store::{Id, Store},
-    terrain::CoordinateConversions,
+    terrain::{CoordinateConversions, TERRAIN_CHUNK_BLOCKS_LG},
     util::Dir,
 };
 use delaunator::{Point, Triangulation, triangulate};
@@ -15,7 +15,7 @@ use itertools::Itertools;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use std::{fs::OpenOptions, io::Write};
-use tracing::warn;
+use tracing::{error, warn};
 use vek::*;
 
 const AIRSHIP_TRAVEL_DEBUG: bool = false;
@@ -212,8 +212,8 @@ impl<'a> DockConnection<'a> {
 pub struct DockNode {
     pub node_id: usize,
     pub on_hull: bool,
-    pub connected: DHashSet<usize>,
-    //pub connected: Vec<usize>,
+    //pub connected: DHashSet<usize>,
+    pub connected: Vec<usize>,
 }
 
 impl Airships {
@@ -578,88 +578,56 @@ impl Airships {
         debug_airships!("all_dock_points: {:?}", all_dock_points);
 
         let triangulation = triangulate(&all_dock_points);
-
-        let node_connections = triangulation.node_connections();
-
-        let hull_dia_approx = approximate_hull_diameter(&all_dock_points);
-        debug_airships!("Tessellation hull diameter approx: {}", hull_dia_approx);
-
         save_airship_routes_triangulation(&triangulation, &all_dock_points, index, world_sim);
 
-        // node_connections.keys() are the node indices (ids).
-        // Since they are in a hashmap, they are not sorted.
-        // Below, we sort them to randomize the start point for the
-        // modification of the triangulation to remove odd numbers of edges.
-        let mut search_order = node_connections.keys().copied().collect::<Vec<_>>();
-
-        let mut max_score = 0.0;
-        let mut max_connections: Vec<(usize, usize)> = Vec::default();
-        let mut max_final_indeces = vec![];
-        // Use a deterministic RNG to ensure that the results are the same each time the world is generated with the same seed.
-        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(index.seed));
-
-        for _ in 0..100 {
-            search_order.shuffle(&mut rng);
-
-            let mut node_conn_working_copy = node_connections.clone();
-            let (high_score, best_connections, best_final_indeces) = triangulation
-                .optimized_tessellation_edges(
-                    &all_dock_points,
-                    &mut node_conn_working_copy,
-                    hull_dia_approx,
-                    &search_order,
-                );
-
-            if high_score > max_score {
-                max_score = high_score;
-                max_connections = best_connections;
-                max_final_indeces = best_final_indeces;
-            }
-        }
-        debug_airships!("Max score: {}", max_score);
-        debug_airships!("Max connections: {:?}", max_connections);
-        debug_airships!("Max final indeces: {:?}", max_final_indeces);
-
-        let mut node_connections_optimized = node_connections.clone();
-        for (from_node_id, to_node_id) in max_connections {
-            remove_edge(from_node_id, to_node_id, &mut node_connections_optimized);
-        }
-        max_final_indeces.chunks(2).for_each(|chunk| {
-            if let [from_node_id, to_node_id] = chunk {
-                add_edge(*from_node_id, *to_node_id, &mut node_connections_optimized);
-            }
-        });
-
-        #[cfg(debug_assertions)]
-        {
-            let odd_nodes = node_connections_optimized
-                .iter()
-                .filter(|(_, dock_node)| dock_node.connected.len() % 2 == 1)
-                .map(|(node_id, _)| *node_id)
-                .collect::<Vec<_>>();
-            debug_airships!(
-                "odd node count: {}, node_connections_optimized: {:?}",
-                odd_nodes.len(),
-                node_connections_optimized
-            );
-            assert!(odd_nodes.len() == 0);
-        }
-
-        save_airship_routes_optimized_tesselation(
-            &triangulation,
-            &all_dock_points,
-            &node_connections_optimized,
-            index,
-            world_sim,
+        // Docking positions are specified in world coordinates, not chunks.
+        // Limit the max route leg length to 1000 chunks no matter the world size.
+        let world_chunks = world_sim.map_size_lg().chunks();
+        let blocks_per_chunk = 1 << TERRAIN_CHUNK_BLOCKS_LG;
+        let world_blocks = world_chunks.map(|u| u as f32) * blocks_per_chunk as f32;
+        let max_route_leg_length = 1000.0 * world_blocks.x;
+        println!(
+            "blocks_per_chunk: {}, world size in blocks: {:?}, max_route_leg_length: {}",
+            blocks_per_chunk, world_blocks, max_route_leg_length
         );
 
-        if let Some((best_segments, circuit, max_seg_len, min_spread, iteration)) = find_best_eulerian_circuit(&node_connections_optimized) {
-            debug_airships!("Max segment length: {}", max_seg_len);
-            debug_airships!("Min spread: {}", min_spread);
-            debug_airships!("Iteration: {}", iteration);
-            debug_airships!("Best segments: {:?}", best_segments);
-            debug_airships!("Circuit: {:?}", circuit);
+        // eulerized_route_segments is fairly expensive as the number of docking sites
+        // grows. Limit the number of iterations according to world size.
+        // pow2     world size   iterations
+        // 10       1024         50
+        // 11       2048         22
+        // 12       4096         10
+        // 13       8192          2
+        // Doing a least squares fit on the iterations gives the formula:
+        // 3742931.0 * e.powf(-1.113823 * pow2)
+        // 3742931.0 * 2.71828f32.powf(-1.113823 * pow2)
+
+        let pow2 = world_sim.map_size_lg().vec().x;
+        let max_iterations = (3742931.0 * 2.71828f32.powf(-1.113823 * pow2 as f32))
+            .max(1.0)
+            .min(100.0)
+            .round() as usize;
+
+        if let Some((best_segments, _, max_seg_len, min_spread, iteration)) = triangulation
+            .eulerized_route_segments(
+                &all_dock_points,
+                max_iterations,
+                max_route_leg_length as f64,
+                index.seed,
+            )
+        {
+            if cfg!(debug_assertions) {
+                println!("Max segment length: {}", max_seg_len);
+                println!("Min spread: {}", min_spread);
+                println!("Iteration: {}", iteration);
+                println!("Segments count:");
+                best_segments.iter().enumerate().for_each(|segment| {
+                    println!("  {} : {}", segment.0, segment.1.len());
+                });
+            }
             save_airship_route_segments(&best_segments, &all_dock_points, index, world_sim);
+        } else {
+            println!("Error - cannot eulerize the dock points.");
         }
     }
 
@@ -1042,11 +1010,11 @@ enum EdgeRemovalStackNodeType {
     Undo,
 }
 
-const DEBUG_AIRSHIP_TESSELATION_OPTIMIZATION: bool = false;
+const DEBUG_AIRSHIP_EULERIZATION: bool = true;
 
-macro_rules! debug_airship_tess_opt {
+macro_rules! debug_airship_eulerization {
     ($($arg:tt)*) => {
-        if DEBUG_AIRSHIP_TESSELATION_OPTIMIZATION {
+        if DEBUG_AIRSHIP_EULERIZATION {
             println!($($arg)*);
         }
     }
@@ -1056,17 +1024,18 @@ type DockNodeGraph = DHashMap<usize, DockNode>;
 
 trait TriangulationExt {
     fn count_edges_per_node(&self) -> DHashMap<usize, usize>;
+    fn all_edges(&self) -> DHashSet<(usize, usize)>;
     fn connected_nodes(&self, node: usize) -> Vec<usize>;
     fn is_hull_node(&self, index: usize) -> bool;
     fn is_hull_edge(&self, edge: (usize, usize)) -> bool;
     fn node_connections(&self) -> DockNodeGraph;
-    fn optimized_tessellation_edges(
+    fn eulerized_route_segments(
         &self,
         all_dock_points: &Vec<Point>,
-        node_connections: &mut DockNodeGraph,
-        hull_dia_approx: f64,
-        search_order: &Vec<usize>,
-    ) -> (f32, Vec<(usize, usize)>, Vec<usize>);
+        iterations: usize,
+        max_route_leg_length: f64,
+        seed: u32,
+    ) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)>;
 }
 
 fn first_odd_node(
@@ -1092,57 +1061,39 @@ fn first_odd_node(
 }
 
 /// Removes an edge between two nodes in the tesselation graph.
-fn remove_edge(node_id1: usize, node_id2: usize, nodes: &mut DockNodeGraph) {
-    if let Some(dock_node) = nodes.get_mut(&node_id1) {
-        dock_node.connected.remove(&node_id2);
-        // dock_node.connected.retain(|&x| x != node_id2);
+fn remove_edge(edge: (usize, usize), nodes: &mut DockNodeGraph) {
+    if let Some(dock_node) = nodes.get_mut(&edge.0) {
+        // Remove the edge from node_id1 to node_id2.
+        // The edge may be present more than once, just remove one instance.
+        if let Some(index) = dock_node
+            .connected
+            .iter()
+            .position(|&node_id| node_id == edge.1)
+        {
+            dock_node.connected.remove(index);
+        }
     }
-    if let Some(dock_node) = nodes.get_mut(&node_id2) {
-        dock_node.connected.remove(&node_id1);
-        // dock_node.connected.retain(|&x| x != node_id1);
+    if let Some(dock_node) = nodes.get_mut(&edge.1) {
+        // Remove the edge from node_id2 to node_id1.
+        // The edge may be present more than once, just remove one instance.
+        if let Some(index) = dock_node
+            .connected
+            .iter()
+            .position(|&node_id| node_id == edge.0)
+        {
+            dock_node.connected.remove(index);
+        }
     }
 }
 
 /// Adds an edge between two nodes in the tesselation graph.
-fn add_edge(node_id1: usize, node_id2: usize, nodes: &mut DockNodeGraph) {
-    if let Some(dock_node) = nodes.get_mut(&node_id1) {
-        dock_node.connected.insert(node_id2);
-        // dock_node.connected.push(node_id2);
+fn add_edge(edge: (usize, usize), nodes: &mut DockNodeGraph) {
+    if let Some(dock_node) = nodes.get_mut(&edge.0) {
+        dock_node.connected.push(edge.1);
     }
-    if let Some(dock_node) = nodes.get_mut(&node_id2) {
-        dock_node.connected.insert(node_id1);
-        // dock_node.connected.push(node_id1);
+    if let Some(dock_node) = nodes.get_mut(&edge.1) {
+        dock_node.connected.push(edge.0);
     }
-}
-
-fn approximate_hull_diameter(points: &Vec<Point>) -> f64 {
-    let mut min_x = f64::MAX;
-    let mut max_x = f64::MIN;
-    let mut min_y = f64::MAX;
-    let mut max_y = f64::MIN;
-
-    for point in points {
-        if point.x < min_x {
-            min_x = point.x;
-        }
-        if point.x > max_x {
-            max_x = point.x;
-        }
-        if point.y < min_y {
-            min_y = point.y;
-        }
-        if point.y > max_y {
-            max_y = point.y;
-        }
-    }
-
-    let hull_width = max_x - min_x;
-    let hull_height = max_y - min_y;
-    let hull_dia1 = (hull_width.powi(2) + hull_height.powi(2)).sqrt();
-    let hull_dia2 = (hull_width + hull_height) / 2.0;
-    let hull_dia3 = (hull_dia1 + hull_dia2) / 2.0;
-
-    hull_dia3
 }
 
 // Gives a score for line segments lengths as compared to the hull diameter.
@@ -1159,163 +1110,6 @@ fn hull_ratio_distance_score(rt_len: f64, hull_diameter: f64) -> f64 {
     // 0.7   0.9
     // 1.0   1.0
     1.0 - (-3.2894 * ratio).exp()
-}
-
-// When there are four odd nodes, two lines are formed. This function gives the
-// score based on the angle between the two lines.
-// The formula was approximated using a score of 1.0 at 90 degrees, 0.9 at 30
-// degrees, and 0 at 0 degrees.
-fn four_point_angle_score(angle_in_degrees: f64) -> f64 {
-    1.0 - (-0.07675 * angle_in_degrees).exp()
-}
-
-/// Calculates a score for the tessellation based on the number of left-over odd
-/// numbers of edges and the length of the edge or edges that must be added to
-/// make the tessellation have an even number of edges. A low score is assigned
-/// if there are more than 4 odd edges, essentially eliminating any
-/// tessellations that have a lot of disconnected edges. A tessellation with no
-/// left-over edges is perfect and gets a score of 1.0. For 2 or 4
-/// left-over edges, there will be one or two lines that are needed to connect
-/// the odd nodes. One goal of the airship evolutions RFC is to have most route
-/// legs be of medium length (hence the tessellation), with some longer legs
-/// that act as longer range routes. Therefore, the length score is based on the
-/// ratio of the line length to the tessellation hull diameter, with a score of
-/// 1.0 at 1.0 of the hull diameter, and a score of 0.9 at 0.7 of the hull
-/// diameter, and a score of 0.0 at 0.0 of the hull diameter.
-fn dock_nodes_score(
-    nodes: &DockNodeGraph,
-    points: &Vec<Point>,
-    hull_diameter: f64,
-) -> (f32, Vec<usize>) {
-    if hull_diameter < 1.0 {
-        return (0.0, vec![]);
-    }
-    /*
-       No odd edges = perfect score.
-       Two or Four odd edges = 90% score.
-       Six or Eight odd edges = 50% score.
-       More than eight odd edges = 0% score.
-
-       For two or four odd edges, connect the odd nodes and check the distance
-       between the nodes as compared to the hull diameter. Reduce the score for
-       distances less than the hull diameter. For four odd nodes, calculate the
-       combination of nodes that produces two lines that are as perpendicular as
-       possible, and then reduce the score for line lengths that are less than
-       the hull diameter.
-    */
-    let mut best_odd_indeces = vec![];
-    let odd_nodes = nodes
-        .iter()
-        .filter(|(_, dock_node)| dock_node.connected.len() % 2 == 1)
-        .map(|(node_id, _)| *node_id)
-        .collect::<Vec<_>>();
-    assert!(odd_nodes.len() % 2 == 0);
-
-    if odd_nodes.len() == 2 {
-        let point1 = &points[odd_nodes[0]];
-        let point2 = &points[odd_nodes[1]];
-        let line_len = ((point1.x - point2.x).powi(2) + (point1.y - point2.y).powi(2)).sqrt();
-        debug_airship_tess_opt!(
-            "dock_nodes_score: 2 odd nodes, line_len: {}, hull_percentage: {}, score: {}",
-            line_len,
-            line_len / hull_diameter,
-            hull_ratio_distance_score(line_len, hull_diameter) * 0.9
-        );
-        (
-            (hull_ratio_distance_score(line_len, hull_diameter) * 0.9) as f32,
-            odd_nodes,
-        )
-    } else if odd_nodes.len() == 4 {
-        // First connect the odd nodes to produce orhogonal lines as much as possible.
-        // Map the odd node points to Vec2 points.
-        let odd_nodes_points = odd_nodes
-            .iter()
-            .map(|&node_id| &points[node_id])
-            .map(|point| Vec2::new(point.x as f32, point.y as f32))
-            .collect::<Vec<_>>();
-        assert!(odd_nodes_points.len() == 4);
-        debug_airship_tess_opt!(
-            "dock_nodes_score: 4 odd nodes, odd_nodes_points: {:?}",
-            odd_nodes_points
-        );
-
-        // There are three pairs of points.
-        // 0, 1, 2, 3
-        // 0, 2, 1, 3
-        // 0, 3, 1, 2
-
-        // The reverse of the pairs are the same because
-        // only the orientation between the lines matters.
-        // I.e., 0, 1, 3, 2 OR 1, 0, 2, 3 etc. are the same except if the answer is
-        // greater than 90 degrees, then subtract it from 180 degrees.
-        // For example in the give test case
-        // 0, 1, 2, 3 : 29.675674
-        // 1, 0, 2, 3 : 150.32431
-        // 0, 1, 3, 2 : 150.32431
-        // 1, 0, 3, 2 : 29.675674
-        // and 180 - 150.32431 = 29.675674
-        // So for the first pair of points, the lines are about 30 degrees apart.
-
-        let indices_sets = [[0, 1, 2, 3], [0, 2, 1, 3], [0, 3, 1, 2]];
-        // value	score
-        // 0		0
-        // 30		0.9
-        // 90		1.0
-
-        let mut best_score = 0.0f32;
-        for (index, indices) in indices_sets.iter().enumerate() {
-            let a = odd_nodes_points[indices[0]];
-            let b = odd_nodes_points[indices[1]];
-            let c = odd_nodes_points[indices[2]];
-            let d = odd_nodes_points[indices[3]];
-
-            let mut angle = (a - b).angle_between(c - d) * (180.0 / std::f32::consts::PI);
-            if angle > 90.0 {
-                // subtract from 180 degrees
-                angle = 180.0 - angle;
-            }
-            let angle_score = four_point_angle_score(angle as f64) as f32;
-
-            let dist1 = a.distance(b);
-            let dist2 = c.distance(d);
-            let total_dist = dist1 + dist2;
-            let dist_score =
-                hull_ratio_distance_score(total_dist as f64, 2.0 * hull_diameter) as f32;
-
-            let score = angle_score * dist_score;
-            if score > best_score {
-                best_score = score;
-                best_odd_indeces = vec![
-                    odd_nodes[indices[0]],
-                    odd_nodes[indices[1]],
-                    odd_nodes[indices[2]],
-                    odd_nodes[indices[3]],
-                ];
-            }
-
-            debug_airship_tess_opt!(
-                "Index: {}, Indices {:?}, ∂: {}, ∂score: {}, len1: {}, len2: {}, total: {}, \
-                 percentage: {} dist score: {}, score: {}",
-                index,
-                indices,
-                angle,
-                angle_score,
-                dist1,
-                dist2,
-                dist1 + dist2,
-                total_dist / (2.0 * hull_diameter) as f32,
-                dist_score,
-                score
-            );
-        }
-        (best_score, best_odd_indeces)
-    } else if odd_nodes.len() == 6 || odd_nodes.len() == 8 {
-        debug_airship_tess_opt!("dock_nodes_score: {} odd nodes", odd_nodes.len());
-        (0.25, odd_nodes)
-    } else {
-        debug_airship_tess_opt!("dock_nodes_score: more than 8 odd nodes, score is 0.0");
-        (0.10, odd_nodes)
-    }
 }
 
 impl TriangulationExt for Triangulation {
@@ -1345,6 +1139,21 @@ impl TriangulationExt for Triangulation {
             .collect::<Vec<_>>()
     }
 
+    fn all_edges(&self) -> DHashSet<(usize, usize)> {
+        let mut edges = DHashSet::default();
+        for t in self.triangles.chunks(3) {
+            let a = t[0];
+            let b = t[1];
+            let c = t[2];
+            // The edges hashset must have edges specified in increasing order to avoid
+            // duplicates.
+            edges.insert(if a < b { (a, b) } else { (b, a) });
+            edges.insert(if b < c { (b, c) } else { (c, b) });
+            edges.insert(if a < c { (a, c) } else { (c, a) });
+        }
+        edges
+    }
+
     fn node_connections(&self) -> DockNodeGraph {
         let mut connections = DHashMap::default();
 
@@ -1358,12 +1167,12 @@ impl TriangulationExt for Triangulation {
                 let dock_node = connections.entry(node).or_insert_with(|| DockNode {
                     node_id: node,
                     on_hull: self.is_hull_node(node),
-                    connected: DHashSet::default(),
-                    // connected: Vec::default(),
+                    //connected: DHashSet::default(),
+                    connected: Vec::default(),
                 });
                 for &connected_node in t {
-                    if connected_node != node {
-                        dock_node.connected.insert(connected_node);
+                    if connected_node != node && !dock_node.connected.contains(&connected_node) {
+                        dock_node.connected.push(connected_node);
                     }
                 }
             }
@@ -1401,194 +1210,410 @@ impl TriangulationExt for Triangulation {
         }
     }
 
-    /// A triangulation tessellation produces nodes that can have an odd number
-    /// of edges. The eulerian circuit algorithm that computes routes through the
-    /// tessellation requires that all nodes have an even number of edges.
-    /// This function will remove edges from the tessellation by finding odd
-    /// nodes and pairing them with other connected odd nodes until all odd
-    /// nodes have been paired or there are no more connected odd nodes. If
-    /// there are still odd nodes, the algorithm will add edges to the odd
-    /// nodes until all odd nodes have an even number of edges.
-    ///
-    /// Note: another way to solve this problem would be to simply add edges as
-    /// required to the tessellation. This would be a more efficient
-    /// solution, but it would not adhere to the requirement that all edges
-    /// are as short as possible (which is one goal of the
-    /// Airship evolutions RFC).
-    ///
-    /// This process of removing edges is sensitive to the starting node and the
-    /// order of node traversal. To achieve the best results, this function
-    /// is usually called multiple times with different starting nodes and
-    /// orderings. The best result is the one with the highest score.
-    fn optimized_tessellation_edges(
+    fn eulerized_route_segments(
         &self,
         all_dock_points: &Vec<Point>,
-        node_connections: &mut DockNodeGraph,
-        hull_dia_approx: f64,
-        search_order: &Vec<usize>,
-    ) -> (f32, Vec<(usize, usize)>, Vec<usize>) {
-        /*
-           This is a recursive algorithm. The Rust best practice is to use a data stack
-           rather than a recursive function. The stack will be used to store
-           the current state of the algorithm, the next node actions, and undo
-           actions to reverse the downstream modifications to the tesselation.
+        iterations: usize,
+        max_route_leg_length: f64,
+        seed: u32,
+    ) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
+        // let node_connections = self.node_connections();
+        let mut edges_to_remove = DHashSet::default();
 
-           Need a stack with three types of nodes
-           1. Find - find the next available node with an odd number of edges.
-           2. Check - modify the tesselation and add the other connections to check
-           3. Undo - reverse the modifications to the tesselation.
+        // There can be at most four incoming and four outgoing edges per node because
+        // there are only four docking positions per docking site and for deconfliction
+        // purposes, no two "routes" can use the same docking position. This means that
+        // the maximum number of edges per node is 8. Remove the shortest edges from
+        // nodes with more than 8 edges.
 
-           Need a connection vec to record the connections in work
+        // The tessellation algorithm produces convex hull, and there can be edges
+        // connecting outside nodes where the distance between the points is a
+        // significant fraction of the hull diameter. We want to keep airship
+        // route legs as short as possible, while not removing interior edges
+        // that may already be fairly long due to the configuration of the
+        // docking sites relative to the entire map. For the standard world map,
+        // with 2^10 chunks (1024x1024), the hull diameter is about 1000 chunks.
+        // Experimentally, the standard world map can have interior edges that are
+        // around 800 chunks long. A world map with 2^12 chunks (4096x4096) can
+        // have hull edges that are around 2000 chunks long, but interior edges
+        // still have a max of around 800 chunks. For the larger world maps,
+        // removing edges that are longer than 1000 chunks is a good heuristic.
 
-           Need a best score vec to record the connections with the high score so far
+        // First, use these heuristics to remove excess edges from the node graph.
+        // 1. remove edges that are longer than 1000 blocks.
+        // 2. remove the shortest edges from nodes with more than 8 edges
 
-           let find_index = 0
+        let max_distance_squared = max_route_leg_length.powi(2);
 
-           While pop
-               node type matches
-                   Find
-                       If Find Odd Node (find_index)
-                           push all Check nodes with odd connections,
-                               if the from and to nodes are not both on the hull,
-                               in reverse order
-                           If no Check nodes were added (no connections for the from-node)
-                               push Find node to stack with index = find_index + 1
-                           End
-                       Else
-                           Compute Score
-                           If higher score
-                               Replace best_connections with current_connections
-                           End
-                       End
-                   Check
-                       Modify from & to DockNodes
-                       push from-to onto current_connections
-                       push Undo node to stack to undo the from-to modifications
-                       push Find node to stack with index = from index + 1
-                   Undo
-                       Undo modifications for from & to DockNodes
-                       Remove last from current_connections
-        */
-
-        // The first value in mod_stack will be a Find, Check, or Undo enum value.
-        // The second value in mod_stack will be the index in the search order.
-        // The third value in mod_stack will be the node id for the from-node or zero
-        // for Find stack nodes. The fourth value in mod_stack will be the node
-        // id for the to-node or zero for Find stack nodes.
-        let mut mod_stack: Vec<(EdgeRemovalStackNodeType, usize, usize, usize)> = Vec::default();
-        let mut curr_connections: Vec<(usize, usize)> = Vec::default();
-        let mut best_connections: Vec<(usize, usize)> = Vec::default();
-
-        let mut high_score = 0.0f32;
-        let mut best_final_indeces = vec![];
-
-        mod_stack.push((EdgeRemovalStackNodeType::Find, 0, 0, 0));
-        debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
-
-        while let Some((mod_type, index, node_id1, node_id2)) = mod_stack.pop() {
-            debug_airship_tess_opt!(
-                "Mod type: {:?}, index: {}, node_id1: {}, node_id2: {}",
-                mod_type,
-                index,
-                node_id1,
-                node_id2
-            );
-
-            match mod_type {
-                EdgeRemovalStackNodeType::Find => {
-                    // Find
-                    if let Some((index, node_id)) =
-                        first_odd_node(&search_order, index, &node_connections)
-                    {
-                        debug_airship_tess_opt!(
-                            "Odd node found: {}, search_order index {}",
-                            node_id,
-                            index
-                        );
-                        if let Some(node) = node_connections.get(&node_id) {
-                            let mut added_checks = false;
-                            // push Check nodes with (odd) connections in reverse order
-                            node.connected.iter().for_each(|con_node_id| {
-                                if let Some(con_node) = node_connections.get(con_node_id) {
-                                    if con_node.connected.len() % 2 == 1
-                                        //&& !(node.on_hull && con_node.on_hull)
-                                    {
-                                        mod_stack.push((
-                                            EdgeRemovalStackNodeType::Check,
-                                            index,
-                                            node_id,
-                                            *con_node_id,
-                                        ));
-                                        added_checks = true;
-                                        debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
-                                    }
-                                }
-                            });
-                            if !added_checks {
-                                debug_airship_tess_opt!(
-                                    "No odd connections found for odd node {}",
-                                    node_id
-                                );
-                                mod_stack.push((EdgeRemovalStackNodeType::Find, index + 1, 0, 0));
-                                debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
-                            }
-                        }
-                    } else {
-                        // Compute Score
-                        // If higher score
-                        //     Replace best_connections with current_connections
-                        // End
-                        let (score, best_odd_indeces) =
-                            dock_nodes_score(&node_connections, &all_dock_points, hull_dia_approx);
-                        debug_airship_tess_opt!(
-                            "No more odd nodes from index {}, Score: {}",
-                            index,
-                            score
-                        );
-                        if score > high_score {
-                            high_score = score;
-                            best_connections = curr_connections.clone();
-                            best_final_indeces = best_odd_indeces.clone();
-                            debug_airship_tess_opt!("New high score: {}", score);
-                            debug_airship_tess_opt!("Best connections: {:?}", best_connections);
-                            debug_airship_tess_opt!("Best final indeces: {:?}", best_final_indeces);
-                        }
-                    }
-                },
-                EdgeRemovalStackNodeType::Check => {
-                    // Check
-                    //  Modify from & to DockNodes
-                    //  push from-to onto current_connections
-                    //  push Undo node to stack to undo the from-to modifications
-                    //  push Find node to stack with index = from index + 1
-                    // End
-                    debug_airship_tess_opt!("Removing edge {} -> {}", node_id1, node_id2);
-                    remove_edge(node_id1, node_id2, node_connections);
-                    curr_connections.push((node_id1, node_id2));
-                    debug_airship_tess_opt!("Current connections: {:?}", curr_connections);
-                    mod_stack.push((EdgeRemovalStackNodeType::Undo, index, node_id1, node_id2));
-                    mod_stack.push((EdgeRemovalStackNodeType::Find, index + 1, 0, 0));
-                    debug_airship_tess_opt!("Mod stack: {:?}", mod_stack);
-                },
-                EdgeRemovalStackNodeType::Undo => {
-                    // Undo
-                    // Undo modifications for from & to DockNodes
-                    // Remove last from current_connections
-                    debug_airship_tess_opt!(
-                        "Undoing edge removal, adding edge {} -> {}",
-                        node_id1,
-                        node_id2
-                    );
-                    add_edge(node_id1, node_id2, node_connections);
-                    curr_connections.pop();
-                },
+        let all_edges = self.all_edges();
+        for edge in all_edges.iter() {
+            let pt1 = &all_dock_points[edge.0];
+            let pt2 = &all_dock_points[edge.1];
+            let v1 = Vec2 { x: pt1.x, y: pt1.y };
+            let v2 = Vec2 { x: pt2.x, y: pt2.y };
+            // Remove the edge if the distance between the points is greater than
+            // max_leg_length
+            if v1.distance_squared(v2) > max_distance_squared {
+                edges_to_remove.insert(edge.clone());
             }
         }
-        (high_score, best_connections, best_final_indeces)
+
+        #[cfg(debug_assertions)]
+        let long_edges = edges_to_remove.len();
+        debug_airship_eulerization!(
+            "Found {} long edges to remove out of {} total edges",
+            edges_to_remove.len(),
+            all_edges.len()
+        );
+
+        let node_connections = self.node_connections();
+        node_connections.iter().for_each(|(&node_id, node)| {
+            if node.connected.len() > 8 {
+                let excess_edges_count = node.connected.len() - 8;
+                // Find the shortest edge and remove it
+                let mut connected_node_info = node
+                    .connected
+                    .iter()
+                    .map(|&connected_node_id| {
+                        let pt1 = &all_dock_points[node_id];
+                        let pt2 = &all_dock_points[connected_node_id];
+                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                        (connected_node_id, v1.distance_squared(v2) as i64)
+                    })
+                    .collect::<Vec<_>>();
+                connected_node_info.sort_by(|a, b| a.1.cmp(&b.1));
+                let mut excess_edges_remaining = excess_edges_count;
+                let mut remove_index = 0;
+                while excess_edges_remaining > 0 && remove_index < connected_node_info.len() {
+                    let (connected_node_id, _) = connected_node_info[remove_index];
+                    let edge = if node_id < connected_node_id {
+                        (node_id, connected_node_id)
+                    } else {
+                        (connected_node_id, node_id)
+                    };
+                    if !edges_to_remove.contains(&edge) {
+                        edges_to_remove.insert(edge);
+                        excess_edges_remaining -= 1;
+                    }
+                    remove_index += 1;
+                }
+            }
+        });
+
+        let mut mutable_node_connections = node_connections.clone();
+
+        if DEBUG_AIRSHIP_EULERIZATION {
+            debug_airship_eulerization!(
+                "Removing {} long edges and {} excess edges for a total of {} removed edges out \
+                 of a total of {} edges",
+                long_edges,
+                edges_to_remove.len() - long_edges,
+                edges_to_remove.len(),
+                all_edges.len(),
+            );
+        }
+
+        for edge in edges_to_remove {
+            remove_edge(edge, &mut mutable_node_connections);
+        }
+
+        if DEBUG_AIRSHIP_EULERIZATION {
+            // count the number of nodes with an odd connected count
+            let odd_connected_count0 = mutable_node_connections
+                .iter()
+                .filter(|(_, node)| node.connected.len() % 2 == 1)
+                .count();
+            let total_connections1 = mutable_node_connections
+                .iter()
+                .map(|(_, node)| node.connected.len())
+                .sum::<usize>();
+            debug_airship_eulerization!(
+                "After Removing, odd connected count: {} in {} nodes, total connections: {}",
+                odd_connected_count0,
+                mutable_node_connections.len(),
+                total_connections1
+            );
+        }
+
+        // Now eurlerize the node graph by adding edges to connect nodes with an odd
+        // number of connections. Eurlerization means that every node will have
+        // an even number of degrees (edges), which is a requirement for
+        // creating a Eulerian Circuit.
+
+        // Get the keys (node ids, which is the same as the node's index in the
+        // all_dock_points vector) of nodes with an odd number of edges.
+        let mut odd_keys: Vec<usize> = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .map(|(node_id, _)| *node_id)
+            .collect();
+
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+
+        // There will always be an even number of odd nodes in a connected graph (one
+        // where all nodes are reachable from any other node). The goal is to
+        // pair the odd nodes, adding edges between each pair such that the
+        // added edges are as short as possible. After adding edges, the graph
+        // will have an even number of edges for each node.
+
+        // The starting node index for finding pairs is arbitrary, and starting from
+        // different nodes will yield different Eulerian circuits.
+
+        // Do a number of iterations and find the best results. The criteria is
+        // 1. The number of route groups (the outer Vec in best_route_segments) This
+        //    will be a maximum of 4 because there are at most 4 docking positions per
+        //    docking site. More is better.
+        // 2. The 'spread' of the lengths of the inner Vecs in best_route_segments. The
+        //    calculated spread is the standard deviation of the lengths. Smaller is
+        //    better (more uniform lengths of the route groups.)
+        let mut best_circuit = Vec::new();
+        let mut best_route_segments = Vec::new();
+        let mut best_max_seg_len = 0;
+        let mut best_min_spread = f32::MAX;
+        let mut best_iteration = 0;
+
+        for i in 0..iterations {
+            // Deterministically randomize the node order to search for the best route
+            // segments.
+            let mut eulerized_node_connections = mutable_node_connections.clone();
+
+            let mut odd_connected_count = odd_keys.len();
+            assert!(
+                odd_connected_count % 2 == 0,
+                "Odd connected count should be even, got {}",
+                odd_connected_count
+            );
+            assert!(
+                odd_keys.len()
+                    == eulerized_node_connections
+                        .iter()
+                        .filter(|(_, node)| node.connected.len() % 2 == 1)
+                        .count()
+            );
+
+            // It's possible that the graphs starts with no odd nodes after removing edges
+            // above.
+            if odd_connected_count > 0 {
+                odd_keys.shuffle(&mut rng);
+
+                // The edges to be added. An edge is a tuple of two node ids/indices.
+                let mut edges_to_add = DHashSet::default();
+                // Each odd node will be paired with only one other odd node.
+                // Keep track of which nodes have been paired already.
+                let mut paired_odd_nodes = DHashSet::default();
+
+                for node_key in odd_keys.iter() {
+                    // Skip nodes that are already paired.
+                    if paired_odd_nodes.contains(node_key) {
+                        continue;
+                    }
+                    if let Some(node) = mutable_node_connections.get(node_key) {
+                        // find the closest node other than nodes that are already connected to
+                        // this one.
+                        let mut closest_node_id = None;
+                        let mut closest_distance = f64::MAX;
+                        for candidate_key in odd_keys.iter() {
+                            // Skip nodes that are already paired.
+                            if paired_odd_nodes.contains(candidate_key) {
+                                continue;
+                            }
+                            if let Some(candidate_node) =
+                                mutable_node_connections.get(candidate_key)
+                            {
+                                // Skip the node itself and nodes that are already connected to this
+                                // node.
+                                if *candidate_key != *node_key
+                                    && !node.connected.contains(candidate_key)
+                                    && !candidate_node.connected.contains(node_key)
+                                {
+                                    // make sure the edge is specified in increasing node index
+                                    // order to
+                                    // avoid duplicates.
+                                    let edge_to_add = if *node_key < *candidate_key {
+                                        (*node_key, *candidate_key)
+                                    } else {
+                                        (*candidate_key, *node_key)
+                                    };
+                                    // Skip the edge if it is already in the edges_to_add set.
+                                    if !edges_to_add.contains(&edge_to_add) {
+                                        let pt1 = &all_dock_points[*node_key];
+                                        let pt2 = &all_dock_points[*candidate_key];
+                                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                                        let distance = v1.distance_squared(v2);
+                                        if distance < closest_distance {
+                                            closest_distance = distance;
+                                            closest_node_id = Some(*candidate_key);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // It's possible that the only odd nodes remaining are already connected to
+                        // this node, but we still need to pair them. In
+                        // this case, the connections become bidirectional,
+                        // but that's okay for Eulerization and airships will still only follow each
+                        // other in one direction.
+                        if closest_node_id.is_none() {
+                            // If no suitable node was found, repeat the search but allow
+                            // connecting to nodes that are already connected to this one.
+                            for candidate_key in odd_keys.iter() {
+                                // Skip nodes that are already paired.
+                                if paired_odd_nodes.contains(candidate_key) {
+                                    continue;
+                                }
+                                // Skip the node itself
+                                if *candidate_key != *node_key {
+                                    // make sure the edge is specified in increasing node index
+                                    // order to
+                                    // avoid duplicates.
+                                    let edge_to_add = if *node_key < *candidate_key {
+                                        (*node_key, *candidate_key)
+                                    } else {
+                                        (*candidate_key, *node_key)
+                                    };
+                                    // Skip the edge if it is already in the edges_to_add set.
+                                    if !edges_to_add.contains(&edge_to_add) {
+                                        let pt1 = &all_dock_points[*node_key];
+                                        let pt2 = &all_dock_points[*candidate_key];
+                                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                                        let distance = v1.distance_squared(v2);
+                                        if distance < closest_distance {
+                                            closest_distance = distance;
+                                            closest_node_id = Some(*candidate_key);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // If a closest node was found that is not already paired, add the edge.
+                        // Note that this should not fail since we are guaranteed to have
+                        // an even number of odd nodes.
+                        if let Some(close_node_id) = closest_node_id {
+                            // add the edge between node_id and closest_node_id
+                            let edge_to_add = if *node_key < close_node_id {
+                                (*node_key, close_node_id)
+                            } else {
+                                (close_node_id, *node_key)
+                            };
+                            edges_to_add.insert(edge_to_add);
+                            paired_odd_nodes.insert(*node_key);
+                            paired_odd_nodes.insert(close_node_id);
+                        } else {
+                            error!("Cannot pair all odd nodes, this should not happen.");
+                        }
+                    }
+                    if edges_to_add.len() == odd_connected_count / 2 {
+                        // If we have paired all odd nodes, break out of the loop.
+                        // The break is necessary because the outer loop iterates over
+                        // all odd keys but we only need make 1/2 that many pairs of nodes.
+                        break;
+                    }
+                }
+                for edge in edges_to_add {
+                    add_edge(edge, &mut eulerized_node_connections);
+                }
+                // count the number of nodes with an odd connected count
+                odd_connected_count = eulerized_node_connections
+                    .iter()
+                    .filter(|(_, node)| node.connected.len() % 2 == 1)
+                    .count();
+
+                if DEBUG_AIRSHIP_EULERIZATION {
+                    let total_connections = eulerized_node_connections
+                        .iter()
+                        .map(|(_, node)| node.connected.len())
+                        .sum::<usize>();
+                    debug_airship_eulerization!(
+                        "Outer Iteration: {}, After Adding, odd connected count: {} in {} nodes, \
+                         total connections: {}",
+                        i,
+                        odd_connected_count,
+                        eulerized_node_connections.len(),
+                        total_connections
+                    );
+                }
+            }
+
+            // If all nodes have an even number of edges, proceed with finding the best
+            // Eulerian circuit for the given node configuration.
+            if odd_connected_count == 0 {
+                // Find the best Eulerian circuit for the current node connections
+                if let Some((route_segments, circuit, max_seg_len, min_spread, _)) =
+                    find_best_eulerian_circuit(&eulerized_node_connections)
+                {
+                    if DEBUG_AIRSHIP_EULERIZATION {
+                        debug_airship_eulerization!("Outer Iteration: {}", i);
+                        debug_airship_eulerization!("Max segment length: {}", max_seg_len);
+                        debug_airship_eulerization!("Min spread: {}", min_spread);
+                        debug_airship_eulerization!("Segments count:");
+                        route_segments.iter().enumerate().for_each(|segment| {
+                            debug_airship_eulerization!("  {} : {}", segment.0, segment.1.len());
+                        });
+                        // println!("Best segments: {:?}", route_segments);
+                        // println!("Circuit: {:?}", circuit);
+                    }
+                    // A Eulerian circuit was found, apply the goal criteria to find the best
+                    // circuit.
+                    if max_seg_len > best_max_seg_len
+                        || (max_seg_len == best_max_seg_len && min_spread < best_min_spread)
+                    {
+                        best_circuit = circuit;
+                        best_route_segments = route_segments;
+                        best_max_seg_len = max_seg_len;
+                        best_min_spread = min_spread;
+                        best_iteration = i;
+                    }
+                }
+            } else {
+                debug_airship_eulerization!(
+                    "Error, this should not happen: iteration {}, odd connected count: {} of {} \
+                     nodes, total connections: {}, SKIPPING iteration",
+                    i,
+                    odd_connected_count,
+                    eulerized_node_connections.len(),
+                    eulerized_node_connections
+                        .iter()
+                        .map(|(_, node)| node.connected.len())
+                        .sum::<usize>()
+                );
+                error!(
+                    "Eulerian circuit not found on iteration {}. Odd connected count is not zero, \
+                     this should not happen",
+                    i
+                );
+            }
+        }
+        if DEBUG_AIRSHIP_EULERIZATION {
+            debug_airship_eulerization!("Max segment length: {}", best_max_seg_len);
+            debug_airship_eulerization!("Min spread: {}", best_min_spread);
+            debug_airship_eulerization!("Iteration: {}", best_iteration);
+            debug_airship_eulerization!("Segments count:");
+            best_route_segments.iter().enumerate().for_each(|segment| {
+                debug_airship_eulerization!("  {} : {}", segment.0, segment.1.len());
+            });
+            // println!("Best segments: {:?}", best_route_segments);
+            // println!("Circuit: {:?}", best_circuit);
+        }
+
+        if best_route_segments.is_empty() {
+            return None;
+        }
+        Some((
+            best_route_segments,
+            best_circuit,
+            best_max_seg_len,
+            best_min_spread,
+            best_iteration,
+        ))
     }
 }
 
-fn find_best_eulerian_circuit(graph: &DockNodeGraph) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
+fn find_best_eulerian_circuit(
+    graph: &DockNodeGraph,
+) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
     let mut best_circuit = Vec::new();
     let mut best_route_segments = Vec::new();
     let mut best_max_seg_len = 0;
@@ -1612,19 +1637,14 @@ fn find_best_eulerian_circuit(graph: &DockNodeGraph) -> Option<(Vec<Vec<usize>>,
                 current_vertex = stack.pop()?;
             } else {
                 stack.push(current_vertex);
-                if let Some(&next_vertex) =
-                    graph.get(&current_vertex)?.connected.iter()
+                if let Some(&next_vertex) = graph
+                    .get(&current_vertex)?
+                    .connected
+                    .iter()
                     .find(|&vertex| !circuit_nodes.contains(vertex))
                     .or(graph.get(&current_vertex)?.connected.iter().next())
                 {
-                    graph
-                        .get_mut(&current_vertex)?
-                        .connected
-                        .remove(&next_vertex);
-                    graph
-                        .get_mut(&next_vertex)?
-                        .connected
-                        .remove(&current_vertex);
+                    remove_edge((current_vertex, next_vertex), &mut graph);
                     current_vertex = next_vertex;
                 } else {
                     return None;
@@ -1634,7 +1654,7 @@ fn find_best_eulerian_circuit(graph: &DockNodeGraph) -> Option<(Vec<Vec<usize>>,
         circuit.push(current_vertex);
         circuit.reverse();
 
-        if let Some((route_segments, max_seg_len, min_spread)) = 
+        if let Some((route_segments, max_seg_len, min_spread)) =
             best_eulerian_circuit_segments(&graph, &circuit)
         {
             if max_seg_len > best_max_seg_len {
@@ -1655,7 +1675,13 @@ fn find_best_eulerian_circuit(graph: &DockNodeGraph) -> Option<(Vec<Vec<usize>>,
     if best_route_segments.is_empty() {
         return None;
     }
-    Some((best_route_segments, best_circuit, best_max_seg_len, best_min_spread, best_iteration))
+    Some((
+        best_route_segments,
+        best_circuit,
+        best_max_seg_len,
+        best_min_spread,
+        best_iteration,
+    ))
 }
 
 /// Get the optimal grouping of Eulerian Circuit nodes and edges such that a
@@ -1769,61 +1795,18 @@ fn best_eulerian_circuit_segments(
 #[cfg(test)]
 mod tests {
     use super::{
-        AirshipDockingSide, Airships, DockNode, DockNodeGraph, TriangulationExt, approx::assert_relative_eq,
-        approximate_hull_diameter, best_eulerian_circuit_segments,
-        find_best_eulerian_circuit,
-        four_point_angle_score, hull_ratio_distance_score,
+        AirshipDockingSide, Airships, DockNode, TriangulationExt, add_edge,
+        approx::assert_relative_eq, find_best_eulerian_circuit, remove_edge,
     };
     use delaunator::{Point, triangulate};
-    use itertools::Itertools;
-    use rand::prelude::*;
     use vek::{Quaternion, Vec2, Vec3};
 
     use crate::{
         // site::{self, Site, plot::PlotKindMeta},
+        civ::airship_route_map::*,
         util::{DHashMap, DHashSet},
     };
 
-    fn find_eulerian_circuit(graph: &DockNodeGraph) -> Option<Vec<usize>> {
-        let mut graph = graph.clone();
-        let mut circuit = Vec::new();
-        let mut stack = Vec::new();
-        let mut circuit_nodes = DHashSet::default();
-
-        let mut current_vertex = *graph.keys().next()?;
-
-        while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
-            if graph[&current_vertex].connected.is_empty() {
-                circuit.push(current_vertex);
-                circuit_nodes.insert(current_vertex);
-                current_vertex = stack.pop()?;
-            } else {
-                stack.push(current_vertex);
-                if let Some(&next_vertex) =
-                    graph.get(&current_vertex)?.connected.iter()
-                    .find(|&vertex| !circuit_nodes.contains(vertex))
-                    .or(graph.get(&current_vertex)?.connected.iter().next())
-                {
-                    graph
-                        .get_mut(&current_vertex)?
-                        .connected
-                        .remove(&next_vertex);
-                    graph
-                        .get_mut(&next_vertex)?
-                        .connected
-                        .remove(&current_vertex);
-                    current_vertex = next_vertex;
-                } else {
-                    return None;
-                }
-            }
-        }
-
-        circuit.push(current_vertex);
-        circuit.reverse();
-        Some(circuit)
-    }
-    
     #[test]
     fn basic_vec_test() {
         let vec1 = Vec3::new(0.0f32, 10.0, 0.0);
@@ -2153,733 +2136,1321 @@ mod tests {
         });
     }
 
-    fn approximate_hull_diameter_exact(
-        nodes: &DHashMap<usize, DockNode>,
-        points: &Vec<Point>,
-    ) -> f64 {
-        let mut max_distance = 0.0;
-        for (node_id1, dock_node1) in nodes.iter() {
-            for (node_id2, dock_node2) in nodes.iter() {
-                if node_id1 != node_id2 && dock_node1.on_hull && dock_node2.on_hull {
-                    let point1 = &points[*node_id1];
-                    let point2 = &points[*node_id2];
-                    let distance = (point1.x - point2.x).powi(2) + (point1.y - point2.y).powi(2);
-                    let distance = distance.sqrt();
-                    if distance < 0.0 {
-                        panic!("Negative distance");
-                    }
-                    if distance > max_distance {
-                        max_distance = distance;
-                    }
-                }
-            }
-        }
-        max_distance
-    }
-
-    #[test]
-    fn triangulation_hull_ratio_test() {
-        let all_dock_points: Vec<Point> = [
-            [31791, 24953],
-            [6733, 26407],
-            [4759, 31201],
-            [5405, 6841],
-            [959, 16927],
-            [19085, 16359],
-            [18766, 10742],
-            [17307, 29523],
-            [3004, 14014],
-            [16633, 1021],
-            [20626, 6630],
-            [20185, 31775],
-            [16639, 15775],
-            [2764, 11666],
-            [4788, 11350],
-            [29767, 24404],
-            [20907, 29217],
-            [22692, 15360],
-            [19558, 2056],
-            [13343, 2217],
-            [24279, 13001],
-            [16879, 8183],
-            [12342, 9998],
-            [18943, 24631],
-            [27777, 2311],
-            [24860, 16049],
-            [12267, 24077],
-            [6123, 2813],
-        ]
-        .iter()
-        .map(|&[x, y]| Point {
-            x: x as f64,
-            y: y as f64,
-        })
-        .collect();
-        let triangulation = triangulate(&all_dock_points);
-        let node_connections = triangulation.node_connections();
-        let hull_dia_bounds = approximate_hull_diameter_exact(&node_connections, &all_dock_points);
-        let hull_dia_approx = approximate_hull_diameter(&all_dock_points);
-        assert_relative_eq!(hull_dia_bounds, hull_dia_approx, max_relative = 300.0);
-        // println!("Hull diameter exact: {}, hull diameter approx: {}",
-        // hull_dia_bounds, hull_dia_approx);
-    }
-
-    // $$$ Delete this test when done
-    #[test]
-    fn distance_score_test() {
-        let hull_diameter = 100.0;
-        let distances = [
-            0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0,
-        ];
-        for distance in distances.iter() {
-            println!(
-                "Distance: {}, score: {}",
-                distance,
-                hull_ratio_distance_score(*distance, hull_diameter) * 0.9
-            );
-        }
-    }
-
-    // $$$ Delete this test when done
-    #[test]
-    fn angles_and_distance_test() {
-        let angles = [
-            0.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0,
-        ];
-        for angle in angles.iter() {
-            println!(
-                "Angle: {}, score: {}",
-                angle,
-                four_point_angle_score(*angle)
-            );
-        }
-    }
-
-    #[test]
-    fn triangulation_node_connections_test() {
-        let all_dock_points: Vec<Point> = [
-            [31791, 24953],
-            [6733, 26407],
-            [4759, 31201],
-            [5405, 6841],
-            [959, 16927],
-            [19085, 16359],
-            [18766, 10742],
-            [17307, 29523],
-            [3004, 14014],
-            [16633, 1021],
-            [20626, 6630],
-            [20185, 31775],
-            [16639, 15775],
-            [2764, 11666],
-            [4788, 11350],
-            [29767, 24404],
-            [20907, 29217],
-            [22692, 15360],
-            [19558, 2056],
-            [13343, 2217],
-            [24279, 13001],
-            [16879, 8183],
-            [12342, 9998],
-            [18943, 24631],
-            [27777, 2311],
-            [24860, 16049],
-            [12267, 24077],
-            [6123, 2813],
-        ]
-        .iter()
-        .map(|&[x, y]| Point {
-            x: x as f64,
-            y: y as f64,
-        })
-        .collect();
-        let triangulation = triangulate(&all_dock_points);
-
-        let node_connections = triangulation.node_connections();
-        println!("Node count: {}, odd con: ", node_connections.len());
-
-        let hull_dia_approx = approximate_hull_diameter(&all_dock_points);
-        println!("Hull diameter approx: {}", hull_dia_approx);
-
-        // node_connections.keys() are the node indices (ids).
-        // Since they are in a hashmap, they are not sorted.
-        let mut search_order = node_connections.keys().copied().collect::<Vec<_>>();
-
-        let mut loop_count = 0;
-        let mut target_score_loop_iteration = 0;
-        let mut max_score = 0.0;
-        let mut max_connections: Vec<(usize, usize)> = Vec::default();
-        let mut max_final_indeces = vec![];
-
-        loop {
-            search_order.shuffle(&mut rand::thread_rng());
-
-            let mut node_conn_working_copy = node_connections.clone();
-            let (high_score, best_connections, best_final_indeces) = triangulation
-                .optimized_tessellation_edges(
-                    &all_dock_points,
-                    &mut node_conn_working_copy,
-                    hull_dia_approx,
-                    &search_order,
-                );
-
-            // println!("High score: {}, Best connections: {:?}, Best final indeces: {:?}",
-            // high_score, best_connections, best_final_indeces);
-            if high_score > max_score {
-                max_score = high_score;
-                max_connections = best_connections;
-                max_final_indeces = best_final_indeces;
-                println!("New max score: {}", max_score);
-            }
-            loop_count += 1;
-            if target_score_loop_iteration == 0 && high_score > 0.8365520 {
-                println!(
-                    "Found target score 0.8365523 after {} iterations",
-                    loop_count
-                );
-                target_score_loop_iteration = loop_count;
-            }
-            if loop_count > 100 {
-                println!("Loop count exceeded 100, breaking");
-                break;
-            }
-        }
-        println!(
-            "Max score: {}, target score loop count: {}",
-            max_score, target_score_loop_iteration
-        );
-        println!("Max connections: {:?}", max_connections);
-        println!("Max final indeces: {:?}", max_final_indeces);
-    }
-
-    #[test]
-    fn eulerian_circuit_test() {
-        let node_connections: DHashMap<usize, DockNode> = DHashMap::from_iter([
-            (0, DockNode {
-                node_id: 0,
-                on_hull: false,
-                connected: DHashSet::from_iter([23, 29, 26, 14, 19, 4]),
-            }),
-            (28, DockNode {
-                node_id: 28,
-                on_hull: false,
-                connected: DHashSet::from_iter([23, 15, 25, 20, 21, 22]),
-            }),
-            (25, DockNode {
-                node_id: 25,
-                on_hull: false,
-                connected: DHashSet::from_iter([23, 11, 28, 21]),
-            }),
-            (22, DockNode {
-                node_id: 22,
-                on_hull: false,
-                connected: DHashSet::from_iter([23, 28, 27, 9, 3, 15]),
-            }),
-            (19, DockNode {
-                node_id: 19,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 6, 29, 18, 2, 4]),
-            }),
-            (16, DockNode {
-                node_id: 16,
-                on_hull: false,
-                connected: DHashSet::from_iter([10, 12, 20, 21]),
-            }),
-            (13, DockNode {
-                node_id: 13,
-                on_hull: true,
-                connected: DHashSet::from_iter([7, 26, 9, 27, 3, 18]),
-            }),
-            (10, DockNode {
-                node_id: 10,
-                on_hull: false,
-                connected: DHashSet::from_iter([24, 29, 11, 2, 16, 21]),
-            }),
-            (7, DockNode {
-                node_id: 7,
-                on_hull: true,
-                connected: DHashSet::from_iter([26, 1, 13, 11]),
-            }),
-            (4, DockNode {
-                node_id: 4,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 6, 14, 19]),
-            }),
-            (1, DockNode {
-                node_id: 1,
-                on_hull: true,
-                connected: DHashSet::from_iter([7, 26, 8, 17]),
-            }),
-            (29, DockNode {
-                node_id: 29,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 10, 24, 23, 19, 2]),
-            }),
-            (26, DockNode {
-                node_id: 26,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 23, 14, 1, 27, 5, 7, 13]),
-            }),
-            (23, DockNode {
-                node_id: 23,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 29, 25, 22, 28, 24, 11, 26]),
-            }),
-            (20, DockNode {
-                node_id: 20,
-                on_hull: true,
-                connected: DHashSet::from_iter([18, 28, 12, 15, 16, 21]),
-            }),
-            (17, DockNode {
-                node_id: 17,
-                on_hull: false,
-                connected: DHashSet::from_iter([5, 6, 8, 1]),
-            }),
-            (14, DockNode {
-                node_id: 14,
-                on_hull: false,
-                connected: DHashSet::from_iter([0, 5, 26, 4]),
-            }),
-            (11, DockNode {
-                node_id: 11,
-                on_hull: false,
-                connected: DHashSet::from_iter([10, 24, 23, 25, 21, 7]),
-            }),
-            (8, DockNode {
-                node_id: 8,
-                on_hull: true,
-                connected: DHashSet::from_iter([18, 6, 1, 17]),
-            }),
-            (5, DockNode {
-                node_id: 5,
-                on_hull: false,
-                connected: DHashSet::from_iter([6, 26, 14, 17]),
-            }),
-            (2, DockNode {
-                node_id: 2,
-                on_hull: false,
-                connected: DHashSet::from_iter([10, 29, 12, 19]),
-            }),
-            (27, DockNode {
-                node_id: 27,
-                on_hull: false,
-                connected: DHashSet::from_iter([26, 9, 13, 22]),
-            }),
-            (24, DockNode {
-                node_id: 24,
-                on_hull: false,
-                connected: DHashSet::from_iter([10, 29, 11, 23]),
-            }),
-            (21, DockNode {
-                node_id: 21,
-                on_hull: false,
-                connected: DHashSet::from_iter([10, 11, 25, 28, 20, 16]),
-            }),
-            (18, DockNode {
-                node_id: 18,
-                on_hull: true,
-                connected: DHashSet::from_iter([6, 12, 8, 19, 20, 13]),
-            }),
-            (15, DockNode {
-                node_id: 15,
-                on_hull: true,
-                connected: DHashSet::from_iter([28, 20, 3, 22]),
-            }),
-            (12, DockNode {
-                node_id: 12,
-                on_hull: false,
-                connected: DHashSet::from_iter([18, 2, 16, 20]),
-            }),
-            (9, DockNode {
-                node_id: 9,
-                on_hull: false,
-                connected: DHashSet::from_iter([13, 27, 3, 22]),
-            }),
-            (6, DockNode {
-                node_id: 6,
-                on_hull: false,
-                connected: DHashSet::from_iter([4, 8, 5, 18, 19, 17]),
-            }),
-            (3, DockNode {
-                node_id: 3,
-                on_hull: true,
-                connected: DHashSet::from_iter([13, 9, 15, 22]),
-            }),
-        ]);
-        if cfg!(debug_assertions) {
-            println!("Node connections: {:?}", node_connections);
-        }
-
-        let all_dock_points: Vec<Vec2<f32>> = [
-            [20687, 16148],
-            [28958, 28286],
-            [23493, 7853],
-            [2896, 31605],
-            [25291, 17355],
-            [24565, 26093],
-            [28670, 19708],
-            [18119, 31519],
-            [32012, 25350],
-            [3974, 29160],
-            [20837, 6546],
-            [17480, 7396],
-            [28063, 9733],
-            [6810, 31960],
-            [23526, 21192],
-            [1239, 1089],
-            [25816, 5518],
-            [29657, 26071],
-            [30661, 13099],
-            [27523, 14145],
-            [28255, 3729],
-            [18914, 5284],
-            [2345, 20351],
-            [10481, 14845],
-            [17950, 9572],
-            [16656, 5288],
-            [20282, 27928],
-            [4008, 23006],
-            [6021, 2687],
-            [19126, 11214],
-        ]
-        .iter()
-        .map(|&[x, y]| Vec2::new(x as f32, y as f32))
-        .collect();
-
-        let circuit = find_eulerian_circuit(&node_connections).expect("find_eulerian_circuit should not fail");
-        if cfg!(debug_assertions) {
-            println!("Eulerian circuit: {:?}", circuit);
-        }
-
-        // Print the circuit with distances
-        if cfg!(debug_assertions) {
-            let mut prev_node_id: Option<usize> = None;
-            circuit.iter().for_each(|&to_node_id| {
-                if let Some(from_node_id) = prev_node_id {
-                    if let Some(from_pt) = all_dock_points.get(from_node_id)
-                        && let Some(to_pt) = all_dock_points.get(to_node_id)
-                    {
-                        println!(
-                            "From node {} {:?}, To node {} {:?}, Distance: {}",
-                            from_node_id,
-                            from_pt,
-                            to_node_id,
-                            to_pt,
-                            from_pt.distance(*to_pt)
-                        );
-                    } else {
-                        println!("Node id {} not found", from_node_id);
-                    }
-                }
-                prev_node_id = Some(to_node_id);
-            });
-        }
-        // get the node_connections keys, which are node ids.
-        // Sort the nodes (node ids) by the number of connections to other nodes.
-        let sorted_node_ids: Vec<usize> = node_connections
-            .keys()
-            .copied()
-            .sorted_by_key(|&node_id| node_connections[&node_id].connected.len())
-            .rev()
-            .collect();
-        if cfg!(debug_assertions) {
-            // debug print the sorted node ids
-            sorted_node_ids.iter().for_each(|&node_id| {
-                if let Some(node) = node_connections.get(&node_id) {
-                    println!("Node id {}: {} edges", node.node_id, node.connected.len(),);
-                }
-            });
-        }
-
-        let mut max_segments_count = 0;
-        let mut min_segments_len_spread = f32::MAX;
-        let mut best_segments = Vec::new();
-
-        // For each node_id in the sorted node ids,
-        // break the circuit into circular segments that start and end with that
-        // node_id. The best set of segments is the one with the most
-        // segments and where the length of the segments differ the least.
-        sorted_node_ids.iter().for_each(|&node_id| {
-            if cfg!(debug_assertions) {
-                println!("Segments starting with node id {}:", node_id);
-            }
-
-            let mut segments = Vec::new();
-            let mut current_segment = Vec::new();
-            let circuit_len = circuit.len();
-            let mut starting_index = usize::MAX;
-            let mut end_index = usize::MAX;
-            let mut prev_value = usize::MAX;
-
-            for (index, &value) in circuit.iter().cycle().enumerate() {
-                if value == node_id {
-                    if starting_index == usize::MAX {
-                        starting_index = index;
-                        if starting_index > 0 {
-                            end_index = index + circuit_len - 1;
-                        } else {
-                            end_index = index + circuit_len - 2;
-                        }
-                        if cfg!(debug_assertions) {
-                            println!(
-                                "starting_index: {}, circuit_len: {}, end_index: {}",
-                                starting_index, circuit_len, end_index
-                            );
-                        }
-                    }
-                    if !current_segment.is_empty() {
-                        current_segment.push(value);
-                        if cfg!(debug_assertions) {
-                            println!("Pushing segment: {:?}", current_segment);
-                        }
-                        segments.push(current_segment);
-                        current_segment = Vec::new();
-                    }
-                }
-                if starting_index < usize::MAX {
-                    if value != prev_value {
-                        current_segment.push(value);
-                    }
-                    prev_value = value;
-                }
-
-                // Stop cycling once we've looped back to the value before the starting index
-                if index == end_index {
-                    if cfg!(debug_assertions) {
-                        println!("Breaking out of cycle at index {}", index);
-                    }
-                    break;
-                }
-            }
-
-            // Add the last segment
-            if !current_segment.is_empty() {
-                current_segment.push(node_id);
-                if cfg!(debug_assertions) {
-                    println!("Pushing segment: {:?}", current_segment);
-                }
-                segments.push(current_segment);
-            }
-
-            if cfg!(debug_assertions) {
-                println!("Segments: {:?}", segments);
-            }
-
-            let avg_segment_length = segments.iter().map(|segment| segment.len()).sum::<usize>()
-                as f32
-                / segments.len() as f32;
-
-            // We want similar segment lengths, so calculate the spread as the
-            // standard deviation of the segment lengths.
-            let seg_lengths_spread = segments
-                .iter()
-                .map(|segment| (segment.len() as f32 - avg_segment_length).powi(2))
-                .sum::<f32>()
-                .sqrt()
-                / segments.len() as f32;
-
-            if cfg!(debug_assertions) {
-                println!(
-                    "avg_segment_length: {}, seg_lengths_spread: {}",
-                    avg_segment_length, seg_lengths_spread
-                );
-            }
-            // First take the longest segment count, then if the segment count is the same
-            // as the longest so far, take the one with the least length spread.
-            if segments.len() > max_segments_count {
-                max_segments_count = segments.len();
-                min_segments_len_spread = seg_lengths_spread;
-                best_segments = segments;
-            } else if segments.len() == max_segments_count
-                && seg_lengths_spread < min_segments_len_spread
-            {
-                min_segments_len_spread = seg_lengths_spread;
-                best_segments = segments;
-            }
-        });
-        if cfg!(debug_assertions) {
-            println!(
-                "max_segments_count: {}, min_segments_len_spread: {}",
-                max_segments_count, min_segments_len_spread
-            );
-            println!("Best segments: {:?}", best_segments);
-        }
-
-        let (best_segments2, count, spread) =
-            best_eulerian_circuit_segments(&node_connections, &circuit)
-            .expect("best_eulerian_circuit_segments should not fail");
-        if cfg!(debug_assertions) {
-            println!("Best segments2: {:?}, count: {}, spread: {}", best_segments2, count, spread);
-        }
-        assert_eq!(best_segments.len(), best_segments2.len());
-        assert_eq!(best_segments2.len(), 4);
-        assert_eq!(best_segments[0].len(), best_segments2[0].len());
-        assert_eq!(best_segments[1].len(), best_segments2[1].len());
-        assert_eq!(best_segments[2].len(), best_segments2[2].len());
-        assert_eq!(best_segments[3].len(), best_segments2[3].len());
-        assert_eq!(best_segments[3].len(), best_segments2[3].len());
-        assert_eq!(best_segments[0], best_segments2[0]);
-        assert_eq!(best_segments[1], best_segments2[1]);
-        assert_eq!(best_segments[2], best_segments2[2]);
-        assert_eq!(best_segments[3], best_segments2[3]);
-    }
-
     #[test]
     fn best_eulerian_circuit_test() {
         let node_connections: DHashMap<usize, DockNode> = DHashMap::from_iter([
             (0, DockNode {
                 node_id: 0,
                 on_hull: false,
-                connected: DHashSet::from_iter([23, 29, 26, 14, 19, 4]),
+                connected: Vec::from_iter([23, 29, 26, 14, 19, 4]),
             }),
             (28, DockNode {
                 node_id: 28,
                 on_hull: false,
-                connected: DHashSet::from_iter([23, 15, 25, 20, 21, 22]),
+                connected: Vec::from_iter([23, 15, 25, 20, 21, 22]),
             }),
             (25, DockNode {
                 node_id: 25,
                 on_hull: false,
-                connected: DHashSet::from_iter([23, 11, 28, 21]),
+                connected: Vec::from_iter([23, 11, 28, 21]),
             }),
             (22, DockNode {
                 node_id: 22,
                 on_hull: false,
-                connected: DHashSet::from_iter([23, 28, 27, 9, 3, 15]),
+                connected: Vec::from_iter([23, 28, 27, 9, 3, 15]),
             }),
             (19, DockNode {
                 node_id: 19,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 6, 29, 18, 2, 4]),
+                connected: Vec::from_iter([0, 6, 29, 18, 2, 4]),
             }),
             (16, DockNode {
                 node_id: 16,
                 on_hull: false,
-                connected: DHashSet::from_iter([10, 12, 20, 21]),
+                connected: Vec::from_iter([10, 12, 20, 21]),
             }),
             (13, DockNode {
                 node_id: 13,
                 on_hull: true,
-                connected: DHashSet::from_iter([7, 26, 9, 27, 3, 18]),
+                connected: Vec::from_iter([7, 26, 9, 27, 3, 18]),
             }),
             (10, DockNode {
                 node_id: 10,
                 on_hull: false,
-                connected: DHashSet::from_iter([24, 29, 11, 2, 16, 21]),
+                connected: Vec::from_iter([24, 29, 11, 2, 16, 21]),
             }),
             (7, DockNode {
                 node_id: 7,
                 on_hull: true,
-                connected: DHashSet::from_iter([26, 1, 13, 11]),
+                connected: Vec::from_iter([26, 1, 13, 11]),
             }),
             (4, DockNode {
                 node_id: 4,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 6, 14, 19]),
+                connected: Vec::from_iter([0, 6, 14, 19]),
             }),
             (1, DockNode {
                 node_id: 1,
                 on_hull: true,
-                connected: DHashSet::from_iter([7, 26, 8, 17]),
+                connected: Vec::from_iter([7, 26, 8, 17]),
             }),
             (29, DockNode {
                 node_id: 29,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 10, 24, 23, 19, 2]),
+                connected: Vec::from_iter([0, 10, 24, 23, 19, 2]),
             }),
             (26, DockNode {
                 node_id: 26,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 23, 14, 1, 27, 5, 7, 13]),
+                connected: Vec::from_iter([0, 23, 14, 1, 27, 5, 7, 13]),
             }),
             (23, DockNode {
                 node_id: 23,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 29, 25, 22, 28, 24, 11, 26]),
+                connected: Vec::from_iter([0, 29, 25, 22, 28, 24, 11, 26]),
             }),
             (20, DockNode {
                 node_id: 20,
                 on_hull: true,
-                connected: DHashSet::from_iter([18, 28, 12, 15, 16, 21]),
+                connected: Vec::from_iter([18, 28, 12, 15, 16, 21]),
             }),
             (17, DockNode {
                 node_id: 17,
                 on_hull: false,
-                connected: DHashSet::from_iter([5, 6, 8, 1]),
+                connected: Vec::from_iter([5, 6, 8, 1]),
             }),
             (14, DockNode {
                 node_id: 14,
                 on_hull: false,
-                connected: DHashSet::from_iter([0, 5, 26, 4]),
+                connected: Vec::from_iter([0, 5, 26, 4]),
             }),
             (11, DockNode {
                 node_id: 11,
                 on_hull: false,
-                connected: DHashSet::from_iter([10, 24, 23, 25, 21, 7]),
+                connected: Vec::from_iter([10, 24, 23, 25, 21, 7]),
             }),
             (8, DockNode {
                 node_id: 8,
                 on_hull: true,
-                connected: DHashSet::from_iter([18, 6, 1, 17]),
+                connected: Vec::from_iter([18, 6, 1, 17]),
             }),
             (5, DockNode {
                 node_id: 5,
                 on_hull: false,
-                connected: DHashSet::from_iter([6, 26, 14, 17]),
+                connected: Vec::from_iter([6, 26, 14, 17]),
             }),
             (2, DockNode {
                 node_id: 2,
                 on_hull: false,
-                connected: DHashSet::from_iter([10, 29, 12, 19]),
+                connected: Vec::from_iter([10, 29, 12, 19]),
             }),
             (27, DockNode {
                 node_id: 27,
                 on_hull: false,
-                connected: DHashSet::from_iter([26, 9, 13, 22]),
+                connected: Vec::from_iter([26, 9, 13, 22]),
             }),
             (24, DockNode {
                 node_id: 24,
                 on_hull: false,
-                connected: DHashSet::from_iter([10, 29, 11, 23]),
+                connected: Vec::from_iter([10, 29, 11, 23]),
             }),
             (21, DockNode {
                 node_id: 21,
                 on_hull: false,
-                connected: DHashSet::from_iter([10, 11, 25, 28, 20, 16]),
+                connected: Vec::from_iter([10, 11, 25, 28, 20, 16]),
             }),
             (18, DockNode {
                 node_id: 18,
                 on_hull: true,
-                connected: DHashSet::from_iter([6, 12, 8, 19, 20, 13]),
+                connected: Vec::from_iter([6, 12, 8, 19, 20, 13]),
             }),
             (15, DockNode {
                 node_id: 15,
                 on_hull: true,
-                connected: DHashSet::from_iter([28, 20, 3, 22]),
+                connected: Vec::from_iter([28, 20, 3, 22]),
             }),
             (12, DockNode {
                 node_id: 12,
                 on_hull: false,
-                connected: DHashSet::from_iter([18, 2, 16, 20]),
+                connected: Vec::from_iter([18, 2, 16, 20]),
             }),
             (9, DockNode {
                 node_id: 9,
                 on_hull: false,
-                connected: DHashSet::from_iter([13, 27, 3, 22]),
+                connected: Vec::from_iter([13, 27, 3, 22]),
             }),
             (6, DockNode {
                 node_id: 6,
                 on_hull: false,
-                connected: DHashSet::from_iter([4, 8, 5, 18, 19, 17]),
+                connected: Vec::from_iter([4, 8, 5, 18, 19, 17]),
             }),
             (3, DockNode {
                 node_id: 3,
                 on_hull: true,
-                connected: DHashSet::from_iter([13, 9, 15, 22]),
+                connected: Vec::from_iter([13, 9, 15, 22]),
             }),
         ]);
 
-        let (best_segments, circuit, max_seg_len, min_spread, iteration) = find_best_eulerian_circuit(&node_connections).expect("a circuit should have been found");
+        let (best_segments, circuit, max_seg_len, min_spread, iteration) =
+            find_best_eulerian_circuit(&node_connections)
+                .expect("a circuit should have been found");
+        // if cfg!(debug_assertions) {
+        //     println!("Max segment length: {}", max_seg_len);
+        //     println!("Min spread: {}", min_spread);
+        //     println!("Iteration: {}", iteration);
+        //     println!("Best segments: {:?}", best_segments);
+        //     println!("Circuit: {:?}", circuit);
+        // }
+        assert_eq!(max_seg_len, 4);
+        assert_relative_eq!(min_spread, 1.0606601, epsilon = 0.0000001);
+        assert_eq!(iteration, 6);
+        let expected_segments = vec![
+            vec![26, 0, 23, 29, 0, 14, 5, 6, 4, 0, 19, 6, 8, 18, 6, 17, 5, 26],
+            vec![
+                26, 23, 25, 11, 10, 24, 29, 10, 2, 29, 19, 18, 12, 2, 19, 4, 14, 26,
+            ],
+            vec![
+                26, 1, 8, 17, 1, 7, 11, 24, 23, 22, 28, 23, 11, 21, 10, 16, 12, 20, 18, 13, 26,
+            ],
+            vec![
+                26, 27, 9, 13, 27, 22, 9, 3, 15, 28, 25, 21, 28, 20, 16, 21, 20, 15, 22, 3, 13, 7,
+                26,
+            ],
+        ];
+        assert_eq!(best_segments, expected_segments);
+        let expected_circuit = vec![
+            13, 7, 26, 0, 23, 29, 0, 14, 5, 6, 4, 0, 19, 6, 8, 18, 6, 17, 5, 26, 23, 25, 11, 10,
+            24, 29, 10, 2, 29, 19, 18, 12, 2, 19, 4, 14, 26, 1, 8, 17, 1, 7, 11, 24, 23, 22, 28,
+            23, 11, 21, 10, 16, 12, 20, 18, 13, 26, 27, 9, 13, 27, 22, 9, 3, 15, 28, 25, 21, 28,
+            20, 16, 21, 20, 15, 22, 3, 13,
+        ];
+        assert_eq!(circuit, expected_circuit);
+    }
+
+    fn large_map_docking_locations() -> Vec<Vec2<f32>> {
+        [
+            [384, 113],
+            [713, 67],
+            [1351, 17],
+            [3146, 64],
+            [720, 248],
+            [775, 204],
+            [829, 166],
+            [1391, 161],
+            [1812, 156],
+            [3022, 204],
+            [3094, 193],
+            [781, 529],
+            [860, 289],
+            [889, 371],
+            [892, 488],
+            [975, 408],
+            [1039, 509],
+            [1050, 449],
+            [1167, 379],
+            [1359, 457],
+            [1425, 382],
+            [1468, 424],
+            [1493, 363],
+            [1752, 322],
+            [1814, 452],
+            [2139, 469],
+            [2179, 343],
+            [2283, 333],
+            [2428, 299],
+            [2499, 504],
+            [2567, 498],
+            [3110, 363],
+            [3126, 503],
+            [3248, 330],
+            [3343, 491],
+            [96, 837],
+            [98, 752],
+            [149, 884],
+            [258, 679],
+            [349, 873],
+            [350, 676],
+            [431, 983],
+            [541, 842],
+            [686, 640],
+            [923, 728],
+            [941, 537],
+            [951, 654],
+            [991, 575],
+            [999, 955],
+            [1164, 767],
+            [1238, 669],
+            [1250, 923],
+            [1266, 808],
+            [1343, 878],
+            [1535, 711],
+            [1633, 773],
+            [1684, 705],
+            [1690, 833],
+            [1694, 982],
+            [1742, 774],
+            [1781, 821],
+            [1833, 558],
+            [1854, 623],
+            [2169, 815],
+            [2189, 966],
+            [2232, 691],
+            [2243, 778],
+            [2266, 934],
+            [2354, 742],
+            [2423, 753],
+            [2423, 999],
+            [2438, 637],
+            [2491, 758],
+            [2497, 636],
+            [2507, 855],
+            [3066, 909],
+            [3088, 568],
+            [3124, 687],
+            [3198, 681],
+            [3241, 901],
+            [3260, 603],
+            [3276, 704],
+            [3314, 652],
+            [3329, 744],
+            [3374, 888],
+            [3513, 999],
+            [3609, 708],
+            [3864, 934],
+            [3959, 933],
+            [3959, 1000],
+            [167, 1135],
+            [229, 1072],
+            [333, 1198],
+            [349, 1481],
+            [399, 1165],
+            [473, 1350],
+            [510, 1032],
+            [523, 1481],
+            [535, 1294],
+            [552, 1080],
+            [587, 1388],
+            [789, 1103],
+            [816, 1284],
+            [886, 1183],
+            [905, 1338],
+            [1022, 1158],
+            [1161, 1359],
+            [1187, 1457],
+            [1197, 1289],
+            [1231, 1067],
+            [1311, 1352],
+            [1331, 1076],
+            [1340, 1504],
+            [1367, 1415],
+            [1414, 1384],
+            [1424, 1091],
+            [1447, 1018],
+            [1642, 1383],
+            [1733, 1237],
+            [1740, 1066],
+            [1751, 1128],
+            [1797, 1171],
+            [1802, 1060],
+            [1960, 1495],
+            [1977, 1081],
+            [2305, 1064],
+            [2372, 1117],
+            [2411, 1480],
+            [2688, 1320],
+            [2745, 1359],
+            [2819, 1162],
+            [2860, 1268],
+            [2868, 1088],
+            [2934, 1481],
+            [2991, 1388],
+            [3078, 1447],
+            [3166, 1267],
+            [3222, 1374],
+            [3234, 1234],
+            [3244, 1057],
+            [3256, 1437],
+            [3302, 1274],
+            [3354, 1165],
+            [3389, 1340],
+            [3416, 1406],
+            [3451, 1122],
+            [3594, 1205],
+            [3681, 1435],
+            [3838, 1265],
+            [3892, 1181],
+            [3911, 1243],
+            [200, 1663],
+            [328, 1843],
+            [363, 1630],
+            [445, 1640],
+            [505, 1756],
+            [537, 1594],
+            [560, 1779],
+            [654, 1594],
+            [713, 1559],
+            [769, 1912],
+            [970, 1782],
+            [988, 1705],
+            [1361, 1595],
+            [1370, 1949],
+            [1480, 1695],
+            [1695, 1531],
+            [1881, 1703],
+            [2315, 1979],
+            [2411, 1536],
+            [2508, 1990],
+            [2679, 1737],
+            [2731, 1704],
+            [2734, 1956],
+            [2739, 1606],
+            [2770, 1781],
+            [2778, 1879],
+            [2781, 1664],
+            [2841, 1716],
+            [2858, 1647],
+            [2858, 1826],
+            [2898, 1715],
+            [2935, 1554],
+            [3051, 1837],
+            [3060, 1965],
+            [3185, 1918],
+            [3251, 1869],
+            [3442, 1856],
+            [3447, 1543],
+            [3534, 1951],
+            [3590, 1878],
+            [3611, 1960],
+            [3635, 1584],
+            [3649, 1781],
+            [3656, 1850],
+            [3668, 1912],
+            [3750, 1906],
+            [3762, 1826],
+            [3831, 1971],
+            [3841, 1876],
+            [3888, 1806],
+            [3960, 1818],
+            [177, 2260],
+            [239, 2026],
+            [358, 2364],
+            [471, 2327],
+            [528, 2100],
+            [536, 2198],
+            [588, 2244],
+            [648, 2180],
+            [665, 2038],
+            [693, 2366],
+            [852, 2410],
+            [898, 2293],
+            [969, 2205],
+            [1095, 2322],
+            [1198, 2217],
+            [1267, 2284],
+            [1278, 2220],
+            [1339, 2114],
+            [1419, 2203],
+            [1470, 2049],
+            [1487, 2108],
+            [1959, 2257],
+            [2087, 2061],
+            [2226, 2048],
+            [2231, 2319],
+            [2385, 2251],
+            [2417, 2039],
+            [2598, 2035],
+            [2686, 2071],
+            [2715, 2204],
+            [2778, 2188],
+            [2900, 2128],
+            [2910, 2007],
+            [2988, 2087],
+            [3002, 2435],
+            [3082, 2433],
+            [3115, 2006],
+            [3167, 2143],
+            [3170, 2361],
+            [3360, 2433],
+            [3472, 2370],
+            [3514, 2022],
+            [3599, 2045],
+            [3662, 2365],
+            [3676, 2172],
+            [3838, 2208],
+            [3921, 2060],
+            [87, 2628],
+            [239, 2604],
+            [270, 2668],
+            [327, 2726],
+            [371, 2781],
+            [419, 2583],
+            [546, 2574],
+            [620, 2776],
+            [979, 2850],
+            [1052, 2762],
+            [1095, 2825],
+            [1486, 2601],
+            [1587, 2701],
+            [1620, 2599],
+            [1633, 2492],
+            [1948, 2809],
+            [2156, 2852],
+            [2464, 2605],
+            [2544, 2777],
+            [2645, 2605],
+            [2743, 2466],
+            [2836, 2785],
+            [2981, 2635],
+            [3029, 2699],
+            [3162, 2733],
+            [3389, 2769],
+            [3484, 2776],
+            [3561, 2795],
+            [3631, 2549],
+            [3669, 2474],
+            [3732, 2625],
+            [33, 3129],
+            [97, 3152],
+            [191, 3289],
+            [449, 2938],
+            [450, 3000],
+            [590, 3142],
+            [654, 3065],
+            [744, 3093],
+            [870, 3042],
+            [875, 2904],
+            [921, 3103],
+            [1018, 3034],
+            [1040, 3135],
+            [1079, 3238],
+            [1122, 3316],
+            [1136, 2996],
+            [1237, 3366],
+            [1294, 3127],
+            [1360, 3297],
+            [1366, 3043],
+            [1368, 2985],
+            [1381, 3128],
+            [1464, 3089],
+            [1514, 2965],
+            [1529, 3046],
+            [1901, 3052],
+            [1954, 3272],
+            [2117, 3121],
+            [2182, 3381],
+            [2225, 3212],
+            [2241, 3142],
+            [2250, 2949],
+            [2340, 3333],
+            [2395, 3195],
+            [2496, 3383],
+            [2521, 3162],
+            [2604, 2959],
+            [2635, 3287],
+            [2644, 3021],
+            [2657, 3140],
+            [2716, 3367],
+            [2726, 3184],
+            [2734, 3264],
+            [2799, 3300],
+            [2866, 3361],
+            [2907, 2893],
+            [2938, 3362],
+            [3058, 2982],
+            [3187, 3076],
+            [3357, 3200],
+            [3467, 3300],
+            [3511, 3359],
+            [3522, 3105],
+            [3538, 2997],
+            [3791, 3348],
+            [3866, 3261],
+            [3947, 3223],
+            [33, 3807],
+            [109, 3828],
+            [390, 3472],
+            [468, 3510],
+            [534, 3508],
+            [563, 3659],
+            [665, 3830],
+            [668, 3732],
+            [742, 3770],
+            [896, 3818],
+            [934, 3475],
+            [1255, 3871],
+            [1309, 3477],
+            [1318, 3812],
+            [1425, 3417],
+            [1443, 3950],
+            [1479, 3638],
+            [1492, 3546],
+            [1498, 3940],
+            [1533, 3593],
+            [1584, 3448],
+            [1605, 3691],
+            [1632, 3831],
+            [1798, 3826],
+            [1992, 3612],
+            [2101, 3713],
+            [2157, 3496],
+            [2204, 3796],
+            [2314, 3835],
+            [2350, 3650],
+            [2446, 3697],
+            [2474, 3624],
+            [2516, 3528],
+            [2607, 3551],
+            [2644, 3929],
+            [2714, 3603],
+            [2760, 3707],
+            [2797, 3658],
+            [2940, 3520],
+            [2955, 3687],
+            [2971, 3446],
+            [3081, 3427],
+            [3082, 3828],
+            [3124, 3475],
+            [3149, 3624],
+            [3174, 3539],
+            [3341, 3897],
+            [3371, 3841],
+            [3663, 3786],
+            [3740, 3468],
+            [3783, 3575],
+            [3886, 3584],
+            [3948, 3547],
+        ]
+        .iter()
+        .map(|&[x, y]| Vec2::new(x as f32, y as f32))
+        .collect()
+    }
+
+    fn large_map_docking_points() -> Vec<Point> {
+        large_map_docking_locations()
+            .iter()
+            .map(|&loc| Point {
+                x: loc.x as f64,
+                y: loc.y as f64,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn large_map_docking_locations_test() {
+        let all_dock_locations = large_map_docking_locations();
+
+        match export_map_with_locations(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_locations,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/docking_points_test-cyan.png",
+        ) {
+            Ok(_) => {
+                println!("Exported docking_points_test-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_map_with_locations(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_locations,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/docking_points_test-red_overlay.png",
+        ) {
+            Ok(_) => {
+                println!("Exported docking_points_test-red_overlay.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_triangulation_test() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        let node_connections = triangulation.node_connections();
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_points,
+            &node_connections,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/node_connections_test-cyan.png",
+        ) {
+            Ok(_) => {
+                println!("Exported node_connections_test-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_points,
+            &node_connections,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/node_connections_test-red_overlay.\
+             png",
+        ) {
+            Ok(_) => {
+                println!("Exported node_connections_test-red_overlay.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_graph_remove_long_edges_test() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        let node_connections = triangulation.node_connections();
+        let mut edges_to_remove = Vec::new();
+        let max_distance_squared = 1000.0f64.powi(2);
+        node_connections.iter().for_each(|(node_id, node)| {
+            for &connected_node_id in &node.connected {
+                let pt1 = &all_dock_points[*node_id];
+                let pt2 = &all_dock_points[connected_node_id];
+                let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                // Remove the edge if the distance is greater than 1000.0
+                if v1.distance_squared(v2) > max_distance_squared {
+                    edges_to_remove.push((*node_id, connected_node_id));
+                }
+            }
+        });
+
+        let mut mutable_node_connections = node_connections.clone();
+        for (node_id, connected_node_id) in edges_to_remove {
+            remove_edge((node_id, connected_node_id), &mut mutable_node_connections);
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+             only_short_node_connections_test-cyan.png",
+        ) {
+            Ok(_) => {
+                println!("Exported only_short_node_connections_test-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+             only_short_node_connections_test-red_overlay.png",
+        ) {
+            Ok(_) => {
+                println!("Exported only_short_node_connections_test-red_overlay.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_graph_remove_long_edges_test2() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+
+        let max_distance_squared = 1000.0f64.powi(2);
+        let mut edges_to_remove = DHashSet::default();
+        let all_edges = triangulation.all_edges();
+        for edge in all_edges.iter() {
+            let pt1 = &all_dock_points[edge.0];
+            let pt2 = &all_dock_points[edge.1];
+            let v1 = Vec2 { x: pt1.x, y: pt1.y };
+            let v2 = Vec2 { x: pt2.x, y: pt2.y };
+            // Remove the edge if the distance between the points is greater than
+            // max_leg_length
+            if v1.distance_squared(v2) > max_distance_squared {
+                edges_to_remove.insert(edge.clone());
+            }
+        }
+
+        let node_connections = triangulation.node_connections();
+        let mut mutable_node_connections = node_connections.clone();
+        for edge in edges_to_remove {
+            remove_edge(edge, &mut mutable_node_connections);
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+             only_short_node_connections_test2-cyan.png",
+        ) {
+            Ok(_) => {
+                println!("Exported only_short_node_connections_test2-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+             only_short_node_connections_test2-red_overlay.png",
+        ) {
+            Ok(_) => {
+                println!(
+                    "Exported only_short_node_connections_test2-red_overlay.png successfully."
+                );
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_graph_remove_edges_test2() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        let node_connections = triangulation.node_connections();
+        let mut edges_to_remove = Vec::new();
+        // remove edges that are longer than 1/4 the map size (1000.0) units
+        // and remove the shortest edges from nodes with more than 8 edges.
+        node_connections.iter().for_each(|(node_id, node)| {
+            for &connected_node_id in &node.connected {
+                let pt1 = &all_dock_points[*node_id];
+                let pt2 = &all_dock_points[connected_node_id];
+                let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                // Remove the edge if the distance is greater than 1000.0
+                if v1.distance_squared(v2) > 1000.0f64.powi(2) {
+                    edges_to_remove.push((*node_id, connected_node_id));
+                }
+            }
+            if node.connected.len() > 8 {
+                let excess_edges_count = node.connected.len() - 8;
+                // Find the shortest edge and remove it
+                let mut connected_node_info = node
+                    .connected
+                    .iter()
+                    .map(|&connected_node_id| {
+                        let pt1 = &all_dock_points[*node_id];
+                        let pt2 = &all_dock_points[connected_node_id];
+                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                        (connected_node_id, v1.distance_squared(v2) as i64)
+                    })
+                    .collect::<Vec<_>>();
+                connected_node_info.sort_by(|a, b| a.1.cmp(&b.1));
+                println!(
+                    "Node {} has {} connected nodes, removing {} shortest edges.",
+                    node_id,
+                    node.connected.len(),
+                    excess_edges_count
+                );
+                for i in 0..excess_edges_count {
+                    let (connected_node_id, _) = connected_node_info[i];
+                    edges_to_remove.push((*node_id, connected_node_id));
+                }
+            }
+        });
+
+        let mut mutable_node_connections = node_connections.clone();
+        for (node_id, connected_node_id) in edges_to_remove {
+            remove_edge((node_id, connected_node_id), &mut mutable_node_connections);
+        }
+
+        // count the number of nodes with an odd connected count
+        let odd_connected_count = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .count();
+        println!(
+            "Odd connected count: {} of {} nodes",
+            odd_connected_count,
+            mutable_node_connections.len()
+        );
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/remove_edges2_test-cyan.png",
+        ) {
+            Ok(_) => {
+                println!("Exported remove_edges2_test-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/remove_edges2_test-red_overlay.png",
+        ) {
+            Ok(_) => {
+                println!("Exported remove_edges2_test-red_overlay.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_graph_remove_edges_compare_test() {
+        let all_dock_points1 = large_map_docking_points();
+        let triangulation1 = triangulate(&all_dock_points1);
+        let node_connections1 = triangulation1.node_connections();
+
+        let all_dock_points2 = large_map_docking_points();
+        let triangulation2 = triangulate(&all_dock_points2);
+        let node_connections2 = triangulation2.node_connections();
+
+        assert_eq!(
+            all_dock_points1, all_dock_points2,
+            "Dock points should be the same."
+        );
+        assert_eq!(
+            node_connections1, node_connections2,
+            "Node connections should be equal before removing edges."
+        );
+
+        let max_distance_squared = 1000.0f64.powi(2);
+
+        let mut edges_to_remove1 = Vec::new();
+        node_connections1.iter().for_each(|(node_id, node)| {
+            for &connected_node_id in &node.connected {
+                let pt1 = &all_dock_points1[*node_id];
+                let pt2 = &all_dock_points1[connected_node_id];
+                let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                // Remove the edge if the distance is greater than 1000.0
+                if v1.distance_squared(v2) > max_distance_squared {
+                    edges_to_remove1.push((*node_id, connected_node_id));
+                }
+            }
+        });
+        let edges_to_remove1b = edges_to_remove1.clone();
+
+        let mut edges_to_remove1c = DHashSet::default();
+        edges_to_remove1b
+            .iter()
+            .for_each(|&(node_id, connected_node_id)| {
+                edges_to_remove1c.insert(if node_id < connected_node_id {
+                    (node_id, connected_node_id)
+                } else {
+                    (connected_node_id, node_id)
+                });
+            });
+
+        let mut edges_to_remove2 = DHashSet::default();
+        let all_edges2 = triangulation2.all_edges();
+        for edge in all_edges2.iter() {
+            let pt1 = &all_dock_points2[edge.0];
+            let pt2 = &all_dock_points2[edge.1];
+            let v1 = Vec2 { x: pt1.x, y: pt1.y };
+            let v2 = Vec2 { x: pt2.x, y: pt2.y };
+            // Remove the edge if the distance between the points is greater than
+            // max_leg_length
+            if v1.distance_squared(v2) > max_distance_squared {
+                edges_to_remove2.insert(edge.clone());
+            }
+        }
+
+        assert_eq!(
+            edges_to_remove1c, edges_to_remove2,
+            "Edges to remove should be the same in hashset form."
+        );
+
+        let mut mutable_node_connections1 = node_connections1.clone();
+        for (node_id, connected_node_id) in edges_to_remove1 {
+            remove_edge((node_id, connected_node_id), &mut mutable_node_connections1);
+        }
+
+        let mut mutable_node_connections1b = node_connections1.clone();
+        for edge in edges_to_remove1c {
+            remove_edge(edge, &mut mutable_node_connections1b);
+        }
+
+        assert_eq!(
+            mutable_node_connections1, mutable_node_connections1b,
+            "Node connections1 should be the same for either Vec or HashSet remove edges."
+        );
+
+        let mut mutable_node_connections2 = node_connections2.clone();
+        for edge in edges_to_remove2 {
+            remove_edge(edge, &mut mutable_node_connections2);
+        }
+
+        assert_eq!(
+            mutable_node_connections1, mutable_node_connections2,
+            "Node connections should be equal after removing edges."
+        );
+
+        assert_eq!(
+            mutable_node_connections1, mutable_node_connections2,
+            "Node connections should be equal after removing edges."
+        );
+    }
+
+    #[test]
+    fn large_map_eulerize_graph_test() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        let node_connections = triangulation.node_connections();
+        let mut edges_to_remove = DHashSet::default();
+        let mut edges_to_add = DHashSet::default();
+        let mut paired_odd_nodes = DHashSet::default();
+        // remove edges that are longer than 1/4 the map size (1000.0) units
+        // and remove the shortest edges from nodes with more than 8 edges.
+        node_connections.iter().for_each(|(node_id, node)| {
+            for &connected_node_id in &node.connected {
+                let pt1 = &all_dock_points[*node_id];
+                let pt2 = &all_dock_points[connected_node_id];
+                let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                // Remove the edge if the distance is greater than 1000.0
+                if v1.distance_squared(v2) > 1000.0f64.powi(2) {
+                    if !edges_to_remove.contains(&(*node_id, connected_node_id))
+                        && !edges_to_remove.contains(&(connected_node_id, *node_id))
+                    {
+                        edges_to_remove.insert((*node_id, connected_node_id));
+                    }
+                }
+            }
+            if node.connected.len() > 8 {
+                let excess_edges_count = node.connected.len() - 8;
+                // Find the shortest edge and remove it
+                let mut connected_node_info = node
+                    .connected
+                    .iter()
+                    .map(|&connected_node_id| {
+                        let pt1 = &all_dock_points[*node_id];
+                        let pt2 = &all_dock_points[connected_node_id];
+                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                        (connected_node_id, v1.distance_squared(v2) as i64)
+                    })
+                    .collect::<Vec<_>>();
+                connected_node_info.sort_by(|a, b| a.1.cmp(&b.1));
+                println!(
+                    "Node {} has {} connected nodes, removing {} shortest edges.",
+                    node_id,
+                    node.connected.len(),
+                    excess_edges_count
+                );
+                let mut excess_edges_remaining = excess_edges_count;
+                let mut remove_index = 0;
+                while excess_edges_remaining > 0 && remove_index < connected_node_info.len() {
+                    let (connected_node_id, _) = connected_node_info[remove_index];
+                    if !edges_to_remove.contains(&(*node_id, connected_node_id))
+                        && !edges_to_remove.contains(&(connected_node_id, *node_id))
+                    {
+                        edges_to_remove.insert((*node_id, connected_node_id));
+                        excess_edges_remaining -= 1;
+                    }
+                    remove_index += 1;
+                }
+            }
+        });
+
+        let mut mutable_node_connections = node_connections.clone();
+        let total_connections0 = mutable_node_connections
+            .iter()
+            .map(|(_, node)| node.connected.len())
+            .sum::<usize>();
+        println!(
+            "Removing {} edges in {} nodes, total_connections: {}",
+            edges_to_remove.len(),
+            mutable_node_connections.len(),
+            total_connections0
+        );
+        println!("Edges to remove: {:?}", edges_to_remove);
+        for (node_id, connected_node_id) in edges_to_remove {
+            remove_edge((node_id, connected_node_id), &mut mutable_node_connections);
+        }
+
+        // count the number of nodes with an odd connected count
+        let odd_connected_count = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .count();
+        let total_connections1 = mutable_node_connections
+            .iter()
+            .map(|(_, node)| node.connected.len())
+            .sum::<usize>();
+        println!(
+            "After Removing, odd connected count: {} in {} nodes, total connections: {}",
+            odd_connected_count,
+            mutable_node_connections.len(),
+            total_connections1
+        );
+
+        // for each node with an odd number of connections
+        mutable_node_connections.iter().for_each(|(node_id, node)| {
+            if node.connected.len() % 2 == 1 && !paired_odd_nodes.contains(node_id) {
+                // find the closest node that also has an odd number of connections
+                // and where (node_id, connected_node_id) is not already in edges_to_add.
+                let mut closest_node_id = None;
+                let mut closest_distance = f64::MAX;
+                mutable_node_connections
+                    .iter()
+                    .for_each(|(candidate_node_id, candidate_node)| {
+                        if candidate_node.connected.len() % 2 == 1
+                            && candidate_node_id != node_id
+                            && !node.connected.contains(candidate_node_id)
+                            && !paired_odd_nodes.contains(candidate_node_id)
+                        {
+                            let pt1 = &all_dock_points[*node_id];
+                            let pt2 = &all_dock_points[*candidate_node_id];
+                            let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                            let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                            let distance = v1.distance_squared(v2);
+                            if distance < closest_distance {
+                                closest_distance = distance;
+                                closest_node_id = Some(*candidate_node_id);
+                            }
+                        }
+                    });
+                if let Some(closest_node_id) = closest_node_id {
+                    // add the edge between node_id and closest_node_id
+                    edges_to_add.insert((*node_id, closest_node_id));
+                    paired_odd_nodes.insert(*node_id);
+                    paired_odd_nodes.insert(closest_node_id);
+                    println!("Adding edge between {} and {}", node_id, closest_node_id);
+                } else {
+                    println!("No suitable node found to connect to node {}", node_id);
+                }
+            }
+        });
+
+        println!(
+            "Adding {} edges in {} nodes",
+            edges_to_add.len(),
+            mutable_node_connections.len()
+        );
+        println!("Edges to add: {:?}", edges_to_add);
+        for edge in edges_to_add {
+            add_edge(edge, &mut mutable_node_connections);
+        }
+        // count the number of nodes with an odd connected count
+        let odd_connected_count2 = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .count();
+        let total_connections2 = mutable_node_connections
+            .iter()
+            .map(|(_, node)| node.connected.len())
+            .sum::<usize>();
+        println!(
+            "After Adding, odd connected count: {} of {} nodes, total connections: {}",
+            odd_connected_count2,
+            mutable_node_connections.len(),
+            total_connections2
+        );
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [105, 231, 255],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/large_map_eulerize_graph_test-cyan.\
+             png",
+        ) {
+            Ok(_) => {
+                println!("Exported remove_edges2_test-cyan.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+
+        match export_docknodes(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/triangulated-large.png",
+            &all_dock_points,
+            &mutable_node_connections,
+            [255, 0, 0],
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+             large_map_eulerize_graph_test-red_overlay.png",
+        ) {
+            Ok(_) => {
+                println!("Exported remove_edges2_test-red_overlay.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
+    }
+
+    #[test]
+    fn large_map_eulerian_circuit_test() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        let node_connections = triangulation.node_connections();
+        let mut edges_to_remove = DHashSet::default();
+        let mut edges_to_add = DHashSet::default();
+        let mut paired_odd_nodes = DHashSet::default();
+        // remove edges that are longer than 1/4 the map size (1000.0) units
+        // and remove the shortest edges from nodes with more than 8 edges.
+        node_connections.iter().for_each(|(node_id, node)| {
+            for &connected_node_id in &node.connected {
+                let pt1 = &all_dock_points[*node_id];
+                let pt2 = &all_dock_points[connected_node_id];
+                let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                // Remove the edge if the distance is greater than 1000.0
+                if v1.distance_squared(v2) > 1000.0f64.powi(2) {
+                    if !edges_to_remove.contains(&(*node_id, connected_node_id))
+                        && !edges_to_remove.contains(&(connected_node_id, *node_id))
+                    {
+                        edges_to_remove.insert((*node_id, connected_node_id));
+                    }
+                }
+            }
+            if node.connected.len() > 8 {
+                let excess_edges_count = node.connected.len() - 8;
+                // Find the shortest edge and remove it
+                let mut connected_node_info = node
+                    .connected
+                    .iter()
+                    .map(|&connected_node_id| {
+                        let pt1 = &all_dock_points[*node_id];
+                        let pt2 = &all_dock_points[connected_node_id];
+                        let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                        let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                        (connected_node_id, v1.distance_squared(v2) as i64)
+                    })
+                    .collect::<Vec<_>>();
+                connected_node_info.sort_by(|a, b| a.1.cmp(&b.1));
+                let mut excess_edges_remaining = excess_edges_count;
+                let mut remove_index = 0;
+                while excess_edges_remaining > 0 && remove_index < connected_node_info.len() {
+                    let (connected_node_id, _) = connected_node_info[remove_index];
+                    if !edges_to_remove.contains(&(*node_id, connected_node_id))
+                        && !edges_to_remove.contains(&(connected_node_id, *node_id))
+                    {
+                        edges_to_remove.insert((*node_id, connected_node_id));
+                        excess_edges_remaining -= 1;
+                    }
+                    remove_index += 1;
+                }
+            }
+        });
+
+        let mut mutable_node_connections = node_connections.clone();
+        // let total_connections0 = mutable_node_connections.iter().map(|(_, node)|
+        // node.connected.len()).sum::<usize>(); println!("Removing {} edges in
+        // {} nodes, total_connections: {}", edges_to_remove.len(),
+        // mutable_node_connections.len(), total_connections0); println!("Edges
+        // to remove: {:?}", edges_to_remove);
+        for (node_id, connected_node_id) in edges_to_remove {
+            remove_edge((node_id, connected_node_id), &mut mutable_node_connections);
+        }
+
+        // count the number of nodes with an odd connected count
+        let odd_connected_count = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .count();
+        let total_connections1 = mutable_node_connections
+            .iter()
+            .map(|(_, node)| node.connected.len())
+            .sum::<usize>();
+        println!(
+            "After Removing, odd connected count: {} in {} nodes, total connections: {}",
+            odd_connected_count,
+            mutable_node_connections.len(),
+            total_connections1
+        );
+
+        // for each node with an odd number of connections
+        mutable_node_connections.iter().for_each(|(node_id, node)| {
+            if node.connected.len() % 2 == 1 && !paired_odd_nodes.contains(node_id) {
+                // find the closest node that also has an odd number of connections
+                // and where (node_id, connected_node_id) is not already in edges_to_add.
+                let mut closest_node_id = None;
+                let mut closest_distance = f64::MAX;
+                mutable_node_connections
+                    .iter()
+                    .for_each(|(candidate_node_id, candidate_node)| {
+                        if candidate_node.connected.len() % 2 == 1
+                            && candidate_node_id != node_id
+                            && !node.connected.contains(candidate_node_id)
+                            && !paired_odd_nodes.contains(candidate_node_id)
+                        {
+                            let pt1 = &all_dock_points[*node_id];
+                            let pt2 = &all_dock_points[*candidate_node_id];
+                            let v1 = Vec2 { x: pt1.x, y: pt1.y };
+                            let v2 = Vec2 { x: pt2.x, y: pt2.y };
+                            let distance = v1.distance_squared(v2);
+                            if distance < closest_distance {
+                                closest_distance = distance;
+                                closest_node_id = Some(*candidate_node_id);
+                            }
+                        }
+                    });
+                if let Some(closest_node_id) = closest_node_id {
+                    // add the edge between node_id and closest_node_id
+                    edges_to_add.insert((*node_id, closest_node_id));
+                    paired_odd_nodes.insert(*node_id);
+                    paired_odd_nodes.insert(closest_node_id);
+                    // println!("Adding edge between {} and {}", node_id,
+                    // closest_node_id);
+                } else {
+                    // println!("No suitable node found to connect to node {}",
+                    // node_id);
+                }
+            }
+        });
+
+        // println!("Adding {} edges in {} nodes", edges_to_add.len(),
+        // mutable_node_connections.len()); println!("Edges to add: {:?}",
+        // edges_to_add);
+        for edge in edges_to_add {
+            add_edge(edge, &mut mutable_node_connections);
+        }
+        // count the number of nodes with an odd connected count
+        let odd_connected_count2 = mutable_node_connections
+            .iter()
+            .filter(|(_, node)| node.connected.len() % 2 == 1)
+            .count();
+        let total_connections2 = mutable_node_connections
+            .iter()
+            .map(|(_, node)| node.connected.len())
+            .sum::<usize>();
+        println!(
+            "After Adding, odd connected count: {} of {} nodes, total connections: {}",
+            odd_connected_count2,
+            mutable_node_connections.len(),
+            total_connections2
+        );
+
+        let (best_segments, circuit, max_seg_len, min_spread, iteration) =
+            find_best_eulerian_circuit(&mutable_node_connections)
+                .expect("a circuit should have been found");
         if cfg!(debug_assertions) {
             println!("Max segment length: {}", max_seg_len);
             println!("Min spread: {}", min_spread);
@@ -2887,6 +3458,66 @@ mod tests {
             println!("Best segments: {:?}", best_segments);
             println!("Circuit: {:?}", circuit);
         }
+
+        match export_route_segments_map(
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+            &best_segments,
+            &all_dock_points,
+            "/Volumes/Projects/Games/Veloren/NewRoutes/Images/large_map_eulerian_circuit_test.png",
+        ) {
+            Ok(_) => {
+                println!("Exported large_map_eulerian_circuit_test.png successfully.");
+            },
+            Err(e) => {
+                println!("{}", e);
+            },
+        }
     }
 
+    #[test]
+    fn large_map_eulerized_route_segments_test() {
+        let all_dock_points = large_map_docking_points();
+        let triangulation = triangulate(&all_dock_points);
+        // The test docking locations are in chunks, not blocks, so the max route length
+        // is 1000.0 specified in chunks.
+        if let Some((best_segments, circuit, max_seg_len, min_spread, iteration)) =
+            triangulation.eulerized_route_segments(&all_dock_points, 10, 1000.0, 130626912)
+        {
+            if cfg!(debug_assertions) {
+                println!("Max segment length: {}", max_seg_len);
+                println!("Min spread: {}", min_spread);
+                println!("Iteration: {}", iteration);
+                println!("Best segments: {:?}", best_segments);
+                println!("Circuit: {:?}", circuit);
+            }
+
+            match export_route_segments_map(
+                "/Volumes/Projects/Games/Veloren/NewRoutes/Images/isse-large-map.png",
+                &best_segments,
+                &all_dock_points,
+                "/Volumes/Projects/Games/Veloren/NewRoutes/Images/\
+                 large_map_eulerized_route_segments_test.png",
+            ) {
+                Ok(_) => {
+                    println!("Exported large_map_eulerized_route_segments_test.png successfully.");
+                },
+                Err(e) => {
+                    println!("{}", e);
+                },
+            }
+        } else {
+            println!("Error - cannot eulerize the large map dock points.");
+        }
+    }
+
+    #[test]
+    fn pow2test() {
+        for i in 7..=15 {
+            let max_iterations = (3742931.0 * 2.71828f32.powf(-1.113823 * i as f32))
+                .max(1.0)
+                .min(100.0)
+                .round() as usize;
+            println!("{}: {}", i, max_iterations);
+        }
+    }
 }
