@@ -603,9 +603,8 @@ impl Airships {
         // 3742931.0 * 2.71828f32.powf(-1.113823 * pow2)
 
         let pow2 = world_sim.map_size_lg().vec().x;
-        let max_iterations = (3742931.0 * 2.71828f32.powf(-1.113823 * pow2 as f32))
-            .max(1.0)
-            .min(100.0)
+        let max_iterations = (3742931.0 * std::f32::consts::E.powf(-1.113823 * pow2 as f32))
+            .clamp(1.0, 100.0)
             .round() as usize;
 
         if let Some((best_segments, _, max_seg_len, min_spread, iteration)) = triangulation
@@ -1010,7 +1009,7 @@ enum EdgeRemovalStackNodeType {
     Undo,
 }
 
-const DEBUG_AIRSHIP_EULERIZATION: bool = true;
+const DEBUG_AIRSHIP_EULERIZATION: bool = false;
 
 macro_rules! debug_airship_eulerization {
     ($($arg:tt)*) => {
@@ -1031,7 +1030,7 @@ trait TriangulationExt {
     fn node_connections(&self) -> DockNodeGraph;
     fn eulerized_route_segments(
         &self,
-        all_dock_points: &Vec<Point>,
+        all_dock_points: &[Point],
         iterations: usize,
         max_route_leg_length: f64,
         seed: u32,
@@ -1039,7 +1038,7 @@ trait TriangulationExt {
 }
 
 fn first_odd_node(
-    search_order: &Vec<usize>,
+    search_order: &[usize],
     start: usize,
     nodes: &DockNodeGraph,
 ) -> Option<(usize, usize)> {
@@ -1178,7 +1177,7 @@ impl TriangulationExt for Triangulation {
             }
         });
         for (_, dock_node) in connections.iter_mut() {
-            dock_node.connected = dock_node.connected.iter().copied().collect();
+            dock_node.connected = dock_node.connected.to_vec();
         }
         connections
     }
@@ -1212,7 +1211,7 @@ impl TriangulationExt for Triangulation {
 
     fn eulerized_route_segments(
         &self,
-        all_dock_points: &Vec<Point>,
+        all_dock_points: &[Point],
         iterations: usize,
         max_route_leg_length: f64,
         seed: u32,
@@ -1254,7 +1253,7 @@ impl TriangulationExt for Triangulation {
             // Remove the edge if the distance between the points is greater than
             // max_leg_length
             if v1.distance_squared(v2) > max_distance_squared {
-                edges_to_remove.insert(edge.clone());
+                edges_to_remove.insert(*edge);
             }
         }
 
@@ -1622,13 +1621,13 @@ fn find_best_eulerian_circuit(
 
     let graph_keys = graph.keys().copied().collect::<Vec<_>>();
 
-    for i in 0..graph_keys.len() {
+    for (i, &start_vertex) in graph_keys.iter().enumerate() {
         let mut graph = graph.clone();
         let mut circuit = Vec::new();
         let mut stack = Vec::new();
         let mut circuit_nodes = DHashSet::default();
 
-        let mut current_vertex = graph_keys[i];
+        let mut current_vertex = start_vertex;
 
         while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
             if graph[&current_vertex].connected.is_empty() {
@@ -1642,7 +1641,7 @@ fn find_best_eulerian_circuit(
                     .connected
                     .iter()
                     .find(|&vertex| !circuit_nodes.contains(vertex))
-                    .or(graph.get(&current_vertex)?.connected.iter().next())
+                    .or(graph.get(&current_vertex)?.connected.first())
                 {
                     remove_edge((current_vertex, next_vertex), &mut graph);
                     current_vertex = next_vertex;
@@ -1657,13 +1656,9 @@ fn find_best_eulerian_circuit(
         if let Some((route_segments, max_seg_len, min_spread)) =
             best_eulerian_circuit_segments(&graph, &circuit)
         {
-            if max_seg_len > best_max_seg_len {
-                best_circuit = circuit.clone();
-                best_route_segments = route_segments;
-                best_max_seg_len = max_seg_len;
-                best_min_spread = min_spread;
-                best_iteration = i;
-            } else if max_seg_len == best_max_seg_len && min_spread < best_min_spread {
+            if max_seg_len > best_max_seg_len
+                || (max_seg_len == best_max_seg_len && min_spread < best_min_spread)
+            {
                 best_circuit = circuit.clone();
                 best_route_segments = route_segments;
                 best_max_seg_len = max_seg_len;
@@ -1698,7 +1693,7 @@ fn find_best_eulerian_circuit(
 /// is equal to the maximum number of edges connected to any node, divided by 2.
 fn best_eulerian_circuit_segments(
     graph: &DockNodeGraph,
-    circuit: &Vec<usize>,
+    circuit: &[usize],
 ) -> Option<(Vec<Vec<usize>>, usize, f32)> {
     // get the node_connections keys, which are node ids.
     // Sort the nodes (node ids) by the number of connections to other nodes.
@@ -3513,9 +3508,8 @@ mod tests {
     #[test]
     fn pow2test() {
         for i in 7..=15 {
-            let max_iterations = (3742931.0 * 2.71828f32.powf(-1.113823 * i as f32))
-                .max(1.0)
-                .min(100.0)
+            let max_iterations = (3742931.0 * std::f32::consts::E.powf(-1.113823 * i as f32))
+                .clamp(1.0, 100.0)
                 .round() as usize;
             println!("{}: {}", i, max_iterations);
         }

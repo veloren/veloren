@@ -122,7 +122,7 @@ impl PixmapExt for Pixmap {
             return Err("Text cannot be empty".into());
         }
         // Map the characters of the string to sprite IDs.
-        let sprite_ids = text.chars().map(|c| id_formatter(c)).collect::<Vec<_>>();
+        let sprite_ids = text.chars().map(id_formatter).collect::<Vec<_>>();
 
         let sprites = sprite_map.get_sprites(sprite_ids);
         if sprites.len() != char_count {
@@ -151,8 +151,10 @@ impl PixmapExt for Pixmap {
             transform = transform.pre_scale(scale, scale);
         }
 
-        let mut paint = PixmapPaint::default();
-        paint.quality = FilterQuality::Bicubic;
+        let paint = PixmapPaint {
+            quality: FilterQuality::Bicubic,
+            ..Default::default()
+        };
 
         for (char_index, sprite) in sprites.iter().enumerate() {
             // X is offset per char by the scaled char width.
@@ -444,7 +446,7 @@ fn airship_routes_map(
 /// sites.
 fn dock_sites_triangulation_map(
     triangulation: &Triangulation,
-    points: &Vec<Point>,
+    points: &[Point],
     image_size: MapSizeLg,
     index: &Index,
     sampler: &WorldSim,
@@ -576,7 +578,7 @@ fn dock_sites_triangulation_map(
 /// to other docking sites.
 fn dock_sites_optimized_tesselation_map(
     _triangulation: &Triangulation,
-    points: &Vec<Point>,
+    points: &[Point],
     node_connections: &DHashMap<usize, DockNode>,
     image_size: MapSizeLg,
     index: &Index,
@@ -680,8 +682,8 @@ fn dock_sites_optimized_tesselation_map(
 /// blocks, so world coordinates must be converted by inverting the y-axix
 /// and scaling to the pixmap size.
 fn draw_airship_route_segments(
-    segments: &Vec<Vec<usize>>,
-    points: &Vec<Vec2<f32>>,
+    segments: &[Vec<usize>],
+    points: &[Vec2<f32>],
     pixmap: &mut Pixmap,
 ) -> Result<(), Box<dyn Error>> {
     // Draw a circle around the points (the docking sites)
@@ -745,8 +747,8 @@ fn draw_airship_route_segments(
     // orient the reader.
     let segment_color_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
     let digits_sprite_map = TinySkiaSpriteMap::new(
-        "world.module.airship.rgbyw_digits",
-        "world.module.airship.rgbyw_digits",
+        "world.module.airship.airship_route_map_digits",
+        "world.module.airship.airship_route_map_digits",
     );
     let digit_size = digits_sprite_map.get_sprite_size("RED_0");
     for (i, segment) in segments.iter().enumerate() {
@@ -779,7 +781,7 @@ fn draw_airship_route_segments(
                 0.75,
                 angle,
                 &digits_sprite_map,
-                &id_formatter,
+                id_formatter,
             )?;
 
             route_line_number += 1;
@@ -793,8 +795,8 @@ fn draw_airship_route_segments(
 /// where the segments are loops of docking points derived from the
 /// eulerian circuit created from the eulerized tesselation.
 fn airship_route_segments_map(
-    segments: &Vec<Vec<usize>>,
-    points: &Vec<Point>,
+    segments: &[Vec<usize>],
+    points: &[Point],
     image_size: MapSizeLg,
     index: &Index,
     sampler: &WorldSim,
@@ -841,7 +843,7 @@ pub fn save_airship_routes_map(airships: &mut Airships, index: &Index, sampler: 
 
 pub fn save_airship_routes_triangulation(
     triangulation: &Triangulation,
-    points: &Vec<Point>,
+    points: &[Point],
     index: &Index,
     sampler: &WorldSim,
 ) {
@@ -868,7 +870,7 @@ pub fn save_airship_routes_triangulation(
 
 pub fn save_airship_routes_optimized_tesselation(
     triangulation: &Triangulation,
-    points: &Vec<Point>,
+    points: &[Point],
     node_connections: &DHashMap<usize, DockNode>,
     index: &Index,
     sampler: &WorldSim,
@@ -896,8 +898,8 @@ pub fn save_airship_routes_optimized_tesselation(
 }
 
 pub fn save_airship_route_segments(
-    segments: &Vec<Vec<usize>>,
-    points: &Vec<Point>,
+    segments: &[Vec<usize>],
+    points: &[Point],
     index: &Index,
     sampler: &WorldSim,
 ) {
@@ -954,7 +956,7 @@ pub fn export_map_with_locations(
 #[cfg(debug_assertions)]
 pub fn export_docknodes(
     map_image_path: &str,
-    points: &Vec<Point>,
+    points: &[Point],
     node_connections: &DHashMap<usize, DockNode>,
     color: [u8; 3],
     output_path: &str,
@@ -1012,8 +1014,8 @@ pub fn export_docknodes(
 #[cfg(debug_assertions)]
 pub fn export_route_segments_map(
     map_image_path: &str,
-    segments: &Vec<Vec<usize>>,
-    points: &Vec<Point>,
+    segments: &[Vec<usize>],
+    points: &[Point],
     output_path: &str,
 ) -> Result<(), String> {
     let mut pixmap =
@@ -1109,8 +1111,10 @@ mod tests {
             None,
         );
 
-        let mut txt_paint = PixmapPaint::default();
-        txt_paint.quality = FilterQuality::Bicubic;
+        let txt_paint = PixmapPaint {
+            quality: FilterQuality::Bicubic,
+            ..Default::default()
+        };
 
         let base_x1 = 40.0;
         let base_x2 = 480.0;
@@ -1118,8 +1122,8 @@ mod tests {
         let colors_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
 
         let digits_sprite_map = TinySkiaSpriteMap::new(
-            "world.module.airship.rgbyw_digits",
-            "world.module.airship.rgbyw_digits",
+            "world.module.airship.airship_route_map_digits",
+            "world.module.airship.airship_route_map_digits",
         );
         let digit_size = digits_sprite_map.get_sprite_size("RED_0");
         for i in 0..4 {
@@ -1270,8 +1274,8 @@ mod tests {
         let colors_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
 
         let digits_sprite_map = TinySkiaSpriteMap::new(
-            "world.module.airship.rgbyw_digits",
-            "world.module.airship.rgbyw_digits",
+            "world.module.airship.airship_route_map_digits",
+            "world.module.airship.airship_route_map_digits",
         );
 
         for i in 0..4 {
