@@ -18,7 +18,7 @@ use std::{fs::OpenOptions, io::Write};
 use tracing::{error, warn};
 use vek::*;
 
-const AIRSHIP_TRAVEL_DEBUG: bool = false;
+const AIRSHIP_TRAVEL_DEBUG: bool = true;
 
 macro_rules! debug_airships {
     ($($arg:tt)*) => {
@@ -32,6 +32,14 @@ macro_rules! debug_airships {
 /// an index of all docking positions in the world.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct AirshipDockingPosition(pub u32, pub Vec3<f32>);
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum AirshipDockPlatform {
+    NorthPlatform,
+    EastPlatform,
+    SouthPlatform,
+    WestPlatform,
+}
 
 /// An airship can dock with its port or starboard side facing the dock.
 #[derive(Debug, Copy, Clone, PartialEq, Default)]
@@ -105,6 +113,13 @@ impl AirshipRoute {
     }
 }
 
+pub struct AirshipRouteLeg {
+    pub from_site: Id<site::Site>,
+    pub to_site: Id<site::Site>,
+
+}
+
+
 /// Airship routes are identified by a unique serial number starting from zero.
 type AirshipRouteId = u32;
 
@@ -147,6 +162,161 @@ impl AirshipDockPositions {
                 })
                 .collect(),
             site_id,
+        }
+    }
+}
+
+/// The docking platforms used on each leg of the airship route segments is determined
+/// when the routes are generated. Route segments are continuous loops that are deconclicted
+/// by using only one docking platform for any given leg of a route segment. Since there are
+/// four docking platforms per airship dock, there are at most four route segments passing
+/// through a given airship dock. The docking platforms are also optimized so that on the
+/// incoming leg of a route segment, the airship uses the docking platform that is closest
+/// to the arrival direction while still using only one docking platform per route segment leg.
+impl AirshipDockPlatform {
+
+    /// Get the preferred docking platform based on the direction vector.
+    pub fn from_dir(dir: Vec2<f32>) -> Self {
+        if let Some(dir) = dir.try_normalized() {
+            let mut angle = dir.angle_between(Vec2::unit_y()).to_degrees();
+            if dir.x < 0.0 {
+                angle = -angle;
+            }
+            match angle as i32 {
+                -360..=-135 => AirshipDockPlatform::SouthPlatform,
+                -136..=-45 => AirshipDockPlatform::WestPlatform,
+                -44..=45 => AirshipDockPlatform::NorthPlatform,
+                46..=135 => AirshipDockPlatform::EastPlatform,
+                136..=360 => AirshipDockPlatform::SouthPlatform,
+                _ => AirshipDockPlatform::NorthPlatform, // should never happen
+            }
+        } else {
+            AirshipDockPlatform::NorthPlatform // default value, should never happen
+        }
+    }
+
+    /// Get the platform choices in order of preference based on the direction vector.
+    pub fn choices_from_dir(dir: Vec2<f32>) -> Vec<Self> {
+        if let Some(dir) = dir.try_normalized() {
+            let mut angle = dir.angle_between(Vec2::unit_y()).to_degrees();
+            if dir.x < 0.0 {
+                angle = -angle;
+            }
+            // This code works similar to the Direction enum in the common crate.
+            // Angle between produces the smallest angle between two vectors,
+            // so then dir.x is negative, we force the angle to be negative.
+            // 0 or 360 is North. It is assumed that the angle ranges from -360 to 360 degrees
+            // even though angles less than -180 or greater than 180 should never be seen.
+            match angle as i32 {
+                -360..=-135 => {
+                    // primary is SouthPlatform
+                    // As a fallback (for when the south platform is already claimed),
+                    // if the direction is more towards the west, use the west platform,
+                    // and if the direction is more towards the east, use the east platform.
+                    // The north platform is always the last resort. All fallback blocks
+                    // below work similarly.
+                    if angle as i32 > -180 {
+                        vec![
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                        ]
+                    } else {
+                        vec![
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                        ]
+                    }
+                },
+                -136..=-45 => {
+                    // primary is WestPlatform
+                    if angle as i32 > -90 {
+                        vec![
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                        ]
+                    } else {
+                        vec![
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                        ]
+                    }
+                },
+                -44..=45 => {
+                    // primary is NorthPlatform
+                    if angle as i32 > 0 {
+                        vec![
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                        ]
+                    } else {
+                        vec![
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                        ]
+                    }
+                },
+                46..=135 => {
+                    // primary is EastPlatform
+                    if angle as i32 > 90 {
+                        vec![
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                        ]
+                    } else {
+                        vec![
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                        ]
+                    }
+                },
+                136..=360 => {
+                    // primary is SouthPlatform
+                    if angle as i32 > 180 {
+                        vec![
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                        ]
+                    } else {
+                        vec![
+                            AirshipDockPlatform::SouthPlatform,
+                            AirshipDockPlatform::EastPlatform,
+                            AirshipDockPlatform::WestPlatform,
+                            AirshipDockPlatform::NorthPlatform,
+                        ]
+                    }
+                },
+                _ => vec![
+                        AirshipDockPlatform::SouthPlatform,
+                        AirshipDockPlatform::EastPlatform,
+                        AirshipDockPlatform::WestPlatform,
+                        AirshipDockPlatform::NorthPlatform,
+                    ], // should never happen
+            }
+        } else {
+            vec![
+                AirshipDockPlatform::SouthPlatform,
+                AirshipDockPlatform::EastPlatform,
+                AirshipDockPlatform::WestPlatform,
+                AirshipDockPlatform::NorthPlatform,
+            ] // default value, should never happen
         }
     }
 }
@@ -623,8 +793,44 @@ impl Airships {
                 best_segments.iter().enumerate().for_each(|segment| {
                     println!("  {} : {}", segment.0, segment.1.len());
                 });
+                println!("Best segments: {:?}", best_segments);
+                if let Err(e) = export_world_map(index, world_sim) {
+                    eprintln!("Failed to export world map: {:?}", e);
+                }
             }
-            save_airship_route_segments(&best_segments, &all_dock_points, index, world_sim);
+            //save_airship_route_segments(&best_segments, &all_dock_points, index, world_sim);
+            
+
+            // For each node in each segment of best_segments, get the incoming edges.
+            // for (segment_index, segment) in best_segments.iter().enumerate() {
+            //     for (node_index, &node) in segment.iter().enumerate() {
+            //         // Get the incoming edges for the node.
+            //         let incoming_edges = segment
+            //             .iter()
+            //             .filter(|&n| n.connected.contains(&node_index))
+            //             .map(|n| n.node_id)
+            //             .collect::<Vec<_>>();
+            //         debug_airships!(
+            //             "Segment {} Node {}: {:?} Incoming edges: {:?}",
+            //             segment_index,
+            //             node_index,
+            //             node,
+            //             incoming_edges
+            //         );
+            //     }
+            // }
+
+
+
+
+
+
+
+
+
+
+
+
         } else {
             println!("Error - cannot eulerize the dock points.");
         }
@@ -1790,12 +1996,12 @@ fn best_eulerian_circuit_segments(
 #[cfg(test)]
 mod tests {
     use super::{
-        AirshipDockingSide, Airships, DockNode, TriangulationExt,
+        AirshipDockPlatform, AirshipDockingSide, Airships, DockNode, TriangulationExt,
         approx::assert_relative_eq, find_best_eulerian_circuit, remove_edge,
     };
+    use crate::civ::airship_route_map::*;
     use delaunator::{Point, triangulate};
     use vek::{Quaternion, Vec2, Vec3};
-
     use crate::{
         util::{DHashMap, DHashSet},
     };
@@ -2823,6 +3029,128 @@ mod tests {
             mutable_node_connections1, mutable_node_connections2,
             "Node connections should be equal after removing edges."
         );
+    }
+
+    #[test]
+    fn choose_docking_positions_test() {
+        let all_dock_locations: Vec<Vec2<f32>> = [[31818, 25082], [31911, 12447], [6691, 26401], [4915, 31195], [23575, 7735], [29112, 29774], [19238, 16416], [17406, 29457], [16630, 994], [20860, 6624], [20341, 31691], [7809, 5609], [16804, 15844], [29776, 24452], [21075, 29211], [22623, 15351], [19432, 2083], [13250, 2202], [18340, 26642], [16834, 8150], [18943, 24631], [18974, 7644], [24809, 15977], [12372, 24020], [6117, 2783]]
+            .iter()
+            .map(|&[x, y]| Vec2::new(x as f32, y as f32))
+            .collect();
+
+        let best_segments = vec![
+            vec![20usize, 12, 6, 21, 12, 19, 21, 15, 6, 22, 15, 4, 9, 21, 4, 22, 20],
+            vec![20, 6, 9, 16, 21, 1, 13, 22, 1, 4, 16, 19, 8, 16, 1, 0, 5, 13, 20],
+            vec![20, 18, 23, 12, 11, 19, 17, 8, 24, 17, 11, 23, 2, 11, 24, 2, 7, 14, 13, 0, 20],
+            vec![20, 14, 18, 7, 10, 14, 5, 10, 3, 24, 2, 3, 7, 23, 20]
+        ];
+        let mut incoming_edges = DHashMap::default();
+        for segment in best_segments.iter() {
+            if segment.is_empty() {
+                continue;
+            }
+            let mut prev_node_id = segment[0];
+            segment.iter().skip(1).for_each(|&node_id| {
+                incoming_edges
+                    .entry(node_id)
+                    .or_insert_with(Vec::new)
+                    .push(prev_node_id);
+                prev_node_id = node_id;
+            });
+        }
+        println!("Incoming edges: {:?}", incoming_edges);
+
+        let mut edge_platforms = DHashMap::default();
+
+        incoming_edges.iter().for_each(|(node_id, edges)| {
+            let dock_location = all_dock_locations[*node_id];
+            println!("Docking at node {}: {}", node_id, dock_location);
+            let mut used_platforms = DHashSet::default();
+            for origin in edges {
+                let origin_location = all_dock_locations[*origin];
+                // Determine the platform to dock using the direction from the dock location
+                // to the origin location
+                let rev_approach_dir = origin_location - dock_location;
+                let docking_platforms = AirshipDockPlatform::choices_from_dir(rev_approach_dir);
+                let docking_platform = docking_platforms
+                    .iter()
+                    .find(|&platform| !used_platforms.contains(platform))
+                    .copied()
+                    .unwrap_or(AirshipDockPlatform::NorthPlatform);
+                edge_platforms
+                    .insert((*origin, *node_id), docking_platform);
+                used_platforms.insert(docking_platform);
+                println!(
+                    "Docking from {} at platform {:?}",
+                    origin, docking_platform
+                );
+            }
+        });
+
+        println!("best_segments: {:?}", best_segments);
+        println!("Edge platforms: {:?}", edge_platforms);
+
+        // The incoming edges control the docking platforms used for each leg of the route.
+        // The outgoing platform for leg i must match the incoming platform for leg i-1.
+        // For the first leg, get the 'from' platform from the last pair of nodes in the segment.
+
+        const SEGMENT_COLORS: [&str; 4] = ["red", "blue", "green", "yellow"];
+
+        let mut routes = Vec::new();
+        best_segments.iter().enumerate().for_each(|(color_index, segment)| {
+            assert!(segment.len() > 2, "Segments must have at least two nodes and they must wrap around.");
+            let mut route_legs = Vec::new();
+            let leg_start = &segment[segment.len() - 2..];
+            let mut prev_platform = edge_platforms
+                .get(&(leg_start[0], leg_start[1]))
+                .copied()
+                .unwrap_or(AirshipDockPlatform::from_dir(
+                    all_dock_locations[leg_start[0]] - all_dock_locations[leg_start[1]],
+                ));
+            for leg_index in 0..segment.len() - 1 {
+                let from_node = segment[leg_index];
+                let to_node = segment[leg_index + 1];
+                if leg_index == 0 {
+                    assert!(from_node == leg_start[1], "The 'previous' leg's 'to' node must match the current leg's 'from' node.");
+                }               
+                let to_platform = edge_platforms
+                    .get(&(from_node, to_node))
+                    .copied()
+                    .unwrap_or(AirshipDockPlatform::from_dir(
+                        all_dock_locations[from_node] - all_dock_locations[to_node],
+                    ));
+                println!("{} {} from {:?} at node {} to {:?} at node {}",
+                    SEGMENT_COLORS[color_index % SEGMENT_COLORS.len()],
+                    leg_index + 1,
+                    prev_platform,
+                    from_node,
+                    to_platform,
+                    to_node
+                );
+                route_legs.push((to_node, to_platform));
+                prev_platform = to_platform;
+            }
+            routes.push(route_legs);
+        });
+        println!("Routes: {:?}", routes);
+
+        let all_dock_points = all_dock_locations
+            .iter()
+            .map(|&loc| Point {
+                x: loc.x as f64 / 32.0,
+                y: 1024.0 - loc.y as f64 / 32.0,
+            })
+            .collect::<Vec<_>>();
+
+        if let Err(e) = export_route_segments_map(
+            "/Volumes/Projects/Temp/veloren/NewRoutes/basic_world_map130626855.png",
+            &routes,
+            &all_dock_points,
+            "/Volumes/Projects/Temp/veloren/NewRoutes/route_segments_map130626855.png",
+        ) {
+            eprintln!("Error exporting route segments map: {}", e);
+        }
+
     }
 
 }

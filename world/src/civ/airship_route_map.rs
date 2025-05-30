@@ -1,6 +1,6 @@
 use crate::{
     CONFIG, Index, IndexRef,
-    civ::airship_travel::{Airships, DockNode},
+    civ::airship_travel::{Airships, DockNode, AirshipDockPlatform},
     sim::{WorldSim, get_horizon_map, sample_pos, sample_wpos},
     util::{DHashMap, DHashSet},
 };
@@ -355,7 +355,7 @@ fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) 
 /// Creates a tiny_skia::Pixmap of the airship routes.
 /// This is the route map where the airship travels out and back between the
 /// pairs of docking sites.
-fn airship_routes_map(
+fn legacy_airship_routes_map(
     airships: &mut Airships,
     image_size: MapSizeLg,
     index: &Index,
@@ -670,22 +670,25 @@ fn dock_sites_optimized_tesselation_map(
 ///
 /// # Arguments
 ///
-/// * `segments`: The route segments, where each inner vector contains indices
-///   of docking points that form a route segment.
+/// * `routes`: The route loops, where each inner vector contains the end point
+///   of each route leg. ('to' point, docking platform).
+///   The route loops, so the 'from' point of the first leg is the last item
+///   of the inner vector. Docking positions are on the cardinal sides of the docking sites.
+///   AirshipDockPlatform::NorthPlatform means the airship will dock on the north side of the dock.
 /// * `points`: The docking site locations in pixmap coordinates (top left is
 ///   the origin).
 /// * `pixmap`: The Pixmap on which to draw the segments.
 ///
-/// This draws circles around the docking locations and lines for the edges
-/// defined by the segments. The coordinates must be pre-scaled to the pixmap
-/// size. The Veloren world uses a bottom-left origin with coordinates in world
-/// blocks, so world coordinates must be converted by inverting the y-axix
-/// and scaling to the pixmap size.
-fn draw_airship_route_segments(
-    segments: &[Vec<usize>],
+/// This draws circles around the docking locations and lines for the route legs.
+/// The coordinates must be pre-scaled to the pixmap size. The Veloren world uses
+/// a bottom-left origin with coordinates in world blocks, so world coordinates must
+/// be converted by inverting the y-axix and scaling to the pixmap size.
+fn draw_airship_routes(
+    routes: &[Vec<(usize, AirshipDockPlatform)>],
     points: &[Vec2<f32>],
     pixmap: &mut Pixmap,
 ) -> Result<(), Box<dyn Error>> {
+
     // Draw a circle around the points (the docking sites)
     let mut pb: PathBuilder = PathBuilder::new();
     for dock_center in points.iter() {
@@ -718,73 +721,90 @@ fn draw_airship_route_segments(
         ..Default::default()
     };
 
+    let loc_fn = |point: &Vec2<f32>, platform: &AirshipDockPlatform| -> (f32, f32) {
+        match platform {
+            AirshipDockPlatform::NorthPlatform => (point.x, point.y - 10.0),
+            AirshipDockPlatform::SouthPlatform => (point.x, point.y + 10.0),
+            AirshipDockPlatform::EastPlatform => (point.x + 10.0, point.y),
+            AirshipDockPlatform::WestPlatform => (point.x - 10.0, point.y),
+        }
+    };
+
     // Draw the route segment lines
-    for (i, segment) in segments.iter().enumerate() {
+    for (i, route) in routes.iter().enumerate() {
         let color = segment_colors[i % segment_colors.len()];
         paint.set_color_rgba8(color[0], color[1], color[2], 255);
 
-        let mut pb = PathBuilder::new();
-
-        for j in 0..segment.len() - 1 {
-            let p1 = points[segment[j]];
-            let p2 = points[segment[j + 1]];
-            let dir = (p2 - p1).normalized();
-            let ep1 = p1 + dir * 10.0;
-            let ep2 = p2 - dir * 10.0;
-            pb.move_to(ep1.x, ep1.y);
-            pb.line_to(ep2.x, ep2.y);
+        if route.len() > 1 {
+            let mut prev_leg = route[route.len() - 1];
+            let mut pb = PathBuilder::new();
+            for route_leg in route.iter() {            
+                let from_loc = loc_fn(&points[prev_leg.0], &prev_leg.1);
+                let to_loc = loc_fn(&points[route_leg.0], &route_leg.1);
+                pb.move_to(from_loc.0, from_loc.1);
+                pb.line_to(to_loc.0, to_loc.1);
+                prev_leg = *route_leg;
+            }
+            let path = pb
+                .finish()
+                .ok_or_else(|| "Failed to create path for lines".to_string())?;
+            pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
         }
-
-        let path = pb
-            .finish()
-            .ok_or_else(|| "Failed to create path for lines".to_string())?;
-        pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
     }
 
     // The map is hard to read without an indication of which direction the lines
     // are traversed and in which order, so we draw the route line numbers on
     // the map with the line numbers drawn at the destination end of the line to
     // orient the reader.
-    let segment_color_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
+    let route_color_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
     let digits_sprite_map = TinySkiaSpriteMap::new(
         "world.module.airship.airship_route_map_digits",
         "world.module.airship.airship_route_map_digits",
     );
     let digit_size = digits_sprite_map.get_sprite_size("RED_0");
-    for (i, segment) in segments.iter().enumerate() {
-        let mut route_line_number = 1;
+    for (i, route) in routes.iter().enumerate() {
         let id_formatter =
-            |c: char| format!("{}_{}", segment_color_ids[i % segment_color_ids.len()], c);
+            |c: char| format!("{}_{}", route_color_ids[i % route_color_ids.len()], c);
 
-        // The segment line numbers are drawn at the destination end of the line.
-        for j in 0..segment.len() - 1 {
-            let p1 = points[segment[j]];
-            let p2 = points[segment[j + 1]];
-            let dir = (p2 - p1).normalized();
+        if route.len() > 1 {
+            let mut leg_line_number = 1;
+            let mut prev_leg = route[route.len() - 1];
 
-            // Turn the number into a string with leading zeros for single digit numbers.
-            let rln_str = format!("{:03}", route_line_number);
+            // The leg line numbers are drawn at the destination end of the line.
+            for route_leg in route.iter() {            
+            // for j in 0..segment.len() - 1 {
+                let from_loc = loc_fn(&points[prev_leg.0], &prev_leg.1);
+                let to_loc = loc_fn(&points[route_leg.0], &route_leg.1);
+                let p1 = Vec2::new(from_loc.0, from_loc.1);
+                let p2 = Vec2::new(to_loc.0, to_loc.1);            
+                let dir = (p2 - p1).normalized();
 
-            // Draw the digits so they are aligned with the direction the segment line
-            // will be traversed. Y axis is inverted in the image.
-            let angle = Airships::angle_between_vectors_cw(dir, -Vec2::unit_y());
+                // Turn the number into a string with leading zeros for single digit numbers.
+                let rln_str = format!("{:03}", leg_line_number);
 
-            // Draw the digits 80% of the way along the segment line or one digit height
-            // away from the circle at the end of the segment line, whichever is greater.
-            let p1p2dist = p1.distance(p2) - 20.0; // subtract the radius of the circles
-            let seg_num_offset = (p1p2dist * 0.20).max(digit_size.height());
-            let seg_num_center = p2 - dir * (10.0 + seg_num_offset);
+                // Draw the digits so they are aligned with the direction the segment line
+                // will be traversed. Y axis is inverted in the image.
+                let angle = Airships::angle_between_vectors_cw(dir, -Vec2::unit_y());
 
-            pixmap.draw_text(
-                &rln_str,
-                seg_num_center,
-                0.75,
-                angle,
-                &digits_sprite_map,
-                id_formatter,
-            )?;
+                // Draw the digits 80% of the way along the segment line or one digit height
+                // away from the circle at the end of the segment line, whichever is greater.
+                let p1p2dist = p1.distance(p2) - 20.0; // subtract the radius of the circles
+                let seg_num_offset = (p1p2dist * 0.20).max(digit_size.height());
+                let seg_num_center = p2 - dir * seg_num_offset;
+                // let seg_num_center = p2 - dir * (10.0 + seg_num_offset);
 
-            route_line_number += 1;
+                pixmap.draw_text(
+                    &rln_str,
+                    seg_num_center,
+                    0.75,
+                    angle,
+                    &digits_sprite_map,
+                    id_formatter,
+                )?;
+
+                leg_line_number += 1;
+                prev_leg = *route_leg;
+            }
         }
     }
 
@@ -794,8 +814,8 @@ fn draw_airship_route_segments(
 /// Creates a tiny_skia::Pixmap of the airship route segments
 /// where the segments are loops of docking points derived from the
 /// eulerian circuit created from the eulerized tesselation.
-fn airship_route_segments_map(
-    segments: &[Vec<usize>],
+fn airship_routes_map(
+    routes: &[Vec<(usize, AirshipDockPlatform)>],
     points: &[Point],
     image_size: MapSizeLg,
     index: &Index,
@@ -817,7 +837,7 @@ fn airship_route_segments_map(
         })
         .collect::<Vec<_>>();
 
-    if let Err(e) = draw_airship_route_segments(segments, &map_points, &mut pixmap) {
+    if let Err(e) = draw_airship_routes(routes, &map_points, &mut pixmap) {
         error!("Failed to draw airship route segments: {}", e);
         return None;
     }
@@ -833,7 +853,7 @@ pub fn save_airship_routes_map(airships: &mut Airships, index: &Index, sampler: 
             routes_log_folder, index.seed
         );
         let world_map_file_path = PathBuf::from(world_map_file);
-        if let Some(pixmap) = airship_routes_map(airships, sampler.map_size_lg(), index, sampler) {
+        if let Some(pixmap) = legacy_airship_routes_map(airships, sampler.map_size_lg(), index, sampler) {
             if pixmap.save_png(&world_map_file_path).is_err() {
                 error!("Failed to save airship routes map");
             }
@@ -898,7 +918,7 @@ pub fn save_airship_routes_optimized_tesselation(
 }
 
 pub fn save_airship_route_segments(
-    segments: &[Vec<usize>],
+    routes: &[Vec<(usize, AirshipDockPlatform)>],
     points: &[Point],
     index: &Index,
     sampler: &WorldSim,
@@ -910,7 +930,7 @@ pub fn save_airship_route_segments(
             routes_log_folder, index.seed
         );
         if let Some(pixmap) =
-            airship_route_segments_map(segments, points, sampler.map_size_lg(), index, sampler)
+            airship_routes_map(routes, points, sampler.map_size_lg(), index, sampler)
         {
             if pixmap.save_png(&world_map_file).is_err() {
                 error!("Failed to save airship route segments map");
@@ -920,37 +940,24 @@ pub fn save_airship_route_segments(
 }
 
 #[cfg(debug_assertions)]
-pub fn export_map_with_locations(
-    map_image_path: &str,
-    locations: &Vec<Vec2<f32>>,
-    color: [u8; 3],
-    output_path: &str,
+pub fn export_world_map(
+    index: &Index,
+    sampler: &WorldSim,
 ) -> Result<(), String> {
-    let mut pixmap =
-        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))?;
-
-    let mut circle_pb: PathBuilder = PathBuilder::new();
-
-    for loc in locations {
-        circle_pb.push_circle(loc.x, loc.y, 10.0);
+    let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
+    let routes_log_folder = airship_routes_log_folder.ok_or(
+        "AIRSHIP_ROUTES_LOG_FOLDER environment variable is not set".to_string(),
+    )?;
+    let world_map_file = format!(
+        "{}/basic_world_map{}.png",
+        routes_log_folder, index.seed
+    );
+    if let Some(world_map) = basic_world_pixmap(sampler.map_size_lg(), index, sampler) {
+        if world_map.save_png(&world_map_file).is_err() {
+            error!("Failed to save world map");
+        }
     }
-
-    let mut paint = Paint::default();
-    paint.set_color_rgba8(color[0], color[1], color[2], 255);
-    paint.anti_alias = true;
-
-    let circle_stroke = Stroke {
-        width: 2.0,
-        ..Default::default()
-    };
-    let path = circle_pb
-        .finish()
-        .ok_or_else(|| "Failed to create path for circles".to_string())?;
-    pixmap.stroke_path(&path, &paint, &circle_stroke, Transform::identity(), None);
-
-    pixmap
-        .save_png(output_path)
-        .map_err(|e| format!("Failed to save output image: {}", e))
+    Ok(())
 }
 
 #[cfg(debug_assertions)]
@@ -1014,8 +1021,7 @@ pub fn export_docknodes(
 #[cfg(debug_assertions)]
 pub fn export_route_segments_map(
     map_image_path: &str,
-    segments: &[Vec<usize>],
-    points: &[Point],
+    routes: &[Vec<(usize, AirshipDockPlatform)>],    points: &[Point],
     output_path: &str,
 ) -> Result<(), String> {
     let mut pixmap =
@@ -1027,7 +1033,7 @@ pub fn export_route_segments_map(
         .map(|p| Vec2::new(p.x as f32, p.y as f32))
         .collect::<Vec<_>>();
 
-    draw_airship_route_segments(segments, &map_points, &mut pixmap)
+    draw_airship_routes(routes, &map_points, &mut pixmap)
         .map_err(|e| format!("Failed to draw route segments: {}", e))?;
 
     pixmap
