@@ -1,9 +1,10 @@
 # Contributing
+
 To learn about how to contribute, take a look at the [Veloren book](https://book.veloren.net).
 
-# Guidelines
+## Guidelines
 
-## Do not commit tainted content to the repository
+### Do not commit tainted content to the repository
 
 If you commit anything that was not created by yourself, double check that the license for that content permits to be distributed under our license.
 
