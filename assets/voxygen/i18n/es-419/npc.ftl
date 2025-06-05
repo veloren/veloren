@@ -265,3 +265,5 @@ npc-speech-dir_north_west = noroeste
 npc-speech-tell_monster =
     .a0 = Dicen que hay un { $body } hacia el { $dir }, a { $dist }...
     .a1 = ¿Crees que eres fuerte? Hacia el { $dir } hay un { $body }.
+npc-speech-arena = ¡Sentémonos por ahí!
+npc-speech-dist_near_to = muy cerca

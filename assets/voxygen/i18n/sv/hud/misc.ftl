@@ -76,7 +76,6 @@ hud-init-stage-server-db-migrations = { "[" }{ -server }]: Tillämpar databasmig
 hud-activate = Aktivera
 hud-follow = Följ
 hud-init-stage-render-pipeline = Skapar renderings-pipeline ({ $done }/{ $total })
-hud-lay = Ligg
 hud-init-stage-server-worldciv-site = { "[" }{ -server }]: Genererar platser...
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Genererar fläckar...
 hud-pet = Klappa

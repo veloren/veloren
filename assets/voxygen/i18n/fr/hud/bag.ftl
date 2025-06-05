@@ -29,15 +29,35 @@ hud-bag-protection = Protection
 hud-bag-stun_res = Résistance aux étourdissements
 hud-bag-stealth = Discrétion
 hud-bag-combat_rating_desc =
-    Calculé depuis votre
-    équipement et votre santé.
+    Calculé à partir de
+    l'équipement et la santé.
 hud-bag-protection_desc = Réduction des dégâts de votre armure.
 hud-bag-stun_res_desc =
-    Résistance contre les effets d'étourdissements après plusieurs coups reçus.
-    Se régénère tout comme l'Endurance.
+    Résistance à l'étourdissement par des coups consécutifs.
+    Se régénère comme l'Endurance.
 hud-bag-sort_by_name = Trier par Nom
 hud-bag-sort_by_quality = Trier par Qualité
 hud-bag-sort_by_category = Trier par Catégorie
 hud-bag-sort_by_tag = Trier par Tag
 hud-bag-sort_by_quantity = Trier par Quantité
 hud-bag-backpack = Sac à dos
+hud-bag-swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Cela entraînera le dépôt de 1 objet au sol. Êtes-vous sûr ?
+       *[other] Cela entraînera le dépôt de { $slot_deficit } objets au sol. Êtes-vous sûr ?
+    }
+hud-bag-use_slot_equip_drop_items =
+    { $slot_deficit ->
+        [1] Équiper cet objet entraînera un espace insuffisant dans l’inventaire pour contenir tous vos objets et 1 objet sera donc déposé au sol. Êtes-vous sûr de vouloir continuer ?
+       *[other] Équiper cet objet entraînera un espace insuffisant dans l’inventaire pour contenir tous vos objets et { $slot_deficit } objets seront donc déposés au sol. Êtes-vous sûr de vouloir continuer ?
+    }
+hud-bag-use_slot_unequip_drop_items =
+    { $slot_deficit ->
+        [1] Déséquiper cet objet entraînera un espace insuffisant dans l’inventaire pour contenir tous vos objets et 1 objet sera donc déposé au sol. Êtes-vous sûr de vouloir continuer ?
+       *[other] Déséquiper cet objet entraînera un espace insuffisant dans l’inventaire pour contenir tous vos objets et { $slot_deficit } objets seront donc déposés au sol. Êtes-vous sûr de vouloir continuer ?
+    }
+hud-bag-split_swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] Cela entraînera le dépôt de 1 objet au sol. Êtes-vous sûr ?
+       *[other] Cela entraînera le dépôt de { $slot_deficit } objets au sol. Êtes-vous sûr ?
+    }

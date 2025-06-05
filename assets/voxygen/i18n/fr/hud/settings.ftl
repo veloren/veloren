@@ -166,3 +166,9 @@ hud-settings-keybind-helper =
     M2 pour effacer
 hud-settings-gamepad = Manette
 hud-settings-keyboard = Clavier
+hud-settings-game_layers = Calques du jeu
+hud-settings-menu_buttons = Boutons menu
+hud-settings-row_background_opacity = Opacité de l’arrière-plan
+hud-settings-use_health_prefixes = Utilise les préfixes SI pour la barre de santé
+hud-settings-sfx_channels = Capacité des canaux d'effets sonores
+hud-settings-game_buttons = Commandes du jeu

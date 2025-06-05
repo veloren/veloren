@@ -58,7 +58,6 @@ hud-deactivate = Desativar
 hud-read = Ler
 hud-follow = Seguir
 hud-stay = Ficar
-hud-lay = Deitar
 hud-portal = Portal
 -server = Servidor
 -client = Cliente

@@ -113,3 +113,4 @@ main-singleplayer-map_shape-square = Kvadrat
 main-login-banned_until =
     Du har blivit temporärt blockerad med följande anledning: { $reason }
     Fram till: { $end_date }
+main-singleplayer-map_large_extra_warning = Detta skulle ta ungefär samma mängd resurser som att generera { $count } världar med standardinställningar.

@@ -2,7 +2,11 @@
 
 buff-heal = Soin
     .desc = Régénère progressivement des points de vie.
-    .stat = Restaure { $str_total } points de vie.
+    .stat =
+        { $duration ->
+            [1] Restaure { $str_total } de points de vie en { $duration } seconde.
+           *[other] Restaure { $str_total } de points de vie en { $duration } secondes.
+        }
 
 ## Potion
 
@@ -21,29 +25,57 @@ buff-saturation = Saturation
 
 buff-energy_regen = Régénération d'Endurance
     .desc = Régénération de l'Endurance plus rapide.
-    .stat = Restaure { $str_total } d'Endurance.
+    .stat =
+        { $duration ->
+            [1] Restaure { $str_total } d'Endurance en { $duration } seconde.
+           *[other] Restaure { $str_total } d'Endurance en { $duration } secondes.
+        }
 
 ## Augmentation de Santé
 
 buff-increase_max_health = Augmentation de Santé
     .desc = Vos point de vie maximum sont augmentés.
     .stat =
-        Augmente les points de vie max
-        de { $strength }.
+        { $duration ->
+            [1]
+                Augmente les points de vie max
+                de { $strength }.
+                Dure { $duration } seconde.
+           *[other]
+                Augmente les points de vie max
+                de { $strength }.
+                Dure { $duration } secondes.
+        }
 
 ## Augmentation d'Endurance
 
 buff-increase_max_energy = Augmentation d'Endurance
-    .desc = Votre énergie maximale est augmentée.
+    .desc = Votre énergie maximale est augmentée
     .stat =
-        Augmente les points d'endurance max
-        de { $strength }.
+        { $duration ->
+            [1]
+                Augmente les points d'endurance max
+                de { $strength }.
+                Dure { $duration } seconde.
+           *[other]
+                Augmente les points d'endurance max
+                de { $strength }.
+                Dure { $duration } secondess.
+        }
 
 ## Invulnérabilité
 
-buff-invulnerability = Invulnérabilité
+buff-invulnerability = Invulnerability
     .desc = Vous ne pouvez pas être blessé par une attaque.
-    .stat = Rend invincible.
+    .stat =
+        { $duration ->
+            [1]
+                Rend invincible.
+                Dure { $duration } seconde.
+           *[other]
+                Rend invincible.
+                Dure { $duration } secondes.
+        }
 
 ## Aura de Protection
 
@@ -113,10 +145,18 @@ buff-reckless = Imprudent
     .desc = Vos attaques sont plus puissantes mais vous laissez vos défenses ouvertes.
 # Potion sickness
 buff-potionsickness = Mal des potions
-    .desc = Les potions vous guérissent moins après en avoir consommé.
+    .desc = Les effets des potions sont moindres après en avoir consommé une récemment.
     .stat =
-        Réduit la quantité de vie regagnée par
-        les potions suivantes de { $strength }%.
+        { $duration ->
+            [1]
+                Réduit les effets de la
+                prochaine potion de { $strength } %.
+                Dure { $duration } seconde.
+           *[other]
+                Réduit les effets de la
+                prochaine potion de { $strength } %.
+                Dure { $duration } secondes.
+        }
 # Lifesteal
 buff-lifesteal = Voleur de vie
     .desc = Siphonne la vie de vos ennemis.
@@ -150,10 +190,20 @@ buff-defiance = Bravoure
     .desc = Vous pouvez résister à des coups plus puissants et étourdissants et générer des combos en étant frappé mais vous êtes plus lent.
 # Agility
 buff-agility = Agilité
-    .desc = Vos mouvements sont plus rapides, mais vous infligez moins de dégâts, et prenez plus de dégâts.
+    .desc =
+         Vos mouvements sont plus rapides,
+        mais vous infligez moins de dégâts, et prenez plus de dégâts.
     .stat =
-        Augmente votre vitesse de déplacement de { $strength }%.
-        En contrepartie, votre puissance d'attaque et votre défense diminuent considérablement.
+        { $duration ->
+            [1]
+                Augmente votre vitesse de déplacement de { $strength } %.
+                 En contrepartie, votre puissance d'attaque et votre défense diminuent considérablement.
+                 Dure { $duration } seconde.
+           *[autre]
+                Augmente votre vitesse de déplacement de { $strength } %.
+                En contrepartie, votre puissance d'attaque et votre défense diminuent considérablement..
+                Dure { $duration } secondes.
+        }
 # Heatstroke
 buff-heatstroke = Coup de chaleur
     .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.
@@ -164,3 +214,22 @@ buff-rooted = Enraciné
     .desc = Vous êtes bloqué sur place et ne pouvez pas bouger.
 buff-scornfultaunt = Raillerie méprisante
     .desc = Vous raillez vos ennemis avec mépris, ce qui vous confère une force d'âme et une endurance accrues. Cependant, votre mort renforcera votre tueur.
+buff-staggered = Chancèlement
+    .desc = Vous êtes déséquilibré et plus vulnérable aux attaques lourdes.
+buff-concussion = Commotion
+    .desc = Vous avez été frappé fort à la tête et n'arrivez plus à vous concentrer, vous empêchant d'utiliser certaines de vos attaques les plus complexes.
+buff-resting_heal = Repos revigorant
+    .desc = Se reposer soigne { $rate } % de points de vie par seconde.
+buff-resilience = Résilience
+    .desc = Après avoir subi une attaque débilitante, vous devenez plus résilient aux futurs effets incapacitants.
+buff-winded = Manque de souffle
+    .desc = Vous pouvez à peine respirer, ce qui entrave la quantité d'énergie que vous pouvez récupérer et réduit votre vitesse de déplacement.
+buff-tenacity = Tenacité
+    .desc = En plus d'être capable d'ignorer les attaques lourdes, elles vous donnent de l’énergie également. Cependant, vous êtes maintenant plus lent.
+buff-combo_generation = Génération de combo
+    .desc = Génère du combo au fil du temps.
+    .stat =
+        { $duration ->
+            [1] Génère { $str_total } combo en { $duration } seconde.
+           *[other] Génère { $str_total } combo en { $duration } secondes.
+        }

@@ -78,3 +78,5 @@ armor-misc-bag-soulkeeper_pure = Gardien d'âmes purifiées
     .desc = Travail en cours.
 armor-misc-bag-soulkeeper_cursed = Le gardien d'âmes maudit
     .desc = Travail en cours.
+lantern-bloodmoon_relic = Relique Lune de sang
+    .desc = Le parfum envoûtant du sang agit à la fois comme un piège et une source de lumière pour traquer les créatures de la nuit.

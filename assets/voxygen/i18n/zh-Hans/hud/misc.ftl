@@ -54,7 +54,6 @@ hud-trade = 交易
 hud-mount = 攀爬
 hud-sit = 坐下
 hud-steer = 操控
-hud-lay = 躺下
 hud-portal = 传送
 -server = 服务器
 -client = 客户端

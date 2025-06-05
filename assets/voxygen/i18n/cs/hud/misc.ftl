@@ -53,7 +53,6 @@ hud-steer = Řídit
 hud-pet = Pohladit
 hud-trade = Obchodovat
 hud-mount = Nasednout
-hud-lay = Lehnout
 hud-portal = Portál
 -server = Server
 -client = Klient

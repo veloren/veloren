@@ -74,3 +74,4 @@ gameinput-diary = Dagbok
 gameinput-crawl = Krypa
 gameinput-giveup = Ge Upp
 gameinput-inventory = Packning
+gameinput-cancelclimb = Avbryt klättring

@@ -75,7 +75,6 @@ hud-init-stage-server-worldciv-civcreate = { "[" }{ -server }]: Generierte { $ge
 hud-steer = Lenken
 hud-init-stage-multiplayer = Starte Mehrspieler
 hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: Auswaschung { $percentage } %
-hud-lay = Hinlegen
 hud-stay = Bleiben
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Generiere Spots...
 hud-init-stage-server-worldciv-site = { "[" }{ -server }]: Generiere Sites...

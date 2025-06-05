@@ -57,7 +57,6 @@ hud-follow = Слідувати
 hud-stay = Чекати
 hud-sit = Сидіти
 hud-steer = Керувати
-hud-lay = Лежати
 hud-portal = Портал
 -server = Сервер
 -client = Клієнт

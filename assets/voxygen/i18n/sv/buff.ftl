@@ -19,9 +19,13 @@ buff-saturation = Mättnad
 
 ## Energy Regen
 
-buff-energy_regen = Energiregeneration
-    .desc = Snabbare energiregeneration.
-    .stat = Återställer { $str_total } Energi.
+buff-energy_regen = Energiregenerering
+    .desc = Snabbare energiregenerering..
+    .stat =
+        { $duration ->
+            [1] Återställer { $str_total } energi över { $duration } sekund.
+           *[other] Återställer { $str_total } energi över { $duration } sekunder.
+        }
 
 ## Health Increase
 

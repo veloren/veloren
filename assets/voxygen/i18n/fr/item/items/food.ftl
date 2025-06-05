@@ -61,3 +61,5 @@ object-sunflower_ice_tea = Thé glacé au tournesol
     .desc = Infusion de graines de tournesol fraîchement décortiquées.
 object-apple_stick = Bâton de pomme
     .desc = Le bâton facilite le transport !
+sprite-lettuce-lettuce = Laitue
+    .desc = Un légume feuillus d'un vert éclatant. La laitue permet de préparer des salades !
