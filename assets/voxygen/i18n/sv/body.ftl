@@ -53,7 +53,7 @@ body-npc-speech-biped_large-mindflayer = en sinnesflåare
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-terracotta_besieger = en terrakottabelägrare
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-gigas_frost = en gigas frost
+body-npc-speech-biped_large-gigas_frost = en frost gigas
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-tidal_warrior = en tidvattenkrigare
 # Monster descriptions, used ONLY in npc-speech-tell_monster

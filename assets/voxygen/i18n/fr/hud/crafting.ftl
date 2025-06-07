@@ -25,10 +25,10 @@ hud-crafting-tabs-utility = Utilitaires
 hud-crafting-tabs-weapon = Armes
 hud-crafting-tabs-bag = Sacs
 hud-crafting-tabs-processed_material = Matériaux
-hud-crafting-dismantle_title = Démantelage
+hud-crafting-dismantle_title = Démantèlement
 hud-crafting-dismantle_explanation =
-    Survoler un objet dans votre sac pour pouvoir voir
-    ce que vous pouvez récupérer.
+    Survolez un objet dans votre sac pour
+    voir ce que vous pouvez récupérer.
 
     Double-Clique pour pouvoir le démanteler.
 hud-crafting-modular_desc = Glissez ici les parties de l'objet pour fabriquer une arme
@@ -39,18 +39,18 @@ hud-crafting-mod_weap_sec_slot_desc = Placez ici un composant secondaire d'arme 
 hud-crafting-mod_comp_metal_prim_slot_title = Lingot de métal
 hud-crafting-mod_comp_metal_prim_slot_desc = Placez un lingot de métal ici, seuls certains métaux peuvent être utilisés pour fabriquer des armes.
 hud-crafting-mod_comp_wood_prim_slot_title = Bois
-hud-crafting-mod_comp_wood_prim_slot_desc = Placez un morceaux de bois ici, seuls certains bois peuvent être utilisés pour fabriquer des armes.
+hud-crafting-mod_comp_wood_prim_slot_desc = Placez un morceau de bois ici, seuls certains bois peuvent être utilisés pour fabriquer des armes.
 hud-crafting-mod_comp_sec_slot_title = Composant animal
-hud-crafting-mod_comp_sec_slot_desc = Placez éventuellement un ingrédient d'origine animal, seuls certains ingrédients peuvent être utilisés pour améliorer les armes.
-hud-crafting-repair_slot_title = Item endommagé
-hud-crafting-repair_slot_desc = Placez un item ici pour voir le coût de réparation à son niveau de durabilité actuel.
+hud-crafting-mod_comp_sec_slot_desc = Placez facultativement un ingrédient d'origine animal, seuls certains ingrédients peuvent être utilisés pour améliorer les armes.
+hud-crafting-repair_slot_title = Objet endommagé
+hud-crafting-repair_slot_desc = Placez un objet ici pour voir le coût de réparation à son niveau de durabilité actuel.
 hud-crafting-show_unknown_recipes = Afficher les recettes inconnues
 hud-crafting-hide_unknown_recipes = Cacher les recettes inconnues
 hud-crafting-repair-selection = Sélection
 hud-crafting-repair_equipped = Équipé
 hud-crafting-repair_all = Tout
-hud-crafting-tool_cata = Outils:
-hud-crafting-req_crafting_station = Station:
+hud-crafting-tool_cata = Outils :
+hud-crafting-req_crafting_station = Station :
 hud-crafting-recipe-uncraftable = La recette ne peut pas être fabriquée
-hud-crafting-repair_desc = Fait glisser les objets endommagés ici pour les réparer
+hud-crafting-repair_desc = Glissez ici les objets endommagés pour les réparer
 hud-crafting-recipe-unlearned = Vous devez d'abord apprendre à fabriquer cette recette.

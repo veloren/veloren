@@ -35,3 +35,4 @@ hud-confirm-trade-for-nothing = Vill du verkligen ge bort dessa föremål utan n
 hud-trade-invite-accepted = { $target } accepterade din byteshandelsbegäran.
 hud-trade-invite-declined = { $target } Avböjde din byteshandelsbegäran.
 hud-trade-invite-timed_out = Byteshandelsbegäran till { $target } utgick.
+hud-trade-player_who = Spelare { $player_who }

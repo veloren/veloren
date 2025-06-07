@@ -1,51 +1,51 @@
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-cave_troll = Un troll des caverne
+body-npc-speech-biped_large-cave_troll = un troll des caverne
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-mountain_troll = Un troll des montagnes
+body-npc-speech-biped_large-mountain_troll = un troll des montagnes
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-swamp_troll = Un troll des marais
+body-npc-speech-biped_large-swamp_troll = un troll des marais
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-blue_oni = Un oni bleu
+body-npc-speech-biped_large-blue_oni = un oni bleu
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-red_oni = Un oni rouge
+body-npc-speech-biped_large-red_oni = un oni rouge
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-tursus = Un tursus
+body-npc-speech-biped_large-tursus = un tursus
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-dullahan = Un dullahan
+body-npc-speech-biped_large-dullahan = un dullahan
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-occult_saurok = Un saurok occulte
+body-npc-speech-biped_large-occult_saurok = un saurok occulte
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-mighty_saurok = Un saurok puissant
+body-npc-speech-biped_large-mighty_saurok = un saurok puissant
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-sly_saurok = Un saurok sournois
+body-npc-speech-biped_large-sly_saurok = un saurok sournois
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-mindflayer = Un écorcheur d'esprit
+body-npc-speech-biped_large-mindflayer = un flagelleur mental
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-tidal_warrior = Un guerrier des mers
+body-npc-speech-biped_large-tidal_warrior = un guerrier des mers
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-yeti = Un yeti
+body-npc-speech-biped_large-yeti = un yéti
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-harvester = Un récolteur
+body-npc-speech-biped_large-harvester = un récolteur
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-cultist_warlord = Un seigneur de guerre cultiste
+body-npc-speech-biped_large-cultist_warlord = un seigneur de guerre cultiste
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-cultist_warlock = Un sorcier cultiste
+body-npc-speech-biped_large-cultist_warlock = un sorcier cultiste
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-adlet_elder = Un adlet ancien
+body-npc-speech-biped_large-adlet_elder = un adlet ancien
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-sea_bishop = Un évêque des mers
+body-npc-speech-biped_large-sea_bishop = un évêque des mers
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-haniwa_general = Un générale haniwa
+body-npc-speech-biped_large-haniwa_general = un général haniwa
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-terracotta_demolisher = Un démolisseur en terre cuite
+body-npc-speech-biped_large-terracotta_demolisher = un démolisseur en terre cuite
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-terracotta_punisher = Un punisseur en terre cuite
+body-npc-speech-biped_large-terracotta_punisher = un punisseur en terre cuite
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-terracotta_pursuer = Un poursuiveur en terre cuite
+body-npc-speech-biped_large-terracotta_pursuer = un poursuiveur en terre cuite
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-cursekeeper = Un poursuiveur en terre cuite
+body-npc-speech-biped_large-cursekeeper = un poursuiveur en terre cuite
 # Monster descriptions, used ONLY in npc-speech-tell_monster
-body-npc-speech-biped_large-minotaur = Un minautor
+body-npc-speech-biped_large-minotaur = un minotaure
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-generic = une créature
 # Monster descriptions, used ONLY in npc-speech-tell_monster
@@ -61,3 +61,6 @@ body-npc-speech-biped_large-werewolf = un loup-garou
 # Monster descriptions, used ONLY in npc-speech-tell_monster
 body-npc-speech-biped_large-gigas_frost = un géant de givre
 body-npc-speech-biped_large-executioner = un bourreau
+body-npc-speech-biped_large-strigoi = un strigoï
+body-npc-speech-biped_large-terracotta_besieger = un assiégeur en terre cuite
+body-npc-speech-biped_large-husk_brute = une brute désincarnée

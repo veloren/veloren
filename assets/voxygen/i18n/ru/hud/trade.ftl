@@ -39,3 +39,4 @@ hud-confirm-trade-for-nothing = Вы действительно хотите о�
 hud-trade-invite-accepted = { $target } принял(а) ваш запрос на обмен.
 hud-trade-invite-declined = { $target } отклонил(а) ваш запрос на обмен.
 hud-trade-invite-timed_out = Время ожидания запроса обмена с { $target } истекло.
+hud-trade-player_who = Игрок { $player_who }

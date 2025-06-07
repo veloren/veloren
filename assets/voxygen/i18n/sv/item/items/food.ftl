@@ -61,3 +61,5 @@ object-blue_cheese = Blå ost
     .desc = Skarp och fyllande.
 object-cheese = Dvärgost
     .desc = Gjort av getmjölk från de finaste dvärgprodukterna. Aromatisk och näringsrik!
+sprite-lettuce-lettuce = Sallat
+    .desc = En färgglad grönssak. Låt oss göra sallader!

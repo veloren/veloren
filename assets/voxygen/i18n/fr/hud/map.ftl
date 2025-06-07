@@ -19,7 +19,7 @@ hud-map-dungeon = Donjon
 hud-map-difficulty_dungeon =
     Difficulté
 
-    du Donjon: { $difficulty }
+    du Donjon : { $difficulty }
 hud-map-drag = Déplacer
 hud-map-zoom = Zoomer
 hud-map-mid_click = Ajouter un repère
@@ -45,3 +45,7 @@ hud-map-glider_course = Course de planeurs
 hud-map-glider_courses = Courses de planeurs
 hud-map-myrmidon = Donjon de Myrmidon
 hud-map-vampire_castle = Château de vampires
+hud-map-unknown = Inconnu
+hud-map-plaza = Place du village
+hud-map-workshop = Atelier
+hud-map-airship_dock = Quai d'amarrage

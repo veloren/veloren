@@ -59,7 +59,6 @@ hud-follow = Segui
 hud-stay = Fermati
 hud-sit = Siediti
 hud-steer = Guida
-hud-lay = Sdraiati
 hud-portal = Portale
 hud-init-stage-singleplayer = Avvio gioco per giocatore singolo...
 hud-init-stage-server-db-migrations = { "[" }Server]: Aggiornamento del database...

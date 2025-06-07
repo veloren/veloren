@@ -1,6 +1,6 @@
-weapon-component-axe-haft-medium = Manche d'Hache moyenne
+weapon-component-axe-haft-medium = Manche de Hache moyenne
     .desc = { "" }
-weapon-component-axe-haft-short = Manche d'Hache courte
+weapon-component-axe-haft-short = Manche de hache courte
     .desc = { "" }
 weapon-component-staff-core-heavy = Pyrocœur lourd
     .desc = { "" }
@@ -31,4 +31,6 @@ weapon-component-bow-grip-long = Poignée d'Arc long
 weapon-component-bow-grip-medium = Poignée d'Arc moyen
     .desc = { "" }
 weapon-component-bow-grip-short = Poignée d'Arc court
+    .desc = { "" }
+weapon-component-axe-haft-long = Manche de Hache longue
     .desc = { "" }

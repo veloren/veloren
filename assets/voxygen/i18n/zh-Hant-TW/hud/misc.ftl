@@ -62,7 +62,6 @@ hud-follow = 跟隨
 hud-stay = 停留
 hud-sit = 坐下
 hud-steer = 駕駛
-hud-lay = 躺下
 hud-portal = 傳送門
 -server = 伺服器
 -client = 客戶端

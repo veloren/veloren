@@ -108,3 +108,5 @@ common-tool-throwable = Jetable
 common-kind-lantern = Lanterne
 hud-diary-sections-character-title = Personnage
 hud-diary-sections-abilities-title = Capacités
+hud-waypoint = Point de passage
+hud-battle-mode = Mode de combat

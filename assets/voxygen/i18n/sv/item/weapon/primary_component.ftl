@@ -330,3 +330,5 @@ weapon-component-axe-jagged-bronze = Brons Taggig Yxhuvud
     .desc = { "" }
 weapon-component-staff-grandstaff-ironwood = Järnträ Storstavskaft
     .desc = { "" }
+weapon-component-bow-ornate-wood = Utsmyckade Träbågslemmar
+    .desc = { "" }

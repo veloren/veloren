@@ -303,3 +303,7 @@ npc-speech-witness_theft =
 npc-speech-thank_you =
     .a0 = Tack!
     .a1 = Tack
+npc-question-general =
+    .a0 = Vad kan jag göra för dig?
+    .a1 = Go dag. Vad är det?
+    .a2 = Hej där, vad kan jag hjälpa dig med?

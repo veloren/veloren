@@ -131,3 +131,4 @@ hud-skill_tree-general = 일반 전투
 hud-skill_tree-axe = 도끼
 hud-skill_tree-bow = 활
 hud-skill_tree-staff = 화염 지팡이
+hud-skill_tree-sword = 검

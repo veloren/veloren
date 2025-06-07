@@ -58,7 +58,6 @@ hud-mine-needs_unhandled_case = Патрэбна ???
 hud-pet = Галубіць
 hud-follow = Хадзіць
 hud-stay = Чакаць
-hud-lay = Ляжаць
 hud-portal = Партал
 -server = Сервер
 -client = Кліент

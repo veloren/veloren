@@ -297,3 +297,7 @@ common-abilities-axe-triple_chop = Тройной Замах
     .desc = Три быстрых удара.
 common-abilities-axe-cleave = Рассечение
     .desc = Удар сверху вниз, разрубающий врагов словно дрова, повышает комбо на несколько единиц.
+common-abilities-sword-defensive_disengage = Отступление
+    .desc =
+        Отойдите на шаг назад после нанесения удара.
+        Вход в защитную стойку.
