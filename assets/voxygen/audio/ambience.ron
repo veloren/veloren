@@ -1,24 +1,53 @@
 (
     tracks: [
+        // (
+            // To find sample positions:
+            // Use a piece of software such as Audacity. Set the timecode to use samples,
+            // then select a loopable area (this will take trial and error).
+            // I highly recommend the software Awave Studio, which has a usuable demo mode.
+            // Leave at least a couple thousand samples at the end so it loops without a gap.
+            // ENSURE YOUR SOFTWARE IS USING THE SAME SAMPLERATE AS THE SOUND FILE.
+            // If not, the sound may fail to loop at all.
+            // path: "voxygen.audio.ambience.file",
+            // tag: AmbienceChannelTag,
+            // looping: bool,
+            // start: usize in samples,
+            // end: usize in samples,
+        // ),
         (
             path: "voxygen.audio.ambience.wind",
             tag: Wind,
+            looping: true,
+            start: 72000,
+            end: 753739,
         ),
         (
             path: "voxygen.audio.ambience.rain",
             tag: Rain,
+            looping: true,
+            start: 1163,
+            end: 749003,
         ),
         (
             path:"voxygen.audio.ambience.thunder",
             tag: ThunderRumbling,
+            looping: true,
+            start: 35280,
+            end: 1347342,
         ),
         (
             path:"voxygen.audio.ambience.leaves",
             tag: Leaves,
+            looping: true,
+            start: 0,
+            end: 1146200,
         ),
         (
             path:"voxygen.audio.ambience.cave",
             tag: Cave,
+            looping: true,
+            start: 3394,
+            end: 3329488,
         )
     ]
 )

@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New Buccaneer entity spawn at the Pirate Hideout, including a new T2 obtainable buccaneer set.
 - Serverside gizmos for debugging things like pathfinding.
 - A potion which permanently changes the characters body type.
+- Internal settings for audio samplerate and buffer size.
 
 ### Changed
 
@@ -79,10 +80,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated campfire and bed interaction texts.
 - Witch and Pirate sets (T3 and T1 respectively) are now obtainable and have been given new models, alongside Twig Set being changed out for Adventurer Set.
 - Updated Tidal Warrior model.
+- Emitted sfx now take into account both player and camera position, instead of just camera position, when determining volume.
 
 ### Removed
 
 - NPCs will no longer randomly ambush players.
+- Combat music temporarily removed.
 
 ### Fixed
 
@@ -108,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed music tracks playing straight after one another sometimes.
 - Fixed some summons taking control of the boss.
 - Desert area wildlife is back to spawning in hot temperatures.
+- Ambience (e.g. wind) loops properly.
 
 ## [0.17.0] - 2024-12-28
 

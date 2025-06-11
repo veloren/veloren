@@ -462,17 +462,23 @@ impl Widget for Sound<'_> {
         let num_sfx_setting_list_shown = vec![
             format!(
                 "{} ({})",
-                &SfxChannelSettings::Low.to_string(),
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-sfx_channels_low"),
                 &SfxChannelSettings::Low.to_usize().to_string()
             ),
             format!(
                 "{} ({})",
-                &SfxChannelSettings::Medium.to_string(),
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-sfx_channels_med"),
                 &SfxChannelSettings::Medium.to_usize().to_string()
             ),
             format!(
                 "{} ({})",
-                &SfxChannelSettings::High.to_string(),
+                &self
+                    .localized_strings
+                    .get_msg("hud-settings-sfx_channels_high"),
                 &SfxChannelSettings::High.to_usize().to_string()
             ),
         ];

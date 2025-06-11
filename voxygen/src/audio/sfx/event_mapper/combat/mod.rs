@@ -74,9 +74,11 @@ impl EventMapper for CombatEventMapper {
                 });
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(sfx_state, triggers.get_key_value(&mapped_event)) {
+                if Self::should_emit(sfx_state, triggers.get_key_value(&mapped_event))
+                    && let Some(player_pos) = state.read_component_copied::<Pos>(player_entity)
+                {
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
-                    audio.emit_sfx(sfx_trigger_item, pos.0, None);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None, player_pos.0);
                     sfx_state.time = Instant::now();
                 }
 

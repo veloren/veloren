@@ -26,6 +26,14 @@ use crate::audio;
 
 use super::soundcache::{AnySoundData, AnySoundHandle};
 
+/// We watch the states of nearby entities in order to emit SFX at their
+/// position based on their state. This constant limits the radius that we
+/// observe to prevent tracking distant entities. It approximates the distance
+/// at which the volume of the sfx emitted is too quiet to be meaningful for the
+/// player.
+pub const SFX_DIST_LIMIT: f32 = 100.0;
+pub const SFX_DIST_LIMIT_SQR: f32 = 10000.0;
+
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
 /// transition between `TitleMusic` and `Exploration` when a player enters the
@@ -278,17 +286,6 @@ impl AmbienceChannel {
         self.target_volume = volume;
     }
 
-    /// Set whether this channel's sound loops or not
-    pub fn set_looping(&mut self, loops: bool) {
-        if let Some(source) = self.source.as_mut() {
-            if loops {
-                source.set_loop_region(0.0..);
-            } else {
-                source.set_loop_region(None);
-            }
-        }
-    }
-
     pub fn get_source(&mut self) -> Option<&mut AnySoundHandle> { self.source.as_mut() }
 
     /// Get an immutable reference to the channel's track for purposes of
@@ -335,8 +332,8 @@ impl SfxChannel {
         listener: ListenerId,
     ) -> Result<Self, kira::ResourceLimitReached> {
         let sfx_track_builder = SpatialTrackBuilder::new()
-            .distances((1.0, 200.0))
-            .attenuation_function(Some(Easing::OutPowf(0.45)));
+            .distances((1.0, SFX_DIST_LIMIT))
+            .attenuation_function(Some(Easing::OutPowf(0.66)));
         let track = route_to.add_spatial_sub_track(listener, Vec3::zero(), sfx_track_builder)?;
         Ok(Self {
             track,
@@ -364,10 +361,14 @@ impl SfxChannel {
         }
     }
 
+    /// Sets volume of the track, not the source. This is to be used only for
+    /// multiplying the volume post distance calculation.
     pub fn set_volume(&mut self, volume: f32) {
-        if let Some(source) = self.source.as_mut() {
-            source.set_volume(audio::to_decibels(volume), Tween::default())
-        }
+        let tween = Tween {
+            duration: Duration::from_secs_f32(0.0),
+            ..Default::default()
+        };
+        self.track.set_volume(audio::to_decibels(volume), tween)
     }
 
     pub fn is_done(&self) -> bool {
@@ -376,14 +377,30 @@ impl SfxChannel {
             .is_none_or(|source| source.state() == PlaybackState::Stopped)
     }
 
-    pub fn update(&mut self, pos: Vec3<f32>) {
+    /// Update volume of sounds based on position of player
+    pub fn update(&mut self, emitter_pos: Vec3<f32>, player_pos: Vec3<f32>) {
         let tween = Tween {
             duration: Duration::from_secs_f32(0.0),
             ..Default::default()
         };
-        self.track.set_position(pos, tween);
-        self.pos = pos;
+        self.track.set_position(emitter_pos, tween);
+        self.pos = emitter_pos;
+
+        let player_distance_to_source_sqr = player_pos
+            .distance_squared(self.pos)
+            .min(SFX_DIST_LIMIT_SQR);
+        // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
+        // 1.0 being closest to the player.
+        let ratio = (-(player_distance_to_source_sqr - SFX_DIST_LIMIT_SQR) / SFX_DIST_LIMIT_SQR)
+            .powf(5.0)
+            .clamp(0.0, 1.0);
+        self.set_volume(ratio);
     }
+}
+
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+pub enum UiChannelTag {
+    LevelUp,
 }
 
 /// An UiChannel uses a non-spatial audio sink, and is designed for short-lived
@@ -392,6 +409,7 @@ impl SfxChannel {
 pub struct UiChannel {
     track: TrackHandle,
     source: Option<AnySoundHandle>,
+    pub tag: Option<UiChannelTag>,
 }
 
 impl UiChannel {
@@ -400,6 +418,7 @@ impl UiChannel {
         Ok(Self {
             track,
             source: None,
+            tag: None,
         })
     }
 
@@ -407,9 +426,12 @@ impl UiChannel {
         self.source = source_handle;
     }
 
-    pub fn play(&mut self, source: AnySoundData) {
+    pub fn play(&mut self, source: AnySoundData, tag: Option<UiChannelTag>) {
         match self.track.play(source) {
-            Ok(handle) => self.source = Some(handle),
+            Ok(handle) => {
+                self.source = Some(handle);
+                self.tag = tag;
+            },
             Err(e) => {
                 warn!(?e, "Cannot play ui sfx")
             },
@@ -431,5 +453,16 @@ impl UiChannel {
         self.source
             .as_ref()
             .is_none_or(|source| source.state() == PlaybackState::Stopped)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::audio::channel::{SFX_DIST_LIMIT, SFX_DIST_LIMIT_SQR};
+
+    #[test]
+    // Small optimization so sqrt() isn't called at runtime
+    fn test_sfx_dist_limit_eq_sfx_dist_limit_sqr() {
+        assert!(SFX_DIST_LIMIT.powf(2.0) == SFX_DIST_LIMIT_SQR)
     }
 }
