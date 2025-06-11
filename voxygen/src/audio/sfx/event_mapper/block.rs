@@ -80,28 +80,28 @@ impl EventMapper for BlockEventMapper {
                     blocks: |boi| &boi.leaves,
                     range: 1,
                     sfx: SfxEvent::Birdcall,
-                    volume: 1.0,
+                    volume: 1.5,
                     cond: |st| st.get_day_period().is_light(),
                 },
                 BlockSounds {
                     blocks: |boi| &boi.leaves,
                     range: 1,
                     sfx: SfxEvent::Owl,
-                    volume: 1.0,
+                    volume: 1.5,
                     cond: |st| st.get_day_period().is_dark(),
                 },
                 BlockSounds {
                     blocks: |boi| &boi.slow_river,
                     range: 1,
                     sfx: SfxEvent::RunningWaterSlow,
-                    volume: 1.2,
+                    volume: 1.0,
                     cond: |_| true,
                 },
                 BlockSounds {
                     blocks: |boi| &boi.fast_river,
                     range: 1,
                     sfx: SfxEvent::RunningWaterFast,
-                    volume: 1.5,
+                    volume: 1.25,
                     cond: |_| true,
                 },
                 BlockSounds {
@@ -124,7 +124,7 @@ impl EventMapper for BlockEventMapper {
                     blocks: |boi| &boi.frogs,
                     range: 1,
                     sfx: SfxEvent::Frog,
-                    volume: 0.8,
+                    volume: 1.0,
                     cond: |st| st.get_day_period().is_dark(),
                 },
                 //BlockSounds {
@@ -138,21 +138,21 @@ impl EventMapper for BlockEventMapper {
                     blocks: |boi| &boi.cricket1,
                     range: 1,
                     sfx: SfxEvent::Cricket1,
-                    volume: 0.33,
+                    volume: 0.5,
                     cond: |st| st.get_day_period().is_dark(),
                 },
                 BlockSounds {
                     blocks: |boi| &boi.cricket2,
                     range: 1,
                     sfx: SfxEvent::Cricket2,
-                    volume: 0.33,
+                    volume: 0.5,
                     cond: |st| st.get_day_period().is_dark(),
                 },
                 BlockSounds {
                     blocks: |boi| &boi.cricket3,
                     range: 1,
                     sfx: SfxEvent::Cricket3,
-                    volume: 0.33,
+                    volume: 0.5,
                     cond: |st| st.get_day_period().is_dark(),
                 },
                 BlockSounds {
@@ -169,13 +169,13 @@ impl EventMapper for BlockEventMapper {
                 // TODO Address bird hack properly. See TODO below
                 if !(sounds.cond)(state)
                     || (!(sounds.sfx == SfxEvent::Lavapool) && player_pos.0.z < (terrain_alt - 30.0))
-                    || (sounds.sfx == SfxEvent::Birdcall && rng.gen_bool(0.995))
-                    || (sounds.sfx == SfxEvent::Owl && rng.gen_bool(0.998))
+                    || (sounds.sfx == SfxEvent::Birdcall && (rng.gen_bool(0.9925) || client.weather_at_player().rain >= 0.07))
+                    || (sounds.sfx == SfxEvent::Owl && (rng.gen_bool(0.997) || client.weather_at_player().rain >= 0.14))
                     || (sounds.sfx == SfxEvent::Frog && rng.gen_bool(0.95))
                     //Crickets will not chirp below 5 Celsius
-                    || (sounds.sfx == SfxEvent::Cricket1 && (temp < -0.33))
-                    || (sounds.sfx == SfxEvent::Cricket2 && (temp < -0.33))
-                    || (sounds.sfx == SfxEvent::Cricket3 && (temp < -0.33))
+                    || (sounds.sfx == SfxEvent::Cricket1 && ((temp < -0.33) || client.weather_at_player().rain >= 0.07))
+                    || (sounds.sfx == SfxEvent::Cricket2 && ((temp < -0.33) || client.weather_at_player().rain >= 0.07))
+                    || (sounds.sfx == SfxEvent::Cricket3 && ((temp < -0.33) || client.weather_at_player().rain >= 0.07))
                 {
                     continue;
                 }
@@ -237,6 +237,7 @@ impl EventMapper for BlockEventMapper {
                                         sfx_trigger_item,
                                         block_pos,
                                         Some(sounds.volume),
+                                        player_pos.0,
                                     );
                                 }
                                 internal_state.time = Instant::now();

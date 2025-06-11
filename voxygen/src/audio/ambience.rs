@@ -25,6 +25,8 @@ pub struct AmbienceItem {
     path: String,
     /// Specifies which ambient channel to play on
     tag: AmbienceChannelTag,
+    start: usize,
+    end: usize,
 }
 
 pub struct AmbienceMgr {
@@ -70,7 +72,7 @@ impl AmbienceMgr {
                 inner.new_ambience_channel(tag);
                 let track = ambience_sounds.tracks.iter().find(|track| track.tag == tag);
                 if let Some(track) = track {
-                    audio.play_ambience_looping(tag, &track.path);
+                    audio.play_ambience_looping(tag, &track.path, track.start, track.end);
                 }
             }
             if let Some(inner) = audio.inner.as_mut()

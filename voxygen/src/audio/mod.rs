@@ -2,7 +2,6 @@
 
 pub mod ambience;
 pub mod channel;
-pub mod fader;
 pub mod music;
 pub mod sfx;
 pub mod soundcache;
@@ -92,7 +91,7 @@ impl SfxChannelSettings {
             "Low" => SfxChannelSettings::Low,
             "Medium" => SfxChannelSettings::Medium,
             "High" => SfxChannelSettings::High,
-            _ => SfxChannelSettings::Medium,
+            _ => SfxChannelSettings::High,
         }
     }
 
@@ -338,6 +337,7 @@ impl AudioFrontend {
         subtitles: bool,
         combat_music_enabled: bool,
         buffer_size: usize,
+        set_samplerate: Option<u32>,
     ) -> Self {
         let mut device = cpal::default_host().default_output_device();
         let mut supported_config = None;
@@ -349,7 +349,7 @@ impl AudioFrontend {
                     default_output_config.sample_rate().0
                 );
                 samplerate = default_output_config.sample_rate().0;
-                if samplerate > 48000 {
+                if samplerate > 48000 && set_samplerate.is_none() {
                     warn!(
                         "Current default samplerate is higher than 48000; attempting to lower \
                          samplerate"
@@ -370,6 +370,19 @@ impl AudioFrontend {
                             if supported_config.is_none() {
                                 warn!("Could not change samplerate, using default")
                             }
+                        }
+                    }
+                } else if let Some(set_samplerate) = set_samplerate {
+                    let supported_configs = device.supported_output_configs();
+                    if let Ok(supported_configs) = supported_configs {
+                        let best_config = supported_configs.max_by(|x, y| {
+                            SupportedStreamConfigRange::cmp_default_heuristics(x, y)
+                        });
+                        if let Some(best_config) = best_config {
+                            samplerate = set_samplerate;
+                            warn!("Attempting to force samplerate to {:?}", samplerate);
+                            supported_config =
+                                best_config.try_with_sample_rate(SampleRate(samplerate));
                         }
                     }
                 }
@@ -450,11 +463,22 @@ impl AudioFrontend {
         }
     }
 
-    /// Drop any unused music channels
+    /// Drop any unused music channels, ambience channels, and reset the tags of
+    /// unused UI channels.
     pub fn maintain(&mut self) {
         if let Some(inner) = &mut self.inner {
             inner.channels.music.retain(|c| !c.is_done());
             inner.channels.ambience.retain(|c| !c.is_stopped());
+            inner.channels.sfx.iter_mut().for_each(|c| {
+                if c.is_done() {
+                    c.set_volume(0.0);
+                }
+            });
+            inner.channels.ui.iter_mut().for_each(|c| {
+                if c.is_done() {
+                    c.tag = None
+                }
+            });
         }
     }
 
@@ -546,16 +570,6 @@ impl AudioFrontend {
         }
     }
 
-    /// Set the cutoff of the filter affecting all ambience
-    pub fn set_ambience_master_filter(&mut self, frequency: u32) {
-        if let Some(inner) = self.inner.as_mut() {
-            inner
-                .effects
-                .ambience
-                .set_cutoff(Value::Fixed(frequency as f64), Tween::default());
-        }
-    }
-
     /// Find sound based on given trigger_item.
     /// Randomizes if multiple sounds are found.
     /// Errors if no sounds are found.
@@ -602,26 +616,27 @@ impl AudioFrontend {
     pub fn emit_sfx(
         &mut self,
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
-        position: Vec3<f32>,
+        emitter_pos: Vec3<f32>,
         volume: Option<f32>,
+        player_pos: Vec3<f32>,
     ) {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
-            self.emit_subtitle(subtitle, Some(position), dur);
+            self.emit_subtitle(subtitle, Some(emitter_pos), dur);
             // Play sound in empty channel at given position
             if self.sfx_enabled()
                 && let Some(inner) = self.inner.as_mut()
                 && let Some(channel) = inner.channels.get_sfx_channel()
             {
                 let sound = load_ogg(sfx_file, false);
-                channel.update(position);
+                channel.update(emitter_pos, player_pos);
 
                 let source = sound.volume(to_decibels(volume.unwrap_or(1.0) * 5.0));
                 channel.play(source);
             }
         } else {
             warn!(
-                "Missing sfx trigger config for sfx event at position: {:?}\n{:#?}",
-                position,
+                "Missing sfx trigger config for sfx event: {:?}; {:?}",
+                trigger_item,
                 backtrace::Backtrace::new(),
             );
         }
@@ -633,6 +648,7 @@ impl AudioFrontend {
         &mut self,
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         volume: Option<f32>,
+        tag: Option<channel::UiChannelTag>,
     ) {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
             self.emit_subtitle(subtitle, None, dur);
@@ -640,10 +656,15 @@ impl AudioFrontend {
             // Play sound in empty channel
             if self.sfx_enabled()
                 && let Some(inner) = self.inner.as_mut()
+                && !inner
+                    .channels
+                    .ui
+                    .iter()
+                    .any(|c| tag.is_some() && c.tag == tag)
                 && let Some(channel) = inner.channels.get_ui_channel()
             {
                 let sound = load_ogg(sfx_file, false).volume(to_decibels(volume.unwrap_or(1.0)));
-                channel.play(sound);
+                channel.play(sound, tag);
             }
         } else {
             warn!("Missing sfx trigger config for ui sfx event.",);
@@ -671,14 +692,32 @@ impl AudioFrontend {
         }
     }
 
+    /// Set the cutoff of the filter affecting all ambience
+    pub fn set_ambience_master_filter(&mut self, frequency: u32) {
+        if let Some(inner) = self.inner.as_mut() {
+            inner
+                .effects
+                .ambience
+                .set_cutoff(Value::Fixed(frequency as f64), Tween::default());
+        }
+    }
+
     /// Plays an ambience sound that loops in the channel with a given tag
-    pub fn play_ambience_looping(&mut self, channel_tag: AmbienceChannelTag, sound: &str) {
+    pub fn play_ambience_looping(
+        &mut self,
+        channel_tag: AmbienceChannelTag,
+        sound: &str,
+        start: usize,
+        end: usize,
+    ) {
         if self.ambience_enabled()
             && let Some(inner) = self.inner.as_mut()
             && let Some(channel) = inner.channels.get_ambience_channel(channel_tag)
         {
-            let source = load_ogg(sound, true).loop_region(0.0..);
-            channel.set_looping(true);
+            let source = load_ogg(sound, true).loop_region(
+                kira::sound::PlaybackPosition::Samples(start)
+                    ..kira::sound::PlaybackPosition::Samples(end),
+            );
             channel.play(source, Some(1.0), None);
         }
     }
@@ -704,7 +743,6 @@ impl AudioFrontend {
             let source = load_ogg(sound, false)
                 .loop_region(None)
                 .volume(to_decibels(volume.unwrap_or(1.0)));
-            channel.set_looping(false);
             channel.fade_to(1.0, 0.0);
             channel.play(source, None, delay);
         }

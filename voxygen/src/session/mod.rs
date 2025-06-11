@@ -262,11 +262,11 @@ impl SessionState {
             &mut self.gizmos,
         );
         self.scene.maintain_debug_vectors(&client, &mut self.lines);
+        let pos = client.position().unwrap_or_default();
 
         #[cfg(not(target_os = "macos"))]
         {
             // Update mumble positional audio
-            let pos = client.position().unwrap_or_default();
             let ori = client
                 .state()
                 .read_storage::<comp::Ori>()
@@ -359,12 +359,13 @@ impl SessionState {
                             | InventoryUpdateEvent::EntityCollectFailed { .. }
                             | InventoryUpdateEvent::BlockCollectFailed { .. }
                             | InventoryUpdateEvent::Craft => {
-                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
+                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
                             },
                             _ => global_state.audio.emit_sfx(
                                 sfx_trigger_item,
                                 client.position().unwrap_or_default(),
                                 None,
+                                pos,
                             ),
                         }
 
@@ -2167,7 +2168,7 @@ impl PlayState for SessionState {
                         if !has_repaired {
                             let sfx_trigger_item = sfx_triggers
                                 .get_key_value(&SfxEvent::from(&InventoryUpdateEvent::Craft));
-                            global_state.audio.emit_ui_sfx(sfx_trigger_item, None);
+                            global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
                             has_repaired = true
                         };
                         self.client
