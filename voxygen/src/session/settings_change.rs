@@ -307,7 +307,11 @@ impl SettingsChange {
                         settings.audio.num_sfx_channels = num;
                     },
                     Audio::ResetAudioSettings => {
+                        let previous_sample_rate = settings.audio.sample_rate;
+                        let previous_buffer_size = settings.audio.buffer_size;
                         settings.audio = AudioSettings::default();
+                        settings.audio.sample_rate = previous_sample_rate;
+                        settings.audio.buffer_size = previous_buffer_size;
 
                         let audio = &mut global_state.audio;
 
