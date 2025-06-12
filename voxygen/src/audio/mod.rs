@@ -339,6 +339,8 @@ impl AudioFrontend {
         buffer_size: usize,
         set_samplerate: Option<u32>,
     ) -> Self {
+        // Generate a supported config if the default samplerate is too high or is
+        // manually set.
         let mut device = cpal::default_host().default_output_device();
         let mut supported_config = None;
         let mut samplerate = 44100;
@@ -379,10 +381,15 @@ impl AudioFrontend {
                             SupportedStreamConfigRange::cmp_default_heuristics(x, y)
                         });
                         if let Some(best_config) = best_config {
-                            samplerate = set_samplerate;
-                            warn!("Attempting to force samplerate to {:?}", samplerate);
+                            warn!("Attempting to force samplerate to {:?}", set_samplerate);
                             supported_config =
-                                best_config.try_with_sample_rate(SampleRate(samplerate));
+                                best_config.try_with_sample_rate(SampleRate(set_samplerate));
+                            if supported_config.is_none() {
+                                error!(
+                                    "Could not set samplerate to {:?}, falling back to default.",
+                                    set_samplerate
+                                );
+                            }
                         }
                     }
                 }
@@ -469,6 +476,8 @@ impl AudioFrontend {
         if let Some(inner) = &mut self.inner {
             inner.channels.music.retain(|c| !c.is_done());
             inner.channels.ambience.retain(|c| !c.is_stopped());
+            // Also set any unused sfx channels to 0 volume to prevent popping in some
+            // cases.
             inner.channels.sfx.iter_mut().for_each(|c| {
                 if c.is_done() {
                     c.set_volume(0.0);
