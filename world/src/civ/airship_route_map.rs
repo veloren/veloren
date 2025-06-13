@@ -1,6 +1,6 @@
 use crate::{
     CONFIG, Index, IndexRef,
-    civ::airship_travel::{Airships, DockNode, AirshipDockPlatform},
+    civ::airship_travel::{AirshipDockPlatform, AirshipRouteLeg, Airships, DockNode, AirshipSpawningLocation},
     sim::{WorldSim, get_horizon_map, sample_pos, sample_wpos},
     util::{DHashMap, DHashSet},
 };
@@ -15,7 +15,7 @@ use common::{
 use delaunator::{Point, Triangulation};
 use serde::Deserialize;
 use tiny_skia::{
-    FilterQuality, IntRect, IntSize, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke, Transform,
+    FilterQuality, FillRule, IntRect, IntSize, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke, Transform,
 };
 
 use std::{borrow::Cow, env, error::Error, io::ErrorKind, path::PathBuf};
@@ -288,9 +288,9 @@ impl TinySkiaSpriteMap {
 }
 
 /// Creates a basic world map as a tiny_skia::Pixmap
-fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) -> Option<Pixmap> {
+fn basic_world_pixmap(image_size: &MapSizeLg, index: &Index, sampler: &WorldSim) -> Option<Pixmap> {
     let horizons = get_horizon_map(
-        image_size,
+        *image_size,
         Aabr {
             min: Vec2::zero(),
             max: image_size.chunks().map(|e| e as i32),
@@ -298,7 +298,7 @@ fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) 
         CONFIG.sea_level,
         CONFIG.sea_level + sampler.max_height,
         |posi| {
-            let sample = sampler.get(uniform_idx_as_vec2(image_size, posi)).unwrap();
+            let sample = sampler.get(uniform_idx_as_vec2(*image_size, posi)).unwrap();
 
             sample.basement.max(sample.water_alt)
         },
@@ -315,7 +315,7 @@ fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) 
         index,
     };
 
-    let mut map_config = MapConfig::orthographic(image_size, 0.0..=sampler.max_height);
+    let mut map_config = MapConfig::orthographic(*image_size, 0.0..=sampler.max_height);
     map_config.horizons = horizons.as_ref();
     map_config.is_shaded = true;
     map_config.is_stylized_topo = true;
@@ -352,107 +352,25 @@ fn basic_world_pixmap(image_size: MapSizeLg, index: &Index, sampler: &WorldSim) 
     }
 }
 
-/// Creates a tiny_skia::Pixmap of the airship routes.
-/// This is the route map where the airship travels out and back between the
-/// pairs of docking sites.
-fn legacy_airship_routes_map(
-    airships: &mut Airships,
-    image_size: MapSizeLg,
-    index: &Index,
-    sampler: &WorldSim,
-) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
-
-    let world_chunks = sampler.map_size_lg().chunks();
-    let blocks_per_chunk = 1 << TERRAIN_CHUNK_BLOCKS_LG;
-    let world_blocks = world_chunks.map(|u| u as f32) * blocks_per_chunk as f32;
-    let map_w = image_size.chunks().x as f32;
-    let map_h = image_size.chunks().y as f32;
-
-    let mut circled_points: DHashSet<Vec2<i32>> = DHashSet::default();
-    let mut lines_drawn: DHashSet<(Vec2<i32>, Vec2<i32>)> = DHashSet::default();
-    let mut circle_pb: PathBuilder = PathBuilder::new();
-    let mut lines_pb = PathBuilder::new();
-
-    // route coordinates are in world blocks, convert to map pixels and invert y
-    // axis
-    for route in airships.routes.values() {
-        let p1 = Vec2::new(
-            route.approaches[0].dock_center.x / world_blocks.x * map_w,
-            map_h - route.approaches[0].dock_center.y / world_blocks.y * map_h,
-        );
-        let p2 = Vec2::new(
-            route.approaches[1].dock_center.x / world_blocks.x * map_w,
-            map_h - route.approaches[1].dock_center.y / world_blocks.y * map_h,
-        );
-
-        // Draw a circle around the dock centers
-        let p1i32 = Vec2::new(p1.x as i32, p1.y as i32);
-        let p2i32 = Vec2::new(p2.x as i32, p2.y as i32);
-        if !circled_points.contains(&p1i32) {
-            circle_pb.push_circle(p1.x, p1.y, 10.0);
-            circled_points.insert(p1i32);
-        }
-        if !circled_points.contains(&p2i32) {
-            circle_pb.push_circle(p2.x, p2.y, 10.0);
-            circled_points.insert(p2i32);
-        }
-
-        // // Draw a line between the endpoints that intersect the circles
-        if !lines_drawn.contains(&(p1i32, p2i32)) {
-            let dir = (p2 - p1).normalized();
-            let start_edge_center = p1 + dir * 10.0;
-            let end_edge_center = p2 - dir * 10.0;
-            lines_pb.move_to(start_edge_center.x, start_edge_center.y);
-            lines_pb.line_to(end_edge_center.x, end_edge_center.y);
-            lines_drawn.insert((p1i32, p2i32));
-        }
-    }
-
-    let mut paint = Paint::default();
-    paint.set_color_rgba8(105, 231, 255, 255);
-    paint.anti_alias = true;
-
-    let circle_stroke = Stroke {
-        width: 2.0,
-        ..Default::default()
-    };
-    match circle_pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(&path, &paint, &circle_stroke, Transform::identity(), None);
-        },
-        None => {
-            eprintln!("Failed to draw circles path");
-        },
-    }
-
-    let lines_stroke = Stroke {
-        width: 3.0,
-        ..Default::default()
-    };
-    match lines_pb.finish() {
-        Some(path) => {
-            pixmap.stroke_path(&path, &paint, &lines_stroke, Transform::identity(), None);
-        },
-        None => {
-            eprintln!("Failed to draw lines path");
-        },
-    }
-
-    Some(pixmap)
-}
-
 /// Creates a tiny_skia::Pixmap of the basic triangulation over the docking
 /// sites.
 fn dock_sites_triangulation_map(
     triangulation: &Triangulation,
     points: &[Point],
-    image_size: MapSizeLg,
-    index: &Index,
-    sampler: &WorldSim,
+    image_size: &MapSizeLg,
+    index: Option<&Index>,
+    sampler: Option<&WorldSim>,
+    map_image_path: Option<&str>,
 ) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
-    let world_chunks = sampler.map_size_lg().chunks();
+    let mut pixmap = if let Some(index) = index && let Some(sampler) = sampler {
+        basic_world_pixmap(image_size, index, sampler)
+    } else if let Some(map_image_path) = map_image_path {
+        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))
+            .ok()
+    } else {
+        None
+    }?;
+    let world_chunks = image_size.chunks();
     let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
     let map_w = image_size.chunks().x as f32;
     let map_h = image_size.chunks().y as f32;
@@ -584,7 +502,7 @@ fn dock_sites_optimized_tesselation_map(
     index: &Index,
     sampler: &WorldSim,
 ) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
+    let mut pixmap = basic_world_pixmap(&image_size, index, sampler)?;
 
     let world_chunks = sampler.map_size_lg().chunks();
     let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
@@ -671,24 +589,26 @@ fn dock_sites_optimized_tesselation_map(
 /// # Arguments
 ///
 /// * `routes`: The route loops, where each inner vector contains the end point
-///   of each route leg. ('to' point, docking platform).
-///   The route loops, so the 'from' point of the first leg is the last item
-///   of the inner vector. Docking positions are on the cardinal sides of the docking sites.
-///   AirshipDockPlatform::NorthPlatform means the airship will dock on the north side of the dock.
+///   of each route leg (the AirshipRouteLeg). The route loops, so the 'from'
+///   point of the first leg is the last item of the inner vector. Docking
+///   positions are on the cardinal sides of the docking sites.
+///   AirshipDockPlatform::NorthPlatform means the airship will dock on the
+///   north side of the dock.
 /// * `points`: The docking site locations in pixmap coordinates (top left is
 ///   the origin).
 /// * `pixmap`: The Pixmap on which to draw the segments.
 ///
-/// This draws circles around the docking locations and lines for the route legs.
-/// The coordinates must be pre-scaled to the pixmap size. The Veloren world uses
-/// a bottom-left origin with coordinates in world blocks, so world coordinates must
-/// be converted by inverting the y-axix and scaling to the pixmap size.
+/// This draws circles around the docking locations and lines for the route
+/// legs. The coordinates must be pre-scaled to the pixmap size. The Veloren
+/// world uses a bottom-left origin with coordinates in world blocks, so world
+/// coordinates must be converted by inverting the y-axix and scaling to the
+/// pixmap size.
 fn draw_airship_routes(
-    routes: &[Vec<(usize, AirshipDockPlatform)>],
+    routes: &[Vec<AirshipRouteLeg>],
     points: &[Vec2<f32>],
+    spawning_points: &Vec<Vec<Vec2<f32>>>,
     pixmap: &mut Pixmap,
 ) -> Result<(), Box<dyn Error>> {
-
     // Draw a circle around the points (the docking sites)
     let mut pb: PathBuilder = PathBuilder::new();
     for dock_center in points.iter() {
@@ -732,18 +652,18 @@ fn draw_airship_routes(
 
     // Draw the route segment lines
     for (i, route) in routes.iter().enumerate() {
-        let color = segment_colors[i % segment_colors.len()];
+        let color: [u8; 3] = segment_colors[i % segment_colors.len()];
         paint.set_color_rgba8(color[0], color[1], color[2], 255);
 
         if route.len() > 1 {
-            let mut prev_leg = route[route.len() - 1];
+            let mut prev_leg = &route[route.len() - 1];
             let mut pb = PathBuilder::new();
-            for route_leg in route.iter() {            
-                let from_loc = loc_fn(&points[prev_leg.0], &prev_leg.1);
-                let to_loc = loc_fn(&points[route_leg.0], &route_leg.1);
+            for route_leg in route.iter() {
+                let from_loc = loc_fn(&points[prev_leg.dest_index], &prev_leg.platform);
+                let to_loc = loc_fn(&points[route_leg.dest_index], &route_leg.platform);
                 pb.move_to(from_loc.0, from_loc.1);
                 pb.line_to(to_loc.0, to_loc.1);
-                prev_leg = *route_leg;
+                prev_leg = route_leg;
             }
             let path = pb
                 .finish()
@@ -768,15 +688,15 @@ fn draw_airship_routes(
 
         if route.len() > 1 {
             let mut leg_line_number = 1;
-            let mut prev_leg = route[route.len() - 1];
+            let mut prev_leg = &route[route.len() - 1];
 
             // The leg line numbers are drawn at the destination end of the line.
-            for route_leg in route.iter() {            
-            // for j in 0..segment.len() - 1 {
-                let from_loc = loc_fn(&points[prev_leg.0], &prev_leg.1);
-                let to_loc = loc_fn(&points[route_leg.0], &route_leg.1);
+            for route_leg in route.iter() {
+                // for j in 0..segment.len() - 1 {
+                let from_loc = loc_fn(&points[prev_leg.dest_index], &prev_leg.platform);
+                let to_loc = loc_fn(&points[route_leg.dest_index], &route_leg.platform);
                 let p1 = Vec2::new(from_loc.0, from_loc.1);
-                let p2 = Vec2::new(to_loc.0, to_loc.1);            
+                let p2 = Vec2::new(to_loc.0, to_loc.1);
                 let dir = (p2 - p1).normalized();
 
                 // Turn the number into a string with leading zeros for single digit numbers.
@@ -803,10 +723,33 @@ fn draw_airship_routes(
                 )?;
 
                 leg_line_number += 1;
-                prev_leg = *route_leg;
+                prev_leg = route_leg;
             }
         }
     }
+
+    // Draw a filled circle for the airship spawning locations.
+    spawning_points.iter().enumerate().for_each(|(route_index, points)| {
+        let mut pb: PathBuilder = PathBuilder::new();
+        for pt in points.iter() {
+            pb.push_circle(pt.x, pt.y, 5.0);
+        }
+
+        let mut paint = Paint::default();
+        let color: [u8; 3] = segment_colors[route_index % segment_colors.len()];
+        paint.set_color_rgba8(color[0], color[1], color[2], 255);
+        paint.anti_alias = true;
+
+        match pb.finish() {
+            Some(path) => {
+                pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            },
+            None => {
+                eprintln!("Failed to create path for drawing spawning points");
+            },
+        }
+    });
+
 
     Ok(())
 }
@@ -815,14 +758,24 @@ fn draw_airship_routes(
 /// where the segments are loops of docking points derived from the
 /// eulerian circuit created from the eulerized tesselation.
 fn airship_routes_map(
-    routes: &[Vec<(usize, AirshipDockPlatform)>],
+    routes: &[Vec<AirshipRouteLeg>],
     points: &[Point],
-    image_size: MapSizeLg,
-    index: &Index,
-    sampler: &WorldSim,
+    spawning_locations: &Vec<AirshipSpawningLocation>,
+    image_size: &MapSizeLg,
+    index: Option<&Index>,
+    sampler: Option<&WorldSim>,
+    map_image_path: Option<&str>,
 ) -> Option<Pixmap> {
-    let mut pixmap = basic_world_pixmap(image_size, index, sampler)?;
-    let world_chunks = sampler.map_size_lg().chunks();
+    let mut pixmap = if let Some(index) = index && let Some(sampler) = sampler {
+        basic_world_pixmap(image_size, index, sampler)
+    } else if let Some(map_image_path) = map_image_path {
+        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))
+            .ok()
+    } else {
+        None
+    }?;
+
+    let world_chunks = image_size.chunks();
     let world_blocks = world_chunks.map(|u| u as f32) * 32.0;
     let map_w = image_size.chunks().x as f32;
     let map_h = image_size.chunks().y as f32;
@@ -837,7 +790,28 @@ fn airship_routes_map(
         })
         .collect::<Vec<_>>();
 
-    if let Err(e) = draw_airship_routes(routes, &map_points, &mut pixmap) {
+    let mut spawning_points = Vec::new();
+    for route_index in 0..4 {
+        let mut route_spawning_locations = Vec::new();
+        for spawning_location in spawning_locations.iter() {
+            if spawning_location.route_index == route_index {
+                route_spawning_locations.push(
+                    Vec2::new(
+                        spawning_location.pos.x / world_blocks.x * map_w,
+                        map_h - (spawning_location.pos.y / world_blocks.y * map_h),
+                    )
+                );
+            }
+        }
+        if route_spawning_locations.is_empty() {
+            continue;
+        }
+        spawning_points.push(route_spawning_locations);
+    }
+
+
+
+    if let Err(e) = draw_airship_routes(routes, &map_points, &spawning_points, &mut pixmap) {
         error!("Failed to draw airship route segments: {}", e);
         return None;
     }
@@ -845,41 +819,29 @@ fn airship_routes_map(
     Some(pixmap)
 }
 
-pub fn save_airship_routes_map(airships: &mut Airships, index: &Index, sampler: &WorldSim) {
-    let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
-    if let Some(routes_log_folder) = airship_routes_log_folder {
-        let world_map_file = format!(
-            "{}/airship_routes_map_{}.png",
-            routes_log_folder, index.seed
-        );
-        let world_map_file_path = PathBuf::from(world_map_file);
-        if let Some(pixmap) = legacy_airship_routes_map(airships, sampler.map_size_lg(), index, sampler) {
-            if pixmap.save_png(&world_map_file_path).is_err() {
-                error!("Failed to save airship routes map");
-            }
-        }
-    }
-}
-
 pub fn save_airship_routes_triangulation(
     triangulation: &Triangulation,
     points: &[Point],
-    index: &Index,
-    sampler: &WorldSim,
+    image_size: &MapSizeLg,
+    seed: u32,
+    index: Option<&Index>,
+    sampler: Option<&WorldSim>,
+    map_image_path: Option<&str>,
 ) {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
     if let Some(routes_log_folder) = airship_routes_log_folder {
         let world_map_file = format!(
             "{}/airship_docks_triangulation_{}.png",
-            routes_log_folder, index.seed
+            routes_log_folder, seed
         );
         let world_map_file_path = PathBuf::from(world_map_file);
         if let Some(pixmap) = dock_sites_triangulation_map(
             triangulation,
             points,
-            sampler.map_size_lg(),
+            image_size,
             index,
             sampler,
+            map_image_path
         ) {
             if pixmap.save_png(&world_map_file_path).is_err() {
                 error!("Failed to save airship routes triangulation map");
@@ -918,19 +880,23 @@ pub fn save_airship_routes_optimized_tesselation(
 }
 
 pub fn save_airship_route_segments(
-    routes: &[Vec<(usize, AirshipDockPlatform)>],
+    routes: &[Vec<AirshipRouteLeg>],
     points: &[Point],
-    index: &Index,
-    sampler: &WorldSim,
+    spawning_locations: &Vec<AirshipSpawningLocation>,
+    image_size: &MapSizeLg,
+    seed: u32,
+    index: Option<&Index>,
+    sampler: Option<&WorldSim>,
+    map_image_path: Option<&str>,
 ) {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
     if let Some(routes_log_folder) = airship_routes_log_folder {
         let world_map_file = format!(
-            "{}/best_route_segments{}.png",
-            routes_log_folder, index.seed
+            "{}/airship_routes_map_{}.png",
+            routes_log_folder, seed
         );
         if let Some(pixmap) =
-            airship_routes_map(routes, points, sampler.map_size_lg(), index, sampler)
+            airship_routes_map(routes, points, spawning_locations, image_size, index, sampler, map_image_path)
         {
             if pixmap.save_png(&world_map_file).is_err() {
                 error!("Failed to save airship route segments map");
@@ -940,19 +906,12 @@ pub fn save_airship_route_segments(
 }
 
 #[cfg(debug_assertions)]
-pub fn export_world_map(
-    index: &Index,
-    sampler: &WorldSim,
-) -> Result<(), String> {
+pub fn export_world_map(index: &Index, sampler: &WorldSim) -> Result<(), String> {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
-    let routes_log_folder = airship_routes_log_folder.ok_or(
-        "AIRSHIP_ROUTES_LOG_FOLDER environment variable is not set".to_string(),
-    )?;
-    let world_map_file = format!(
-        "{}/basic_world_map{}.png",
-        routes_log_folder, index.seed
-    );
-    if let Some(world_map) = basic_world_pixmap(sampler.map_size_lg(), index, sampler) {
+    let routes_log_folder = airship_routes_log_folder
+        .ok_or("AIRSHIP_ROUTES_LOG_FOLDER environment variable is not set".to_string())?;
+    let world_map_file = format!("{}/basic_world_map{}.png", routes_log_folder, index.seed);
+    if let Some(world_map) = basic_world_pixmap(&sampler.map_size_lg(), index, sampler) {
         if world_map.save_png(&world_map_file).is_err() {
             error!("Failed to save world map");
         }
@@ -1012,29 +971,6 @@ pub fn export_docknodes(
         .finish()
         .ok_or_else(|| "Failed to create path for lines".to_string())?;
     pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
-
-    pixmap
-        .save_png(output_path)
-        .map_err(|e| format!("Failed to save output image: {}", e))
-}
-
-#[cfg(debug_assertions)]
-pub fn export_route_segments_map(
-    map_image_path: &str,
-    routes: &[Vec<(usize, AirshipDockPlatform)>],    points: &[Point],
-    output_path: &str,
-) -> Result<(), String> {
-    let mut pixmap =
-        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))?;
-
-    // points are assumed to be in map coordinates (top left is the origin)
-    let map_points = points
-        .iter()
-        .map(|p| Vec2::new(p.x as f32, p.y as f32))
-        .collect::<Vec<_>>();
-
-    draw_airship_routes(routes, &map_points, &mut pixmap)
-        .map_err(|e| format!("Failed to draw route segments: {}", e))?;
 
     pixmap
         .save_png(output_path)
