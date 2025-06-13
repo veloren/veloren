@@ -10,7 +10,7 @@ use crate::{
 };
 use common::{
     store::{Id, Store},
-    terrain::{CoordinateConversions, TERRAIN_CHUNK_BLOCKS_LG},
+    terrain::{CoordinateConversions, MapSizeLg, TERRAIN_CHUNK_BLOCKS_LG},
     util::Dir,
 };
 use delaunator::{Point, Triangulation, triangulate};
@@ -201,6 +201,15 @@ pub struct AirshipRouteLeg {
     pub platform: AirshipDockPlatform,
 }
 
+#[derive(Debug, Clone)]
+pub struct AirshipSpawningLocation {
+    pub pos: Vec2<f32>,
+    pub dir: Vec2<f32>,
+    pub height: f32,
+    pub route_index: usize,
+    pub leg_index: usize,
+}
+
 /// Data for airship operations. This is generated world data.
 #[derive(Clone, Default)]
 pub struct Airships {
@@ -209,6 +218,7 @@ pub struct Airships {
 
     pub airship_docks: Vec<AirshipDockPositions>,
     pub routes: Vec<Vec<AirshipRouteLeg>>,
+    pub spawning_locations: Vec<AirshipSpawningLocation>,
 }
 
 // Internal data structures
@@ -513,7 +523,7 @@ impl Airships {
     const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -3.0;
     const CRUISE_HEIGHTS: [f32; 4] = [400.0, 475.0, 550.0, 625.0];
     // the generated docking positions in world gen are a little low
-    const DEFAULT_DOCK_DURATION: f32 = 60.0;
+    const DEFAULT_DOCK_DURATION: f32 = 15.0;
     const DOCKING_TRANSITION_OFFSET: f32 = 175.0;
     /// The vector from the dock alignment point when the airship is docked on
     /// the port side.
@@ -534,6 +544,9 @@ impl Airships {
     const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
     const STD_CRUISE_HEIGHT: f32 = 400.0;
     const TAKEOFF_ASCENT_ALT: f32 = 150.0;
+    const AIRSHIP_SPACING: f32 = 5000.0;
+    const MIN_SPAWN_POINT_DIST_FROM_DOCK: f32 = 300.0;
+    const SPAWN_TARGET_DIST_INCREMENT: f32 = 47.0;
 
     #[inline(always)]
     pub fn docking_duration() -> f32 { Airships::DEFAULT_DOCK_DURATION }
@@ -600,6 +613,21 @@ impl Airships {
         } else {
             self.routes[route_index].len() - 1
         }
+    }
+
+    pub fn route_count(&self) -> usize {
+        self.routes.len()
+    }
+
+    pub fn docking_site_count_for_route(
+        &self,
+        route_index: usize,
+    ) -> usize {
+        if route_index >= self.routes.len() {
+            error!("Invalid route index: {}", route_index);
+            return 0;
+        }
+        self.routes[route_index].len()
     }
 
     /// Generate the network of airship routes between all the sites with
@@ -993,10 +1021,141 @@ impl Airships {
         routes
     }
 
-    // routes2
-    pub fn generate_airship_routes(&mut self, world_sim: &mut WorldSim, index: &Index) {
-        self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
-        println!("Airship docks: {:?}", self.airship_docks);
+    pub fn calculate_spawning_locations(&mut self, all_dock_points: &Vec<Point>) {
+        let mut spawning_locations = Vec::new();
+        let mut expected_airships_count = 0;
+        self.routes.iter().enumerate().for_each(|(route_index, route)| {
+            // Get the route length in blocks.
+            let route_len_blocks = route.iter().enumerate().fold(0.0f64, |acc, (j, leg)| {
+                let to_dock_point = &all_dock_points[leg.dest_index];
+                let from_dock_point = if j > 0 {
+                    &all_dock_points[route[j - 1].dest_index]
+                } else {
+                    &all_dock_points[route[route.len() - 1].dest_index]                        
+                };
+                let from_loc = Vec2::new(from_dock_point.x as f32, from_dock_point.y as f32);
+                let to_loc = Vec2::new(to_dock_point.x as f32, to_dock_point.y as f32);
+                acc + from_loc.distance(to_loc) as f64
+            });
+            // The minimum number of airships to spawn on this route is the number of docking sites.
+            // The maximum is where airships would be spaced out evenly with Airships::AIRSHIP_SPACING blocks between them.
+            let airship_count = route.len().max((route_len_blocks / Airships::AIRSHIP_SPACING as f64) as usize);
+            
+            // Keep track of the total number of airships expected to be spawned.
+            expected_airships_count += airship_count;
+            
+            // The precise desired airship spacing.
+            let airship_spacing = (route_len_blocks / airship_count as f64) as f32;
+            debug_airships!("Route {} length: {} blocks, avg: {}, expecting {} airships for {} docking sites", route_index, route_len_blocks, route_len_blocks / route.len() as f64, airship_count, route.len());
+
+            // get the docking points on this route
+            let route_points =
+                route.iter().map(|leg|
+                    all_dock_points[leg.dest_index].clone()
+                ).collect::<Vec<_>>();
+            
+            // Airships can't be spawned too close to the docking sites. The leg lengths and desired spacing
+            // between airships will probably cause spawning locations to violate the too close rule, so
+            // do some iterations where the initial spawning location is varied, and the spawning locations
+            // are corrected to be at least Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK blocks from docking sites.
+            // Keep track of the deviation from the ideal positions and then use the spawning locations
+            // that produce the least deviation.
+            let mut best_route_spawning_locations = Vec::new();
+            let mut best_route_deviations = f32::MAX;
+            let mut best_route_iteration = 0;
+            // 50 iterations works for the test data, but it may need to be adjusted
+            for i in 0..50 {
+                let mut route_spawning_locations = Vec::new();
+                let mut prev_point = &route_points[route_points.len() - 1];
+                let mut target_dist = -1.0;
+                let mut airships_spawned = 0;
+                let mut deviation = 0.0;
+                route_points.iter().enumerate().for_each(|(leg_index, dock_point)| {
+                    let to_loc = Vec2::new(dock_point.x as f32, dock_point.y as f32);
+                    let from_loc = Vec2::new(prev_point.x as f32, prev_point.y as f32);
+                    let leg_dir = (to_loc - from_loc).normalized();
+                    let leg_len = from_loc.distance(to_loc);
+                    // target_dist is the distance from the 'from' docking position where the airship should spawn.
+                    // The maximum is the length of the leg minus the minimum spawn distance from the dock.
+                    // The minimum is the minimum spawn distance from the dock.
+                    let max_target_dist = leg_len - Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK;
+                    // Each iteration, the initial target distance is incremented by a prime number.
+                    // If more than 50 iterations are needed, SPAWN_TARGET_DIST_INCREMENT might need to be reduced
+                    // so that the initial target distance doesn't exceed the length of the first leg of the route.
+                    if target_dist < 0.0 {
+                        target_dist = Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK + i as f32 * Airships::SPAWN_TARGET_DIST_INCREMENT;
+                    }
+                    // When target_dist exceeds the leg length, it means the spawning location is into the next leg.
+                    while !(target_dist > leg_len) {
+                        // Limit the actual spawn location and keep track of the deviation.
+                        let spawn_point_dist =
+                            if target_dist > max_target_dist {
+                                deviation += target_dist - max_target_dist;
+                                max_target_dist
+                            } else if target_dist < Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK {
+                                deviation += Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK - target_dist;
+                                Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK
+                            } else {
+                                target_dist
+                            };
+
+                        let spawn_loc = from_loc + leg_dir * spawn_point_dist;
+                        route_spawning_locations.push(
+                            AirshipSpawningLocation {
+                                pos: Vec2::new(spawn_loc.x, spawn_loc.y),
+                                dir: leg_dir,
+                                height: Airships::CRUISE_HEIGHTS[route_index % Airships::CRUISE_HEIGHTS.len()],
+                                route_index,
+                                leg_index,
+                            }
+                        );
+                        airships_spawned += 1;
+                        target_dist += airship_spacing;
+                    }
+                    target_dist -= leg_len;
+                    assert!(target_dist > 0.0, "Target distance should not be zero or negative: {}", target_dist);
+                    prev_point = dock_point;
+                });
+                if deviation < best_route_deviations {
+                    best_route_deviations = deviation;
+                    best_route_spawning_locations = route_spawning_locations.clone();
+                    best_route_iteration = i;
+                }
+            }
+            debug_airships!(
+                "Route {}: {} airships, {} spawning locations, best deviation: {}, iteration: {}",
+                route_index,
+                airship_count,
+                best_route_spawning_locations.len(),
+                best_route_deviations,
+                best_route_iteration
+            );
+            spawning_locations.extend(best_route_spawning_locations);
+        });
+        debug_airships!("Set spawning locations for {} airships of {} expected", spawning_locations.len(), expected_airships_count);
+        if spawning_locations.len() == expected_airships_count {
+            self.spawning_locations = spawning_locations;
+            debug_airships!("Spawning locations: {:?}", self.spawning_locations);
+        } else {
+            error!(
+                "Expected {} airships, but produced only {} spawning locations.",
+                expected_airships_count,
+                spawning_locations.len()
+            );
+        }
+    }
+
+    pub fn generate_airship_routes_inner(
+        &mut self,
+        // world_chunks: &Vec2<u16>,
+        map_size_lg: &MapSizeLg,
+        seed: u32,
+        index: Option<&Index>,
+        sampler: Option<&WorldSim>,
+        map_image_path: Option<&str>,
+    ) {
+        // self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
+        // println!("Airship docks: {:?}", self.airship_docks);
         let all_dock_points = self
             .airship_docks
             .iter()
@@ -1008,13 +1167,12 @@ impl Airships {
         debug_airships!("all_dock_points: {:?}", all_dock_points);
 
         let triangulation = triangulate(&all_dock_points);
-        save_airship_routes_triangulation(&triangulation, &all_dock_points, index, world_sim);
+        save_airship_routes_triangulation(&triangulation, &all_dock_points, map_size_lg, seed, index, sampler, map_image_path);
 
         // Docking positions are specified in world coordinates, not chunks.
         // Limit the max route leg length to 1000 chunks no matter the world size.
-        let world_chunks = world_sim.map_size_lg().chunks();
         let blocks_per_chunk = 1 << TERRAIN_CHUNK_BLOCKS_LG;
-        let world_blocks = world_chunks.map(|u| u as f32) * blocks_per_chunk as f32;
+        let world_blocks = map_size_lg.chunks().map(|u| u as f32) * blocks_per_chunk as f32;
         let max_route_leg_length = 1000.0 * world_blocks.x;
         println!(
             "blocks_per_chunk: {}, world size in blocks: {:?}, max_route_leg_length: {}",
@@ -1032,7 +1190,7 @@ impl Airships {
         // 3742931.0 * e.powf(-1.113823 * pow2)
         // 3742931.0 * 2.71828f32.powf(-1.113823 * pow2)
 
-        let pow2 = world_sim.map_size_lg().vec().x;
+        let pow2 = map_size_lg.vec().x;
         let max_iterations = (3742931.0 * std::f32::consts::E.powf(-1.113823 * pow2 as f32))
             .clamp(1.0, 100.0)
             .round() as usize;
@@ -1042,7 +1200,7 @@ impl Airships {
                 &all_dock_points,
                 max_iterations,
                 max_route_leg_length as f64,
-                index.seed,
+                seed,
             )
         {
             if cfg!(debug_assertions) {
@@ -1054,8 +1212,12 @@ impl Airships {
                     println!("  {} : {}", segment.0, segment.1.len());
                 });
                 println!("Best segments: {:?}", best_segments);
-                if let Err(e) = export_world_map(index, world_sim) {
-                    eprintln!("Failed to export world map: {:?}", e);
+                if let Some(index) = index 
+                    && let Some(world_sim) = sampler
+                {
+                    if let Err(e) = export_world_map(index, world_sim) {
+                        eprintln!("Failed to export world map: {:?}", e);
+                    }
                 }
             }
 
@@ -1069,26 +1231,21 @@ impl Airships {
             );
             println!("Airship routes: {:?}", self.routes);
 
-            // calculate the length of each route
-            self.routes.iter().enumerate().for_each(|(i, route)| {
-                let route_len = route.iter().enumerate().fold(0.0f64, |acc, (j, leg)| {
-                    let to_dock_point = &all_dock_points[leg.dest_index];
-                    let from_dock_point = if j > 0 {
-                        &all_dock_points[route[j - 1].dest_index]
-                    } else {
-                        &all_dock_points[route[route.len() - 1].dest_index]                        
-                    };
-                    let from_loc = Vec2::new(from_dock_point.x as f32, from_dock_point.y as f32);
-                    let to_loc = Vec2::new(to_dock_point.x as f32, to_dock_point.y as f32);
-                    acc + from_loc.distance(to_loc) as f64
-                });
-                println!("Route {} length: {} blocks, avg: {}", i, route_len, route_len / route.len() as f64);
-            });
+            // Calculate the spawning locations for airships on the routes.
+            self.calculate_spawning_locations(&all_dock_points);
 
-            save_airship_route_segments(&self.routes, &all_dock_points, index, world_sim);
+            save_airship_route_segments(&self.routes, &all_dock_points, &self.spawning_locations, map_size_lg, seed, index, sampler, map_image_path);
         } else {
             println!("Error - cannot eulerize the dock points.");
         }
+    }
+
+    // routes2
+    pub fn generate_airship_routes(&mut self, world_sim: &mut WorldSim, index: &Index) {
+        self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
+        println!("Airship docks: {:?}", self.airship_docks);
+
+        self.generate_airship_routes_inner(&world_sim.map_size_lg(), index.seed, Some(index), Some(world_sim), None);
     }
 
     /// Compute the transition point where the airship should stop the cruise
@@ -1301,63 +1458,102 @@ impl Airships {
         use_docking_pos
     }
 
-    pub fn dock_index_and_platform_for_docking_pos(
-        &self,
-        docking_pos: &Vec3<i32>,
-    ) -> Option<(usize, AirshipDockPlatform)> {
-        // Find the index of the airship dock where the docking position is at.
-        // Airship docks have a radius of no more than 100 blocks, look for
-        // an airship dock within 100 blocks of the docking position.
-        self.airship_docks
-            .iter()
-            .enumerate()
-            .find(|(_, dockpos)| {
-                dockpos
-                    .center
-                    .distance_squared(docking_pos.map(|i| i as f32).xy())
-                    < 100.0f32.powi(2)
-            })
-            .map(|(index, airship_dock)| {
-                // get the platform enum for the direction of the docking position
-                // from the airship dock center.
-                let platform = AirshipDockPlatform::from_dir(
-                    docking_pos.map(|i| i as f32).xy() - airship_dock.center,
-                );
-                (index, platform)
-            })
+    pub fn airship_spawning_locations(&self) -> Vec<AirshipSpawningLocation> {
+        self.spawning_locations.clone()
     }
+
+    // pub fn route_leg_index_for_spawning_location(
+    //     &self,
+    //     location: &AirshipSpawningLocation,
+    // ) -> Option<usize> {
+    //     self.routes.get(location.route_index)
+    //         .and_then(|route|
+    //             route.iter().position(|leg|
+    //                 leg.dest_index == location.dest_index
+    //             )
+    //         )
+    // }
+
+    pub fn route_leg_departure_location(
+        &self,
+        route_index: usize,
+        leg_index: usize,
+    ) -> Vec2<f32> {
+        if route_index >= self.routes.len()
+            || leg_index >= self.routes[route_index].len()
+        {
+            error!("Invalid index: rt {}, leg {}", route_index, leg_index);
+            return Vec2::zero();
+        }
+        
+        let prev_leg=
+            if leg_index == 0 {
+                &self.routes[route_index][self.routes[route_index].len() - 1]
+            } else {
+                &self.routes[route_index][leg_index - 1]
+            };
+
+        self.airship_docks[prev_leg.dest_index]
+            .docking_position(prev_leg.platform).xy()
+    }
+
+    // pub fn platform_for_spawning_location(
+    //     &self,
+    //     docklocation: &AirshipSpawningLocation,
+    // ) -> Option<(usize, AirshipDockPlatform)> {
+    //     // Find the index of the airship dock where the docking position is at.
+    //     // Airship docks have a radius of no more than 100 blocks, look for
+    //     // an airship dock within 100 blocks of the docking position.
+    //     self.airship_docks
+    //         .iter()
+    //         .enumerate()
+    //         .find(|(_, dockpos)| {
+    //             dockpos
+    //                 .center
+    //                 .distance_squared(docking_pos.map(|i| i as f32).xy())
+    //                 < 100.0f32.powi(2)
+    //         })
+    //         .map(|(index, airship_dock)| {
+    //             // get the platform enum for the direction of the docking position
+    //             // from the airship dock center.
+    //             let platform = AirshipDockPlatform::from_dir(
+    //                 docking_pos.map(|i| i as f32).xy() - airship_dock.center,
+    //             );
+    //             (index, platform)
+    //         })
+    // }
 
     /// Given a airship dock docking position, determine if an airship should be
     /// spawned at the docking position. Most airship docks will use less than
     /// four docking positions because of the way the routes are generated.
-    pub fn should_spawn_airship_at_docking_position(
-        &self,
-        docking_pos: &Vec3<i32>,
-        site_name: &str,
-    ) -> bool {
-        if let Some((index, platform)) = self.dock_index_and_platform_for_docking_pos(docking_pos) {
-            // Check if the combination of index and platform is used in any route.
-            let do_spawn = self.routes.iter().any(|route| {
-                route
-                    .iter()
-                    .any(|leg| leg.dest_index == index && leg.platform == platform)
-            });
-            if !do_spawn {
-                debug_airships!(
-                    "Not using docking position {:?} for site {}",
-                    docking_pos,
-                    site_name
-                );
-            }
-            do_spawn
-        } else {
-            debug_airships!(
-                "No airship dock found, docking position {:?} is not near a airship dock.",
-                docking_pos,
-            );
-            false
-        }
-    }
+    // pub fn should_spawn_airship_at_docking_position(
+    //     &self,
+    //     docking_pos: &Vec3<i32>,
+    //     site_name: &str,
+    // ) -> bool {
+    //     if let Some((index, platform)) = self.dock_index_and_platform_for_docking_pos(docking_pos) {
+    //         // Check if the combination of index and platform is used in any route.
+    //         let do_spawn = self.routes.iter().any(|route| {
+    //             route
+    //                 .iter()
+    //                 .any(|leg| leg.dest_index == index && leg.platform == platform)
+    //         });
+    //         if !do_spawn {
+    //             debug_airships!(
+    //                 "Not using docking position {:?} for site {}",
+    //                 docking_pos,
+    //                 site_name
+    //             );
+    //         }
+    //         do_spawn
+    //     } else {
+    //         debug_airships!(
+    //             "No airship dock found, docking position {:?} is not near a airship dock.",
+    //             docking_pos,
+    //         );
+    //         false
+    //     }
+    // }
 
     /// Get the position and direction for the airship to dock at the given
     /// docking position. If use_starboard_boarding is None, the side for
@@ -4646,119 +4842,6 @@ mod tests {
     }
 
     #[test]
-    fn should_spawn_test() {
-        let airships = airships_from_test_data();
-
-        // 13 18992, 17120 N S E W
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(18992, 17130, 0), "13 North")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(18992, 17110, 0), "13 South")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(19002, 17120, 0), "13 East")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(18982, 17120, 0), "13 West")
-        );
-
-        // 24 15864, 15584 E S
-        assert!(
-            !airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(15864, 15594, 0), "24 North")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(15864, 15574, 0), "24 South")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(15874, 15584, 0), "24 East")
-        );
-        assert!(
-            !airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(15854, 15584, 0), "24 West")
-        );
-
-        // 17 13716, 17505 E W N
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(13716, 17515, 0), "17 North")
-        );
-        assert!(
-            !airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(13716, 17495, 0), "17 South")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(13726, 17505, 0), "17 East")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(13706, 17505, 0), "17 West")
-        );
-
-        // 9 23884, 24302 S N W
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(23884, 24312, 0), "09 North")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(23884, 24292, 0), "09 South")
-        );
-        assert!(
-            !airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(23894, 24302, 0), "09 East")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(23874, 24302, 0), "09 West")
-        );
-
-        // 2 24253, 20715 N S E
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(24253, 20725, 0), "02 North")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(24253, 20705, 0), "02 South")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(24263, 20715, 0), "02 East")
-        );
-        assert!(
-            !airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(24243, 20715, 0), "02 West")
-        );
-
-        // 7 22577, 15197 N S E W
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(22577, 15207, 0), "07 North")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(22577, 15187, 0), "07 South")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(22587, 15197, 0), "07 East")
-        );
-        assert!(
-            airships
-                .should_spawn_airship_at_docking_position(&Vec3::new(22567, 15197, 0), "07 West")
-        );
-    }
-
-    #[test]
     fn docking_position_from_platform_test() {
         let airships = airships_from_test_data();
         let platforms = [
@@ -5521,19 +5604,18 @@ mod tests {
         }
     }
 
-    //$$$RWW
-    // #[test]
-    // fn airship_approach_test() {
-    //     let airships = airships_from_test_data();
-    //     for route_index in 0..4 {
-    //         for leg_index in (0..airships.routes[route_index].len()).step_by(6) {
-    //             let approach = airships.approach_for_route_and_leg(route_index, leg_index);
-    //             println!(
-    //                 "Approach for route {}, leg {}: {:?}",
-    //                 route_index, leg_index, approach
-    //             );
+    #[test]
+    fn airship_spawning_locations_test() {
+        let mut airships = airships_from_test_data();
+        let all_dock_points = airships
+            .airship_docks
+            .iter()
+            .map(|dock| Point {
+                x: dock.center.x as f64,
+                y: dock.center.y as f64,
+            })
+            .collect::<Vec<_>>();
 
-    //         }
-    //     }
-    // }
+        airships.calculate_spawning_locations(&all_dock_points);
+    }
 }
