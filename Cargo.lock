@@ -8118,6 +8118,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.15.3",
  "itertools 0.14.0",
+ "num-traits",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",

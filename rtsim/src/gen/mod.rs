@@ -20,11 +20,13 @@ use common::{
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::info;
-use vek::*;
 use world::{
     IndexRef, World,
     civ::airship_travel::{AirshipDockingSide, Airships},
     site::{PlotKind, plot::PlotKindMeta},
+    CONFIG, IndexRef, World,
+    civ::airship_travel::AirshipSpawningLocation,
+    site::{PlotKind, SiteKind},
     util::seed_expan,
 };
 
@@ -141,10 +143,8 @@ impl Data {
         );
 
         // Airships
-        // Get the spawning locations for the sites with airship docks. It's possible
-        // that not all docking positions will be used at all sites based on
-        // pairing with routes and how the routes are generated.
-        let spawning_locations = this.airship_spawning_locations(world, index);
+        // Get the spawning locations for airships.
+        let spawning_locations = world.civs().airships.airship_spawning_locations();
 
         // When generating rtsim data from scratch, put an airship (and captain) at each
         // available spawning location. Note this is just to get the initial
@@ -154,7 +154,6 @@ impl Data {
         // assignments is generated each time the server is started. This process
         // of resolving the rtsim data to the world data is done in the `migrate`
         // module.
-
         let mut airship_rng = ChaChaRng::from_seed(seed_expan::rng_state(index.index.seed));
         for spawning_location in spawning_locations.iter() {
             this.spawn_airship(spawning_location, &mut airship_rng);
@@ -170,124 +169,48 @@ impl Data {
         this
     }
 
-    /// Get all the places that an airship should be spawned. The site must be a
-    /// town or city that could have one or more airship docks. The plot
-    /// type must be an airship dock, and the docking position must be one
-    /// that the airship can spawn at according to the world airship routes.
     pub fn airship_spawning_locations(
         &self,
         world: &World,
-        index: IndexRef,
     ) -> Vec<AirshipSpawningLocation> {
-        self.sites
-            .iter()
-            .filter_map(|(site_id, site)| {
-                Some((
-                    site_id,
-                    site,
-                    site.world_site.map(|ws| index.sites.get(ws))?,
-                ))
-            })
-            .flat_map(|(site_id, _, site)| {
-                site.plots
-                    .values()
-                    .filter_map(move |plot| {
-                        if let Some(PlotKindMeta::AirshipDock {
-                            center,
-                            docking_positions,
-                            ..
-                        }) = plot.kind().meta()
-                        {
-                            Some(
-                                docking_positions
-                                    .iter()
-                                    .filter_map(move |docking_pos| {
-                                        if world
-                                            .civs()
-                                            .airships
-                                            .should_spawn_airship_at_docking_position(
-                                                docking_pos,
-                                                site.name(),
-                                            )
-                                        {
-                                            let (airship_pos, airship_dir) =
-                                                Airships::airship_vec_for_docking_pos(
-                                                    docking_pos.map(|i| i as f32),
-                                                    center.map(|i| i as f32),
-                                                    // This is a temporary choice just to make the
-                                                    // spawning location data deterministic.
-                                                    // The actual docking side is selected when the
-                                                    // route and approach are selected in the
-                                                    // migrate module.
-                                                    Some(AirshipDockingSide::Starboard),
-                                                );
-                                            Some(AirshipSpawningLocation {
-                                                pos: airship_pos,
-                                                dir: airship_dir,
-                                                center,
-                                                docking_pos: *docking_pos,
-                                                site_id,
-                                                site_name: site.name().to_string(),
-                                            })
-                                        } else {
-                                            None
-                                        }
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                        } else {
-                            None
-                        }
-                    })
-                    .flatten()
-            })
-            .collect::<Vec<_>>()
+        world.civs().airships.airship_spawning_locations()
     }
 
-    /// Creates an airship and captain NPC at the given spawning location. The
-    /// location is tempory since the airship will be moved into position
-    /// after the npcs are spawned.
+    /// Creates an airship and captain NPC. The NPCs are created at the
+    /// approximate correct position, but the final 3D position is set
+    /// in register_airship_captain, which is called after all the airship
+    /// NPCs are created or loaded from the rtsim data.
     pub fn spawn_airship(
         &mut self,
         spawning_location: &AirshipSpawningLocation,
         rng: &mut impl Rng,
     ) -> (NpcId, NpcId) {
+        let npc_wpos3d = spawning_location.pos.with_z(spawning_location.height);
+
         let vehicle_id = self.npcs.create_npc(Npc::new(
             rng.gen(),
-            spawning_location.pos,
+            npc_wpos3d,
             Body::Ship(comp::body::ship::Body::DefaultAirship),
             Role::Vehicle,
         ));
-        let airship = self.npcs.get_mut(vehicle_id).unwrap();
-        let airship_mount_offset = airship.body.mount_offset();
 
-        let captain_pos = spawning_location.pos
-            + Vec3::new(
-                spawning_location.dir.x * airship_mount_offset.x,
-                spawning_location.dir.y * airship_mount_offset.y,
-                airship_mount_offset.z,
-            );
         let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
         let npc_id = self.npcs.create_npc(
             Npc::new(
                 rng.gen(),
-                captain_pos,
+                npc_wpos3d,
                 Body::Humanoid(comp::humanoid::Body::random_with(rng, species)),
                 Role::Civilised(Some(Profession::Captain)),
             )
             // .with_home(spawning_location.site_id)
             .with_personality(Personality::random_good(rng)),
         );
-        // airship_captains.push((spawning_location.pos, npc_id, vehicle_id));
-        self.npcs.get_mut(npc_id).unwrap().dir = spawning_location.dir.xy().normalized();
 
         // The captain is mounted on the airship
         self.npcs
             .mounts
             .steer(vehicle_id, npc_id)
             .expect("We just created these npcs!");
-
-        self.npcs.get_mut(vehicle_id).unwrap().dir = spawning_location.dir.xy().normalized();
 
         (npc_id, vehicle_id)
     }

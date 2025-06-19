@@ -185,7 +185,7 @@ impl Body {
     /// Max speed in block/s
     pub fn get_speed(&self) -> f32 {
         match self {
-            Body::DefaultAirship => 35.0,
+            Body::DefaultAirship => 25.0,
             Body::AirBalloon => 8.0,
             Body::SailBoat => 5.0,
             Body::Galleon => 6.0,

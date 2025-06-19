@@ -743,7 +743,6 @@ impl Civs {
 
         prof_span!(guard, "generate airship routes");
         this.airships.generate_airship_routes(ctx.sim, index);
-        this.airships.generate_airship_routes2(ctx.sim, index);
         drop(guard);
 
         // TODO: this looks optimizable
