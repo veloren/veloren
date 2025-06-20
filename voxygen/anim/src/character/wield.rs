@@ -166,8 +166,8 @@ impl Animation for WieldAnimation {
                         next.head.position =
                             Vec3::new(0.0, 0.0 + s_a.head.0, s_a.head.1 + u_slow * 0.1);
                         next.head.orientation = Quaternion::rotation_z(head_look.x)
-                            * Quaternion::rotation_x(0.35 + head_look.y.abs() + look_dir.z * 0.7);
-                        next.chest.orientation = Quaternion::rotation_x(-0.35)
+                            * Quaternion::rotation_x(0.15 + head_look.y.abs() + look_dir.z * 0.7);
+                        next.chest.orientation = Quaternion::rotation_x(-0.15)
                             * Quaternion::rotation_y(u_slowalt * 0.04)
                             * Quaternion::rotation_z(0.15);
                         next.belt.position = Vec3::new(0.0, 1.0 + s_a.belt.0, s_a.belt.1);
@@ -181,13 +181,12 @@ impl Animation for WieldAnimation {
                     next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
                     next.hand_l.orientation =
                         Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
-                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1 + 2.0, s_a.ahr.2);
-                    next.hand_r.orientation = Quaternion::rotation_x(s_a.ahr.3)
-                        * Quaternion::rotation_z(s_a.ahr.5)
-                        * Quaternion::rotation_y(PI * -0.25);
+                    next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(PI);
 
                     next.control.position =
-                        Vec3::new(s_a.ac.0, s_a.ac.1 - 4.0, s_a.ac.2 + direction * -5.0);
+                        Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2 + direction * -5.0);
                     next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
                         * Quaternion::rotation_y(s_a.ac.4)
                         * Quaternion::rotation_z(s_a.ac.5);

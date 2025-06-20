@@ -722,13 +722,14 @@ impl Animation for BasicAction {
                             Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
                         next.control.position = Vec3::new(
-                            s_a.ac.0 + move1 * 13.0,
-                            s_a.ac.1 + move1 * -3.0,
-                            s_a.ac.2 + move1 * 8.0,
+                            s_a.ac.0 + 0.5 + move1 * 13.0,
+                            s_a.ac.1 + 9.0 + move1 * -3.0,
+                            s_a.ac.2 + 2.5 + move1 * 8.0,
                         );
-                        next.control.orientation = Quaternion::rotation_x(s_a.ac.3 + move1 * -2.0)
-                            * Quaternion::rotation_y(s_a.ac.4 + move1 * -1.8)
-                            * Quaternion::rotation_z(s_a.ac.5 + move1 * 4.0);
+                        next.control.orientation =
+                            Quaternion::rotation_x(s_a.ac.3 - 2.25 + move1 * -2.0)
+                                * Quaternion::rotation_y(s_a.ac.4 - PI + move1 * -1.8)
+                                * Quaternion::rotation_z(s_a.ac.5 - 0.2 + move1 * 4.0);
                     },
                     (Some(Hands::One), offhand) => {
                         next.main.position = Vec3::new(0.0, 0.0, 0.0);
@@ -772,14 +773,14 @@ impl Animation for BasicAction {
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
                 next.control.position = Vec3::new(
-                    s_a.ac.0 + move1 * 7.0,
-                    s_a.ac.1 + move1 * -4.0,
-                    s_a.ac.2 + move1 * 18.0 + tension / 5.0,
+                    s_a.ac.0 + 0.5 + move1 * 7.0,
+                    s_a.ac.1 + 9.0 + move1 * -4.0,
+                    s_a.ac.2 + 2.5 + move1 * 18.0 + tension / 5.0,
                 );
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.ac.3 + move1 * -1.0 + tension / 30.0)
-                        * Quaternion::rotation_y(s_a.ac.4)
-                        * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
+                    Quaternion::rotation_x(s_a.ac.3 - 2.25 + move1 * -1.0 + tension / 30.0)
+                        * Quaternion::rotation_y(s_a.ac.4 - PI)
+                        * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
                 next.control.orientation.rotate_x(move2 * -3.0);
                 next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
@@ -793,10 +794,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
                 next.control.orientation.rotate_x(move1 * 0.9);
                 next.chest.orientation.rotate_z(move1 * 1.2);
@@ -822,10 +823,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
                 next.control.orientation.rotate_x(move1 * 0.9);
                 next.chest.orientation.rotate_z(move1 * 1.2);
@@ -855,10 +856,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI * 0.75);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI * 0.75);
 
                 next.chest.orientation.rotate_z(move1 * 1.2);
                 next.head.orientation.rotate_z(move1 * -0.7);
@@ -884,10 +885,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI * 0.75);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI * 0.75);
 
                 next.chest.orientation.rotate_z(move1 * 1.2);
                 next.head.orientation.rotate_z(move1 * -0.7);
@@ -912,10 +913,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.control.orientation.rotate_z(move1 * -3.3);
                 next.control.orientation.rotate_x(move1 * 0.8);
@@ -937,10 +938,12 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 + move1 * -PI * 0.75 + move2 * PI * 0.25);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(
+                        s_a.ac.5 - 0.2 + move1 * -PI * 0.75 + move2 * PI * 0.25,
+                    );
 
                 next.chest.orientation.rotate_z(move1 * 1.8);
                 next.head.orientation.rotate_z(move1 * -0.6);
@@ -965,10 +968,12 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 + move1 * -PI * 0.75 + move2 * PI * 0.25);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(
+                        s_a.ac.5 - 0.2 + move1 * -PI * 0.75 + move2 * PI * 0.25,
+                    );
 
                 next.chest.orientation.rotate_z(move1 * 1.8);
                 next.head.orientation.rotate_z(move1 * -0.6);
@@ -994,10 +999,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 + move1 * -PI / 2.0 + move2 * -0.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 + move1 * -PI / 2.0 + move2 * -0.5);
 
                 next.control.orientation.rotate_x(move1 * 0.0);
                 next.chest.orientation.rotate_x(move1 * -0.5);
@@ -1023,10 +1028,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.control.orientation.rotate_z(move1 * -2.0);
                 next.control.orientation.rotate_x(move1 * 3.5);
@@ -1044,10 +1049,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.chest.orientation = Quaternion::rotation_z(move1 * 0.6);
                 next.head.orientation = Quaternion::rotation_z(move1 * -0.2);
@@ -1068,10 +1073,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
                 next.control.orientation.rotate_z(move1 * -1.8);
                 next.control.orientation.rotate_y(move1 * 1.5);
@@ -1090,10 +1095,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.control.orientation.rotate_z(move1 * -3.4);
                 next.control.orientation.rotate_x(move1 * 1.1);
@@ -1112,10 +1117,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5 - move1 * PI);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
                 next.control.orientation.rotate_x(move1 * -1.0);
                 next.control.position += Vec3::new(move1 * 3.0, move1 * -2.0, move1 * 14.0);
@@ -1136,10 +1141,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.control.orientation.rotate_z(move1 * -1.5);
                 next.control.position += Vec3::new(move1 * 12.0, 0.0, move1 * 5.0);
@@ -1166,10 +1171,10 @@ impl Animation for BasicAction {
                 next.hand_r.orientation =
                     Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(s_a.ac.0, s_a.ac.1, s_a.ac.2);
-                next.control.orientation = Quaternion::rotation_x(s_a.ac.3)
-                    * Quaternion::rotation_y(s_a.ac.4)
-                    * Quaternion::rotation_z(s_a.ac.5);
+                next.control.position = Vec3::new(s_a.ac.0 + 0.5, s_a.ac.1 + 9.0, s_a.ac.2 + 2.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.ac.3 - 2.25)
+                    * Quaternion::rotation_y(s_a.ac.4 - PI)
+                    * Quaternion::rotation_z(s_a.ac.5 - 0.2);
 
                 next.control.orientation.rotate_z(move1 * -1.6);
                 next.control.orientation.rotate_x(move1 * 1.7);
