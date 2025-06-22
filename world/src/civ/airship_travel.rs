@@ -411,10 +411,14 @@ pub struct DockNode {
 }
 
 impl Airships {
+    /// The cruising height varies by route index and there can be only four routes.
+    pub const CRUISE_HEIGHTS: [f32; 4] = [400.0, 475.0, 550.0, 625.0];
+    /// The nominal distance between airships when they are first spawned in the world.
+    pub const AIRSHIP_SPACING: f32 = 5000.0;
+
     /// The Z offset between the docking alignment point and the AirshipDock
     /// plot docking position.
     const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -3.0;
-    pub const CRUISE_HEIGHTS: [f32; 4] = [400.0, 475.0, 550.0, 625.0];
     // the generated docking positions in world gen are a little low
     const DEFAULT_DOCK_DURATION: f32 = 60.0;
     const DOCKING_TRANSITION_OFFSET: f32 = 175.0;
@@ -434,18 +438,14 @@ impl Airships {
     /// This is positive if the docking alignment point is in front of the
     /// airship's center position.
     const DOCK_ALIGN_Y: f32 = 1.0;
-    const ROUTES_NORTH: Vec2<f32> = Vec2::new(0.0, 15000.0);
-    const STD_CRUISE_HEIGHT: f32 = 400.0;
-    const TAKEOFF_ASCENT_ALT: f32 = 150.0;
-    const AIRSHIP_SPACING: f32 = 5000.0;
+    /// The minimum distance from the docking position where the airship can be initially placed in the world.
     const MIN_SPAWN_POINT_DIST_FROM_DOCK: f32 = 300.0;
+    /// The algorithm that computes where to initially place airships in the world (spawning locations)
+    /// increments the candidate location of the first airship on each route by this amount.
     const SPAWN_TARGET_DIST_INCREMENT: f32 = 47.0;
 
     #[inline(always)]
     pub fn docking_duration() -> f32 { Airships::DEFAULT_DOCK_DURATION }
-
-    #[inline(always)]
-    pub fn takeoff_ascent_height() -> f32 { Airships::TAKEOFF_ASCENT_ALT }
 
     /// Get all the airship docking positions from the world sites.
     fn all_airshipdock_positions(sites: &Store<Site>) -> Vec<AirshipDockPositions> {

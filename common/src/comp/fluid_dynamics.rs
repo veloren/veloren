@@ -207,6 +207,15 @@ impl Body {
                 _ => self.parasite_drag(scale) * *rel_flow_dir,
             };
 
+            // This is the drag equation for a body in a fluid.
+            // F_d = 0.5 * rho * velocity^2 * drag_coefficient * reference_area,
+            // where rho is the fluid density, velocity is the velocity of the body
+            // relative to the fluid, drag_coefficient is a dimensionless coefficient
+            // that we assume is 1.0, and reference_area is related to the cross-section
+            // of the body in the direction of the flow. power_vec is the "reference area"
+            // in 3D, accounting for the flow direction. If the body has wings,
+            // this accounts for both lift and parasite drag. If the body
+            // does not have wings, this is for parasite drag only.
             0.5 * fluid_density * v_sq * power_vec
         }
     }
@@ -221,8 +230,9 @@ impl Body {
     /// Parasite drag is the sum of pressure drag and skin friction.
     /// Skin friction is the drag arising from the shear forces between a fluid
     /// and a surface, while pressure drag is due to flow separation. Both are
-    /// viscous effects.
-    fn parasite_drag(&self, scale: f32) -> f32 {
+    /// viscous effects. The returned value is alternatively called the
+    /// Reference Area of the body, and is used in the drag force equation.
+    pub fn parasite_drag(&self, scale: f32) -> f32 {
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
