@@ -16,9 +16,9 @@
             (0.5, Item("common.items.weapons.staff.laevateinn")),
             // Crafting material
             (0.5, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-            (6.9, Nothing),
             // Misc
-            (0.2, Item("common.items.tool.instruments.timbrel_of_chaos")),
+            (0.5, Item("common.items.tool.instruments.timbrel_of_chaos")),
+            (6.4, Nothing),
         ]),
         // Allow for Eldwood to drop till entity droppers are implemented
         Lottery([
