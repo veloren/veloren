@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Back,
         stats: Direct((
-            energy_max: Some(5.0),
+            energy_max: Some(4.5),
         )),
     )),
     quality: Epic,

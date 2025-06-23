@@ -1361,10 +1361,10 @@
         ): "armor-misc-shoulder-leather_strip",
         Simple(
             "common.items.armor.misc.chest.worker_green_0",
-        ): "armor-misc-chest-worker_green",
+        ): "armor-misc-chest-worker_green_0",
         Simple(
             "common.items.armor.misc.chest.worker_green_1",
-        ): "armor-misc-chest-shirt_white",
+        ): "armor-misc-chest-worker_green_1",
         Simple(
             "common.items.armor.misc.chest.worker_orange_0",
         ): "armor-misc-chest-worker_orange_0",

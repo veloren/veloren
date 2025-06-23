@@ -256,10 +256,9 @@ armor-misc-shoulder-leather_iron_3 = Iron and Leather Spaulders
     .desc = Leather inset with iron fragments provide protection to the wearer.
 armor-misc-shoulder-leather_strip = Leather Strips
     .desc = Tanned animal hide strips formed into loose shoulder pads.
-armor-misc-chest-worker_green = Green Worker Shirt
+armor-misc-chest-worker_green_0 = Green Worker Shirt
     .desc = Was used by a farmer, until recently.
-
-armor-misc-chest-shirt_white = White Worker Shirt
+armor-misc-chest-worker_green_1 = Green Worker Shirt
     .desc = Was used by a farmer, until recently.
 armor-misc-chest-worker_orange_0 = Orange Worker Shirt
     .desc = Was used by a farmer, until recently.
