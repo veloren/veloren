@@ -15,6 +15,7 @@ use common::{
     rtsim::NpcInput,
     shared_server_config::ServerConstants,
     uid::IdMaps,
+    weather::WeatherGrid,
 };
 use hashbrown::HashSet;
 use itertools::Either;
@@ -85,6 +86,7 @@ pub struct NpcSystemData<'a> {
     pub positions: ReadStorage<'a, comp::Pos>,
     pub id_maps: Read<'a, IdMaps>,
     pub server_constants: ReadExpect<'a, ServerConstants>,
+    pub weather_grid: ReadExpect<'a, WeatherGrid>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

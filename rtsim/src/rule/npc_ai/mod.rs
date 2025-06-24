@@ -523,6 +523,8 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
 
         let is_free_time = is_weekend || is_evening;
 
+        let is_raining = ctx.system_data.weather_grid.is_raining(ctx.npc.wpos.xy());
+
         // Go to a house if it's dark
         if day_period.is_dark()
             && !matches!(ctx.npc.profession(), Some(Profession::Guard))
@@ -563,6 +565,49 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                     }
                 })
                 .debug(|| "find somewhere to sleep"),
+            );
+        }
+        // Go to a house if its raining
+        else if is_raining
+            && !matches!(ctx.npc.profession(), Some(Profession::Guard))
+        {
+            return important(
+                now(move |ctx, _| {
+                    if let Some(house_wpos) = ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(visiting_site)
+                        .and_then(|site| Some(ctx.index.sites.get(site.world_site?)))
+                        .and_then(|site| {
+                            // Find a house in the site we're visiting
+                            let house = site
+                                .plots()
+                                .filter(|p| matches!(p.kind().meta(), Some(PlotKindMeta::House { .. })))
+                                .choose(&mut ctx.rng)?;
+                            Some(site.tile_center_wpos(house.root_tile()).as_())
+                        })
+                    {
+                        just(|ctx, _| {
+                                ctx.controller.say(None, Content::localized("npc-speech-seeking_shelter_rain"))
+                        })
+                        .then(travel_to_point(house_wpos, 0.65))
+                        .debug(|| "walk to house (rain)")
+                        .then(socialize().repeat().map_state(|state: &mut DefaultState| &mut state.socialize_timer).debug(|| "wait in house (rain)"))
+                        .stop_if(|ctx: &mut NpcCtx| {
+                                    let is_raining = ctx.system_data.weather_grid.is_raining(ctx.npc.wpos.xy());
+                                    !is_raining
+                    })
+                        .then(just(|ctx, _| {
+                                ctx.controller.say(None, Content::localized("npc-speech-rain_stopped"))
+                        }))
+                        .map(|_, _| ())
+                        .boxed()
+                        } else {
+                        finish().boxed()
+                    }
+                })
+                .debug(|| "find somewhere to wait (rain)"),
             );
         }
         // Go do something fun on evenings and holidays, or on random days.

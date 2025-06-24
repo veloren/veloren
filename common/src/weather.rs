@@ -262,4 +262,12 @@ impl WeatherGrid {
             // There will always be 9 elements in locality
             .unwrap()
     }
+
+    pub fn is_raining(&self, wpos: Vec2<f32>) -> bool {
+        // offset to convert rtsim wpos to weather grid
+        let offset = Vec2::new(512.0, 512.0);
+        let weather = self.get_max_near(wpos + offset);
+        let weather_kind = weather.get_kind();
+        weather_kind == WeatherKind::Rain || weather_kind == WeatherKind::Storm
+    }
 }
