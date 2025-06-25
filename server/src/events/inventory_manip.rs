@@ -559,23 +559,25 @@ impl ServerEvent for InventoryManipEvent {
                                 if let Some(lantern_info) = lantern_info {
                                     swap_lantern(&mut data.light_emitters, entity, lantern_info);
                                 }
-                                if let Some(pos) = data.positions.get(entity) {
-                                    dropped_items.extend(
-                                        inventory
-                                            .equip(slot, *data.time, &data.ability_map, &data.msm)
-                                            .into_iter()
-                                            .map(|item| {
-                                                (
-                                                    *pos,
-                                                    data.orientations
-                                                        .get(entity)
-                                                        .copied()
-                                                        .unwrap_or_default(),
-                                                    PickupItem::new(item, *data.program_time, true),
-                                                    *uid,
-                                                )
-                                            }),
-                                    );
+                                if let Some(pos) = data.positions.get(entity)
+                                    && let Ok(Some(unloaded_items)) = inventory.equip(
+                                        slot,
+                                        *data.time,
+                                        &data.ability_map,
+                                        &data.msm,
+                                    )
+                                {
+                                    dropped_items.extend(unloaded_items.into_iter().map(|item| {
+                                        (
+                                            *pos,
+                                            data.orientations
+                                                .get(entity)
+                                                .copied()
+                                                .unwrap_or_default(),
+                                            PickupItem::new(item, *data.program_time, true),
+                                            *uid,
+                                        )
+                                    }));
                                 }
                                 Some(InventoryUpdateEvent::Used)
                             } else if let Some(item) =

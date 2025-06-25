@@ -112,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed some summons taking control of the boss.
 - Desert area wildlife is back to spawning in hot temperatures.
 - Ambience (e.g. wind) loops properly.
+- Can no longer get bags with items still in them into the inventory by "using" another bag.
 
 ## [0.17.0] - 2024-12-28
 
