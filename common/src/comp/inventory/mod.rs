@@ -270,13 +270,14 @@ impl Inventory {
     /// called
     pub fn next_sort_order(&self) -> InventorySortOrder { self.next_sort_order }
 
-    /// Adds a new item to the fitting slots of the inventory or starts a
-    /// new group. Returns the item in an error if no space was found.
-    ///
-    /// WARNING: This **may** make inventory modifications if `Err(item)` is
-    /// returned. The second tuple field in the error is the number of items
-    /// that were successfully inserted into the inventory.
-    pub fn push(&mut self, mut item: Item) -> Result<(), (Item, Option<NonZeroU32>)> {
+    /// Same as [`push`], but if `slot` is empty it will put the item there.
+    /// Stackables will first be merged into existing stacks even when a `slot`
+    /// is provided.
+    fn push_prefer_slot(
+        &mut self,
+        mut item: Item,
+        slot: Option<InvSlotId>,
+    ) -> Result<(), (Item, Option<NonZeroU32>)> {
         // If the item is stackable, we can increase the amount of other equal items up
         // to max_amount before inserting a new item if there is still a remaining
         // amount (caused by overflow or no other equal stackable being present in the
@@ -320,15 +321,26 @@ impl Inventory {
             if let Some(remaining) = remaining {
                 item.set_amount(remaining)
                     .expect("Remaining is known to be > 0");
-                self.insert(item)
+                self.insert_prefer_slot(item, slot)
                     .map_err(|item| (item, NonZeroU32::new(total_amount - remaining)))
             } else {
                 Ok(())
             }
         } else {
             // The item isn't stackable, insert it directly
-            self.insert(item).map_err(|item| (item, None))
+            self.insert_prefer_slot(item, slot)
+                .map_err(|item| (item, None))
         }
+    }
+
+    /// Adds a new item to the fitting slots of the inventory or starts a
+    /// new group. Returns the item in an error if no space was found.
+    ///
+    /// WARNING: This **may** make inventory modifications if `Err(item)` is
+    /// returned. The second tuple field in the error is the number of items
+    /// that were successfully inserted into the inventory.
+    pub fn push(&mut self, item: Item) -> Result<(), (Item, Option<NonZeroU32>)> {
+        self.push_prefer_slot(item, None)
     }
 
     /// Add a series of items to inventory, returning any which do not fit as an
@@ -758,9 +770,20 @@ impl Inventory {
         }
     }
 
+    /// Adds a new item to `slot` if empty or the first empty slot of the
+    /// inventory. Returns the item again in an Err if no free slot was
+    /// found.
+    fn insert_prefer_slot(&mut self, item: Item, slot: Option<InvSlotId>) -> Result<(), Item> {
+        if let Some(slot @ None) = slot.and_then(|slot| self.slot_mut(slot)) {
+            *slot = Some(item);
+            Ok(())
+        } else {
+            self.insert(item)
+        }
+    }
+
     /// Adds a new item to the first empty slot of the inventory. Returns the
-    /// item again in an Err if no free slot was found, otherwise returns a
-    /// reference to the item.
+    /// item again in an Err if no free slot was found.
     fn insert(&mut self, item: Item) -> Result<(), Item> {
         match self.slots_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
@@ -825,8 +848,7 @@ impl Inventory {
     }
 
     /// Equip an item from a slot in inventory. The currently equipped item will
-    /// go into inventory. If the item is going to mainhand, put mainhand in
-    /// offhand and place offhand into inventory.
+    /// go into inventory.
     /// Since loadout slots cannot currently hold items with an amount larger
     /// than one, only one item will be taken from the inventory and
     /// equipped
@@ -837,35 +859,38 @@ impl Inventory {
         time: Time,
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
-    ) -> Vec<Item> {
-        if let Some(item) = self.get(inv_slot) {
-            if let Some(equip_slot) = self.loadout.get_slot_to_equip_into(&item.kind()) {
-                let equipped_item = self.equipped(equip_slot);
-                let equipped_also_in_inv = equipped_item
-                    .and_then(|item| self.get_slot_of_item(item))
-                    .is_some();
+    ) -> Result<Option<Vec<Item>>, SlotError> {
+        let Some(item) = self.get(inv_slot) else {
+            return Ok(None);
+        };
 
-                if equipped_also_in_inv
-                    || (item.amount() > 1 && (equipped_item.is_none() || self.free_slots() >= 1))
-                {
-                    let item = self.take(inv_slot, ability_map, msm);
-                    let previously_equipped = self.replace_loadout_item(equip_slot, item, time);
+        let Some(equip_slot) = self.loadout.get_slot_to_equip_into(&item.kind()) else {
+            return Ok(None);
+        };
 
-                    if let Some(previously_equipped) = previously_equipped {
-                        let item_failed_to_push = self.push(previously_equipped);
-                        debug_assert!(
-                            item_failed_to_push.is_ok(),
-                            "Pushing to inventory cannot fail since we know there is at least one \
-                             slot the item can be put into",
-                        );
-                    }
-                } else {
-                    return self.swap_inventory_loadout(inv_slot, equip_slot, time);
-                }
+        let item = self
+            .take(inv_slot, ability_map, msm)
+            .expect("We got this successfully above");
+
+        if self.free_slots_minus_equipped_item(equip_slot) == 0 {
+            let replaced_item = self.insert_at(inv_slot, item);
+            assert!(matches!(replaced_item, Ok(None)));
+            return Err(SlotError::InventoryFull);
+        }
+
+        if let Some(mut unequipped_item) = self.replace_loadout_item(equip_slot, Some(item), time) {
+            let unloaded_items: Vec<Item> = unequipped_item.drain().collect();
+            self.push_prefer_slot(unequipped_item, Some(inv_slot))
+                .expect("Failed to push item to inventory, precondition failed?");
+            // Unload any items that were inside the equipped item into the inventory, with
+            // any that don't fit to be to be dropped on the floor by the caller
+            match self.push_all(unloaded_items.into_iter()) {
+                Ok(()) => {},
+                Err(Error::Full(items)) => return Ok(Some(items)),
             }
         }
 
-        Vec::new()
+        Ok(None)
     }
 
     /// Determines how many free inventory slots will be left after equipping an
