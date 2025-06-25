@@ -37,6 +37,10 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             Response::from(Content::localized("dialogue-question-directions")),
             dialogue::directions(session).boxed(),
         ));
+        responses.push((
+            Response::from(Content::localized("dialogue-play_game")),
+            dialogue::games(session).boxed(),
+        ));
 
         session.ask_question(Content::localized("npc-question-general"), responses)
     })
@@ -255,4 +259,72 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
 
         session.ask_question(Content::localized("npc-question-directions"), responses)
     })
+}
+
+fn rock_paper_scissors<S: State>(session: DialogueSession) -> impl Action<S> {
+    now(move |ctx, _| {
+        #[derive(PartialEq, Eq, Clone, Copy)]
+        enum RockPaperScissor {
+            Rock,
+            Paper,
+            Scissors,
+        }
+        use RockPaperScissor::*;
+        impl RockPaperScissor {
+            fn i18n_key(&self) -> &'static str {
+                match self {
+                    Rock => "dialogue-game-rock",
+                    Paper => "dialogue-game-paper",
+                    Scissors => "dialogue-game-scissors",
+                }
+            }
+        }
+        fn end<S: State>(
+            session: DialogueSession,
+            our: RockPaperScissor,
+            their: RockPaperScissor,
+        ) -> impl Action<S> {
+            let draw = our == their;
+            let we_win = matches!(
+                (our, their),
+                (Rock, Scissors) | (Paper, Rock) | (Scissors, Paper)
+            );
+            let result = if draw {
+                "dialogue-game-draw"
+            } else if we_win {
+                "dialogue-game-win"
+            } else {
+                "dialogue-game-lose"
+            };
+
+            session
+                .say_statement(Content::localized(our.i18n_key()))
+                .then(session.say_statement(Content::localized(result)))
+        }
+        let choices = [Rock, Paper, Scissors];
+        let our_choice = choices
+            .choose(&mut ctx.rng)
+            .expect("We have a non-empty array");
+
+        let choices = choices.map(|choice| {
+            (
+                Response::from(Content::localized(choice.i18n_key())),
+                end(session, *our_choice, choice),
+            )
+        });
+
+        session.ask_question(
+            Content::localized("dialogue-game-rock_paper_scissors"),
+            choices,
+        )
+    })
+}
+
+fn games<S: State>(session: DialogueSession) -> impl Action<S> {
+    let games = [(
+        Response::from(Content::localized("dialogue-game-rock_paper_scissors")),
+        rock_paper_scissors(session),
+    )];
+
+    session.ask_question(Content::localized("dialogue-game-what_game"), games)
 }
