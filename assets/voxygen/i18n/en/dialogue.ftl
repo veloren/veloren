@@ -28,6 +28,24 @@ dialogue-direction-plaza = The nearest town square
 dialogue-direction-workshop = A workshop
 dialogue-direction-airship_dock = The airship dock
 
+dialogue-play_game = Play a game
+dialogue-game-what_game =
+    .a0 = What game do you want to play?
+    .a1 = Sure! What game?
+dialogue-game-win =
+    .a0 = I won!
+    .a1 = Yes! I win!
+dialogue-game-lose =
+    .a0 = Arghh I lost...
+    .a1 = Congrats, you won.
+    .a2 = Rotten legoom! I lost.
+dialogue-game-draw =
+    .a0 = A draw!
+dialogue-game-rock_paper_scissors = Rock Paper Scissors
+dialogue-game-rock = Rock
+dialogue-game-paper = Paper
+dialogue-game-scissors = Scissors
+
 dialogue-accept =
     .a0 = Sure!
     .a1 = Yes.
