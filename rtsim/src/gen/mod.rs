@@ -169,10 +169,7 @@ impl Data {
         this
     }
 
-    pub fn airship_spawning_locations(
-        &self,
-        world: &World,
-    ) -> Vec<AirshipSpawningLocation> {
+    pub fn airship_spawning_locations(&self, world: &World) -> Vec<AirshipSpawningLocation> {
         world.civs().airships.airship_spawning_locations()
     }
 

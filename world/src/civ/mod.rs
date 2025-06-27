@@ -1,8 +1,10 @@
 #![expect(dead_code)]
 
-pub mod airship_route_map;
 pub mod airship_travel;
 mod econ;
+
+#[cfg(debug_assertions)]
+pub mod airship_route_map;
 
 use crate::{
     Index, IndexRef, Land,

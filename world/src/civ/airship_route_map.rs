@@ -1,13 +1,14 @@
 use crate::{
     CONFIG, Index, IndexRef,
-    civ::airship_travel::{AirshipDockPlatform, AirshipRouteLeg, Airships, DockNode, AirshipSpawningLocation},
+    civ::airship_travel::{
+        AirshipDockPlatform, AirshipRouteLeg, AirshipSpawningLocation, Airships, DockNode,
+    },
     sim::{WorldSim, get_horizon_map, sample_pos, sample_wpos},
     util::{DHashMap, DHashSet},
 };
 use common::{
     assets::{self, Asset, AssetExt, BoxedError, Loader},
     terrain::{
-        TERRAIN_CHUNK_BLOCKS_LG,
         map::{MapConfig, MapSample, MapSizeLg},
         uniform_idx_as_vec2,
     },
@@ -15,7 +16,8 @@ use common::{
 use delaunator::{Point, Triangulation};
 use serde::Deserialize;
 use tiny_skia::{
-    FilterQuality, FillRule, IntRect, IntSize, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke, Transform,
+    FillRule, FilterQuality, IntRect, IntSize, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke,
+    Transform,
 };
 
 use std::{borrow::Cow, env, error::Error, io::ErrorKind, path::PathBuf};
@@ -237,12 +239,12 @@ impl TinySkiaSpriteMap {
                         }
                     },
                     Err(e) => {
-                        println!("Failed to load packed sprites: {:?}", e);
+                        eprintln!("Failed to load packed sprites: {:?}", e);
                     },
                 }
             },
             Err(e) => {
-                println!("Failed to load meta: {:?}", e);
+                eprintln!("Failed to load meta: {:?}", e);
             },
         }
         TinySkiaSpriteMap {
@@ -362,10 +364,13 @@ fn dock_sites_triangulation_map(
     sampler: Option<&WorldSim>,
     map_image_path: Option<&str>,
 ) -> Option<Pixmap> {
-    let mut pixmap = if let Some(index) = index && let Some(sampler) = sampler {
+    let mut pixmap = if let Some(index) = index
+        && let Some(sampler) = sampler
+    {
         basic_world_pixmap(image_size, index, sampler)
     } else if let Some(map_image_path) = map_image_path {
-        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))
+        Pixmap::load_png(map_image_path)
+            .map_err(|e| format!("Failed to load map image: {}", e))
             .ok()
     } else {
         None
@@ -606,7 +611,7 @@ fn dock_sites_optimized_tesselation_map(
 fn draw_airship_routes(
     routes: &[Vec<AirshipRouteLeg>],
     points: &[Vec2<f32>],
-    spawning_points: &Vec<Vec<Vec2<f32>>>,
+    spawning_points: &[Vec<Vec2<f32>>],
     pixmap: &mut Pixmap,
 ) -> Result<(), Box<dyn Error>> {
     // Draw a circle around the points (the docking sites)
@@ -729,27 +734,35 @@ fn draw_airship_routes(
     }
 
     // Draw a filled circle for the airship spawning locations.
-    spawning_points.iter().enumerate().for_each(|(route_index, points)| {
-        let mut pb: PathBuilder = PathBuilder::new();
-        for pt in points.iter() {
-            pb.push_circle(pt.x, pt.y, 5.0);
-        }
+    spawning_points
+        .iter()
+        .enumerate()
+        .for_each(|(route_index, points)| {
+            let mut pb: PathBuilder = PathBuilder::new();
+            for pt in points.iter() {
+                pb.push_circle(pt.x, pt.y, 5.0);
+            }
 
-        let mut paint = Paint::default();
-        let color: [u8; 3] = segment_colors[route_index % segment_colors.len()];
-        paint.set_color_rgba8(color[0], color[1], color[2], 255);
-        paint.anti_alias = true;
+            let mut paint = Paint::default();
+            let color: [u8; 3] = segment_colors[route_index % segment_colors.len()];
+            paint.set_color_rgba8(color[0], color[1], color[2], 255);
+            paint.anti_alias = true;
 
-        match pb.finish() {
-            Some(path) => {
-                pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
-            },
-            None => {
-                eprintln!("Failed to create path for drawing spawning points");
-            },
-        }
-    });
-
+            match pb.finish() {
+                Some(path) => {
+                    pixmap.fill_path(
+                        &path,
+                        &paint,
+                        FillRule::Winding,
+                        Transform::identity(),
+                        None,
+                    );
+                },
+                None => {
+                    eprintln!("Failed to create path for drawing spawning points");
+                },
+            }
+        });
 
     Ok(())
 }
@@ -760,16 +773,19 @@ fn draw_airship_routes(
 fn airship_routes_map(
     routes: &[Vec<AirshipRouteLeg>],
     points: &[Point],
-    spawning_locations: &Vec<AirshipSpawningLocation>,
+    spawning_locations: Option<&Vec<AirshipSpawningLocation>>,
     image_size: &MapSizeLg,
     index: Option<&Index>,
     sampler: Option<&WorldSim>,
     map_image_path: Option<&str>,
 ) -> Option<Pixmap> {
-    let mut pixmap = if let Some(index) = index && let Some(sampler) = sampler {
+    let mut pixmap = if let Some(index) = index
+        && let Some(sampler) = sampler
+    {
         basic_world_pixmap(image_size, index, sampler)
     } else if let Some(map_image_path) = map_image_path {
-        Pixmap::load_png(map_image_path).map_err(|e| format!("Failed to load map image: {}", e))
+        Pixmap::load_png(map_image_path)
+            .map_err(|e| format!("Failed to load map image: {}", e))
             .ok()
     } else {
         None
@@ -791,25 +807,23 @@ fn airship_routes_map(
         .collect::<Vec<_>>();
 
     let mut spawning_points = Vec::new();
-    for route_index in 0..4 {
-        let mut route_spawning_locations = Vec::new();
-        for spawning_location in spawning_locations.iter() {
-            if spawning_location.route_index == route_index {
-                route_spawning_locations.push(
-                    Vec2::new(
+    if let Some(spawning_locations) = spawning_locations {
+        for route_index in 0..4 {
+            let mut route_spawning_locations = Vec::new();
+            for spawning_location in spawning_locations.iter() {
+                if spawning_location.route_index == route_index {
+                    route_spawning_locations.push(Vec2::new(
                         spawning_location.pos.x / world_blocks.x * map_w,
                         map_h - (spawning_location.pos.y / world_blocks.y * map_h),
-                    )
-                );
+                    ));
+                }
             }
+            if route_spawning_locations.is_empty() {
+                continue;
+            }
+            spawning_points.push(route_spawning_locations);
         }
-        if route_spawning_locations.is_empty() {
-            continue;
-        }
-        spawning_points.push(route_spawning_locations);
     }
-
-
 
     if let Err(e) = draw_airship_routes(routes, &map_points, &spawning_points, &mut pixmap) {
         error!("Failed to draw airship route segments: {}", e);
@@ -841,39 +855,10 @@ pub fn save_airship_routes_triangulation(
             image_size,
             index,
             sampler,
-            map_image_path
+            map_image_path,
         ) {
             if pixmap.save_png(&world_map_file_path).is_err() {
                 error!("Failed to save airship routes triangulation map");
-            }
-        }
-    }
-}
-
-pub fn save_airship_routes_optimized_tesselation(
-    triangulation: &Triangulation,
-    points: &[Point],
-    node_connections: &DHashMap<usize, DockNode>,
-    index: &Index,
-    sampler: &WorldSim,
-) {
-    let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
-    if let Some(routes_log_folder) = airship_routes_log_folder {
-        let world_map_file = format!(
-            "{}/airship_docks_opt_tesselation{}.png",
-            routes_log_folder, index.seed
-        );
-        let world_map_file_path = PathBuf::from(world_map_file);
-        if let Some(pixmap) = dock_sites_optimized_tesselation_map(
-            triangulation,
-            points,
-            node_connections,
-            sampler.map_size_lg(),
-            index,
-            sampler,
-        ) {
-            if pixmap.save_png(&world_map_file_path).is_err() {
-                error!("Failed to save airship routes optimized tesselation map");
             }
         }
     }
@@ -891,21 +876,41 @@ pub fn save_airship_route_segments(
 ) {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
     if let Some(routes_log_folder) = airship_routes_log_folder {
-        let world_map_file = format!(
-            "{}/airship_routes_map_{}.png",
+        let routes_with_spawning_file = format!(
+            "{}/airship_routes_with_spawn_locations_map_{}.png",
             routes_log_folder, seed
         );
-        if let Some(pixmap) =
-            airship_routes_map(routes, points, spawning_locations, image_size, index, sampler, map_image_path)
-        {
-            if pixmap.save_png(&world_map_file).is_err() {
-                error!("Failed to save airship route segments map");
+        if let Some(pixmap) = airship_routes_map(
+            routes,
+            points,
+            Some(spawning_locations),
+            image_size,
+            index,
+            sampler,
+            map_image_path,
+        ) {
+            if pixmap.save_png(&routes_with_spawning_file).is_err() {
+                error!("Failed to save airship route segments with spawning locations map");
+            }
+        }
+        let routes_only_file =
+            format!("{}/airship_routes_only_map_{}.png", routes_log_folder, seed);
+        if let Some(pixmap) = airship_routes_map(
+            routes,
+            points,
+            None,
+            image_size,
+            index,
+            sampler,
+            map_image_path,
+        ) {
+            if pixmap.save_png(&routes_only_file).is_err() {
+                error!("Failed to save airship route segments only map");
             }
         }
     }
 }
 
-#[cfg(debug_assertions)]
 pub fn export_world_map(index: &Index, sampler: &WorldSim) -> Result<(), String> {
     let airship_routes_log_folder = env::var("AIRSHIP_ROUTES_LOG_FOLDER").ok();
     let routes_log_folder = airship_routes_log_folder
@@ -919,7 +924,6 @@ pub fn export_world_map(index: &Index, sampler: &WorldSim) -> Result<(), String>
     Ok(())
 }
 
-#[cfg(debug_assertions)]
 pub fn export_docknodes(
     map_image_path: &str,
     points: &[Point],
@@ -975,300 +979,4 @@ pub fn export_docknodes(
     pixmap
         .save_png(output_path)
         .map_err(|e| format!("Failed to save output image: {}", e))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{PixmapExt, TinySkiaSpriteMap};
-    use std::env;
-    use tiny_skia::*;
-    use vek::Vec2;
-
-    #[test]
-    fn tiny_skia_test() {
-        let mut paint1 = Paint::default();
-        paint1.set_color_rgba8(50, 127, 150, 200);
-        paint1.anti_alias = true;
-
-        let mut paint2 = Paint::default();
-        paint2.set_color_rgba8(220, 140, 75, 180);
-        paint2.anti_alias = false;
-
-        let path1 = {
-            let mut pb = PathBuilder::new();
-            pb.move_to(60.0, 60.0);
-            pb.line_to(160.0, 940.0);
-            pb.cubic_to(380.0, 840.0, 660.0, 800.0, 940.0, 800.0);
-            pb.cubic_to(740.0, 460.0, 440.0, 160.0, 60.0, 60.0);
-            pb.close();
-            pb.finish().unwrap()
-        };
-
-        let path2 = {
-            let mut pb = PathBuilder::new();
-            pb.move_to(940.0, 60.0);
-            pb.line_to(840.0, 940.0);
-            pb.cubic_to(620.0, 840.0, 340.0, 800.0, 60.0, 800.0);
-            pb.cubic_to(260.0, 460.0, 560.0, 160.0, 940.0, 60.0);
-            pb.close();
-            pb.finish().unwrap()
-        };
-
-        let mut pixmap = Pixmap::new(1000, 1000).unwrap();
-        pixmap.fill_path(
-            &path1,
-            &paint1,
-            FillRule::Winding,
-            Transform::identity(),
-            None,
-        );
-        pixmap.fill_path(
-            &path2,
-            &paint2,
-            FillRule::Winding,
-            Transform::identity(),
-            None,
-        );
-
-        let grid = {
-            let mut pb = PathBuilder::new();
-            for i in 0..23 {
-                pb.move_to(0.0, i as f32 * 40.0);
-                pb.line_to(1000.0, i as f32 * 40.0);
-                pb.move_to(i as f32 * 40.0, 0.0);
-                pb.line_to(i as f32 * 40.0, 1000.0);
-            }
-            pb.close();
-            pb.finish().unwrap()
-        };
-        paint1.set_color_rgba8(0, 0, 0, 255);
-        pixmap.stroke_path(
-            &grid,
-            &paint1,
-            &Stroke {
-                width: 1.0,
-                ..Default::default()
-            },
-            Transform::identity(),
-            None,
-        );
-
-        let txt_paint = PixmapPaint {
-            quality: FilterQuality::Bicubic,
-            ..Default::default()
-        };
-
-        let base_x1 = 40.0;
-        let base_x2 = 480.0;
-        let mut base_y = 40.0;
-        let colors_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
-
-        let digits_sprite_map = TinySkiaSpriteMap::new(
-            "world.module.airship.airship_route_map_digits",
-            "world.module.airship.airship_route_map_digits",
-        );
-        let digit_size = digits_sprite_map.get_sprite_size("RED_0");
-        for i in 0..4 {
-            for row in 0..5 {
-                for col in 0..10 {
-                    let node_num = row * 10 + col + 1;
-                    let node_num_str = format!("{:04}", node_num);
-                    let text_width = node_num_str.len() as f32 * digit_size.width();
-
-                    let color_id = colors_ids[i % colors_ids.len()];
-                    let digit_sprite_ids = node_num_str
-                        .chars()
-                        .map(|c| format!("{}_{}", color_id, c))
-                        .collect::<Vec<_>>();
-                    let digit_sprites = digits_sprite_map.get_sprites(digit_sprite_ids);
-                    if digit_sprites.len() == node_num_str.len() {
-                        let text1_center_x = base_x1 + (col as f32 * 40.0);
-                        let text_center_y = base_y + (row as f32 * 40.0);
-                        let text1_tlx = text1_center_x - text_width / 2.0;
-                        let text_tly = text_center_y - digit_size.height() / 2.0;
-                        for (digit_index, sprite) in digit_sprites.iter().enumerate() {
-                            let x = text1_tlx + (digit_index as f32 * digit_size.width());
-                            pixmap.draw_pixmap(
-                                x as i32,
-                                text_tly as i32,
-                                sprite.as_ref(),
-                                &txt_paint,
-                                Transform::identity(),
-                                None,
-                            );
-                        }
-
-                        // scaled and rotated
-                        let rotation_angle = 30.0_f32;
-                        let scale_factor = 0.75;
-                        let inv_scale_factor = 1.0 / scale_factor;
-                        let text2_center_x = base_x2 + (col as f32 * 40.0);
-                        let rotated_transform = Transform::from_rotate_at(
-                            rotation_angle,
-                            text2_center_x,
-                            text_center_y,
-                        );
-                        let text2_tlx = text2_center_x - text_width / 2.0 * scale_factor;
-                        let text2_tly = text_center_y - digit_size.height() / 2.0 * scale_factor;
-                        for (digit_index, sprite) in digit_sprites.iter().enumerate() {
-                            let x =
-                                text2_tlx + digit_index as f32 * digit_size.width() * scale_factor;
-                            pixmap.draw_pixmap(
-                                (x * inv_scale_factor) as i32,
-                                (text2_tly * inv_scale_factor) as i32,
-                                sprite.as_ref(),
-                                &txt_paint,
-                                rotated_transform.pre_scale(scale_factor, scale_factor),
-                                None,
-                            );
-                        }
-                    }
-                }
-            }
-            base_y += 200.0;
-        }
-
-        // If using VSCode, set the AIRSHIP_ROUTE_MAPS_FOLDER environment variable
-        // in a .env file in the workspace root. i.e., AIRSHIP_ROUTE_MAPS_FOLDER=...
-        // and set the lldb.launch.envFile path in settings.json,
-        // e.g.: "lldb.launch.envFile": "${workspaceFolder}/.env"
-        let airship_route_maps_folder = env::var("AIRSHIP_ROUTE_MAPS_FOLDER").ok();
-        if let Some(route_maps_folder) = airship_route_maps_folder {
-            match pixmap.save_png(&format!("{}/tiny_skia_test.png", route_maps_folder)) {
-                Ok(_) => println!("Saved image"),
-                Err(e) => println!("Error saving image: {}", e),
-            }
-        }
-    }
-
-    #[test]
-    fn tiny_skia_test_draw_text() {
-        let mut paint1 = Paint::default();
-        paint1.set_color_rgba8(50, 127, 150, 200);
-        paint1.anti_alias = true;
-
-        let mut paint2 = Paint::default();
-        paint2.set_color_rgba8(220, 140, 75, 180);
-        paint2.anti_alias = false;
-
-        let path1 = {
-            let mut pb = PathBuilder::new();
-            pb.move_to(60.0, 60.0);
-            pb.line_to(160.0, 940.0);
-            pb.cubic_to(380.0, 840.0, 660.0, 800.0, 940.0, 800.0);
-            pb.cubic_to(740.0, 460.0, 440.0, 160.0, 60.0, 60.0);
-            pb.close();
-            pb.finish().unwrap()
-        };
-
-        let path2 = {
-            let mut pb = PathBuilder::new();
-            pb.move_to(940.0, 60.0);
-            pb.line_to(840.0, 940.0);
-            pb.cubic_to(620.0, 840.0, 340.0, 800.0, 60.0, 800.0);
-            pb.cubic_to(260.0, 460.0, 560.0, 160.0, 940.0, 60.0);
-            pb.close();
-            pb.finish().unwrap()
-        };
-
-        let mut pixmap = Pixmap::new(1000, 1000).unwrap();
-        pixmap.fill_path(
-            &path1,
-            &paint1,
-            FillRule::Winding,
-            Transform::identity(),
-            None,
-        );
-        pixmap.fill_path(
-            &path2,
-            &paint2,
-            FillRule::Winding,
-            Transform::identity(),
-            None,
-        );
-
-        let grid = {
-            let mut pb = PathBuilder::new();
-            for i in 0..23 {
-                pb.move_to(0.0, i as f32 * 40.0);
-                pb.line_to(1000.0, i as f32 * 40.0);
-                pb.move_to(i as f32 * 40.0, 0.0);
-                pb.line_to(i as f32 * 40.0, 1000.0);
-            }
-            pb.close();
-            pb.finish().unwrap()
-        };
-        paint1.set_color_rgba8(0, 0, 0, 255);
-        pixmap.stroke_path(
-            &grid,
-            &paint1,
-            &Stroke {
-                width: 1.0,
-                ..Default::default()
-            },
-            Transform::identity(),
-            None,
-        );
-
-        let base_x1 = 40.0;
-        let base_x2 = 480.0;
-        let mut base_y = 40.0;
-        let colors_ids = ["RED", "GREEN", "BLUE", "YELLOW"];
-
-        let digits_sprite_map = TinySkiaSpriteMap::new(
-            "world.module.airship.airship_route_map_digits",
-            "world.module.airship.airship_route_map_digits",
-        );
-
-        for i in 0..4 {
-            let id_formatter = |c: char| format!("{}_{}", colors_ids[i % colors_ids.len()], c);
-
-            for row in 0..5 {
-                for col in 0..10 {
-                    let node_num = row * 10 + col + 1;
-                    let node_num_str = format!("{:03}", node_num);
-                    match pixmap.draw_text(
-                        &node_num_str,
-                        Vec2::new(base_x1 + (col as f32 * 40.0), base_y + (row as f32 * 40.0)),
-                        1.0,
-                        0.0,
-                        &digits_sprite_map,
-                        &id_formatter,
-                    ) {
-                        Ok(_) => {},
-                        Err(e) => println!("Error drawing text: {}", e),
-                    }
-
-                    // scaled and rotated
-                    match pixmap.draw_text(
-                        &node_num_str,
-                        Vec2::new(base_x2 + (col as f32 * 40.0), base_y + (row as f32 * 40.0)),
-                        0.75,
-                        30.0_f32.to_radians(),
-                        &digits_sprite_map,
-                        &id_formatter,
-                    ) {
-                        Ok(_) => {},
-                        Err(e) => println!("Error drawing rotated and scaled text: {}", e),
-                    }
-                }
-            }
-            base_y += 200.0;
-        }
-
-        // If using VSCode, set the AIRSHIP_ROUTE_MAPS_FOLDER environment variable
-        // in a .env file in the workspace root. i.e., AIRSHIP_ROUTE_MAPS_FOLDER=...
-        // and set the lldb.launch.envFile path in settings.json,
-        // e.g.: "lldb.launch.envFile": "${workspaceFolder}/.env"
-        let airship_route_maps_folder = env::var("AIRSHIP_ROUTE_MAPS_FOLDER").ok();
-        if let Some(route_maps_folder) = airship_route_maps_folder {
-            match pixmap.save_png(&format!(
-                "{}/tiny_skia_test_draw_text.png",
-                route_maps_folder
-            )) {
-                Ok(_) => println!("Saved image"),
-                Err(e) => println!("Error saving image: {}", e),
-            }
-        }
-    }
 }

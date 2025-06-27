@@ -1,37 +1,37 @@
 use crate::{
     Index,
-    civ::airship_route_map::*,
     sim::WorldSim,
-    site::{
-        self, Site,
-        plot::{AirshipDock, PlotKindMeta},
-    },
+    site::{self, Site, plot::PlotKindMeta},
     util::{DHashMap, DHashSet, seed_expan},
 };
 use common::{
     store::{Id, Store},
-    terrain::{CoordinateConversions, MapSizeLg, TERRAIN_CHUNK_BLOCKS_LG},
+    terrain::{MapSizeLg, TERRAIN_CHUNK_BLOCKS_LG},
     util::Dir,
 };
 use delaunator::{Point, Triangulation, triangulate};
 use itertools::Itertools;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::{
-    fs::OpenOptions,
-    io::Write,
-};
+use std::{fs::OpenOptions, io::Write};
 use tracing::{error, warn};
 use vek::*;
 
-const AIRSHIP_TRAVEL_DEBUG: bool = true;
+#[cfg(debug_assertions)] use tracing::debug;
 
+#[cfg(debug_assertions)]
+use crate::civ::airship_route_map::*;
+
+#[cfg(debug_assertions)]
 macro_rules! debug_airships {
     ($($arg:tt)*) => {
-        if AIRSHIP_TRAVEL_DEBUG {
-            println!($($arg)*);
-        }
+        debug!($($arg)*);
     }
+}
+
+#[cfg(not(debug_assertions))]
+macro_rules! debug_airships {
+    ($($arg:tt)*) => {};
 }
 
 /// A docking position (id, position). The docking position id is
@@ -57,10 +57,10 @@ pub enum AirshipDockingSide {
 }
 
 impl AirshipDockingSide {
-    /// When docking, the side to use depends on the angle the airship is approaching
-    /// the dock from, and the platform of the airship dock that the airship is docking at.
-    /// For example, when docking at the North Platform
-    /// ```text
+    /// When docking, the side to use depends on the angle the airship is
+    /// approaching the dock from, and the platform of the airship dock that
+    /// the airship is docking at. For example, when docking at the North
+    /// Platform ```text
     ///       North Platform
     ///        6     7     8
     ///        /\   /|\   /\
@@ -91,18 +91,18 @@ impl AirshipDockingSide {
     /// | Southeast         |  Port         |
     /// | South             |  Port         |
     /// | Southwest         |  Starboard    |
-    ///
     pub fn from_dir_to_platform(dir: &Vec2<f32>, platform: &AirshipDockPlatform) -> Self {
-        let side_fn = |ref_vec: &Vec2<f32>, sf: &dyn Fn(&Vec2<f32>) -> bool| -> AirshipDockingSide {
-            let mut angle = dir.angle_between(*ref_vec).to_degrees();
-            if sf(dir) {
-                angle = -angle;
-            }
-            match angle as i32 {
-                -360..=0 => AirshipDockingSide::Port,
-                _ => AirshipDockingSide::Starboard,
-            }
-        };
+        let side_fn =
+            |ref_vec: &Vec2<f32>, sf: &dyn Fn(&Vec2<f32>) -> bool| -> AirshipDockingSide {
+                let mut angle = dir.angle_between(*ref_vec).to_degrees();
+                if sf(dir) {
+                    angle = -angle;
+                }
+                match angle as i32 {
+                    -360..=0 => AirshipDockingSide::Port,
+                    _ => AirshipDockingSide::Starboard,
+                }
+            };
         match platform {
             AirshipDockPlatform::NorthPlatform => side_fn(&Vec2::unit_y(), &|d| d.x < 0.0),
             AirshipDockPlatform::EastPlatform => side_fn(&Vec2::unit_x(), &|d| d.y > 0.0),
@@ -214,7 +214,7 @@ impl AirshipDockPositions {
             })
             .unwrap_or_else(|| {
                 // If no docking position is found, return the dock center.
-                self.center.map(|f| f as f32).with_z(1000.0)
+                self.center.with_z(1000.0)
             })
     }
 }
@@ -238,7 +238,7 @@ impl AirshipDockPlatform {
             }
             match angle as i32 {
                 -360..=-135 => AirshipDockPlatform::SouthPlatform,
-                -136..=-45 => AirshipDockPlatform::WestPlatform,
+                -134..=-45 => AirshipDockPlatform::WestPlatform,
                 -44..=45 => AirshipDockPlatform::NorthPlatform,
                 46..=135 => AirshipDockPlatform::EastPlatform,
                 136..=360 => AirshipDockPlatform::SouthPlatform,
@@ -287,7 +287,7 @@ impl AirshipDockPlatform {
                         ]
                     }
                 },
-                -136..=-45 => {
+                -134..=-45 => {
                     // primary is WestPlatform
                     if angle as i32 > -90 {
                         vec![
@@ -378,26 +378,22 @@ impl AirshipDockPlatform {
 
     fn airship_dir_for_side(&self, side: AirshipDockingSide) -> Dir {
         match self {
-            AirshipDockPlatform::NorthPlatform =>
-                match side {
-                    AirshipDockingSide::Starboard => Dir::new(Vec2::unit_x().with_z(0.0)),
-                    AirshipDockingSide::Port => Dir::new(-Vec2::unit_x().with_z(0.0)),
-                },
-            AirshipDockPlatform::EastPlatform =>
-                match side {
-                    AirshipDockingSide::Starboard => Dir::new(-Vec2::unit_y().with_z(0.0)),
-                    AirshipDockingSide::Port => Dir::new(Vec2::unit_y().with_z(0.0)),
-                },
-            AirshipDockPlatform::SouthPlatform =>
-                match side {
-                    AirshipDockingSide::Starboard => Dir::new(-Vec2::unit_x().with_z(0.0)),
-                    AirshipDockingSide::Port => Dir::new(Vec2::unit_x().with_z(0.0)),
-                },
-            AirshipDockPlatform::WestPlatform =>
-                match side {
-                    AirshipDockingSide::Starboard => Dir::new(Vec2::unit_y().with_z(0.0)),
-                    AirshipDockingSide::Port => Dir::new(-Vec2::unit_y().with_z(0.0)),
-                },
+            AirshipDockPlatform::NorthPlatform => match side {
+                AirshipDockingSide::Starboard => Dir::new(Vec2::unit_x().with_z(0.0)),
+                AirshipDockingSide::Port => Dir::new(-Vec2::unit_x().with_z(0.0)),
+            },
+            AirshipDockPlatform::EastPlatform => match side {
+                AirshipDockingSide::Starboard => Dir::new(-Vec2::unit_y().with_z(0.0)),
+                AirshipDockingSide::Port => Dir::new(Vec2::unit_y().with_z(0.0)),
+            },
+            AirshipDockPlatform::SouthPlatform => match side {
+                AirshipDockingSide::Starboard => Dir::new(-Vec2::unit_x().with_z(0.0)),
+                AirshipDockingSide::Port => Dir::new(Vec2::unit_x().with_z(0.0)),
+            },
+            AirshipDockPlatform::WestPlatform => match side {
+                AirshipDockingSide::Starboard => Dir::new(Vec2::unit_y().with_z(0.0)),
+                AirshipDockingSide::Port => Dir::new(-Vec2::unit_y().with_z(0.0)),
+            },
         }
     }
 }
@@ -411,14 +407,15 @@ pub struct DockNode {
 }
 
 impl Airships {
-    /// The cruising height varies by route index and there can be only four routes.
-    pub const CRUISE_HEIGHTS: [f32; 4] = [400.0, 475.0, 550.0, 625.0];
-    /// The nominal distance between airships when they are first spawned in the world.
+    /// The nominal distance between airships when they are first spawned in the
+    /// world.
     pub const AIRSHIP_SPACING: f32 = 5000.0;
-
     /// The Z offset between the docking alignment point and the AirshipDock
     /// plot docking position.
     const AIRSHIP_TO_DOCK_Z_OFFSET: f32 = -3.0;
+    /// The cruising height varies by route index and there can be only four
+    /// routes.
+    pub const CRUISE_HEIGHTS: [f32; 4] = [400.0, 475.0, 550.0, 625.0];
     // the generated docking positions in world gen are a little low
     const DEFAULT_DOCK_DURATION: f32 = 60.0;
     const DOCKING_TRANSITION_OFFSET: f32 = 175.0;
@@ -438,10 +435,12 @@ impl Airships {
     /// This is positive if the docking alignment point is in front of the
     /// airship's center position.
     const DOCK_ALIGN_Y: f32 = 1.0;
-    /// The minimum distance from the docking position where the airship can be initially placed in the world.
+    /// The minimum distance from the docking position where the airship can be
+    /// initially placed in the world.
     const MIN_SPAWN_POINT_DIST_FROM_DOCK: f32 = 300.0;
-    /// The algorithm that computes where to initially place airships in the world (spawning locations)
-    /// increments the candidate location of the first airship on each route by this amount.
+    /// The algorithm that computes where to initially place airships in the
+    /// world (spawning locations) increments the candidate location of the
+    /// first airship on each route by this amount.
     const SPAWN_TARGET_DIST_INCREMENT: f32 = 47.0;
 
     #[inline(always)]
@@ -480,11 +479,7 @@ impl Airships {
             .collect::<Vec<_>>()
     }
 
-    pub fn increment_route_leg(
-        &self,
-        route_index: usize,
-        leg_index: usize,
-    ) -> usize {
+    pub fn increment_route_leg(&self, route_index: usize, leg_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
             return 0;
@@ -492,11 +487,7 @@ impl Airships {
         (leg_index + 1) % self.routes[route_index].len()
     }
 
-    pub fn decrement_route_leg(
-        &self,
-        route_index: usize,
-        leg_index: usize,
-    ) -> usize {
+    pub fn decrement_route_leg(&self, route_index: usize, leg_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
             return 0;
@@ -508,14 +499,9 @@ impl Airships {
         }
     }
 
-    pub fn route_count(&self) -> usize {
-        self.routes.len()
-    }
+    pub fn route_count(&self) -> usize { self.routes.len() }
 
-    pub fn docking_site_count_for_route(
-        &self,
-        route_index: usize,
-    ) -> usize {
+    pub fn docking_site_count_for_route(&self, route_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
             return 0;
@@ -541,13 +527,11 @@ impl Airships {
                 prev_node_id = node_id;
             });
         }
-        println!("Incoming edges: {:?}", incoming_edges);
 
         let mut leg_platforms = DHashMap::default();
 
         incoming_edges.iter().for_each(|(node_id, edges)| {
             let dock_location = dock_locations[*node_id];
-            println!("Docking at node {}: {}", node_id, dock_location);
             let mut used_platforms = DHashSet::default();
             for origin in edges {
                 let origin_location = dock_locations[*origin];
@@ -562,185 +546,202 @@ impl Airships {
                     .unwrap_or(AirshipDockPlatform::NorthPlatform);
                 leg_platforms.insert((*origin, *node_id), docking_platform);
                 used_platforms.insert(docking_platform);
-                println!("Docking from {} at platform {:?}", origin, docking_platform);
             }
         });
 
-        println!("Route segments: {:?}", route_segments);
-        println!("Leg platforms: {:?}", leg_platforms);
+        #[cfg(debug_assertions)]
+        {
+            debug!("Route segments: {:?}", route_segments);
+            debug!("Leg platforms: {:?}", leg_platforms);
+        }
 
         // The incoming edges control the docking platforms used for each leg of the
         // route. The outgoing platform for leg i must match the incoming
         // platform for leg i-1. For the first leg, get the 'from' platform from
         // the last pair of nodes in the segment.
-
-        const SEGMENT_COLORS: [&str; 4] = ["red", "blue", "green", "yellow"];
-
         let mut routes = Vec::new();
-        route_segments
-            .iter()
-            .enumerate()
-            .for_each(|(color_index, segment)| {
-                assert!(
-                    segment.len() > 2,
-                    "Segments must have at least two nodes and they must wrap around."
-                );
-                let mut route_legs = Vec::new();
-                let leg_start = &segment[segment.len() - 2..];
-                let mut prev_platform = leg_platforms
-                    .get(&(leg_start[0], leg_start[1]))
-                    .copied()
-                    .unwrap_or(AirshipDockPlatform::from_dir(
-                        dock_locations[leg_start[0]] - dock_locations[leg_start[1]],
-                    ));
-                for leg_index in 0..segment.len() - 1 {
-                    let from_node = segment[leg_index];
-                    let to_node = segment[leg_index + 1];
-                    if leg_index == 0 {
-                        assert!(
-                            from_node == leg_start[1],
-                            "The 'previous' leg's 'to' node must match the current leg's 'from' \
-                             node."
-                        );
-                    }
-                    let to_platform = leg_platforms.get(&(from_node, to_node)).copied().unwrap_or(
-                        AirshipDockPlatform::from_dir(
-                            dock_locations[from_node] - dock_locations[to_node],
-                        ),
+        route_segments.iter().for_each(|segment| {
+            assert!(
+                segment.len() > 2,
+                "Segments must have at least two nodes and they must wrap around."
+            );
+            let mut route_legs = Vec::new();
+            let leg_start = &segment[segment.len() - 2..];
+            for leg_index in 0..segment.len() - 1 {
+                let from_node = segment[leg_index];
+                let to_node = segment[leg_index + 1];
+                if leg_index == 0 {
+                    assert!(
+                        from_node == leg_start[1],
+                        "The 'previous' leg's 'to' node must match the current leg's 'from' node."
                     );
-                    println!(
-                        "{} {} from {:?} at node {} to {:?} at node {}",
-                        SEGMENT_COLORS[color_index % SEGMENT_COLORS.len()],
-                        leg_index + 1,
-                        prev_platform,
-                        from_node,
-                        to_platform,
-                        to_node
-                    );
-                    route_legs.push(AirshipRouteLeg {
-                        dest_index: to_node,
-                        platform: to_platform,
-                    });
-                    prev_platform = to_platform;
                 }
-                routes.push(route_legs);
-            });
-        println!("Routes: {:?}", routes);
+                let to_platform = leg_platforms.get(&(from_node, to_node)).copied().unwrap_or(
+                    AirshipDockPlatform::from_dir(
+                        dock_locations[from_node] - dock_locations[to_node],
+                    ),
+                );
+                route_legs.push(AirshipRouteLeg {
+                    dest_index: to_node,
+                    platform: to_platform,
+                });
+            }
+            routes.push(route_legs);
+        });
         routes
     }
 
-    pub fn calculate_spawning_locations(&mut self, all_dock_points: &Vec<Point>) {
+    pub fn calculate_spawning_locations(&mut self, all_dock_points: &[Point]) {
         let mut spawning_locations = Vec::new();
         let mut expected_airships_count = 0;
-        self.routes.iter().enumerate().for_each(|(route_index, route)| {
-            // Get the route length in blocks.
-            let route_len_blocks = route.iter().enumerate().fold(0.0f64, |acc, (j, leg)| {
-                let to_dock_point = &all_dock_points[leg.dest_index];
-                let from_dock_point = if j > 0 {
-                    &all_dock_points[route[j - 1].dest_index]
-                } else {
-                    &all_dock_points[route[route.len() - 1].dest_index]
-                };
-                let from_loc = Vec2::new(from_dock_point.x as f32, from_dock_point.y as f32);
-                let to_loc = Vec2::new(to_dock_point.x as f32, to_dock_point.y as f32);
-                acc + from_loc.distance(to_loc) as f64
-            });
-            // The minimum number of airships to spawn on this route is the number of docking sites.
-            // The maximum is where airships would be spaced out evenly with Airships::AIRSHIP_SPACING blocks between them.
-            let airship_count = route.len().max((route_len_blocks / Airships::AIRSHIP_SPACING as f64) as usize);
-
-            // Keep track of the total number of airships expected to be spawned.
-            expected_airships_count += airship_count;
-
-            // The precise desired airship spacing.
-            let airship_spacing = (route_len_blocks / airship_count as f64) as f32;
-            debug_airships!("Route {} length: {} blocks, avg: {}, expecting {} airships for {} docking sites", route_index, route_len_blocks, route_len_blocks / route.len() as f64, airship_count, route.len());
-
-            // get the docking points on this route
-            let route_points =
-                route.iter().map(|leg|
-                    all_dock_points[leg.dest_index].clone()
-                ).collect::<Vec<_>>();
-
-            // Airships can't be spawned too close to the docking sites. The leg lengths and desired spacing
-            // between airships will probably cause spawning locations to violate the too close rule, so
-            // do some iterations where the initial spawning location is varied, and the spawning locations
-            // are corrected to be at least Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK blocks from docking sites.
-            // Keep track of the deviation from the ideal positions and then use the spawning locations
-            // that produce the least deviation.
-            let mut best_route_spawning_locations = Vec::new();
-            let mut best_route_deviations = f32::MAX;
-            let mut best_route_iteration = 0;
-            // 50 iterations works for the test data, but it may need to be adjusted
-            for i in 0..50 {
-                let mut route_spawning_locations = Vec::new();
-                let mut prev_point = &route_points[route_points.len() - 1];
-                let mut target_dist = -1.0;
-                let mut airships_spawned = 0;
-                let mut deviation = 0.0;
-                route_points.iter().enumerate().for_each(|(leg_index, dock_point)| {
-                    let to_loc = Vec2::new(dock_point.x as f32, dock_point.y as f32);
-                    let from_loc = Vec2::new(prev_point.x as f32, prev_point.y as f32);
-                    let leg_dir = (to_loc - from_loc).normalized();
-                    let leg_len = from_loc.distance(to_loc);
-                    // target_dist is the distance from the 'from' docking position where the airship should spawn.
-                    // The maximum is the length of the leg minus the minimum spawn distance from the dock.
-                    // The minimum is the minimum spawn distance from the dock.
-                    let max_target_dist = leg_len - Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK;
-                    // Each iteration, the initial target distance is incremented by a prime number.
-                    // If more than 50 iterations are needed, SPAWN_TARGET_DIST_INCREMENT might need to be reduced
-                    // so that the initial target distance doesn't exceed the length of the first leg of the route.
-                    if target_dist < 0.0 {
-                        target_dist = Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK + i as f32 * Airships::SPAWN_TARGET_DIST_INCREMENT;
-                    }
-                    // When target_dist exceeds the leg length, it means the spawning location is into the next leg.
-                    while !(target_dist > leg_len) {
-                        // Limit the actual spawn location and keep track of the deviation.
-                        let spawn_point_dist =
-                            if target_dist > max_target_dist {
-                                deviation += target_dist - max_target_dist;
-                                max_target_dist
-                            } else if target_dist < Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK {
-                                deviation += Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK - target_dist;
-                                Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK
-                            } else {
-                                target_dist
-                            };
-
-                        let spawn_loc = from_loc + leg_dir * spawn_point_dist;
-                        route_spawning_locations.push(
-                            AirshipSpawningLocation {
-                                pos: Vec2::new(spawn_loc.x, spawn_loc.y),
-                                dir: leg_dir,
-                                height: Airships::CRUISE_HEIGHTS[route_index % Airships::CRUISE_HEIGHTS.len()],
-                                route_index,
-                                leg_index,
-                            }
-                        );
-                        airships_spawned += 1;
-                        target_dist += airship_spacing;
-                    }
-                    target_dist -= leg_len;
-                    assert!(target_dist > 0.0, "Target distance should not be zero or negative: {}", target_dist);
-                    prev_point = dock_point;
+        self.routes
+            .iter()
+            .enumerate()
+            .for_each(|(route_index, route)| {
+                // Get the route length in blocks.
+                let route_len_blocks = route.iter().enumerate().fold(0.0f64, |acc, (j, leg)| {
+                    let to_dock_point = &all_dock_points[leg.dest_index];
+                    let from_dock_point = if j > 0 {
+                        &all_dock_points[route[j - 1].dest_index]
+                    } else {
+                        &all_dock_points[route[route.len() - 1].dest_index]
+                    };
+                    let from_loc = Vec2::new(from_dock_point.x as f32, from_dock_point.y as f32);
+                    let to_loc = Vec2::new(to_dock_point.x as f32, to_dock_point.y as f32);
+                    acc + from_loc.distance(to_loc) as f64
                 });
-                if deviation < best_route_deviations {
-                    best_route_deviations = deviation;
-                    best_route_spawning_locations = route_spawning_locations.clone();
-                    best_route_iteration = i;
+                // The minimum number of airships to spawn on this route is the number of
+                // docking sites. The maximum is where airships would be spaced
+                // out evenly with Airships::AIRSHIP_SPACING blocks between them.
+                let airship_count = route
+                    .len()
+                    .max((route_len_blocks / Airships::AIRSHIP_SPACING as f64) as usize);
+
+                // Keep track of the total number of airships expected to be spawned.
+                expected_airships_count += airship_count;
+
+                // The precise desired airship spacing.
+                let airship_spacing = (route_len_blocks / airship_count as f64) as f32;
+                debug_airships!(
+                    "Route {} length: {} blocks, avg: {}, expecting {} airships for {} docking \
+                     sites",
+                    route_index,
+                    route_len_blocks,
+                    route_len_blocks / route.len() as f64,
+                    airship_count,
+                    route.len()
+                );
+
+                // get the docking points on this route
+                let route_points = route
+                    .iter()
+                    .map(|leg| all_dock_points[leg.dest_index].clone())
+                    .collect::<Vec<_>>();
+
+                // Airships can't be spawned too close to the docking sites. The leg lengths and
+                // desired spacing between airships will probably cause spawning
+                // locations to violate the too close rule, so
+                // do some iterations where the initial spawning location is varied, and the
+                // spawning locations are corrected to be at least
+                // Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK blocks from docking sites.
+                // Keep track of the deviation from the ideal positions and then use the
+                // spawning locations that produce the least deviation.
+                let mut best_route_spawning_locations = Vec::new();
+                let mut best_route_deviations = f32::MAX;
+                #[cfg(debug_assertions)]
+                let mut best_route_iteration = 0;
+                // 50 iterations works for the test data, but it may need to be adjusted
+                for i in 0..50 {
+                    let mut route_spawning_locations = Vec::new();
+                    let mut prev_point = &route_points[route_points.len() - 1];
+                    let mut target_dist = -1.0;
+                    let mut airships_spawned = 0;
+                    let mut deviation = 0.0;
+                    route_points
+                        .iter()
+                        .enumerate()
+                        .for_each(|(leg_index, dock_point)| {
+                            let to_loc = Vec2::new(dock_point.x as f32, dock_point.y as f32);
+                            let from_loc = Vec2::new(prev_point.x as f32, prev_point.y as f32);
+                            let leg_dir = (to_loc - from_loc).normalized();
+                            let leg_len = from_loc.distance(to_loc);
+                            // target_dist is the distance from the 'from' docking position where
+                            // the airship should spawn. The maximum is
+                            // the length of the leg minus the minimum spawn distance from the dock.
+                            // The minimum is the minimum spawn distance from the dock.
+                            let max_target_dist =
+                                leg_len - Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK;
+                            // Each iteration, the initial target distance is incremented by a prime
+                            // number. If more than 50 iterations are
+                            // needed, SPAWN_TARGET_DIST_INCREMENT might need to be reduced
+                            // so that the initial target distance doesn't exceed the length of the
+                            // first leg of the route.
+                            if target_dist < 0.0 {
+                                target_dist = Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK
+                                    + i as f32 * Airships::SPAWN_TARGET_DIST_INCREMENT;
+                            }
+                            // When target_dist exceeds the leg length, it means the spawning
+                            // location is into the next leg.
+                            // while target_dist.partial_cmp(&leg_len).unwrap_or(Ordering::Equal) !=
+                            // Ordering::Greater {
+                            while target_dist <= leg_len {
+                                // Limit the actual spawn location and keep track of the deviation.
+                                let spawn_point_dist = if target_dist > max_target_dist {
+                                    deviation += target_dist - max_target_dist;
+                                    max_target_dist
+                                } else if target_dist < Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK {
+                                    deviation +=
+                                        Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK - target_dist;
+                                    Airships::MIN_SPAWN_POINT_DIST_FROM_DOCK
+                                } else {
+                                    target_dist
+                                };
+
+                                let spawn_loc = from_loc + leg_dir * spawn_point_dist;
+                                route_spawning_locations.push(AirshipSpawningLocation {
+                                    pos: Vec2::new(spawn_loc.x, spawn_loc.y),
+                                    dir: leg_dir,
+                                    height: Airships::CRUISE_HEIGHTS
+                                        [route_index % Airships::CRUISE_HEIGHTS.len()],
+                                    route_index,
+                                    leg_index,
+                                });
+                                airships_spawned += 1;
+                                target_dist += airship_spacing;
+                            }
+                            target_dist -= leg_len;
+                            assert!(
+                                target_dist > 0.0,
+                                "Target distance should not be zero or negative: {}",
+                                target_dist
+                            );
+                            prev_point = dock_point;
+                        });
+                    if deviation < best_route_deviations {
+                        best_route_deviations = deviation;
+                        best_route_spawning_locations = route_spawning_locations.clone();
+                        #[cfg(debug_assertions)]
+                        {
+                            best_route_iteration = i;
+                        }
+                    }
                 }
-            }
-            debug_airships!(
-                "Route {}: {} airships, {} spawning locations, best deviation: {}, iteration: {}",
-                route_index,
-                airship_count,
-                best_route_spawning_locations.len(),
-                best_route_deviations,
-                best_route_iteration
-            );
-            spawning_locations.extend(best_route_spawning_locations);
-        });
-        debug_airships!("Set spawning locations for {} airships of {} expected", spawning_locations.len(), expected_airships_count);
+                debug_airships!(
+                    "Route {}: {} airships, {} spawning locations, best deviation: {}, iteration: \
+                     {}",
+                    route_index,
+                    airship_count,
+                    best_route_spawning_locations.len(),
+                    best_route_deviations,
+                    best_route_iteration
+                );
+                spawning_locations.extend(best_route_spawning_locations);
+            });
+        debug_airships!(
+            "Set spawning locations for {} airships of {} expected",
+            spawning_locations.len(),
+            expected_airships_count
+        );
         if spawning_locations.len() == expected_airships_count {
             self.spawning_locations = spawning_locations;
             debug_airships!("Spawning locations: {:?}", self.spawning_locations);
@@ -753,17 +754,15 @@ impl Airships {
         }
     }
 
+    #[allow(unused_variables)]
     pub fn generate_airship_routes_inner(
         &mut self,
-        // world_chunks: &Vec2<u16>,
         map_size_lg: &MapSizeLg,
         seed: u32,
         index: Option<&Index>,
         sampler: Option<&WorldSim>,
         map_image_path: Option<&str>,
     ) {
-        // self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
-        // println!("Airship docks: {:?}", self.airship_docks);
         let all_dock_points = self
             .airship_docks
             .iter()
@@ -775,17 +774,23 @@ impl Airships {
         debug_airships!("all_dock_points: {:?}", all_dock_points);
 
         let triangulation = triangulate(&all_dock_points);
-        save_airship_routes_triangulation(&triangulation, &all_dock_points, map_size_lg, seed, index, sampler, map_image_path);
+
+        #[cfg(debug_assertions)]
+        save_airship_routes_triangulation(
+            &triangulation,
+            &all_dock_points,
+            map_size_lg,
+            seed,
+            index,
+            sampler,
+            map_image_path,
+        );
 
         // Docking positions are specified in world coordinates, not chunks.
         // Limit the max route leg length to 1000 chunks no matter the world size.
         let blocks_per_chunk = 1 << TERRAIN_CHUNK_BLOCKS_LG;
         let world_blocks = map_size_lg.chunks().map(|u| u as f32) * blocks_per_chunk as f32;
         let max_route_leg_length = 1000.0 * world_blocks.x;
-        println!(
-            "blocks_per_chunk: {}, world size in blocks: {:?}, max_route_leg_length: {}",
-            blocks_per_chunk, world_blocks, max_route_leg_length
-        );
 
         // eulerized_route_segments is fairly expensive as the number of docking sites
         // grows. Limit the number of iterations according to world size.
@@ -803,7 +808,7 @@ impl Airships {
             .clamp(1.0, 100.0)
             .round() as usize;
 
-        if let Some((best_segments, _, max_seg_len, min_spread, iteration)) = triangulation
+        if let Some((best_segments, _, _max_seg_len, _min_spread, _iteration)) = triangulation
             .eulerized_route_segments(
                 &all_dock_points,
                 max_iterations,
@@ -811,15 +816,16 @@ impl Airships {
                 seed,
             )
         {
-            if cfg!(debug_assertions) {
-                println!("Max segment length: {}", max_seg_len);
-                println!("Min spread: {}", min_spread);
-                println!("Iteration: {}", iteration);
-                println!("Segments count:");
+            #[cfg(debug_assertions)]
+            {
+                debug!("Max segment length: {}", _max_seg_len);
+                debug!("Min spread: {}", _min_spread);
+                debug!("Iteration: {}", _iteration);
+                debug!("Segments count:");
                 best_segments.iter().enumerate().for_each(|segment| {
-                    println!("  {} : {}", segment.0, segment.1.len());
+                    debug!("  {} : {}", segment.0, segment.1.len());
                 });
-                println!("Best segments: {:?}", best_segments);
+                debug!("Best segments: {:?}", best_segments);
                 if let Some(index) = index
                     && let Some(world_sim) = sampler
                 {
@@ -842,7 +848,17 @@ impl Airships {
             // Calculate the spawning locations for airships on the routes.
             self.calculate_spawning_locations(&all_dock_points);
 
-            save_airship_route_segments(&self.routes, &all_dock_points, &self.spawning_locations, map_size_lg, seed, index, sampler, map_image_path);
+            #[cfg(debug_assertions)]
+            save_airship_route_segments(
+                &self.routes,
+                &all_dock_points,
+                &self.spawning_locations,
+                map_size_lg,
+                seed,
+                index,
+                sampler,
+                map_image_path,
+            );
         } else {
             println!("Error - cannot eulerize the dock points.");
         }
@@ -851,9 +867,14 @@ impl Airships {
     // routes2
     pub fn generate_airship_routes(&mut self, world_sim: &mut WorldSim, index: &Index) {
         self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
-        println!("Airship docks: {:?}", self.airship_docks);
 
-        self.generate_airship_routes_inner(&world_sim.map_size_lg(), index.seed, Some(index), Some(world_sim), None);
+        self.generate_airship_routes_inner(
+            &world_sim.map_size_lg(),
+            index.seed,
+            Some(index),
+            Some(world_sim),
+            None,
+        );
     }
 
     /// Compute the transition point where the airship should stop the cruise
@@ -924,12 +945,14 @@ impl Airships {
     }
 
     fn vec3_relative_eq(a: &vek::Vec3<f32>, b: &vek::Vec3<f32>, epsilon: f32) -> bool {
-        (a.x - b.x).abs() < epsilon &&
-        (a.y - b.y).abs() < epsilon &&
-        (a.z - b.z).abs() < epsilon
+        (a.x - b.x).abs() < epsilon && (a.y - b.y).abs() < epsilon && (a.z - b.z).abs() < epsilon
     }
 
-    pub fn approach_for_route_and_leg(&self, route_index: usize, leg_index: usize) -> AirshipDockingApproach {
+    pub fn approach_for_route_and_leg(
+        &self,
+        route_index: usize,
+        leg_index: usize,
+    ) -> AirshipDockingApproach {
         // Get the docking positions for the route and leg.
         let to_route_leg = &self.routes[route_index][leg_index];
         let from_route_leg = if leg_index == 0 {
@@ -956,18 +979,20 @@ impl Airships {
             airship_direction,
             dock_center: dest_dock_positions.center,
             height: Airships::CRUISE_HEIGHTS[route_index],
-            approach_transition_pos: self.approach_transition_point(
-                to_route_leg.dest_index,
-                route_index,
-                to_route_leg.platform,
-                from_dock_positions.center,
-            ).unwrap_or_else(|| {
-                warn!(
-                    "Failed to calculate approach transition point for route {} leg {}",
-                    route_index, leg_index
-                );
-                dest_dock_positions.docking_position(to_route_leg.platform)
-            }),
+            approach_transition_pos: self
+                .approach_transition_point(
+                    to_route_leg.dest_index,
+                    route_index,
+                    to_route_leg.platform,
+                    from_dock_positions.center,
+                )
+                .unwrap_or_else(|| {
+                    warn!(
+                        "Failed to calculate approach transition point for route {} leg {}",
+                        route_index, leg_index
+                    );
+                    dest_dock_positions.docking_position(to_route_leg.platform)
+                }),
             side: docking_side,
             site_id: dest_dock_positions.site_id,
         }
@@ -977,27 +1002,21 @@ impl Airships {
         self.spawning_locations.clone()
     }
 
-    pub fn route_leg_departure_location(
-        &self,
-        route_index: usize,
-        leg_index: usize,
-    ) -> Vec2<f32> {
-        if route_index >= self.routes.len()
-            || leg_index >= self.routes[route_index].len()
-        {
+    pub fn route_leg_departure_location(&self, route_index: usize, leg_index: usize) -> Vec2<f32> {
+        if route_index >= self.routes.len() || leg_index >= self.routes[route_index].len() {
             error!("Invalid index: rt {}, leg {}", route_index, leg_index);
             return Vec2::zero();
         }
 
-        let prev_leg=
-            if leg_index == 0 {
-                &self.routes[route_index][self.routes[route_index].len() - 1]
-            } else {
-                &self.routes[route_index][leg_index - 1]
-            };
+        let prev_leg = if leg_index == 0 {
+            &self.routes[route_index][self.routes[route_index].len() - 1]
+        } else {
+            &self.routes[route_index][leg_index - 1]
+        };
 
         self.airship_docks[prev_leg.dest_index]
-            .docking_position(prev_leg.platform).xy()
+            .docking_position(prev_leg.platform)
+            .xy()
     }
 
     /// Get the position and direction for the airship to dock at the given
@@ -1097,14 +1116,16 @@ enum EdgeRemovalStackNodeType {
     Undo,
 }
 
-const DEBUG_AIRSHIP_EULERIZATION: bool = false;
-
+#[cfg(debug_assertions)]
 macro_rules! debug_airship_eulerization {
     ($($arg:tt)*) => {
-        if DEBUG_AIRSHIP_EULERIZATION {
-            println!($($arg)*);
-        }
+        debug!($($arg)*);
     }
+}
+
+#[cfg(not(debug_assertions))]
+macro_rules! debug_airship_eulerization {
+    ($($arg:tt)*) => {};
 }
 
 type DockNodeGraph = DHashMap<usize, DockNode>;
@@ -1347,6 +1368,7 @@ impl TriangulationExt for Triangulation {
 
         #[cfg(debug_assertions)]
         let long_edges = edges_to_remove.len();
+
         debug_airship_eulerization!(
             "Found {} long edges to remove out of {} total edges",
             edges_to_remove.len(),
@@ -1390,22 +1412,21 @@ impl TriangulationExt for Triangulation {
 
         let mut mutable_node_connections = node_connections.clone();
 
-        if DEBUG_AIRSHIP_EULERIZATION {
-            debug_airship_eulerization!(
-                "Removing {} long edges and {} excess edges for a total of {} removed edges out \
-                 of a total of {} edges",
-                long_edges,
-                edges_to_remove.len() - long_edges,
-                edges_to_remove.len(),
-                all_edges.len(),
-            );
-        }
+        debug_airship_eulerization!(
+            "Removing {} long edges and {} excess edges for a total of {} removed edges out of a \
+             total of {} edges",
+            long_edges,
+            edges_to_remove.len() - long_edges,
+            edges_to_remove.len(),
+            all_edges.len(),
+        );
 
         for edge in edges_to_remove {
             remove_edge(edge, &mut mutable_node_connections);
         }
 
-        if DEBUG_AIRSHIP_EULERIZATION {
+        #[cfg(debug_assertions)]
+        {
             // count the number of nodes with an odd connected count
             let odd_connected_count0 = mutable_node_connections
                 .iter()
@@ -1608,7 +1629,8 @@ impl TriangulationExt for Triangulation {
                     .filter(|(_, node)| node.connected.len() % 2 == 1)
                     .count();
 
-                if DEBUG_AIRSHIP_EULERIZATION {
+                #[cfg(debug_assertions)]
+                {
                     let total_connections = eulerized_node_connections
                         .iter()
                         .map(|(_, node)| node.connected.len())
@@ -1631,7 +1653,8 @@ impl TriangulationExt for Triangulation {
                 if let Some((route_segments, circuit, max_seg_len, min_spread, _)) =
                     find_best_eulerian_circuit(&eulerized_node_connections)
                 {
-                    if DEBUG_AIRSHIP_EULERIZATION {
+                    #[cfg(debug_assertions)]
+                    {
                         debug_airship_eulerization!("Outer Iteration: {}", i);
                         debug_airship_eulerization!("Max segment length: {}", max_seg_len);
                         debug_airship_eulerization!("Min spread: {}", min_spread);
@@ -1673,7 +1696,8 @@ impl TriangulationExt for Triangulation {
                 );
             }
         }
-        if DEBUG_AIRSHIP_EULERIZATION {
+        #[cfg(debug_assertions)]
+        {
             debug_airship_eulerization!("Max segment length: {}", best_max_seg_len);
             debug_airship_eulerization!("Min spread: {}", best_min_spread);
             debug_airship_eulerization!("Iteration: {}", best_iteration);
@@ -1874,7 +1898,6 @@ fn best_eulerian_circuit_segments(
     }
     Some((best_segments, max_segments_count, min_segments_len_spread))
 }
-
 
 #[cfg(debug_assertions)]
 pub fn airships_from_test_data() -> Airships {
@@ -3019,30 +3042,14 @@ pub fn airships_from_test_data() -> Airships {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::{
-        AirshipDockPlatform, AirshipDockPositions, AirshipDockingPosition, AirshipDockingSide,
-        AirshipRouteLeg, Airships, DockNode, TriangulationExt, approx::assert_relative_eq,
-        find_best_eulerian_circuit, remove_edge,
-        airships_from_test_data
+        AirshipDockPlatform, AirshipDockingSide, Airships, DockNode, TriangulationExt,
+        airships_from_test_data, approx::assert_relative_eq, find_best_eulerian_circuit,
+        remove_edge,
     };
-    use crate::{
-        civ::{
-            airship_route_map::*,
-            site::{
-                self, Site,
-                plot::{AirshipDock, PlotKindMeta},
-            },
-        },
-        util::{DHashMap, DHashSet},
-    };
-    use common::{
-        store::{Id, Store},
-        terrain::{CoordinateConversions, TERRAIN_CHUNK_BLOCKS_LG},
-        util::Dir,
-    };
+    use crate::util::{DHashMap, DHashSet};
     use delaunator::{Point, triangulate};
     use vek::{Quaternion, Vec2, Vec3};
 
@@ -4031,7 +4038,7 @@ mod tests {
             // Remove the edge if the distance between the points is greater than
             // max_leg_length
             if v1.distance_squared(v2) > max_distance_squared {
-                edges_to_remove2.insert(edge.clone());
+                edges_to_remove2.insert(*edge);
             }
         }
 
@@ -4654,86 +4661,406 @@ mod tests {
     #[test]
     fn docking_transition_point_test() {
         let expected = [
-            Vec3 { x: 26567.24, y: 4903.6567, z: 613.0 },
-            Vec3 { x: 26725.146, y: 4948.012, z: 613.0 },
-            Vec3 { x: 26825.607, y: 4668.8833, z: 613.0 },
-            Vec3 { x: 26515.738, y: 4746.166, z: 613.0 },
-            Vec3 { x: 26586.238, y: 4884.6543, z: 613.0 },
-            Vec3 { x: 26744.012, y: 4929.0415, z: 613.0 },
-            Vec3 { x: 26844.652, y: 4649.9404, z: 613.0 },
-            Vec3 { x: 26534.713, y: 4727.306, z: 613.0 },
-            Vec3 { x: 26567.326, y: 4865.7383, z: 613.0 },
-            Vec3 { x: 26725.098, y: 4910.0225, z: 613.0 },
-            Vec3 { x: 26826.025, y: 4631.4175, z: 613.0 },
-            Vec3 { x: 26515.695, y: 4708.404, z: 613.0 },
-            Vec3 { x: 26548.328, y: 4884.74, z: 613.0 },
-            Vec3 { x: 26706.232, y: 4928.993, z: 613.0 },
-            Vec3 { x: 26806.979, y: 4650.3584, z: 613.0 },
-            Vec3 { x: 26496.72, y: 4727.2637, z: 613.0 },
-            Vec3 { x: 21752.715, y: 8678.882, z: 766.0 },
-            Vec3 { x: 21941.81, y: 8708.588, z: 766.0 },
-            Vec3 { x: 22007.69, y: 8440.988, z: 766.0 },
-            Vec3 { x: 21707.01, y: 8485.287, z: 766.0 },
-            Vec3 { x: 21771.709, y: 8659.877, z: 766.0 },
-            Vec3 { x: 21960.66, y: 8689.655, z: 766.0 },
-            Vec3 { x: 22026.715, y: 8422.0205, z: 766.0 },
-            Vec3 { x: 21725.943, y: 8466.458, z: 766.0 },
-            Vec3 { x: 21752.816, y: 8640.974, z: 766.0 },
-            Vec3 { x: 21941.717, y: 8670.63, z: 766.0 },
-            Vec3 { x: 22007.924, y: 8403.286, z: 766.0 },
-            Vec3 { x: 21706.914, y: 8447.533, z: 766.0 },
-            Vec3 { x: 21733.822, y: 8659.979, z: 766.0 },
-            Vec3 { x: 21922.867, y: 8689.562, z: 766.0 },
-            Vec3 { x: 21988.898, y: 8422.254, z: 766.0 },
-            Vec3 { x: 21687.98, y: 8466.362, z: 766.0 },
-            Vec3 { x: 29544.33, y: 24598.639, z: 614.0 },
-            Vec3 { x: 29773.992, y: 24716.027, z: 614.0 },
-            Vec3 { x: 29734.61, y: 24378.34, z: 614.0 },
-            Vec3 { x: 29578.096, y: 24440.527, z: 614.0 },
-            Vec3 { x: 29563.35, y: 24579.71, z: 614.0 },
-            Vec3 { x: 29792.535, y: 24697.197, z: 614.0 },
-            Vec3 { x: 29753.492, y: 24359.324, z: 614.0 },
-            Vec3 { x: 29597.02, y: 24421.621, z: 614.0 },
-            Vec3 { x: 29544.385, y: 24560.84, z: 614.0 },
-            Vec3 { x: 29773.744, y: 24678.12, z: 614.0 },
-            Vec3 { x: 29734.64, y: 24340.344, z: 614.0 },
-            Vec3 { x: 29578.012, y: 24402.63, z: 614.0 },
-            Vec3 { x: 29525.365, y: 24579.768, z: 614.0 },
-            Vec3 { x: 29755.2, y: 24696.95, z: 614.0 },
-            Vec3 { x: 29715.758, y: 24359.357, z: 614.0 },
-            Vec3 { x: 29559.088, y: 24421.537, z: 614.0 },
-            Vec3 { x: 9292.779, y: 17322.951, z: 1459.0 },
-            Vec3 { x: 9528.595, y: 17270.094, z: 1459.0 },
-            Vec3 { x: 9524.052, y: 17069.418, z: 1459.0 },
-            Vec3 { x: 9299.091, y: 17019.428, z: 1459.0 },
-            Vec3 { x: 9320.701, y: 17294.904, z: 1459.0 },
-            Vec3 { x: 9556.46, y: 17242.295, z: 1459.0 },
-            Vec3 { x: 9552.073, y: 17041.447, z: 1459.0 },
-            Vec3 { x: 9326.793, y: 16991.592, z: 1459.0 },
-            Vec3 { x: 9293.017, y: 17267.094, z: 1459.0 },
-            Vec3 { x: 9528.434, y: 17214.336, z: 1459.0 },
-            Vec3 { x: 9524.213, y: 17013.637, z: 1459.0 },
-            Vec3 { x: 9298.88, y: 16963.543, z: 1459.0 },
-            Vec3 { x: 9265.096, y: 17295.14, z: 1459.0 },
-            Vec3 { x: 9500.567, y: 17242.135, z: 1459.0 },
-            Vec3 { x: 9496.191, y: 17041.607, z: 1459.0 },
-            Vec3 { x: 9271.179, y: 16991.38, z: 1459.0 },
-            Vec3 { x: 15745.189, y: 15740.487, z: 819.0 },
-            Vec3 { x: 15986.825, y: 15736.656, z: 819.0 },
-            Vec3 { x: 15992.56, y: 15493.267, z: 819.0 },
-            Vec3 { x: 15739.27, y: 15489.251, z: 819.0 },
-            Vec3 { x: 15773.181, y: 15712.4795, z: 819.0 },
-            Vec3 { x: 16014.62, y: 15708.857, z: 819.0 },
-            Vec3 { x: 16020.567, y: 15465.275, z: 819.0 },
-            Vec3 { x: 15767.052, y: 15461.473, z: 819.0 },
-            Vec3 { x: 15745.397, y: 15684.68, z: 819.0 },
-            Vec3 { x: 15986.621, y: 15680.855, z: 819.0 },
-            Vec3 { x: 15992.771, y: 15437.497, z: 819.0 },
-            Vec3 { x: 15739.049, y: 15433.476, z: 819.0 },
-            Vec3 { x: 15717.407, y: 15712.688, z: 819.0 },
-            Vec3 { x: 15958.826, y: 15708.654, z: 819.0 },
-            Vec3 { x: 15964.763, y: 15465.488, z: 819.0 },
-            Vec3 { x: 15711.268, y: 15461.253, z: 819.0 },
+            Vec3 {
+                x: 26567.24,
+                y: 4903.6567,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26725.146,
+                y: 4948.012,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26825.607,
+                y: 4668.8833,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26515.738,
+                y: 4746.166,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26586.238,
+                y: 4884.6543,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26744.012,
+                y: 4929.0415,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26844.652,
+                y: 4649.9404,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26534.713,
+                y: 4727.306,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26567.326,
+                y: 4865.7383,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26725.098,
+                y: 4910.0225,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26826.025,
+                y: 4631.4175,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26515.695,
+                y: 4708.404,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26548.328,
+                y: 4884.74,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26706.232,
+                y: 4928.993,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26806.979,
+                y: 4650.3584,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 26496.72,
+                y: 4727.2637,
+                z: 613.0,
+            },
+            Vec3 {
+                x: 21752.715,
+                y: 8678.882,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21941.81,
+                y: 8708.588,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 22007.69,
+                y: 8440.988,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21707.01,
+                y: 8485.287,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21771.709,
+                y: 8659.877,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21960.66,
+                y: 8689.655,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 22026.715,
+                y: 8422.0205,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21725.943,
+                y: 8466.458,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21752.816,
+                y: 8640.974,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21941.717,
+                y: 8670.63,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 22007.924,
+                y: 8403.286,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21706.914,
+                y: 8447.533,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21733.822,
+                y: 8659.979,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21922.867,
+                y: 8689.562,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21988.898,
+                y: 8422.254,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 21687.98,
+                y: 8466.362,
+                z: 766.0,
+            },
+            Vec3 {
+                x: 29544.33,
+                y: 24598.639,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29773.992,
+                y: 24716.027,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29734.61,
+                y: 24378.34,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29578.096,
+                y: 24440.527,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29563.35,
+                y: 24579.71,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29792.535,
+                y: 24697.197,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29753.492,
+                y: 24359.324,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29597.02,
+                y: 24421.621,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29544.385,
+                y: 24560.84,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29773.744,
+                y: 24678.12,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29734.64,
+                y: 24340.344,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29578.012,
+                y: 24402.63,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29525.365,
+                y: 24579.768,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29755.2,
+                y: 24696.95,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29715.758,
+                y: 24359.357,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 29559.088,
+                y: 24421.537,
+                z: 614.0,
+            },
+            Vec3 {
+                x: 9292.779,
+                y: 17322.951,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9528.595,
+                y: 17270.094,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9524.052,
+                y: 17069.418,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9299.091,
+                y: 17019.428,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9320.701,
+                y: 17294.904,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9556.46,
+                y: 17242.295,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9552.073,
+                y: 17041.447,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9326.793,
+                y: 16991.592,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9293.017,
+                y: 17267.094,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9528.434,
+                y: 17214.336,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9524.213,
+                y: 17013.637,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9298.88,
+                y: 16963.543,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9265.096,
+                y: 17295.14,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9500.567,
+                y: 17242.135,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9496.191,
+                y: 17041.607,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 9271.179,
+                y: 16991.38,
+                z: 1459.0,
+            },
+            Vec3 {
+                x: 15745.189,
+                y: 15740.487,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15986.825,
+                y: 15736.656,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15992.56,
+                y: 15493.267,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15739.27,
+                y: 15489.251,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15773.181,
+                y: 15712.4795,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 16014.62,
+                y: 15708.857,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 16020.567,
+                y: 15465.275,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15767.052,
+                y: 15461.473,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15745.397,
+                y: 15684.68,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15986.621,
+                y: 15680.855,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15992.771,
+                y: 15437.497,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15739.049,
+                y: 15433.476,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15717.407,
+                y: 15712.688,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15958.826,
+                y: 15708.654,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15964.763,
+                y: 15465.488,
+                z: 819.0,
+            },
+            Vec3 {
+                x: 15711.268,
+                y: 15461.253,
+                z: 819.0,
+            },
         ];
 
         let airships = airships_from_test_data();
@@ -4752,16 +5079,14 @@ mod tests {
         for dock_index in (0..airships.airship_docks.len()).step_by(6) {
             for platform in platforms.iter() {
                 for (i, from_pos) in from_positions.iter().enumerate() {
-                    let transition_point = airships.approach_transition_point(
-                        dock_index,
-                        dock_index % 4,
-                        *platform,
-                        *from_pos,
-                    ).unwrap();
+                    let transition_point = airships
+                        .approach_transition_point(dock_index, dock_index % 4, *platform, *from_pos)
+                        .unwrap();
                     // println!(
-                    //     "Docking transition point for dock index {}, dock center {:?}, platform {:?}, from position {:?}: {:?}",
-                    //     dock_index, airships.airship_docks[dock_index].center, platform, from_pos, transition_point
-                    // );
+                    //     "Docking transition point for dock index {}, dock center {:?}, platform
+                    // {:?}, from position {:?}: {:?}",     dock_index,
+                    // airships.airship_docks[dock_index].center, platform, from_pos,
+                    // transition_point );
                     assert_eq!(
                         transition_point,
                         expected[dock_index / 6 * 16 + *platform as usize * 4 + i]
@@ -4773,7 +5098,8 @@ mod tests {
 
     #[test]
     fn docking_side_for_platform_test() {
-        // Approximately: 0, 22, 45, 67, 90, 112, 135, 157, 180, 202, 225, 247, 270, 292, 315, 337 degrees
+        // Approximately: 0, 22, 45, 67, 90, 112, 135, 157, 180, 202, 225, 247, 270,
+        // 292, 315, 337 degrees
         let dirs = [
             Vec2::new(0.0, 100.0) - Vec2::zero(),
             Vec2::new(100.0, 100.0) - Vec2::zero(),
@@ -4793,7 +5119,6 @@ mod tests {
             AirshipDockingSide::Port,
             AirshipDockingSide::Port,
             AirshipDockingSide::Port,
-
             AirshipDockingSide::Port,
             AirshipDockingSide::Port,
             AirshipDockingSide::Port,
@@ -4802,7 +5127,6 @@ mod tests {
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Port,
-
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Port,
             AirshipDockingSide::Port,
@@ -4811,7 +5135,6 @@ mod tests {
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Starboard,
-
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Starboard,
             AirshipDockingSide::Starboard,
@@ -4821,13 +5144,15 @@ mod tests {
             AirshipDockingSide::Port,
             AirshipDockingSide::Starboard,
         ];
-        for platform in
-            [AirshipDockPlatform::NorthPlatform,
+        for platform in [
+            AirshipDockPlatform::NorthPlatform,
             AirshipDockPlatform::EastPlatform,
             AirshipDockPlatform::SouthPlatform,
-            AirshipDockPlatform::WestPlatform].iter()
+            AirshipDockPlatform::WestPlatform,
+        ]
+        .iter()
         {
-            for (i,dir) in dirs.iter().enumerate() {
+            for (i, dir) in dirs.iter().enumerate() {
                 let side = AirshipDockingSide::from_dir_to_platform(dir, platform);
                 assert_eq!(side, expected[*platform as usize * 8 + i]);
             }
@@ -4847,11 +5172,5 @@ mod tests {
             .collect::<Vec<_>>();
 
         airships.calculate_spawning_locations(&all_dock_points);
-    }
-
-    #[test]
-    fn docking_timing_test() {
-        let h = Airships::CRUISE_HEIGHTS[0];
-
     }
 }

@@ -175,7 +175,7 @@ impl Rule for Migrate {
                     spawning_location,
                     *captain_id,
                     *airship_id,
-                    &ctx.world,
+                    ctx.world,
                     &mut data.npcs,
                 );
             }
