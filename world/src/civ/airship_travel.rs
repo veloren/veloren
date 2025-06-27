@@ -13,7 +13,6 @@ use delaunator::{Point, Triangulation, triangulate};
 use itertools::Itertools;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::{fs::OpenOptions, io::Write};
 use tracing::{error, warn};
 use vek::*;
 
@@ -376,6 +375,7 @@ impl AirshipDockPlatform {
         }
     }
 
+    /// Get the direction vector that the airship would be facing when docked.
     fn airship_dir_for_side(&self, side: AirshipDockingSide) -> Dir {
         match self {
             AirshipDockPlatform::NorthPlatform => match side {
@@ -402,7 +402,6 @@ impl AirshipDockPlatform {
 pub struct DockNode {
     pub node_id: usize,
     pub on_hull: bool,
-    //pub connected: DHashSet<usize>,
     pub connected: Vec<usize>,
 }
 
@@ -427,6 +426,8 @@ impl Airships {
     /// is docked on the starboard side.
     const DOCK_ALIGN_POS_STARBOARD: Vec2<f32> =
         Vec2::new(-Airships::DOCK_ALIGN_X, -Airships::DOCK_ALIGN_Y);
+    // TODO: These alignment offsets are specific to the airship model. If new models are added,
+    // a more generic way to determine the alignment offsets should be used.
     /// The absolute offset from the airship's position to the docking alignment
     /// point on the X axis. The airship is assumed to be facing positive Y.
     const DOCK_ALIGN_X: f32 = 18.0;
@@ -440,7 +441,12 @@ impl Airships {
     const MIN_SPAWN_POINT_DIST_FROM_DOCK: f32 = 300.0;
     /// The algorithm that computes where to initially place airships in the
     /// world (spawning locations) increments the candidate location of the
-    /// first airship on each route by this amount.
+    /// first airship on each route by this amount. This is just a prime number
+    /// that is small enough that the AIRSHIP_SPACING is not exceeded by the
+    /// expected number of iterations required to find a starting spawning
+    /// point such that all airships are not too close to docking positions
+    /// when spawned.
+    /// TODO: check that this still if a larger world map is used.
     const SPAWN_TARGET_DIST_INCREMENT: f32 = 47.0;
 
     #[inline(always)]
@@ -864,7 +870,6 @@ impl Airships {
         }
     }
 
-    // routes2
     pub fn generate_airship_routes(&mut self, world_sim: &mut WorldSim, index: &Index) {
         self.airship_docks = Airships::all_airshipdock_positions(&index.sites);
 
@@ -1098,17 +1103,6 @@ impl Airships {
     }
 }
 
-/// For debuging the airship routes. Writes the airship routes to a json file.
-fn write_airship_routes_log(file_path: &str, jsonstr: &str) -> std::io::Result<()> {
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(file_path)?;
-    file.write_all(jsonstr.as_bytes())?;
-    Ok(())
-}
-
 #[derive(Debug, Clone)]
 enum EdgeRemovalStackNodeType {
     Find,
@@ -1128,8 +1122,11 @@ macro_rules! debug_airship_eulerization {
     ($($arg:tt)*) => {};
 }
 
+/// A map of node index to DockNode, where DockNode contains a list of
+/// nodes that the node is connected to.
 type DockNodeGraph = DHashMap<usize, DockNode>;
 
+/// Extension functions for Triangulation (from the triangulate crate).
 trait TriangulationExt {
     fn count_edges_per_node(&self) -> DHashMap<usize, usize>;
     fn all_edges(&self) -> DHashSet<(usize, usize)>;
@@ -1146,6 +1143,8 @@ trait TriangulationExt {
     ) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)>;
 }
 
+/// Find the first node in the graph where the DockNode has an odd number of
+/// connections to other nodes.
 fn first_odd_node(
     search_order: &[usize],
     start: usize,
@@ -1208,18 +1207,20 @@ fn add_edge(edge: (usize, usize), nodes: &mut DockNodeGraph) {
 // At 0 length, the score is 0.0.
 // At 0.7 of the hull diameter, the score is 0.9.
 // At 1.0 of the hull diameter, the score is 1.0.
-fn hull_ratio_distance_score(rt_len: f64, hull_diameter: f64) -> f64 {
-    if hull_diameter == 0.0 {
-        return 0.0;
-    }
-    let ratio = rt_len / hull_diameter;
-    // ratio    score
-    // 0.0   0.0
-    // 0.7   0.9
-    // 1.0   1.0
-    1.0 - (-3.2894 * ratio).exp()
-}
+// $$$
+// fn hull_ratio_distance_score(rt_len: f64, hull_diameter: f64) -> f64 {
+//     if hull_diameter == 0.0 {
+//         return 0.0;
+//     }
+//     let ratio = rt_len / hull_diameter;
+//     // ratio    score
+//     // 0.0   0.0
+//     // 0.7   0.9
+//     // 1.0   1.0
+//     1.0 - (-3.2894 * ratio).exp()
+// }
 
+/// Implementation of extension functions for the Triangulation struct.
 impl TriangulationExt for Triangulation {
     fn count_edges_per_node(&self) -> DHashMap<usize, usize> {
         let mut edge_count_map = DHashMap::default();
@@ -1231,6 +1232,8 @@ impl TriangulationExt for Triangulation {
         edge_count_map
     }
 
+    /// Given a node index in the triangulation, return a list of nodes that are
+    /// directly connected to it by an edge.
     fn connected_nodes(&self, node: usize) -> Vec<usize> {
         self.triangles
             .chunks(3)
@@ -1247,6 +1250,7 @@ impl TriangulationExt for Triangulation {
             .collect::<Vec<_>>()
     }
 
+    /// Get the set of all edges in the triangulation.
     fn all_edges(&self) -> DHashSet<(usize, usize)> {
         let mut edges = DHashSet::default();
         for t in self.triangles.chunks(3) {
@@ -1262,20 +1266,16 @@ impl TriangulationExt for Triangulation {
         edges
     }
 
+    /// For all triangles in the tessellation, create a map of nodes to their
+    /// connected nodes.
     fn node_connections(&self) -> DockNodeGraph {
         let mut connections = DHashMap::default();
 
-        // struct DockNode {
-        //     pub node_index: usize,
-        //     pub on_hull: bool,
-        //     pub connected: DHashSet<usize>,
-        // }
         self.triangles.chunks(3).for_each(|t| {
             for &node in t {
                 let dock_node = connections.entry(node).or_insert_with(|| DockNode {
                     node_id: node,
                     on_hull: self.is_hull_node(node),
-                    //connected: DHashSet::default(),
                     connected: Vec::default(),
                 });
                 for &connected_node in t {
@@ -1291,15 +1291,16 @@ impl TriangulationExt for Triangulation {
         connections
     }
 
+    /// True if the node is on the outer hull of the triangulation.
     fn is_hull_node(&self, index: usize) -> bool { self.hull.contains(&index) }
 
+    /// True if the given edge is on the outer hull of the triangulation.
     fn is_hull_edge(&self, edge: (usize, usize)) -> bool {
         // the hull is a vector of indices that reference points on the convex hull of
         // the triangulation, counter-clockwise. The hull is a closed loop, so
         // the last point is connected to the first point. The given edge from
         // edge.0 to edge.1 is on the hull if edge.0 is in the hull and edge.1 is either
         // the next point in the hull or the previous point in the hull.
-        // pub hull: Vec<usize>,
 
         let hull_len = self.hull.len();
         if let Some(hull_index) = self.hull.iter().position(|&i| i == edge.0) {
@@ -1318,6 +1319,31 @@ impl TriangulationExt for Triangulation {
         }
     }
 
+    /// Calculates the best way to modify the triangulation so that
+    /// all nodes have an even number of connections (all nodes have
+    /// and even 'degree'). The steps are:
+    /// 
+    /// 1. Remove very long edges (not important for eurelization, but this
+    ///    is a goal of the airship routes design.
+    /// 2. Remove the shortest edges from all nodes that have more than 8
+    ///    connections to other nodes. This is because the airship docking
+    ///    sites have at most 4 docking positions, and for deconfliction
+    ///    purposes, no two "routes" can use the same docking position.
+    /// 3. Add edges to the triangulation so that all nodes have an even
+    ///    number of connections to other nodes. There are many combinations
+    ///    of added edges that can make all nodes have an even number of connections.
+    ///    The goal is to find a graph with the maximum number of 'routes'
+    ///    (sub-graphs of connected nodes that form a closed loop), where the
+    ///    routes are all the same length. Since this is a graph, the algorithm
+    ///    is sensitive to the starting point. Several iterations are tried
+    ///    with different starting points, and the best result is returned.
+    ///
+    /// Returns a tuple with the following elements:
+    ///  - best_route_segments (up to 4 routes, each route is a vector of nodes)
+    ///  - best_circuit (the full eulerian circuit)
+    ///  - max_seg_len (the length of the longest route segment)
+    ///  - min_spread (the standard deviation of the route segment lengths)
+    ///  - best_iteration (for debugging, the iteration that produced the best result)
     fn eulerized_route_segments(
         &self,
         all_dock_points: &[Point],
@@ -1325,7 +1351,6 @@ impl TriangulationExt for Triangulation {
         max_route_leg_length: f64,
         seed: u32,
     ) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
-        // let node_connections = self.node_connections();
         let mut edges_to_remove = DHashSet::default();
 
         // There can be at most four incoming and four outgoing edges per node because
@@ -1662,8 +1687,6 @@ impl TriangulationExt for Triangulation {
                         route_segments.iter().enumerate().for_each(|segment| {
                             debug_airship_eulerization!("  {} : {}", segment.0, segment.1.len());
                         });
-                        // println!("Best segments: {:?}", route_segments);
-                        // println!("Circuit: {:?}", circuit);
                     }
                     // A Eulerian circuit was found, apply the goal criteria to find the best
                     // circuit.
@@ -1705,8 +1728,6 @@ impl TriangulationExt for Triangulation {
             best_route_segments.iter().enumerate().for_each(|segment| {
                 debug_airship_eulerization!("  {} : {}", segment.0, segment.1.len());
             });
-            // println!("Best segments: {:?}", best_route_segments);
-            // println!("Circuit: {:?}", best_circuit);
         }
 
         if best_route_segments.is_empty() {
@@ -1899,6 +1920,7 @@ fn best_eulerian_circuit_segments(
     Some((best_segments, max_segments_count, min_segments_len_spread))
 }
 
+// Public so it could be used in other modules' tests.
 #[cfg(debug_assertions)]
 pub fn airships_from_test_data() -> Airships {
     let mut store = Store::<Site>::default();
