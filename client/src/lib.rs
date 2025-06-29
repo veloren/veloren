@@ -70,10 +70,7 @@ use common_state::plugin::PluginMgr;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
-use hickory_resolver::{
-    AsyncResolver,
-    config::{ResolverConfig, ResolverOpts},
-};
+use hickory_resolver::{Resolver, config::ResolverConfig, name_server::TokioConnectionProvider};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
@@ -475,11 +472,18 @@ impl Client {
                 // Try to create a resolver backed by /etc/resolv.conf or the Windows Registry
                 // first. If that fails, create a resolver being hard-coded to
                 // Google's 8.8.8.8 public resolver.
-                let resolver = AsyncResolver::tokio_from_system_conf().unwrap_or_else(|error| {
-                    error!("Failed to create DNS resolver using system configuration: {error:?}");
-                    warn!("Falling back to a default configured resolver.");
-                    AsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default())
-                });
+                let resolver = Resolver::builder_tokio()
+                    .unwrap_or_else(|error| {
+                        error!(
+                            "Failed to create DNS resolver using system configuration: {error:?}"
+                        );
+                        warn!("Falling back to a default configured resolver.");
+                        Resolver::builder_with_config(
+                            ResolverConfig::default(),
+                            TokioConnectionProvider::default(),
+                        )
+                    })
+                    .build();
 
                 let quic_service_host = format!("_veloren._udp.{hostname}");
                 let quic_lookup_future = resolver.srv_lookup(quic_service_host);
