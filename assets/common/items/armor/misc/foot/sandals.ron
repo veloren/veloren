@@ -4,6 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Foot,
         stats: Direct((
+            protection: Some(Normal(1.0)),
         )),
     )),
     quality: Low,
