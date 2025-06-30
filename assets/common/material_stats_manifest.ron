@@ -237,13 +237,13 @@
             precision_power: Some(0.4),
         ),
         "Cloth Blue": (
-            protection: Some(Normal(5.0)),
+            protection: Some(Normal(10.0)),
         ),
         "Cloth Green": (
-            protection: Some(Normal(5.0)),
+            protection: Some(Normal(10.0)),
         ),
         "Cloth Purple": (
-            protection: Some(Normal(5.0)),
+            protection: Some(Normal(10.0)),
         ),
         "Cultist": (
             protection: Some(Normal(72.0)),
