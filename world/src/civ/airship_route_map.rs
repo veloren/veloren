@@ -107,6 +107,10 @@ impl PixmapExt for Pixmap {
         }
     }
 
+    /// Draws a text string on a tiny_skia::Pixmap.
+    /// This draws text by drawing individual characters as tiny_skia::Pixmaps
+    /// from a TinySkiaSpriteMap, given the center position of the string
+    /// on the target Pixmap, the scale factor, and the rotation angle.
     fn draw_text<F>(
         &mut self,
         text: &str,

@@ -38,6 +38,9 @@ macro_rules! debug_airships {
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct AirshipDockingPosition(pub u32, pub Vec3<f32>);
 
+/// The AirshipDock Sites are always oriented along a cardinal direction.
+/// The docking platforms are likewise on the sides of the dock perpendicular
+/// to a cardinal axis.
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Hash)]
 pub enum AirshipDockPlatform {
     #[default]
@@ -58,30 +61,11 @@ pub enum AirshipDockingSide {
 impl AirshipDockingSide {
     /// When docking, the side to use depends on the angle the airship is
     /// approaching the dock from, and the platform of the airship dock that
-    /// the airship is docking at. For example, when docking at the North
-    /// Platform ```text
-    ///       North Platform
-    ///        6     7     8
-    ///        /\   /|\   /\
-    ///          \   |P  /S
-    ///           \P |  /
-    ///            \ | /
-    ///         P   NNN
-    ///    5 <──── N N ────> 1
-    ///             NNN   S
-    ///            / | \
-    ///          P/  |  \
-    ///          /  S|  S\
-    ///        \/   \|/   \/
-    ///        4     3     2
+    /// the airship is docking at.
+    /// For example, when docking at the North Platform:
     ///
-    ///              D
-    ///             DDD   Dock
-    ///              D
-    /// ```
-    /// For the North Platform:
-    /// | Approaching From  |  Docking Side |
-    /// |------------------ |---------------|
+    /// | From the          |  Docking Side |
+    /// |:----------------- |:--------------|
     /// | West              |  Starboard    |
     /// | Northwest         |  Starboard    |
     /// | North             |  Starboard    |
@@ -111,6 +95,8 @@ impl AirshipDockingSide {
     }
 }
 
+/// Information needed for an airship to travel to and dock at an AirshipDock
+/// plot.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AirshipDockingApproach {
     // pub dock_pos: AirshipDockingPosition,
@@ -153,6 +139,8 @@ pub struct AirshipRouteLeg {
     pub platform: AirshipDockPlatform,
 }
 
+/// Information needed for placing an airship in the world when the world is
+/// generated (each time the server starts).
 #[derive(Debug, Clone)]
 pub struct AirshipSpawningLocation {
     pub pos: Vec2<f32>,
@@ -220,13 +208,13 @@ impl AirshipDockPositions {
 
 /// The docking platforms used on each leg of the airship route segments is
 /// determined when the routes are generated. Route segments are continuous
-/// loops that are deconclicted by using only one docking platform for any given
+/// loops that are deconflicted by using only one docking platform for any given
 /// leg of a route segment. Since there are four docking platforms per airship
 /// dock, there are at most four route segments passing through a given airship
 /// dock. The docking platforms are also optimized so that on the incoming leg
 /// of a route segment, the airship uses the docking platform that is closest to
-/// the arrival direction while still using only one docking platform per route
-/// segment leg.
+/// the arrival direction (if possible), while still using only one docking
+/// platform per route segment leg.
 impl AirshipDockPlatform {
     /// Get the preferred docking platform based on the direction vector.
     pub fn from_dir(dir: Vec2<f32>) -> Self {
@@ -249,7 +237,10 @@ impl AirshipDockPlatform {
     }
 
     /// Get the platform choices in order of preference based on the direction
-    /// vector.
+    /// vector. The first choice is always the most direct plaform given the
+    /// approach direction. Then, the next two choices are the platforms for
+    /// the cardinal directions on each side of the approach direction, and
+    /// the last choice is the platform on the opposite side of the dock.
     pub fn choices_from_dir(dir: Vec2<f32>) -> Vec<Self> {
         if let Some(dir) = dir.try_normalized() {
             let mut angle = dir.angle_between(Vec2::unit_y()).to_degrees();
@@ -398,10 +389,16 @@ impl AirshipDockPlatform {
     }
 }
 
+/// A node on the triangulation of the world docking sites, with
+/// data on the nodes that are connected to it.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct DockNode {
+    /// An index into the array of all nodes in the graph.
     pub node_id: usize,
+    /// True if the node is on the outer hull (convex hull) of the
+    /// triangulation.
     pub on_hull: bool,
+    /// The nodes that are connected to this node.
     pub connected: Vec<usize>,
 }
 
@@ -426,8 +423,9 @@ impl Airships {
     /// is docked on the starboard side.
     const DOCK_ALIGN_POS_STARBOARD: Vec2<f32> =
         Vec2::new(-Airships::DOCK_ALIGN_X, -Airships::DOCK_ALIGN_Y);
-    // TODO: These alignment offsets are specific to the airship model. If new models are added,
-    // a more generic way to determine the alignment offsets should be used.
+    // TODO: These alignment offsets are specific to the airship model. If new
+    // models are added, a more generic way to determine the alignment offsets
+    // should be used.
     /// The absolute offset from the airship's position to the docking alignment
     /// point on the X axis. The airship is assumed to be facing positive Y.
     const DOCK_ALIGN_X: f32 = 18.0;
@@ -485,6 +483,8 @@ impl Airships {
             .collect::<Vec<_>>()
     }
 
+    /// Convienence function that returns the next route leg accounting for wrap
+    /// around.
     pub fn increment_route_leg(&self, route_index: usize, leg_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
@@ -493,6 +493,8 @@ impl Airships {
         (leg_index + 1) % self.routes[route_index].len()
     }
 
+    /// Convienence function that returns the previous route leg accounting for
+    /// wrap around.
     pub fn decrement_route_leg(&self, route_index: usize, leg_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
@@ -505,8 +507,10 @@ impl Airships {
         }
     }
 
+    /// Convienence function returning the number of routes.
     pub fn route_count(&self) -> usize { self.routes.len() }
 
+    /// Safe function to get the number of AirshipDock sites on a route.
     pub fn docking_site_count_for_route(&self, route_index: usize) -> usize {
         if route_index >= self.routes.len() {
             error!("Invalid route index: {}", route_index);
@@ -515,6 +519,12 @@ impl Airships {
         self.routes[route_index].len()
     }
 
+    /// Assign the docking platforms for each leg of each route. Each route
+    /// consists of a series (Vec) of docking node indices on the docking
+    /// site graph. This function loops over the routes docking nodes and
+    /// assigns a docking platform based on the approach direction to each
+    /// dock node while making sure that no docking platform is used more
+    /// than once (globally, over all routes).
     fn assign_docking_platforms(
         route_segments: &[Vec<usize>],
         dock_locations: &[Vec2<f32>],
@@ -597,6 +607,13 @@ impl Airships {
         routes
     }
 
+    /// For each route, calculate the location along the route where airships
+    /// should be initially located when the server starts. This attempts to
+    /// space airships evenly along the route while ensuring that no airship
+    /// is too close to a docking position. Each airship needs separation
+    /// from the docking position such that the airship can initially move
+    /// forward towards its target docking location when it first starts
+    /// flying because it will start in the cruise phase of flight.
     pub fn calculate_spawning_locations(&mut self, all_dock_points: &[Point]) {
         let mut spawning_locations = Vec::new();
         let mut expected_airships_count = 0;
@@ -688,8 +705,6 @@ impl Airships {
                             }
                             // When target_dist exceeds the leg length, it means the spawning
                             // location is into the next leg.
-                            // while target_dist.partial_cmp(&leg_len).unwrap_or(Ordering::Equal) !=
-                            // Ordering::Greater {
                             while target_dist <= leg_len {
                                 // Limit the actual spawn location and keep track of the deviation.
                                 let spawn_point_dist = if target_dist > max_target_dist {
@@ -760,6 +775,7 @@ impl Airships {
         }
     }
 
+    /// Generates the airship routes.
     #[allow(unused_variables)]
     pub fn generate_airship_routes_inner(
         &mut self,
@@ -779,6 +795,7 @@ impl Airships {
             .collect::<Vec<_>>();
         debug_airships!("all_dock_points: {:?}", all_dock_points);
 
+        // Run the delaunay triangulation on the docking points.
         let triangulation = triangulate(&all_dock_points);
 
         #[cfg(debug_assertions)]
@@ -849,7 +866,6 @@ impl Airships {
                     .collect::<Vec<_>>()
                     .as_slice(),
             );
-            println!("Airship routes: {:?}", self.routes);
 
             // Calculate the spawning locations for airships on the routes.
             self.calculate_spawning_locations(&all_dock_points);
@@ -866,7 +882,7 @@ impl Airships {
                 map_image_path,
             );
         } else {
-            println!("Error - cannot eulerize the dock points.");
+            eprintln!("Error - cannot eulerize the dock points.");
         }
     }
 
@@ -1321,29 +1337,32 @@ impl TriangulationExt for Triangulation {
 
     /// Calculates the best way to modify the triangulation so that
     /// all nodes have an even number of connections (all nodes have
-    /// and even 'degree'). The steps are:
-    /// 
-    /// 1. Remove very long edges (not important for eurelization, but this
-    ///    is a goal of the airship routes design.
+    /// an even 'degree'). The steps are:
+    ///
+    /// 1. Remove very long edges (not important for eurelization, but this is a
+    ///    goal of the airship routes design.
     /// 2. Remove the shortest edges from all nodes that have more than 8
-    ///    connections to other nodes. This is because the airship docking
-    ///    sites have at most 4 docking positions, and for deconfliction
-    ///    purposes, no two "routes" can use the same docking position.
-    /// 3. Add edges to the triangulation so that all nodes have an even
-    ///    number of connections to other nodes. There are many combinations
-    ///    of added edges that can make all nodes have an even number of connections.
-    ///    The goal is to find a graph with the maximum number of 'routes'
+    ///    connections to other nodes. This is because the airship docking sites
+    ///    have at most 4 docking positions, and for deconfliction purposes, no
+    ///    two "routes" can use the same docking position.
+    /// 3. Add edges to the triangulation so that all nodes have an even number
+    ///    of connections to other nodes. There are many combinations of added
+    ///    edges that can make all nodes have an even number of connections. The
+    ///    goal is to find a graph with the maximum number of 'routes'
     ///    (sub-graphs of connected nodes that form a closed loop), where the
     ///    routes are all the same length. Since this is a graph, the algorithm
-    ///    is sensitive to the starting point. Several iterations are tried
-    ///    with different starting points, and the best result is returned.
+    ///    is sensitive to the starting point. Several iterations are tried with
+    ///    different starting points (node indices), and the best result is
+    ///    returned.
     ///
     /// Returns a tuple with the following elements:
-    ///  - best_route_segments (up to 4 routes, each route is a vector of nodes)
+    ///  - best_route_segments (up to 4 routes, each route is a vector of node
+    ///    indices)
     ///  - best_circuit (the full eulerian circuit)
     ///  - max_seg_len (the length of the longest route segment)
     ///  - min_spread (the standard deviation of the route segment lengths)
-    ///  - best_iteration (for debugging, the iteration that produced the best result)
+    ///  - best_iteration (for debugging, the iteration that produced the best
+    ///    result)
     fn eulerized_route_segments(
         &self,
         all_dock_points: &[Point],
@@ -1743,6 +1762,10 @@ impl TriangulationExt for Triangulation {
     }
 }
 
+/// Find the best Eulerian circuit for the given graph of dock nodes.
+/// Try each node as the starting point for a circuit.
+/// The best circuit is the one with the longest routes (sub-segments
+/// of the circuit), and where the route lengths are equal as possible.
 fn find_best_eulerian_circuit(
     graph: &DockNodeGraph,
 ) -> Option<(Vec<Vec<usize>>, Vec<usize>, usize, f32, usize)> {
@@ -1754,6 +1777,7 @@ fn find_best_eulerian_circuit(
 
     let graph_keys = graph.keys().copied().collect::<Vec<_>>();
 
+    // Repeat for each node as the starting point.
     for (i, &start_vertex) in graph_keys.iter().enumerate() {
         let mut graph = graph.clone();
         let mut circuit = Vec::new();
@@ -1762,6 +1786,7 @@ fn find_best_eulerian_circuit(
 
         let mut current_vertex = start_vertex;
 
+        // The algorithm for finding a Eulerian Circuit (Hierholzer's algorithm).
         while !stack.is_empty() || !graph[&current_vertex].connected.is_empty() {
             if graph[&current_vertex].connected.is_empty() {
                 circuit.push(current_vertex);
@@ -1854,7 +1879,6 @@ fn best_eulerian_circuit_segments(
         let mut prev_value = usize::MAX;
 
         for (index, &value) in circuit.iter().cycle().enumerate() {
-            // println!("Index: {}, Value: {}", index, value);
             if value == node_id {
                 if starting_index == usize::MAX {
                     starting_index = index;
@@ -1919,6 +1943,10 @@ fn best_eulerian_circuit_segments(
     }
     Some((best_segments, max_segments_count, min_segments_len_spread))
 }
+
+// ------------------------------------------------
+// All code below this is for testing purposes only
+// ------------------------------------------------
 
 // Public so it could be used in other modules' tests.
 #[cfg(debug_assertions)]
@@ -3562,13 +3590,6 @@ mod tests {
         let (best_segments, circuit, max_seg_len, min_spread, iteration) =
             find_best_eulerian_circuit(&node_connections)
                 .expect("a circuit should have been found");
-        // if cfg!(debug_assertions) {
-        //     println!("Max segment length: {}", max_seg_len);
-        //     println!("Min spread: {}", min_spread);
-        //     println!("Iteration: {}", iteration);
-        //     println!("Best segments: {:?}", best_segments);
-        //     println!("Circuit: {:?}", circuit);
-        // }
         assert_eq!(max_seg_len, 4);
         assert_relative_eq!(min_spread, 1.0606601, epsilon = 0.0000001);
         assert_eq!(iteration, 6);
@@ -5104,11 +5125,6 @@ mod tests {
                     let transition_point = airships
                         .approach_transition_point(dock_index, dock_index % 4, *platform, *from_pos)
                         .unwrap();
-                    // println!(
-                    //     "Docking transition point for dock index {}, dock center {:?}, platform
-                    // {:?}, from position {:?}: {:?}",     dock_index,
-                    // airships.airship_docks[dock_index].center, platform, from_pos,
-                    // transition_point );
                     assert_eq!(
                         transition_point,
                         expected[dock_index / 6 * 16 + *platform as usize * 4 + i]

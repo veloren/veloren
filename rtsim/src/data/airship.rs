@@ -35,11 +35,12 @@ macro_rules! debug_airships {
 }
 
 impl AirshipSim {
-    /// Called from world generation code to set the route and initial leg indexes for an
-    /// airship captain NPC. World generation is dynamic and can change across runs, and
-    /// existing captain (and ship) NPCs may change the assigned route and leg, and new
-    /// NPCs may be added to the world. This is the function that connects the saved
-    /// RTSim data to the world generation data.
+    /// Called from world generation code to set the route and initial leg
+    /// indexes for an airship captain NPC. World generation is dynamic and
+    /// can change across runs, and existing captain (and ship) NPCs may
+    /// change the assigned route and leg, and new NPCs may be added to the
+    /// world. This is the function that connects the saved RTSim data to
+    /// the world generation data.
     pub fn register_airship_captain(
         &mut self,
         location: &AirshipSpawningLocation,
@@ -95,10 +96,11 @@ impl AirshipSim {
         );
     }
 
-    /// Called from world generation code after all airship captains have been registered.
-    /// This function generates the route_pilots hash map which provides a list of pilots
-    /// assigned to each route index, in the order they will fly the route. This provides
-    /// for determining the "next pilot" on a route, which is used for deconfliction and
+    /// Called from world generation code after all airship captains have been
+    /// registered. This function generates the route_pilots hash map which
+    /// provides a list of pilots assigned to each route index, in the order
+    /// they will fly the route. This provides for determining the "next
+    /// pilot" on a route, which is used for deconfliction and
     /// "traffic control" of airships.
     pub fn configure_route_pilots(&mut self, airships: &Airships, npcs: &Npcs) {
         debug_airships!("Airship Assigned Routes: {:?}", self.assigned_routes);
@@ -139,8 +141,8 @@ impl AirshipSim {
         }
     }
 
-    /// Given a route index and pilot id, find the next pilot on the route (the one
-    /// that is ahead of the given pilot).
+    /// Given a route index and pilot id, find the next pilot on the route (the
+    /// one that is ahead of the given pilot).
     pub fn next_pilot(&self, route_index: usize, pilot_id: NpcId) -> Option<NpcId> {
         if let Some(pilots) = self.route_pilots.get(&route_index) {
             if pilots.len() < 2 {

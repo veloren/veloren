@@ -1025,7 +1025,6 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                             Some((0.0, 1.0, 1.0))
                         })
                         .unwrap_or((0.0, 1.0, 1.0));
-                println!("max speed: {}, reference area: {}, thrust: {}", max_speed, reference_area, thrust);
                 route_context.simulated_airship_speed = max_speed;
                 route_context.speed_factor_conversion_factor = 0.45 * AIR_DENSITY * reference_area / thrust;
                 route_context.my_rate_tracker = Some(RateTracker::default());
