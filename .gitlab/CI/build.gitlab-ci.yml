@@ -126,6 +126,15 @@ coverage:
 
 # Use a yaml anchor to allow the same before_script to be used in both .tmacos-x86_64 and .tmacos-aarch64
 # https://docs.gitlab.com/ee/ci/yaml/yaml_optimization.html#yaml-anchors-for-scripts
+.tmacos-install-script: &tmacos-install-script
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  - wget -q https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-macos-universal.tar.gz
+  - tar -xzf cmake-3.31.8-macos-universal.tar.gz
+  - ls -la cmake-3.31.8-macos-universal/CMake.app/Contents
+  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/bin/* /usr/local/bin/
+  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/share/* /usr/local/share/
+  - which cmake
+  - cmake --version
 .tmacos-before-script: &tmacos-before-script
   - source $HOME/.cargo/env
   - cargo --version
@@ -137,7 +146,8 @@ coverage:
   - export CARGO_INCREMENTAL=0
 
 .tmacos:
-  tags: ["veloren-macos"]
+  tags: ["saas-macos-large-m2pro"]
+  image: macos-15-xcode-16
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
     - export VELOREN_USERDATA_STRATEGY=executable
@@ -156,15 +166,18 @@ coverage:
   extends:
     - .tmacos
   before_script:
+    - *tmacos-install-script
     # Using fat LTO on macos_x86_64 caused timeouts in the build pipeline, overriding it to thin here fixes this
     - export PROFILE="release-thinlto"
     - *tmacos-before-script
+    - rustup target add x86_64-apple-darwin
     - export RUST_TARGET="x86_64-apple-darwin"
 
 .tmacos-aarch64:
   extends:
     - .tmacos
   before_script:
+    - *tmacos-install-script
     - export PROFILE="release"
     - *tmacos-before-script
     - rustup target add aarch64-apple-darwin
@@ -224,10 +237,10 @@ opt-macos-x86_64:
   extends:
     - .tmacos-x86_64
     - .optional-release
-  tags: ["veloren/veloren:macos", "build"]
+  tags: ["saas-macos-large-m2pro"]
 
 opt-macos-aarch64:
   extends:
     - .tmacos-aarch64
     - .optional-release
-  tags: ["veloren/veloren:macos", "build"]
+  tags: ["saas-macos-large-m2pro"]
