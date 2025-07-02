@@ -206,13 +206,13 @@ macos-x86_64:
   extends:
     - .tmacos-x86_64
     - .release
-  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
+  tags: ["saas-macos-large-m2pro"]
 
 macos-aarch64:
   extends:
     - .tmacos-aarch64
     - .release
-  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
+  tags: ["saas-macos-large-m2pro"]
 
 # if NOT release or master, allow optional builds
 opt-linux-x86_64:
