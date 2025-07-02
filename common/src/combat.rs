@@ -1244,7 +1244,8 @@ impl Damage {
 
         let penetration = if let Some(damage) = damage {
             if let DamageKind::Piercing = damage.kind {
-                (damage.value * PIERCING_PENETRATION_FRACTION).clamp(0.0, protection.unwrap_or(0.0))
+                (damage.value * PIERCING_PENETRATION_FRACTION)
+                    .clamp(0.0, protection.unwrap_or(0.0).max(0.0))
             } else {
                 0.0
             }
