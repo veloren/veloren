@@ -727,6 +727,26 @@ impl Inventory {
         })
     }
 
+    /// Returns true if the item can fit in the inventory without taking up an
+    /// empty inventory slot.
+    pub fn can_stack(&self, item: &Item) -> bool {
+        let mut free_space = 0u32;
+        self.slots().any(|i| {
+            free_space = free_space.saturating_add(if let Some(inv_item) = i {
+                if inv_item == item {
+                    // Invariant amount <= max_amount *should* take care of this, but let's be
+                    // safe
+                    inv_item.max_amount().saturating_sub(inv_item.amount())
+                } else {
+                    0
+                }
+            } else {
+                0
+            });
+            free_space >= item.amount()
+        })
+    }
+
     /// Remove the given amount of the given item from the inventory.
     ///
     /// The returned items will have arbitrary amounts, but their sum will be
@@ -872,16 +892,12 @@ impl Inventory {
             .take(inv_slot, ability_map, msm)
             .expect("We got this successfully above");
 
-        if self.free_slots_minus_equipped_item(equip_slot) == 0 {
-            let replaced_item = self.insert_at(inv_slot, item);
-            assert!(matches!(replaced_item, Ok(None)));
-            return Err(SlotError::InventoryFull);
-        }
-
         if let Some(mut unequipped_item) = self.replace_loadout_item(equip_slot, Some(item), time) {
-            let unloaded_items: Vec<Item> = unequipped_item.drain().collect();
-            self.push_prefer_slot(unequipped_item, Some(inv_slot))
-                .expect("Failed to push item to inventory, precondition failed?");
+            let mut unloaded_items: Vec<Item> = unequipped_item.drain().collect();
+            if let Err((item, _)) = self.push_prefer_slot(unequipped_item, Some(inv_slot)) {
+                // Insert it at 0 to prioritize the uneqipped item.
+                unloaded_items.insert(0, item);
+            }
             // Unload any items that were inside the equipped item into the inventory, with
             // any that don't fit to be to be dropped on the floor by the caller
             match self.push_all(unloaded_items.into_iter()) {
@@ -901,12 +917,20 @@ impl Inventory {
             .get(inv_slot)
             .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
             .and_then(|equip_slot| self.equipped(equip_slot))
-            .map_or((1, 0), |item| (0, item.slots().len()));
+            .map_or((1, 0), |item| {
+                (
+                    if item.is_stackable() && self.can_stack(item) {
+                        1
+                    } else {
+                        0
+                    },
+                    item.slots().len(),
+                )
+            });
 
-        let slots_from_inv = self
-            .get(inv_slot)
-            .map(|item| item.slots().len())
-            .unwrap_or(0);
+        let (inv_slot_for_inv, slots_from_inv) = self.get(inv_slot).map_or((0, 0), |item| {
+            (if item.amount() > 1 { -1 } else { 0 }, item.slots().len())
+        });
 
         i32::try_from(self.capacity()).expect("Inventory with more than i32::MAX slots")
             - i32::try_from(slots_from_equipped)
@@ -915,6 +939,7 @@ impl Inventory {
             - i32::try_from(self.populated_slots())
                 .expect("Inventory item with more than i32::MAX used slots")
             + inv_slot_for_equipped // If there is no item already in the equip slot we gain 1 slot
+            + inv_slot_for_inv
     }
 
     /// Handles picking up an item, unloading any items inside the item being
