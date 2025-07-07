@@ -70,7 +70,7 @@ image_ids_ice! {
 }
 
 // Randomly loaded background images
-const BG_IMGS: [&str; 14] = [
+const BG_IMGS: [&str; 41] = [
     "voxygen.background.bg_1",
     "voxygen.background.bg_2",
     "voxygen.background.bg_3",
@@ -85,6 +85,33 @@ const BG_IMGS: [&str; 14] = [
     "voxygen.background.bg_12",
     "voxygen.background.bg_13",
     "voxygen.background.bg_14",
+    "voxygen.background.bg_15",
+    "voxygen.background.bg_16",
+    "voxygen.background.bg_17",
+    "voxygen.background.bg_18",
+    "voxygen.background.bg_19",
+    "voxygen.background.bg_20",
+    "voxygen.background.bg_21",
+    "voxygen.background.bg_22",
+    "voxygen.background.bg_23",
+    "voxygen.background.bg_24",
+    "voxygen.background.bg_25",
+    "voxygen.background.bg_26",
+    "voxygen.background.bg_27",
+    "voxygen.background.bg_28",
+    "voxygen.background.bg_29",
+    "voxygen.background.bg_30",
+    "voxygen.background.bg_31",
+    "voxygen.background.bg_32",
+    "voxygen.background.bg_33",
+    "voxygen.background.bg_34",
+    "voxygen.background.bg_35",
+    "voxygen.background.bg_36",
+    "voxygen.background.bg_37",
+    "voxygen.background.bg_38",
+    "voxygen.background.bg_39",
+    "voxygen.background.bg_40",
+    "voxygen.background.bg_41",
 ];
 
 #[cfg(feature = "singleplayer")]
