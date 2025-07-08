@@ -9,6 +9,7 @@ pub struct ShockwaveAnimation;
 
 type ShockwaveAnimationDependency = (
     Option<ToolKind>,
+    Option<ToolKind>,
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -32,6 +33,7 @@ impl Animation for ShockwaveAnimation {
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
+            second_tool_kind,
             _velocity,
             _orientation,
             _last_ori,
@@ -67,10 +69,12 @@ impl Animation for ShockwaveAnimation {
         next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_x(0.0);
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
-        match active_tool_kind {
-            Some(ToolKind::Staff) => {
+        match (active_tool_kind, second_tool_kind) {
+            (Some(ToolKind::Staff), None) => {
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
                 next.control_r.position = Vec3::new(
                     7.0 + s_a.grip.0 * 2.0 + move1abs * -8.0,
@@ -102,7 +106,7 @@ impl Animation for ShockwaveAnimation {
                     Quaternion::rotation_x(move1abs * 0.5) * Quaternion::rotation_y(twitch * 0.5);
                 next.main.orientation = Quaternion::rotation_z(move1abs * 0.5 + move2abs * 0.9);
             },
-            Some(ToolKind::Sword) => {
+            (Some(ToolKind::Sword), None) => {
                 let rotate = move1 * 2.0 * PI + move2 * 2.0 * PI;
                 let jump = move1 + 3.0 + move2 * -3.0;
                 next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
@@ -138,6 +142,51 @@ impl Animation for ShockwaveAnimation {
                 next.chest.orientation = Quaternion::rotation_z(rotate + (1.0 - move3));
 
                 next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + jump);
+            },
+            (Some(ToolKind::Axe), Some(ToolKind::Axe)) => {
+                next.main.position =
+                    Vec3::new(-s_a.hand.0 - 4.0, s_a.hand.1 + 2.0, s_a.hand.2 - 4.0);
+                next.main.orientation = Quaternion::rotation_x(-0.2);
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                next.second.position =
+                    Vec3::new(s_a.hand.0 + 4.0, s_a.hand.1 + 2.0, s_a.hand.2 - 4.0);
+                next.second.orientation = Quaternion::rotation_x(-0.2);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.orientation = Quaternion::rotation_x(1.2);
+
+                next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)
+                    * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);
+
+                if mirror > 0.0 {
+                    next.control_r.position += Vec3::new(-5.0, 0.0, 5.0) * move1abs;
+                    next.control_r.orientation.rotate_x(PI / 10.0 * move1abs);
+                    next.control_l.position += Vec3::new(3.0, 0.0, 10.0) * move1abs;
+                    next.main.position += Vec3::new(3.0, 0.0, 10.0) * move1abs;
+                    next.control_l.orientation.rotate_x(PI / 4.0 * move1abs);
+                    next.main.orientation.rotate_x(PI / 4.0 * move1abs);
+
+                    next.control_r.position += Vec3::new(0.0, 0.0, -5.0) * move2abs;
+                    next.control_r.orientation.rotate_x(-PI / 4.0 * move2abs);
+                    next.control_l.position += Vec3::new(0.0, 0.0, -10.0) * move2abs;
+                    next.main.position += Vec3::new(0.0, 0.0, -10.0) * move2abs;
+                    next.control_l.orientation.rotate_x(-PI / 4.0 * move2abs);
+                    next.main.orientation.rotate_x(-PI / 4.0 * move2abs);
+                } else {
+                    next.control_l.position += Vec3::new(5.0, 0.0, 5.0) * move1abs;
+                    next.main.position += Vec3::new(3.0, 0.0, 5.0) * move1abs;
+                    next.control_l.orientation.rotate_x(PI / 10.0 * move1abs);
+                    next.main.orientation.rotate_x(PI / 10.0 * move1abs);
+                    next.control_r.position += Vec3::new(-3.0, 0.0, 10.0) * move1abs;
+                    next.control_r.orientation.rotate_x(PI / 4.0 * move1abs);
+
+                    next.control_l.position += Vec3::new(0.0, 0.0, -5.0) * move2abs;
+                    next.main.position += Vec3::new(0.0, 0.0, -5.0) * move2abs;
+                    next.control_l.orientation.rotate_x(-PI / 4.0 * move2abs);
+                    next.main.orientation.rotate_x(-PI / 4.0 * move2abs);
+                    next.control_r.position += Vec3::new(0.0, 0.0, -10.0) * move2abs;
+                    next.control_r.orientation.rotate_x(-PI / 4.0 * move2abs);
+                }
             },
             _ => {
                 next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)

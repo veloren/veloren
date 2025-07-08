@@ -2,9 +2,9 @@ BasicSummon(
     buildup_duration: 0.3,
     cast_duration: 0.3,
     recover_duration: 1.0,
-    summon_amount: 1,
-    summon_distance: (2, 2),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 1,
+        summon_distance: (2, 2),
         body: BipedSmall((
             species: Jiangshi,
             body_type: Male,
@@ -14,6 +14,6 @@ BasicSummon(
         has_health: true,
         loadout_config: Some(JiangshiSummon),
         skillset_config: Some(Rank5),
+        duration: None,
     ),
-    duration: None,
 )

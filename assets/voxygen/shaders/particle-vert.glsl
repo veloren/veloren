@@ -84,7 +84,7 @@ const int GIGA_SNOW = 42;
 const int CYCLOPS_CHARGE = 43;
 const int PORTAL_FIZZ = 45;
 const int INK = 46;
-const int WHIRLWIND = 47;
+const int ICE_WHIRLWIND = 47;
 const int FIERY_BURST = 48;
 const int FIERY_BURST_VORTEX = 49;
 const int FIERY_BURST_SPARKS = 50;
@@ -104,6 +104,13 @@ const int POISON = 63;
 const int WATER_FOAM = 64;
 const int ENGINE_JET = 65;
 const int TRANSFORMATION = 66;
+const int FIRE_GIGAS_ASH = 67;
+const int FIRE_GIGAS_WHIRLWIND = 68;
+const int FIRE_GIGAS_OVERHEAT = 69;
+const int FIRE_GIGAS_EXPLOSION = 70;
+const int FIRE_PILLAR_INDICATOR = 71;
+const int FIRE_PILLAR = 72;
+const int FIRE_LOW_SHOCKWAVE = 73;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -521,6 +528,18 @@ void main() {
                 spin_in_axis(vec3(rand3, rand4, rand5), rand6)
             );
             break;
+        case FIRE_LOW_SHOCKWAVE:
+            f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    normalize(vec3(rand4, rand5, rand6)) * 15.0 + grav_vel(earth_gravity)
+                ),
+                vec3(5 * (1 - percent())),
+                vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
+                spin_in_axis(vec3(rand3, rand4, rand5), rand6)
+            );
+            break;
         case CULTIST_FLAME:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             float purp_color = 0.9 + 0.3 * rand3;
@@ -746,7 +765,7 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
-        case WHIRLWIND:
+        case ICE_WHIRLWIND:
             f_reflect = 0.0;
             attr = Attr(
                 spiral_motion(vec3(0, 0, 3), abs(rand0) * 3 + percent() * 20.5, percent(), -8.0 + (rand0 * 3), rand1 * 360.),
@@ -1102,6 +1121,62 @@ void main() {
                 spiral_motion(vec3(0, 0, radius), radius, percent(), frequency, spiral / 9.0 * 2.0 * PI * frequency + radius),
                 vec3((2.5 * (1 - slow_start(0.05)))),
                 vec4(trans_colors[color] * 2.2, 1.0),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case FIRE_GIGAS_ASH:
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(0, 0, -2)
+                ) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
+                vec3(4),
+                vec4(vec3(0.1 + rand1 * 0.1, 0.1 + rand1 * 0.1, 0.1 + rand1 * 0.1), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+            );
+            break;
+        case FIRE_GIGAS_WHIRLWIND:
+            f_reflect = 0.0;
+            attr = Attr(
+                spiral_motion(vec3(0, 0, -2), abs(rand0) * 3 + percent() * 11.0, percent(), 4.0 - (rand0 * 3), rand1 * 360.0),
+                vec3((-2.5 * (1 - slow_start(0.05)))),
+                vec4(mix(vec3(10, 6, 3), vec3(1, 0.2, 0.2), percent()), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case FIRE_GIGAS_OVERHEAT:
+            f_reflect = 0.0;
+            attr = Attr(
+                (inst_dir * slow_end(0.2)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(((6.5 + 3.5 * rand0) * (1 - min(slow_start(0.2), 0.5)))),
+                vec4(mix(vec3(4, 2, 0.4), vec3(2, 1.0, 0.2), percent()), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case FIRE_GIGAS_EXPLOSION:
+            f_reflect = 0.0;
+            attr = Attr(
+                inst_dir * slow_end(0.05),
+                vec3(((3 + 3 * rand0) * (1 - slow_start(0.1)))),
+                vec4(5, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
+            );
+            break;
+        case FIRE_PILLAR_INDICATOR:
+            f_reflect = 0.0;
+            attr = Attr(
+                spiral_motion(vec3(0, 0, 0.1), (length(inst_dir) + 0.8) * sqrt(percent()), percent(), start_end(6.0, 2.0 + 0.2 * rand0), 2 * PI * rand1),
+                vec3((2.5 * (1 - slow_start(0.02)))),
+                vec4(mix(vec3(3.0, 1.3, 0.8), vec3(2.0 + 0.1 * rand2, 0.8 + 0.1 * rand3, 0.3 + 0.1 * rand4), percent()), 0.8),
+                spin_in_axis(vec3(rand5, rand6, rand7), percent() * 8 + 3 * rand8)
+            );
+            break;
+        case FIRE_PILLAR:
+            f_reflect = 0.0;
+            attr = Attr(
+                (1.3 * (1 - pow(rand0, 2)) * inst_dir * percent()) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(((5.0 + 3.0 * pow(rand0, 2)) * (1 - min(slow_start(0.05), 0.8)))),
+                vec4(mix(vec3(5.0, 2.0 + 1.0 * rand2, 0.4), vec3(4.0, 1.2, 0.4), pow(percent(), 3)), 0.7),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;

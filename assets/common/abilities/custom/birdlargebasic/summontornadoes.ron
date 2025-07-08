@@ -2,18 +2,18 @@ BasicSummon(
     buildup_duration: 0.75,
     cast_duration: 0.2,
     recover_duration: 0.3,
-    summon_amount: 12,
-    summon_distance: (4, 9),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 12,
+        summon_distance: (4, 9),
         body: Object(Tornado),
         scale: None,
         has_health: false,
         use_npc_name: false,
         loadout_config: None,
         skillset_config: None,
+        duration: Some((
+            secs: 10,
+            nanos: 0,
+        )),
     ),
-    duration: Some((
-        secs: 10,
-        nanos: 0,
-    )),
 )

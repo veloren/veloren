@@ -213,5 +213,5 @@ impl CharacterBehavior for Data {
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
-    FireRain,
+    FireRainPhoenix,
 }

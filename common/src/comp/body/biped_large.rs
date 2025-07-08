@@ -57,6 +57,7 @@ impl Body {
             Species::Cultistwarlock => "body-npc-speech-biped_large-cultist_warlock",
             Species::Huskbrute => "body-npc-speech-biped_large-husk_brute",
             Species::Gigasfrost => "body-npc-speech-biped_large-gigas_frost",
+            Species::Gigasfire => "body-npc-speech-biped_large-gigas_fire",
             Species::AdletElder => "body-npc-speech-biped_large-adlet_elder",
             Species::SeaBishop => "body-npc-speech-biped_large-sea_bishop",
             Species::HaniwaGeneral => "body-npc-speech-biped_large-haniwa_general",
@@ -118,6 +119,7 @@ enum_iter! {
         Forgemaster = 31,
         Strigoi = 32,
         Executioner = 33,
+        Gigasfire = 34,
     }
 }
 
@@ -158,6 +160,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub forgemaster: SpeciesMeta,
     pub strigoi: SpeciesMeta,
     pub executioner: SpeciesMeta,
+    pub gigas_fire: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -200,6 +203,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Forgemaster => &self.forgemaster,
             Species::Strigoi => &self.strigoi,
             Species::Executioner => &self.executioner,
+            Species::Gigasfire => &self.gigas_fire,
         }
     }
 }

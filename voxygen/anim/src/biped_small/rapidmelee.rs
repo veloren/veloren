@@ -6,7 +6,7 @@ use common::states::utils::StageSection;
 
 pub struct RapidMeleeAnimation;
 impl Animation for RapidMeleeAnimation {
-    type Dependency<'a> = (Option<&'a str>, StageSection, (u32, Option<u32>));
+    type Dependency<'a> = (Option<&'a str>, StageSection);
     type Skeleton = BipedSmallSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -18,7 +18,7 @@ impl Animation for RapidMeleeAnimation {
     )]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (ability_id, stage_section, (_current_strike, _max_strikes)): Self::Dependency<'_>,
+        (ability_id, stage_section): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

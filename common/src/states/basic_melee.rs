@@ -193,4 +193,5 @@ fn reset_state(
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     FlameTornado,
+    FireGigasWhirlwind,
 }

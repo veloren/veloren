@@ -1,6 +1,7 @@
 pub mod alpha;
 pub mod beam;
 pub mod block;
+pub mod buff;
 pub mod combomelee;
 pub mod dash;
 pub mod idle;
@@ -17,8 +18,8 @@ pub mod wield;
 
 // Reexports
 pub use self::{
-    alpha::AlphaAnimation, beam::BeamAnimation, block::BlockAnimation, combomelee::ComboAnimation,
-    dash::DashAnimation, idle::IdleAnimation, leapmelee::LeapAnimation,
+    alpha::AlphaAnimation, beam::BeamAnimation, block::BlockAnimation, buff::BuffAnimation,
+    combomelee::ComboAnimation, dash::DashAnimation, idle::IdleAnimation, leapmelee::LeapAnimation,
     rapidmelee::RapidMeleeAnimation, ripostemelee::RiposteMeleeAnimation, run::RunAnimation,
     shockwave::ShockwaveAnimation, shoot::ShootAnimation, spritesummon::SpriteSummonAnimation,
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
@@ -37,6 +38,7 @@ skeleton_impls!(struct BipedSmallSkeleton {
     + pants,
     + tail,
     + main,
+    + second,
     + hand_l,
     + hand_r,
     + foot_l,
@@ -53,7 +55,7 @@ impl Skeleton for BipedSmallSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
 
-    const BONE_COUNT: usize = 9;
+    const BONE_COUNT: usize = 10;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"biped_small_compute_mats\0";
 
@@ -82,6 +84,7 @@ impl Skeleton for BipedSmallSkeleton {
             make_bone(pants_mat),
             make_bone(tail_mat),
             make_bone(control_mat * Mat4::<f32>::from(self.main)),
+            make_bone(control_mat * control_r_mat * Mat4::<f32>::from(self.second)),
             make_bone(control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
             make_bone(
                 if self.detach_right {
@@ -181,6 +184,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 8.0),
                 (Husk, _) => (0.5, 8.5),
                 (Boreal, _) => (-0.5, 13.0),
+                (Ashen, _) => (-0.5, 13.0),
                 (Bushly, _) => (-1.0, 9.0),
                 (Irrwurz, _) => (-1.0, 9.0),
                 (IronDwarf, _) => (3.0, 3.5),
@@ -213,6 +217,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 11.0),
                 (Husk, _) => (0.0, 13.0),
                 (Boreal, _) => (0.0, 12.0),
+                (Ashen, _) => (0.0, 14.5),
                 (Bushly, _) => (0.0, 4.0),
                 (Irrwurz, _) => (0.0, 6.0),
                 (IronDwarf, _) => (0.0, 14.0),
@@ -245,6 +250,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, -3.0),
                 (Husk, _) => (-1.0, -3.0),
                 (Boreal, _) => (1.5, -5.0),
+                (Ashen, _) => (1.5, -5.0),
                 (Bushly, _) => (0.0, 1.0),
                 (Irrwurz, _) => (-5.5, -0.5),
                 (IronDwarf, _) => (-1.0, -8.0),
@@ -277,6 +283,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (-2.5, -1.0),
                 (Husk, _) => (0.0, 0.0),
                 (Boreal, _) => (0.0, 0.0),
+                (Ashen, _) => (0.0, 0.0),
                 (Bushly, _) => (0.0, -1.0),
                 (Irrwurz, _) => (0.0, -1.0),
                 (IronDwarf, _) => (0.0, 0.0),
@@ -309,6 +316,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (3.5, 1.5, 2.0),
                 (Husk, _) => (4.0, 0.0, 1.0),
                 (Boreal, _) => (5.0, 0.5, 5.0),
+                (Ashen, _) => (6.0, 1.0, 2.0),
                 (Bushly, _) => (5.0, 2.0, 8.0),
                 (Irrwurz, _) => (3.5, 2.0, 3.0),
                 (IronDwarf, _) => (4.0, 1.5, -3.5),
@@ -341,6 +349,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (3.0, 0.5, 7.0),
                 (Husk, _) => (4.0, 0.5, 7.0),
                 (Boreal, _) => (3.0, 0.0, 9.0),
+                (Ashen, _) => (3.0, 1.0, 9.0),
                 (Bushly, _) => (2.5, 0.0, 7.0),
                 (Irrwurz, _) => (4.0, 0.0, 6.0),
                 (IronDwarf, _) => (3.5, 3.0, 7.0),
@@ -373,6 +382,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => (0.0, 0.0, 8.0),
                 (Husk, _) => (0.0, 0.0, 8.0),
                 (Boreal, _) => (1.0, 0.0, 5.0),
+                (Ashen, _) => (-1.0, 0.0, 7.0),
                 (Bushly, _) => (0.0, 0.0, 7.0),
                 (Irrwurz, _) => (0.0, 0.0, 7.0),
                 (IronDwarf, _) => (0.0, 0.0, 8.0),
@@ -405,6 +415,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Myrmidon, _) => 1.24,
                 (Husk, _) => 1.12,
                 (Boreal, _) => 1.8,
+                (Ashen, _) => 1.0,
                 (Bushly, _) => 1.0,
                 (Irrwurz, _) => 1.0,
                 (IronDwarf, _) => 1.5,
@@ -432,8 +443,10 @@ impl<'a> From<&'a Body> for SkeletonAttr {
 pub fn init_biped_small_alpha(next: &mut BipedSmallSkeleton, s_a: &SkeletonAttr) {
     next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
     next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
-    next.main.position = Vec3::new(0.0, 0.0, 0.0);
+    next.main.position = Vec3::new(s_a.grip.0, 0.0, 0.0);
     next.main.orientation = Quaternion::rotation_x(0.0);
+    next.second.position = Vec3::new(-s_a.grip.0, 0.0, 0.0);
+    next.second.orientation = Quaternion::rotation_x(0.0);
     next.hand_l.orientation = Quaternion::rotation_x(0.0);
     next.hand_r.orientation = Quaternion::rotation_x(0.0);
 }
@@ -669,6 +682,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Myrmidon, _) => (0.0, -5.5, 1.5),
         (Husk, _) => (0.0, -5.5, 1.5),
         (Boreal, _) => (0.0, -4.5, 2.0),
+        (Ashen, _) => (0.0, -4.5, 2.0),
         (Bushly, _) => (0.0, -3.0, 16.0),
         (Irrwurz, _) => (0.0, -4.0, 10.0),
         (IronDwarf, _) => (0.0, -4.0, 4.5),

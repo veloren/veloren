@@ -7,8 +7,10 @@ pub mod chargemelee;
 pub mod combomelee;
 pub mod dash;
 pub mod equip;
+pub mod explosion;
 pub mod idle;
 pub mod jump;
+pub mod leapexplosionshockwave;
 pub mod leapmelee;
 pub mod leapshockwave;
 pub mod rapidmelee;
@@ -26,7 +28,8 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, blink::BlinkAnimation,
     charge::ChargeAnimation, chargemelee::ChargeMeleeAnimation, combomelee::ComboAnimation,
-    dash::DashAnimation, equip::EquipAnimation, idle::IdleAnimation, jump::JumpAnimation,
+    dash::DashAnimation, equip::EquipAnimation, explosion::ExplosionAnimation, idle::IdleAnimation,
+    jump::JumpAnimation, leapexplosionshockwave::LeapExplosionShockAnimation,
     leapmelee::LeapAnimation, leapshockwave::LeapShockAnimation, rapidmelee::RapidMeleeAnimation,
     run::RunAnimation, selfbuff::SelfBuffAnimation, shockwave::ShockwaveAnimation,
     shoot::ShootAnimation, spin::SpinAnimation, spritesummon::SpriteSummonAnimation,
@@ -283,6 +286,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (5.0, 6.0),
                 (Strigoi, _) => (10.0, 8.0),
                 (Executioner, _) => (0.0, 10.0),
+                (Gigasfire, _) => (3.0, 7.0),
             },
             jaw: match (body.species, body.body_type) {
                 (Ogre, _) => (0.0, 0.0),
@@ -319,6 +323,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (-1.0, 5.5),
                 (Strigoi, _) => (-2.0, -4.0),
                 (Executioner, _) => (-2.0, -4.0),
+                (Gigasfire, _) => (-1.0, 3.5),
             },
             upper_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 27.5),
@@ -356,6 +361,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (-1.0, 32.0),
                 (Strigoi, _) => (-4.0, 27.5),
                 (Executioner, _) => (0.0, 24.0),
+                (Gigasfire, _) => (0.5, 30.0),
             },
             lower_torso: match (body.species, body.body_type) {
                 (Ogre, Male) => (1.0, -7.0),
@@ -393,6 +399,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (0.0, -5.5),
                 (Strigoi, _) => (3.0, -9.0),
                 (Executioner, _) => (-3.0, -5.0),
+                (Gigasfire, _) => (0.0, -5.5),
             },
             tail: match (body.species, body.body_type) {
                 (Werewolf, _) => (-5.5, -2.0),
@@ -441,6 +448,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (20.0, 4.0, 13.0),
                 (Strigoi, _) => (13.5, 2.0, 0.5),
                 (Executioner, _) => (8.5, 0.0, 4.0),
+                (Gigasfire, _) => (19.0, 0.5, 3.0),
             },
             hand: match (body.species, body.body_type) {
                 (Ogre, Male) => (14.5, 0.0, -4.0),
@@ -478,6 +486,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (19.0, 4.0, -1.0),
                 (Strigoi, _) => (17.0, 2.5, -5.5),
                 (Executioner, _) => (9.0, 0.5, -1.5),
+                (Gigasfire, _) => (19.5, 0.5, -5.0),
             },
             leg: match (body.species, body.body_type) {
                 (Ogre, Male) => (0.0, 0.0, -4.0),
@@ -515,6 +524,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (9.0, 0.0, -10.0),
                 (Strigoi, _) => (5.0, 1.0, -6.0),
                 (Executioner, _) => (3.0, 1.0, -7.0),
+                (Gigasfire, _) => (6.0, 0.0, -10.0),
             },
             foot: match (body.species, body.body_type) {
                 (Ogre, Male) => (4.0, 1.0, -12.0),
@@ -552,6 +562,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (8.5, 2.0, -19.5),
                 (Strigoi, _) => (6.0, 2.5, -14.0),
                 (Executioner, _) => (3.0, 7.5, -13.0),
+                (Gigasfire, _) => (6.5, 2.0, -19.5),
             },
             scaler: match (body.species, body.body_type) {
                 (Ogre, Male) => 1.12,
@@ -589,6 +600,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => 1.0,
                 (Strigoi, _) => 1.0,
                 (Executioner, _) => 1.0,
+                (Gigasfire, _) => 1.7,
             },
             tempo: match (body.species, body.body_type) {
                 (Ogre, Male) => 0.9,
@@ -642,20 +654,24 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Forgemaster, _) => (16.0, 0.0),
                 (Strigoi, _) => (12.5, 0.0),
                 (Executioner, _) => (8.0, 0.0),
+                (Gigasfire, _) => (16.0, 0.0),
             },
             shl: match (body.species, body.body_type) {
                 (Dullahan, _) => (-4.75, -11.0, 8.5, 1.47, -0.2, 0.0),
                 (Mightysaurok, _) => (-1.75, -9.0, 3.5, 1.47, -0.2, 0.0),
+                (Gigasfire, _) => (-4.75, -3.0, 3.5, 1.47, -0.3, 0.0),
                 _ => (-4.75, -1.0, 2.5, 1.47, -0.2, 0.0),
             },
             shr: match (body.species, body.body_type) {
                 (Dullahan, _) => (5.75, -11.5, 4.5, 1.47, 0.3, 0.0),
                 (Mightysaurok, _) => (2.75, -9.5, -0.5, 1.47, 0.3, 0.0),
+                (Gigasfire, _) => (5.75, -1.5, -0.5, 1.47, 0.3, 0.0),
                 _ => (3.75, -1.5, -0.5, 1.47, 0.3, 0.0),
             },
             sc: match (body.species, body.body_type) {
                 (Dullahan, _) => (-7.0, 17.0, -16.0, -0.1, 0.0, 0.0),
                 (Mightysaurok, _) => (-7.0, 15.0, -11.0, -0.1, 0.0, 0.0),
+                (Gigasfire, _) => (-3.0, 6.0, -11.0, -0.1, 0.0, 0.0),
                 _ => (-7.0, 7.0, -10.0, -0.1, 0.0, 0.0),
             },
             hhl: match (body.species, body.body_type) {
@@ -748,8 +764,19 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Forgemaster, _) => (1.0, 2.0, 5.0),
         (Strigoi, _) => (0.0, 0.0, 2.0),
         (Executioner, _) => (0.0, 0.0, 0.0),
+        (Gigasfire, _) => (1.0, 2.0, 4.5),
     }
     .into()
+}
+
+pub fn init_gigas_fire(next: &mut BipedLargeSkeleton) {
+    next.control.position += Vec3::new(0.0, 18.0, -10.0);
+    next.control_l.position += Vec3::new(-1.0, 1.0, 1.0);
+    next.control_l.orientation.rotate_x(PI / 2.0);
+    next.control_l.orientation.rotate_z(-0.2);
+    next.control_r.position += Vec3::new(0.0, 2.0, -3.0);
+    next.control_r.orientation.rotate_x(PI / 2.2);
+    next.control_r.orientation.rotate_z(0.2);
 }
 
 pub fn init_biped_large_alpha(

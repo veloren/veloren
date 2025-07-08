@@ -1,4 +1,8 @@
-use crate::{combat::Attack, comp::item::Reagent, effect::Effect};
+use crate::{
+    combat::Attack,
+    comp::{ability::Dodgeable, item::Reagent},
+    effect::Effect,
+};
 use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 use vek::Rgb;
@@ -14,8 +18,12 @@ pub struct Explosion {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RadiusEffect {
     TerrainDestruction(f32, Rgb<f32>),
+    ReplaceTerrain(f32, TerrainReplacementPreset),
     Entity(Effect),
-    Attack(Attack),
+    Attack {
+        attack: Attack,
+        dodgeable: Dodgeable,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,4 +48,13 @@ impl ColorPreset {
             },
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TerrainReplacementPreset {
+    Lava {
+        timeout: f32,
+        timeout_offset: f32,
+        timeout_chance: f32,
+    },
 }

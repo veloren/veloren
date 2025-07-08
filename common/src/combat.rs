@@ -32,6 +32,12 @@ use specs::{Entity as EcsEntity, ReadStorage};
 use std::ops::{Mul, MulAssign};
 use vek::*;
 
+pub enum AttackTarget {
+    AllInRange(f32),
+    Pos(Vec3<f32>),
+    Entity(EcsEntity),
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GroupTarget {
     InGroup,
@@ -39,7 +45,7 @@ pub enum GroupTarget {
     All,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum AttackSource {
     Melee,
     Projectile,

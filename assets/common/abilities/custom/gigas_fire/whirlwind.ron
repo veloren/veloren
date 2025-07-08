@@ -1,0 +1,30 @@
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 0.3,
+    swing_duration: 0.5,
+    hit_timing: 0.375,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Slash(
+            damage: 75.0,
+            poise: 5.0,
+            knockback: 33.0,
+            energy_regen: 10.0,
+        ),
+        range: 11.0,
+        angle: 360.0,
+        damage_effect: Some(Buff((
+            kind: Burning,
+            dur_secs: 5.0,
+            strength: Value(0.5),
+            chance: 1.0,
+        ))),
+        multi_target: Some(Normal),
+    ),
+    ori_modifier: (
+        buildup: Some(1.0),
+        swing: Some(1.0),
+        recover: Some(1.0),
+    ),
+    frontend_specifier: Some(FireGigasWhirlwind),
+)

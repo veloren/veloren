@@ -300,6 +300,11 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                         | comp::biped_large::Species::Wendigo => {
                             |chunk| !chunk.is_underwater() && chunk.temp < CONFIG.snow_temp
                         },
+                        comp::biped_large::Species::Gigasfire => |chunk| {
+                            !chunk.is_underwater()
+                                && chunk.temp > CONFIG.desert_temp
+                                && chunk.humidity < CONFIG.desert_hum
+                        },
                         comp::biped_large::Species::Mountaintroll => {
                             |chunk| !chunk.is_underwater() && chunk.alt > 500.0
                         },

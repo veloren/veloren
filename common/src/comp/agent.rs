@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Body, UtteranceKind, biped_large, biped_small, bird_medium, humanoid, quadruped_low,
-        quadruped_medium, quadruped_small, ship,
+        Body, UtteranceKind, biped_large, biped_small, bird_medium, humanoid, object,
+        quadruped_low, quadruped_medium, quadruped_small, ship,
     },
     path::Chaser,
     rtsim::{self, NpcInput, RtSimController},
@@ -433,7 +433,7 @@ impl<'a> From<&'a Body> for Psyche {
             sight_dist: match body {
                 Body::BirdLarge(_) => 250.0,
                 Body::BipedLarge(biped_large) => match biped_large.species {
-                    biped_large::Species::Gigasfrost => 200.0,
+                    biped_large::Species::Gigasfrost | biped_large::Species::Gigasfire => 200.0,
                     _ => 100.0,
                 },
                 _ => 40.0,
@@ -447,9 +447,10 @@ impl<'a> From<&'a Body> for Psyche {
             aggro_range_multiplier: 1.0,
             should_stop_pursuing: match body {
                 Body::BirdLarge(_) => false,
-                Body::BipedLarge(biped_large) => {
-                    !matches!(biped_large.species, biped_large::Species::Gigasfrost)
-                },
+                Body::BipedLarge(biped_large) => !matches!(
+                    biped_large.species,
+                    biped_large::Species::Gigasfrost | biped_large::Species::Gigasfire
+                ),
                 Body::BirdMedium(bird_medium) => {
                     // Skip stop_pursuing, as that function breaks when the health fraction is 0.0
                     // (to keep aggro after death transform)
@@ -1236,6 +1237,7 @@ pub fn pid_coefficients(body: &Body) -> Option<(f32, f32, f32)> {
             let kd = 0.8;
             Some((kp, ki, kd))
         },
+        Body::Object(object::Body::Crux) => Some((0.9, 0.3, 1.0)),
         _ => None,
     }
 }

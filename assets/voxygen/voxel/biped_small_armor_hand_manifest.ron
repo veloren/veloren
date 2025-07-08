@@ -208,6 +208,14 @@
                  vox_spec: ("npc.boreal.warrior.hand_r", (0.0, -2.5, -10.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.ashen.hand.warrior": (
+            left: (
+                vox_spec: ("npc.ashen.warrior.hand_r", (-5.0, -2.5, -10.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.ashen.warrior.hand_r", (0.0, -2.5, -10.0)),
+            )
+        ),
         "common.items.npc_armor.biped_small.bushly.hand.bushly": (
             left: (
                 vox_spec: ("npc.bushly.male.hand_r", (-4.0, -3.0, -8.0)),

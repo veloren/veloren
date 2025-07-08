@@ -111,6 +111,74 @@ impl Animation for SummonAnimation {
                         Quaternion::rotation_z(twitch * 0.2 + twitch2 * 0.4 + move2abs * -0.5)
                             * Quaternion::rotation_x(move2abs * 0.7);
                 },
+                Some("common.abilities.custom.ashen_warrior.staff.flame_wall") => {
+                    let slow = (global_time * 4.0).sin();
+                    let (move1base, move2base, move3base) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+
+                    let pullback = 1.0 - move3base;
+                    let move1 = move1base * pullback;
+
+                    next.control.position +=
+                        Vec3::new(-8.0, 8.0, 10.0) * move1 + Vec3::new(0.5, 0.5, 2.0) * slow;
+                    next.control.orientation.rotate_z(0.15 * slow);
+                    next.control.orientation.rotate_x(-PI / 10.0 * move1);
+                    next.control_l.position += Vec3::new(7.0, -2.0, 0.0) * move1;
+                    next.control_l.orientation.rotate_x(PI / 1.3 * move1);
+                    next.control_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.control_r.position += Vec3::new(4.0, -2.0, 0.0) * move1;
+                    next.control_r.orientation.rotate_x(PI / 1.3 * move1);
+                    next.control_r.orientation.rotate_z(PI / 2.0 * move1);
+
+                    next.chest.orientation.rotate_z(2.0 * PI * move2base);
+                    next.foot_l.position += Vec3::new(
+                        (2.0 * PI * move2base + PI).cos() + 1.0,
+                        (2.0 * PI * move2base + PI).sin(),
+                        0.0,
+                    ) * 3.0;
+                    next.foot_l.orientation.rotate_z(2.0 * PI * move2base);
+                    next.foot_r.position += Vec3::new(
+                        (2.0 * PI * move2base).cos() - 1.0,
+                        (2.0 * PI * move2base).sin(),
+                        0.0,
+                    ) * 3.0;
+                    next.foot_r.orientation.rotate_z(2.0 * PI * move2base);
+                },
+                Some("common.abilities.custom.ashen_warrior.staff.summon_crux") => {
+                    let slow = (global_time * 4.0).sin();
+                    let (move1base, _, move3base) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+
+                    let pullback = 1.0 - move3base;
+                    let move1 = move1base * pullback;
+
+                    next.main.position = Vec3::new(-10.0, 5.0, 0.0);
+                    next.main.orientation = Quaternion::rotation_x(0.0);
+                    next.hand_l.position = Vec3::new(s_a.grip.0 * 5.0, 0.0, 2.0);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                    next.hand_r.position = Vec3::new(-s_a.grip.0 * 5.0, 0.0, 2.0);
+                    next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                    next.head.position += Vec3::new(0.0, -4.0, 0.0) * move1;
+                    next.head.orientation.rotate_x(PI / 10.0 * move1);
+                    next.chest.orientation.rotate_x(PI / 10.0 * move1);
+                    next.hand_l.orientation.rotate_x(PI / 10.0 * move1);
+                    next.hand_l.orientation.rotate_y(PI / 10.0 * move1);
+                    next.hand_r.orientation.rotate_x(PI / 10.0 * move1);
+                    next.hand_r.orientation.rotate_y(-PI / 10.0 * move1);
+                    next.main.position += Vec3::new(0.0, 0.0, 2.0) * move1;
+                    next.main.orientation.rotate_y(PI / 10.0 * move1);
+                    next.control.position +=
+                        Vec3::new(0.0, 4.0, 10.0) * move1 + Vec3::new(0.5, 0.5, 2.0) * slow;
+                },
                 _ => {
                     next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
                     next.control_r.position = Vec3::new(

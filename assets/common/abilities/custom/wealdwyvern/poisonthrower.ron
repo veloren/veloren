@@ -14,6 +14,7 @@ BasicBeam(
     ))),
     energy_regen: 2,
     energy_drain: 0,
+    move_efficiency: 0.4,
     ori_rate: 0.5,
     specifier: Poison,
 )

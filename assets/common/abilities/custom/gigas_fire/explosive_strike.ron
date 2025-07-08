@@ -1,0 +1,20 @@
+Explosion(
+    energy_cost: 10,
+    buildup_duration: 2.8,
+    action_duration: 0.31,
+    recover_duration: 0.4,
+    damage: 90,
+    poise: 50,
+    knockback: (direction: Away, strength: 33.0),
+    radius: 22,
+    min_falloff: 0.25,
+    dodgeable: No,
+    destroy_terrain: Some((45, Black)),
+    eye_height: true,
+    reagent: Some(FireGigas),
+    ori_modifier: (
+        buildup: Some(0.05),
+        swing: Some(0.05),
+        recover: Some(0.05),
+    ),
+)

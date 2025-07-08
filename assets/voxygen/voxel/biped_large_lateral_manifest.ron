@@ -2447,4 +2447,88 @@
             model_index: 10,
         ),
     ),
+    (Gigasfire, Male): (
+        shoulder_l: (
+            offset: (-9.0, -5.5, -8.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 4,
+        ),
+        shoulder_r: (
+            offset: (-9.0, -5.5, -8.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 5,
+        ),
+        hand_l: (
+            offset: (-5.5, -5.5, -19.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 6,
+        ),
+        hand_r: (
+            offset: (-5.5, -5.5, -19.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 7,
+        ),
+        leg_l: (
+            offset: (-3.5, -4.0, -6.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 8,
+        ),
+        leg_r: (
+            offset: (-3.5, -4.0, -6.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 9,
+        ),
+        foot_l: (
+            offset: (-4.0, -6.5, -4.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 10,
+        ),
+        foot_r: (
+            offset: (-4.0, -6.5, -4.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 11,
+        )
+    ),
+    (Gigasfire, Female): (
+        shoulder_l: (
+            offset: (-9.0, -5.5, -8.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 4,
+        ),
+        shoulder_r: (
+            offset: (-9.0, -5.5, -8.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 5,
+        ),
+        hand_l: (
+            offset: (-5.5, -5.5, -19.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 6,
+        ),
+        hand_r: (
+            offset: (-5.5, -5.5, -19.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 7,
+        ),
+        leg_l: (
+            offset: (-3.5, -4.0, -6.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 8,
+        ),
+        leg_r: (
+            offset: (-3.5, -4.0, -6.0),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 9,
+        ),
+        foot_l: (
+            offset: (-4.0, -6.5, -4.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 10,
+        ),
+        foot_r: (
+            offset: (-4.0, -6.5, -4.5),
+            lateral: ("npc.gigas_fire.gigas_fire"),
+            model_index: 11,
+        )
+    ),
 })

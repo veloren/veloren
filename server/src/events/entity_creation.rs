@@ -3,9 +3,11 @@ use crate::{
     persistence::PersistedComponents, pet::tame_pet, presence::RepositionOnChunkLoad, sys,
 };
 use common::{
+    CachedSpatialGrid,
+    combat::AttackTarget,
     comp::{
-        self, Alignment, BehaviorCapability, Body, Inventory, ItemDrops, LightEmitter, Ori, Pos,
-        ThrownItem, TradingBehavior, Vel, WaypointArea,
+        self, Alignment, BehaviorCapability, Body, Inventory, ItemDrops, LightEmitter, Object, Ori,
+        Pos, ThrownItem, TradingBehavior, Vel, WaypointArea,
         aura::{Aura, AuraKind, AuraTarget},
         body,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
@@ -17,14 +19,16 @@ use common::{
     event::{
         CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
         CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
-        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, ThrowEvent,
-        UpdateCharacterDataEvent,
+        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, SummonBeamPillarsEvent,
+        ThrowEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
     outcome::Outcome,
     resources::{Secs, Time},
+    terrain::TerrainGrid,
     uid::{IdMaps, Uid},
+    util::Dir,
     vol::IntoFullVolIterator,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
@@ -558,15 +562,83 @@ pub fn handle_create_object(
         stats,
     }: CreateObjectEvent,
 ) {
-    server
-        .state
-        .create_object(pos, body)
-        .with(vel)
-        .maybe_with(object)
-        .maybe_with(item)
-        .maybe_with(light_emitter)
-        .maybe_with(stats)
-        .build();
+    match object {
+        Some(
+            object @ Object::Crux {
+                owner,
+                scale,
+                range,
+                strength,
+                duration,
+                ..
+            },
+        ) => {
+            let state = server.state_mut();
+            let time = *state.ecs().read_resource::<Time>();
+
+            // HACK: Spawn slightly damaged so that the health bar is visible and players
+            // are aware it is a killable entity
+            let mut health = comp::Health::new(Body::Object(body));
+            health.set_fraction(0.99996);
+
+            let crux = state
+                .create_object(pos, body)
+                .with(object)
+                .maybe_with(light_emitter)
+                .maybe_with(stats)
+                .with(comp::Scale(scale))
+                .with(health)
+                .with(comp::Energy::new(Body::Object(body)))
+                .with(comp::Poise::new(Body::Object(body)))
+                .with(comp::SkillSet::default())
+                .with(comp::Buffs::default())
+                .with(comp::Inventory::with_empty())
+                .with(comp::Immovable)
+                .with(comp::Auras::new(vec![Aura::new(
+                    AuraKind::Buff {
+                        kind: BuffKind::Heatstroke,
+                        data: BuffData {
+                            strength,
+                            duration: Some(duration),
+                            delay: None,
+                            secondary_duration: None,
+                            misc_data: None,
+                        },
+                        category: BuffCategory::Magical,
+                        source: BuffSource::World,
+                    },
+                    range,
+                    None,
+                    AuraTarget::NotGroupOf(owner),
+                    time,
+                )]))
+                .build();
+
+            if let Some(owner) = state.ecs().read_resource::<IdMaps>().uid_entity(owner) {
+                let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
+                group_manager.new_pet(
+                    crux,
+                    owner,
+                    &mut state.ecs().write_storage(),
+                    &state.ecs().entities(),
+                    &state.ecs().read_storage(),
+                    &state.ecs().read_storage::<Uid>(),
+                    &mut |_, _| {},
+                );
+            }
+        },
+        _ => {
+            server
+                .state
+                .create_object(pos, body)
+                .with(vel)
+                .maybe_with(object)
+                .maybe_with(item)
+                .maybe_with(light_emitter)
+                .maybe_with(stats)
+                .build();
+        },
+    }
 }
 
 pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent) {
@@ -590,4 +662,108 @@ pub fn handle_create_aura_entity(server: &mut Server, ev: CreateAuraEntityEvent)
         entity = entity.with(object);
     }
     entity.build();
+}
+
+pub fn handle_summon_beam_pillars(server: &mut Server, ev: SummonBeamPillarsEvent) {
+    let ecs = server.state().ecs();
+
+    let Some((&Pos(center), &summoner_alignment)) = ecs
+        .read_storage::<Pos>()
+        .get(ev.summoner)
+        .zip(ecs.read_storage::<Alignment>().get(ev.summoner))
+    else {
+        return;
+    };
+
+    let summon_pillar = |server: &mut Server, pos: Vec3<f32>, spawned_at| {
+        let integer_pos = pos.map(|x| x as i32);
+        let ground_height = server
+            .state()
+            .ecs()
+            .read_resource::<TerrainGrid>()
+            .find_ground(integer_pos)
+            .z as f32;
+
+        // If the distance from the attempted spawn position and the nearest valid
+        // position is too far, avoid spawning the fire pillar to prevent
+        // ability usage in a cave from spawning pillars on the surface or other
+        // edge cases
+        if (ground_height - pos.z).abs() <= 16.0 {
+            let ecs = server.state_mut().ecs_mut();
+
+            let pillar = ecs
+                .create_entity_synced()
+                .with(Pos(pos.with_z(ground_height)))
+                .with(Ori::from(Dir::up()))
+                .with(comp::Object::BeamPillar {
+                    spawned_at,
+                    buildup_duration: ev.buildup_duration,
+                    attack_duration: ev.attack_duration,
+                    beam_duration: ev.beam_duration,
+                    radius: ev.radius,
+                    height: ev.height,
+                    damage: ev.damage,
+                    damage_effect: ev.damage_effect,
+                    dodgeable: ev.dodgeable,
+                    tick_rate: ev.tick_rate,
+                    specifier: ev.specifier,
+                    indicator_specifier: ev.indicator_specifier,
+                })
+                .build();
+
+            let mut group_manager = ecs.write_resource::<comp::group::GroupManager>();
+            group_manager.new_pet(
+                pillar,
+                ev.summoner,
+                &mut ecs.write_storage(),
+                &ecs.entities(),
+                &ecs.read_storage(),
+                &ecs.read_storage::<Uid>(),
+                &mut |_, _| {},
+            );
+        }
+    };
+
+    let spawned_at = *ecs.read_resource::<Time>();
+    match ev.target {
+        AttackTarget::AllInRange(range) => {
+            let enemy_positions = ecs
+                .read_resource::<CachedSpatialGrid>()
+                .0
+                .in_circle_aabr(center.xy(), range)
+                .filter(|entity| {
+                    ecs.read_storage::<Alignment>()
+                        .get(*entity)
+                        .is_some_and(|alignment| summoner_alignment.hostile_towards(*alignment))
+                })
+                .filter(|entity| {
+                    ecs.read_storage::<comp::Group>()
+                        .get(ev.summoner)
+                        .is_none_or(|summoner_group| {
+                            ecs.read_storage::<comp::Group>()
+                                .get(*entity)
+                                .is_none_or(|entity_group| summoner_group != entity_group)
+                        })
+                })
+                .filter_map(|nearby_enemy| {
+                    ecs.read_storage::<Pos>()
+                        .get(nearby_enemy)
+                        .map(|Pos(pos)| *pos)
+                })
+                .collect::<Vec<_>>();
+
+            for enemy_pos in enemy_positions.into_iter() {
+                summon_pillar(server, enemy_pos, spawned_at);
+            }
+        },
+        AttackTarget::Pos(pos) => {
+            summon_pillar(server, pos, spawned_at);
+        },
+        AttackTarget::Entity(entity) => {
+            let pos = ecs.read_storage::<Pos>().get(entity).map(|pos| pos.0);
+            if let Some(pos) = pos {
+                summon_pillar(server, pos, spawned_at);
+            }
+        },
+    }
 }

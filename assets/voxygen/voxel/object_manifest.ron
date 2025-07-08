@@ -661,4 +661,14 @@
             central: ("armor.empty"),
         )
     ),
+    Crux: (
+        bone0: (
+            offset: (-10.5, -10.5, 0.0),
+            central: ("object.crux"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

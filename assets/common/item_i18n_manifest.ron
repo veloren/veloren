@@ -313,6 +313,21 @@
             "common.items.npc_armor.biped_small.boreal.hand.warrior",
         ): "common-items-npc_armor-biped_small-boreal-hand-warrior",
         Simple(
+            "common.items.npc_armor.biped_small.ashen.foot.warrior",
+        ): "common-items-npc_armor-biped_small-ashen-foot-warrior",
+        Simple(
+            "common.items.npc_armor.biped_small.ashen.head.warrior",
+        ): "common-items-npc_armor-biped_small-ashen-head-warrior",
+        Simple(
+            "common.items.npc_armor.biped_small.ashen.pants.warrior",
+        ): "common-items-npc_armor-biped_small-ashen-pants-warrior",
+        Simple(
+            "common.items.npc_armor.biped_small.ashen.chest.warrior",
+        ): "common-items-npc_armor-biped_small-ashen-chest-warrior",
+        Simple(
+            "common.items.npc_armor.biped_small.ashen.hand.warrior",
+        ): "common-items-npc_armor-biped_small-ashen-hand-warrior",        
+        Simple(
             "common.items.npc_armor.biped_small.bushly.foot.bushly",
         ): "common-items-npc_armor-biped_small-bushly-foot-bushly",
         Simple(
@@ -747,6 +762,9 @@
         Simple(
             "common.items.npc_armor.biped_large.gigas_frost",
         ): "common-items-npc_armor-biped_large-gigas_frost",
+        Simple(
+            "common.items.npc_armor.biped_large.gigas_fire",
+        ): "common-items-npc_armor-biped_large-gigas_fire",
         Simple(
             "common.items.npc_armor.biped_large.harvester",
         ): "common-items-npc_armor-biped_large-harvester",
@@ -2710,6 +2728,12 @@
             "common.items.npc_weapons.biped_small.boreal.hammer",
         ): "common-items-npc_weapons-biped_small-boreal-hammer",
         Simple(
+            "common.items.npc_weapons.biped_small.ashen.axe",
+        ): "common-items-npc_weapons-biped_small-ashen-axe",
+        Simple(
+            "common.items.npc_weapons.biped_small.ashen.staff",
+        ): "common-items-npc_weapons-biped_small-ashen-staff",        
+        Simple(
             "common.items.npc_weapons.biped_small.haniwa.archer",
         ): "common-items-npc_weapons-biped_small-haniwa-archer",
         Simple(
@@ -2760,6 +2784,9 @@
         Simple(
             "common.items.npc_weapons.axe.gigas_frost_axe",
         ): "common-items-npc_weapons-axe-gigas_frost_axe",
+        Simple(
+            "common.items.npc_weapons.sword.gigas_fire_sword",
+        ): "common-items-npc_weapons-sword-gigas_fire_sword",
         Simple(
             "common.items.npc_weapons.axe.executioner_axe",
         ): "common-items-npc_weapons-axe-executioner_axe",

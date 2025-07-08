@@ -937,6 +937,38 @@
             Simple(None, "common.abilities.custom.boreal_warrior.bow.trap"),
         ],
     ),
+    Custom("Fire Gigas"): (
+        primary: Simple(None, "common.abilities.custom.gigas_fire.fast_slash"),
+        secondary: Simple(None, "common.abilities.custom.gigas_fire.fast_thrust"),
+        abilities: [
+            Simple(None, "common.abilities.custom.gigas_fire.slow_slash"),
+            Simple(None, "common.abilities.custom.gigas_fire.slow_thrust"),
+            Simple(None, "common.abilities.custom.gigas_fire.lava_leap"),
+            Simple(None, "common.abilities.custom.gigas_fire.vertical_strike"),
+            Simple(None, "common.abilities.custom.gigas_fire.overheat"),
+            Simple(None, "common.abilities.custom.gigas_fire.whirlwind"),
+            Simple(None, "common.abilities.custom.gigas_fire.explosive_strike"),
+            Simple(None, "common.abilities.custom.gigas_fire.fire_pillars"),
+            Simple(None, "common.abilities.custom.gigas_fire.targeted_fire_pillar"),
+            Simple(None, "common.abilities.custom.gigas_fire.ashen_summons"),
+        ],
+    ),
+    Custom("Ashen Axe"): (
+        primary: Simple(None, "common.abilities.custom.ashen_warrior.axe.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.ashen_warrior.axe.flame_wave"),
+        abilities: [
+            Simple(None, "common.abilities.custom.ashen_warrior.axe.knockback_combo"),
+            Simple(None, "common.abilities.custom.ashen_warrior.axe.self_immolation"),
+        ],
+    ),
+    Custom("Ashen Staff"): (
+        primary: Simple(None, "common.abilities.custom.ashen_warrior.staff.fireball"),
+        secondary: Simple(None, "common.abilities.custom.ashen_warrior.staff.fireball"),
+        abilities: [
+            Simple(None, "common.abilities.custom.ashen_warrior.staff.flame_wall"),
+            Simple(None, "common.abilities.custom.ashen_warrior.staff.summon_crux"),
+        ],
+    ),
     Custom("Tornado"): (
         primary: Simple(None, "common.abilities.custom.tornado.spin"),
         secondary: Simple(None, "common.abilities.empty.basic"),

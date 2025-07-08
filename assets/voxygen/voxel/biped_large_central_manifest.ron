@@ -1812,4 +1812,64 @@
             central: ("armor.empty"),
         )
     ),
+    (Gigasfire, Male): (
+        head: (
+            offset: (-13.0, -7.0, 0.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 0,
+        ),
+        torso_upper: (
+            offset: (-11.0, -12.0, -10.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 1,
+        ),
+        torso_lower: (
+            offset: (-13.0, -10.0, -17.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 2,
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 3,
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    (Gigasfire, Female): (
+        head: (
+            offset: (-13.0, -7.0, 0.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 0,
+        ),
+        torso_upper: (
+            offset: (-11.0, -12.0, -10.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 1,
+        ),
+        torso_lower: (
+            offset: (-13.0, -10.0, -17.0),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 2,
+        ),
+        jaw: (
+            offset: (-3.0, 0.0, -3.5),
+            central: ("npc.gigas_fire.gigas_fire"),
+            model_index: 3,
+        ),
+        tail: (
+            offset: (-1.5, -17.0, -8.0),
+            central: ("armor.empty"),
+        ),
+        second: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

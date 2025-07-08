@@ -331,6 +331,9 @@ fn get_npc_entity_info(
                 comp::biped_large::Species::Gigasfrost => {
                     "common.entity.world.world_bosses.gigas_frost"
                 },
+                comp::biped_large::Species::Gigasfire => {
+                    "common.entity.world.world_bosses.gigas_fire"
+                },
                 species => unimplemented!("rtsim spawning for {:?}", species),
             },
             body => unimplemented!("rtsim spawning for {:?}", body),

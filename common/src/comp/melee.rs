@@ -100,16 +100,16 @@ pub struct CustomCombo {
 
 impl MeleeConstructor {
     pub fn create_melee(self, precision_mult: f32, tool_stats: Stats) -> Melee {
-        use MeleeConstructorKind::*;
         if self.scaled.is_some() {
             dev_panic!(
                 "Attempted to create a melee attack that had a provided scaled value without \
                  scaling the melee attack."
             )
         }
+
         let instance = rand::random();
         let attack = match self.kind {
-            Slash {
+            MeleeConstructorKind::Slash {
                 damage,
                 poise,
                 knockback,
@@ -158,7 +158,7 @@ impl MeleeConstructor {
                     .with_effect(poise)
                     .with_effect(knockback)
             },
-            Stab {
+            MeleeConstructorKind::Stab {
                 damage,
                 poise,
                 knockback,
@@ -207,7 +207,7 @@ impl MeleeConstructor {
                     .with_effect(poise)
                     .with_effect(knockback)
             },
-            Bash {
+            MeleeConstructorKind::Bash {
                 damage,
                 poise,
                 knockback,
@@ -248,7 +248,7 @@ impl MeleeConstructor {
                     .with_effect(poise)
                     .with_effect(knockback)
             },
-            Hook {
+            MeleeConstructorKind::Hook {
                 damage,
                 poise,
                 pull,
@@ -293,7 +293,7 @@ impl MeleeConstructor {
                     .with_effect(poise)
                     .with_effect(knockback)
             },
-            NecroticVortex {
+            MeleeConstructorKind::NecroticVortex {
                 damage,
                 pull,
                 lifesteal,
@@ -333,7 +333,7 @@ impl MeleeConstructor {
                     .with_effect(energy)
                     .with_effect(knockback)
             },
-            SonicWave {
+            MeleeConstructorKind::SonicWave {
                 damage,
                 poise,
                 knockback,

@@ -1,6 +1,6 @@
 use crate::{
-    comp::{Density, Mass, item::Reagent},
-    consts::{IRON_DENSITY, WATER_DENSITY},
+    comp::{Density, Mass},
+    consts::{AIR_DENSITY, IRON_DENSITY, WATER_DENSITY},
 };
 use common_base::enum_iter;
 use rand::{seq::SliceRandom, thread_rng};
@@ -83,6 +83,7 @@ enum_iter! {
         BloodBomb = 66,
         MinotaurAxe = 67,
         BorealTrap = 68,
+        Crux = 69,
     }
 }
 
@@ -171,18 +172,7 @@ impl Body {
             Body::BloodBomb => "blood_bomb",
             Body::MinotaurAxe => "minotaur_axe",
             Body::BorealTrap => "boreal_trap",
-        }
-    }
-
-    pub fn for_firework(reagent: Reagent) -> Body {
-        match reagent {
-            Reagent::Blue => Body::FireworkBlue,
-            Reagent::Green => Body::FireworkGreen,
-            Reagent::Purple => Body::FireworkPurple,
-            Reagent::Red => Body::FireworkRed,
-            Reagent::White => Body::FireworkWhite,
-            Reagent::Yellow => Body::FireworkYellow,
-            Reagent::Phoenix => Body::FireRainDrop,
+            Body::Crux => "crux",
         }
     }
 
@@ -212,6 +202,7 @@ impl Body {
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
             Body::Pebble => 1000.0,
+            Body::Crux => AIR_DENSITY,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
@@ -280,7 +271,8 @@ impl Body {
             Body::HarlequinDagger => 1.5,
             Body::BorealTrap => 10.0,
             Body::LightningBolt | Body::SpearIcicle => 20000.0,
-            Body::Portal | Body::PortalActive => 10., // I dont know really
+            Body::Portal | Body::PortalActive => 10.0, // I dont know really
+            Body::Crux => 100.0,
         };
 
         Mass(m)
@@ -323,6 +315,7 @@ impl Body {
             Body::FireRainDrop => Vec3::new(0.01, 0.01, 0.02),
             Body::Pebble => Vec3::new(0.4, 0.4, 0.4),
             Body::MinotaurAxe => Vec3::new(5.0, 5.0, 5.0),
+            Body::Crux => Vec3::new(2.0, 2.0, 2.0),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

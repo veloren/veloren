@@ -6,6 +6,7 @@ use common::event::{
     EventBus, ExitIngameEvent,
 };
 use common_base::span;
+use entity_creation::handle_summon_beam_pillars;
 use hashbrown::HashSet;
 use player::handle_set_battle_mode;
 use specs::{
@@ -161,6 +162,7 @@ impl Server {
         self.handle_serial_events(handle_create_item_drop);
         self.handle_serial_events(handle_create_object);
         self.handle_serial_events(handle_create_aura_entity);
+        self.handle_serial_events(handle_summon_beam_pillars);
         self.handle_serial_events(handle_delete);
 
         self.handle_serial_events(handle_character_delete);

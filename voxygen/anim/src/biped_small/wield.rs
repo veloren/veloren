@@ -10,6 +10,7 @@ pub struct WieldAnimation;
 
 type WieldAnimationDependency<'a> = (
     (Option<ToolKind>, Option<&'a AbilitySpec>),
+    Option<ToolKind>,
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
@@ -31,6 +32,7 @@ impl Animation for WieldAnimation {
         skeleton: &Self::Skeleton,
         (
             (active_tool_kind, active_tool_spec),
+            second_tool_kind,
             velocity,
             _orientation,
             _last_ori,
@@ -70,6 +72,8 @@ impl Animation for WieldAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
 
         next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
         next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
@@ -159,6 +163,12 @@ impl Animation for WieldAnimation {
                 next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(-0.3);
+
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
+                    if spec.as_str() == "Ashen Axe" {
+                        next.main.position += Vec3::new(-4.0, -2.5, 0.0);
+                    }
+                }
             },
             Some(ToolKind::Dagger | ToolKind::Sword) => {
                 biped_small_wield_sword(&mut next, s_a, speednorm, slow);
@@ -188,6 +198,26 @@ impl Animation for WieldAnimation {
                 next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
                 next.hand_r.orientation = Quaternion::rotation_x(1.2);
             },
+        }
+
+        match second_tool_kind {
+            Some(ToolKind::Axe) => {
+                next.control.position += Vec3::new(1.0, 0.0, 0.0);
+                next.control.orientation = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+
+                next.control_r.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.orientation = Quaternion::rotation_x(PI / 2.0 - slow * 0.1)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+
+                next.second.position += Vec3::new(8.0, -2.5, 4.0);
+                next.second.orientation = Quaternion::rotation_x(-PI / 2.0)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+            },
+            _ => {},
         }
 
         next

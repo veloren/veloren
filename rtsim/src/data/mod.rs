@@ -32,7 +32,7 @@ use std::{
 /// Note that this number does *not* need incrementing on every change: most
 /// field removals/additions are fine. This number should only be incremented
 /// when we wish to perform a *hard purge* of rtsim data.
-pub const CURRENT_VERSION: u32 = 9;
+pub const CURRENT_VERSION: u32 = 10;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Data {

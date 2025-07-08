@@ -29,6 +29,7 @@ use common::{
         self, Alignment, Auras, BASE_ABILITY_LIMIT, Body, BuffCategory, BuffEffect, CharacterState,
         Energy, Group, Hardcore, Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange,
         Pos, Presence, PresenceKind, ProjectileConstructor, SkillSet, Stats,
+        ability::Dodgeable,
         aura::{self, EnteredAuras},
         buff,
         chat::{KillSource, KillType},
@@ -49,7 +50,7 @@ use common::{
         TeleportToPositionEvent, TransformEvent, UpdateMapMarkerEvent,
     },
     event_emitters,
-    explosion::ColorPreset,
+    explosion::{ColorPreset, TerrainReplacementPreset},
     generation::{EntityConfig, EntityInfo},
     link::Is,
     lottery::distribute_many,
@@ -65,7 +66,7 @@ use common::{
     vol::ReadVol,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt, synced_components::Heads};
-use common_state::{AreasContainer, BlockChange, NoDurabilityArea};
+use common_state::{AreasContainer, BlockChange, NoDurabilityArea, ScheduledBlockChange};
 use hashbrown::HashSet;
 use rand::Rng;
 use specs::{
@@ -73,9 +74,9 @@ use specs::{
     ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage, shred,
 };
 #[cfg(feature = "worldgen")] use std::sync::Arc;
-use std::{borrow::Cow, collections::HashMap, iter, time::Duration};
+use std::{borrow::Cow, collections::HashMap, f32::consts::PI, iter, time::Duration};
 use tracing::{debug, warn};
-use vek::{Vec2, Vec3};
+use vek::{Rgb, Vec2, Vec3};
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
@@ -1284,6 +1285,7 @@ impl ServerEvent for RespawnEvent {
 pub struct ExplosionData<'a> {
     entities: Entities<'a>,
     block_change: Write<'a, BlockChange>,
+    scheduled_block_change: WriteExpect<'a, ScheduledBlockChange>,
     settings: Read<'a, Settings>,
     time: Read<'a, Time>,
     id_maps: Read<'a, IdMaps>,
@@ -1307,6 +1309,7 @@ pub struct ExplosionData<'a> {
     bodies: ReadStorage<'a, Body>,
     orientations: ReadStorage<'a, comp::Ori>,
     character_states: ReadStorage<'a, CharacterState>,
+    physics_states: ReadStorage<'a, PhysicsState>,
     uids: ReadStorage<'a, Uid>,
     masses: ReadStorage<'a, comp::Mass>,
 }
@@ -1339,7 +1342,7 @@ impl ServerEvent for ExplosionEvent {
                     .explosion
                     .effects
                     .iter()
-                    .any(|e| matches!(e, RadiusEffect::Attack(_))),
+                    .any(|e| matches!(e, RadiusEffect::Attack { .. })),
                 reagent: ev.explosion.reagent,
             });
 
@@ -1515,12 +1518,120 @@ impl ServerEvent for ExplosionEvent {
                                 .cast();
                         }
                     },
-                    RadiusEffect::Attack(attack) => {
+                    RadiusEffect::ReplaceTerrain(radius, terrain_replacement_preset) => {
+                        const RAY_DENSITY: f32 = 20.0;
+                        const RAY_LENGTH: f32 = 50.0;
+
+                        // Prevent block colour changes within the radius of a safe zone aura
+                        if data
+                            .spatial_grid
+                            .0
+                            .in_circle_aabr(ev.pos.xy(), SAFE_ZONE_RADIUS)
+                            .filter_map(|entity| {
+                                data.auras
+                                    .get(entity)
+                                    .and_then(|entity_auras| {
+                                        data.positions.get(entity).map(|pos| (entity_auras, pos))
+                                    })
+                                    .and_then(|(entity_auras, pos)| {
+                                        entity_auras
+                                            .auras
+                                            .iter()
+                                            .find(|(_, aura)| {
+                                                matches!(aura.aura_kind, aura::AuraKind::Buff {
+                                                    kind: BuffKind::Invulnerability,
+                                                    source: BuffSource::World,
+                                                    ..
+                                                })
+                                            })
+                                            .map(|(_, aura)| (*pos, aura.radius))
+                                    })
+                            })
+                            .any(|(aura_pos, aura_radius)| {
+                                ev.pos.distance_squared(aura_pos.0) < aura_radius.powi(2)
+                            })
+                        {
+                            continue 'effects;
+                        }
+
+                        // Replace terrain
+                        let mut touched_blocks = Vec::new();
+                        let height = data
+                            .terrain
+                            .ray(ev.pos, ev.pos - RAY_LENGTH * Vec3::unit_z())
+                            .until(Block::is_solid)
+                            .cast()
+                            .0;
+                        let max_phi = (height / radius).atan();
+                        for _ in 0..(RAY_DENSITY * radius.powi(2)) as usize {
+                            let phi = rng.gen_range(-PI / 2.0..-max_phi);
+                            let theta = rng.gen_range(0.0..2.0 * PI);
+                            let ray = Vec3::new(
+                                RAY_LENGTH * phi.cos() * theta.cos(),
+                                RAY_LENGTH * phi.cos() * theta.sin(),
+                                RAY_LENGTH * phi.sin(),
+                            );
+
+                            let _ = data
+                                .terrain
+                                .ray(ev.pos, ev.pos + ray)
+                                .until(Block::is_solid)
+                                .for_each(|_: &Block, pos| touched_blocks.push(pos))
+                                .cast();
+                        }
+
+                        for block_pos in touched_blocks {
+                            if let Ok(block) = data.terrain.get(block_pos) {
+                                match terrain_replacement_preset {
+                                    TerrainReplacementPreset::Lava {
+                                        timeout,
+                                        timeout_offset,
+                                        timeout_chance,
+                                    } => {
+                                        if !matches!(
+                                            block.kind(),
+                                            BlockKind::Air
+                                                | BlockKind::Water
+                                                | BlockKind::Lava
+                                                | BlockKind::GlowingRock
+                                        ) {
+                                            data.block_change.set(
+                                                block_pos,
+                                                Block::new(BlockKind::Lava, Rgb::new(255, 65, 0)),
+                                            );
+
+                                            if rng.gen_bool(timeout_chance as f64) {
+                                                let current_time: f64 = data.time.0;
+                                                let replace_time = current_time
+                                                    + (timeout + rng.gen_range(0.0..timeout_offset))
+                                                        as f64;
+                                                data.scheduled_block_change.set(
+                                                    block_pos,
+                                                    Block::new(
+                                                        BlockKind::Rock,
+                                                        Rgb::new(12, 10, 25),
+                                                    ),
+                                                    replace_time,
+                                                );
+                                            }
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                    RadiusEffect::Attack { attack, dodgeable } => {
                         for (
                             entity_b,
                             pos_b,
                             health_b,
-                            (body_b_maybe, ori_b_maybe, char_state_b_maybe, uid_b),
+                            (
+                                body_b_maybe,
+                                ori_b_maybe,
+                                char_state_b_maybe,
+                                physics_state_b_maybe,
+                                uid_b,
+                            ),
                         ) in (
                             &data.entities,
                             &data.positions,
@@ -1529,6 +1640,7 @@ impl ServerEvent for ExplosionEvent {
                                 data.bodies.maybe(),
                                 data.orientations.maybe(),
                                 data.character_states.maybe(),
+                                data.physics_states.maybe(),
                                 &data.uids,
                             ),
                         )
@@ -1608,9 +1720,15 @@ impl ServerEvent for ExplosionEvent {
                                     mass: data.masses.get(entity_b),
                                 };
 
-                                let target_dodging = char_state_b_maybe
-                                    .and_then(|cs| cs.roll_attack_immunities())
-                                    .is_some_and(|i| i.explosions);
+                                // Check if entity is dodging
+                                let target_dodging = match dodgeable {
+                                    Dodgeable::Roll => char_state_b_maybe
+                                        .and_then(|cs| cs.roll_attack_immunities())
+                                        .is_some_and(|i| i.melee),
+                                    Dodgeable::Jump => physics_state_b_maybe
+                                        .is_some_and(|ps| ps.on_ground.is_none()),
+                                    Dodgeable::No => false,
+                                };
                                 let allow_friendly_fire =
                                     owner_entity.is_some_and(|owner_entity| {
                                         combat::allow_friendly_fire(
@@ -1995,7 +2113,7 @@ impl ServerEvent for BuffEvent {
             if let Some(mut buffs) = buffs.get_mut(ev.entity) {
                 use buff::BuffChange;
                 match ev.buff_change {
-                    BuffChange::Add(new_buff) => {
+                    BuffChange::Add(mut new_buff) => {
                         let immunity_by_buff = buffs
                             .buffs
                             .values_mut()
@@ -2037,6 +2155,14 @@ impl ServerEvent for BuffEvent {
                                 );
                                 buffs.insert(resilience_buff, *time);
                             }
+
+                            if bodies
+                                .get(ev.entity)
+                                .is_some_and(|body| body.negates_buff(new_buff.kind))
+                            {
+                                new_buff.effects.clear();
+                            }
+
                             buffs.insert(new_buff, *time);
                         }
                     },

@@ -2,9 +2,9 @@ BasicSummon(
     buildup_duration: 0.5,
     cast_duration: 1.0,
     recover_duration: 0.5,
-    summon_amount: 6,
-    summon_distance: (4, 4),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 6,
+        summon_distance: (4, 4),
         body: BipedSmall((
             species: Husk,
             body_type: Male,
@@ -14,6 +14,6 @@ BasicSummon(
         has_health: true,
         loadout_config: Some(HuskSummon),
         skillset_config: Some(Rank5),
+        duration: None,
     ),
-    duration: None,
 )

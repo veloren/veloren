@@ -2,18 +2,18 @@ BasicSummon(
     buildup_duration: 0.5,
     cast_duration: 1.3,
     recover_duration: 2.5,
-    summon_amount: 2,
-    summon_distance: (8, 8),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 2,
+        summon_distance: (8, 8),
         body: Object(Lavathrower),
         scale: None,
         has_health: true,
         use_npc_name: false,
         loadout_config: None,
         skillset_config: None,
+        duration: Some((
+            secs: 30,
+            nanos: 0,
+        )),
     ),
-    duration: Some((
-        secs: 30,
-        nanos: 0,
-    )),
 )

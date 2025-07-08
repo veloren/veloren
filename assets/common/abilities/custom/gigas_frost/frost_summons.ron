@@ -2,9 +2,9 @@ BasicSummon(
     buildup_duration: 1.75,
     cast_duration: 1.5,
     recover_duration: 0.75,
-    summon_amount: 2,
-    summon_distance: (5, 10),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 2,
+        summon_distance: (5, 10),
         body: BipedSmall((
             species: Boreal,
             body_type: Male,
@@ -14,6 +14,6 @@ BasicSummon(
         has_health: true,
         loadout_config: Some(BorealSummon),
         skillset_config: None,
+        duration: None,
     ),
-    duration: None,
 )

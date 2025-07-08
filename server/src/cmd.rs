@@ -3526,6 +3526,7 @@ fn handle_outcome(
         "Swoosh" => Outcome::Swoosh { pos: pos_arg!() },
         "Slash" => Outcome::Slash { pos: pos_arg!() },
         "FireShockwave" => Outcome::FireShockwave { pos: pos_arg!() },
+        "FireLowShockwave" => Outcome::FireLowShockwave { pos: pos_arg!() },
         "GroundDig" => Outcome::GroundDig { pos: pos_arg!() },
         "PortalActivated" => Outcome::PortalActivated { pos: pos_arg!() },
         "TeleportedByPortal" => Outcome::TeleportedByPortal { pos: pos_arg!() },

@@ -1,8 +1,9 @@
 use crate::{
-    Explosion, RadiusEffect, combat,
-    combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
+    Explosion, RadiusEffect,
+    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
     comp::{
-        CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents, item::Reagent,
+        CharacterState, MeleeConstructor, StateUpdate, ability::Dodgeable,
+        character_state::OutputEvents, item::Reagent,
     },
     event::{ComboChangeEvent, ExplosionEvent},
     states::{
@@ -119,7 +120,10 @@ impl CharacterBehavior for Data {
                         );
                         let attack = Attack::default().with_damage(damage);
                         let explosion = Explosion {
-                            effects: vec![RadiusEffect::Attack(attack)],
+                            effects: vec![RadiusEffect::Attack {
+                                attack,
+                                dodgeable: Dodgeable::Roll,
+                            }],
                             radius: data.body.max_radius() * 4.0,
                             reagent: Some(Reagent::Purple),
                             min_falloff: 0.5,
@@ -183,5 +187,5 @@ impl CharacterBehavior for Data {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     CultistVortex,
-    Whirlwind,
+    IceWhirlwind,
 }

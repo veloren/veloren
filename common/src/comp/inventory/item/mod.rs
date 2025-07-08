@@ -40,7 +40,8 @@ pub enum Reagent {
     Red,
     White,
     Yellow,
-    Phoenix,
+    FireRain,
+    FireGigas,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

@@ -1,0 +1,34 @@
+BasicSummon(
+    buildup_duration: 1.0,
+    cast_duration: 0.1,
+    recover_duration: 1.1,
+    summon_info: BeamPillar(
+        buildup_duration: 0.4,
+        attack_duration: 10.0,
+        beam_duration: 0.5,
+        target: Single,
+        radius: 5.0,
+        height: 15.0,
+        damage: 33.0,
+        damage_effect: Some(Buff((
+            kind: Burning,
+            dur_secs: 10.0,
+            strength: Value(10.0),
+            chance: 1.0,
+        ))),
+        dodgeable: No,
+        tick_rate: 1.6,
+        specifier: FirePillar,
+        indicator_specifier: FirePillar,
+    ),
+    movement_modifier: (
+        buildup: Some(0.0),
+        swing: Some(0.0),
+        recover: Some(0.0),
+    ),
+    ori_modifier: (
+        buildup: Some(0.0),
+        swing: Some(0.0),
+        recover: Some(0.0),
+    ),
+)

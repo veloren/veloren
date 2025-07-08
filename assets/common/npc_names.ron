@@ -986,6 +986,10 @@
                 keyword: "gigas_frost",
                 generic: "name-body-biped_large-gigas_frost"
             ),
+            gigas_fire: (
+                keyword: "gigas_fire",
+                generic: "name-body-biped_large-gigas_fire"
+            ),
             adlet_elder: (
                 keyword: "adlet_elder",
                 generic: "name-body-biped_large-adlet_elder"
@@ -1229,6 +1233,10 @@
                 keyword: "boreal",
                 generic: "name-body-biped_small-boreal",
             ),
+            ashen: (
+                keyword: "ashen",
+                generic: "name-body-biped_small-ashen",
+            ),            
             bushly: (
                 keyword: "bushly",
                 generic: "name-body-biped_small-bushly",

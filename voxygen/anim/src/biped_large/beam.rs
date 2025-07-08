@@ -1,6 +1,6 @@
 use super::{
     super::{Animation, vek::*},
-    BipedLargeSkeleton, SkeletonAttr,
+    BipedLargeSkeleton, SkeletonAttr, init_gigas_fire,
 };
 use common::{
     comp::item::{AbilitySpec, ToolKind},
@@ -204,6 +204,67 @@ impl Animation for BeamAnimation {
                         move1 * 0.2 + 0.3 + 0.6 * speednorm + (footrotl * -0.2),
                     );
                 },
+            },
+            Some(ToolKind::Sword) => match ability_id {
+                Some("common.abilities.custom.gigas_fire.overheat") => {
+                    let (move1base, _, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, 0.0, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let (move1base, move2base) = if move1base < 0.5 {
+                        (2.0 * move1base, 0.0)
+                    } else {
+                        (1.0, (2.0 * (move1base - 0.5)).powi(3))
+                    };
+                    let pullback = 1.0 - move3;
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+
+                    init_gigas_fire(&mut next);
+
+                    next.torso.orientation.rotate_z(-PI / 8.0 * move1base);
+                    next.lower_torso.orientation.rotate_z(PI / 16.0 * move1);
+                    next.shoulder_l.position += Vec3::new(0.0, 5.0, 0.0) * move1;
+                    next.shoulder_l.orientation.rotate_x(PI / 1.8 * move1);
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.shoulder_r.orientation.rotate_x(PI / 1.8 * move1);
+                    next.control.position += Vec3::new(10.0, -5.0, 30.0) * move1base;
+                    next.control.orientation.rotate_x(PI / 3.5 * move1);
+                    next.control.orientation.rotate_y(PI / 8.0 * move1);
+                    next.control_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.control_l.orientation.rotate_x(PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_z(PI / 6.0 * move1);
+                    next.foot_r.orientation.rotate_z(-PI / 5.0 * move1base);
+
+                    next.torso.position += Vec3::new(0.0, -8.0, 0.0) * move2;
+                    next.torso.orientation.rotate_z(PI / 8.0 * move2base);
+                    next.torso.orientation.rotate_x(-PI / 10.0 * move2);
+                    next.lower_torso.position += Vec3::new(0.0, 0.0, 1.0) * move2;
+                    next.lower_torso.orientation.rotate_x(PI / 10.0 * move2);
+                    next.shoulder_l.position += Vec3::new(2.0, -3.0, -4.0) * move2;
+                    next.shoulder_l.orientation.rotate_x(-PI / 4.0 * move2);
+                    next.shoulder_l.orientation.rotate_z(PI / 8.0 * move2);
+                    next.shoulder_r.position += Vec3::new(-2.0, 2.0, 4.0) * move2;
+                    next.shoulder_r.orientation.rotate_x(-PI / 4.0 * move2);
+                    next.shoulder_r.orientation.rotate_y(-PI / 8.0 * move2);
+                    next.shoulder_r.orientation.rotate_z(PI / 8.0 * move2);
+                    next.control.position += Vec3::new(
+                        -10.0 * move2base,
+                        5.0 * move2base,
+                        -30.0 * move2base - 3.0 * move2,
+                    );
+                    next.control.orientation.rotate_x(-0.8 * PI * move2);
+                    next.control.orientation.rotate_y(PI / 8.0 * move2);
+                    next.control.orientation.rotate_z(PI / 8.0 * move2);
+                    next.main.orientation.rotate_x(PI / 12.0 * move2);
+                    next.control_r.orientation.rotate_x(PI / 4.0 * move2);
+                    next.foot_r
+                        .orientation
+                        .rotate_z(PI / 5.0 * move2base.powi(2));
+                },
+                _ => {},
             },
             Some(ToolKind::Hammer) => match ability_id {
                 Some("common.abilities.custom.dwarves.forgemaster.flamethrower") => {

@@ -1,4 +1,4 @@
-use crate::{combat::Attack, resources::Secs};
+use crate::{combat::Attack, comp::ability::Dodgeable, resources::Secs};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
@@ -7,6 +7,8 @@ use vek::*;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Beam {
     pub attack: Attack,
+    pub dodgeable: Dodgeable,
+    pub start_radius: f32,
     pub end_radius: f32,
     pub range: f32,
     pub duration: Secs,
@@ -45,23 +47,7 @@ pub enum FrontendSpecifier {
     Ink,
     Lightning,
     PhoenixLaser,
-}
-
-impl FrontendSpecifier {
-    pub fn particles_per_sec(self) -> f32 {
-        (match self {
-            FrontendSpecifier::Flamethrower
-            | FrontendSpecifier::Bubbles
-            | FrontendSpecifier::Steam
-            | FrontendSpecifier::Frost
-            | FrontendSpecifier::Poison
-            | FrontendSpecifier::Ink
-            | FrontendSpecifier::PhoenixLaser
-            | FrontendSpecifier::Gravewarden => 300.0,
-            FrontendSpecifier::LifestealBeam => 420.0,
-            FrontendSpecifier::Cultist => 960.0,
-            FrontendSpecifier::WebStrand => 180.0,
-            FrontendSpecifier::Lightning => 120.0,
-        }) / 1000.0
-    }
+    FireGigasOverheat,
+    FirePillar,
+    FlameWallPillar,
 }

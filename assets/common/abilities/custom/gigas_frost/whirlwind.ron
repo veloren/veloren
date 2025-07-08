@@ -23,5 +23,5 @@ RapidMelee(
     max_strikes: Some(3),
     ori_modifier: 1.0,
     move_modifier: 1.0,
-    frontend_specifier: Some(Whirlwind),
+    frontend_specifier: Some(IceWhirlwind),
 )

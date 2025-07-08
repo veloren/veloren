@@ -77,11 +77,13 @@ pub struct AgentData<'a> {
 }
 
 pub struct TargetData<'a> {
+    pub uid: Option<Uid>,
     pub pos: &'a Pos,
     pub ori: Option<&'a Ori>,
     pub body: Option<&'a Body>,
     pub scale: Option<&'a Scale>,
     pub char_state: Option<&'a CharacterState>,
+    pub physics_state: Option<&'a PhysicsState>,
     pub health: Option<&'a Health>,
     pub buffs: Option<&'a Buffs>,
     pub drawn_weapons: (Option<ToolKind>, Option<ToolKind>),
@@ -90,11 +92,13 @@ pub struct TargetData<'a> {
 impl<'a> TargetData<'a> {
     pub fn new(pos: &'a Pos, target: EcsEntity, read_data: &'a ReadData) -> Self {
         Self {
+            uid: read_data.uids.get(target).copied(),
             pos,
             ori: read_data.orientations.get(target),
             body: read_data.bodies.get(target),
             scale: read_data.scales.get(target),
             char_state: read_data.char_states.get(target),
+            physics_state: read_data.physics_states.get(target),
             health: read_data.healths.get(target),
             buffs: read_data.buffs.get(target),
             drawn_weapons: {
@@ -262,6 +266,9 @@ pub enum Tactic {
     FrostGigas,
     BorealHammer,
     BorealBow,
+    FireGigas,
+    AshenAxe,
+    AshenStaff,
     Dullahan,
     Cyclops,
     IceDrake,
@@ -447,7 +454,7 @@ pub enum Path {
     Partial,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum AbilityData {
     ComboMelee {
         range: f32,
@@ -463,7 +470,7 @@ pub enum AbilityData {
         combo_scales: bool,
     },
     SelfBuff {
-        buff: BuffKind,
+        buff_kinds: Vec<BuffKind>,
         energy: f32,
         combo: u32,
         combo_scales: bool,
@@ -536,8 +543,12 @@ pub enum AbilityData {
         range: f32,
         combo: u32,
     },
+    BasicSummon,
     // Note, buff check not done as auras could be non-buff and auras could target either in or
     // out of group
+    BasicAura {
+        energy: f32,
+    },
     StaticAura {
         energy: f32,
     },
@@ -598,13 +609,13 @@ impl AbilityData {
                 combo_scales: scaling.is_some(),
             },
             SelfBuff {
-                buff_kind,
+                buffs,
                 energy_cost,
                 combo_cost,
                 combo_scaling,
                 ..
             } => Self::SelfBuff {
-                buff: *buff_kind,
+                buff_kinds: buffs.iter().map(|buff_desc| buff_desc.kind).collect(),
                 energy: *energy_cost,
                 combo: *combo_cost,
                 combo_scales: combo_scaling.is_some(),
@@ -739,6 +750,10 @@ impl AbilityData {
                 range: *shockwave_speed * *shockwave_duration,
                 combo: minimum_combo.unwrap_or(0),
             },
+            BasicSummon { .. } => Self::BasicSummon,
+            BasicAura { energy_cost, .. } => Self::BasicAura {
+                energy: *energy_cost,
+            },
             StaticAura { energy_cost, .. } => Self::StaticAura {
                 energy: *energy_cost,
             },
@@ -804,8 +819,10 @@ impl AbilityData {
         let attack_kind_check = |attacks: AttackFilters| {
             tgt_data
                 .char_state
-                .and_then(|cs| cs.attack_kind())
-                .is_some_and(|ak| attacks.applies(ak))
+                .map(|cs| cs.attack_kind())
+                .unwrap_or_default()
+                .iter()
+                .any(|attack_source| attacks.applies(*attack_source))
         };
         let ranged_check = |proj_speed| {
             let max_horiz_dist: f32 = {
@@ -857,14 +874,16 @@ impl AbilityData {
                     && combo_check(*combo, *combo_scales)
             },
             SelfBuff {
-                buff,
+                buff_kinds,
                 energy,
                 combo,
                 combo_scales,
             } => {
                 energy_check(*energy)
                     && combo_check(*combo, *combo_scales)
-                    && agent_data.buffs.is_some_and(|buffs| !buffs.contains(*buff))
+                    && agent_data
+                        .buffs
+                        .is_some_and(|buffs| !buffs.contains_any(buff_kinds))
             },
             DiveMelee {
                 range,
@@ -990,6 +1009,8 @@ impl AbilityData {
                     && energy_check(*energy)
                     && combo_check(*combo, false)
             },
+            BasicSummon => true,
+            BasicAura { energy } => energy_check(*energy),
             StaticAura { energy } => energy_check(*energy),
             RegrowHead { energy } => energy_check(*energy),
         }

@@ -57,6 +57,12 @@ common-items-npc_weapons-biped_small-boreal-bow = Boreal Bow
 
 common-items-npc_weapons-biped_small-boreal-hammer = Boreal Hammer
     .desc = {""}
+    
+common-items-npc_weapons-biped_small-ashen-axe = Ashen Axe
+    .desc = {""}
+
+common-items-npc_weapons-biped_small-ashen-staff = Ashen Staff
+    .desc = {""}    
 
 common-items-npc_weapons-biped_small-haniwa-archer = Archer Bow
     .desc = {""}
@@ -107,6 +113,9 @@ common-items-npc_weapons-bow-terracotta_besieger_bow = Terracotta Besieger Bow
     .desc = Placeholder
 
 common-items-npc_weapons-axe-gigas_frost_axe = Frost Gigas Axe
+    .desc = Placeholder
+
+common-items-npc_weapons-sword-gigas_fire_sword = Fire Gigas Sword
     .desc = Placeholder
 
 common-items-npc_weapons-axe-executioner_axe = Executioner Axe

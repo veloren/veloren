@@ -2,9 +2,9 @@ SelfBuff(
     buildup_duration: 0.2,
     cast_duration: 0.2,
     recover_duration: 0.2,
-    buff_kind: EnergyRegen,
-    buff_strength: 0.1,
-    buff_duration: Some(15.0),
+    buffs: [
+        BuffDesc(kind: EnergyRegen, data: BuffData(strength: 0.1, duration: Some(15.0))),
+    ],
     combo_cost: 1,
     combo_scaling: Some(Linear),
     energy_cost: 0,

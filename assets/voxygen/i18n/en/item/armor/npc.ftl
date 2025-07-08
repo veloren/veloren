@@ -300,6 +300,21 @@ common-items-npc_armor-biped_small-boreal-chest-warrior = Boreal Chestplate
 
 common-items-npc_armor-biped_small-boreal-hand-warrior = Boreal Gauntlets
     .desc = Colder than the touch of death.
+    
+common-items-npc_armor-biped_small-ashen-foot-warrior = Ashen Wrappings
+    .desc = testing123
+
+common-items-npc_armor-biped_small-ashen-head-warrior = Ashen Helmet
+    .desc = testing123
+
+common-items-npc_armor-biped_small-ashen-pants-warrior = Ashen Tunic
+    .desc = testing123
+
+common-items-npc_armor-biped_small-ashen-chest-warrior = Ashen Chestplate
+    .desc = testing123
+
+common-items-npc_armor-biped_small-ashen-hand-warrior = Ashen Gauntlets
+    .desc = testing123
 
 common-items-npc_armor-biped_small-bushly-foot-bushly = Bushly
     .desc = Plant Creature.
@@ -746,6 +761,9 @@ common-items-npc_armor-biped_large-generic = Generic Biped Large
     .desc = Worn by bipeds.
 
 common-items-npc_armor-biped_large-gigas_frost = Frost Gigas Armor
+    .desc = The best defense is a good offense.
+
+common-items-npc_armor-biped_large-gigas_fire= Fire Gigas Armor
     .desc = The best defense is a good offense.
 
 common-items-npc_armor-biped_large-harvester = Harvester Shirt

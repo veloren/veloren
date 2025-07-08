@@ -1,0 +1,12 @@
+BasicSummon(
+    buildup_duration: 0.8,
+    cast_duration: 0.8,
+    recover_duration: 0.35,
+    summon_info: Crux(
+        max_height: 20.0,
+        scale: 3.0,
+        range: 95.0,
+        strength: 1.5,
+        duration: 1.0,
+    ),
+)
