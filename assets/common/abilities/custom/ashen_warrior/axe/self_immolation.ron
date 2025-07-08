@@ -1,0 +1,10 @@
+SelfBuff(
+    buildup_duration: 0.4,
+    cast_duration: 0.2,
+    recover_duration: 0.4,
+    buffs: [
+        BuffDesc(kind: Burning, data: BuffData(strength: 1.0, duration: Some(20.0))),
+        BuffDesc(kind: Reckless, data: BuffData(strength: 0.55, duration: Some(20.0))),
+    ],
+    energy_cost: 20,
+)

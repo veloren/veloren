@@ -65,6 +65,7 @@ enum_iter! {
         OchreLegoom = 27,
         PurpleLegoom = 28,
         RedLegoom = 29,
+        Ashen = 30,
     }
 }
 
@@ -101,6 +102,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub ochre_legoom: SpeciesMeta,
     pub purple_legoom: SpeciesMeta,
     pub red_legoom: SpeciesMeta,
+    pub ashen: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -139,6 +141,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::OchreLegoom => &self.ochre_legoom,
             Species::PurpleLegoom => &self.purple_legoom,
             Species::RedLegoom => &self.red_legoom,
+            Species::Ashen => &self.ashen,
         }
     }
 }

@@ -306,31 +306,37 @@ impl Data {
                 ));
             }
         }
-        // Spawn one monster Gigasfrost into the world
-        // Try a few times to find a location that's not underwater
-        if let Some((wpos, _)) = (0..100)
-            .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
-            .find_map(|pos| Some((pos, world.sim().get(pos).filter(|c| !c.is_underwater())?)))
-            .map(|(pos, chunk)| {
-                let wpos2d = pos.cpos_to_wpos_center();
-                (
-                    wpos2d
-                        .map(|e| e as f32 + 0.5)
-                        .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0)),
-                    chunk,
-                )
-            })
-        {
-            let species = comp::body::biped_large::Species::Gigasfrost;
 
-            this.npcs.create_npc(Npc::new(
-                rng.gen(),
-                wpos,
-                Body::BipedLarge(comp::body::biped_large::Body::random_with(
-                    &mut rng, &species,
-                )),
-                Role::Monster,
-            ));
+        // Spawn one of each gigas into the world
+        // Try a few times to find a location that's not underwater
+        for species in [
+            comp::body::biped_large::Species::Gigasfrost,
+            comp::body::biped_large::Species::Gigasfire,
+        ]
+        .into_iter()
+        {
+            if let Some((wpos, _)) = (0..100)
+                .map(|_| world.sim().get_size().map(|sz| rng.gen_range(0..sz as i32)))
+                .find_map(|pos| Some((pos, world.sim().get(pos).filter(|c| !c.is_underwater())?)))
+                .map(|(pos, chunk)| {
+                    let wpos2d = pos.cpos_to_wpos_center();
+                    (
+                        wpos2d
+                            .map(|e| e as f32 + 0.5)
+                            .with_z(world.sim().get_alt_approx(wpos2d).unwrap_or(0.0)),
+                        chunk,
+                    )
+                })
+            {
+                this.npcs.create_npc(Npc::new(
+                    rng.gen(),
+                    wpos,
+                    Body::BipedLarge(comp::body::biped_large::Body::random_with(
+                        &mut rng, &species,
+                    )),
+                    Role::Monster,
+                ));
+            }
         }
 
         info!("Generated {} rtsim NPCs.", this.npcs.len());

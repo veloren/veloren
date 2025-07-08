@@ -161,6 +161,9 @@ pub enum Outcome {
     FireShockwave {
         pos: Vec3<f32>,
     },
+    FireLowShockwave {
+        pos: Vec3<f32>,
+    },
     GroundDig {
         pos: Vec3<f32>,
     },
@@ -195,6 +198,10 @@ pub enum Outcome {
     Transformation {
         pos: Vec3<f32>,
     },
+    FirePillarIndicator {
+        pos: Vec3<f32>,
+        radius: f32,
+    },
 }
 
 impl Outcome {
@@ -221,6 +228,7 @@ impl Outcome {
             | Outcome::IceSpikes { pos }
             | Outcome::Steam { pos }
             | Outcome::FireShockwave { pos }
+            | Outcome::FireLowShockwave { pos }
             | Outcome::IceCrack { pos }
             | Outcome::Utterance { pos, .. }
             | Outcome::CyclopsCharge { pos }
@@ -236,7 +244,8 @@ impl Outcome {
             | Outcome::ClayGolemDash { pos }
             | Outcome::Glider { pos, .. }
             | Outcome::Splash { pos, .. }
-            | Outcome::Transformation { pos } => Some(*pos),
+            | Outcome::Transformation { pos }
+            | Outcome::FirePillarIndicator { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. }
             | Outcome::DamagedBlock { pos, .. }
             | Outcome::SpriteUnlocked { pos }

@@ -53,6 +53,7 @@ impl Component for ShockwaveHitEntities {
 pub enum FrontendSpecifier {
     Ground,
     Fire,
+    FireLow,
     Water,
     Ice,
     IceSpikes,
@@ -69,6 +70,22 @@ impl Dodgeable {
             Self::Roll => AttackSource::AirShockwave,
             Self::Jump => AttackSource::GroundShockwave,
             Self::No => AttackSource::UndodgeableShockwave,
+        }
+    }
+
+    pub fn shockwave_attack_source_slice(&self) -> &[AttackSource] {
+        match self {
+            Self::Roll => &[AttackSource::AirShockwave],
+            Self::Jump => &[AttackSource::GroundShockwave],
+            Self::No => &[AttackSource::UndodgeableShockwave],
+        }
+    }
+
+    pub fn explosion_shockwave_attack_source_slice(&self) -> &[AttackSource] {
+        match self {
+            Self::Roll => &[AttackSource::Explosion, AttackSource::AirShockwave],
+            Self::Jump => &[AttackSource::Explosion, AttackSource::GroundShockwave],
+            Self::No => &[AttackSource::Explosion, AttackSource::UndodgeableShockwave],
         }
     }
 }

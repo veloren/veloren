@@ -2,9 +2,9 @@ SelfBuff(
     buildup_duration: 0.3,
     cast_duration: 0.2,
     recover_duration: 0.1,
-    buff_kind: Berserk,
-    buff_strength: 0.3,
-    buff_duration: Some(20.0),
+    buffs: [
+        BuffDesc(kind: Berserk, data: BuffData(strength: 0.3, duration: Some(20.0))),
+    ],
     combo_cost: 10,
     energy_cost: 0,
 )

@@ -18,7 +18,7 @@ use common::{
         UnresolvedChatMsg, UtteranceKind,
         ability::BASE_ABILITY_LIMIT,
         agent::{FlightMode, PidControllers, Sound, SoundKind, Target},
-        body,
+        biped_large, body,
         inventory::slot::EquipSlot,
         item::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
@@ -1038,9 +1038,18 @@ impl AgentData<'_> {
             Some(Body::Item(item)) => {
                 if !matches!(item, body::item::Body::Thrown(_)) {
                     let is_humanoid = matches!(self.body, Some(Body::Humanoid(_)));
+                    let avoids_item_drops = matches!(
+                        self.body,
+                        Some(Body::BipedLarge(biped_large::Body {
+                            species: biped_large::Species::Gigasfrost
+                                | biped_large::Species::Gigasfire,
+                            ..
+                        }))
+                    );
                     // If the agent is humanoid, it will pick up all kinds of item drops. If the
                     // agent isn't humanoid, it will pick up only consumable item drops.
-                    let wants_pickup = is_humanoid || matches!(item, body::item::Body::Consumable);
+                    let wants_pickup = !avoids_item_drops
+                        && (is_humanoid || matches!(item, body::item::Body::Consumable));
 
                     // The agent will attempt to pickup the item if it wants to pick it up and
                     // is allowed to
@@ -1311,6 +1320,9 @@ impl AgentData<'_> {
                             "Frost Gigas" => Tactic::FrostGigas,
                             "Boreal Hammer" => Tactic::BorealHammer,
                             "Boreal Bow" => Tactic::BorealBow,
+                            "Fire Gigas" => Tactic::FireGigas,
+                            "Ashen Axe" => Tactic::AshenAxe,
+                            "Ashen Staff" => Tactic::AshenStaff,
                             "Adlet Hunter" => Tactic::AdletHunter,
                             "Adlet Icepicker" => Tactic::AdletIcepicker,
                             "Adlet Tracker" => Tactic::AdletTracker,
@@ -1865,6 +1877,30 @@ impl AgentData<'_> {
                 rng,
             ),
             Tactic::BorealBow => self.handle_boreal_bow_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::FireGigas => self.handle_firegigas_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::AshenAxe => self.handle_ashen_axe_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
+            Tactic::AshenStaff => self.handle_ashen_staff_attack(
                 agent,
                 controller,
                 &attack_data,

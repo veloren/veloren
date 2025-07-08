@@ -7,4 +7,5 @@ SpriteSummon(
     summon_distance: (8, 6.1),
     sparseness: 0.2,
     angle: 360,
+    ori_modifier: 1.0,
 )

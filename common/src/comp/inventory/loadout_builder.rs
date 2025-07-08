@@ -565,6 +565,9 @@ pub fn default_chest(body: &Body) -> Option<&'static str> {
             biped_large::Species::Gigasfrost => {
                 Some("common.items.npc_armor.biped_large.gigas_frost")
             },
+            biped_large::Species::Gigasfire => {
+                Some("common.items.npc_armor.biped_large.gigas_fire")
+            },
             biped_large::Species::HaniwaGeneral => {
                 Some("common.items.npc_armor.biped_large.haniwageneral")
             },
@@ -921,6 +924,9 @@ pub fn default_main_tool(body: &Body) -> Option<&'static str> {
             (biped_large::Species::Gigasfrost, _) => {
                 Some("common.items.npc_weapons.axe.gigas_frost_axe")
             },
+            (biped_large::Species::Gigasfire, _) => {
+                Some("common.items.npc_weapons.sword.gigas_fire_sword")
+            },
             (biped_large::Species::AdletElder, _) => {
                 Some("common.items.npc_weapons.sword.adlet_elder_sword")
             },
@@ -1095,6 +1101,7 @@ pub struct LoadoutBuilder(Loadout);
 pub enum Preset {
     HuskSummon,
     BorealSummon,
+    AshenSummon,
     IronDwarfSummon,
     ShamanicSpiritSummon,
     JiangshiSummon,
@@ -1188,6 +1195,10 @@ impl LoadoutBuilder {
             Preset::BorealSummon => {
                 self =
                     self.with_asset_expect("common.loadout.world.boreal.boreal_warrior", rng, None);
+            },
+            Preset::AshenSummon => {
+                self =
+                    self.with_asset_expect("common.loadout.world.ashen.ashen_warrior", rng, None);
             },
             Preset::IronDwarfSummon => {
                 self = self.with_asset_expect(

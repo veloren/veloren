@@ -1,0 +1,26 @@
+BasicSummon(
+    buildup_duration: 0.3,
+    cast_duration: 1.0,
+    recover_duration: 0.3,
+    summon_info: BeamWall(
+        buildup_duration: 1.0,
+        attack_duration: 15.0,
+        beam_duration: 0.5,
+        pillar_count: 40,
+        wall_radius: 22.0,
+        pillar_radius: 2.0,
+        height: 10.0,
+        damage: 21.0,
+        damage_effect: Some(Buff((
+            kind: Burning,
+            dur_secs: 10.0,
+            strength: Value(1.0),
+            chance: 1.0,
+        ))),
+        dodgeable: No,
+        tick_rate: 1.45,
+        specifier: FlameWallPillar,
+        indicator_specifier: FirePillar,
+        duration: None,
+    ),
+)

@@ -419,12 +419,12 @@
             threshold: 0.8,
             subtitle: "subtitle-sword_attack",
         ),
-        Attack(DashMelee(Action), Hammer): (
+        Attack(BasicMelee(Action), Sword): (
             files: [
-                "voxygen.audio.sfx.abilities.swing",
+                "voxygen.audio.sfx.abilities.swing_sword",
             ],
             threshold: 0.7,
-            subtitle: "subtitle-hammer-attack",
+            subtitle: "subtitle-sword_attack",
         ),
         Inventory(CollectedTool(Sword)): (
             files: [
@@ -464,6 +464,13 @@
             ],
             threshold: 0.8,
             subtitle: "subtitle-hammer_attack",
+        ),
+        Attack(DashMelee(Action), Hammer): (
+            files: [
+                "voxygen.audio.sfx.abilities.swing",
+            ],
+            threshold: 0.7,
+            subtitle: "subtitle-hammer-attack",
         ),
         Inventory(CollectedTool(Hammer)): (
             files: [

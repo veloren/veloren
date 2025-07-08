@@ -15,7 +15,7 @@ use crate::{
             armor::Friction,
             tool::{self, AbilityContext},
         },
-        quadruped_low, quadruped_medium, quadruped_small, ship,
+        object, quadruped_low, quadruped_medium, quadruped_small, ship,
         skills::{SKILL_MODIFIERS, Skill, SwimSkill},
         theropod,
     },
@@ -115,6 +115,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => 110.0,
                 biped_large::Species::Cultistwarlock => 90.0,
                 biped_large::Species::Gigasfrost => 45.0,
+                biped_large::Species::Gigasfire => 50.0,
                 biped_large::Species::Forgemaster => 100.0,
                 _ => 80.0,
             },
@@ -329,6 +330,7 @@ impl Body {
             Body::BirdLarge(_) => Some(GRAVITY * self.mass().0 * 0.5),
             Body::Dragon(_) => Some(200_000.0),
             Body::Ship(ship) if ship.can_fly() => Some(390_000.0),
+            Body::Object(object::Body::Crux) => Some(1_000.0),
             _ => None,
         }
     }

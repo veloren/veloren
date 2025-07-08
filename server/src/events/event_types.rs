@@ -11,8 +11,8 @@ pub use common::event::{
     ParryHookEvent, PoiseChangeEvent, PossessEvent, ProcessTradeActionEvent, RegrowHeadEvent,
     RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent, RespawnEvent,
     SetBattleModeEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
-    StartInteractionEvent, StartTeleportingEvent, TamePetEvent, TeleportToEvent,
-    TeleportToPositionEvent, ThrowEvent, ToggleSpriteLightEvent, TransformEvent,
+    StartInteractionEvent, StartTeleportingEvent, SummonBeamPillarsEvent, TamePetEvent,
+    TeleportToEvent, TeleportToPositionEvent, ThrowEvent, ToggleSpriteLightEvent, TransformEvent,
     UpdateCharacterDataEvent, UpdateMapMarkerEvent,
 };
 
@@ -88,6 +88,7 @@ macro_rules! server_events {
             CreateAuraEntityEvent
             RegrowHeadEvent
             SetBattleModeEvent
+            SummonBeamPillarsEvent
         }
     };
 }

@@ -3621,6 +3621,7 @@ impl FigureMgr {
                             &target_base,
                             (
                                 (active_tool_kind, active_tool_spec),
+                                second_tool_kind,
                                 rel_vel,
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3948,6 +3949,7 @@ impl FigureMgr {
                             &target_base,
                             (
                                 active_tool_kind,
+                                second_tool_kind,
                                 rel_vel,
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -4027,6 +4029,37 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
+                    CharacterState::SelfBuff(_) | CharacterState::BasicAura(_) => {
+                        let progress = if let Some(((timer, stage_section), durations)) = character
+                            .timer()
+                            .zip(character.stage_section())
+                            .zip(character.durations())
+                        {
+                            match stage_section {
+                                StageSection::Buildup => durations.buildup,
+                                StageSection::Action => durations.action,
+                                StageSection::Recover => durations.recover,
+                                _ => None,
+                            }
+                            .map_or(timer.as_secs_f32(), |stage_duration| {
+                                timer.as_secs_f32() / stage_duration.as_secs_f32()
+                            })
+                        } else {
+                            0.0
+                        };
+
+                        anim::biped_small::BuffAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                second_tool_kind,
+                                character.stage_section(),
+                            ),
+                            progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
                     CharacterState::BasicBlock(s) => {
                         let stage_time = s.timer.as_secs_f32();
                         let stage_progress = match s.stage_section {
@@ -4064,11 +4097,7 @@ impl FigureMgr {
 
                         anim::biped_small::RapidMeleeAnimation::update_skeleton(
                             &target_base,
-                            (
-                                ability_id,
-                                s.stage_section,
-                                (s.current_strike, s.static_data.max_strikes),
-                            ),
+                            (ability_id, s.stage_section),
                             stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -5601,6 +5630,38 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
+                    CharacterState::RepeaterRanged(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+
+                            _ => 0.0,
+                        };
+                        anim::biped_large::ShootAnimation::update_skeleton(
+                            &target_base,
+                            (
+                                active_tool_kind,
+                                (second_tool_kind, second_tool_spec),
+                                rel_vel,
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                Some(s.stage_section),
+                                state.acc_vel,
+                                ability_id,
+                            ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
                     CharacterState::Stunned(s) => {
                         let stage_time = s.timer.as_secs_f32();
                         let stage_progress = match s.stage_section {
@@ -5753,6 +5814,7 @@ impl FigureMgr {
                                 time,
                                 Some(s.stage_section),
                                 state.acc_vel,
+                                ability_id,
                             ),
                             stage_progress,
                             &mut state_animation_rate,
@@ -5791,9 +5853,35 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
+                    CharacterState::LeapExplosionShockwave(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Movement => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.swing_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::LeapExplosionShockAnimation::update_skeleton(
+                            &target_base,
+                            (Some(s.stage_section), ability_id),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
                     CharacterState::LeapMelee(s) => {
                         let stage_progress = match active_tool_kind {
-                            Some(ToolKind::Axe | ToolKind::Hammer) => {
+                            Some(ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer) => {
                                 let stage_time = s.timer.as_secs_f32();
                                 match s.stage_section {
                                     StageSection::Buildup => {
@@ -5885,6 +5973,29 @@ impl FigureMgr {
                                 Some(s.stage_section),
                                 ability_id,
                             ),
+                            stage_progress,
+                            &mut state_animation_rate,
+                            skeleton_attr,
+                        )
+                    },
+                    CharacterState::Explosion(s) => {
+                        let stage_time = s.timer.as_secs_f32();
+                        let stage_progress = match s.stage_section {
+                            StageSection::Buildup => {
+                                stage_time / s.static_data.buildup_duration.as_secs_f32()
+                            },
+                            StageSection::Action => {
+                                stage_time / s.static_data.action_duration.as_secs_f32()
+                            },
+                            StageSection::Recover => {
+                                stage_time / s.static_data.recover_duration.as_secs_f32()
+                            },
+                            _ => 0.0,
+                        };
+
+                        anim::biped_large::ExplosionAnimation::update_skeleton(
+                            &target_base,
+                            (rel_vel, state.acc_vel, Some(s.stage_section), ability_id),
                             stage_progress,
                             &mut state_animation_rate,
                             skeleton_attr,

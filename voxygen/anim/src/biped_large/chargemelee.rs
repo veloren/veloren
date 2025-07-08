@@ -100,7 +100,6 @@ impl Animation for ChargeMeleeAnimation {
         next.hand_l.orientation = Quaternion::rotation_x(0.0);
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
-        #[expect(clippy::single_match)]
         match active_tool_kind {
             Some(ToolKind::Natural) => match ability_id {
                 Some("common.abilities.custom.minotaur.cleave") => {

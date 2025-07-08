@@ -56,7 +56,7 @@ impl Animation for SpriteSummonAnimation {
         next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
         match active_tool_kind {
-            Some(ToolKind::Axe | ToolKind::Hammer | ToolKind::Sceptre) => {
+            Some(ToolKind::Axe | ToolKind::Hammer | ToolKind::Sceptre | ToolKind::Sword) => {
                 let (move1base, move2, move3) = match stage_section {
                     Some(StageSection::Buildup) => ((anim_time.powf(0.25)), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, (anim_time), 0.0),

@@ -1,0 +1,18 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.ashen.head.warrior"),
+    chest: Item("common.items.npc_armor.biped_small.ashen.chest.warrior"),
+    gloves: Item("common.items.npc_armor.biped_small.ashen.hand.warrior"),
+    legs: Item("common.items.npc_armor.biped_small.ashen.pants.warrior"),
+    feet: Item("common.items.npc_armor.biped_small.ashen.foot.warrior"),
+    active_hands: Choice([
+        (1, InHands((
+            Item("common.items.npc_weapons.biped_small.ashen.axe"),
+            Item("common.items.npc_weapons.biped_small.ashen.axe"),
+        ))),
+        (1, InHands((
+            Item("common.items.npc_weapons.biped_small.ashen.staff"),
+            None,
+        ))),
+    ]),
+)

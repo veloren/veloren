@@ -1,0 +1,13 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("ashen"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.nothing"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.ashen.ashen_warrior"),
+        )),
+    ),
+    meta: [],
+)

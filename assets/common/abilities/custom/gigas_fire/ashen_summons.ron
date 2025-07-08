@@ -1,0 +1,24 @@
+BasicSummon(
+    buildup_duration: 1.75,
+    cast_duration: 1.5,
+    recover_duration: 0.75,
+    summon_info: Npc(
+        summoned_amount: 4,
+        summon_distance: (5, 15),
+        body: BipedSmall((
+            species: Ashen,
+            body_type: Male,
+        )),
+        use_npc_name: true,
+        scale: None,
+        has_health: true,
+        loadout_config: Some(AshenSummon),
+        skillset_config: None,
+        duration: None,
+    ),
+    movement_modifier: (
+        buildup: Some(0.0),
+        swing: Some(0.0),
+        recover: Some(0.0),
+    ),
+)

@@ -552,7 +552,7 @@ impl SfxMgr {
                             let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Bleep);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
                         },
-                        biped_small::Species::Boreal => {
+                        biped_small::Species::Boreal | biped_small::Species::Ashen => {
                             let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GigaRoar);
                             audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
                         },
@@ -626,7 +626,7 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Steam);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
             },
-            Outcome::FireShockwave { pos, .. } => {
+            Outcome::FireShockwave { pos, .. } | Outcome::FireLowShockwave { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
             },
@@ -776,8 +776,16 @@ impl SfxMgr {
                 },
                 beam::FrontendSpecifier::Flamethrower
                 | beam::FrontendSpecifier::Cultist
-                | beam::FrontendSpecifier::PhoenixLaser => {
+                | beam::FrontendSpecifier::PhoenixLaser
+                | beam::FrontendSpecifier::FireGigasOverheat
+                | beam::FrontendSpecifier::FirePillar => {
                     if thread_rng().gen_bool(0.5) {
+                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                    }
+                },
+                beam::FrontendSpecifier::FlameWallPillar => {
+                    if thread_rng().gen_bool(0.02) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
                     }
@@ -911,23 +919,21 @@ impl SfxMgr {
                     audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), player_pos);
                 }
             },
-            Outcome::SpriteDelete { pos, sprite } => {
-                match sprite {
-                    SpriteKind::SeaUrchin => {
-                        let pos = pos.map(|e| e as f32 + 0.5);
-                        let power = (0.6 - pos.distance(audio.get_listener_pos()) / 5_000.0)
-                            .max(0.0)
-                            .powi(7);
-                        let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
-                        audio.emit_sfx(
-                            sfx_trigger_item,
-                            pos,
-                            Some((power.abs() / 2.5).min(0.3)),
-                            player_pos,
-                        );
-                    },
-                    _ => {},
-                };
+            Outcome::SpriteDelete {
+                pos,
+                sprite: SpriteKind::SeaUrchin,
+            } => {
+                let pos = pos.map(|e| e as f32 + 0.5);
+                let power = (0.6 - pos.distance(audio.get_listener_pos()) / 5_000.0)
+                    .max(0.0)
+                    .powi(7);
+                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Explosion);
+                audio.emit_sfx(
+                    sfx_trigger_item,
+                    pos,
+                    Some((power.abs() / 2.5).min(0.3)),
+                    player_pos,
+                );
             },
             Outcome::Whoosh { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Whoosh);
@@ -997,6 +1003,7 @@ impl SfxMgr {
                 }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},
+            _ => {},
         }
     }
 

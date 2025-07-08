@@ -2,18 +2,18 @@ BasicSummon(
     buildup_duration: 0.75,
     cast_duration: 0.25,
     recover_duration: 0.5,
-    summon_amount: 12,
-    summon_distance: (8, 10),
-    summon_info: (
+    summon_info: Npc(
+        summoned_amount: 12,
+        summon_distance: (8, 10),
         body: Object(FieryTornado),
         scale: None,
         has_health: false,
         use_npc_name: false,
         loadout_config: None,
         skillset_config: None,
+        duration: Some((
+            secs: 10,
+            nanos: 0,
+        )),
     ),
-    duration: Some((
-        secs: 10,
-        nanos: 0,
-    )),
 )

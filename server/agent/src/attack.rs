@@ -10,6 +10,7 @@ use common::{
         ControlEvent, Controller, Fluid, InputKind,
         ability::{ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, Stance, SwordStance},
         buff::BuffKind,
+        fluid_dynamics::LiquidKind,
         item::tool::AbilityContext,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
     },
@@ -5672,6 +5673,478 @@ impl AgentData<'_> {
             }
         } else {
             // Path to enemy for melee hits if need more energy
+            self.path_toward_target(
+                agent,
+                controller,
+                tgt_data.pos.0,
+                read_data,
+                Path::Partial,
+                None,
+            );
+        }
+    }
+
+    pub fn handle_firegigas_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const MELEE_RANGE: f32 = 12.0;
+        const RANGED_RANGE: f32 = 27.0;
+        const LEAP_RANGE: f32 = 50.0;
+        const MINION_SUMMON_THRESHOLD: f32 = 1.0 / 8.0;
+        const OVERHEAT_DUR: f32 = 3.0;
+        const FORCE_GAP_CLOSER_TIMEOUT: f32 = 10.0;
+
+        enum ActionStateTimers {
+            Special,
+            Overheat,
+            OutOfMeleeRange,
+        }
+
+        enum ActionStateFCounters {
+            FCounterMinionSummonThreshold,
+        }
+
+        enum ActionStateConditions {
+            VerticalStrikeCombo,
+        }
+
+        const FAST_SLASH: InputKind = InputKind::Primary;
+        const FAST_THRUST: InputKind = InputKind::Secondary;
+        const SLOW_SLASH: InputKind = InputKind::Ability(0);
+        const SLOW_THRUST: InputKind = InputKind::Ability(1);
+        const LAVA_LEAP: InputKind = InputKind::Ability(2);
+        const VERTICAL_STRIKE: InputKind = InputKind::Ability(3);
+        const OVERHEAT: InputKind = InputKind::Ability(4);
+        const WHIRLWIND: InputKind = InputKind::Ability(5);
+        const EXPLOSIVE_STRIKE: InputKind = InputKind::Ability(6);
+        const FIRE_PILLARS: InputKind = InputKind::Ability(7);
+        const TARGETED_FIRE_PILLAR: InputKind = InputKind::Ability(8);
+        const ASHEN_SUMMONS: InputKind = InputKind::Ability(9);
+
+        fn choose_weighted<const N: usize>(
+            rng: &mut impl Rng,
+            choices: [(InputKind, f32); N],
+        ) -> InputKind {
+            choices
+                .choose_weighted(rng, |(_, weight)| *weight)
+                .expect("weights should be valid")
+                .0
+        }
+
+        // Basic melee strikes
+        fn rand_basic(rng: &mut impl Rng, damage_fraction: f32) -> InputKind {
+            choose_weighted(rng, [
+                (FAST_SLASH, 2.0),
+                (FAST_THRUST, 2.0),
+                (SLOW_SLASH, 1.0 + damage_fraction),
+                (SLOW_THRUST, 1.0 + damage_fraction),
+            ])
+        }
+
+        // Less frequent mixup attacks
+        fn rand_special(rng: &mut impl Rng) -> InputKind {
+            choose_weighted(rng, [
+                (LAVA_LEAP, 5.0),
+                (VERTICAL_STRIKE, 5.0),
+                (OVERHEAT, 5.0),
+                (WHIRLWIND, 5.0),
+                (EXPLOSIVE_STRIKE, 1.0),
+                (FIRE_PILLARS, 1.0),
+            ])
+        }
+
+        // Attacks capable of also hitting entities behind the gigas
+        fn rand_aoe(rng: &mut impl Rng) -> InputKind {
+            choose_weighted(rng, [
+                (EXPLOSIVE_STRIKE, 1.0),
+                (FIRE_PILLARS, 1.0),
+                (WHIRLWIND, 2.0),
+            ])
+        }
+
+        // Attacks capable of also hitting entities further away
+        fn rand_ranged(rng: &mut impl Rng) -> InputKind {
+            choose_weighted(rng, [
+                (EXPLOSIVE_STRIKE, 1.0),
+                (FIRE_PILLARS, 1.0),
+                (OVERHEAT, 1.0),
+            ])
+        }
+
+        let cast_targeted_fire_pillar = |c: &mut Controller| {
+            c.push_action(ControlAction::StartInput {
+                input: TARGETED_FIRE_PILLAR,
+                target_entity: tgt_data.uid,
+                select_pos: None,
+            })
+        };
+
+        fn can_cast_new_ability(char_state: &CharacterState) -> bool {
+            !matches!(
+                char_state,
+                CharacterState::LeapMelee(_)
+                    | CharacterState::BasicMelee(_)
+                    | CharacterState::BasicBeam(_)
+                    | CharacterState::BasicSummon(_)
+                    | CharacterState::SpriteSummon(_)
+            )
+        }
+
+        // Initializes counters at start of combat
+        if !agent.combat_state.initialized {
+            agent.combat_state.counters
+                [ActionStateFCounters::FCounterMinionSummonThreshold as usize] =
+                1.0 - MINION_SUMMON_THRESHOLD;
+            agent.combat_state.initialized = true;
+        }
+
+        let health_fraction = self.health.map_or(0.5, |h| h.fraction());
+        let damage_fraction = 1.0 - health_fraction;
+        // Calculate the "cheesing factor" (height of the normalized position
+        // difference), unless the target is airborne from our hit
+        // Cheesing from close range is usually not possible
+        let cheesed_from_above = !agent.combat_state.conditions
+            [ActionStateConditions::VerticalStrikeCombo as usize]
+            && attack_data.dist_sqrd > 5f32.powi(2)
+            && (tgt_data.pos.0 - self.pos.0).normalized().map(f32::abs).z > 0.6;
+        // Being in water also triggers this as there are a lot of exploits with water
+        let cheesed_in_water = matches!(self.physics_state.in_fluid, Some(Fluid::Liquid { kind: LiquidKind::Water, depth, .. }) if depth >= 2.0);
+        let cheesed = cheesed_from_above || cheesed_in_water;
+        let tgt_airborne = tgt_data
+            .physics_state
+            .is_some_and(|physics| physics.on_ground.is_none() && physics.in_liquid().is_none());
+        let casting_beam = matches!(self.char_state, CharacterState::BasicBeam(_))
+            && self.char_state.stage_section() != Some(StageSection::Recover);
+
+        // Update timers
+        agent.combat_state.timers[ActionStateTimers::Special as usize] += read_data.dt.0;
+        if casting_beam {
+            agent.combat_state.timers[ActionStateTimers::Overheat as usize] += read_data.dt.0;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::Overheat as usize] = 0.0;
+        }
+        if attack_data.dist_sqrd > MELEE_RANGE.powi(2) {
+            agent.combat_state.timers[ActionStateTimers::OutOfMeleeRange as usize] +=
+                read_data.dt.0;
+        } else {
+            agent.combat_state.timers[ActionStateTimers::OutOfMeleeRange as usize] = 0.0;
+        }
+
+        // Cast abilities
+        if casting_beam
+            && agent.combat_state.timers[ActionStateTimers::Overheat as usize] < OVERHEAT_DUR
+        {
+            controller.push_basic_input(OVERHEAT);
+            controller.inputs.look_dir = self
+                .ori
+                .look_dir()
+                .to_horizontal()
+                .unwrap_or_else(|| self.ori.look_dir());
+        } else if health_fraction
+            < agent.combat_state.counters
+                [ActionStateFCounters::FCounterMinionSummonThreshold as usize]
+        {
+            // Summon minions at particular thresholds of health
+            controller.push_basic_input(ASHEN_SUMMONS);
+
+            if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.combat_state.counters
+                    [ActionStateFCounters::FCounterMinionSummonThreshold as usize] -=
+                    MINION_SUMMON_THRESHOLD;
+            }
+        } else if can_cast_new_ability(self.char_state) {
+            if cheesed {
+                cast_targeted_fire_pillar(controller);
+            } else if agent.combat_state.conditions
+                [ActionStateConditions::VerticalStrikeCombo as usize]
+            {
+                // If landed vertical strike combo target while they are airborne
+                if tgt_airborne {
+                    controller.push_basic_input(FAST_THRUST);
+                }
+
+                agent.combat_state.conditions
+                    [ActionStateConditions::VerticalStrikeCombo as usize] = false;
+            } else if agent.combat_state.timers[ActionStateTimers::OutOfMeleeRange as usize]
+                > FORCE_GAP_CLOSER_TIMEOUT
+            {
+                // Use a gap closer if the target has been out of melee distance for a while
+                controller.push_basic_input(LAVA_LEAP);
+            } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
+                if agent.combat_state.timers[ActionStateTimers::Special as usize] > 10.0 {
+                    // Use a special ability periodically
+                    let rand_special = rand_special(rng);
+                    if rand_special == VERTICAL_STRIKE {
+                        agent.combat_state.conditions
+                            [ActionStateConditions::VerticalStrikeCombo as usize] = true;
+                    }
+                    controller.push_basic_input(rand_special);
+
+                    agent.combat_state.timers[ActionStateTimers::Special as usize] =
+                        rng.gen_range(0.0..3.0 + 5.0 * damage_fraction);
+                } else if attack_data.angle > 90.0 {
+                    // Cast an aoe ability to hit the target if they are behind the entity
+                    controller.push_basic_input(rand_aoe(rng));
+                } else {
+                    // Use a random basic melee hit
+                    controller.push_basic_input(rand_basic(rng, damage_fraction));
+                }
+            } else if attack_data.dist_sqrd < RANGED_RANGE.powi(2) {
+                // Use ranged ability if target is out of melee range
+                if rng.gen_bool(0.05) {
+                    controller.push_basic_input(rand_ranged(rng));
+                }
+            } else if attack_data.dist_sqrd < LEAP_RANGE.powi(2) {
+                // Use a gap closer if the target is even further away
+                controller.push_basic_input(LAVA_LEAP);
+            } else if rng.gen_bool(0.1) {
+                // Use a targeted fire pillar if the target is out of range of everything else
+                cast_targeted_fire_pillar(controller);
+            }
+        }
+
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            attack_data.in_min_range().then_some(0.1),
+        );
+
+        // Get out of lava if submerged
+        if self.physics_state.in_liquid().is_some() {
+            controller.push_basic_input(InputKind::Jump);
+        }
+        if self.physics_state.in_liquid().is_some() {
+            controller.inputs.move_z = 1.0;
+        }
+    }
+
+    pub fn handle_ashen_axe_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const IMMOLATION_COOLDOWN: f32 = 50.0;
+        const ABILITY_PREFERENCES: AbilityPreferences = AbilityPreferences {
+            desired_energy: 30.0,
+            combo_scaling_buildup: 0,
+        };
+
+        enum ActionStateTimers {
+            SinceSelfImmolation,
+        }
+
+        const DOUBLE_STRIKE: InputKind = InputKind::Primary;
+        const FLAME_WAVE: InputKind = InputKind::Secondary;
+        const KNOCKBACK_COMBO: InputKind = InputKind::Ability(0);
+        const SELF_IMMOLATION: InputKind = InputKind::Ability(1);
+
+        fn can_cast_new_ability(char_state: &CharacterState) -> bool {
+            !matches!(
+                char_state,
+                CharacterState::ComboMelee2(_)
+                    | CharacterState::Shockwave(_)
+                    | CharacterState::SelfBuff(_)
+            )
+        }
+
+        let could_use = |input| {
+            Option::<AbilityInput>::from(input)
+                .and_then(|ability_input| self.extract_ability(ability_input))
+                .is_some_and(|ability_data| {
+                    ability_data.could_use(
+                        attack_data,
+                        self,
+                        tgt_data,
+                        read_data,
+                        ABILITY_PREFERENCES,
+                    )
+                })
+        };
+
+        // Initialize immolation cooldown to 0
+        if !agent.combat_state.initialized {
+            agent.combat_state.timers[ActionStateTimers::SinceSelfImmolation as usize] =
+                IMMOLATION_COOLDOWN;
+            agent.combat_state.initialized = true;
+        }
+
+        agent.combat_state.timers[ActionStateTimers::SinceSelfImmolation as usize] +=
+            read_data.dt.0;
+
+        if self
+            .char_state
+            .ability_info()
+            .map(|ai| ai.input)
+            .is_some_and(|input_kind| input_kind == KNOCKBACK_COMBO)
+        {
+            controller.push_basic_input(KNOCKBACK_COMBO);
+        } else if can_cast_new_ability(self.char_state)
+            && agent.combat_state.timers[ActionStateTimers::SinceSelfImmolation as usize]
+                >= IMMOLATION_COOLDOWN
+            && could_use(SELF_IMMOLATION)
+        {
+            agent.combat_state.timers[ActionStateTimers::SinceSelfImmolation as usize] =
+                rng.gen_range(0.0..5.0);
+
+            controller.push_basic_input(SELF_IMMOLATION);
+        } else if rng.gen_bool(0.35) && could_use(KNOCKBACK_COMBO) {
+            controller.push_basic_input(KNOCKBACK_COMBO);
+        } else if could_use(DOUBLE_STRIKE) {
+            controller.push_basic_input(DOUBLE_STRIKE);
+        } else if rng.gen_bool(0.2) && could_use(FLAME_WAVE) {
+            controller.push_basic_input(FLAME_WAVE);
+        }
+
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Full,
+            None,
+        );
+    }
+
+    pub fn handle_ashen_staff_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const ABILITY_COOLDOWN: f32 = 50.0;
+        const INITIAL_COOLDOWN: f32 = ABILITY_COOLDOWN - 10.0;
+        const ABILITY_PREFERENCES: AbilityPreferences = AbilityPreferences {
+            desired_energy: 40.0,
+            combo_scaling_buildup: 0,
+        };
+
+        enum ActionStateTimers {
+            SinceAbility,
+        }
+
+        const FIREBALL: InputKind = InputKind::Primary;
+        const FLAME_WALL: InputKind = InputKind::Ability(0);
+        const SUMMON_CRUX: InputKind = InputKind::Ability(1);
+
+        fn can_cast_new_ability(char_state: &CharacterState) -> bool {
+            !matches!(
+                char_state,
+                CharacterState::BasicRanged(_)
+                    | CharacterState::BasicBeam(_)
+                    | CharacterState::RapidMelee(_)
+                    | CharacterState::BasicAura(_)
+            )
+        }
+
+        let could_use = |input| {
+            Option::<AbilityInput>::from(input)
+                .and_then(|ability_input| self.extract_ability(ability_input))
+                .is_some_and(|ability_data| {
+                    ability_data.could_use(
+                        attack_data,
+                        self,
+                        tgt_data,
+                        read_data,
+                        ABILITY_PREFERENCES,
+                    )
+                })
+        };
+
+        // Initialize special ability cooldown
+        if !agent.combat_state.initialized {
+            agent.combat_state.timers[ActionStateTimers::SinceAbility as usize] = INITIAL_COOLDOWN;
+            agent.combat_state.initialized = true;
+        }
+
+        agent.combat_state.timers[ActionStateTimers::SinceAbility as usize] += read_data.dt.0;
+
+        if can_cast_new_ability(self.char_state)
+            && agent.combat_state.timers[ActionStateTimers::SinceAbility as usize]
+                >= ABILITY_COOLDOWN
+            && (could_use(FLAME_WALL) || could_use(SUMMON_CRUX))
+        {
+            agent.combat_state.timers[ActionStateTimers::SinceAbility as usize] =
+                rng.gen_range(0.0..5.0);
+
+            if could_use(FLAME_WALL) && (rng.gen_bool(0.5) || !could_use(SUMMON_CRUX)) {
+                controller.push_basic_input(FLAME_WALL);
+            } else {
+                controller.push_basic_input(SUMMON_CRUX);
+            }
+        } else if rng.gen_bool(0.5) && could_use(FIREBALL) {
+            controller.push_basic_input(FIREBALL);
+        }
+
+        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
+            // Attempt to move away from target if too close
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+            }
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // Else attempt to circle target if neither too close nor too far
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    self.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                ) && attack_data.angle < 45.0
+                {
+                    controller.inputs.move_dir = bearing
+                        .xy()
+                        .rotated_z(rng.gen_range(-1.57..-0.5))
+                        .try_normalized()
+                        .unwrap_or_else(Vec2::zero)
+                        * speed;
+                } else {
+                    // Unless cannot see target, then move towards them
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(bearing.z > 1.5, controller);
+                    controller.inputs.move_z = bearing.z;
+                }
+            }
+        } else {
+            // If too far, move towards target
             self.path_toward_target(
                 agent,
                 controller,

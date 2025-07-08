@@ -137,6 +137,64 @@ impl Animation for LeapAnimation {
                 _ => {},
             },
             Some(ToolKind::Sword) => match ability_id {
+                Some("common.abilities.custom.gigas_fire.lava_leap") => {
+                    let move1 = (PI * movement1).sin();
+                    let move2 = movement2 * (1.0 - movement3);
+                    let move3 = movement3 * (1.0 - movement4.powi(3));
+
+                    next.control.position = Vec3::new(s_a.sc.0, s_a.sc.1, s_a.sc.2);
+                    next.control.orientation = Quaternion::rotation_x(s_a.sc.3)
+                        * Quaternion::rotation_y(s_a.sc.4)
+                        * Quaternion::rotation_z(s_a.sc.5);
+                    next.hand_l.position = Vec3::new(s_a.shl.0, s_a.shl.1, s_a.shl.2);
+                    next.hand_l.orientation =
+                        Quaternion::rotation_x(s_a.shl.3) * Quaternion::rotation_y(s_a.shl.4);
+                    next.hand_r.position = Vec3::new(s_a.shr.0, s_a.shr.1, s_a.shr.2);
+                    next.hand_r.orientation =
+                        Quaternion::rotation_x(s_a.shr.3) * Quaternion::rotation_y(s_a.shr.4);
+                    next.main.position = Vec3::new(1.0, 10.0, 0.0);
+                    next.main.orientation =
+                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+
+                    next.torso.position += Vec3::new(0.0, -3.0, -3.0) * move1;
+                    next.leg_l.position += Vec3::new(0.0, 1.5, 1.5) * move1;
+                    next.leg_l.orientation.rotate_x(PI / 3.0 * move1);
+                    next.foot_l.position += Vec3::new(0.0, 3.0, 3.0) * move1;
+                    next.leg_r.position += Vec3::new(0.0, 1.5, 1.5) * move1;
+                    next.leg_r.orientation.rotate_x(PI / 3.0 * move1);
+                    next.foot_r.position += Vec3::new(0.0, 3.0, 3.0) * move1;
+
+                    next.torso.orientation.rotate_x(PI / 5.0 * move2);
+                    next.torso.position += Vec3::new(0.0, 5.0, 0.0) * move2;
+                    next.foot_l.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.leg_r.position += Vec3::new(0.0, 5.0, 0.0) * move2;
+                    next.leg_r.orientation.rotate_x(PI / 8.0 * move2);
+                    next.foot_r.position += Vec3::new(0.0, 2.0, 0.0) * move2;
+                    next.foot_r.orientation.rotate_x(-PI / 6.0 * move2);
+                    next.shoulder_l.orientation.rotate_x(PI / 2.5 * move2);
+                    next.shoulder_r.position += Vec3::new(-3.0, 7.0, 0.0) * move2;
+                    next.shoulder_r.orientation.rotate_x(PI / 1.5 * move2);
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move2);
+                    next.control.position += Vec3::new(-8.0, 0.0, 15.0) * move2;
+                    next.control.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control.orientation.rotate_z(-PI / 10.0 * move2);
+                    next.control_r.position += Vec3::new(13.0, 4.0, -8.0) * move2;
+                    next.control_r.orientation.rotate_x(PI / 8.0 * move2);
+                    next.control_r.orientation.rotate_z(PI / 3.0 * move2);
+                    next.control_l.position += Vec3::new(0.0, 0.0, -7.0) * move2;
+                    next.control_l.orientation.rotate_x(PI / 8.0 * move2);
+
+                    next.torso.position += Vec3::new(0.0, -9.0, 0.0) * move3;
+                    next.torso.orientation.rotate_x(-PI / 8.0 * move3);
+                    next.lower_torso.position += Vec3::new(0.0, 0.0, 1.0) * move3;
+                    next.lower_torso.orientation.rotate_x(PI / 8.0 * move3);
+                    next.shoulder_r.position += Vec3::new(-3.0, 6.0, 0.0) * move3;
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move3);
+                    next.shoulder_l.position += Vec3::new(3.0, 6.0, 0.0) * move3;
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move3);
+                    next.control.position += Vec3::new(0.0, 0.0, 0.0) * move3;
+                    next.control.orientation.rotate_x(-PI / 2.5 * move3);
+                },
                 Some("common.abilities.adlet.elder.leap") => {
                     next.hand_l.position = Vec3::new(s_a.hhl.0 * 1.5, -s_a.hhl.1, 5.0);
                     next.hand_l.orientation = Quaternion::rotation_x(s_a.hhl.3);
@@ -144,9 +202,6 @@ impl Animation for LeapAnimation {
                     next.hand_r.orientation = Quaternion::rotation_x(s_a.hhr.3);
                     next.main.position = Vec3::new(-6.0, 18.0, 4.0);
                     next.main.orientation =
-                        Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
-                    next.second.position = Vec3::new(-2.0, 20.0, 4.0);
-                    next.second.orientation =
                         Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
                     next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
                     next.control.orientation =
@@ -176,6 +231,13 @@ impl Animation for LeapAnimation {
                         s_a.foot.2 + 5.0 + movement3 * -5.0,
                     );
                     next.foot_r.orientation = Quaternion::rotation_x(0.9 + movement3 * -1.7);
+                    if ability_id == Some("common.abilities.adlet.elder.leap") {
+                        next.second.position = Vec3::new(-2.0, 20.0, 4.0);
+                        next.second.orientation =
+                            Quaternion::rotation_y(0.0) * Quaternion::rotation_z(0.0);
+                    } else {
+                        next.second.scale = Vec3::one() * 0.0;
+                    }
                 },
                 _ => {},
             },

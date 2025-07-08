@@ -78,6 +78,9 @@
         "common.items.npc_armor.biped_small.boreal.chest.warrior": (
             vox_spec: ("npc.boreal.warrior.chest", (-9.0, -6.0, -8.5)),
         ),
+        "common.items.npc_armor.biped_small.ashen.chest.warrior": (
+            vox_spec: ("npc.ashen.warrior.chest", (-10.0, -6.5, -8.0)),
+        ),
         "common.items.npc_armor.biped_small.bushly.chest.bushly": (
             vox_spec: ("npc.bushly.male.chest", (-7.0, -7.0, 0.0)),
         ),

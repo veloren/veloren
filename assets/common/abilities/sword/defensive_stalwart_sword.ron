@@ -2,9 +2,9 @@ SelfBuff(
     buildup_duration: 0.25,
     cast_duration: 0.3,
     recover_duration: 0.25,
-    buff_kind: ProtectingWard,
-    buff_strength: 0.35,
-    buff_duration: Some(20.0),
+    buffs: [
+        BuffDesc(kind: ProtectingWard, data: BuffData(strength: 0.35, duration: Some(20.0))),
+    ],
     energy_cost: 20,
     meta: (
         requirements: (stance: Some(Sword(Defensive))),

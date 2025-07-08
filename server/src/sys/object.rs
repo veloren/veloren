@@ -1,20 +1,22 @@
 use common::{
-    CachedSpatialGrid,
-    comp::{Body, Object, Pos, Teleporting, object},
+    CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget,
+    combat::{Attack, AttackDamage},
+    comp::{Body, Object, Pos, Teleporting, Vel, beam, object},
     consts::TELEPORTER_RADIUS,
-    event::{ChangeBodyEvent, DeleteEvent, EmitExt, EventBus, ExplosionEvent, ShootEvent},
+    event::{ChangeBodyEvent, DeleteEvent, EmitExt, EventBus},
     event_emitters,
     outcome::Outcome,
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, Secs, Time},
+    states::basic_summon::BeamPillarIndicatorSpecifier,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, LendJoin, Read, ReadStorage};
+use hashbrown::HashMap;
+use specs::{Entities, Join, LazyUpdate, LendJoin, Read, ReadStorage, WriteStorage};
+use vek::{QuadraticBezier3, Vec3};
 
 event_emitters! {
     struct Events[Emitters] {
         delete: DeleteEvent,
-        explosion: ExplosionEvent,
-        shoot: ShootEvent,
         change_body: ChangeBodyEvent,
     }
 }
@@ -31,9 +33,12 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<Outcome>>,
         Read<'a, CachedSpatialGrid>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Object>,
+        ReadStorage<'a, Vel>,
+        WriteStorage<'a, Object>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Teleporting>,
+        ReadStorage<'a, beam::Beam>,
+        Read<'a, LazyUpdate>,
     );
 
     const NAME: &'static str = "object";
@@ -45,22 +50,32 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             events,
-            _dt,
+            dt,
             time,
             outcome_bus,
             spatial_grid,
             positions,
-            objects,
+            velocities,
+            mut objects,
             bodies,
             teleporting,
+            beams,
+            updater,
         ): Self::SystemData,
     ) {
         let mut emitters = events.get_emitters();
 
         // Objects
-        for (entity, pos, object, body) in (&entities, &positions, &objects, bodies.maybe()).join()
+        for (entity, pos, vel, object, body) in (
+            &entities,
+            &positions,
+            velocities.maybe(),
+            &mut objects,
+            bodies.maybe(),
+        )
+            .join()
         {
-            match object {
+            match *object {
                 Object::DeleteAfter {
                     spawned_at,
                     timeout,
@@ -96,6 +111,83 @@ impl<'a> System<'a> for Sys {
                             }),
                             permanent_change: None,
                         });
+                    }
+                },
+                Object::BeamPillar {
+                    spawned_at,
+                    buildup_duration,
+                    attack_duration,
+                    beam_duration,
+                    radius,
+                    height,
+                    damage,
+                    damage_effect,
+                    dodgeable,
+                    tick_rate,
+                    specifier,
+                    indicator_specifier,
+                } => {
+                    match indicator_specifier {
+                        BeamPillarIndicatorSpecifier::FirePillar => outcome_bus
+                            .emit_now(Outcome::FirePillarIndicator { pos: pos.0, radius }),
+                    }
+
+                    let age = (time.0 - spawned_at.0).max(0.0);
+                    let buildup = buildup_duration.as_secs_f64();
+                    let attack = attack_duration.as_secs_f64();
+
+                    if age > buildup + attack {
+                        emitters.emit(DeleteEvent(entity));
+                    } else if age > buildup && !beams.contains(entity) {
+                        let mut attack_damage = AttackDamage::new(
+                            Damage {
+                                source: DamageSource::Energy,
+                                kind: DamageKind::Energy,
+                                value: damage,
+                            },
+                            Some(GroupTarget::OutOfGroup),
+                            rand::random(),
+                        );
+                        if let Some(combat_effect) = damage_effect {
+                            attack_damage = attack_damage.with_effect(combat_effect);
+                        }
+
+                        updater.insert(entity, beam::Beam {
+                            attack: Attack::default().with_damage(attack_damage),
+                            dodgeable,
+                            start_radius: radius,
+                            end_radius: radius,
+                            range: height,
+                            duration: Secs(beam_duration.as_secs_f64()),
+                            tick_dur: Secs(1.0 / tick_rate as f64),
+                            hit_entities: Vec::new(),
+                            hit_durations: HashMap::new(),
+                            specifier,
+                            bezier: QuadraticBezier3 {
+                                start: pos.0,
+                                ctrl: pos.0,
+                                end: pos.0,
+                            },
+                        });
+                    }
+                },
+                Object::Crux {
+                    ref mut pid_controller,
+                    ..
+                } => {
+                    if let Some(vel) = vel
+                        && let Some(pid_controller) = pid_controller
+                        && let Some(accel) = body.and_then(|body| {
+                            body.fly_thrust()
+                                .map(|fly_thrust| fly_thrust / body.mass().0)
+                        })
+                    {
+                        pid_controller.add_measurement(time.0, pos.0.z);
+                        let dir = pid_controller.calc_err();
+                        pid_controller.limit_integral_windup(|z| *z = z.clamp(-1.0, 1.0));
+
+                        updater
+                            .insert(entity, Vel((vel.0.z + dir * accel * dt.0) * Vec3::unit_z()));
                     }
                 },
             }

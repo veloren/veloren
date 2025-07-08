@@ -144,6 +144,14 @@ impl CharacterBehavior for Data {
                                     },
                                 ));
                             },
+                            shockwave::FrontendSpecifier::FireLow => {
+                                output_events.emit_local(LocalEvent::CreateOutcome(
+                                    Outcome::FireLowShockwave {
+                                        pos: data.pos.0
+                                            + *data.ori.look_dir() * (data.body.max_radius()),
+                                    },
+                                ));
+                            },
                             _ => {
                                 output_events.emit_local(LocalEvent::CreateOutcome(
                                     Outcome::Swoosh {

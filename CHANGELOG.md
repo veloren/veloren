@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Serverside gizmos for debugging things like pathfinding.
 - A potion which permanently changes the characters body type.
 - Internal settings for audio samplerate and buffer size.
+- Added fire gigas
 
 ### Changed
 

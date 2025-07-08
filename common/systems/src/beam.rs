@@ -5,7 +5,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Alignment, Beam, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory,
-        Mass, Ori, Player, Pos, Scale, Stats,
+        Mass, Ori, PhysicsState, Player, Pos, Scale, Stats,
+        ability::Dodgeable,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
     },
@@ -61,6 +62,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     combos: ReadStorage<'a, Combo>,
     character_states: ReadStorage<'a, CharacterState>,
+    physics_states: ReadStorage<'a, PhysicsState>,
     buffs: ReadStorage<'a, Buffs>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
     outcomes: Read<'a, EventBus<Outcome>>,
@@ -84,7 +86,7 @@ impl<'a> System<'a> for Sys {
         (
             &read_data.positions,
             &read_data.orientations,
-            &read_data.character_states,
+            read_data.character_states.maybe(),
             &mut beams,
         )
             .lend_join()
@@ -99,11 +101,17 @@ impl<'a> System<'a> for Sys {
                     beam.hit_entities.clear();
                 }
                 // Update start, end, and control positions of beam bezier
-                let (offset, target_dir) = if let CharacterState::BasicBeam(c) = char_state {
-                    (c.beam_offset, c.aim_dir)
-                } else {
-                    (Vec3::zero(), ori.look_dir())
-                };
+                let (offset, target_dir) = char_state
+                    .and_then(|char_state| {
+                        if let CharacterState::BasicBeam(data) = char_state {
+                            Some(data)
+                        } else {
+                            None
+                        }
+                    })
+                    .map_or((Vec3::zero(), ori.look_dir()), |data| {
+                        (data.beam_offset, data.aim_dir)
+                    });
                 beam.bezier.start = pos.0 + offset;
                 const REL_CTRL_DIST: f32 = 0.3;
                 let target_ctrl = beam.bezier.start + *target_dir * beam.range * REL_CTRL_DIST;
@@ -182,6 +190,7 @@ impl<'a> System<'a> for Sys {
                             && !health_b.is_dead
                             && conical_bezier_cylinder_collision(
                                 beam.bezier,
+                                beam.start_radius,
                                 beam.end_radius,
                                 beam.range,
                                 pos_b.0,
@@ -250,11 +259,18 @@ impl<'a> System<'a> for Sys {
                                 mass: read_data.masses.get(target),
                             };
 
-                            let target_dodging = read_data
-                                .character_states
-                                .get(target)
-                                .and_then(|cs| cs.roll_attack_immunities())
-                                .is_some_and(|i| i.beams);
+                            let target_dodging = match beam.dodgeable {
+                                Dodgeable::Roll => read_data
+                                    .character_states
+                                    .get(target)
+                                    .and_then(|cs| cs.roll_attack_immunities())
+                                    .is_some_and(|i| i.beams),
+                                Dodgeable::Jump => read_data
+                                    .physics_states
+                                    .get(target)
+                                    .is_some_and(|ps| ps.on_ground.is_none()),
+                                Dodgeable::No => false,
+                            };
                             // PvP check
                             let permit_pvp = combat::permit_pvp(
                                 &read_data.alignments,
@@ -343,8 +359,9 @@ impl<'a> System<'a> for Sys {
 fn conical_bezier_cylinder_collision(
     // Values for spherical wedge
     bezier: QuadraticBezier3<f32>,
-    max_rad: f32, // Radius at end_pos (radius is 0 at start_pos)
-    range: f32,   // Used to decide number of steps in bezier function
+    start_rad: f32, // Radius at start_pos
+    end_rad: f32,   // Radius at end_pos
+    range: f32,     // Used to decide number of steps in bezier function
     // Values for cylinder
     bottom_pos_b: Vec3<f32>, // Position of bottom of cylinder
     rad_b: f32,
@@ -357,7 +374,7 @@ fn conical_bezier_cylinder_collision(
     let center_pos_b = bottom_pos_b.with_z(bottom_pos_b.z + length_b / 2.0);
     let (t, closest_pos) =
         bezier.binary_search_point_by_steps(center_pos_b, (range * 5.0) as u16, 0.1);
-    let bezier_rad = t * max_rad;
+    let bezier_rad = start_rad + t * (end_rad - start_rad);
     let z_check = {
         let dist = (closest_pos.z - center_pos_b.z).abs();
         dist < bezier_rad + length_b / 2.0

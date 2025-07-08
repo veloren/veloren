@@ -134,6 +134,7 @@ impl<'a> System<'a> for Sys {
                 // Ability use does not regen and sets the rate back to zero.
                 CharacterState::BasicMelee(_)
                 | CharacterState::DashMelee(_)
+                | CharacterState::LeapExplosionShockwave(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::LeapShockwave(_)
                 | CharacterState::ComboMelee2(_)
@@ -144,6 +145,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::Throw(_)
                 | CharacterState::Shockwave(_)
+                | CharacterState::Explosion(_)
                 | CharacterState::BasicBeam(_)
                 | CharacterState::BasicAura(_)
                 | CharacterState::Blink(_)

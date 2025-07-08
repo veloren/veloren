@@ -347,6 +347,6 @@
             protection: Some(Normal(18.225)),
             poise_resilience: Some(Normal(10.935)),
             stealth: Some(0.62775),
-        ),       
+        ),
     },
 )

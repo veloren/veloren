@@ -98,7 +98,7 @@ pub enum ParticleMode {
     SnowStorm = 44,
     PortalFizz = 45,
     Ink = 46,
-    Whirlwind = 47,
+    IceWhirlwind = 47,
     FieryBurst = 48,
     FieryBurstVortex = 49,
     FieryBurstSparks = 50,
@@ -118,6 +118,13 @@ pub enum ParticleMode {
     WaterFoam = 64,
     EngineJet = 65,
     Transformation = 66,
+    FireGigasAsh = 67,
+    FireGigasWhirlwind = 68,
+    FireGigasOverheat = 69,
+    FireGigasExplosion = 70,
+    FirePillarIndicator = 71,
+    FirePillar = 72,
+    FireLowShockwave = 73,
 }
 
 impl ParticleMode {

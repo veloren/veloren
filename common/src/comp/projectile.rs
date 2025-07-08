@@ -3,7 +3,10 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
         DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
-    comp::item::{Reagent, tool},
+    comp::{
+        ability::Dodgeable,
+        item::{Reagent, tool},
+    },
     explosion::{ColorPreset, Explosion, RadiusEffect},
     resources::Secs,
     uid::Uid,
@@ -258,7 +261,10 @@ impl ProjectileConstructor {
                 let mut effects = Vec::new();
 
                 if let Some(attack) = attack {
-                    effects.push(RadiusEffect::Attack(attack));
+                    effects.push(RadiusEffect::Attack {
+                        attack,
+                        dodgeable: Dodgeable::Roll,
+                    });
                 }
 
                 if let Some(terrain) = terrain {
@@ -297,7 +303,10 @@ impl ProjectileConstructor {
                 let mut effects = Vec::new();
 
                 if let Some(attack) = attack {
-                    effects.push(RadiusEffect::Attack(attack));
+                    effects.push(RadiusEffect::Attack {
+                        attack,
+                        dodgeable: Dodgeable::Roll,
+                    });
                 }
 
                 if let Some(terrain) = terrain {

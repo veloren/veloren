@@ -208,6 +208,14 @@
                  vox_spec: ("npc.boreal.warrior.foot_r", (-2.5, -3.5, -9.0)),
             )
         ),
+        "common.items.npc_armor.biped_small.ashen.foot.warrior": (
+            left: (
+                vox_spec: ("npc.ashen.warrior.foot_r", (-2.5, -3.5, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.ashen.warrior.foot_r", (-2.5, -3.5, -9.0)),
+            )
+        ),
         "common.items.npc_armor.biped_small.bushly.foot.bushly": (
             left: (
                 vox_spec: ("npc.bushly.male.foot_r", (-1.5, -2.0, -7.0)),

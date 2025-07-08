@@ -14,6 +14,7 @@ BasicBeam(
     ))),
     energy_regen: 0,
     energy_drain: 0,
+    move_efficiency: 0.4,
     ori_rate: 5.0,
     specifier: Bubbles,
 )

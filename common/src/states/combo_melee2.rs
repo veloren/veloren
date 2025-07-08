@@ -1,9 +1,9 @@
 use crate::{
-    Explosion, RadiusEffect, combat,
-    combat::{Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
+    Explosion, RadiusEffect,
+    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
     comp::{
-        CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents,
-        item::Reagent, melee::CustomCombo, tool::Stats,
+        CharacterState, MeleeConstructor, StateUpdate, ability::Dodgeable,
+        character_state::OutputEvents, item::Reagent, melee::CustomCombo, tool::Stats,
     },
     event::{ExplosionEvent, LocalEvent},
     outcome::Outcome,
@@ -210,7 +210,10 @@ impl CharacterBehavior for Data {
                         );
                         let attack = Attack::default().with_damage(damage);
                         let explosion = Explosion {
-                            effects: vec![RadiusEffect::Attack(attack)],
+                            effects: vec![RadiusEffect::Attack {
+                                attack,
+                                dodgeable: Dodgeable::Roll,
+                            }],
                             radius: data.body.max_radius() * 10.0,
                             reagent: Some(Reagent::Yellow),
                             min_falloff: 0.5,

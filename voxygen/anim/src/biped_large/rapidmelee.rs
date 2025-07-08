@@ -15,6 +15,7 @@ impl Animation for RapidMeleeAnimation {
         f32,
         Option<StageSection>,
         f32,
+        Option<&'a str>,
     );
     type Skeleton = BipedLargeSkeleton;
 
@@ -24,7 +25,15 @@ impl Animation for RapidMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_large_rapidmelee"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, _second_tool_kind, velocity, _global_time, stage_section, acc_vel): Self::Dependency<'_>,
+        (
+            active_tool_kind,
+            _second_tool_kind,
+            velocity,
+            _global_time,
+            stage_section,
+            acc_vel,
+            _ability_id,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,

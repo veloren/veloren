@@ -406,7 +406,7 @@ impl Body {
                 biped_large::Species::Cavetroll => 600.0,
                 biped_large::Species::Mountaintroll => 600.0,
                 biped_large::Species::Swamptroll => 600.0,
-                biped_large::Species::Gigasfrost => 400.0,
+                biped_large::Species::Gigasfrost | biped_large::Species::Gigasfire => 400.0,
                 biped_large::Species::AdletElder => 350.0,
                 biped_large::Species::HaniwaGeneral => 360.0,
                 biped_large::Species::TerracottaBesieger
@@ -583,7 +583,8 @@ impl Body {
                 biped_large::Species::Cultistwarlock => Vec3::new(3.0, 3.0, 3.5),
                 biped_large::Species::Huskbrute => Vec3::new(4.6, 3.0, 5.0),
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
-                biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 8.0),
+                biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 11.0),
+                biped_large::Species::Gigasfire => Vec3::new(6.0, 3.0, 11.0),
                 biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
                 biped_large::Species::SeaBishop => Vec3::new(3.7, 2.5, 4.2),
                 biped_large::Species::HaniwaGeneral => Vec3::new(3.3, 2.3, 3.8),
@@ -606,6 +607,7 @@ impl Body {
                 biped_small::Species::Myrmidon => Vec3::new(1.3, 1.0, 2.2),
                 biped_small::Species::Husk => Vec3::new(1.7, 0.7, 2.7),
                 biped_small::Species::Boreal => Vec3::new(2.6, 2.0, 4.6),
+                biped_small::Species::Ashen => Vec3::new(1.3, 2.0, 2.5),
                 biped_small::Species::Bushly => Vec3::new(1.2, 1.3, 1.6),
                 biped_small::Species::Cactid => Vec3::new(1.0, 0.75, 1.4),
                 biped_small::Species::Irrwurz => Vec3::new(1.5, 1.5, 2.0),
@@ -895,6 +897,7 @@ impl Body {
                 bird_large::Species::WealdWyvern => 600,
             },
             Body::Humanoid(_) => 100,
+            Body::Object(object::Body::Crux) => 0,
             _ => 100,
         }
     }
@@ -1045,6 +1048,7 @@ impl Body {
                 biped_large::Species::Cultistwarlord => 200,
                 biped_large::Species::Cultistwarlock => 200,
                 biped_large::Species::Gigasfrost => 30000,
+                biped_large::Species::Gigasfire => 25000,
                 biped_large::Species::AdletElder => 1500,
                 biped_large::Species::Tursus => 300,
                 biped_large::Species::SeaBishop => 550,
@@ -1077,6 +1081,7 @@ impl Body {
                 biped_small::Species::Myrmidon => 100,
                 biped_small::Species::Husk => 50,
                 biped_small::Species::Boreal => 800,
+                biped_small::Species::Ashen => 300,
                 biped_small::Species::IronDwarf => 250,
                 biped_small::Species::Irrwurz => 100,
                 biped_small::Species::ShamanicSpirit => 240,
@@ -1098,6 +1103,7 @@ impl Body {
                 object::Body::TerracottaStatue => 600,
                 object::Body::GnarlingTotemGreen => 15,
                 object::Body::GnarlingTotemRed | object::Body::GnarlingTotemWhite => 15,
+                object::Body::Crux => 350,
                 _ => 1000,
             },
             Body::Item(_) => 1000,
@@ -1215,6 +1221,7 @@ impl Body {
                     b.species,
                     biped_large::Species::Huskbrute
                         | biped_large::Species::Gigasfrost
+                        | biped_large::Species::Gigasfire
                         | biped_large::Species::Dullahan
                         | biped_large::Species::HaniwaGeneral
                         | biped_large::Species::TerracottaBesieger
@@ -1260,6 +1267,7 @@ impl Body {
                         | object::Body::Lavathrower
                         | object::Body::Flamethrower
                         | object::Body::TerracottaStatue
+                        | object::Body::Crux
                 ),
                 Body::QuadrupedLow(q) => matches!(
                     q.species,
@@ -1281,6 +1289,7 @@ impl Body {
                     biped_large::Species::Cyclops
                         | biped_large::Species::Minotaur
                         | biped_large::Species::Forgemaster
+                        | biped_large::Species::Gigasfire
                 ),
                 _ => false,
             },
@@ -1296,6 +1305,7 @@ impl Body {
                         object::Body::GnarlingTotemRed
                             | object::Body::GnarlingTotemGreen
                             | object::Body::GnarlingTotemWhite
+                            | object::Body::Crux
                     )
                 )
             },
@@ -1318,6 +1328,19 @@ impl Body {
             BuffKind::ProtectingWard => matches!(self, Body::Object(object::Body::BarrelOrgan)),
             _ => false,
         }
+    }
+
+    // Entity still recieves the buff to allow for particle rendering or other
+    // secondary effects, but still removes any direct `BuffEffect`
+    pub fn negates_buff(&self, buff: BuffKind) -> bool {
+        self.immune_to(buff)
+            || match buff {
+                BuffKind::Burning => match self {
+                    Body::BipedSmall(b) => matches!(b.species, biped_small::Species::Ashen),
+                    _ => false,
+                },
+                _ => false,
+            }
     }
 
     /// Returns a multiplier representing increased difficulty not accounted for
@@ -1381,6 +1404,7 @@ impl Body {
                 biped_large::Species::Minotaur => 340,
                 biped_large::Species::Forgemaster => 300,
                 biped_large::Species::Gigasfrost => 990,
+                biped_large::Species::Gigasfire => 990,
                 _ => 300,
             },
             Body::BipedSmall(b) => match b.species {
@@ -1650,6 +1674,7 @@ impl Body {
                 (biped_large::Species::Huskbrute, _) => (1.6, 0.2, 3.8),
                 (biped_large::Species::Tursus, _) => (1.6, 0.5, 3.4),
                 (biped_large::Species::Gigasfrost, _) => (2.5, 0.5, 7.3),
+                (biped_large::Species::Gigasfire, _) => (2.5, 0.5, 7.3),
                 (biped_large::Species::AdletElder, _) => (1.2, 0.6, 2.4),
                 (biped_large::Species::SeaBishop, _) => (0.9, 0.2, 2.0),
                 (biped_large::Species::HaniwaGeneral, _) => (1.2, 0.4, 2.4),
@@ -1675,6 +1700,7 @@ impl Body {
                 (biped_small::Species::Myrmidon, _) => (0.0, -0.89, 0.96),
                 (biped_small::Species::Husk, _) => (0.0, -0.5, 2.32),
                 (biped_small::Species::Boreal, _) => (0.0, -0.81, 4.4),
+                (biped_small::Species::Ashen, _) => (0.0, -0.81, 4.4),
                 (biped_small::Species::Bushly, _) => (0.0, -0.26, 1.81),
                 (biped_small::Species::Irrwurz, _) => (0.0, -0.35, 1.42),
                 (biped_small::Species::IronDwarf, _) => (0.0, -0.12, 2.98),

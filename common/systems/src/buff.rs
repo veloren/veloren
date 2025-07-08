@@ -390,14 +390,14 @@ impl<'a> System<'a> for Sys {
                         )),
                     });
                 }
-                // If on FireBlock vines, apply burning buff
                 if matches!(
                     physics_state.in_fluid,
                     Some(Fluid::Liquid {
                         kind: LiquidKind::Lava,
                         ..
                     })
-                ) {
+                ) && !body.negates_buff(BuffKind::Burning)
+                {
                     // If in lava fluid, apply burning debuff
                     emitters.emit(BuffEvent {
                         entity,

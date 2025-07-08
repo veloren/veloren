@@ -46,6 +46,8 @@ pub struct StaticData {
     pub angle: f32,
     /// How much we can move
     pub move_efficiency: f32,
+    /// Adjusts turning rate during the attack
+    pub ori_modifier: f32,
     /// Miscellaneous information about the ability
     pub ability_info: AbilityInfo,
 }
@@ -67,7 +69,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
+        handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
         handle_move(data, &mut update, self.static_data.move_efficiency);
 
         let target_pos = || {
@@ -88,18 +90,15 @@ impl CharacterBehavior for Data {
                     });
                     // Send local event used for frontend shenanigans
                     match self.static_data.sprite {
-                        SpriteKind::Empty => {
-                            output_events.emit_local(LocalEvent::CreateOutcome(
-                                Outcome::TerracottaStatueCharge {
-                                    pos: data.pos.0
-                                        + *data.ori.look_dir() * (data.body.max_radius()),
-                                },
-                            ));
-                        },
+                        SpriteKind::Empty => output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::TerracottaStatueCharge {
+                                pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
+                            },
+                        )),
                         SpriteKind::FireBlock => {
                             output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Charge {
                                 pos: data.pos.0 + *data.ori.look_dir() * (data.body.max_radius()),
-                            }));
+                            }))
                         },
                         _ => {},
                     }

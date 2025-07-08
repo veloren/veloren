@@ -4,7 +4,9 @@ use crate::{
         DamageKind, DamageSource, GroupTarget,
     },
     comp::{
-        Body, CharacterState, StateUpdate, beam,
+        Body, CharacterState, StateUpdate,
+        ability::Dodgeable,
+        beam,
         body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
         object::Body::{Flamethrower, Lavathrower},
@@ -39,6 +41,9 @@ pub struct StaticData {
     pub tick_rate: f32,
     /// Max range
     pub range: f32,
+    /// If the beam can be dodged, and in what way
+    #[serde(default)]
+    pub dodgeable: Dodgeable,
     /// The radius at the far distance of the beam. Radius linearly increases
     /// from 0 moving from start pos to end po.
     pub end_radius: f32,
@@ -50,6 +55,8 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// How fast enemy can rotate with beam
     pub ori_rate: f32,
+    /// Movement speed efficiency
+    pub move_efficiency: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the beam to the frontend
@@ -78,7 +85,7 @@ impl CharacterBehavior for Data {
         let ori_rate = self.static_data.ori_rate;
 
         handle_orientation(data, &mut update, ori_rate, None);
-        handle_move(data, &mut update, 0.4);
+        handle_move(data, &mut update, self.static_data.move_efficiency);
         handle_jump(data, output_events, &mut update, 1.0);
 
         // Velocity relative to the current ground
@@ -139,6 +146,8 @@ impl CharacterBehavior for Data {
                     // Creates beam
                     data.updater.insert(data.entity, beam::Beam {
                         attack,
+                        dodgeable: self.static_data.dodgeable,
+                        start_radius: 0.0,
                         end_radius: self.static_data.end_radius,
                         range: self.static_data.range,
                         duration: self.static_data.beam_duration,
@@ -250,6 +259,7 @@ fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Opt
             biped_large::Species::Mindflayer => body.height() * 0.6,
             biped_large::Species::SeaBishop => body.height() * 0.4,
             biped_large::Species::Cursekeeper => body.height() * 0.8,
+            biped_large::Species::Gigasfire => body.height() * 0.18,
             _ => body.height() * 0.5,
         },
         _ => body.height() * 0.5,

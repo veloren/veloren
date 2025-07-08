@@ -1,7 +1,7 @@
 use super::{
     super::{Animation, vek::*},
     BipedLargeSkeleton, SkeletonAttr, biped_large_alpha_axe, biped_large_alpha_hammer,
-    biped_large_alpha_sword, init_biped_large_alpha,
+    biped_large_alpha_sword, init_biped_large_alpha, init_gigas_fire,
 };
 use common::{
     comp::item::tool::{AbilitySpec, ToolKind},
@@ -65,8 +65,372 @@ impl Animation for AlphaAnimation {
         let foothorir = init_biped_large_alpha(&mut next, s_a, speed, acc_vel, move1);
 
         match active_tool_kind {
-            Some(ToolKind::Sword) => {
-                biped_large_alpha_sword(&mut next, s_a, move1, move2);
+            Some(ToolKind::Sword) => match ability_id {
+                Some("common.abilities.custom.gigas_fire.fast_slash") => {
+                    init_gigas_fire(&mut next);
+
+                    next.head.orientation.rotate_z(-PI / 9.0 * move1base);
+                    next.torso.orientation.rotate_z(PI / 5.0 * move1base);
+                    next.lower_torso.orientation.rotate_z(-PI / 9.0 * move1base);
+                    next.control.position += Vec3::new(-10.0, 4.0, 5.0) * move1base;
+                    next.control.orientation.rotate_x(PI / 4.0 * move1);
+                    next.shoulder_l.position += Vec3::new(3.0, 3.0, 0.0) * move1base;
+                    next.shoulder_l.orientation.rotate_z(-PI / 8.0 * move1base);
+                    next.shoulder_r.position += Vec3::new(-3.0, 3.0, 0.0) * move1base;
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move1base);
+                    next.control_l.orientation.rotate_x(-PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_z(PI / 3.0 * move1);
+                    next.foot_l.position += Vec3::new(-2.0, -2.0, 0.0) * move1;
+                    next.foot_l.orientation.rotate_z(PI / 5.0 * move1);
+
+                    next.head
+                        .orientation
+                        .rotate_z(PI / 9.0 * move2base + PI / 9.0 * move2);
+                    next.torso
+                        .orientation
+                        .rotate_z(-PI / 5.0 * move2base - PI / 5.0 * move2);
+                    next.lower_torso
+                        .orientation
+                        .rotate_z(PI / 9.0 * move2base + PI / 9.0 * move2);
+                    next.control.position += Vec3::new(10.0, -4.0, -5.0) * move2base;
+                    next.control.orientation.rotate_x(-PI / 1.2 * move2);
+                    next.control.orientation.rotate_y(-PI / 4.0 * move2);
+                    next.control.orientation.rotate_z(PI / 8.0 * move2);
+                    next.shoulder_l.position += Vec3::new(-3.0, -3.0, 0.0) * move2base;
+                    next.shoulder_r.position += Vec3::new(3.0, -3.0, 0.0) * move2base;
+                    next.shoulder_r.orientation.rotate_z(-PI / 4.0 * move2base);
+                    next.control_l.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_l.orientation.rotate_y(PI / 6.0 * move2);
+                    next.control_l.orientation.rotate_z(-PI / 8.0 * move2);
+                    next.control_r.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_r.orientation.rotate_y(PI / 6.0 * move2);
+                    next.control_r.orientation.rotate_z(PI / 6.0 * move2);
+                    next.leg_l.position += Vec3::new(1.0, 1.0, 0.0) * move2;
+                    next.leg_l.orientation.rotate_x(PI / 8.0 * move2);
+                    next.foot_l.position += Vec3::new(4.0, 4.0, 0.0) * move2;
+                    next.foot_l.orientation.rotate_z(-PI / 5.0 * move2);
+                    next.foot_r.position += Vec3::new(2.0, -2.0, 0.0) * move2;
+                    next.foot_r.orientation.rotate_z(-PI / 5.0 * move2);
+                },
+                // Mirrored version of the fast slash
+                Some("common.abilities.custom.gigas_fire.slow_slash") => {
+                    init_gigas_fire(&mut next);
+
+                    next.head.orientation.rotate_z(PI / 9.0 * move1base);
+                    next.torso.orientation.rotate_z(-PI / 5.0 * move1base);
+                    next.lower_torso.orientation.rotate_z(PI / 9.0 * move1base);
+                    next.control.position += Vec3::new(10.0, 4.0, 5.0) * move1base;
+                    next.control.orientation.rotate_x(PI / 4.0 * move1);
+                    next.shoulder_l.position += Vec3::new(3.0, 3.0, 0.0) * move1base;
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move1base);
+                    next.shoulder_r.position += Vec3::new(-3.0, 3.0, 0.0) * move1base;
+                    next.shoulder_r.orientation.rotate_z(PI / 8.0 * move1base);
+                    next.control_l.orientation.rotate_z(-PI / 3.0 * move1);
+                    next.control_r.orientation.rotate_x(-PI / 4.0 * move1);
+                    next.foot_r.position += Vec3::new(2.0, -2.0, 0.0) * move1;
+                    next.foot_r.orientation.rotate_z(-PI / 5.0 * move1);
+
+                    next.head
+                        .orientation
+                        .rotate_z(-PI / 9.0 * move2base - PI / 9.0 * move2);
+                    next.torso
+                        .orientation
+                        .rotate_z(PI / 5.0 * move2base + PI / 5.0 * move2);
+                    next.lower_torso
+                        .orientation
+                        .rotate_z(-PI / 9.0 * move2base - PI / 9.0 * move2);
+                    next.control.position += Vec3::new(-10.0, -4.0, -5.0) * move2base;
+                    next.control.orientation.rotate_x(-PI / 1.2 * move2);
+                    next.control.orientation.rotate_y(PI / 4.0 * move2);
+                    next.control.orientation.rotate_z(-PI / 8.0 * move2);
+                    next.shoulder_l.position += Vec3::new(-3.0, -3.0, 0.0) * move2base;
+                    next.shoulder_l.orientation.rotate_z(PI / 4.0 * move2base);
+                    next.shoulder_r.position += Vec3::new(3.0, -3.0, 0.0) * move2base;
+                    next.control_l.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_l.orientation.rotate_y(-PI / 6.0 * move2);
+                    next.control_l.orientation.rotate_z(-PI / 6.0 * move2);
+                    next.control_r.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_r.orientation.rotate_y(-PI / 6.0 * move2);
+                    next.control_r.orientation.rotate_z(PI / 8.0 * move2);
+                    next.foot_l.position += Vec3::new(-2.0, -2.0, 0.0) * move2;
+                    next.foot_l.orientation.rotate_z(PI / 5.0 * move2);
+                    next.leg_r.position += Vec3::new(-1.0, 1.0, 0.0) * move2;
+                    next.leg_r.orientation.rotate_x(PI / 8.0 * move2);
+                    next.foot_r.position += Vec3::new(-4.0, 4.0, 0.0) * move2;
+                    next.foot_r.orientation.rotate_z(PI / 5.0 * move2);
+                },
+                Some("common.abilities.custom.gigas_fire.fast_thrust") => {
+                    init_gigas_fire(&mut next);
+
+                    next.foot_l.position += Vec3::new(-1.0, -1.0, 0.0) * move1;
+                    next.foot_l.orientation.rotate_z(PI / 5.0 * move1);
+                    next.leg_r.position += Vec3::new(1.0, 1.0, 0.0) * move1;
+                    next.leg_r.orientation.rotate_x(PI / 8.0 * move1);
+                    next.foot_r.position += Vec3::new(3.0, 3.0, 0.0) * move1;
+                    next.foot_r.orientation.rotate_z(-PI / 6.0 * move1);
+                    next.torso.orientation.rotate_z(PI / 2.0 * move1);
+                    next.lower_torso.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.head.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.control.orientation.rotate_y(PI / 2.0 * move1);
+                    next.control.orientation.rotate_x(-PI / 2.5 * move1);
+                    next.shoulder_l.position += Vec3::new(5.0, 5.0, 0.0) * move1;
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.control_l.orientation.rotate_x(PI / 3.0 * move1);
+                    next.control_l.orientation.rotate_y(-PI / 6.0 * move1);
+                    next.shoulder_r.position += Vec3::new(-2.0, 2.0, 0.0) * move1;
+                    next.shoulder_r.orientation.rotate_z(PI / 6.0 * move1);
+                    next.control_r.orientation.rotate_z(PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_y(-PI / 4.0 * move1);
+
+                    next.leg_r.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.foot_r.position += Vec3::new(-2.0, -2.0, 0.0) * move2;
+                    next.foot_r.orientation.rotate_z(PI / 5.0 * move2);
+                    next.foot_l.position += Vec3::new(-1.0, 2.0, 0.0) * move2;
+                    next.torso.orientation.rotate_z(-PI / 1.5 * move2);
+                    next.lower_torso.orientation.rotate_z(PI / 4.0 * move2);
+                    next.head.orientation.rotate_z(PI / 4.0 * move2);
+                    next.control.position += Vec3::new(-10.0, 5.0, -8.0) * move2;
+                    next.control
+                        .orientation
+                        .rotate_x(PI / 2.5 * (4.0 * move2).min(1.0));
+                    next.control.orientation.rotate_y(PI / 20.0 * move2);
+                    next.control.orientation.rotate_z(PI / 1.7 * move2);
+                    next.main.position += Vec3::new(-3.0, 0.0, -3.0) * move2;
+                    next.shoulder_l.position += Vec3::new(-2.0, -2.0, 0.0) * move2;
+                    next.shoulder_l.orientation.rotate_z(PI / 6.0 * move2);
+                    next.control_l.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.control_l.orientation.rotate_y(PI / 6.0 * move2);
+                    next.control_l.orientation.rotate_z(-PI / 1.8 * move2);
+                    next.control_r.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_r.orientation.rotate_z(-PI / 4.0 * move2);
+                },
+                // Mirrored version of the fast thrust
+                Some("common.abilities.custom.gigas_fire.slow_thrust") => {
+                    init_gigas_fire(&mut next);
+
+                    next.leg_l.position += Vec3::new(-1.0, 1.0, 0.0) * move1;
+                    next.leg_l.orientation.rotate_x(PI / 8.0 * move1);
+                    next.foot_l.position += Vec3::new(-3.0, 3.0, 0.0) * move1;
+                    next.foot_l.orientation.rotate_z(PI / 6.0 * move1);
+                    next.foot_r.position += Vec3::new(1.0, -1.0, 0.0) * move1;
+                    next.foot_r.orientation.rotate_z(-PI / 5.0 * move1);
+                    next.torso.orientation.rotate_z(-PI / 2.0 * move1);
+                    next.lower_torso.orientation.rotate_z(PI / 4.0 * move1);
+                    next.head.orientation.rotate_z(PI / 4.0 * move1);
+                    next.control.orientation.rotate_y(-PI / 2.0 * move1);
+                    next.control.orientation.rotate_x(-PI / 2.5 * move1);
+                    next.shoulder_l.position += Vec3::new(2.0, 2.0, 0.0) * move1;
+                    next.shoulder_l.orientation.rotate_z(-PI / 6.0 * move1);
+                    next.control_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.control_l.orientation.rotate_y(PI / 4.0 * move1);
+                    next.shoulder_r.position += Vec3::new(-5.0, 5.0, 0.0) * move1;
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_x(PI / 3.0 * move1);
+                    next.control_r.orientation.rotate_y(PI / 6.0 * move1);
+
+                    next.foot_r.position += Vec3::new(1.0, 2.0, 0.0) * move2;
+                    next.leg_l.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.foot_l.position += Vec3::new(2.0, -2.0, 0.0) * move2;
+                    next.foot_l.orientation.rotate_z(-PI / 5.0 * move2);
+                    next.torso.orientation.rotate_z(PI / 1.5 * move2);
+                    next.lower_torso.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.head.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.control.position += Vec3::new(10.0, 5.0, -8.0) * move2;
+                    next.control
+                        .orientation
+                        .rotate_x(PI / 2.5 * (4.0 * move2).min(1.0));
+                    next.control.orientation.rotate_y(-PI / 20.0 * move2);
+                    next.control.orientation.rotate_z(-PI / 1.7 * move2);
+                    next.main.position += Vec3::new(3.0, 0.0, -3.0) * move2;
+                    next.control_l.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_l.orientation.rotate_z(PI / 3.0 * move2);
+                    next.shoulder_r.position += Vec3::new(2.0, -2.0, 0.0) * move2;
+                    next.shoulder_r.orientation.rotate_z(-PI / 6.0 * move2);
+                    next.control_r.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.control_r.orientation.rotate_y(-PI / 6.0 * move2);
+                    next.control_r.orientation.rotate_z(PI / 1.8 * move2);
+                },
+                Some("common.abilities.custom.gigas_fire.whirlwind") => {
+                    let move1 = move1base * pullback;
+                    let move2 = move2base;
+
+                    init_gigas_fire(&mut next);
+
+                    next.head.orientation.rotate_z(-PI / 8.0 * move1);
+                    next.lower_torso.orientation.rotate_z(-PI / 6.0 * move1base);
+                    next.shoulder_r.position += Vec3::new(-4.0, 4.0, 0.0) * move1base;
+                    next.shoulder_r.orientation.rotate_z(PI / 5.0 * move1base);
+                    next.control_l.orientation.rotate_x(-PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_z(PI / 4.0 * move1);
+                    next.control_r.orientation.rotate_y(PI / 4.0 * move1);
+                    next.control.position += Vec3::new(-5.0, -5.0, -5.0) * move1;
+                    next.control.orientation.rotate_y(-PI / 2.3 * move1);
+                    next.control.orientation.rotate_z(PI / 6.0 * move1 * move1);
+                    next.leg_r.position += Vec3::new(1.5, -4.0, 0.0) * move1base;
+                    next.leg_r.orientation.rotate_x(-PI / 8.0 * move1base);
+                    next.leg_r.orientation.rotate_y(-PI / 8.0 * move1base);
+                    next.leg_r.orientation.rotate_z(-PI / 8.0 * move1base);
+                    next.foot_r.position += Vec3::new(3.0, -8.0, 0.0) * move1base;
+                    next.foot_r.orientation.rotate_z(-PI / 4.0 * move1base);
+
+                    next.head.orientation.rotate_z(-PI / 8.0 * move2);
+                    next.torso.orientation.rotate_z(-2.0 * PI * move2);
+                    next.lower_torso.orientation.rotate_z(PI / 6.0 * move2base);
+                    next.shoulder_r.position += Vec3::new(4.0, -4.0, 0.0) * move2base;
+                    next.shoulder_r.orientation.rotate_z(-PI / 5.0 * move2base);
+                    next.shoulder_l.position += Vec3::new(4.0, 4.0, 0.0) * move2;
+                    next.shoulder_l.orientation.rotate_z(-PI / 7.0 * move2);
+                    next.control_l.orientation.rotate_x(PI / 2.0 * move2);
+                    next.control_l.orientation.rotate_z(PI / 3.0 * move2);
+                    next.control_r.orientation.rotate_z(PI / 2.4 * move2);
+                    next.control_r.orientation.rotate_y(PI / 2.8 * move2);
+                    next.control_r.orientation.rotate_x(PI / 2.8 * move2);
+                    next.control.position += Vec3::new(4.0, 0.0, 0.0) * move2;
+                    next.control.orientation.rotate_z(-PI / 1.2 * move2);
+                    next.control.orientation.rotate_x(-PI / 5.0 * move2);
+                    next.leg_r.position += Vec3::new(-1.5, 4.0, 0.0) * move2base.powi(2);
+                    next.leg_r
+                        .orientation
+                        .rotate_x(PI / 8.0 * move2base.powi(2));
+                    next.leg_r
+                        .orientation
+                        .rotate_y(PI / 8.0 * move2base.powi(2));
+                    next.leg_r
+                        .orientation
+                        .rotate_z(PI / 8.0 * move2base.powi(2));
+                    next.foot_r.position += Vec3::new(-3.0, 8.0, 0.0) * move2base.powi(2);
+                    next.foot_r
+                        .orientation
+                        .rotate_z(PI / 4.0 * move2base.powi(2));
+                    next.foot_r.orientation.rotate_z(-PI / 8.0 * move2.powi(2));
+                    next.leg_l.position += Vec3::new(0.0, 2.5, 0.0) * move2.powi(2);
+                    next.leg_l.orientation.rotate_x(PI / 6.0 * move2.powi(2));
+                    next.foot_l.position += Vec3::new(0.0, 5.0, 0.0) * move2.powi(2);
+                    if matches!(stage_section, Some(StageSection::Action)) {
+                        next.leg_l.position.z += 3.0 * (PI * move2).sin();
+                        next.foot_l.position.z += 3.0 * (PI * move2).sin();
+                    }
+                    next.foot_l.orientation.rotate_z(-PI / 8.0 * move2);
+                },
+                Some("common.abilities.custom.gigas_fire.vertical_strike") => {
+                    let pullback = (1.0 - move3).powi(3);
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+
+                    init_gigas_fire(&mut next);
+
+                    next.control.position += Vec3::new(5.0, 0.0, -20.0) * move1;
+                    next.control.orientation.rotate_y(PI / 2.5 * move1);
+                    next.control.orientation.rotate_x(-PI / 3.0 * move1);
+                    next.control.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.shoulder_l.position += Vec3::new(5.0, 5.0, 0.0) * move1;
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move1);
+                    next.torso.orientation.rotate_z(-PI / 3.0 * move1);
+                    next.lower_torso.orientation.rotate_z(PI / 8.0 * move1);
+                    next.leg_r.position += Vec3::new(2.0, -2.0, 0.0) * move1;
+                    next.leg_r.orientation.rotate_y(-PI / 8.0 * move1);
+                    next.leg_r.orientation.rotate_z(-PI / 8.0 * move1);
+                    next.foot_r.position += Vec3::new(4.0, -4.0, 0.0) * move1;
+                    next.foot_r.orientation.rotate_z(-PI / 7.0 * move1);
+                    next.leg_l.position += Vec3::new(2.0, 3.0, 0.0) * move1;
+                    next.leg_l.orientation.rotate_y(PI / 8.0 * move1);
+                    next.leg_l.orientation.rotate_z(-PI / 8.0 * move1);
+                    next.foot_l.position += Vec3::new(0.0, 4.0, 0.0) * move1;
+                    next.foot_l.orientation.rotate_z(PI / 8.0 * move1);
+
+                    next.control.position += Vec3::new(-8.0, -6.0, 40.0) * move2;
+                    next.control.orientation.rotate_y(1.3 * PI * move2);
+                    next.control
+                        .orientation
+                        .rotate_x(PI / 3.0 * (PI * move2).sin());
+                    next.control.orientation.rotate_z(-PI / 1.1 * move2);
+                    next.shoulder_l.position += Vec3::new(-5.0, -5.0, 0.0) * move2;
+                    next.shoulder_l.orientation.rotate_z(PI / 4.0 * move2);
+                    next.shoulder_l.orientation.rotate_x(PI / 2.5 * move2);
+                    next.shoulder_r.position += Vec3::new(-5.0, 5.0, 0.0) * move2;
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move2);
+                    next.shoulder_r.orientation.rotate_x(PI / 2.5 * move2);
+                    next.torso.orientation.rotate_z(PI / 2.0 * move2);
+                    next.lower_torso.orientation.rotate_z(-PI / 8.0 * move2);
+                    next.foot_r.position += Vec3::new(-2.0, 8.0, 0.0) * move2
+                        + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.leg_r.position += Vec3::new(-2.0, 4.0, 0.0) * move2
+                        + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.leg_r.orientation.rotate_z(PI / 4.0 * move2);
+                    next.foot_l.position += Vec3::new(0.0, -8.0, 0.0) * move2;
+                    next.foot_l.orientation.rotate_z(-PI / 5.0 * move2);
+                    next.leg_l.position += Vec3::new(0.0, -4.0, 0.0) * move2;
+                    next.leg_l.orientation.rotate_z(PI / 4.0 * move2);
+                },
+                Some("common.abilities.custom.gigas_fire.explosive_strike") => {
+                    let (move1base, move2base, move3) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+
+                    let (pre_move1base, move1base) = if move1base < 0.2 {
+                        (5.0 * move1base, 0.0)
+                    } else {
+                        (1.0, 1.25 * (move1base - 0.2))
+                    };
+
+                    let pullback = 1.0 - move3;
+                    let pre_move1 = pre_move1base * pullback;
+                    let move2 = move2base * pullback;
+
+                    init_gigas_fire(&mut next);
+
+                    next.torso.orientation.rotate_z(PI / 8.0 * pre_move1base);
+                    next.lower_torso
+                        .orientation
+                        .rotate_z(-PI / 16.0 * pre_move1);
+                    next.shoulder_l
+                        .orientation
+                        .rotate_x(PI / 3.0 * pre_move1base);
+                    next.shoulder_r
+                        .orientation
+                        .rotate_x(PI / 3.0 * pre_move1base);
+                    next.shoulder_r.position += Vec3::new(-2.0, 8.0, 0.0) * pre_move1base;
+                    next.shoulder_r
+                        .orientation
+                        .rotate_z(PI / 5.0 * pre_move1base);
+                    next.control.position +=
+                        Vec3::new(-15.0 * pre_move1base, 0.0, 25.0 * pre_move1base);
+                    next.control.orientation.rotate_x(PI / 2.5 * pre_move1);
+                    next.leg_l.position += Vec3::new(0.0, -2.5, 0.0) * pre_move1base;
+                    next.leg_l.orientation.rotate_x(-PI / 8.0 * pre_move1base);
+                    next.foot_l.position += Vec3::new(0.0, -5.0, 0.0) * pre_move1base;
+                    next.foot_l.orientation.rotate_z(PI / 4.0 * pre_move1base);
+
+                    next.torso.orientation.rotate_z(-PI / 8.0 * move1base);
+                    next.control.orientation.rotate_z(2.0 * PI * move1base);
+                    next.leg_l.position += Vec3::new(0.0, 2.5, 0.0) * move1base;
+                    next.leg_l.orientation.rotate_x(PI / 8.0 * move1base);
+                    next.foot_l.position += Vec3::new(0.0, 5.0, 0.0) * move1base;
+
+                    next.torso.position += Vec3::new(0.0, -10.0, 0.0) * move2;
+                    next.torso.orientation.rotate_z(-PI / 8.0 * move2);
+                    next.torso.orientation.rotate_x(-PI / 8.0 * move2);
+                    next.lower_torso.orientation.rotate_z(PI / 8.0 * move2);
+                    next.lower_torso.orientation.rotate_x(PI / 8.0 * move2);
+                    next.torso.position += Vec3::new(0.0, 0.0, 1.5) * move2;
+                    next.shoulder_l.orientation.rotate_x(-PI / 3.0 * move2base);
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.shoulder_r.position += Vec3::new(2.0, -8.0, 0.0) * move2base;
+                    next.shoulder_r.orientation.rotate_z(-PI / 5.0 * move2base);
+                    next.shoulder_r.orientation.rotate_x(-PI / 3.0 * move2base);
+                    next.control.position +=
+                        Vec3::new(15.0 * move2base, 0.0, -25.0 * move2base - 20.0 * move2);
+                    next.control.orientation.rotate_x(-PI * move2);
+                    next.leg_l.position += Vec3::new(0.0, 1.0, 0.0) * move2;
+                    next.foot_l.position += Vec3::new(0.0, 2.5, 0.0) * move2;
+                    next.foot_l.orientation.rotate_z(-PI / 4.0 * move2base);
+                },
+                _ => {
+                    biped_large_alpha_sword(&mut next, s_a, move1, move2);
+                },
             },
             Some(ToolKind::Hammer) => {
                 biped_large_alpha_hammer(&mut next, s_a, move1, move2);

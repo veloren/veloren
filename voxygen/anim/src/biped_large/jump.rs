@@ -56,7 +56,7 @@ impl Animation for JumpAnimation {
         next.control.position = Vec3::new(0.0, 0.0, 0.0);
         next.control.orientation = Quaternion::rotation_z(0.0);
 
-        if active_tool_kind != Some(ToolKind::Axe) {
+        if !matches!(active_tool_kind, Some(ToolKind::Sword | ToolKind::Axe)) {
             next.second.position = Vec3::new(0.0, 0.0, 0.0);
             next.second.orientation = Quaternion::rotation_x(PI)
                 * Quaternion::rotation_y(0.0)

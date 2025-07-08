@@ -3691,11 +3691,12 @@ make_vox_spec!(
             third_person.map(|loadout| spec.armor_tail.read().0.mesh_tail(loadout.belt.as_deref())),
             tool.and_then(|tool| tool.active.as_ref())
                 .map(|tool| spec.weapon.read().0.mesh_main(tool, false)),
+            tool.and_then(|tool| tool.second.as_ref())
+                .map(|tool| spec.weapon.read().0.mesh_main(tool, true)),
             Some(spec.armor_hand.read().0.mesh_left_hand(hand)),
             Some(spec.armor_hand.read().0.mesh_right_hand(hand)),
             Some(spec.armor_foot.read().0.mesh_left_foot(foot)),
             Some(spec.armor_foot.read().0.mesh_right_foot(foot)),
-            None,
             None,
             None,
             None,

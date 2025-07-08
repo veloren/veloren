@@ -207,7 +207,10 @@ impl CharacterBehavior for Data {
                                 ),
                             );
                             let explosion = Explosion {
-                                effects: vec![RadiusEffect::Attack(attack)],
+                                effects: vec![RadiusEffect::Attack {
+                                    attack,
+                                    dodgeable: Dodgeable::Roll,
+                                }],
                                 radius: data.body.max_radius() * 3.0,
                                 reagent: Some(Reagent::White),
                                 min_falloff: 0.5,

@@ -1,10 +1,12 @@
 use crate::{
     Explosion,
     character::CharacterId,
-    combat::{AttackSource, DeathEffects, RiderEffects},
+    combat::{AttackSource, AttackTarget, CombatEffect, DeathEffects, RiderEffects},
     comp::{
         self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
+        ability::Dodgeable,
         agent::Sound,
+        beam,
         invite::{InviteKind, InviteResponse},
         slot::EquipSlot,
     },
@@ -15,6 +17,7 @@ use crate::{
     outcome::Outcome,
     resources::{BattleMode, Secs},
     rtsim::{self, RtSimEntity},
+    states::basic_summon::BeamPillarIndicatorSpecifier,
     terrain::SpriteKind,
     trade::{TradeAction, TradeId},
     uid::Uid,
@@ -22,7 +25,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use specs::Entity as EcsEntity;
-use std::{collections::VecDeque, sync::Mutex};
+use std::{collections::VecDeque, sync::Mutex, time::Duration};
 use uuid::Uuid;
 use vek::*;
 
@@ -204,6 +207,7 @@ pub struct CreateItemDropEvent {
     pub item: comp::PickupItem,
     pub loot_owner: Option<LootOwner>,
 }
+
 pub struct CreateObjectEvent {
     pub pos: Pos,
     pub vel: Vel,
@@ -531,6 +535,22 @@ pub struct ToggleSpriteLightEvent {
 
 pub struct RegrowHeadEvent {
     pub entity: EcsEntity,
+}
+
+pub struct SummonBeamPillarsEvent {
+    pub summoner: EcsEntity,
+    pub target: AttackTarget,
+    pub buildup_duration: Duration,
+    pub attack_duration: Duration,
+    pub beam_duration: Duration,
+    pub radius: f32,
+    pub height: f32,
+    pub damage: f32,
+    pub damage_effect: Option<CombatEffect>,
+    pub dodgeable: Dodgeable,
+    pub tick_rate: f32,
+    pub specifier: beam::FrontendSpecifier,
+    pub indicator_specifier: BeamPillarIndicatorSpecifier,
 }
 
 struct EventBusInner<E> {

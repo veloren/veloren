@@ -642,11 +642,15 @@ impl BuffKind {
 #[serde(deny_unknown_fields, default)]
 pub struct BuffData {
     pub strength: f32,
+    #[serde(default)]
     pub duration: Option<Secs>,
+    #[serde(default)]
     pub delay: Option<Secs>,
     /// Used for buffs that have rider buffs (e.g. Flame, Frigid)
+    #[serde(default)]
     pub secondary_duration: Option<Secs>,
     /// Used to add random data to buffs if needed (e.g. polymorphed)
+    #[serde(default)]
     pub misc_data: Option<MiscBuffData>,
 }
 
@@ -1026,6 +1030,10 @@ impl Buffs {
     }
 
     pub fn contains(&self, kind: BuffKind) -> bool { self.kinds[kind].is_some() }
+
+    pub fn contains_any(&self, kinds: &[BuffKind]) -> bool {
+        kinds.iter().any(|kind| self.contains(*kind))
+    }
 
     // Iterate through buffs of a given kind in effect order (most powerful first)
     pub fn iter_kind(&self, kind: BuffKind) -> impl Iterator<Item = (BuffKey, &Buff)> + '_ {

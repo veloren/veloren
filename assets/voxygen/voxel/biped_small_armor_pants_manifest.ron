@@ -78,6 +78,9 @@
         "common.items.npc_armor.biped_small.boreal.pants.warrior": (
             vox_spec: ("npc.boreal.warrior.pants", (-7.0, -5.0, -3.5)),
         ),
+        "common.items.npc_armor.biped_small.ashen.pants.warrior": (
+            vox_spec: ("npc.ashen.warrior.pants", (-7.0, -5.0, -5.0)),
+        ),
         "common.items.npc_armor.biped_small.bushly.pants.bushly": (
             vox_spec: ("npc.bushly.male.pants", (-3.0, -2.0, -1.0)),
         ),

@@ -9,7 +9,7 @@ RepeaterRanged(
         kind: Explosive(
             radius: 12,
             min_falloff: 0.5,
-            reagent: Some(Phoenix),
+            reagent: Some(FireRain),
             terrain: Some((2, Black))
         ),
         attack: Some((
@@ -39,5 +39,5 @@ RepeaterRanged(
         radius: 30,
         height: 20,
     )),
-    specifier: Some(FireRain),
+    specifier: Some(FireRainPhoenix),
 )

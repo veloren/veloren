@@ -28,6 +28,8 @@ impl Animation for ComboAnimation {
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
+        next.second.position = Vec3::new(0.0, 0.0, 0.0);
+        next.second.orientation = Quaternion::rotation_z(0.0);
         let multi_strike_pullback = 1.0
             - if matches!(stage_section, StageSection::Recover) {
                 anim_time.powi(4)
@@ -130,6 +132,167 @@ impl Animation for ComboAnimation {
                     init_biped_small_alpha(&mut next, s_a);
                     biped_small_alpha_axe(&mut next, s_a, move1abs, move2abs);
                 },
+                Some("common.abilities.custom.ashen_warrior.axe.doublestrike") => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base) = if strike == current_strike {
+                        match stage_section {
+                            StageSection::Buildup => (anim_time.sqrt(), 0.0),
+                            StageSection::Action => (1.0, anim_time.powi(4)),
+                            StageSection::Recover => (1.0, 1.0),
+                            _ => (0.0, 0.0),
+                        }
+                    } else {
+                        (1.0, 1.0)
+                    };
+                    let move1 = move1base * multi_strike_pullback;
+                    let move2 = move2base * multi_strike_pullback;
+
+                    match strike {
+                        0 => {
+                            next.main.position = Vec3::new(-8.0, 2.0, 0.0);
+                            next.main.orientation = Quaternion::rotation_x(0.0);
+                            next.second.position = Vec3::new(8.0, 2.0, 0.0);
+                            next.second.orientation = Quaternion::rotation_x(0.0);
+                            next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, 2.0);
+                            next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, 2.0);
+                            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                            next.chest.orientation.rotate_z(PI / 4.0 * move1);
+                            next.pants.orientation.rotate_z(-PI / 8.0 * move1);
+                            next.hand_l.position += Vec3::new(0.0, 0.0, 2.0) * move1;
+                            next.hand_l.orientation.rotate_y(-PI / 8.0 * move1);
+                            next.main.orientation.rotate_y(-PI / 8.0 * move1);
+                            next.control_r.orientation.rotate_y(-PI / 8.0 * move1);
+
+                            next.chest.orientation.rotate_z(-PI / 2.5 * move2);
+                            next.pants.orientation.rotate_z(PI / 8.0 * move2);
+                            next.hand_l.position += Vec3::new(0.0, 5.0, -3.0) * move2;
+                            next.hand_l.orientation.rotate_x(-PI / 3.0 * move2);
+                            next.hand_l.orientation.rotate_y(-PI / 4.0 * move2);
+                            next.hand_l.orientation.rotate_z(-PI / 4.0 * move2);
+                            next.main.position += Vec3::new(0.0, 5.0, -3.0) * move2;
+                            next.main.orientation.rotate_x(-PI / 3.0 * move2);
+                            next.main.orientation.rotate_y(-PI / 4.0 * move2);
+                            next.main.orientation.rotate_z(-PI / 4.0 * move2);
+                        },
+                        1 => {
+                            next.chest.orientation.rotate_z(-PI / 5.0 * move1);
+                            next.control_r.orientation.rotate_y(PI / 4.0 * move1);
+
+                            next.chest.orientation.rotate_z(PI / 2.0 * move2);
+                            next.hand_l.position += Vec3::new(0.0, -4.0, 0.0) * move2;
+                            next.hand_l.orientation.rotate_x(PI / 6.0 * move2);
+                            next.hand_l.orientation.rotate_y(PI / 8.0 * move2);
+                            next.hand_l.orientation.rotate_z(PI / 8.0 * move2);
+                            next.main.position += Vec3::new(0.0, -4.0, 0.0) * move2;
+                            next.main.orientation.rotate_x(PI / 6.0 * move2);
+                            next.main.orientation.rotate_y(PI / 8.0 * move2);
+                            next.main.orientation.rotate_z(PI / 8.0 * move2);
+                            next.control_r.orientation.rotate_x(-PI / 4.0 * move2);
+                            next.control_r.orientation.rotate_y(PI / 8.0 * move2);
+                            next.control_r.orientation.rotate_z(PI / 8.0 * move2);
+                        },
+                        _ => {},
+                    }
+                },
+                Some("common.abilities.custom.ashen_warrior.axe.knockback_combo") => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base, move3base) = if strike == current_strike {
+                        match stage_section {
+                            StageSection::Buildup => (anim_time, 0.0, 0.0),
+                            StageSection::Action => (1.0, anim_time, 0.0),
+                            StageSection::Recover => (1.0, 1.0, anim_time),
+                            _ => (0.0, 0.0, 0.0),
+                        }
+                    } else {
+                        (1.0, 1.0, 1.0)
+                    };
+                    let multi_strike_pullback = 1.0 - move3base;
+                    let move1 = move1base * multi_strike_pullback;
+                    let move2 = move2base * multi_strike_pullback;
+
+                    match strike {
+                        0 => {
+                            next.main.position = Vec3::new(-8.0, 2.0, 0.0);
+                            next.main.orientation = Quaternion::rotation_x(0.0);
+                            next.second.position = Vec3::new(8.0, 2.0, 0.0);
+                            next.second.orientation = Quaternion::rotation_x(0.0);
+                            next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, 2.0);
+                            next.hand_l.orientation = Quaternion::rotation_x(PI / 2.0);
+                            next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, 2.0);
+                            next.hand_r.orientation = Quaternion::rotation_x(PI / 2.0);
+
+                            next.hand_l.position += Vec3::new(-6.0, 0.0, -4.0) * move1;
+                            next.hand_l.orientation.rotate_y(PI / 1.3 * move1);
+                            next.main.position += Vec3::new(0.0, 0.0, 4.0) * move1;
+                            next.main.orientation.rotate_y(PI / 1.3 * move1);
+                            next.control_r.position += Vec3::new(15.0, 0.0, -5.0) * move1;
+                            next.control_r.orientation.rotate_y(-PI / 1.3 * move1);
+                            next.chest.orientation.rotate_x(-PI / 12.0 * move1);
+                            next.pants.orientation.rotate_x(PI / 12.0 * move1);
+
+                            next.control_r.orientation.rotate_x(PI / 2.0 * move2);
+                            next.control_r.orientation.rotate_y(PI / 2.0 * move2);
+                            next.control_r.orientation.rotate_z(-PI / 4.0 * move2);
+                            next.hand_l.orientation.rotate_x(PI / 2.0 * move2);
+                            next.hand_l.orientation.rotate_y(-PI / 2.0 * move2);
+                            next.hand_l.orientation.rotate_z(PI / 4.0 * move2);
+                            next.main.orientation.rotate_x(PI / 2.0 * move2);
+                            next.main.orientation.rotate_y(-PI / 2.0 * move2);
+                            next.main.orientation.rotate_z(PI / 4.0 * move2);
+                            next.chest.orientation.rotate_x(PI / 8.0 * move2);
+                            next.pants.orientation.rotate_x(-PI / 8.0 * move2);
+                        },
+                        1 => {
+                            let rotate_about =
+                                |bone: &mut Transform<f32, f32, f32>,
+                                 pivot: Vec3<f32>,
+                                 rotation: Quaternion<f32>| {
+                                    bone.orientation = bone.orientation * rotation;
+                                    bone.position = rotation * (bone.position - pivot) + pivot;
+                                };
+
+                            next.chest.orientation.rotate_x(PI * move1base);
+                            rotate_about(
+                                &mut next.foot_l,
+                                next.chest.position,
+                                Quaternion::rotation_x(PI * move1base),
+                            );
+                            rotate_about(
+                                &mut next.foot_r,
+                                next.chest.position,
+                                Quaternion::rotation_x(PI * move1base),
+                            );
+                            next.pants.orientation.rotate_x(PI / 4.0 * move1);
+                            next.foot_l.orientation.rotate_x(PI / 4.0 * move1);
+                            next.foot_r.orientation.rotate_x(PI / 4.0 * move1);
+                            next.control_r.orientation.rotate_y(-PI / 2.0 * move1);
+                            next.hand_l.orientation.rotate_y(-PI / 2.0 * move1);
+                            next.main.orientation.rotate_y(-PI / 2.0 * move1);
+
+                            next.chest.orientation.rotate_z(2.0 * PI * move2base);
+                            next.foot_l.orientation.rotate_z(2.0 * PI * move2base);
+                            next.foot_r.orientation.rotate_z(2.0 * PI * move2base);
+                            next.pants.orientation.rotate_x(-PI / 4.0 * move2);
+                            next.foot_l.orientation.rotate_x(-PI / 4.0 * move2);
+                            next.foot_r.orientation.rotate_x(-PI / 4.0 * move2);
+
+                            next.chest.orientation.rotate_x(PI * move3base);
+                            rotate_about(
+                                &mut next.foot_l,
+                                next.chest.position,
+                                Quaternion::rotation_x(PI * move3base),
+                            );
+                            rotate_about(
+                                &mut next.foot_r,
+                                next.chest.position,
+                                Quaternion::rotation_x(PI * move3base),
+                            );
+                        },
+                        _ => {},
+                    }
+                },
                 Some("common.abilities.custom.boreal_warrior.bow.doublestrike") => {
                     let anim_time = anim_time.min(1.0);
                     let (move1base, move2base) = if strike == current_strike {
@@ -148,6 +311,7 @@ impl Animation for ComboAnimation {
                     match strike {
                         0 => {
                             init_biped_small_alpha(&mut next, s_a);
+
                             next.control.position += Vec3::new(0.0, 8.0, 0.0);
                             next.control.orientation.rotate_x(-PI / 8.0);
                             next.hand_l.position += Vec3::new(-6.0, -4.0, -4.0);

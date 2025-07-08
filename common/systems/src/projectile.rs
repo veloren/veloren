@@ -105,11 +105,12 @@ impl<'a> System<'a> for Sys {
         let mut rng = rand::thread_rng();
 
         // Attacks
-        'projectile_loop: for (entity, pos, physics, vel, projectile) in (
+        'projectile_loop: for (entity, pos, physics, vel, body, projectile) in (
             &read_data.entities,
             &read_data.positions,
             &read_data.physics_states,
             &read_data.velocities,
+            &read_data.bodies,
             &mut projectiles,
         )
             .join()
@@ -299,10 +300,7 @@ impl<'a> System<'a> for Sys {
                     if let projectile::Effect::Firework(reagent) = effect {
                         const ENABLE_RECURSIVE_FIREWORKS: bool = true;
                         if ENABLE_RECURSIVE_FIREWORKS {
-                            use common::{
-                                comp::{LightEmitter, object},
-                                event::ShootEvent,
-                            };
+                            use common::{comp::LightEmitter, event::ShootEvent};
                             use std::f32::consts::PI;
                             // Note that if the expected fireworks per firework is > 1, this
                             // will eventually cause
@@ -341,7 +339,7 @@ impl<'a> System<'a> for Sys {
                                     entity: Some(entity),
                                     pos: *pos,
                                     dir,
-                                    body: Body::Object(object::Body::for_firework(reagent)),
+                                    body: *body,
                                     light: Some(LightEmitter {
                                         animated: true,
                                         flicker: 2.0,

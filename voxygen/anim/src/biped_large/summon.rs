@@ -1,6 +1,6 @@
 use super::{
     super::{Animation, vek::*},
-    BipedLargeSkeleton, SkeletonAttr,
+    BipedLargeSkeleton, SkeletonAttr, init_gigas_fire,
 };
 use common::{
     comp::item::{AbilitySpec, ToolKind},
@@ -225,8 +225,57 @@ impl Animation for SummonAnimation {
                 },
                 _ => {},
             },
-            Some(ToolKind::Axe) => match ability_id {
-                Some("common.abilities.custom.gigas_frost.frost_summons") => {
+            Some(ToolKind::Axe | ToolKind::Sword) => match ability_id {
+                Some(
+                    "common.abilities.custom.gigas_fire.fire_pillars"
+                    | "common.abilities.custom.gigas_fire.targeted_fire_pillar",
+                ) => {
+                    let (move1base, move2base, move3base) = match stage_section {
+                        Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
+                        Some(StageSection::Action) => (1.0, anim_time, 0.0),
+                        Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let (move3, move4) = if move3base < 0.5 {
+                        (2.0 * move3base, 0.0)
+                    } else {
+                        (1.0, 2.0 * (move3base - 0.5))
+                    };
+                    let move1 = move1base * (1.0 - move4);
+                    let move2 = move2base * (1.0 - move3);
+
+                    init_gigas_fire(&mut next);
+
+                    next.torso.orientation.rotate_z(-PI / 8.0 * move1);
+                    next.lower_torso.orientation.rotate_z(PI / 16.0 * move1);
+                    next.shoulder_l.position += Vec3::new(2.0, 8.0, 0.0) * move1;
+                    next.shoulder_l.orientation.rotate_x(PI / 1.5 * move1);
+                    next.shoulder_l.orientation.rotate_z(-PI / 3.0 * move1);
+                    next.shoulder_r.orientation.rotate_x(PI / 1.2 * move1);
+                    next.control.position += Vec3::new(12.0, 5.0, 30.0) * move1;
+                    next.control.orientation.rotate_y(-PI * move1);
+                    next.control_l.position +=
+                        Vec3::new(10.0, 0.0, -20.0) * (PI * move1base + PI).sin();
+                    next.control_l.orientation.rotate_x(PI / 8.0 * move1);
+                    next.control_l.orientation.rotate_y(PI * move1);
+                    next.control_l.orientation.rotate_z(PI / 3.0 * move1);
+                    next.control_r.orientation.rotate_x(-PI / 12.0 * move1);
+                    next.control_r.orientation.rotate_z(-PI / 10.0 * move1);
+                    next.foot_r.orientation.rotate_z(-PI / 8.0 * move1);
+
+                    next.shoulder_l.position += Vec3::new(2.0, 3.0, 0.0) * move2;
+                    next.shoulder_l.orientation.rotate_x(-PI / 2.5 * move2);
+                    next.shoulder_l.orientation.rotate_y(PI / 4.0 * move2);
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.shoulder_r.orientation.rotate_x(-PI / 2.0 * move2);
+                    next.control.position += Vec3::new(0.0, 0.0, -30.0) * move2;
+                    next.control_l.orientation.rotate_x(PI / 3.0 * move2);
+                    next.control_r.orientation.rotate_x(PI / 4.0 * move2);
+                },
+                Some(
+                    "common.abilities.custom.gigas_frost.frost_summons"
+                    | "common.abilities.custom.gigas_fire.ashen_summons",
+                ) => {
                     next.shoulder_l.position = Vec3::new(
                         -s_a.shoulder.0,
                         s_a.shoulder.1,

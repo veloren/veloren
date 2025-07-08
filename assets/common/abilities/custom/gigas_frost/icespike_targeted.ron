@@ -8,5 +8,6 @@ SpriteSummon(
     sparseness: 0.7,
     angle: 360,
     move_efficiency: 1.0,
+    ori_modifier: 1.0,
     anchor: Target,
 )

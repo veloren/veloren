@@ -1,0 +1,28 @@
+BasicSummon(
+    buildup_duration: 1.4,
+    cast_duration: 0.1,
+    recover_duration: 1.1,
+    summon_info: BeamPillar(
+        buildup_duration: 0.682,
+        attack_duration: 5.0,
+        beam_duration: 0.5,
+        target: AllInRange(70.0),
+        radius: 4.0,
+        height: 15.0,
+        damage: 31.0,
+        dodgeable: No,
+        tick_rate: 1.4,
+        specifier: FirePillar,
+        indicator_specifier: FirePillar,
+    ),
+    movement_modifier: (
+        buildup: Some(0.0),
+        swing: Some(0.0),
+        recover: Some(0.0),
+    ),
+    ori_modifier: (
+        buildup: Some(0.0),
+        swing: Some(0.0),
+        recover: Some(0.0),
+    ),
+)
