@@ -196,6 +196,7 @@ fn do_command(
         ServerChatCommand::Outcome => handle_outcome,
         ServerChatCommand::PermitBuild => handle_permit_build,
         ServerChatCommand::Players => handle_players,
+        ServerChatCommand::Poise => handle_poise,
         ServerChatCommand::Portal => handle_spawn_portal,
         ServerChatCommand::ResetRecipes => handle_reset_recipes,
         ServerChatCommand::Region => handle_region,
@@ -1721,6 +1722,38 @@ fn handle_health(
         }
     } else {
         Err(Content::Plain("You must specify health amount!".into()))
+    }
+}
+
+fn handle_poise(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if let Some(new_poise) = parse_cmd_args!(args, f32) {
+        if let Some(mut poise) = server
+            .state
+            .ecs()
+            .write_storage::<comp::Poise>()
+            .get_mut(target)
+        {
+            let time = server.state.ecs().read_resource::<Time>();
+            let change = comp::PoiseChange {
+                amount: new_poise - poise.current(),
+                impulse: Vec3::zero(),
+                by: None,
+                cause: None,
+                time: *time,
+            };
+            poise.change(change);
+            Ok(())
+        } else {
+            Err(Content::Plain("You have no poise".into()))
+        }
+    } else {
+        Err(Content::Plain("You must specify poise amount!".into()))
     }
 }
 
