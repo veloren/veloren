@@ -428,6 +428,7 @@ pub enum ServerChatCommand {
     Outcome,
     PermitBuild,
     Players,
+    Poise,
     Portal,
     Region,
     ReloadChunks,
@@ -848,6 +849,11 @@ impl ServerChatCommand {
             ServerChatCommand::Players => {
                 cmd(vec![], Content::localized("command-players-desc"), None)
             },
+            ServerChatCommand::Poise => cmd(
+                vec![Integer("poise", 100, Required)],
+                Content::localized("command-poise-desc"),
+                Some(Admin),
+            ),
             ServerChatCommand::Portal => cmd(
                 vec![
                     Float("x", 0., Required),
@@ -1211,6 +1217,7 @@ impl ServerChatCommand {
             ServerChatCommand::Outcome => "outcome",
             ServerChatCommand::PermitBuild => "permit_build",
             ServerChatCommand::Players => "players",
+            ServerChatCommand::Poise => "poise",
             ServerChatCommand::Portal => "portal",
             ServerChatCommand::ResetRecipes => "reset_recipes",
             ServerChatCommand::Region => "region",

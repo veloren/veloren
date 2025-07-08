@@ -80,6 +80,7 @@ command-object-desc = Spawn an object
 command-outcome-desc = Create an outcome
 command-permit_build-desc = Grants player a bounded box they can build in
 command-players-desc = Lists players currently online
+command-poise-desc = Set your current poise
 command-portal-desc = Spawns a portal
 command-region-desc = Send messages to everyone in your region of the world
 command-reload_chunks-desc = Reloads chunks loaded on the server
