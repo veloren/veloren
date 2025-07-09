@@ -3,8 +3,7 @@ SelfBuff(
     cast_duration: 1.0,
     recover_duration: 0.1,
     buffs: [
-        BuffDesc(kind: Defiance, data: BuffData(strength: 0.65, duration: Some(8.0))),
+        BuffDesc(kind: Defiance, data: BuffData(strength: 0.65, duration: Some(15.0))),
     ],
     energy_cost: 20,
-    enforced_limit: false,
 )
