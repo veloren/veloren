@@ -7,7 +7,7 @@ StaticAura(
     auras: [
         (
             kind: ProtectingWard,
-            strength: 0.3,
+            strength: 0.4,
             duration: Some(1),
             category: Magical,
         ),

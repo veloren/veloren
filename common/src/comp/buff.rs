@@ -116,13 +116,9 @@ pub enum BuffKind {
     /// penetration. Energy reward is increased linearly to strength, 1.0 is a
     /// 150 % increase.
     Sunderer,
-    /// Increases damage resistance and poise resistance, causes combo to be
-    /// generated when damaged, and decreases movement speed.
-    /// Damage resistance increases non-linearly with strength, 0.5 is 50% and
-    /// 1.0 is 67%. Poise resistance increases non-linearly with strength, 0.5
-    /// is 50% and 1.0 is 67%. Movement speed is decreased to 50%. Combo
-    /// generation is linear with strength, 1.0 is 5 combo generated on being
-    /// hit.
+    /// Generates combo when damaged and decreases movement speed.
+    /// Movement speed is decreased to 50%. Combo generation is linear with
+    /// strength, 1.0 is 5 combo generated on being hit.
     Defiance,
     /// Increases both attack damage, vulnerability to damage, attack speed, and
     /// movement speed Damage increases linearly with strength, 1.0 is a
@@ -140,7 +136,7 @@ pub enum BuffKind {
     ScornfulTaunt,
     /// Increases damage resistance, causes energy to be generated when damaged,
     /// and decreases movement speed. Damage resistance increases non-linearly
-    /// with strength, 0.5 is 50% and 1.0 is 67%. Energy generation is linear
+    /// with strength, 0.5 is 25% and 1.0 is 34%. Energy generation is linear
     /// with strength, 1.0 is 10 energy per hit. Movement speed is decreased to
     /// 70%.
     Tenacity,
@@ -522,8 +518,6 @@ impl BuffKind {
                 BuffEffect::EnergyReward(1.0 + 1.5 * data.strength),
             ],
             BuffKind::Defiance => vec![
-                BuffEffect::DamageReduction(nn_scaling(data.strength)),
-                BuffEffect::PoiseReduction(nn_scaling(data.strength)),
                 BuffEffect::MovementSpeed(0.5),
                 BuffEffect::DamagedEffect(DamagedEffect::Combo(
                     (data.strength * 5.0).round() as i32
@@ -556,7 +550,7 @@ impl BuffKind {
             BuffKind::Concussion => vec![BuffEffect::DisableAuxiliaryAbilities],
             BuffKind::Staggered => vec![BuffEffect::PoiseReduction(-data.strength)],
             BuffKind::Tenacity => vec![
-                BuffEffect::DamageReduction(nn_scaling(data.strength)),
+                BuffEffect::DamageReduction(nn_scaling(data.strength) / 2.0),
                 BuffEffect::MovementSpeed(0.7),
                 BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
             ],

@@ -4351,7 +4351,7 @@
     ),
     Simple("common.items.debug.glider"): VoxTrans(
         "voxel.glider.vroom",
-        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+        (2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Misc
     Simple("common.items.weapons.tool.golf_club"): VoxTrans(
