@@ -3,7 +3,7 @@
 pub mod airship_travel;
 mod econ;
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "airship_maps")]
 pub mod airship_route_map;
 
 use crate::{

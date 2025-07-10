@@ -24,6 +24,8 @@
 //! accordance with it.
 
 mod airship_ai;
+#[cfg(feature = "airship_log")]
+mod airship_logger;
 pub mod dialogue;
 pub mod movement;
 pub mod util;

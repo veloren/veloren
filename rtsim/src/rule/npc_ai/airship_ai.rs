@@ -1,7 +1,10 @@
+#[cfg(feature = "airship_log")]
+use crate::rule::npc_ai::airship_logger::airship_logger;
 use crate::{
     ai::{Action, NpcCtx, State, finish, just, now, predicate::timeout},
     data::npc::SimulationMode,
 };
+
 use common::{
     comp::{
         Content,
@@ -24,18 +27,6 @@ use world::{
 #[cfg(debug_assertions)] use tracing::debug;
 
 use tracing::warn;
-
-#[cfg(feature = "airship_log")]
-use hashbrown::HashMap;
-#[cfg(feature = "airship_log")]
-#[cfg(debug_assertions)]
-use once_cell::sync::Lazy;
-#[cfg(feature = "airship_log")]
-use std::{
-    fs::OpenOptions,
-    io::Write,
-    sync::{Mutex, MutexGuard, PoisonError},
-};
 
 const CLOSE_TO_DOCKING_SITE_DISTANCE_SQR: f32 = 225.0f32 * 225.0f32;
 const VERY_CLOSE_AIRSHIP_DISTANCE_SQR: f32 = 400.0f32 * 400.0f32;
@@ -63,116 +54,6 @@ enum AirshipAvoidanceMode {
     Stuck(Vec3<f32>),
 }
 
-#[cfg(feature = "airship_log")]
-#[derive(Debug)]
-/// Facilitates logging airship position changes over time to a log file.
-struct AirshipLogger {    
-    /// key is NpcId, data is Vec of (flight phase, time, position, is_tgt_npc, is_loaded)
-    pub npc_positions: HashMap<NpcId, Vec<(AirshipFlightPhase, f64, Vec3<f32>, bool, bool)>>,
-    /// For tracking when to append the position data to a log file.
-    pub start_time: f64,
-    /// How often to log the positions, in seconds. Each period, the position data
-    /// is cleared so as to avoid excessive memory usage.
-    pub interval: f64,
-}
-
-#[cfg(feature = "airship_log")]
-impl Default for AirshipLogger {
-    fn default() -> Self {
-        Self {
-            npc_positions: HashMap::default(),
-            start_time: 0.0,
-            interval: 60.0, // log every 60 seconds
-        }
-    }
-}
-
-#[cfg(feature = "airship_log")]
-/// Synchronization primitive to allowed shared access to the AirshipLogger.
-static AIRSHIP_LOGGER: Lazy<Mutex<AirshipLogger>> =
-    Lazy::new(|| Mutex::new(AirshipLogger::default()));
-
-#[cfg(feature = "airship_log")]
-/// Accessor for the shared AirshipLogger.
-fn airship_logger()
--> Result<MutexGuard<'static, AirshipLogger>, PoisonError<MutexGuard<'static, AirshipLogger>>> {
-    AIRSHIP_LOGGER.lock()
-}
-
-#[cfg(feature = "airship_log")]
-impl AirshipLogger {
-    /// Add an airship position to the log. If the time since writing the
-    /// last set of positions exceeds self.interval, the positions are
-    /// written to a log file in a background thread.
-    pub fn log_position(
-        &mut self,
-        npc_id: NpcId,
-        phase: &AirshipFlightPhase,
-        time: f64,
-        position: Vec3<f32>,
-        is_tgt_npc: bool,
-        is_loaded: bool,
-    ) {
-        self.npc_positions
-            .entry(npc_id)
-            .or_default()
-            .push((*phase, time, position, is_tgt_npc, is_loaded));
-        if self.start_time == 0.0 {
-            self.start_time = time;
-        } else if time >= self.start_time + self.interval {
-            // get the current positions
-            let current_positions = self.npc_positions.clone();
-            // Start a background thread to add the positions to a file
-            std::thread::spawn(move || {
-                let file_path = "/Volumes/Projects/Temp/veloren/NewRoutes/airship_positions.log";
-                let mut file = OpenOptions::new()
-                    .append(true) // Enable append mode
-                    .create(true) // Create the file if it doesn't exist
-                    .open(file_path).expect("Failed to create airship positions log file");
-                for (npc_id, positions) in current_positions {
-                    for (phase, t, pos, is_tgt, is_loaded) in positions {
-                        writeln!(
-                            file,
-                            "{:?}, {}, {}, {}, {}, {}, {}, {}",
-                            npc_id, phase, t, pos.x, pos.y, pos.z, is_tgt, is_loaded
-                        )
-                        .expect("Failed to write to airship positions log file");
-                    }
-                }
-            });
-
-            // The current positions were cloned and passed to the background thread,
-            // clear the current positions and reset the start time.
-            self.clear();
-            self.start_time = time;
-        }
-    }
-
-    /// Clear the current logged positions.
-    pub fn clear(&mut self) { self.npc_positions.clear(); }
-}
-
-#[cfg(feature = "airship_log")]
-/// Get access to the global airship logger and log an airship position.
-fn log_airship_position(ctx: &NpcCtx, phase: &AirshipFlightPhase, is_tgt_npc: bool) {
-    if let Ok(mut logger) = airship_logger() {
-        logger.log_position(
-            ctx.npc_id,
-            phase,
-            ctx.time.0,
-            ctx.npc.wpos,
-            is_tgt_npc,
-            matches!(ctx.npc.mode, SimulationMode::Loaded),
-        );
-    } else {
-        warn!("Failed to log airship position for {:?}", ctx.npc_id);
-    }
-}
-
-#[cfg(not(feature = "airship_log"))]
-/// When the logging feature is not enabled, this should become a no-op.
-fn log_airship_position(_: &NpcCtx, _: &AirshipFlightPhase, _: bool) {}
-
 /// The context data for the pilot_airship action.
 #[derive(Debug, Clone)]
 struct AirshipRouteContext {
@@ -188,19 +69,20 @@ struct AirshipRouteContext {
     current_leg_approach: Option<AirshipDockingApproach>,
     /// The next approach.
     next_leg_approach: Option<AirshipDockingApproach>,
-    /// A point short of the approach transition point where the frequency of avoidance checks
-    /// increases.
+    /// A point short of the approach transition point where the frequency of
+    /// avoidance checks increases.
     next_leg_cruise_checkpoint_pos: Vec3<f32>,
     /// Value used to convert a target velocity to a speed factor.
     speed_factor_conversion_factor: f32,
 
     // Avoidance Data
-
-    /// For tracking the airship's position history to determine if the airship is stuck.
+    /// For tracking the airship's position history to determine if the airship
+    /// is stuck.
     my_stuck_tracker: Option<StuckAirshipTracker>,
     /// For tracking airship velocity towards the approach transition point.
     my_rate_tracker: Option<RateTracker>,
-    /// For tracking the next pilot's velocity towards the approach transition point.
+    /// For tracking the next pilot's velocity towards the approach transition
+    /// point.
     next_pilot_rate_tracker_: Option<RateTracker>,
     /// Timer for checking the airship trackers.
     avoidance_timer: Duration,
@@ -214,7 +96,8 @@ struct AirshipRouteContext {
         NEXT_PILOT_MOVING_VELOCITY_AVERAGE_CAPACITY,
         NEXT_PILOT_MOVING_VELOCITY_AVERAGE_MIN_SIZE,
     >,
-    /// The moving average of the next pilot's distance from my current docking position target pos.
+    /// The moving average of the next pilot's distance from my current docking
+    /// position target pos.
     next_pilot_dist_to_my_docking_pos_tracker:
         DistanceTrendTracker<NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD>,
     /// The current avoidance mode for the airship.
@@ -255,7 +138,8 @@ impl Default for AirshipRouteContext {
 /// Used for determining if an airship is stuck.
 #[derive(Debug, Default, Clone)]
 struct StuckAirshipTracker {
-    /// The airship's position history. Used for determining if the airship is stuck in one place.
+    /// The airship's position history. Used for determining if the airship is
+    /// stuck in one place.
     pos_history: Vec<Vec3<f32>>,
     /// The route to follow for backing out of a stuck position.
     backout_route: Vec<Vec3<f32>>,
@@ -264,12 +148,13 @@ struct StuckAirshipTracker {
 impl StuckAirshipTracker {
     /// The distance to back out from the stuck position.
     const BACKOUT_DIST: f32 = 100.0;
-    /// The height for testing if the airship is near the ground.
-    const NEAR_GROUND_HEIGHT: f32 = 10.0;
-    /// The tolerance for determining if the airship has reached a backout position.
+    /// The tolerance for determining if the airship has reached a backout
+    /// position.
     const BACKOUT_TARGET_DIST: f32 = 50.0;
     /// The number of positions to track in the position history.
     const MAX_POS_HISTORY_SIZE: usize = 5;
+    /// The height for testing if the airship is near the ground.
+    const NEAR_GROUND_HEIGHT: f32 = 10.0;
 
     /// Add a new position to the position history, maintaining a fixed size.
     fn add_position(&mut self, new_pos: Vec3<f32>) {
@@ -280,10 +165,11 @@ impl StuckAirshipTracker {
     }
 
     /// Get the current backout position.
-    /// If the backout route is not empty, return the first position in the route.
-    /// As a side effect, if the airship position is within the target distance of the first
-    /// backout position, remove the backout position. If there are no more backout postions,
-    /// the position history is cleared (because it will be stale data), and return None.
+    /// If the backout route is not empty, return the first position in the
+    /// route. As a side effect, if the airship position is within the
+    /// target distance of the first backout position, remove the backout
+    /// position. If there are no more backout postions, the position
+    /// history is cleared (because it will be stale data), and return None.
     fn current_backout_pos(&mut self, ctx: &mut NpcCtx) -> Option<Vec3<f32>> {
         if !self.backout_route.is_empty()
             && let Some(pos) = self.backout_route.first().cloned()
@@ -299,16 +185,19 @@ impl StuckAirshipTracker {
         }
     }
 
-    /// Check if the airship is stuck in one place. This check is done only in cruise flight
-    /// when the PID controller is affecting the Z axis movement only. When the airship gets stuck,
-    /// it will stop moving. The only recourse is reverse direction, back up, and then ascend to
-    /// hopefully fly over the top of the obstacle. This may be repeated if the airship gets
-    /// stuck again. When the determination is made that the airship is stuck, two positions
-    /// are generated for the backout procedure: the first is in the reverse of the direction
-    /// the airship was recently moving, and the second is straight up from the first position.
-    /// If the airship was near the ground when it got stuck, the initial backout is done while
-    /// climbing slightly to avoid any other near-ground objects. If the airship was not near
-    /// the ground, the initial backout position is at the same height as the current position,
+    /// Check if the airship is stuck in one place. This check is done only in
+    /// cruise flight when the PID controller is affecting the Z axis
+    /// movement only. When the airship gets stuck, it will stop moving. The
+    /// only recourse is reverse direction, back up, and then ascend to
+    /// hopefully fly over the top of the obstacle. This may be repeated if the
+    /// airship gets stuck again. When the determination is made that the
+    /// airship is stuck, two positions are generated for the backout
+    /// procedure: the first is in the reverse of the direction the airship
+    /// was recently moving, and the second is straight up from the first
+    /// position. If the airship was near the ground when it got stuck, the
+    /// initial backout is done while climbing slightly to avoid any other
+    /// near-ground objects. If the airship was not near the ground, the
+    /// initial backout position is at the same height as the current position,
     fn is_stuck(
         &mut self,
         ctx: &mut NpcCtx,
@@ -328,7 +217,7 @@ impl StuckAirshipTracker {
                     .all(|pos| pos.distance_squared(*last_pos) < 10.0)
                 {
                     // Airship is stuck on some obstacle.
-                    
+
                     // The direction to backout is opposite to the direction from the airship
                     // to where it was going before it got stuck.
                     if let Some(backout_dir) = (ctx.npc.wpos.xy() - target_pos)
@@ -339,10 +228,13 @@ impl StuckAirshipTracker {
                             .world
                             .sim()
                             .get_surface_alt_approx(last_pos.xy().map(|e| e as i32));
-                        // The position to backout to is the current position + a distance in the backout direction.
-                        let mut backout_pos = ctx.npc.wpos + backout_dir * StuckAirshipTracker::BACKOUT_DIST;
+                        // The position to backout to is the current position + a distance in the
+                        // backout direction.
+                        let mut backout_pos =
+                            ctx.npc.wpos + backout_dir * StuckAirshipTracker::BACKOUT_DIST;
                         // Add a z offset to the backout pos if the airship is near the ground.
-                        if (ctx.npc.wpos.z - ground).abs() < StuckAirshipTracker::NEAR_GROUND_HEIGHT {
+                        if (ctx.npc.wpos.z - ground).abs() < StuckAirshipTracker::NEAR_GROUND_HEIGHT
+                        {
                             backout_pos.z += 50.0;
                         }
                         self.backout_route =
@@ -367,7 +259,8 @@ impl StuckAirshipTracker {
 }
 
 #[derive(Debug, Clone, Default)]
-/// Tracks previous position and time to get a rough estimate of an NPC's velocity.
+/// Tracks previous position and time to get a rough estimate of an NPC's
+/// velocity.
 struct RateTracker {
     /// The previous position of the NPC in the XY plane.
     last_pos: Option<Vec2<f32>>,
@@ -376,7 +269,8 @@ struct RateTracker {
 }
 
 impl RateTracker {
-    /// Calculates the velocity estimate, updates the previous values and returns the velocity.
+    /// Calculates the velocity estimate, updates the previous values and
+    /// returns the velocity.
     fn update(&mut self, current_pos: Vec2<f32>, time: f32) -> f32 {
         let rate = if let Some(last_pos) = self.last_pos {
             let dt = time - self.last_time;
@@ -426,8 +320,8 @@ struct DistanceTrendTracker<const C: usize> {
 }
 
 impl<const C: usize> DistanceTrendTracker<C> {
-    /// Updates the distance trend based on the current position and time versus the previous
-    /// position and time.
+    /// Updates the distance trend based on the current position and time versus
+    /// the previous position and time.
     fn update(&mut self, pos: Vec2<f32>, time: f64) -> Option<DistanceTrend> {
         let current_dist = pos.distance(self.fixed_pos);
         if let Some(prev) = self.prev_dist {
@@ -494,7 +388,8 @@ where
         + std::ops::Div<Output = T>
         + Copy,
 {
-    /// Add a value to the average. Maintains the sum without needing to iterate the values.
+    /// Add a value to the average. Maintains the sum without needing to iterate
+    /// the values.
     fn add(&mut self, value: T) {
         if self.values.len() == S {
             if let Some(old_value) = self.values.pop_front() {
@@ -539,7 +434,7 @@ where
 
 /// The flight phases of an airship.
 #[derive(Debug, Copy, Clone, PartialEq, Default)]
-enum AirshipFlightPhase {
+pub enum AirshipFlightPhase {
     Ascent,
     DepartureCruise,
     ApproachCruise,
@@ -698,8 +593,7 @@ fn fly_airship_inner(
 
                 #[cfg(feature = "airship_log")]
                 // log my position
-                // TODO: make the target NpcId configurable through an environment variable
-                log_airship_position(ctx, &phase, format!("{:?}", ctx.npc_id) == "NpcId(1906v3)");
+                log_airship_position(ctx, &phase);
 
                 // If actually doing avoidance checks..
                 if with_collision_avoidance
@@ -1199,7 +1093,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
             //      Vary the timeout to get variation in the docking sequence.
             .then(
                 just(|ctx: &mut NpcCtx, _| {
-                    log_airship_position(ctx, &AirshipFlightPhase::Transition, format!("{:?}", ctx.npc_id) == "NpcId(1906v3)");
+                    log_airship_position(ctx, &AirshipFlightPhase::Transition);
                 }))
 
             .then(
@@ -1218,7 +1112,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                 .stop_if(timeout(ctx.rng.gen_range(12.5..16.0) * (current_approach.height as f64 / Airships::CRUISE_HEIGHTS[0] as f64) * 1.3)))
             .then(
                 just(|ctx: &mut NpcCtx, _| {
-                    log_airship_position(ctx, &AirshipFlightPhase::Transition, format!("{:?}", ctx.npc_id) == "NpcId(1906v3)");
+                    log_airship_position(ctx, &AirshipFlightPhase::Transition);
                 }))
             .then(
                 // descend to just above the docking position
@@ -1236,7 +1130,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                 .stop_if(timeout(ctx.rng.gen_range(6.5..8.0))))
             // Announce arrival
             .then(just(|ctx: &mut NpcCtx, _| {
-                log_airship_position(ctx, &AirshipFlightPhase::Docked, format!("{:?}", ctx.npc_id) == "NpcId(1906v3)");
+                log_airship_position(ctx, &AirshipFlightPhase::Docked);
                 ctx.controller
                     .say(None, Content::localized("npc-speech-pilot-landed"));
             }))
@@ -1316,7 +1210,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                     // This is when the airship target docking position changes to the next approach.
                     // Reset the next pilot distance trend tracker.
                     route_context.next_pilot_dist_to_my_docking_pos_tracker.reset(next_approach.airship_pos.xy());
-                    log_airship_position(ctx, &AirshipFlightPhase::Ascent, format!("{:?}", ctx.npc_id) == "NpcId(1906v3)");
+                    log_airship_position(ctx, &AirshipFlightPhase::Ascent);
                 })
             ).then(
                 // Take off, full PID control
@@ -1372,6 +1266,27 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
     .with_state(AirshipRouteContext::default())
     .map(|_, _| ())
 }
+
+#[cfg(feature = "airship_log")]
+/// Get access to the global airship logger and log an airship position.
+fn log_airship_position(ctx: &NpcCtx, phase: &AirshipFlightPhase) {
+    if let Ok(mut logger) = airship_logger() {
+        logger.log_position(
+            ctx.npc_id,
+            ctx.index.seed,
+            phase,
+            ctx.time.0,
+            ctx.npc.wpos,
+            matches!(ctx.npc.mode, SimulationMode::Loaded),
+        );
+    } else {
+        warn!("Failed to log airship position for {:?}", ctx.npc_id);
+    }
+}
+
+#[cfg(not(feature = "airship_log"))]
+/// When the logging feature is not enabled, this should become a no-op.
+fn log_airship_position(_: &NpcCtx, _: &AirshipFlightPhase) {}
 
 #[cfg(test)]
 mod tests {

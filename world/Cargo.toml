@@ -22,6 +22,7 @@ bin_compression = [
     "cli",
 ]
 cli = ["clap", "signal-hook", "indicatif"]
+airship_maps = ["dep:tiny-skia"]
 
 default = ["simd"]
 
@@ -56,7 +57,7 @@ kiddo = { workspace = true }
 fixed = "1"
 strum = { workspace = true }
 delaunator = "1.0.2"
-tiny-skia = "0.11.4"
+tiny-skia = { version = "0.11.4", optional = true }
 
 # compression benchmarks
 lz-fear = { version = "0.2", optional = true }

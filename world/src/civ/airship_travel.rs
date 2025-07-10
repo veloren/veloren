@@ -18,7 +18,7 @@ use vek::*;
 
 #[cfg(debug_assertions)] use tracing::debug;
 
-#[cfg(debug_assertions)]
+#[cfg(feature = "airship_maps")]
 use crate::civ::airship_route_map::*;
 
 #[cfg(debug_assertions)]
@@ -59,11 +59,10 @@ pub enum AirshipDockingSide {
 }
 
 impl AirshipDockingSide {
-
-    const NORTH_REF_VEC: Vec2<f32> = Vec2 { x:0.0, y: 1.0 };
-    const EAST_REF_VEC: Vec2<f32> = Vec2 { x:1.0, y: 0.0 };
-    const SOUTH_REF_VEC: Vec2<f32> = Vec2 { x:0.0, y: -1.0 };
-    const WEST_REF_VEC: Vec2<f32> = Vec2 { x:-1.0, y: 0.0 };
+    const EAST_REF_VEC: Vec2<f32> = Vec2 { x: 1.0, y: 0.0 };
+    const NORTH_REF_VEC: Vec2<f32> = Vec2 { x: 0.0, y: 1.0 };
+    const SOUTH_REF_VEC: Vec2<f32> = Vec2 { x: 0.0, y: -1.0 };
+    const WEST_REF_VEC: Vec2<f32> = Vec2 { x: -1.0, y: 0.0 };
 
     /// When docking, the side to use depends on the angle the airship is
     /// approaching the dock from, and the platform of the airship dock that
@@ -81,12 +80,13 @@ impl AirshipDockingSide {
     /// | South             |  Port         |
     /// | Southwest         |  Starboard    |
     pub fn from_dir_to_platform(dir: &Vec2<f32>, platform: &AirshipDockPlatform) -> Self {
-        // get the reference vector and precompute whether to flip the angle based on the dir input.
+        // get the reference vector and precompute whether to flip the angle based on
+        // the dir input.
         let (ref_vec, negate_angle) = match platform {
-                AirshipDockPlatform::NorthPlatform => (&AirshipDockingSide::NORTH_REF_VEC, dir.x < 0.0),
-                AirshipDockPlatform::EastPlatform => (&AirshipDockingSide::EAST_REF_VEC, dir.y > 0.0),
-                AirshipDockPlatform::SouthPlatform => (&AirshipDockingSide::SOUTH_REF_VEC, dir.x > 0.0),
-                AirshipDockPlatform::WestPlatform => (&AirshipDockingSide::WEST_REF_VEC, dir.y < 0.0),
+            AirshipDockPlatform::NorthPlatform => (&AirshipDockingSide::NORTH_REF_VEC, dir.x < 0.0),
+            AirshipDockPlatform::EastPlatform => (&AirshipDockingSide::EAST_REF_VEC, dir.y > 0.0),
+            AirshipDockPlatform::SouthPlatform => (&AirshipDockingSide::SOUTH_REF_VEC, dir.x > 0.0),
+            AirshipDockPlatform::WestPlatform => (&AirshipDockingSide::WEST_REF_VEC, dir.y < 0.0),
         };
         let mut angle = dir.angle_between(*ref_vec).to_degrees();
         if negate_angle {
@@ -210,7 +210,6 @@ impl AirshipDockPositions {
             })
     }
 }
-
 
 // These are used in AirshipDockPlatform::choices_from_dir
 
@@ -364,7 +363,7 @@ impl AirshipDockPlatform {
                         &SEWN_PLATFORMS
                     }
                 },
-                _ => &SEWN_PLATFORMS
+                _ => &SEWN_PLATFORMS,
             }
         } else {
             &SEWN_PLATFORMS
@@ -781,14 +780,13 @@ impl Airships {
     }
 
     /// Generates the airship routes.
-    #[expect(unused_variables)]
     pub fn generate_airship_routes_inner(
         &mut self,
         map_size_lg: &MapSizeLg,
         seed: u32,
-        index: Option<&Index>,
-        sampler: Option<&WorldSim>,
-        map_image_path: Option<&str>,
+        _index: Option<&Index>,
+        _sampler: Option<&WorldSim>,
+        _map_image_path: Option<&str>,
     ) {
         let all_dock_points = self
             .airship_docks
@@ -803,15 +801,15 @@ impl Airships {
         // Run the delaunay triangulation on the docking points.
         let triangulation = triangulate(&all_dock_points);
 
-        #[cfg(debug_assertions)]
+        #[cfg(feature = "airship_maps")]
         save_airship_routes_triangulation(
             &triangulation,
             &all_dock_points,
             map_size_lg,
             seed,
-            index,
-            sampler,
-            map_image_path,
+            _index,
+            _sampler,
+            _map_image_path,
         );
 
         // Docking positions are specified in world coordinates, not chunks.
@@ -854,8 +852,9 @@ impl Airships {
                     debug!("  {} : {}", segment.0, segment.1.len());
                 });
                 debug!("Best segments: {:?}", best_segments);
-                if let Some(index) = index
-                    && let Some(world_sim) = sampler
+                #[cfg(feature = "airship_maps")]
+                if let Some(index) = _index
+                    && let Some(world_sim) = _sampler
                 {
                     if let Err(e) = export_world_map(index, world_sim) {
                         eprintln!("Failed to export world map: {:?}", e);
@@ -875,16 +874,16 @@ impl Airships {
             // Calculate the spawning locations for airships on the routes.
             self.calculate_spawning_locations(&all_dock_points);
 
-            #[cfg(debug_assertions)]
+            #[cfg(feature = "airship_maps")]
             save_airship_route_segments(
                 &self.routes,
                 &all_dock_points,
                 &self.spawning_locations,
                 map_size_lg,
                 seed,
-                index,
-                sampler,
-                map_image_path,
+                _index,
+                _sampler,
+                _map_image_path,
             );
         } else {
             eprintln!("Error - cannot eulerize the dock points.");
@@ -1028,6 +1027,7 @@ impl Airships {
         self.spawning_locations.clone()
     }
 
+    /// Get the position a route leg originates from.
     pub fn route_leg_departure_location(&self, route_index: usize, leg_index: usize) -> Vec2<f32> {
         if route_index >= self.routes.len() || leg_index >= self.routes[route_index].len() {
             error!("Invalid index: rt {}, leg {}", route_index, leg_index);
@@ -1124,12 +1124,12 @@ impl Airships {
     }
 }
 
-#[derive(Debug, Clone)]
-enum EdgeRemovalStackNodeType {
-    Find,
-    Check,
-    Undo,
-}
+// #[derive(Debug, Clone)]
+// enum EdgeRemovalStackNodeType {
+//     Find,
+//     Check,
+//     Undo,
+// }
 
 #[cfg(debug_assertions)]
 macro_rules! debug_airship_eulerization {
@@ -1149,11 +1149,8 @@ type DockNodeGraph = DHashMap<usize, DockNode>;
 
 /// Extension functions for Triangulation (from the triangulate crate).
 trait TriangulationExt {
-    fn count_edges_per_node(&self) -> DHashMap<usize, usize>;
     fn all_edges(&self) -> DHashSet<(usize, usize)>;
-    fn connected_nodes(&self, node: usize) -> Vec<usize>;
     fn is_hull_node(&self, index: usize) -> bool;
-    fn is_hull_edge(&self, edge: (usize, usize)) -> bool;
     fn node_connections(&self) -> DockNodeGraph;
     fn eulerized_route_segments(
         &self,
@@ -1224,53 +1221,8 @@ fn add_edge(edge: (usize, usize), nodes: &mut DockNodeGraph) {
     }
 }
 
-// Gives a score for line segments lengths as compared to the hull diameter.
-// At 0 length, the score is 0.0.
-// At 0.7 of the hull diameter, the score is 0.9.
-// At 1.0 of the hull diameter, the score is 1.0.
-// $$$
-// fn hull_ratio_distance_score(rt_len: f64, hull_diameter: f64) -> f64 {
-//     if hull_diameter == 0.0 {
-//         return 0.0;
-//     }
-//     let ratio = rt_len / hull_diameter;
-//     // ratio    score
-//     // 0.0   0.0
-//     // 0.7   0.9
-//     // 1.0   1.0
-//     1.0 - (-3.2894 * ratio).exp()
-// }
-
 /// Implementation of extension functions for the Triangulation struct.
 impl TriangulationExt for Triangulation {
-    fn count_edges_per_node(&self) -> DHashMap<usize, usize> {
-        let mut edge_count_map = DHashMap::default();
-
-        for &node in &self.triangles {
-            *edge_count_map.entry(node).or_insert(0) += 1;
-        }
-
-        edge_count_map
-    }
-
-    /// Given a node index in the triangulation, return a list of nodes that are
-    /// directly connected to it by an edge.
-    fn connected_nodes(&self, node: usize) -> Vec<usize> {
-        self.triangles
-            .chunks(3)
-            .filter(|&t| t.contains(&node))
-            .map(|t| {
-                if t[0] == node {
-                    t[1]
-                } else if t[1] == node {
-                    t[2]
-                } else {
-                    t[0]
-                }
-            })
-            .collect::<Vec<_>>()
-    }
-
     /// Get the set of all edges in the triangulation.
     fn all_edges(&self) -> DHashSet<(usize, usize)> {
         let mut edges = DHashSet::default();
@@ -1314,31 +1266,6 @@ impl TriangulationExt for Triangulation {
 
     /// True if the node is on the outer hull of the triangulation.
     fn is_hull_node(&self, index: usize) -> bool { self.hull.contains(&index) }
-
-    /// True if the given edge is on the outer hull of the triangulation.
-    fn is_hull_edge(&self, edge: (usize, usize)) -> bool {
-        // the hull is a vector of indices that reference points on the convex hull of
-        // the triangulation, counter-clockwise. The hull is a closed loop, so
-        // the last point is connected to the first point. The given edge from
-        // edge.0 to edge.1 is on the hull if edge.0 is in the hull and edge.1 is either
-        // the next point in the hull or the previous point in the hull.
-
-        let hull_len = self.hull.len();
-        if let Some(hull_index) = self.hull.iter().position(|&i| i == edge.0) {
-            let next_hull_index = (hull_index + 1) % hull_len;
-            if self.hull[next_hull_index] == edge.1 {
-                return true;
-            }
-            let prev_hull_index = if hull_index == 0 {
-                hull_len - 1
-            } else {
-                hull_index - 1
-            };
-            self.hull[prev_hull_index] == edge.1
-        } else {
-            false
-        }
-    }
 
     /// Calculates the best way to modify the triangulation so that
     /// all nodes have an even number of connections (all nodes have
