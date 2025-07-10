@@ -59,6 +59,12 @@ pub enum AirshipDockingSide {
 }
 
 impl AirshipDockingSide {
+
+    const NORTH_REF_VEC: Vec2<f32> = Vec2 { x:0.0, y: 1.0 };
+    const EAST_REF_VEC: Vec2<f32> = Vec2 { x:1.0, y: 0.0 };
+    const SOUTH_REF_VEC: Vec2<f32> = Vec2 { x:0.0, y: -1.0 };
+    const WEST_REF_VEC: Vec2<f32> = Vec2 { x:-1.0, y: 0.0 };
+
     /// When docking, the side to use depends on the angle the airship is
     /// approaching the dock from, and the platform of the airship dock that
     /// the airship is docking at.
@@ -75,22 +81,20 @@ impl AirshipDockingSide {
     /// | South             |  Port         |
     /// | Southwest         |  Starboard    |
     pub fn from_dir_to_platform(dir: &Vec2<f32>, platform: &AirshipDockPlatform) -> Self {
-        let side_fn =
-            |ref_vec: &Vec2<f32>, sf: &dyn Fn(&Vec2<f32>) -> bool| -> AirshipDockingSide {
-                let mut angle = dir.angle_between(*ref_vec).to_degrees();
-                if sf(dir) {
-                    angle = -angle;
-                }
-                match angle as i32 {
-                    -360..=0 => AirshipDockingSide::Port,
-                    _ => AirshipDockingSide::Starboard,
-                }
-            };
-        match platform {
-            AirshipDockPlatform::NorthPlatform => side_fn(&Vec2::unit_y(), &|d| d.x < 0.0),
-            AirshipDockPlatform::EastPlatform => side_fn(&Vec2::unit_x(), &|d| d.y > 0.0),
-            AirshipDockPlatform::SouthPlatform => side_fn(&-Vec2::unit_y(), &|d| d.x > 0.0),
-            AirshipDockPlatform::WestPlatform => side_fn(&-Vec2::unit_x(), &|d| d.y < 0.0),
+        // get the reference vector and precompute whether to flip the angle based on the dir input.
+        let (ref_vec, negate_angle) = match platform {
+                AirshipDockPlatform::NorthPlatform => (&AirshipDockingSide::NORTH_REF_VEC, dir.x < 0.0),
+                AirshipDockPlatform::EastPlatform => (&AirshipDockingSide::EAST_REF_VEC, dir.y > 0.0),
+                AirshipDockPlatform::SouthPlatform => (&AirshipDockingSide::SOUTH_REF_VEC, dir.x > 0.0),
+                AirshipDockPlatform::WestPlatform => (&AirshipDockingSide::WEST_REF_VEC, dir.y < 0.0),
+        };
+        let mut angle = dir.angle_between(*ref_vec).to_degrees();
+        if negate_angle {
+            angle = -angle;
+        }
+        match angle as i32 {
+            -360..=0 => AirshipDockingSide::Port,
+            _ => AirshipDockingSide::Starboard,
         }
     }
 }
@@ -99,7 +103,6 @@ impl AirshipDockingSide {
 /// plot.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AirshipDockingApproach {
-    // pub dock_pos: AirshipDockingPosition,
     /// The position of the airship when docked.
     /// This is different from dock_pos because the airship is offset to align
     /// the ramp with the dock.
@@ -121,12 +124,14 @@ pub struct AirshipDockingApproach {
 }
 
 /// The docking postions at an AirshipDock plot.
-/// The center is the center of the plot. The docking_positions
-/// are the positions where the airship can dock.
 #[derive(Clone, Debug)]
 pub struct AirshipDockPositions {
+    /// The center of the AirshipDock plot. From the world generation code.
     pub center: Vec2<f32>,
+    /// The docking positions for the airship, derived from the
+    /// positions calculated in the world generation code.
     pub docking_positions: Vec<AirshipDockingPosition>,
+    /// The id of the Site where the AirshipDock is located.
     pub site_id: Id<site::Site>,
 }
 
@@ -206,6 +211,65 @@ impl AirshipDockPositions {
     }
 }
 
+
+// These are used in AirshipDockPlatform::choices_from_dir
+
+static SWEN_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::NorthPlatform,
+];
+
+static SEWN_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::NorthPlatform,
+];
+
+static WNSE_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::EastPlatform,
+];
+
+static WSNE_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::EastPlatform,
+];
+
+static NEWS_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::SouthPlatform,
+];
+
+static NWES_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::WestPlatform,
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::SouthPlatform,
+];
+
+static ESNW_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::WestPlatform,
+];
+
+static ENSW_PLATFORMS: [AirshipDockPlatform; 4] = [
+    AirshipDockPlatform::EastPlatform,
+    AirshipDockPlatform::NorthPlatform,
+    AirshipDockPlatform::SouthPlatform,
+    AirshipDockPlatform::WestPlatform,
+];
+
 /// The docking platforms used on each leg of the airship route segments is
 /// determined when the routes are generated. Route segments are continuous
 /// loops that are deconflicted by using only one docking platform for any given
@@ -241,7 +305,8 @@ impl AirshipDockPlatform {
     /// approach direction. Then, the next two choices are the platforms for
     /// the cardinal directions on each side of the approach direction, and
     /// the last choice is the platform on the opposite side of the dock.
-    pub fn choices_from_dir(dir: Vec2<f32>) -> Vec<Self> {
+    /// The return value is one of the ABCD_PLATFORMS arrays defined above.
+    pub fn choices_from_dir(dir: Vec2<f32>) -> &'static [AirshipDockPlatform] {
         if let Some(dir) = dir.try_normalized() {
             let mut angle = dir.angle_between(Vec2::unit_y()).to_degrees();
             if dir.x < 0.0 {
@@ -249,7 +314,7 @@ impl AirshipDockPlatform {
             }
             // This code works similar to the Direction enum in the common crate.
             // Angle between produces the smallest angle between two vectors,
-            // so then dir.x is negative, we force the angle to be negative.
+            // so when dir.x is negative, we force the angle to be negative.
             // 0 or 360 is North. It is assumed that the angle ranges from -360 to 360
             // degrees even though angles less than -180 or greater than 180
             // should never be seen.
@@ -262,107 +327,47 @@ impl AirshipDockPlatform {
                     // The north platform is always the last resort. All fallback blocks
                     // below work similarly.
                     if angle as i32 > -180 {
-                        vec![
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                        ]
+                        &SWEN_PLATFORMS
                     } else {
-                        vec![
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                        ]
+                        &SEWN_PLATFORMS
                     }
                 },
                 -134..=-45 => {
                     // primary is WestPlatform
                     if angle as i32 > -90 {
-                        vec![
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                        ]
+                        &WNSE_PLATFORMS
                     } else {
-                        vec![
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                        ]
+                        &WSNE_PLATFORMS
                     }
                 },
                 -44..=45 => {
                     // primary is NorthPlatform
                     if angle as i32 > 0 {
-                        vec![
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                        ]
+                        &NEWS_PLATFORMS
                     } else {
-                        vec![
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                        ]
+                        &NWES_PLATFORMS
                     }
                 },
                 46..=135 => {
                     // primary is EastPlatform
                     if angle as i32 > 90 {
-                        vec![
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                        ]
+                        &ESNW_PLATFORMS
                     } else {
-                        vec![
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                        ]
+                        &ENSW_PLATFORMS
                     }
                 },
                 136..=360 => {
                     // primary is SouthPlatform
                     if angle as i32 > 180 {
-                        vec![
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                        ]
+                        &SWEN_PLATFORMS
                     } else {
-                        vec![
-                            AirshipDockPlatform::SouthPlatform,
-                            AirshipDockPlatform::EastPlatform,
-                            AirshipDockPlatform::WestPlatform,
-                            AirshipDockPlatform::NorthPlatform,
-                        ]
+                        &SEWN_PLATFORMS
                     }
                 },
-                _ => vec![
-                    AirshipDockPlatform::SouthPlatform,
-                    AirshipDockPlatform::EastPlatform,
-                    AirshipDockPlatform::WestPlatform,
-                    AirshipDockPlatform::NorthPlatform,
-                ], // should never happen
+                _ => &SEWN_PLATFORMS
             }
         } else {
-            vec![
-                AirshipDockPlatform::SouthPlatform,
-                AirshipDockPlatform::EastPlatform,
-                AirshipDockPlatform::WestPlatform,
-                AirshipDockPlatform::NorthPlatform,
-            ] // default value, should never happen
+            &SEWN_PLATFORMS
         }
     }
 
@@ -776,7 +781,7 @@ impl Airships {
     }
 
     /// Generates the airship routes.
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     pub fn generate_airship_routes_inner(
         &mut self,
         map_size_lg: &MapSizeLg,
