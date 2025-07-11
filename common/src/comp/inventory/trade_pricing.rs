@@ -1071,7 +1071,12 @@ impl TradePricing {
             } else if let ItemKind::Tool(t) = &*i.kind() {
                 let stats = t.stats(durability_multiplier);
                 (format!("{:.4}", stats.power * stats.speed * p), "dps/val")
-            } else if let ItemKind::Consumable { kind: _, effects } = &*i.kind() {
+            } else if let ItemKind::Consumable {
+                kind: _,
+                effects,
+                container: _,
+            } = &*i.kind()
+            {
                 (
                     effects
                         .effects()

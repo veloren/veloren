@@ -12,7 +12,8 @@ ItemDef(
                     ),
                 cat_ids: [Natural],
             )),
-        )
+        ),
+        container: Some(Simple("common.items.crafting_ing.empty_vial")),
     ),
     quality: Moderate,
     tags: [Food],
