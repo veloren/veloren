@@ -5385,7 +5385,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Tenacity => imgs.buff_tenacity,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
-        BuffKind::Cursed => imgs.debuff_skull_0,
+        BuffKind::Cursed => imgs.debuff_cursed_0,
         BuffKind::Burning => imgs.debuff_burning_0,
         BuffKind::Crippled => imgs.debuff_crippled_0,
         BuffKind::Frozen => imgs.debuff_frozen_0,
@@ -5394,12 +5394,12 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Poisoned => imgs.debuff_poisoned_0,
         BuffKind::Parried => imgs.debuff_parried_0,
         BuffKind::PotionSickness => imgs.debuff_potionsickness_0,
-        BuffKind::Polymorphed => imgs.debuff_polymorphed,
+        BuffKind::Polymorphed => imgs.debuff_polymorphed_0,
         BuffKind::Heatstroke => imgs.debuff_heatstroke_0,
-        BuffKind::Rooted => imgs.debuff_rooted,
-        BuffKind::Winded => imgs.debuff_winded,
-        BuffKind::Concussion => imgs.debuff_concussion,
-        BuffKind::Staggered => imgs.debuff_staggered,
+        BuffKind::Rooted => imgs.debuff_rooted_0,
+        BuffKind::Winded => imgs.debuff_winded_0,
+        BuffKind::Amnesia => imgs.debuff_amnesia_0,
+        BuffKind::OffBalance => imgs.debuff_offbalance_0,
     }
 }
 

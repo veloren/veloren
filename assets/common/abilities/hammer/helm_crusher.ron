@@ -13,7 +13,7 @@ FinisherMelee(
         range: 4.0,
         angle: 60.0,
         damage_effect: Some(Buff((
-            kind: Concussion,
+            kind: Amnesia,
             dur_secs: 8,
             strength: Value(1.0),
             chance: 1.0,

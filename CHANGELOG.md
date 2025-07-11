@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Tidal Warrior model.
 - Emitted sfx now take into account both player and camera position, instead of just camera position, when determining volume.
 - Danari horns are now showed when wearing a hat or helmet.
+- Debuff icons have been updated to be more vibrant and identifiable. 
 
 ### Removed
 

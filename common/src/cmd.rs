@@ -189,8 +189,8 @@ lazy_static! {
             BuffKind::ScornfulTaunt => "scornful_taunt",
             BuffKind::Rooted => "rooted",
             BuffKind::Winded => "winded",
-            BuffKind::Concussion => "concussion",
-            BuffKind::Staggered => "staggered",
+            BuffKind::Amnesia => "amnesia",
+            BuffKind::OffBalance => "off_balance",
             BuffKind::Tenacity => "tenacity",
             BuffKind::Resilience => "resilience",
         };

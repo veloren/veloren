@@ -414,8 +414,8 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Heatstroke
         | BuffKind::Rooted
         | BuffKind::Winded
-        | BuffKind::Concussion
-        | BuffKind::Staggered => {
+        | BuffKind::Amnesia
+        | BuffKind::OffBalance => {
             tracing::error!("Player was killed by a debuff that doesn't do damage!");
             "mysterious"
         },

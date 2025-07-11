@@ -5617,8 +5617,8 @@ fn build_buff(
             | BuffKind::ScornfulTaunt
             | BuffKind::Rooted
             | BuffKind::Winded
-            | BuffKind::Concussion
-            | BuffKind::Staggered
+            | BuffKind::Amnesia
+            | BuffKind::OffBalance
             | BuffKind::Tenacity
             | BuffKind::Resilience => {
                 if buff_kind.is_simple() {

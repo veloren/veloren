@@ -219,8 +219,8 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::Heatstroke => "buff-heatstroke",
         BuffKind::Rooted => "buff-rooted",
         BuffKind::Winded => "buff-winded",
-        BuffKind::Concussion => "buff-concussion",
-        BuffKind::Staggered => "buff-staggered",
+        BuffKind::Amnesia => "buff-amnesia",
+        BuffKind::OffBalance => "buff-offbalance",
         // Neutral
         BuffKind::Polymorphed => "buff-polymorphed",
     }
@@ -357,8 +357,8 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::ScornfulTaunt
                         | BuffKind::Rooted
                         | BuffKind::Winded
-                        | BuffKind::Concussion
-                        | BuffKind::Staggered
+                        | BuffKind::Amnesia
+                        | BuffKind::OffBalance
                         | BuffKind::Tenacity
                         | BuffKind::Resilience => Cow::Borrowed(""),
                     };
