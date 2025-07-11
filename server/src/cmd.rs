@@ -5080,6 +5080,7 @@ fn handle_ban(
             BanOperation::Ban {
                 reason: reason.clone(),
                 info: ban_info,
+                upgrade_to_ip: false,
                 end_date,
             },
             overwrite,
@@ -5248,79 +5249,127 @@ fn handle_ban_ip(
         let ban_info = make_ban_info(server, client, client_uuid)?;
 
         let player_uuid = find_username(server, &username)?;
-        let player_entity = find_uuid(server.state.ecs(), player_uuid).map_err(|err| {
-            Content::localized_with_args("command-ip-ban-require-online", [("error", err)])
-        })?;
-        let player_ip_addr =
-            NormalizedIpAddr::from(socket_addr(server, player_entity, &username)?.ip());
-
         let now = Utc::now();
         let end_date = ban_end_date(now, parse_duration)?;
 
-        let result = server.editable_settings_mut().banlist.ban_operation(
-            server.data_dir().as_ref(),
-            now,
-            player_uuid,
-            username.clone(),
-            BanOperation::BanIp {
-                reason: reason.clone(),
-                info: ban_info,
-                end_date,
-                ip: player_ip_addr,
-            },
-            overwrite,
-        );
-        let (result, ban_info) = match result {
-            Ok(info) => (Ok(()), info),
-            Err(err) => (Err(err), None),
-        };
+        let (players_to_kick, ban_result, frontend_info);
 
-        edit_banlist_feedback(
-            server,
-            client,
-            result,
-            || {
-                Content::localized_with_args("command-ban-ip-added", [
-                    ("player", username.clone()),
-                    ("reason", reason),
-                ])
-            },
-            || {
-                Content::localized_with_args("command-ban-already-added", [(
-                    "player",
-                    username.clone(),
-                )])
-            },
-        )?;
+        // If we can get the address of the target player, apply an immediate IP ban
+        if let Ok(player_entity) = find_uuid(server.state.ecs(), player_uuid)
+            && let Ok(player_ip_addr) = socket_addr(server, player_entity, &username)
+                .map(|addr| NormalizedIpAddr::from(addr.ip()))
+        {
+            let result = server.editable_settings_mut().banlist.ban_operation(
+                server.data_dir().as_ref(),
+                now,
+                player_uuid,
+                username.clone(),
+                BanOperation::BanIp {
+                    reason: reason.clone(),
+                    info: ban_info,
+                    end_date,
+                    ip: player_ip_addr,
+                },
+                overwrite,
+            );
+            (ban_result, frontend_info) = match result {
+                Ok(info) => (Ok(()), info),
+                Err(err) => (Err(err), None),
+            };
 
-        // Kick all online players with this IP address them (this may fail if the
-        // player is a hardcoded admin; we don't care about that case because
-        // hardcoded admins can log on even if they're on the ban list).
-        let ecs = server.state.ecs();
-        let players_to_kick = (
-            &ecs.entities(),
-            &ecs.read_storage::<Client>(),
-            &ecs.read_storage::<comp::Player>(),
-        )
-            .join()
-            .filter(|(_, client, _)| {
-                client
-                    .current_ip_addrs
-                    .iter()
-                    .any(|socket_addr| NormalizedIpAddr::from(socket_addr.ip()) == player_ip_addr)
-            })
-            .map(|(entity, _, player)| (entity, player.uuid()))
-            .collect::<Vec<_>>();
+            edit_banlist_feedback(
+                server,
+                client,
+                ban_result,
+                || {
+                    Content::localized_with_args("command-ban-ip-added", [
+                        ("player", username.clone()),
+                        ("reason", reason),
+                    ])
+                },
+                || {
+                    Content::localized_with_args("command-ban-already-added", [(
+                        "player",
+                        username.clone(),
+                    )])
+                },
+            )?;
+
+            // Kick all online players with this IP address them (this may fail if the
+            // player is a hardcoded admin; we don't care about that case because
+            // hardcoded admins can log on even if they're on the ban list).
+            let ecs = server.state.ecs();
+            players_to_kick = (
+                &ecs.entities(),
+                &ecs.read_storage::<Client>(),
+                &ecs.read_storage::<comp::Player>(),
+            )
+                .join()
+                .filter(|(_, client, _)| {
+                    client.current_ip_addrs.iter().any(|socket_addr| {
+                        NormalizedIpAddr::from(socket_addr.ip()) == player_ip_addr
+                    })
+                })
+                .map(|(entity, _, player)| (entity, player.uuid()))
+                .collect::<Vec<_>>();
+        // Otherwise create a regular ban which will be upgraded to an IP ban on
+        // any subsequent login attempts
+        } else {
+            let result = server.editable_settings_mut().banlist.ban_operation(
+                server.data_dir().as_ref(),
+                now,
+                player_uuid,
+                username.clone(),
+                BanOperation::Ban {
+                    reason: reason.clone(),
+                    info: ban_info,
+                    upgrade_to_ip: true,
+                    end_date,
+                },
+                overwrite,
+            );
+
+            (ban_result, frontend_info) = match result {
+                Ok(info) => (Ok(()), info),
+                Err(err) => (Err(err), None),
+            };
+
+            edit_banlist_feedback(
+                server,
+                client,
+                ban_result,
+                || {
+                    Content::localized_with_args("command-ban-ip-queued", [
+                        ("player", username.clone()),
+                        ("reason", reason),
+                    ])
+                },
+                || {
+                    Content::localized_with_args("command-ban-already-added", [(
+                        "player",
+                        username.clone(),
+                    )])
+                },
+            )?;
+
+            let ecs = server.state.ecs();
+            players_to_kick = find_uuid(ecs, player_uuid)
+                .map(|entity| (entity, player_uuid))
+                .into_iter()
+                .collect();
+        }
+
         for (player_entity, player_uuid) in players_to_kick {
             let _ = kick_player(
                 server,
                 (client, client_uuid),
                 (player_entity, player_uuid),
-                ban_info
+                frontend_info
                     .clone()
                     .map_or(DisconnectReason::Shutdown, DisconnectReason::Banned),
             );
         }
+
         Ok(())
     } else {
         Err(action.help_content())

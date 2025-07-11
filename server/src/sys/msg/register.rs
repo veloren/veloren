@@ -3,8 +3,10 @@ use crate::{
     client::Client,
     login_provider::{LoginProvider, PendingLogin},
     metrics::PlayerMetrics,
+    settings::{BanOperation, banlist::NormalizedIpAddr},
     sys::sentinel::TrackedStorages,
 };
+use authc::Uuid;
 use common::{
     comp::{self, Admin, Player, Stats},
     event::{ClientDisconnectEvent, EventBus, MakeAdminEvent},
@@ -23,8 +25,8 @@ use hashbrown::{HashMap, hash_map};
 use itertools::Either;
 use rayon::prelude::*;
 use specs::{
-    Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
-    shred,
+    Entities, Join, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteExpect,
+    WriteStorage, shred,
 };
 use tracing::{debug, info, trace, warn};
 
@@ -41,7 +43,6 @@ pub struct ReadData<'a> {
     login_provider: ReadExpect<'a, LoginProvider>,
     player_metrics: ReadExpect<'a, PlayerMetrics>,
     settings: ReadExpect<'a, Settings>,
-    editable_settings: ReadExpect<'a, EditableSettings>,
     time_of_day: Read<'a, TimeOfDay>,
     material_stats: ReadExpect<'a, comp::item::MaterialStatManifest>,
     ability_map: ReadExpect<'a, comp::item::tool::AbilityMap>,
@@ -50,6 +51,7 @@ pub struct ReadData<'a> {
     trackers: TrackedStorages<'a>,
     #[cfg(feature = "plugins")]
     plugin_mgr: Read<'a, PluginMgr>,
+    data_dir: ReadExpect<'a, crate::DataDir>,
 }
 
 /// This system will handle new messages from clients
@@ -61,6 +63,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Client>,
         WriteStorage<'a, Player>,
         WriteStorage<'a, PendingLogin>,
+        WriteExpect<'a, EditableSettings>,
     );
 
     const NAME: &'static str = "msg::register";
@@ -69,7 +72,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut clients, mut players, mut pending_logins): Self::SystemData,
+        (read_data, mut clients, mut players, mut pending_logins, mut editable_settings): Self::SystemData,
     ) {
         let mut make_admin_emitter = read_data.make_admin_events.emitter();
         // Player list to send new players, and lookup from UUID to entity (so we don't
@@ -153,6 +156,7 @@ impl<'a> System<'a> for Sys {
         //
         // It will be overwritten in ServerExt::update_character_data.
         let battle_mode = read_data.settings.gameplay.battle_mode.default_mode();
+        let mut upgradeable_bans: EventBus<(NormalizedIpAddr, Uuid, String)> = EventBus::default();
 
         (
             &read_data.entities,
@@ -165,16 +169,15 @@ impl<'a> System<'a> for Sys {
             // NOTE: Required because Specs has very poor work splitting for sparse joins.
             .par_bridge()
             .for_each_init(
-                || read_data.client_disconnect_events.emitter(),
-                |client_disconnect_emitter, (entity, uid, client, _, pending)| {
+                || (read_data.client_disconnect_events.emitter(), upgradeable_bans.emitter()),
+                |(client_disconnect_emitter, upgradeable_ban_emitter), (entity, uid, client, _, pending)| {
                     prof_span!("msg::register login");
                     if let Err(e) = || -> Result<(), crate::error::Error> {
                         let extra_checks = |username: String, uuid: authc::Uuid| {
                             // We construct a few things outside the lock to reduce contention.
-                            let pending_login =
-                                PendingLogin::new_success(username.clone(), uuid);
+                            let pending_login = PendingLogin::new_success(username.clone(), uuid);
                             let player = Player::new(username, battle_mode, uuid, None);
-                            let admin = read_data.editable_settings.admins.get(&uuid);
+                            let admin = editable_settings.admins.get(&uuid);
                             let player_list_update_msg = player
                                 .is_valid()
                                 .then_some(PlayerInfo {
@@ -215,9 +218,19 @@ impl<'a> System<'a> for Sys {
                             // stuff if login returns an error.
                             (
                                 old_player_count + guard.0.len() >= max_players,
-                                (guard, (pending_login, player, admin, player_list_update_msg, old_player)),
+                                (
+                                    guard,
+                                    (
+                                        pending_login,
+                                        player,
+                                        admin,
+                                        player_list_update_msg,
+                                        old_player,
+                                    ),
+                                ),
                             )
                         };
+
                         // Destructure new_players_guard last so it gets dropped before the other
                         // three.
                         let (
@@ -226,10 +239,13 @@ impl<'a> System<'a> for Sys {
                         ) = match LoginProvider::login(
                             pending,
                             client,
-                            &read_data.editable_settings.admins,
-                            &read_data.editable_settings.whitelist,
-                            &read_data.editable_settings.banlist,
+                            &editable_settings.admins,
+                            &editable_settings.whitelist,
+                            &editable_settings.banlist,
                             extra_checks,
+                            |ip, uuid, username| {
+                                upgradeable_ban_emitter.emit((ip, uuid, username))
+                            },
                         ) {
                             None => return Ok(()),
                             Some(r) => {
@@ -253,7 +269,10 @@ impl<'a> System<'a> for Sys {
                             },
                         };
 
-                        if !client.client_type.is_valid_for_role(admin.map(|admin| admin.role.into())) {
+                        if !client
+                            .client_type
+                            .is_valid_for_role(admin.map(|admin| admin.role.into()))
+                        {
                             drop(new_players_guard);
                             client_disconnect_emitter.emit(ClientDisconnectEvent(
                                 entity,
@@ -262,7 +281,8 @@ impl<'a> System<'a> for Sys {
                             return Ok(());
                         }
 
-                        let (new_players_by_uuid, retries, finished_pending) = &mut *new_players_guard;
+                        let (new_players_by_uuid, retries, finished_pending) =
+                            &mut *new_players_guard;
                         finished_pending.push(entity);
                         // Check if the user logged in before us during this tick (this is why we
                         // need the lock held).
@@ -333,7 +353,15 @@ impl<'a> System<'a> for Sys {
                         // adding a new player.
 
                         // Add to list to notify all clients of the new player
-                        vacant_player.insert((entity, player, admin, client.client_type.emit_login_events().then_some(player_login_msg)));
+                        vacant_player.insert((
+                            entity,
+                            player,
+                            admin,
+                            client
+                                .client_type
+                                .emit_login_events()
+                                .then_some(player_login_msg),
+                        ));
                         drop(new_players_guard);
                         read_data.player_metrics.players_connected.inc();
 
@@ -345,10 +373,15 @@ impl<'a> System<'a> for Sys {
                         #[cfg(not(feature = "plugins"))]
                         let active_plugins = Vec::default();
 
-                        let server_descriptions = &read_data.editable_settings.server_description;
+                        let server_descriptions = &editable_settings.server_description;
                         let description = ServerDescription {
-                            motd: server_descriptions.get(client.locale.as_deref()).map(|d| d.motd.clone()).unwrap_or_default(),
-                            rules: server_descriptions.get_rules(client.locale.as_deref()).map(str::to_string),
+                            motd: server_descriptions
+                                .get(client.locale.as_deref())
+                                .map(|d| d.motd.clone())
+                                .unwrap_or_default(),
+                            rules: server_descriptions
+                                .get_rules(client.locale.as_deref())
+                                .map(str::to_string),
                         };
 
                         // Send client all the tracked components currently attached to its entity
@@ -370,7 +403,7 @@ impl<'a> System<'a> for Sys {
                             material_stats: (*read_data.material_stats).clone(),
                             ability_map: (*read_data.ability_map).clone(),
                             server_constants: ServerConstants {
-                                day_cycle_coefficient: read_data.settings.day_cycle_coefficient()
+                                day_cycle_coefficient: read_data.settings.day_cycle_coefficient(),
                             },
                             description,
                             active_plugins,
@@ -388,6 +421,7 @@ impl<'a> System<'a> for Sys {
                     }
                 },
             );
+
         let (new_players, retries, finished_pending) = new_players.into_inner();
         finished_pending.into_iter().for_each(|e| {
             // Remove all entities in finished_pending from pending_logins.
@@ -445,5 +479,18 @@ impl<'a> System<'a> for Sys {
                     let _ = client.send_prepared(msg);
                 });
             });
+
+        for (ip, uuid, username) in upgradeable_bans.recv_all_mut() {
+            if let Err(error) = editable_settings.banlist.ban_operation(
+                read_data.data_dir.as_ref(),
+                chrono::Utc::now(),
+                uuid,
+                username,
+                BanOperation::UpgradeToIpBan { ip },
+                false,
+            ) {
+                warn!(?error, ?uuid, "Upgrading ban to IP ban failed");
+            }
+        }
     }
 }

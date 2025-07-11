@@ -119,6 +119,7 @@ impl LoginProvider {
         whitelist: &HashMap<Uuid, WhitelistRecord>,
         banlist: &Banlist,
         player_count_exceeded: impl FnOnce(String, Uuid) -> (bool, R),
+        make_ip_ban_upgrade: impl FnOnce(NormalizedIpAddr, Uuid, String),
     ) -> Option<Result<R, RegisterError>> {
         match pending.pending_r.try_recv() {
             Ok(Err(e)) => Some(Err(e)),
@@ -146,6 +147,12 @@ impl LoginProvider {
                     }))
                     .find(|ban| ban_applies(ban, admin, now))
                 {
+                    if let Some(ip) = ip
+                        && ban.upgrade_to_ip
+                    {
+                        make_ip_ban_upgrade(ip, uuid, username.clone());
+                    }
+
                     // Get ban info and send a copy of it
                     return Some(Err(RegisterError::Banned(ban.info())));
                 }

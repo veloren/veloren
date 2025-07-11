@@ -331,7 +331,6 @@ pub enum RegisterError {
     InvalidCharacter,
     NotOnWhitelist,
     TooManyPlayers,
-    //TODO: InvalidAlias,
 }
 
 impl ServerMsg {
