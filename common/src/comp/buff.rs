@@ -210,11 +210,11 @@ pub enum BuffKind {
     Winded,
     /// Prevents use of auxiliary abilities.
     /// Does not scale with strength
-    Concussion,
+    Amnesia,
     /// Increases amount of poise damage received
     /// Scales linearly with strength, 1.0 leads to 100% more poise damage
     /// received
-    Staggered,
+    OffBalance,
     // =================
     //      COMPLEX
     // =================
@@ -286,8 +286,8 @@ impl BuffKind {
             | BuffKind::Heatstroke
             | BuffKind::Rooted
             | BuffKind::Winded
-            | BuffKind::Concussion
-            | BuffKind::Staggered => BuffDescriptor::SimpleNegative,
+            | BuffKind::Amnesia
+            | BuffKind::OffBalance => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -547,8 +547,8 @@ impl BuffKind {
                 BuffEffect::MovementSpeed(1.0 - nn_scaling2(data.strength)),
                 BuffEffect::EnergyReward(1.0 - nn_scaling(data.strength)),
             ],
-            BuffKind::Concussion => vec![BuffEffect::DisableAuxiliaryAbilities],
-            BuffKind::Staggered => vec![BuffEffect::PoiseReduction(-data.strength)],
+            BuffKind::Amnesia => vec![BuffEffect::DisableAuxiliaryAbilities],
+            BuffKind::OffBalance => vec![BuffEffect::PoiseReduction(-data.strength)],
             BuffKind::Tenacity => vec![
                 BuffEffect::DamageReduction(nn_scaling(data.strength) / 2.0),
                 BuffEffect::MovementSpeed(0.7),
@@ -603,7 +603,7 @@ impl BuffKind {
     /// strength that resilience should have, otherwise return None
     pub fn resilience_ccr_strength(&self, data: BuffData) -> Option<f32> {
         match self {
-            BuffKind::Concussion => Some(0.3),
+            BuffKind::Amnesia => Some(0.3),
             BuffKind::Frozen => Some(data.strength),
             _ => None,
         }

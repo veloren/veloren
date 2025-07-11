@@ -15,7 +15,7 @@ BasicMelee(
         angle: 20,
         multi_target: Some(Normal),
         damage_effect: Some(Buff((
-            kind: Staggered,
+            kind: OffBalance,
             dur_secs: 10.0,
             strength: Value(0.6),
             chance: 1.0,

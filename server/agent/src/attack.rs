@@ -811,7 +811,7 @@ impl AgentData<'_> {
                         }),
                         Ability::MainWeaponAux(7) => tgt_data
                             .buffs
-                            .is_some_and(|buffs| !buffs.contains(BuffKind::Staggered)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::OffBalance)),
                         Ability::MainWeaponAux(12) => tgt_data
                             .buffs
                             .is_some_and(|buffs| !buffs.contains(BuffKind::Rooted)),
@@ -820,7 +820,7 @@ impl AgentData<'_> {
                             .is_some_and(|buffs| !buffs.contains(BuffKind::Winded)),
                         Ability::MainWeaponAux(14) => tgt_data
                             .buffs
-                            .is_some_and(|buffs| !buffs.contains(BuffKind::Concussion)),
+                            .is_some_and(|buffs| !buffs.contains(BuffKind::Amnesia)),
                         Ability::MainWeaponAux(15) => self
                             .buffs
                             .is_some_and(|buffs| !buffs.contains(BuffKind::ProtectingWard)),

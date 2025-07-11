@@ -829,7 +829,7 @@ image_ids! {
         buff_resilience: "voxygen.element.de_buffs.buff_resilience",
 
         // Debuffs
-        debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",
+        debuff_cursed_0: "voxygen.element.de_buffs.debuff_cursed_0",
         debuff_bleed_0: "voxygen.element.de_buffs.debuff_bleed_0",
         debuff_burning_0: "voxygen.element.de_buffs.debuff_burning_0",
         debuff_crippled_0: "voxygen.element.de_buffs.debuff_cripple_0",
@@ -839,12 +839,12 @@ image_ids! {
         debuff_poisoned_0: "voxygen.element.de_buffs.debuff_poisoned_0",
         debuff_parried_0: "voxygen.element.de_buffs.debuff_parried_0",
         debuff_potionsickness_0: "voxygen.element.de_buffs.debuff_potionsickness_0",
-        debuff_polymorphed: "voxygen.element.de_buffs.debuff_polymorphed",
+        debuff_polymorphed_0: "voxygen.element.de_buffs.debuff_polymorphed_0",
         debuff_heatstroke_0: "voxygen.element.de_buffs.debuff_heatstroke_0",
-        debuff_rooted: "voxygen.element.de_buffs.debuff_rooted",
-        debuff_winded: "voxygen.element.de_buffs.debuff_winded",
-        debuff_concussion: "voxygen.element.de_buffs.debuff_concussion",
-        debuff_staggered: "voxygen.element.de_buffs.debuff_staggered",
+        debuff_rooted_0: "voxygen.element.de_buffs.debuff_rooted_0",
+        debuff_winded_0: "voxygen.element.de_buffs.debuff_winded_0",
+        debuff_amnesia_0: "voxygen.element.de_buffs.debuff_amnesia_0",
+        debuff_offbalance_0: "voxygen.element.de_buffs.debuff_offbalance_0",
 
         // Animation Frames
         // Buff Frame
