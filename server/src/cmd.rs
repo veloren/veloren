@@ -5260,11 +5260,23 @@ fn handle_ban_ip(
 
     let (players_to_kick, ban_result, frontend_info);
 
-    // If we can get the address of the target player, apply an immediate IP ban
-    if let Ok(player_entity) = find_uuid(server.state.ecs(), player_uuid)
-        && let Ok(player_ip_addr) = socket_addr(server, player_entity, &username)
-            .map(|addr| NormalizedIpAddr::from(addr.ip()))
+    let player_ip_addr = if let Some(player_addr) = find_uuid(server.state.ecs(), player_uuid)
+        .ok()
+        .and_then(|player_entity| socket_addr(server, player_entity, &username).ok())
     {
+        Some(NormalizedIpAddr::from(player_addr.ip()))
+    } else {
+        server
+            .state()
+            .ecs()
+            .read_resource::<crate::RecentClientIPs>()
+            .last_addrs
+            .peek(&player_uuid)
+            .cloned()
+    };
+
+    // If we can get the address of the target player, apply an immediate IP ban
+    if let Some(player_ip_addr) = player_ip_addr {
         let result = server.editable_settings_mut().banlist.ban_operation(
             server.data_dir().as_ref(),
             now,

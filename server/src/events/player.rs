@@ -1,7 +1,8 @@
 use super::Event;
 use crate::{
     BattleModeBuffer, Server, client::Client, metrics::PlayerMetrics,
-    persistence::character_updater::CharacterUpdater, state_ext::StateExt,
+    persistence::character_updater::CharacterUpdater, settings::banlist::NormalizedIpAddr,
+    state_ext::StateExt,
 };
 use common::{
     comp::{self, Content, Presence, PresenceKind, group, pet::is_tameable},
@@ -223,6 +224,21 @@ pub fn handle_client_disconnect(
             .clients_disconnected
             .with_label_values(&[get_reason_str(&reason)])
             .inc();
+
+        if let Some(player) = server
+            .state()
+            .ecs()
+            .read_storage::<comp::Player>()
+            .get(entity)
+            && let Some(connect_addr) = client.connected_from_addr().socket_addr()
+        {
+            server
+                .state()
+                .ecs()
+                .write_resource::<crate::RecentClientIPs>()
+                .last_addrs
+                .insert(player.uuid(), NormalizedIpAddr::from(connect_addr.ip()));
+        }
 
         if let Some(participant) = client.participant {
             let pid = participant.remote_pid();

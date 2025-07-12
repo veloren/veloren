@@ -68,6 +68,7 @@ use crate::{
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
+use authc::Uuid;
 use censor::Censor;
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
@@ -113,6 +114,7 @@ use persistence::{
 };
 use prometheus::Registry;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use settings::banlist::NormalizedIpAddr;
 use specs::{
     Builder, Entity as EcsEntity, Entity, Join, LendJoin, WorldExt, shred::SendDispatcher,
 };
@@ -212,6 +214,20 @@ impl BattleModeBuffer {
 
     pub fn pop(&mut self, char_id: &CharacterId) -> Option<(BattleMode, Time)> {
         self.map.remove(char_id)
+    }
+}
+
+/// Keeps the IPs of recently logged off clients in memory, only used
+/// for IP bans if the target is no longer online.
+pub struct RecentClientIPs {
+    pub last_addrs: schnellru::LruMap<Uuid, NormalizedIpAddr>,
+}
+
+impl Default for RecentClientIPs {
+    fn default() -> Self {
+        Self {
+            last_addrs: schnellru::LruMap::new(schnellru::ByLength::new(1000)),
+        }
     }
 }
 
@@ -357,6 +373,7 @@ impl Server {
         );
         events::register_event_busses(state.ecs_mut());
         state.ecs_mut().insert(battlemode_buffer);
+        state.ecs_mut().insert(RecentClientIPs::default());
         state.ecs_mut().insert(settings.clone());
         state.ecs_mut().insert(editable_settings);
         state.ecs_mut().insert(DataDir {
