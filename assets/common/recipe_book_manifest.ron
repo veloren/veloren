@@ -442,7 +442,7 @@
     "sunflower_icetea": (
         output: ("common.items.food.sunflower_icetea", 4),
         inputs: [
-            (Item("common.items.crafting_ing.empty_vial"), 1, false),
+            (Item("common.items.crafting_ing.empty_vial"), 4, false),
             (Item("common.items.crafting_ing.animal_misc.icy_fang"), 1, false),
             (Item("common.items.flowers.sunflower"), 4, false),
             (Item("common.items.crafting_ing.honey"), 1, false),

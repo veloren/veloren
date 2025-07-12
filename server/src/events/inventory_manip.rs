@@ -584,8 +584,40 @@ impl ServerEvent for InventoryManipEvent {
                                 inventory.take(slot, &data.ability_map, &data.msm)
                             {
                                 match &*item.kind() {
-                                    ItemKind::Consumable { effects, .. } => {
+                                    ItemKind::Consumable {
+                                        effects, container, ..
+                                    } => {
                                         maybe_effect = Some(effects.clone());
+
+                                        if let Some(container) = container
+                                            && let Ok(container_item) =
+                                                comp::Item::new_from_item_definition_id(
+                                                    container.as_ref(),
+                                                    &data.ability_map,
+                                                    &data.msm,
+                                                )
+                                        {
+                                            let result = inventory.push(container_item);
+
+                                            if let Err((overflow_item, _)) = result
+                                                && let Some(pos) = data.positions.get(entity)
+                                            {
+                                                dropped_items.push((
+                                                    *pos,
+                                                    data.orientations
+                                                        .get(entity)
+                                                        .copied()
+                                                        .unwrap_or_default(),
+                                                    PickupItem::new(
+                                                        overflow_item,
+                                                        *data.program_time,
+                                                        true,
+                                                    ),
+                                                    *uid,
+                                                ));
+                                            }
+                                        }
+
                                         Some(InventoryUpdateEvent::Consumed((&item).into()))
                                     },
                                     ItemKind::Utility {
