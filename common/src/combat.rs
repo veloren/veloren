@@ -117,6 +117,7 @@ pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
     precision_multiplier: f32,
+    parryable_override: bool,
 }
 
 impl Default for Attack {
@@ -125,6 +126,7 @@ impl Default for Attack {
             damages: Vec::new(),
             effects: Vec::new(),
             precision_multiplier: 1.0,
+            parryable_override: false,
         }
     }
 }
@@ -149,6 +151,12 @@ impl Attack {
     }
 
     #[must_use]
+    pub fn with_parryable_override(mut self, parryable_override: bool) -> Self {
+        self.parryable_override = parryable_override;
+        self
+    }
+
+    #[must_use]
     pub fn with_combo_requirement(self, combo: i32, requirement: CombatRequirement) -> Self {
         self.with_effect(
             AttackEffect::new(None, CombatEffect::Combo(combo)).with_requirement(requirement),
@@ -168,6 +176,7 @@ impl Attack {
     pub fn compute_block_damage_decrement(
         attacker: Option<&AttackerInfo>,
         damage_reduction: f32,
+        parryable_override: bool,
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
@@ -227,7 +236,13 @@ impl Attack {
                             time,
                         },
                     });
-                    block_strength
+
+                    if is_parry && parryable_override {
+                        // Negate all damage from attacks with parryable_override set
+                        damage.value
+                    } else {
+                        block_strength
+                    }
                 } else {
                     0.0
                 }
@@ -352,6 +367,7 @@ impl Attack {
             let block_damage_decrement = Attack::compute_block_damage_decrement(
                 attacker.as_ref(),
                 damage_reduction,
+                self.parryable_override,
                 target,
                 attack_source,
                 dir,

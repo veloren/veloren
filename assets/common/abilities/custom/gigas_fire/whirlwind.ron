@@ -1,6 +1,6 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 0.3,
+    buildup_duration: 0.4,
     swing_duration: 0.5,
     hit_timing: 0.375,
     recover_duration: 0.3,
@@ -20,6 +20,8 @@ BasicMelee(
             chance: 1.0,
         ))),
         multi_target: Some(Normal),
+        dodgeable: No,
+        parryable_override: true,
     ),
     ori_modifier: (
         buildup: Some(1.0),

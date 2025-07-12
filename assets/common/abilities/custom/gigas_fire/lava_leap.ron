@@ -12,7 +12,7 @@ LeapExplosionShockwave(
     explosion_radius: 7.75,
     min_falloff: 1.0,
     destroy_terrain: Some((8, Black)),
-    replace_terrain: Some((8, Lava(
+    replace_terrain: Some((5, Lava(
         timeout: 60.0,
         timeout_offset: 1.0,
         timeout_chance: 0.8,

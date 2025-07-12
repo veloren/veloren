@@ -5750,10 +5750,10 @@ impl AgentData<'_> {
         // Less frequent mixup attacks
         fn rand_special(rng: &mut impl Rng) -> InputKind {
             choose_weighted(rng, [
+                (WHIRLWIND, 20.0),
                 (LAVA_LEAP, 5.0),
                 (VERTICAL_STRIKE, 5.0),
                 (OVERHEAT, 5.0),
-                (WHIRLWIND, 5.0),
                 (EXPLOSIVE_STRIKE, 1.0),
                 (FIRE_PILLARS, 1.0),
             ])
@@ -5878,7 +5878,7 @@ impl AgentData<'_> {
                 // Use a gap closer if the target has been out of melee distance for a while
                 controller.push_basic_input(LAVA_LEAP);
             } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
-                if agent.combat_state.timers[ActionStateTimers::Special as usize] > 10.0 {
+                if agent.combat_state.timers[ActionStateTimers::Special as usize] > 5.0 {
                     // Use a special ability periodically
                     let rand_special = rand_special(rng);
                     if rand_special == VERTICAL_STRIKE {
