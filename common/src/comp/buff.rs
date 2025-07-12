@@ -70,9 +70,8 @@ pub enum BuffKind {
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
     /// 200% speed. Provides regeneration at 10x the value of the strength.
     Frenzied,
-    /// Increases movement and attack speed, but removes chance to get critical
-    /// hits. Strength scales strength of both effects linearly. 0.5 is a
-    /// 50% increase, 1.0 is a 100% increase.
+    /// Increases movement and attack speed Strength scales strength of both
+    /// effects linearly. 0.5 is a 50% increase, 1.0 is a 100% increase.
     Hastened,
     /// Increases resistance to incoming poise, and poise damage dealt as health
     /// is lost.
@@ -459,7 +458,6 @@ impl BuffKind {
             BuffKind::Hastened => vec![
                 BuffEffect::MovementSpeed(1.0 + data.strength),
                 BuffEffect::AttackSpeed(1.0 + data.strength),
-                BuffEffect::PrecisionOverride(0.0),
             ],
             BuffKind::Fortitude => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
