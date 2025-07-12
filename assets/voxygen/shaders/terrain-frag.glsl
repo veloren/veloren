@@ -248,65 +248,65 @@ void main() {
     #endif
     #ifdef RAIN_ENABLED
         #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-	    if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
-	        vec3 pos = f_pos + focus_off.xyz;
-	        vec3 drop_density = vec3(2, 2, 2);
-	        vec3 drop_pos = pos + vec3(pos.zz, 0) + vec3(0, 0, -tick.x * 1.0);
-	        drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
-	        vec2 cell2d = floor(drop_pos.xy * drop_density.xy);
-	        drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
-	        vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
+            if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
+                vec3 pos = f_pos + focus_off.xyz;
+                vec3 drop_density = vec3(2, 2, 2);
+                vec3 drop_pos = pos + vec3(pos.zz, 0) + vec3(0, 0, -tick.x * 1.0);
+                drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
+                vec2 cell2d = floor(drop_pos.xy * drop_density.xy);
+                drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
+                vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-	        #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
-		    float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.02) - 0.5) * 20.0, 0.0, 1.0)
-		        * min(rain_density * 10.0, 1.0)
-		        * clamp((f_sky_exposure - 0.95) * 50.0, 0.0, 1.0);
-	        #else
-		    const float puddle = 1.0;
-	        #endif
+                #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                    float puddle = clamp((noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.02) - 0.5) * 20.0, 0.0, 1.0)
+                        * min(rain_density * 10.0, 1.0)
+                        * clamp((f_sky_exposure - 0.95) * 50.0, 0.0, 1.0);
+                #else
+                    const float puddle = 1.0;
+                #endif
 
-	        #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
-		    if (puddle > 0.0) {
-		        f_alpha = puddle * 0.2 * max(1.0 + cam_to_frag.z, 0.3);
-		            #ifdef EXPERIMENTAL_PUDDLEDETAILS
-			    float t0 = sin(tick_loop(2.0 * PI, 8.0, f_pos.x * 3));
-			    float t1 = sin(tick_loop(2.0 * PI, 3.5, -f_pos.x * 6));
-			    float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * t0
-			        + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * t1;
-			    float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * t0
-			        + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * t1;
-			    float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * t0
-			        + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * t1;
-			    f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
-		        #endif
-		        alpha = mix(1.0, 0.2, puddle);
-		        f_col.rgb *= mix(1.0, 0.7, puddle);
-		        k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
-		        f_mat = MAT_FLUID;
-		}
-	        #endif
+                #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                    if (puddle > 0.0) {
+                        f_alpha = puddle * 0.2 * max(1.0 + cam_to_frag.z, 0.3);
+                        #ifdef EXPERIMENTAL_PUDDLEDETAILS
+                            float t0 = sin(tick_loop(2.0 * PI, 8.0, f_pos.x * 3));
+                            float t1 = sin(tick_loop(2.0 * PI, 3.5, -f_pos.x * 6));
+                            float h = (noise_2d((f_pos.xy + focus_off.xy) * 0.3) - 0.5) * t0
+                                + (noise_2d((f_pos.xy + focus_off.xy) * 0.6) - 0.5) * t1;
+                            float hx = (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.3) - 0.5) * t0
+                                + (noise_2d((f_pos.xy + focus_off.xy + vec2(0.1, 0)) * 0.6) - 0.5) * t1;
+                            float hy = (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.3) - 0.5) * t0
+                                + (noise_2d((f_pos.xy + focus_off.xy + vec2(0, 0.1)) * 0.6) - 0.5) * t1;
+                            f_norm.xy += mix(vec2(0), vec2(h - hx, h - hy) / 0.1 * 0.03, puddle);
+                        #endif
+                        alpha = mix(1.0, 0.2, puddle);
+                        f_col.rgb *= mix(1.0, 0.7, puddle);
+                        k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
+                        f_mat = MAT_FLUID;
+                    }
+                #endif
 
-	        if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
-		    if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0) {
-		        vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
-		        vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
+                if (rain_occlusion_at(f_pos.xyz + vec3(0, 0, 0.25)) > 0.5) {
+                    if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density * 2.0) {
+                        vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
+                        vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
-		        float dist = length((drop_pos - near_cell) * vec3(1, 1, 0.5));
-		        float drop_rad = 0.075 + puddle * 0.05;
-		        float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
-		        k_a += distort;
-		        k_d += distort;
-		        k_s += distort;
+                        float dist = length((drop_pos - near_cell) * vec3(1, 1, 0.5));
+                        float drop_rad = 0.075 + puddle * 0.05;
+                        float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
+                        k_a += distort;
+                        k_d += distort;
+                        k_s += distort;
 
-		        f_norm.xy += (drop_pos - near_cell).xy
-			    * max(1.0 - abs(dist - drop_rad) * 30, 0)
-			    * 500.0
-			    * max(drop_pos.z - near_cell.z, 0)
-			    * sign(dist - drop_rad)
-			    * max(drop_pos.z - near_cell.z, 0);
-		    }
-	        }
-	    }
+                        f_norm.xy += (drop_pos - near_cell).xy
+                            * max(1.0 - abs(dist - drop_rad) * 30, 0)
+                            * 500.0
+                            * max(drop_pos.z - near_cell.z, 0)
+                            * sign(dist - drop_rad)
+                            * max(drop_pos.z - near_cell.z, 0);
+                    }
+                }
+            }
         #endif
     #endif
 

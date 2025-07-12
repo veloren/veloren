@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internal settings for audio samplerate and buffer size.
 - Added fire gigas
 - Consumables drop their container after getting consumed.
+- Added separate settings to toggle rain effects
 
 ### Changed
 
