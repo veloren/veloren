@@ -51,7 +51,7 @@ enum InitState {
     // Waiting on the client initialization
     Client(ClientInit),
     // Client initialized but still waiting on Renderer pipeline creation
-    Pipeline(Box<Client>, hud::MessageBacklog),
+    Pipeline(Box<Client>, hud::PersistedHudState),
 }
 
 impl InitState {
@@ -238,7 +238,8 @@ impl PlayState for MainMenuState {
                 }
                 // Register voxygen components / resources
                 crate::ecs::init(client.state_mut().ecs_mut());
-                self.init = InitState::Pipeline(Box::new(client), hud::MessageBacklog::default());
+                self.init =
+                    InitState::Pipeline(Box::new(client), hud::PersistedHudState::default());
             },
             Some(InitMsg::Done(Err(e))) => {
                 self.init = InitState::None;
@@ -288,9 +289,20 @@ impl PlayState for MainMenuState {
                                 self.init = InitState::None;
                             },
                             client::Event::Chat(m) => {
-                                if let InitState::Pipeline(client, message_backlog) = &mut self.init
+                                if let InitState::Pipeline(client, persisted_state) = &mut self.init
                                 {
-                                    message_backlog.new_message(client, &global_state.profile, m)
+                                    persisted_state.message_backlog.new_message(
+                                        client,
+                                        &global_state.profile,
+                                        m,
+                                    )
+                                }
+                            },
+                            client::Event::MapMarker(marker_event) => {
+                                if let InitState::Pipeline(_client, persisted_state) =
+                                    &mut self.init
+                                {
+                                    persisted_state.location_markers.update(marker_event);
                                 }
                             },
                             #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
@@ -340,7 +352,7 @@ impl PlayState for MainMenuState {
             // If complete go to char select screen
             } else {
                 // Always succeeds since we check above
-                if let InitState::Pipeline(mut client, message_backlog) =
+                if let InitState::Pipeline(mut client, persisted_state) =
                     core::mem::replace(&mut self.init, InitState::None)
                 {
                     self.main_menu_ui.connected();
@@ -356,7 +368,7 @@ impl PlayState for MainMenuState {
                             global_state,
                             UpdateCharacterMetadata::default(),
                             Rc::new(RefCell::new(*client)),
-                            Rc::new(RefCell::new(message_backlog)),
+                            Rc::new(RefCell::new(persisted_state)),
                         )));
                     }
 
@@ -366,7 +378,7 @@ impl PlayState for MainMenuState {
                     let char_select = CharSelectionState::new(
                         global_state,
                         Rc::new(RefCell::new(*client)),
-                        Rc::new(RefCell::new(message_backlog)),
+                        Rc::new(RefCell::new(persisted_state)),
                     );
 
                     let new_state = ServerInfoState::try_from_server_info(

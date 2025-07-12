@@ -43,8 +43,8 @@ use crate::{
     error::Error,
     game_input::GameInput,
     hud::{
-        self, AutoPressBehavior, DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason,
-        HudInfo, LootMessage, PromptDialogSettings,
+        AutoPressBehavior, DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason, HudInfo,
+        LootMessage, PersistedHudState, PromptDialogSettings,
     },
     key_state::KeyState,
     menu::{char_selection::CharSelectionState, main::get_client_msg_error},
@@ -99,7 +99,6 @@ pub struct PlayerDebugLines {
 pub struct SessionState {
     scene: Scene,
     pub(crate) client: Rc<RefCell<Client>>,
-    message_backlog: Rc<RefCell<hud::MessageBacklog>>,
     metadata: UpdateCharacterMetadata,
     pub(crate) hud: Hud,
     key_state: KeyState,
@@ -133,7 +132,7 @@ impl SessionState {
         global_state: &mut GlobalState,
         metadata: UpdateCharacterMetadata,
         client: Rc<RefCell<Client>>,
-        message_backlog: Rc<RefCell<hud::MessageBacklog>>,
+        persisted_state: Rc<RefCell<PersistedHudState>>,
     ) -> Self {
         // Create a scene for this session. The scene handles visible elements of the
         // game world.
@@ -168,14 +167,13 @@ impl SessionState {
                 // TODO: evaluate context
             }
         }
-        let hud = Hud::new(global_state, &client.borrow());
+        let hud = Hud::new(global_state, persisted_state, &client.borrow());
         let walk_forward_dir = scene.camera().forward_xy();
         let walk_right_dir = scene.camera().right_xy();
 
         Self {
             scene,
             client,
-            message_backlog,
             key_state: KeyState::default(),
             inputs: comp::ControllerInputs::default(),
             inputs_state: HashSet::new(),
@@ -282,10 +280,6 @@ impl SessionState {
             };
             self.mumble_link.update(player_pos, player_pos);
         }
-
-        // Send hud any messages that queued while not in the session state.
-        self.hud
-            .add_backlog_messages(&mut self.message_backlog.borrow_mut());
 
         for event in client.tick(self.inputs.clone(), dt)? {
             match event {
@@ -432,7 +426,11 @@ impl SessionState {
                     self.scene.music_mgr.reset_track(&mut global_state.audio);
                 },
                 client::Event::MapMarker(event) => {
-                    self.hud.show.update_map_markers(event);
+                    self.hud
+                        .persisted_state
+                        .borrow_mut()
+                        .location_markers
+                        .update(event);
                 },
                 client::Event::StartSpectate(spawn_point) => {
                     let server_name = &client.server_info().name;
@@ -2286,7 +2284,7 @@ impl PlayState for SessionState {
                 PlayStateResult::Switch(Box::new(CharSelectionState::new(
                     global_state,
                     Rc::clone(&self.client),
-                    Rc::clone(&self.message_backlog),
+                    Rc::clone(&self.hud.persisted_state),
                 )))
             }
         } else {

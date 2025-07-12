@@ -136,8 +136,10 @@ use rand::Rng;
 use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::{
     borrow::Cow,
+    cell::RefCell,
     cmp::Ordering,
     collections::VecDeque,
+    rc::Rc,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -868,6 +870,28 @@ pub struct MapMarkers {
     group: HashMap<Uid, Vec2<i32>>,
 }
 
+impl MapMarkers {
+    pub fn update(&mut self, event: comp::MapMarkerUpdate) {
+        match event {
+            comp::MapMarkerUpdate::Owned(event) => match event {
+                MapMarkerChange::Update(waypoint) => self.owned = Some(waypoint),
+                MapMarkerChange::Remove => self.owned = None,
+            },
+            comp::MapMarkerUpdate::GroupMember(user, event) => match event {
+                MapMarkerChange::Update(waypoint) => {
+                    self.group.insert(user, waypoint);
+                },
+                MapMarkerChange::Remove => {
+                    self.group.remove(&user);
+                },
+            },
+            comp::MapMarkerUpdate::ClearGroup => {
+                self.group.clear();
+            },
+        }
+    }
+}
+
 /// (target slot, input value, inventory quantity, is our inventory, error,
 /// trade.offers index of trade slot)
 pub struct TradeAmountInput {
@@ -926,7 +950,6 @@ pub struct Show {
     zoom_lock: ChangeNotification,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
-    location_markers: MapMarkers,
     trade_amount_input_key: Option<TradeAmountInput>,
 }
 impl Show {
@@ -1150,26 +1173,6 @@ impl Show {
     fn search_social_players(&mut self, search_key: Option<String>) {
         self.social_search_key = search_key;
     }
-
-    pub fn update_map_markers(&mut self, event: comp::MapMarkerUpdate) {
-        match event {
-            comp::MapMarkerUpdate::Owned(event) => match event {
-                MapMarkerChange::Update(waypoint) => self.location_markers.owned = Some(waypoint),
-                MapMarkerChange::Remove => self.location_markers.owned = None,
-            },
-            comp::MapMarkerUpdate::GroupMember(user, event) => match event {
-                MapMarkerChange::Update(waypoint) => {
-                    self.location_markers.group.insert(user, waypoint);
-                },
-                MapMarkerChange::Remove => {
-                    self.location_markers.group.remove(&user);
-                },
-            },
-            comp::MapMarkerUpdate::ClearGroup => {
-                self.location_markers.group.clear();
-            },
-        }
-    }
 }
 
 pub struct PromptDialogSettings {
@@ -1265,6 +1268,19 @@ impl CollectFailedData {
     pub fn new(pulse: f32, reason: HudCollectFailedReason) -> Self { Self { pulse, reason } }
 }
 
+/// Stores HUD related state which should be persisted even if the HUD is
+/// temporarily hidden (by ie. going to the character screen).
+#[derive(Default)]
+pub struct PersistedHudState {
+    /// Stores messages sent while the chat is hidden (either disabled in the
+    /// HUD state, or by being outside of the HUD).
+    ///
+    /// This is needed because messages in [`Hud::new_messages`] are also shown
+    /// as new chat bubbles, so `new_messages` must be cleared every frame.
+    pub message_backlog: MessageBacklog,
+    pub location_markers: MapMarkers,
+}
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -1278,16 +1294,10 @@ pub struct Hud {
     failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
-    /// Stores messages sent while the chat is hidden.
-    ///
-    /// This is needed because messages in new_messages are also shown as new
-    /// chat bubbles, so new_messages must be cleared every frame.
-    ///
-    /// Uses VecDeque to pop excess messages.
-    message_backlog: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<UserNotification>,
     speech_bubbles: HashMap<Uid, comp::SpeechBubble>,
     content_bubbles: Vec<(Vec3<f32>, comp::SpeechBubble)>,
+    pub persisted_state: Rc<RefCell<PersistedHudState>>,
     pub show: Show,
     //never_show: bool,
     //intro: bool,
@@ -1313,7 +1323,11 @@ pub struct Hud {
 }
 
 impl Hud {
-    pub fn new(global_state: &mut GlobalState, client: &Client) -> Self {
+    pub fn new(
+        global_state: &mut GlobalState,
+        persisted_state: Rc<RefCell<PersistedHudState>>,
+        client: &Client,
+    ) -> Self {
         let window = &mut global_state.window;
         let settings = &global_state.settings;
 
@@ -1386,8 +1400,8 @@ impl Hud {
             failed_entity_pickups: HashMap::default(),
             new_loot_messages: VecDeque::new(),
             new_messages: VecDeque::new(),
-            message_backlog: VecDeque::new(),
             new_notifications: VecDeque::new(),
+            persisted_state,
             speech_bubbles: HashMap::new(),
             content_bubbles: Vec::new(),
             //intro: false,
@@ -1423,7 +1437,6 @@ impl Hud {
                 zoom_lock: ChangeNotification::default(),
                 camera_clamp: false,
                 prompt_dialog: None,
-                location_markers: MapMarkers::default(),
                 trade_amount_input_key: None,
             },
             to_focus: None,
@@ -3090,6 +3103,7 @@ impl Hud {
         )
         .set(self.ids.popup, ui_widgets);
 
+        let persisted_state = self.persisted_state.borrow();
         // MiniMap
         for event in MiniMap::new(
             client,
@@ -3099,7 +3113,7 @@ impl Hud {
             &self.fonts,
             camera.get_orientation(),
             global_state,
-            &self.show.location_markers,
+            &persisted_state.location_markers,
             &self.voxel_minimap,
             &self.extra_markers,
         )
@@ -3111,6 +3125,7 @@ impl Hud {
                 },
             }
         }
+        drop(persisted_state);
 
         if let Some(prompt_dialog_settings) = &self.show.prompt_dialog {
             // Prompt Dialog
@@ -3530,7 +3545,14 @@ impl Hud {
         if global_state.settings.interface.toggle_chat || self.force_chat {
             // `rev` since we push to the front of the queue and want the oldest message to
             // be the last pushed to the front.
-            for hidden in self.message_backlog.drain(..).rev() {
+            for hidden in self
+                .persisted_state
+                .borrow_mut()
+                .message_backlog
+                .0
+                .drain(..)
+                .rev()
+            {
                 self.new_messages.push_front(hidden);
             }
             for event in Chat::new(
@@ -3586,9 +3608,11 @@ impl Hud {
                 }
             }
         } else {
-            self.message_backlog.extend(self.new_messages.drain(..));
-            while self.message_backlog.len() > chat::MAX_MESSAGES {
-                self.message_backlog.pop_front();
+            let mut persisted_state = self.persisted_state.borrow_mut();
+            for message in self.new_messages.drain(..) {
+                persisted_state
+                    .message_backlog
+                    .new_message(client, &global_state.profile, message);
             }
         }
 
@@ -3807,6 +3831,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
+            let mut persisted_state = self.persisted_state.borrow_mut();
             for event in Map::new(
                 client,
                 &self.imgs,
@@ -3817,7 +3842,7 @@ impl Hud {
                 i18n,
                 global_state,
                 tooltip_manager,
-                &self.show.location_markers,
+                &persisted_state.location_markers,
                 self.map_drag,
                 &self.extra_markers,
             )
@@ -3837,13 +3862,17 @@ impl Hud {
                     },
                     map::Event::SetLocationMarker(pos) => {
                         events.push(Event::MapMarkerEvent(MapMarkerChange::Update(pos)));
-                        self.show.location_markers.owned = Some(pos);
+                        persisted_state
+                            .location_markers
+                            .update(comp::MapMarkerUpdate::Owned(MapMarkerChange::Update(pos)));
                     },
                     map::Event::MapDrag(new_drag) => {
                         self.map_drag = new_drag;
                     },
                     map::Event::RemoveMarker => {
-                        self.show.location_markers.owned = None;
+                        persisted_state
+                            .location_markers
+                            .update(comp::MapMarkerUpdate::Owned(MapMarkerChange::Remove));
                         events.push(Event::MapMarkerEvent(MapMarkerChange::Remove));
                     },
                 }
@@ -4637,21 +4666,6 @@ impl Hud {
     }
 
     pub fn new_message(&mut self, msg: comp::ChatMsg) { self.new_messages.push_back(msg); }
-
-    /// Add chat messages that were received while outside the session state
-    /// where the hud is displayed.
-    ///
-    /// These messages are from the past so they won't be displayed as chat
-    /// bubbles and will be ordered before any messages added via
-    /// [`new_message`][Self::new_message] this tick.
-    pub fn add_backlog_messages(&mut self, messages: &mut chat::MessageBacklog) {
-        // Messages in `message_backlog` won't be displayed as chat bubbles.
-        self.message_backlog
-            .extend(core::mem::take(&mut messages.0));
-        while self.message_backlog.len() > chat::MAX_MESSAGES {
-            self.message_backlog.pop_front();
-        }
-    }
 
     pub fn new_notification(&mut self, msg: UserNotification) {
         self.new_notifications.push_back(msg);

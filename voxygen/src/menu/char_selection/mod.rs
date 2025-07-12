@@ -25,7 +25,7 @@ use ui::CharSelectionUi;
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
-    message_backlog: Rc<RefCell<hud::MessageBacklog>>,
+    persisted_state: Rc<RefCell<hud::PersistedHudState>>,
     scene: Scene,
 }
 
@@ -34,7 +34,7 @@ impl CharSelectionState {
     pub fn new(
         global_state: &mut GlobalState,
         client: Rc<RefCell<Client>>,
-        message_backlog: Rc<RefCell<hud::MessageBacklog>>,
+        persisted_state: Rc<RefCell<hud::PersistedHudState>>,
     ) -> Self {
         let sprite_render_context = (global_state.lazy_init)(global_state.window.renderer_mut());
         let scene = Scene::new(
@@ -48,7 +48,7 @@ impl CharSelectionState {
         Self {
             char_selection_ui,
             client,
-            message_backlog,
+            persisted_state,
             scene,
         }
     }
@@ -171,7 +171,7 @@ impl PlayState for CharSelectionState {
                             global_state,
                             UpdateCharacterMetadata::default(),
                             Rc::clone(&self.client),
-                            Rc::clone(&self.message_backlog),
+                            Rc::clone(&self.persisted_state),
                         )));
                     },
                     ui::Event::ShowRules => {
@@ -185,7 +185,7 @@ impl PlayState for CharSelectionState {
                         let char_select = CharSelectionState::new(
                             global_state,
                             Rc::clone(&self.client),
-                            Rc::clone(&self.message_backlog),
+                            Rc::clone(&self.persisted_state),
                         );
 
                         let new_state = ServerInfoState::try_from_server_info(
@@ -259,6 +259,7 @@ impl PlayState for CharSelectionState {
                 .tick(comp::ControllerInputs::default(), global_state.clock.dt());
             match res {
                 Ok(events) => {
+                    let mut join_metadata = None;
                     for event in events {
                         match event {
                             client::Event::SetViewDistance(_vd) => {},
@@ -271,9 +272,15 @@ impl PlayState for CharSelectionState {
                                 return PlayStateResult::Pop;
                             },
                             client::Event::Chat(m) => self
-                                .message_backlog
+                                .persisted_state
                                 .borrow_mut()
+                                .message_backlog
                                 .new_message(&self.client.borrow(), &global_state.profile, m),
+                            client::Event::MapMarker(marker_event) => self
+                                .persisted_state
+                                .borrow_mut()
+                                .location_markers
+                                .update(marker_event),
                             client::Event::CharacterCreated(character_id) => {
                                 self.char_selection_ui.select_character(character_id);
                             },
@@ -281,17 +288,7 @@ impl PlayState for CharSelectionState {
                                 self.char_selection_ui.display_error(error);
                             },
                             client::Event::CharacterJoined(metadata) => {
-                                // NOTE: It's possible we'll lose disconnect messages this way,
-                                // among other things, but oh well.
-                                //
-                                // TODO: Process all messages before returning (from any branch) in
-                                // order to catch disconnect messages.
-                                return PlayStateResult::Switch(Box::new(SessionState::new(
-                                    global_state,
-                                    metadata,
-                                    Rc::clone(&self.client),
-                                    Rc::clone(&self.message_backlog),
-                                )));
+                                join_metadata = Some(metadata);
                             },
                             #[cfg_attr(not(feature = "plugins"), expect(unused_variables))]
                             client::Event::PluginDataReceived(data) => {
@@ -318,6 +315,15 @@ impl PlayState for CharSelectionState {
                             // TODO: See if we should handle StartSpectate here instead.
                             _ => {},
                         }
+                    }
+
+                    if let Some(metadata) = join_metadata {
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
+                            global_state,
+                            metadata,
+                            Rc::clone(&self.client),
+                            Rc::clone(&self.persisted_state),
+                        )));
                     }
                 },
                 Err(err) => {
