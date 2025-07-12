@@ -1018,9 +1018,10 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::DiveMelee(data) => Some(DurationsInfo {
+                buildup: data.static_data.buildup_duration,
+                movement: Some(data.static_data.movement_duration),
                 action: Some(data.static_data.swing_duration),
                 recover: Some(data.static_data.recover_duration),
-                movement: Some(data.static_data.movement_duration),
                 ..Default::default()
             }),
             CharacterState::RiposteMelee(data) => Some(DurationsInfo {
