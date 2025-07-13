@@ -127,6 +127,8 @@ widget_ids! {
         shadow_mode_map_resolution_text,
         shadow_mode_map_resolution_slider,
         shadow_mode_map_resolution_value,
+        rain_button,
+        rain_label,
         rain_map_resolution_text,
         rain_map_resolution_slider,
         rain_map_resolution_value
@@ -1322,6 +1324,32 @@ impl Widget for Video<'_> {
                 .set(state.ids.shadow_mode_map_resolution_value, ui);
         }
 
+        // Disable rain
+        Text::new(&self.localized_strings.get_msg("hud-settings-rain"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.shadow_mode_list, 10.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.rain_label, ui);
+
+        let rain_enabled = ToggleButton::new(
+            self.global_state.settings.graphics.render_mode.rain_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.rain_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.rain_button, ui);
+
+        if self.global_state.settings.graphics.render_mode.rain_enabled != rain_enabled {
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                rain_enabled,
+                ..render_mode.clone()
+            })));
+        }
+
         // Rain occlusion texture size
         // Display the shadow map mode if selected.
         Text::new(
@@ -1329,7 +1357,7 @@ impl Widget for Video<'_> {
                 .localized_strings
                 .get_msg("hud-settings-rain_occlusion-resolution"),
         )
-        .down_from(state.ids.shadow_mode_list, 10.0)
+        .right_from(state.ids.rain_button, 64.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)
@@ -1367,7 +1395,7 @@ impl Widget for Video<'_> {
         Text::new(&self.localized_strings.get_msg("hud-settings-gpu_profiler"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .down_from(state.ids.rain_map_resolution_text, 8.0)
+            .down_from(state.ids.rain_label, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.gpu_profiler_label, ui);
 

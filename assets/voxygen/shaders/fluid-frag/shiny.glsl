@@ -183,7 +183,7 @@ void main() {
         wave_sample_dist / slope
     );
 
-    #if (CLOUD_MODE != CLOUD_MODE_NONE)
+    #ifdef RAIN_ENABLED
         if (rain_density > 0 && surf_norm.z > 0.5) {
             vec3 drop_density = vec3(2, 2, 2);
             vec3 drop_pos = wave_pos + vec3(0, 0, -time_of_day.x * 0.025);

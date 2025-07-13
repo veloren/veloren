@@ -2,6 +2,7 @@
 use crate::{
     audio::{AudioFrontend, channel::AmbienceChannelTag},
     scene::Camera,
+    settings::AudioSettings,
 };
 use client::Client;
 use common::{
@@ -37,6 +38,7 @@ impl AmbienceMgr {
     pub fn maintain(
         &mut self,
         audio: &mut AudioFrontend,
+        audio_settings: &AudioSettings,
         state: &State,
         client: &Client,
         camera: &Camera,
@@ -80,7 +82,12 @@ impl AmbienceMgr {
             {
                 // Maintain: get the correct volume of whatever the tag of the current
                 // channel is
-                let target_volume = get_target_volume(tag, client, camera);
+                let target_volume =
+                    if !audio_settings.rain_ambience_enabled && tag == AmbienceChannelTag::Rain {
+                        0.0
+                    } else {
+                        get_target_volume(tag, client, camera)
+                    };
 
                 // Fade to the target volume over a short period of time
                 channel.fade_to(target_volume, 1.0);

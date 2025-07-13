@@ -30,6 +30,7 @@ pub enum Audio {
     MuteSfxVolume(bool),
     AdjustAmbienceVolume(f32),
     MuteAmbienceVolume(bool),
+    RainAmbience(bool),
     AdjustMusicSpacing(f32),
     ToggleCombatMusic(bool),
     SetNumSfxChannels(SfxChannelSettings),
@@ -292,6 +293,9 @@ impl SettingsChange {
                             update_muted(&mut settings.audio.ambience_volume, ambience_muted);
 
                         global_state.audio.set_ambience_volume(volume_checked);
+                    },
+                    Audio::RainAmbience(rain_ambience_enabled) => {
+                        settings.audio.rain_ambience_enabled = rain_ambience_enabled;
                     },
                     Audio::AdjustMusicSpacing(multiplier) => {
                         global_state.audio.set_music_spacing(multiplier);

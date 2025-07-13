@@ -236,6 +236,10 @@ impl ShaderModules {
             constants += "#define FLASHING_LIGHTS_ENABLED\n";
         }
 
+        if pipeline_modes.rain_enabled {
+            constants += "#define RAIN_ENABLED\n";
+        }
+
         for shader in pipeline_modes.experimental_shaders.iter() {
             constants += &format!(
                 "#define EXPERIMENTAL_{}\n",
