@@ -5726,6 +5726,7 @@ impl AgentData<'_> {
         const FIRE_PILLARS: InputKind = InputKind::Ability(7);
         const TARGETED_FIRE_PILLAR: InputKind = InputKind::Ability(8);
         const ASHEN_SUMMONS: InputKind = InputKind::Ability(9);
+        const PARRY_PUNISH: InputKind = InputKind::Ability(10);
 
         fn choose_weighted<const N: usize>(
             rng: &mut impl Rng,
@@ -5819,6 +5820,17 @@ impl AgentData<'_> {
         let tgt_airborne = tgt_data
             .physics_state
             .is_some_and(|physics| physics.on_ground.is_none() && physics.in_liquid().is_none());
+        let tgt_missed_parry = match tgt_data.char_state {
+            Some(CharacterState::RiposteMelee(data)) => {
+                matches!(data.stage_section, StageSection::Recover) && data.whiffed
+            },
+            Some(CharacterState::BasicBlock(data)) => {
+                matches!(data.stage_section, StageSection::Recover)
+                    && !data.static_data.parry_window.recover
+                    && !data.is_parry
+            },
+            _ => false,
+        };
         let casting_beam = matches!(self.char_state, CharacterState::BasicBeam(_))
             && self.char_state.stage_section() != Some(StageSection::Recover);
 
@@ -5878,7 +5890,11 @@ impl AgentData<'_> {
                 // Use a gap closer if the target has been out of melee distance for a while
                 controller.push_basic_input(LAVA_LEAP);
             } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
-                if agent.combat_state.timers[ActionStateTimers::Special as usize] > 5.0 {
+                if tgt_missed_parry {
+                    controller.push_basic_input(PARRY_PUNISH);
+                    agent.combat_state.conditions
+                        [ActionStateConditions::VerticalStrikeCombo as usize] = true;
+                } else if agent.combat_state.timers[ActionStateTimers::Special as usize] > 5.0 {
                     // Use a special ability periodically
                     let rand_special = rand_special(rng);
                     if rand_special == VERTICAL_STRIKE {
