@@ -2997,6 +2997,9 @@
         Simple(
             "common.items.npc_weapons.unique.quadruped_low.tortoise",
         ): "common-items-npc_weapons-unique-quadruped_low-tortoise",
+	Simple(
+            "common.items.npc_weapons.unique.quadruped_medium.elephant",
+        ): "common-items-npc_weapons-unique-quadruped_medium-elephant",
         Simple(
             "common.items.npc_weapons.unique.quadruped_medium.alpaca",
         ): "common-items-npc_weapons-unique-quadruped_medium-alpaca",
