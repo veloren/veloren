@@ -688,6 +688,9 @@ pub fn default_main_tool(body: &Body) -> Option<&'static str> {
             | quadruped_medium::Species::Ngoubou => {
                 Some("common.items.npc_weapons.unique.quadmedcharge")
             },
+            quadruped_medium::Species::Elephant => {
+                Some("common.items.npc_weapons.unique.quadruped_medium.elephant")
+            },
             quadruped_medium::Species::Grolgar => {
                 Some("common.items.npc_weapons.unique.quadruped_medium.grolgar")
             },

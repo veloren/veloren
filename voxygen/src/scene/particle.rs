@@ -1550,6 +1550,69 @@ impl ParticleMgr {
                                     );
                                 }
                             },
+                            states::rapid_melee::FrontendSpecifier::ElephantVacuum => {
+                                if matches!(c.stage_section, StageSection::Action) {
+                                    let time = scene_data.state.get_time();
+                                    let mut rng = thread_rng();
+
+                                    let (end_radius, max_range) =
+                                        if let CharacterState::RapidMelee(data) = character_state {
+                                            let max_range =
+                                                data.static_data.melee_constructor.range;
+                                            (
+                                                max_range
+                                                    * (data.static_data.melee_constructor.angle
+                                                        / 2.0
+                                                        * PI
+                                                        / 180.0)
+                                                        .tan(),
+                                                max_range,
+                                            )
+                                        } else {
+                                            (0.0, 0.0)
+                                        };
+                                    let ori = ori.look_vec();
+                                    let body_radius = body.max_radius() * 1.4;
+                                    let body_offsets_z = body.height() * 0.4;
+                                    let beam_offsets = Vec3::new(
+                                        body_radius * ori.x * 1.1,
+                                        body_radius * ori.y * 1.1,
+                                        body_offsets_z,
+                                    );
+
+                                    let (from, to) = (Vec3::<f32>::unit_z(), ori);
+                                    let m = Mat3::<f32>::rotation_from_to_3d(from, to);
+
+                                    self.particles.resize_with(
+                                        self.particles.len()
+                                            + 5
+                                            + usize::from(
+                                                self.scheduler.heartbeats(Duration::from_millis(5)),
+                                            ),
+                                        || {
+                                            let trunk_pos = interpolated.pos + beam_offsets;
+
+                                            let range = rng.gen_range(0.05..=max_range);
+                                            let radius =
+                                                rng.gen_range(0.0..=end_radius * range / max_range);
+                                            let theta = rng.gen_range(0.0..2.0 * PI);
+
+                                            Particle::new_directed(
+                                                Duration::from_millis(300),
+                                                time,
+                                                ParticleMode::ElephantVacuum,
+                                                trunk_pos
+                                                    + m * Vec3::new(
+                                                        radius * theta.cos(),
+                                                        radius * theta.sin(),
+                                                        range,
+                                                    ),
+                                                trunk_pos,
+                                            )
+                                        },
+                                    );
+                                }
+                            },
                         }
                     }
                 },

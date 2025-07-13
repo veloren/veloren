@@ -62,7 +62,9 @@ impl Animation for StunnedAnimation {
         next.torso_back.orientation =
             Quaternion::rotation_y(movement1 * 0.18) * Quaternion::rotation_z(movement1 * -0.4);
 
-        next.ears.orientation = Quaternion::rotation_x(twitch * 0.1 * mirror);
+        if !s_a.ears_for_trunk {
+            next.ears.orientation = Quaternion::rotation_x(twitch * 0.1 * mirror);
+        }
 
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fl.orientation = Quaternion::rotation_y(0.0);

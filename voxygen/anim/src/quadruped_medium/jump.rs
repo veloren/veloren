@@ -63,7 +63,9 @@ impl Animation for JumpAnimation {
         next.torso_back.orientation = Quaternion::rotation_x(x_tilt * -1.2);
 
         next.ears.position = Vec3::new(0.0, s_a.ears.0, s_a.ears.1);
-        next.ears.orientation = Quaternion::rotation_x(x_tilt * 1.5);
+        if !s_a.ears_for_trunk {
+            next.ears.orientation = Quaternion::rotation_x(x_tilt * 1.5);
+        }
 
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fl.orientation = Quaternion::rotation_x(1.2 * normalize + x_tilt.abs() * 0.8);

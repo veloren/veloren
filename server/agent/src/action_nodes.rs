@@ -1280,6 +1280,7 @@ impl AgentData<'_> {
                             "Quad Med Basic" => Tactic::QuadMedBasic,
                             "Quad Med Hoof" => Tactic::QuadMedHoof,
                             "ClaySteed" => Tactic::ClaySteed,
+                            "Elephant" => Tactic::Elephant,
                             "Rocksnapper" => Tactic::Rocksnapper,
                             "Roshwalr" => Tactic::Roshwalr,
                             "Asp" | "Maneater" => Tactic::QuadLowRanged,
@@ -1669,6 +1670,14 @@ impl AgentData<'_> {
                 &attack_data,
                 tgt_data,
                 read_data,
+            ),
+            Tactic::Elephant => self.handle_elephant_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
             ),
             Tactic::Rocksnapper => {
                 self.handle_rocksnapper_attack(agent, controller, &attack_data, tgt_data, read_data)

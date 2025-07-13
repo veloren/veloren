@@ -551,6 +551,10 @@
                 keyword: "mammoth",
                 generic: "name-body-quadruped_medium-mammoth"
             ),
+            elephant: (
+                keyword: "elephant",
+                generic: "name-body-quadruped_medium-elephant"
+            ),
             ngoubou: (
                 keyword: "ngoubou",
                 generic: "name-body-quadruped_medium-ngoubou"

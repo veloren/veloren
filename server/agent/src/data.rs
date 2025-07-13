@@ -261,6 +261,7 @@ pub enum Tactic {
     Snaretongue,
     Cardinal,
     SeaBishop,
+    Elephant,
     Rocksnapper,
     Roshwalr,
     FrostGigas,

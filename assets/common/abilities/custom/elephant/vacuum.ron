@@ -1,0 +1,20 @@
+RapidMelee(
+    buildup_duration: 0.5,
+    swing_duration: 0.8,
+    recover_duration: 0.1,
+    melee_constructor: (
+        kind: NecroticVortex(
+            damage: 8.0,
+            pull: 15.0,
+            lifesteal: 0.0,
+            energy_regen: 0,
+        ),
+        range: 20.0,
+        angle: 60.0,
+        multi_target: Some(Normal),
+    ),
+    energy_cost: 0,
+    ori_modifier: 1.0,
+    move_modifier: 0.0,
+    frontend_specifier: Some(ElephantVacuum),
+)

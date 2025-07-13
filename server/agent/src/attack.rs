@@ -4934,6 +4934,77 @@ impl AgentData<'_> {
         );
     }
 
+    pub fn handle_elephant_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const MELEE_RANGE: f32 = 10.0;
+        const RANGED_RANGE: f32 = 20.0;
+        const ABILITY_PREFERENCES: AbilityPreferences = AbilityPreferences {
+            desired_energy: 30.0,
+            combo_scaling_buildup: 0,
+        };
+
+        const GOUGE: InputKind = InputKind::Primary;
+        const DASH: InputKind = InputKind::Secondary;
+        const STOMP: InputKind = InputKind::Ability(0);
+        const WATER: InputKind = InputKind::Ability(1);
+        const VACUUM: InputKind = InputKind::Ability(2);
+
+        let could_use = |input| {
+            Option::<AbilityInput>::from(input)
+                .and_then(|ability_input| self.extract_ability(ability_input))
+                .is_some_and(|ability_data| {
+                    ability_data.could_use(
+                        attack_data,
+                        self,
+                        tgt_data,
+                        read_data,
+                        ABILITY_PREFERENCES,
+                    )
+                })
+        };
+
+        let dashing = matches!(self.char_state, CharacterState::DashMelee(_))
+            && self.char_state.stage_section() != Some(StageSection::Recover);
+
+        if dashing {
+            controller.push_basic_input(DASH);
+        } else if rng.gen_bool(0.2) {
+            if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
+                if rng.gen_bool(0.5) && could_use(STOMP) {
+                    controller.push_basic_input(STOMP);
+                } else {
+                    controller.push_basic_input(GOUGE);
+                }
+            } else if attack_data.dist_sqrd < RANGED_RANGE.powi(2) {
+                if rng.gen_bool(0.5) {
+                    controller.push_basic_input(WATER);
+                } else if could_use(VACUUM) {
+                    controller.push_basic_input(VACUUM);
+                } else {
+                    controller.push_basic_input(DASH);
+                }
+            } else {
+                controller.push_basic_input(DASH);
+            }
+        }
+
+        self.path_toward_target(
+            agent,
+            controller,
+            tgt_data.pos.0,
+            read_data,
+            Path::Partial,
+            attack_data.in_min_range().then_some(0.1),
+        );
+    }
+
     pub fn handle_rocksnapper_attack(
         &self,
         agent: &mut Agent,

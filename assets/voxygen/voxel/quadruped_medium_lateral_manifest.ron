@@ -2107,6 +2107,74 @@
             lateral: ("npc.mammoth.male.foot_br"),
         ),
     ),
+    (Elephant, Male): (
+        leg_fl: (
+            offset: (0.0, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-6.0, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-1.5, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.5, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-0.5, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-6.5, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-1.0, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-5.0, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_br"),
+        ),
+    ),
+    (Elephant, Female): (
+        leg_fl: (
+            offset: (0.0, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-6.0, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-1.5, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.5, -5.0, -5.0),
+            lateral: ("npc.elephant.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-0.5, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-6.5, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-1.0, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-5.0, -4.5, -10.0),
+            lateral: ("npc.elephant.male.foot_br"),
+        ),
+    ),
     (Ngoubou, Male): (
         leg_fl: (
             offset: (-2.5, -4.0, -7.0),

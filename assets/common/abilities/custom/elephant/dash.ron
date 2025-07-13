@@ -1,0 +1,35 @@
+DashMelee(
+    energy_cost: 0,
+    melee_constructor: (
+        kind: Stab(
+            damage: 22.5,
+            poise: 25.0,
+            knockback: 10.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some((
+            kind: Stab(
+                damage: 90.0,
+                poise: 100.0,
+                knockback: 30.0,
+                energy_regen: 0.0,
+            ))),
+        range: 5.0,
+        angle: 90.0,
+        damage_effect: Some(Buff((
+            kind: Bleeding,
+            dur_secs: 15.0,
+            strength: DamageFraction(0.3),
+            chance: 0.25,
+        ))),
+        multi_target: Some(Normal),
+    ),
+    energy_drain: 0,
+    forward_speed: 5.0,
+    buildup_duration: 0.6,
+    charge_duration: 8.0,
+    swing_duration: 0.1,
+    recover_duration: 3.4,
+    ori_modifier: 0.1,
+    auto_charge: false,
+)

@@ -86,7 +86,9 @@ impl Animation for IdleAnimation {
         next.torso_back.orientation = Quaternion::rotation_y(-slow * 0.005);
 
         next.ears.position = Vec3::new(0.0, s_a.ears.0, s_a.ears.1);
-        next.ears.orientation = Quaternion::rotation_x(0.0 + slower * 0.03);
+        if !s_a.ears_for_trunk {
+            next.ears.orientation = Quaternion::rotation_x(0.0 + slower * 0.03);
+        }
 
         next.leg_fl.position = Vec3::new(
             -s_a.leg_f.0,

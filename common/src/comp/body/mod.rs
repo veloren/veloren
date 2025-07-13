@@ -504,6 +504,7 @@ impl Body {
                 quadruped_medium::Species::Yak => 200.0,
                 quadruped_medium::Species::Dreadhorn => 500.0,
                 quadruped_medium::Species::Mammoth => 1500.0,
+                quadruped_medium::Species::Elephant => 1500.0,
                 quadruped_medium::Species::Catoblepas => 300.0,
                 _ => 200.0,
             },
@@ -675,6 +676,7 @@ impl Body {
                 quadruped_medium::Species::Tarasque => Vec3::new(2.0, 4.0, 2.6),
                 quadruped_medium::Species::Yak => Vec3::new(2.0, 3.6, 3.0),
                 quadruped_medium::Species::Mammoth => Vec3::new(7.5, 11.5, 8.0),
+                quadruped_medium::Species::Elephant => Vec3::new(7.5, 11.5, 8.0),
                 quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
                 quadruped_medium::Species::Llama => Vec3::new(2.0, 2.5, 2.6),
                 quadruped_medium::Species::ClaySteed => Vec3::new(2.2, 4.8, 4.0),
@@ -978,6 +980,7 @@ impl Body {
                 quadruped_medium::Species::Grolgar => 450,
                 quadruped_medium::Species::Hirdrasil => 480,
                 quadruped_medium::Species::Mammoth => 880,
+                quadruped_medium::Species::Elephant => 880,
                 quadruped_medium::Species::Ngoubou => 590,
                 quadruped_medium::Species::Roshwalr => 640,
                 quadruped_medium::Species::Tarasque => 370,
@@ -1457,7 +1460,9 @@ impl Body {
                 | quadruped_medium::Species::Mouflon
                 | quadruped_medium::Species::Roshwalr
                 | quadruped_medium::Species::Dreadhorn => 205,
-                quadruped_medium::Species::Mammoth | quadruped_medium::Species::Ngoubou => 230,
+                quadruped_medium::Species::Mammoth
+                | quadruped_medium::Species::Elephant
+                | quadruped_medium::Species::Ngoubou => 230,
             },
             Body::QuadrupedLow(b) => match b.species {
                 quadruped_low::Species::Dagon => 270,
@@ -1600,6 +1605,7 @@ impl Body {
                 (quadruped_medium::Species::Moose, _) => (0.0, -0.6, 2.1),
                 (quadruped_medium::Species::Snowleopard, _) => (0.0, -0.5, 1.4),
                 (quadruped_medium::Species::Mammoth, _) => (0.0, 4.9, 7.2),
+                (quadruped_medium::Species::Elephant, _) => (0.0, 4.9, 7.2),
                 (quadruped_medium::Species::Ngoubou, _) => (0.0, 0.3, 2.4),
                 (quadruped_medium::Species::Llama, _) => (0.0, 0.1, 1.5),
                 (quadruped_medium::Species::Alpaca, _) => (0.0, -0.1, 1.0),

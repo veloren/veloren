@@ -67,7 +67,9 @@ impl Animation for LeapMeleeAnimation {
         next.torso_back.orientation =
             Quaternion::rotation_x(movement1abs * -0.45) * Quaternion::rotation_y(twitch1abs * 0.1);
 
-        next.ears.orientation = Quaternion::rotation_x(twitch1 * 0.1);
+        if !s_a.ears_for_trunk {
+            next.ears.orientation = Quaternion::rotation_x(twitch1 * 0.1);
+        }
         next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * 0.4)
             * Quaternion::rotation_y(twitch1abs * 0.1);
 
