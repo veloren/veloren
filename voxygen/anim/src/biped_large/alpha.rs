@@ -403,10 +403,10 @@ impl Animation for AlphaAnimation {
                     next.shoulder_l.orientation.rotate_x(PI / 2.5 * move2);
                     next.torso.orientation.rotate_z(-PI / 2.0 * move2);
                     next.lower_torso.orientation.rotate_z(PI / 8.0 * move2);
-                    next.foot_l.position += Vec3::new(2.0, 8.0, 0.0) * move2
-                        + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
-                    next.leg_l.position += Vec3::new(2.0, 4.0, 0.0) * move2
-                        + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.foot_l.position +=
+                        Vec3::new(2.0, 8.0, 0.0) * move2 + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.leg_l.position +=
+                        Vec3::new(2.0, 4.0, 0.0) * move2 + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
                     next.leg_l.orientation.rotate_z(-PI / 4.0 * move2);
                     next.foot_r.position += Vec3::new(0.0, -8.0, 0.0) * move2;
                     next.foot_r.orientation.rotate_z(PI / 5.0 * move2);
