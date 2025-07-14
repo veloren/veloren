@@ -502,10 +502,12 @@ impl LoadoutSpec {
     }
 }
 
-impl assets::Asset for LoadoutSpec {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for LoadoutSpec {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[must_use]

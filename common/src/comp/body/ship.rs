@@ -320,9 +320,9 @@ pub mod figuredata {
         pub fn volume(&self) -> &TerrainSegment { &self.dyna }
     }
 
-    impl assets::Compound for ShipSpec {
+    impl assets::Asset for ShipSpec {
         fn load(
-            cache: assets::AnyCache,
+            cache: &assets::AssetCache,
             _: &assets::SharedString,
         ) -> Result<Self, assets::BoxedError> {
             let manifest: AssetHandle<Ron<ShipCentralSpec>> =

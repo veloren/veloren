@@ -1,4 +1,4 @@
-use common_assets::{AssetCombined, AssetHandle, Concatenate};
+use common_assets::{self as assets, AssetCombined, AssetHandle, Concatenate};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
@@ -21,10 +21,12 @@ struct PluginSpecies {
 #[derive(Deserialize, Debug)]
 struct PluginSpeciesEntries(Vec<PluginSpecies>);
 
-impl common_assets::Asset for PluginSpeciesEntries {
-    type Loader = common_assets::RonLoader;
-
+impl assets::FileAsset for PluginSpeciesEntries {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 impl Concatenate for PluginSpeciesEntries {
     fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }

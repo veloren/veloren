@@ -253,8 +253,10 @@ pub fn load_ambience_items() -> AssetHandle<AmbienceCollection> {
     })
 }
 
-impl assets::Asset for AmbienceCollection {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for AmbienceCollection {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }

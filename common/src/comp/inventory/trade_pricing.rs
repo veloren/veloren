@@ -260,10 +260,12 @@ pub struct ProbabilityFile {
     pub content: Vec<(f32, ItemDefinitionIdOwned, f32)>,
 }
 
-impl assets::Asset for ProbabilityFile {
-    type Loader = assets::LoadFrom<Vec<(f32, LootSpec<String>)>, assets::RonLoader>;
-
+impl assets::FileAsset for ProbabilityFile {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, common_assets::BoxedError> {
+        assets::load_ron(&bytes).map(Vec::into)
+    }
 }
 
 type ComponentPool =
@@ -469,10 +471,12 @@ struct TradingPriceFile {
     pub good_scaling: Vec<(Good, f32)>,
 }
 
-impl assets::Asset for TradingPriceFile {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for TradingPriceFile {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -493,9 +497,9 @@ impl EqualitySet {
     }
 }
 
-impl assets::Compound for EqualitySet {
+impl assets::Asset for EqualitySet {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         id: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         #[derive(Debug, Deserialize)]

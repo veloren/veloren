@@ -2,7 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    assets::{self, Asset, AssetExt, AssetHandle},
+    assets::{self, AssetExt, AssetHandle},
     comp::{
         CharacterAbility, Combo, SkillSet,
         ability::Stance,
@@ -195,10 +195,12 @@ impl Stats {
     }
 }
 
-impl Asset for Stats {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for Stats {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl Add<Stats> for Stats {
@@ -574,15 +576,17 @@ impl<T> AbilityMap<T> {
     pub fn get_ability_set(&self, key: &AbilitySpec) -> Option<&AbilitySet<T>> { self.0.get(key) }
 }
 
-impl Asset for AbilityMap<String> {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for AbilityMap<String> {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
-impl assets::Compound for AbilityMap {
+impl assets::Asset for AbilityMap {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();

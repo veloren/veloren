@@ -49,10 +49,12 @@ impl LoadingAnimation {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 struct LoadingAnimationManifest(Vec<(f32, Vec<String>)>);
-impl assets::Asset for LoadingAnimationManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for LoadingAnimationManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 /// Connecting screen for the main menu

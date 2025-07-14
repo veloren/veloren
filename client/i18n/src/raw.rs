@@ -1,7 +1,4 @@
-use crate::{
-    Fonts, LanguageMetadata,
-    assets::{StringLoader, loader},
-};
+use crate::{Fonts, LanguageMetadata, assets};
 use serde::{Deserialize, Serialize};
 
 /// Localization metadata from manifest file
@@ -12,10 +9,12 @@ pub(crate) struct Manifest {
     pub(crate) metadata: LanguageMetadata,
 }
 
-impl crate::assets::Asset for Manifest {
-    type Loader = crate::assets::RonLoader;
-
+impl assets::FileAsset for Manifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 // Newtype wrapper representing fluent resource.
@@ -37,12 +36,12 @@ pub(crate) struct Resource {
     pub(crate) src: String,
 }
 
-impl From<String> for Resource {
-    fn from(src: String) -> Self { Self { src } }
-}
-
-impl crate::assets::Asset for Resource {
-    type Loader = loader::LoadFrom<String, StringLoader>;
-
+impl assets::FileAsset for Resource {
     const EXTENSION: &'static str = "ftl";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        Ok(Resource {
+            src: String::from_bytes(bytes)?,
+        })
+    }
 }

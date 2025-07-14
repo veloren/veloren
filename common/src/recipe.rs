@@ -500,11 +500,14 @@ pub(crate) struct RawRecipe {
 #[serde(transparent)]
 pub(crate) struct RawRecipeBook(pub(crate) HashMap<String, RawRecipe>);
 
-impl assets::Asset for RawRecipeBook {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawRecipeBook {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
+
 impl Concatenate for RawRecipeBook {
     fn concatenate(self, b: Self) -> Self { RawRecipeBook(self.0.concatenate(b.0)) }
 }
@@ -512,15 +515,17 @@ impl Concatenate for RawRecipeBook {
 #[derive(Deserialize, Clone)]
 struct ItemList(Vec<String>);
 
-impl assets::Asset for ItemList {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for ItemList {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
-impl assets::Compound for RecipeBookManifest {
+impl assets::Asset for RecipeBookManifest {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
@@ -595,11 +600,14 @@ impl ReverseComponentRecipeBook {
 #[serde(transparent)]
 struct RawComponentRecipeBook(Vec<RawComponentRecipe>);
 
-impl assets::Asset for RawComponentRecipeBook {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawComponentRecipeBook {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
+
 impl Concatenate for RawComponentRecipeBook {
     fn concatenate(self, b: Self) -> Self { RawComponentRecipeBook(self.0.concatenate(b.0)) }
 }
@@ -838,9 +846,9 @@ enum RawComponentOutput {
     ToolPrimaryComponent { toolkind: ToolKind, item: String },
 }
 
-impl assets::Compound for ComponentRecipeBook {
+impl assets::Asset for ComponentRecipeBook {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
@@ -964,10 +972,12 @@ struct RawRepairRecipeBook {
     fallback: RawRepairRecipe,
 }
 
-impl assets::Asset for RawRepairRecipeBook {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawRepairRecipeBook {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -1077,9 +1087,9 @@ impl RepairRecipeBook {
     }
 }
 
-impl assets::Compound for RepairRecipeBook {
+impl assets::Asset for RepairRecipeBook {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         fn load_recipe_input(
@@ -1128,9 +1138,9 @@ pub fn default_repair_recipe_book() -> AssetHandle<RepairRecipeBook> {
     RepairRecipeBook::load_expect("common.repair_recipe_book")
 }
 
-impl assets::Compound for ReverseComponentRecipeBook {
+impl assets::Asset for ReverseComponentRecipeBook {
     fn load(
-        cache: assets::AnyCache,
+        cache: &assets::AssetCache,
         specifier: &assets::SharedString,
     ) -> Result<Self, assets::BoxedError> {
         let forward = cache.load::<ComponentRecipeBook>(specifier)?.cloned();

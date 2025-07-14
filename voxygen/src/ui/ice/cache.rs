@@ -142,12 +142,10 @@ impl Cache {
 #[derive(Clone)]
 pub struct RawFont(pub Vec<u8>);
 
-impl From<Vec<u8>> for RawFont {
-    fn from(raw: Vec<u8>) -> RawFont { RawFont(raw) }
-}
-
-impl assets::Asset for RawFont {
-    type Loader = assets::LoadFrom<Vec<u8>, assets::BytesLoader>;
-
+impl assets::FileAsset for RawFont {
     const EXTENSION: &'static str = "ttf";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        Ok(Self(bytes.into_owned()))
+    }
 }

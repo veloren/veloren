@@ -1,6 +1,6 @@
 //! Handles caching and retrieval of decoded `.ogg` sfx sound data, eliminating
 //! the need to decode files on each playback
-use common::assets::{self, AssetExt, Loader};
+use common::assets::{self, AssetExt, FileAsset};
 use kira::{
     Decibels, StartTime, Tween, Value,
     sound::{
@@ -124,50 +124,36 @@ impl AnySoundHandle {
     }
 }
 
-struct SoundLoader;
 #[derive(Clone)]
 struct OggSound(StaticSoundData);
 
-struct StreamedSoundLoader;
 #[derive(Clone)]
 struct StreamedOggSound(Arc<[u8]>);
 
-impl Loader<OggSound> for SoundLoader {
-    fn load(content: Cow<[u8]>, _: &str) -> Result<OggSound, assets::BoxedError> {
-        let source = StaticSoundData::from_cursor(io::Cursor::new(content.into_owned()))?;
+impl FileAsset for OggSound {
+    const EXTENSION: &'static str = "ogg";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        let source = StaticSoundData::from_cursor(io::Cursor::new(bytes.into_owned()))?;
         Ok(OggSound(source))
     }
 }
 
-impl assets::Asset for OggSound {
-    type Loader = SoundLoader;
-
+impl FileAsset for StreamedOggSound {
     const EXTENSION: &'static str = "ogg";
-}
 
-impl assets::Asset for StreamedOggSound {
-    type Loader = StreamedSoundLoader;
-
-    const EXTENSION: &'static str = "ogg";
-}
-
-impl Loader<StreamedOggSound> for StreamedSoundLoader {
-    fn load(
-        content: Cow<[u8]>,
-        _ext: &str,
-    ) -> Result<StreamedOggSound, common::assets::BoxedError> {
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, assets::BoxedError> {
         // Store the raw file contents to be streamed later
-        Ok(StreamedOggSound(Arc::from(content.to_vec())))
+        Ok(StreamedOggSound(Arc::from(&*bytes)))
     }
 }
 
 /// Wrapper for decoded audio data
 impl OggSound {
     pub fn empty() -> OggSound {
-        SoundLoader::load(
-            Cow::Borrowed(include_bytes!("../../../assets/voxygen/audio/null.ogg")),
-            "ogg",
-        )
+        OggSound::from_bytes(Cow::Borrowed(include_bytes!(
+            "../../../assets/voxygen/audio/null.ogg"
+        )))
         .unwrap()
     }
 }

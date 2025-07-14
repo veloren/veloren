@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, Asset, AssetExt},
+    assets::{self, AssetExt},
     comp::{item::tool::ToolKind, skills::Skill},
 };
 use core::borrow::{Borrow, BorrowMut};
@@ -21,10 +21,12 @@ pub mod skills;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillTreeMap(HashMap<SkillGroupKind, BTreeSet<Skill>>);
 
-impl Asset for SkillTreeMap {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SkillTreeMap {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 pub struct SkillGroupDef {
@@ -35,10 +37,12 @@ pub struct SkillGroupDef {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillLevelMap(HashMap<Skill, u16>);
 
-impl Asset for SkillLevelMap {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SkillLevelMap {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 /// Contains the prerequisite skills for each skill. It cannot currently detect
@@ -47,19 +51,23 @@ impl Asset for SkillLevelMap {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillPrerequisitesMap(HashMap<Skill, SkillPrerequisite>);
 
-impl Asset for SkillPrerequisitesMap {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SkillPrerequisitesMap {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillCostMap(HashMap<Skill, u16>);
 
-impl Asset for SkillCostMap {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SkillCostMap {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 lazy_static! {

@@ -78,10 +78,12 @@ impl ImageSpec {
 
 #[derive(Serialize, Deserialize)]
 pub struct ItemImagesSpec(pub HashMap<ItemKey, ImageSpec>);
-impl assets::Asset for ItemImagesSpec {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for ItemImagesSpec {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 impl Concatenate for ItemImagesSpec {
     fn concatenate(self, b: Self) -> Self { ItemImagesSpec(self.0.concatenate(b.0)) }

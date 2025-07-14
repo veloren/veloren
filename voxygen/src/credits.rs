@@ -61,10 +61,12 @@ pub struct Credits {
     // TODO: include credits for dependencies where the license requires attribution?
 }
 
-impl assets::Asset for Credits {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for Credits {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[cfg(test)]

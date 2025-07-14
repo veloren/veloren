@@ -30,10 +30,12 @@ struct RawGoodProperties {
 #[serde(transparent)]
 pub struct RawGoodPropertiesList(DHashMap<Good, RawGoodProperties>);
 
-impl assets::Asset for RawGoodPropertiesList {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawGoodPropertiesList {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 /// Contains caches used for economic simulation

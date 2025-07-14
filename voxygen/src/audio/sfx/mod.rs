@@ -1024,10 +1024,12 @@ impl SfxMgr {
     }
 }
 
-impl assets::Asset for SfxTriggers {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SfxTriggers {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[cfg(test)]

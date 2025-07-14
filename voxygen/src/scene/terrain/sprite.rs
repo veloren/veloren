@@ -139,10 +139,12 @@ impl TryFrom<SpriteSpecRaw> for SpriteSpec {
     }
 }
 
-impl assets::Asset for SpriteSpec {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SpriteSpec {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl SpriteSpec {

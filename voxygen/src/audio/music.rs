@@ -200,10 +200,12 @@ impl Default for MusicTransitionManifest {
     }
 }
 
-impl assets::Asset for MusicTransitionManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for MusicTransitionManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 fn time_f64(clock_time: ClockTime) -> f64 { clock_time.ticks as f64 + clock_time.fraction }
@@ -714,14 +716,16 @@ impl MusicMgr {
         }
     }
 }
-impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SoundtrackCollection<RawSoundtrackItem> {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
-impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
-    fn load(_: assets::AnyCache, id: &assets::SharedString) -> Result<Self, assets::BoxedError> {
+impl assets::Asset for SoundtrackCollection<SoundtrackItem> {
+    fn load(_: &assets::AssetCache, id: &assets::SharedString) -> Result<Self, assets::BoxedError> {
         let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> = AssetExt::load(id)?;
         let mut soundtrack = SoundtrackCollection::default();
         for item in manifest.read().tracks.iter().cloned() {

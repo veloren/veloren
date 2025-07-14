@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, Asset},
+    assets,
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         self, Body, CharacterState, LightEmitter, StateUpdate, aura, beam, buff,
@@ -1286,10 +1286,12 @@ impl Default for CharacterAbility {
     }
 }
 
-impl Asset for CharacterAbility {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for CharacterAbility {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl CharacterAbility {

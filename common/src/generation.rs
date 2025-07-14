@@ -172,10 +172,12 @@ pub struct EntityConfig {
     pub meta: Vec<Meta>,
 }
 
-impl assets::Asset for EntityConfig {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for EntityConfig {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl EntityConfig {

@@ -58,10 +58,12 @@ pub enum KitSpec {
 }
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct KitManifest(pub HashMap<String, Vec<(KitSpec, u32)>>);
-impl assets::Asset for KitManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for KitManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 impl Concatenate for KitManifest {
     fn concatenate(self, b: Self) -> Self { KitManifest(self.0.concatenate(b.0)) }
@@ -69,10 +71,12 @@ impl Concatenate for KitManifest {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct SkillPresetManifest(pub HashMap<String, Vec<(Skill, u8)>>);
-impl assets::Asset for SkillPresetManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SkillPresetManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 impl Concatenate for SkillPresetManifest {
     fn concatenate(self, b: Self) -> Self { SkillPresetManifest(self.0.concatenate(b.0)) }

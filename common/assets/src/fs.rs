@@ -92,8 +92,6 @@ impl Source for FileSystem {
             || self.default.exists(entry)
     }
 
-    fn make_source(&self) -> Option<Box<dyn Source + Send>> { Some(Box::new(self.clone())) }
-
     fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
         let mut builder = FsWatcherBuilder::new()?;
 

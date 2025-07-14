@@ -13,11 +13,8 @@ use std::{
 };
 
 pub use assets_manager::{
-    AnyCache, Asset, AssetCache, BoxedError, Compound, Error, SharedString,
-    asset::{DirLoadable, Ron},
-    loader::{
-        self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
-    },
+    Asset, AssetCache, BoxedError, Error, FileAsset, SharedString,
+    asset::{DirLoadable, Ron, load_bincode_legacy as load_bincode, load_ron, load_text},
     source::{self, Source},
 };
 
@@ -34,12 +31,9 @@ lazy_static! {
 #[cfg(not(feature = "plugins"))]
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: AssetCache<fs::FileSystem> =
+    static ref ASSETS: AssetCache =
             AssetCache::with_source(fs::FileSystem::new().unwrap());
 }
-
-#[cfg(feature = "hot-reloading")]
-pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 // register a new plugin
 #[cfg(feature = "plugins")]
@@ -122,7 +116,7 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(
-        reloading_cache: AnyCache<'static>,
+        cache: &'static AssetCache,
         specifier: &str,
     ) -> Result<AssetHandle<Self>, Error>;
 
@@ -130,7 +124,7 @@ pub trait AssetCombined: AssetExt {
     fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
         #[cfg(feature = "plugins")]
         {
-            Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
+            ASSETS.no_record(|| Self::load_and_combine(ASSETS.as_cache(), specifier))
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -139,12 +133,9 @@ pub trait AssetCombined: AssetExt {
     }
 
     #[track_caller]
-    fn load_expect_combined(
-        reloading_cache: AnyCache<'static>,
-        specifier: &str,
-    ) -> AssetHandle<Self> {
+    fn load_expect_combined(cache: &'static AssetCache, specifier: &str) -> AssetHandle<Self> {
         // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-        match Self::load_and_combine(reloading_cache, specifier) {
+        match Self::load_and_combine(cache, specifier) {
             Ok(handle) => handle,
             Err(err) => {
                 panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
@@ -157,7 +148,7 @@ pub trait AssetCombined: AssetExt {
     fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
         #[cfg(feature = "plugins")]
         {
-            Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
+            ASSETS.no_record(|| Self::load_expect_combined(ASSETS.as_cache(), specifier))
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -168,7 +159,7 @@ pub trait AssetCombined: AssetExt {
 
 /// Extension to AnyCache to combine Ron files from filesystem and plugins
 pub trait CacheCombined<'a> {
-    fn load_and_combine<A: Compound + Concatenate>(
+    fn load_and_combine<A: Asset + Concatenate>(
         self,
         id: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error>;
@@ -182,12 +173,27 @@ pub trait CacheCombined<'a> {
 ///
 /// When loading a directory recursively, directories that can't be read are
 /// ignored.
-pub fn load_rec_dir<T: DirLoadable>(specifier: &str) -> Result<AssetDirHandle<T>, Error> {
+pub fn load_rec_dir<T: DirLoadable + Asset>(specifier: &str) -> Result<AssetDirHandle<T>, Error> {
     let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
     ASSETS.load_rec_dir(specifier)
 }
 
-impl<T: Compound> AssetExt for T {
+/// Loads directory and all files in it
+///
+/// # Errors
+/// An error is returned if the given id does not match a valid readable
+/// directory.
+///
+/// When loading a directory recursively, directories that can't be read are
+/// ignored.
+pub fn load_rec_dir_raw<T: DirLoadable>(
+    specifier: &str,
+) -> Result<&'static assets_manager::Handle<assets_manager::RawRecursiveDirectory<T>>, Error> {
+    let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
+    ASSETS.load::<assets_manager::RawRecursiveDirectory<T>>(specifier)
+}
+
+impl<T: Asset> AssetExt for T {
     fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
 
     fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
@@ -197,16 +203,15 @@ impl<T: Compound> AssetExt for T {
     }
 }
 
-impl<'a> CacheCombined<'a> for AnyCache<'a> {
-    fn load_and_combine<A: Compound + Concatenate>(
+impl<'a> CacheCombined<'a> for &'a AssetCache {
+    fn load_and_combine<A: Asset + Concatenate>(
         self,
         specifier: &str,
     ) -> Result<&'a assets_manager::Handle<A>, Error> {
         #[cfg(feature = "plugins")]
         {
             tracing::info!("combine {specifier}");
-            let data: Result<A, _> =
-                ASSETS.combine(self, |cache: AnyCache| cache.load_owned::<A>(specifier));
+            let data: Result<A, _> = ASSETS.combine(self, |cache| cache.load_owned::<A>(specifier));
             data.map(|data| self.get_or_insert(specifier, data))
         }
         #[cfg(not(feature = "plugins"))]
@@ -216,12 +221,12 @@ impl<'a> CacheCombined<'a> for AnyCache<'a> {
     }
 }
 
-impl<T: Compound + Concatenate> AssetCombined for T {
+impl<T: Asset + Concatenate> AssetCombined for T {
     fn load_and_combine(
-        reloading_cache: AnyCache<'static>,
+        cache: &'static AssetCache,
         specifier: &str,
     ) -> Result<AssetHandle<Self>, Error> {
-        reloading_cache.load_and_combine(specifier)
+        cache.load_and_combine(specifier)
     }
 }
 
@@ -231,50 +236,33 @@ impl Image {
     pub fn to_image(&self) -> Arc<DynamicImage> { Arc::clone(&self.0) }
 }
 
-pub struct ImageLoader;
-impl Loader<Image> for ImageLoader {
-    fn load(content: Cow<[u8]>, ext: &str) -> Result<Image, BoxedError> {
-        let format = image::ImageFormat::from_extension(ext)
-            .ok_or_else(|| format!("Invalid file extension {}", ext))?;
-        let image = image::load_from_memory_with_format(&content, format)?;
+impl FileAsset for Image {
+    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        let image = image::load_from_memory(&bytes)?;
         Ok(Image(Arc::new(image)))
     }
 }
 
-impl Asset for Image {
-    type Loader = ImageLoader;
-
-    const EXTENSIONS: &'static [&'static str] = &["png", "jpg"];
-}
-
 pub struct DotVoxAsset(pub DotVoxData);
 
-pub struct DotVoxLoader;
-impl Loader<DotVoxAsset> for DotVoxLoader {
-    fn load(content: Cow<[u8]>, _: &str) -> Result<DotVoxAsset, BoxedError> {
-        let data = dot_vox::load_bytes(&content).map_err(|err| err.to_owned())?;
+impl FileAsset for DotVoxAsset {
+    const EXTENSION: &'static str = "vox";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        let data = dot_vox::load_bytes(&bytes)?;
         Ok(DotVoxAsset(data))
     }
 }
 
-impl Asset for DotVoxAsset {
-    type Loader = DotVoxLoader;
-
-    const EXTENSION: &'static str = "vox";
-}
-
 pub struct ObjAsset(pub wavefront::Obj);
 
-impl Asset for ObjAsset {
-    type Loader = ObjAssetLoader;
-
+impl FileAsset for ObjAsset {
     const EXTENSION: &'static str = "obj";
-}
 
-pub struct ObjAssetLoader;
-impl Loader<ObjAsset> for ObjAssetLoader {
-    fn load(content: Cow<[u8]>, _: &str) -> Result<ObjAsset, BoxedError> {
-        let data = wavefront::Obj::from_reader(&*content)?;
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        let data = wavefront::Obj::from_reader(&*bytes)?;
         Ok(ObjAsset(data))
     }
 }
@@ -314,14 +302,14 @@ impl<T: Concatenate> Concatenate for Ron<T> {
 pub struct MultiRon<T>(pub T);
 
 #[cfg(feature = "plugins")]
-impl<T> Compound for MultiRon<T>
+impl<T> Asset for MultiRon<T>
 where
     T: for<'de> serde::Deserialize<'de> + Send + Sync + 'static + Concatenate,
 {
     // the passed cache registers with hot reloading
-    fn load(reloading_cache: AnyCache, id: &SharedString) -> Result<Self, BoxedError> {
+    fn load(cache: &AssetCache, id: &SharedString) -> Result<Self, BoxedError> {
         ASSETS
-            .combine(reloading_cache, |cache: AnyCache| {
+            .combine(cache, |cache| {
                 cache.load_owned::<Ron<T>>(id).map(|ron| ron.into_inner())
             })
             .map(MultiRon)
@@ -472,7 +460,7 @@ pub mod asset_tweak {
     //!
     //! Will hot-reload (if corresponded feature is enabled).
     // TODO: don't use the same ASSETS_PATH as game uses?
-    use super::{ASSETS_PATH, Asset, AssetExt, RonLoader};
+    use super::{ASSETS_PATH, AssetExt, FileAsset};
     use ron::ser::{PrettyConfig, to_writer_pretty};
     use serde::{Deserialize, Serialize, de::DeserializeOwned};
     use std::{fs, path::Path};
@@ -491,13 +479,15 @@ pub mod asset_tweak {
     #[derive(Clone, Deserialize, Serialize)]
     struct AssetTweakWrapper<T>(T);
 
-    impl<T> Asset for AssetTweakWrapper<T>
+    impl<T> FileAsset for AssetTweakWrapper<T>
     where
         T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
     {
-        type Loader = RonLoader;
-
         const EXTENSION: &'static str = "ron";
+
+        fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets_manager::BoxedError> {
+            super::load_ron(&bytes)
+        }
     }
 
     /// Read value from file, will panic if file doesn't exist.

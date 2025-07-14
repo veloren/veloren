@@ -148,8 +148,8 @@ macro_rules! make_vox_spec {
             $( $field: AssetHandle<MultiRon<$ty>>, )*
         }
 
-        impl assets::Compound for $Spec {
-            fn load(_: assets::AnyCache, _: &assets::SharedString) -> Result<Self, assets::BoxedError> {
+        impl assets::Asset for $Spec {
+            fn load(_: &assets::AssetCache, _: &assets::SharedString) -> Result<Self, assets::BoxedError> {
                 Ok($Spec {
                     $( $field: AssetExt::load($asset_path)?, )*
                 })
@@ -6250,9 +6250,9 @@ mod plugin {
     #[derive(Deserialize, Clone)]
     pub struct PluginBoneSpec(pub(super) HashMap<String, Vec<BoneMesh>>);
 
-    impl assets::Compound for PluginBoneSpec {
+    impl assets::Asset for PluginBoneSpec {
         fn load(
-            _cache: assets::AnyCache,
+            _cache: &assets::AssetCache,
             _: &assets::SharedString,
         ) -> Result<Self, assets::BoxedError> {
             let data: AssetHandle<MultiRon<PluginBoneSpec>> =

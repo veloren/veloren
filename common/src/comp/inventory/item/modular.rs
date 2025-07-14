@@ -4,7 +4,7 @@ use super::{
     tool::{self, AbilityMap, AbilitySpec, Hands, Tool},
 };
 use crate::{
-    assets::{self, Asset, AssetExt, AssetHandle},
+    assets::{self, AssetExt, AssetHandle},
     recipe,
 };
 use common_base::dev_panic;
@@ -49,10 +49,12 @@ impl MaterialStatManifest {
 
 // This could be a Compound that also loads the keys, but the RecipeBook
 // Compound impl already does that, so checking for existence here is redundant.
-impl Asset for MaterialStatManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for MaterialStatManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

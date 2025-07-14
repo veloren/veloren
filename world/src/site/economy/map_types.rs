@@ -285,10 +285,12 @@ pub struct NaturalResources {
 #[derive(Debug, Deserialize)]
 pub struct RawProfessions(Vec<RawProfession>);
 
-impl assets::Asset for RawProfessions {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawProfessions {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 pub fn default_professions() -> Vec<Profession> {

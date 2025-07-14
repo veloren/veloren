@@ -1,4 +1,4 @@
-use common_assets::{Asset, AssetCombined, AssetHandle, Concatenate, RonLoader};
+use common_assets::{AssetCombined, AssetHandle, BoxedError, Concatenate, FileAsset, load_ron};
 use lazy_static::lazy_static;
 
 use crate::terrain::BiomeKind;
@@ -87,10 +87,10 @@ pub struct SpotProperties {
 #[serde(transparent)]
 pub struct RonSpots(pub Vec<SpotProperties>);
 
-impl Asset for RonSpots {
-    type Loader = RonLoader;
-
+impl FileAsset for RonSpots {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
 }
 
 impl Concatenate for RonSpots {

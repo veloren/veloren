@@ -553,10 +553,12 @@ pub struct ItemI18n {
     map: HashMap<ItemKey, I18nId>,
 }
 
-impl assets::Asset for ItemI18n {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for ItemI18n {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl ItemI18n {
@@ -907,8 +909,11 @@ impl PartialEq for Item {
     }
 }
 
-impl assets::Compound for ItemDef {
-    fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
+impl assets::Asset for ItemDef {
+    fn load(
+        cache: &assets::AssetCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, BoxedError> {
         if specifier.starts_with("veloren.core.") {
             return Err(format!(
                 "Attempted to load an asset from a specifier reserved for core veloren functions. \
@@ -961,10 +966,12 @@ struct RawItemDef {
     ability_spec: Option<AbilitySpec>,
 }
 
-impl assets::Asset for RawItemDef {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for RawItemDef {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[derive(Debug)]

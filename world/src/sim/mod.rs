@@ -545,10 +545,12 @@ pub enum WorldFile {
     Veloren0_7_0(WorldMap_0_7_0) = 1,
 }
 
-impl assets::Asset for WorldFile {
-    type Loader = assets::BincodeLoader;
-
+impl assets::FileAsset for WorldFile {
     const EXTENSION: &'static str = "bin";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_bincode(&bytes)
+    }
 }
 
 /// Data for the most recent map type.  Update this when you add a new map

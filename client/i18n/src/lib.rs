@@ -15,7 +15,8 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, io};
 
 use assets::{
-    AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString, source::DirEntry,
+    AssetCache, AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString,
+    source::DirEntry,
 };
 use common_assets as assets;
 use common_i18n::{Content, LocalizationArg};
@@ -151,8 +152,8 @@ impl Language {
         Some(msg)
     }
 }
-impl assets::Compound for Language {
-    fn load(cache: assets::AnyCache, path: &SharedString) -> Result<Self, assets::BoxedError> {
+impl assets::Asset for Language {
+    fn load(cache: &AssetCache, path: &SharedString) -> Result<Self, assets::BoxedError> {
         let manifest = cache
             .load::<raw::Manifest>(&[path, ".", "_manifest"].concat())?
             .cloned();
@@ -584,15 +585,12 @@ impl LocalizationHandle {
 struct FindManifests;
 
 impl assets::DirLoadable for FindManifests {
-    fn select_ids(
-        cache: assets::AnyCache,
-        specifier: &SharedString,
-    ) -> io::Result<Vec<SharedString>> {
+    fn select_ids(cache: &AssetCache, specifier: &SharedString) -> io::Result<Vec<SharedString>> {
         use assets::Source;
 
         let mut specifiers = Vec::new();
 
-        let source = cache.raw_source();
+        let source = cache.source();
         source.read_dir(specifier, &mut |entry| {
             if let DirEntry::Directory(spec) = entry {
                 let manifest_spec = [spec, ".", "_manifest"].concat();
@@ -610,10 +608,10 @@ impl assets::DirLoadable for FindManifests {
 #[derive(Clone, Debug)]
 struct LocalizationList(Vec<LanguageMetadata>);
 
-impl assets::Compound for LocalizationList {
-    fn load(cache: assets::AnyCache, specifier: &SharedString) -> Result<Self, assets::BoxedError> {
+impl assets::Asset for LocalizationList {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, assets::BoxedError> {
         // List language directories
-        let languages = assets::load_rec_dir::<FindManifests>(specifier)
+        let languages = assets::load_rec_dir_raw::<FindManifests>(specifier)
             .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))
             .read()
             .ids()

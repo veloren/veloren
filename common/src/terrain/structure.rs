@@ -97,8 +97,11 @@ impl std::ops::Deref for StructuresGroup {
     fn deref(&self) -> &[Structure] { &self.0 }
 }
 
-impl assets::Compound for StructuresGroup {
-    fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
+impl assets::Asset for StructuresGroup {
+    fn load(
+        cache: &assets::AssetCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, BoxedError> {
         let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
 
         Ok(StructuresGroup(
@@ -205,8 +208,11 @@ pub(crate) fn load_base_structure<B: Default>(
     }
 }
 
-impl assets::Compound for BaseStructure<StructureBlock> {
-    fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
+impl assets::Asset for BaseStructure<StructureBlock> {
+    fn load(
+        cache: &assets::AssetCache,
+        specifier: &assets::SharedString,
+    ) -> Result<Self, BoxedError> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 
@@ -254,10 +260,12 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
 #[derive(Clone, Deserialize)]
 struct StructuresGroupSpec(Vec<StructureSpec>);
 
-impl assets::Asset for StructuresGroupSpec {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for StructuresGroupSpec {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 #[test]

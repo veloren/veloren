@@ -26,10 +26,12 @@ pub struct SpawnEntry {
     pub rules: Vec<Pack>,
 }
 
-impl assets::Asset for SpawnEntry {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for SpawnEntry {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 
 impl SpawnEntry {

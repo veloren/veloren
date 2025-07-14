@@ -4,14 +4,12 @@ use hashbrown::HashMap;
 /// Load from a GLSL file.
 pub struct Glsl(pub String);
 
-impl From<String> for Glsl {
-    fn from(s: String) -> Glsl { Glsl(s) }
-}
-
-impl assets::Asset for Glsl {
-    type Loader = assets::LoadFrom<String, assets::StringLoader>;
-
+impl assets::FileAsset for Glsl {
     const EXTENSION: &'static str = "glsl";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        String::from_bytes(bytes).map(Self)
+    }
 }
 
 // Note: we use this clone to send the shaders to a background thread
@@ -21,10 +19,13 @@ pub struct Shaders {
     shaders: HashMap<String, AssetHandle<Glsl>>,
 }
 
-impl assets::Compound for Shaders {
+impl assets::Asset for Shaders {
     // TODO: Taking the specifier argument as a base for shaders specifiers
     // would allow to use several shaders groups easily
-    fn load(_: assets::AnyCache, _: &assets::SharedString) -> Result<Shaders, assets::BoxedError> {
+    fn load(
+        _: &assets::AssetCache,
+        _: &assets::SharedString,
+    ) -> Result<Shaders, assets::BoxedError> {
         let shaders = [
             "include.constants",
             "include.globals",

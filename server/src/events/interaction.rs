@@ -255,10 +255,12 @@ impl ServerEvent for SetPetStayEvent {
 #[derive(Deserialize)]
 struct ResourceExperienceManifest(HashMap<String, u32>);
 
-impl assets::Asset for ResourceExperienceManifest {
-    type Loader = assets::RonLoader;
-
+impl assets::FileAsset for ResourceExperienceManifest {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+        assets::load_ron(&bytes)
+    }
 }
 impl Concatenate for ResourceExperienceManifest {
     fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
