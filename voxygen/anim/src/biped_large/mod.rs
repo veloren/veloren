@@ -36,46 +36,47 @@ pub use self::{
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::biped_large::Body;
 
-skeleton_impls!(struct BipedLargeSkeleton {
-    + head,
-    + jaw,
-    + upper_torso,
-    + lower_torso,
-    + tail,
-    + main,
-    + second,
-    + shoulder_l,
-    + shoulder_r,
-    + hand_l,
-    + hand_r,
-    + leg_l,
-    + leg_r,
-    + foot_l,
-    + foot_r,
-    + hold,
-    torso,
-    control,
-    control_l,
-    control_r,
-    weapon_l,
-    weapon_r,
-    leg_control_l,
-    leg_control_r,
-    arm_control_l,
-    arm_control_r,
+skeleton_impls!(struct BipedLargeSkeleton ComputedBipedLargeSkeleton {
+    + head
+    + jaw
+    + upper_torso
+    + lower_torso
+    + tail
+    + main
+    + second
+    + shoulder_l
+    + shoulder_r
+    + hand_l
+    + hand_r
+    + leg_l
+    + leg_r
+    + foot_l
+    + foot_r
+    + hold
+    torso
+    control
+    control_l
+    control_r
+    weapon_l
+    weapon_r
+    leg_control_l
+    leg_control_r
+    arm_control_l
+    arm_control_r
 });
 
 impl Skeleton for BipedLargeSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedBipedLargeSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedBipedLargeSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"biped_large_compute_mats\0";
 
@@ -88,7 +89,7 @@ impl Skeleton for BipedLargeSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
@@ -114,60 +115,28 @@ impl Skeleton for BipedLargeSkeleton {
 
         let jaw_mat = head_mat * Mat4::<f32>::from(self.jaw);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(jaw_mat),
-            make_bone(upper_torso_mat),
-            make_bone(lower_torso_mat),
-            make_bone(lower_torso_mat * Mat4::<f32>::from(self.tail)),
-            make_bone(upper_torso_mat * weapon_l_mat * Mat4::<f32>::from(self.main)),
-            make_bone(upper_torso_mat * weapon_r_mat * Mat4::<f32>::from(self.second)),
-            make_bone(arm_control_l * Mat4::<f32>::from(self.shoulder_l)),
-            make_bone(arm_control_r * Mat4::<f32>::from(self.shoulder_r)),
-            make_bone(
-                arm_control_l * weapon_l_mat * control_l_mat * Mat4::<f32>::from(self.hand_l),
-            ),
-            make_bone(
-                arm_control_r * weapon_r_mat * control_r_mat * Mat4::<f32>::from(self.hand_r),
-            ),
-            make_bone(leg_control_l * leg_l),
-            make_bone(leg_control_r * leg_r),
-            make_bone(leg_control_l * Mat4::<f32>::from(self.foot_l)),
-            make_bone(leg_control_r * Mat4::<f32>::from(self.foot_r)),
+        let computed_skeleton = ComputedBipedLargeSkeleton {
+            head: head_mat,
+            jaw: jaw_mat,
+            upper_torso: upper_torso_mat,
+            lower_torso: lower_torso_mat,
+            tail: lower_torso_mat * Mat4::<f32>::from(self.tail),
+            main: upper_torso_mat * weapon_l_mat * Mat4::<f32>::from(self.main),
+            second: upper_torso_mat * weapon_r_mat * Mat4::<f32>::from(self.second),
+            shoulder_l: arm_control_l * Mat4::<f32>::from(self.shoulder_l),
+            shoulder_r: arm_control_r * Mat4::<f32>::from(self.shoulder_r),
+            hand_l: arm_control_l * weapon_l_mat * control_l_mat * Mat4::<f32>::from(self.hand_l),
+            hand_r: arm_control_r * weapon_r_mat * control_r_mat * Mat4::<f32>::from(self.hand_r),
+            leg_l: leg_control_l * leg_l,
+            leg_r: leg_control_r * leg_r,
+            foot_l: leg_control_l * Mat4::<f32>::from(self.foot_l),
+            foot_r: leg_control_r * Mat4::<f32>::from(self.foot_r),
             // FIXME: Should this be control_l_mat?
-            make_bone(upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
-        ];
-
-        use comp::biped_large::Species::*;
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
-            (Dullahan | Occultsaurok | Mightysaurok | Slysaurok | Tidalwarrior, _) => (
-                upper_torso_mat,
-                self.torso.orientation * self.upper_torso.orientation,
-            ),
-            _ => (
-                arm_control_r * Mat4::<f32>::from(self.shoulder_r),
-                self.torso.orientation
-                    * self.upper_torso.orientation
-                    * self.arm_control_r.orientation
-                    * self.shoulder_r.orientation,
-            ),
+            hold: upper_torso_mat * control_mat * hand_l_mat * Mat4::<f32>::from(self.hold),
         };
 
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = mount_mat.mul_point(mount_point(&body));
-
-        Offsets {
-            viewpoint: Some((jaw_mat * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -726,9 +695,38 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
-    use comp::biped_large::{BodyType::*, Species::*};
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedBipedLargeSkeleton,
+    skeleton: &BipedLargeSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    use comp::biped_large::Species::*;
+
     match (body.species, body.body_type) {
+        (Dullahan | Occultsaurok | Mightysaurok | Slysaurok | Tidalwarrior, _) => (
+            computed_skeleton.upper_torso,
+            skeleton.torso.orientation * skeleton.upper_torso.orientation,
+        ),
+        _ => (
+            computed_skeleton.upper_torso
+                * Mat4::<f32>::from(skeleton.arm_control_r)
+                * Mat4::<f32>::from(skeleton.shoulder_r),
+            skeleton.torso.orientation
+                * skeleton.upper_torso.orientation
+                * skeleton.arm_control_r.orientation
+                * skeleton.shoulder_r.orientation,
+        ),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedBipedLargeSkeleton,
+    skeleton: &BipedLargeSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::biped_large::{BodyType::*, Species::*};
+
+    let mount_point = match (body.species, body.body_type) {
         (Ogre, Female) => (0.5, 0.0, 0.5),
         (Ogre, Male) => (-1.0, -3.0, 2.5),
         (Cyclops, _) => (0.0, 3.0, 1.0),
@@ -766,7 +764,14 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Executioner, _) => (0.0, 0.0, 0.0),
         (Gigasfire, _) => (1.0, 2.0, 4.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }
 
 pub fn init_gigas_fire(next: &mut BipedLargeSkeleton) {

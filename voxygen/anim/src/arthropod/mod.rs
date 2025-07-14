@@ -15,36 +15,37 @@ pub use self::{
     stunned::StunnedAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::arthropod::Body;
 
-skeleton_impls!(struct ArthropodSkeleton {
-    + head,
-    + chest,
-    + mandible_l,
-    + mandible_r,
-    + wing_fl,
-    + wing_fr,
-    + wing_bl,
-    + wing_br,
-    + leg_fl,
-    + leg_fr,
-    + leg_fcl,
-    + leg_fcr,
-    + leg_bcl,
-    + leg_bcr,
-    + leg_bl,
-    + leg_br,
+skeleton_impls!(struct ArthropodSkeleton ComputedArthropodSkeleton {
+    + head
+    + chest
+    + mandible_l
+    + mandible_r
+    + wing_fl
+    + wing_fr
+    + wing_bl
+    + wing_br
+    + leg_fl
+    + leg_fr
+    + leg_fcl
+    + leg_fcr
+    + leg_bcl
+    + leg_bcr
+    + leg_bl
+    + leg_br
 });
 
 impl Skeleton for ArthropodSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedArthropodSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedArthropodSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"arthropod_compute_s\0";
 
@@ -55,7 +56,7 @@ impl Skeleton for ArthropodSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 6.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
@@ -75,52 +76,27 @@ impl Skeleton for ArthropodSkeleton {
         let leg_bl_mat = chest_mat * Mat4::<f32>::from(self.leg_bl);
         let leg_br_mat = chest_mat * Mat4::<f32>::from(self.leg_br);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(chest_mat),
-            make_bone(mandible_l_mat),
-            make_bone(mandible_r_mat),
-            make_bone(wing_fl_mat),
-            make_bone(wing_fr_mat),
-            make_bone(wing_bl_mat),
-            make_bone(wing_br_mat),
-            make_bone(leg_fl_mat),
-            make_bone(leg_fr_mat),
-            make_bone(leg_fcl_mat),
-            make_bone(leg_fcr_mat),
-            make_bone(leg_bcl_mat),
-            make_bone(leg_bcr_mat),
-            make_bone(leg_bl_mat),
-            make_bone(leg_br_mat),
-        ];
-
-        use comp::arthropod::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
-            (
-                Hornbeetle | Leafbeetle | Stagbeetle | Weevil | Moltencrawler | Mosscrawler
-                | Sandcrawler | Dagonite,
-                _,
-            ) => (head_mat, self.head.orientation),
-            _ => (chest_mat, self.chest.orientation),
+        let computed_skeleton = ComputedArthropodSkeleton {
+            head: head_mat,
+            chest: chest_mat,
+            mandible_l: mandible_l_mat,
+            mandible_r: mandible_r_mat,
+            wing_fl: wing_fl_mat,
+            wing_fr: wing_fr_mat,
+            wing_bl: wing_bl_mat,
+            wing_br: wing_br_mat,
+            leg_fl: leg_fl_mat,
+            leg_fr: leg_fr_mat,
+            leg_fcl: leg_fcl_mat,
+            leg_fcr: leg_fcr_mat,
+            leg_bcl: leg_bcl_mat,
+            leg_bcr: leg_bcr_mat,
+            leg_bl: leg_bl_mat,
+            leg_br: leg_br_mat,
         };
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let mount_orientation = mount_bone_ori;
 
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 7.0, 0.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -338,9 +314,31 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedArthropodSkeleton,
+    skeleton: &ArthropodSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
     use comp::arthropod::Species::*;
+
     match (body.species, body.body_type) {
+        (
+            Hornbeetle | Leafbeetle | Stagbeetle | Weevil | Moltencrawler | Mosscrawler
+            | Sandcrawler | Dagonite,
+            _,
+        ) => (computed_skeleton.head, skeleton.head.orientation),
+        _ => (computed_skeleton.chest, skeleton.chest.orientation),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedArthropodSkeleton,
+    skeleton: &ArthropodSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::arthropod::Species::*;
+
+    let mount_point = match (body.species, body.body_type) {
         (Tarantula, _) => (0.0, 1.0, 4.0),
         (Blackwidow, _) => (0.0, 0.0, 5.0),
         (Antlion, _) => (0.0, 2.0, 3.5),
@@ -355,5 +353,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Dagonite, _) => (0.0, 8.5, 6.0),
         (Emberfly, _) => (0.0, 3.0, 4.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

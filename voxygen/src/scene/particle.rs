@@ -784,6 +784,7 @@ impl ParticleMgr {
         figure_mgr: &FigureMgr,
         entity: Entity,
         pos: Vec3<f32>,
+        body: &Body,
         state: &CharacterState,
         inventory: Option<&Inventory>,
     ) {
@@ -808,9 +809,20 @@ impl ParticleMgr {
             _ => return,
         };
 
-        let Some((start, end)) = figure_mgr.get_tail(scene_data, entity) else {
+        let Some(skeleton) = figure_mgr
+            .states
+            .quadruped_low_states
+            .get(&entity)
+            .map(|state| &state.computed_skeleton)
+        else {
             return;
         };
+        let Some(attr) = anim::quadruped_low::SkeletonAttr::try_from(body).ok() else {
+            return;
+        };
+
+        let start = (skeleton.tail_front * Vec4::unit_w()).xyz();
+        let end = (skeleton.tail_rear * Vec4::new(0.0, -attr.tail_rear_length, 0.0, 1.0)).xyz();
 
         let start = pos + start;
         let end = pos + end;
@@ -1716,8 +1728,8 @@ impl ParticleMgr {
                         if let Some(states::glide::Boost::Forward(_)) = &glide.booster
                             && let Some(figure_state) =
                                 figure_mgr.states.character_states.get(&entity)
-                            && let Some(tp0) = figure_state.main_abs_trail_points
-                            && let Some(tp1) = figure_state.off_abs_trail_points
+                            && let Some(tp0) = figure_state.primary_abs_trail_points
+                            && let Some(tp1) = figure_state.secondary_abs_trail_points
                         {
                             for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
                                 self.particles.push(Particle::new(
@@ -1796,6 +1808,7 @@ impl ParticleMgr {
                         figure_mgr,
                         entity,
                         interpolated.pos,
+                        body,
                         character_state,
                         inventory,
                     );

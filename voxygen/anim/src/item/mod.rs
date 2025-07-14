@@ -3,22 +3,23 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self, body::item::ItemArmorKind};
 use core::convert::TryFrom;
 use std::f32::consts::PI;
 
 pub type Body = comp::body::item::Body;
 
-skeleton_impls!(struct ItemSkeleton {
-    + bone0,
+skeleton_impls!(struct ItemSkeleton ComputedItemSkeleton {
+    + bone0
 });
 
 impl Skeleton for ItemSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedItemSkeleton;
 
-    const BONE_COUNT: usize = 1;
+    const BONE_COUNT: usize = ComputedItemSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"item_compute_mats\0";
 
@@ -28,21 +29,15 @@ impl Skeleton for ItemSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let scale_mat = Mat4::scaling_3d(1.0 / 11.0 * Self::scale(&body));
 
         let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) =
-            [make_bone(bone0_mat)];
-        Offsets {
-            lantern: Some((bone0_mat * Vec4::new(0.0, 0.0, 3.5, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: comp::Body::Item(body).mount_offset().into_tuple().into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
+        let computed_skeleton = ComputedItemSkeleton { bone0: bone0_mat };
+
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 

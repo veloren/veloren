@@ -1,4 +1,4 @@
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, make_bone, vek::*};
 
 pub type Body = ();
 
@@ -20,6 +20,7 @@ impl<Factor> Lerp<Factor> for &FixtureSkeleton {
 impl Skeleton for FixtureSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ();
 
     const BONE_COUNT: usize = 1;
     #[cfg(feature = "use-dyn-lib")]
@@ -31,9 +32,8 @@ impl Skeleton for FixtureSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         (): Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         buf[0] = make_bone(base_mat);
-        Offsets::default()
     }
 }
 

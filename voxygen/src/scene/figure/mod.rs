@@ -29,13 +29,25 @@ use crate::{
 #[cfg(feature = "plugins")]
 use anim::plugin::PluginSkeleton;
 use anim::{
-    Animation, Skeleton, arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton,
-    biped_small::BipedSmallSkeleton, bird_large::BirdLargeSkeleton,
-    bird_medium::BirdMediumSkeleton, character::CharacterSkeleton, crustacean::CrustaceanSkeleton,
-    dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, item::ItemSkeleton, object::ObjectSkeleton,
-    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
+    Animation, Skeleton,
+    arthropod::{self, ArthropodSkeleton},
+    biped_large::{self, BipedLargeSkeleton},
+    biped_small::{self, BipedSmallSkeleton},
+    bird_large::{self, BirdLargeSkeleton},
+    bird_medium::{self, BirdMediumSkeleton},
+    character::{self, CharacterSkeleton},
+    crustacean::{self, CrustaceanSkeleton},
+    dragon::{self, DragonSkeleton},
+    fish_medium::{self, FishMediumSkeleton},
+    fish_small::{self, FishSmallSkeleton},
+    golem::{self, GolemSkeleton},
+    item::ItemSkeleton,
+    object::ObjectSkeleton,
+    quadruped_low::{self, QuadrupedLowSkeleton},
+    quadruped_medium::{self, QuadrupedMediumSkeleton},
+    quadruped_small::{self, QuadrupedSmallSkeleton},
+    ship::ShipSkeleton,
+    theropod::{self, TheropodSkeleton},
 };
 use common::{
     comp::{
@@ -206,26 +218,26 @@ impl<'a, const N: usize> ModelEntryRef<'a, N> {
 #[derive(Default)]
 pub struct FigureMgrStates {
     pub character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
-    quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
-    quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
-    quadruped_low_states: HashMap<EcsEntity, FigureState<QuadrupedLowSkeleton>>,
-    bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
-    fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
-    theropod_states: HashMap<EcsEntity, FigureState<TheropodSkeleton>>,
-    dragon_states: HashMap<EcsEntity, FigureState<DragonSkeleton>>,
-    bird_large_states: HashMap<EcsEntity, FigureState<BirdLargeSkeleton>>,
-    fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
-    biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
-    biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
-    golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
-    object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
-    item_states: HashMap<EcsEntity, FigureState<ItemSkeleton>>,
-    ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
-    volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
-    arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
-    crustacean_states: HashMap<EcsEntity, FigureState<CrustaceanSkeleton>>,
+    pub quadruped_small_states: HashMap<EcsEntity, FigureState<QuadrupedSmallSkeleton>>,
+    pub quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    pub quadruped_low_states: HashMap<EcsEntity, FigureState<QuadrupedLowSkeleton>>,
+    pub bird_medium_states: HashMap<EcsEntity, FigureState<BirdMediumSkeleton>>,
+    pub fish_medium_states: HashMap<EcsEntity, FigureState<FishMediumSkeleton>>,
+    pub theropod_states: HashMap<EcsEntity, FigureState<TheropodSkeleton>>,
+    pub dragon_states: HashMap<EcsEntity, FigureState<DragonSkeleton>>,
+    pub bird_large_states: HashMap<EcsEntity, FigureState<BirdLargeSkeleton>>,
+    pub fish_small_states: HashMap<EcsEntity, FigureState<FishSmallSkeleton>>,
+    pub biped_large_states: HashMap<EcsEntity, FigureState<BipedLargeSkeleton>>,
+    pub biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
+    pub golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
+    pub object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
+    pub item_states: HashMap<EcsEntity, FigureState<ItemSkeleton>>,
+    pub ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton, BoundTerrainLocals>>,
+    pub volume_states: HashMap<EcsEntity, FigureState<VolumeKey, BoundTerrainLocals>>,
+    pub arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
+    pub crustacean_states: HashMap<EcsEntity, FigureState<CrustaceanSkeleton>>,
     #[cfg(feature = "plugins")]
-    plugin_states: HashMap<EcsEntity, FigureState<PluginSkeleton>>,
+    pub plugin_states: HashMap<EcsEntity, FigureState<PluginSkeleton>>,
 }
 
 impl FigureMgrStates {
@@ -896,6 +908,7 @@ impl FigureMgr {
                 } else {
                     (Rgb::zero(), 0.0, 0.0, true)
                 };
+            let lantern_offset = self.lantern_offset(scene_data, entity);
             if let Some(lantern_offset) = body
                 .and_then(|body| self.states.get_mut(body, &entity))
                 .and_then(|state| {
@@ -904,8 +917,7 @@ impl FigureMgr {
                         interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array(),
                     );
                     Some(
-                        state.mount_world_pos
-                            + anim::vek::Vec3::from(state.lantern_offset?.into_array())
+                        state.mount_world_pos + anim::vek::Vec3::from(lantern_offset?.into_array())
                             - pos,
                     )
                 })
@@ -1337,9 +1349,13 @@ impl FigureMgr {
             if let Some(is_rider) = is_rider {
                 let mount = is_rider.mount;
                 let mount = read_data.id_maps.uid_entity(mount)?;
-                let body = *read_data.bodies.get(mount)?;
-                let meta = self.states.get_mut(&body, &mount)?;
-                Some((meta.mount_transform, meta.mount_world_pos))
+                if let Some(mount_transform) = self.mount_transform(data.scene_data, mount) {
+                    let body = *read_data.bodies.get(mount)?;
+                    let meta = self.states.get_mut(&body, &mount)?;
+                    Some((mount_transform, meta.mount_world_pos))
+                } else {
+                    None
+                }
             } else if let Some(is_volume_rider) = is_volume_rider
                 && matches!(is_volume_rider.pos.kind, Volume::Entity(_))
             {
@@ -1370,12 +1386,13 @@ impl FigureMgr {
             scale,
             mount_transform_pos,
             body: Some(body),
-            tools: (active_tool_kind, second_tool_kind),
             col,
             dt,
             is_player: is_viewpoint,
             terrain: data.terrain,
             ground_vel: physics.ground_vel,
+            primary_trail_points: self.trail_points(data.scene_data, entity, true),
+            secondary_trail_points: self.trail_points(data.scene_data, entity, false),
         };
 
         match body {
@@ -7564,153 +7581,32 @@ impl FigureMgr {
         }
     }
 
-    pub fn get_heads(&self, scene_data: &SceneData, entity: EcsEntity) -> &[anim::vek::Vec3<f32>] {
+    pub fn get_heads(
+        &self,
+        scene_data: &SceneData,
+        entity: EcsEntity,
+    ) -> Vec<anim::vek::Vec3<f32>> {
         scene_data
             .state
             .ecs()
             .read_storage::<Body>()
             .get(entity)
             .and_then(|b| match b {
-                Body::Humanoid(_) => self
-                    .states
-                    .character_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::QuadrupedSmall(_) => self
-                    .states
-                    .quadruped_small_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::QuadrupedMedium(_) => self
-                    .states
-                    .quadruped_medium_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::BirdMedium(_) => self
-                    .states
-                    .bird_medium_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::FishMedium(_) => self
-                    .states
-                    .fish_medium_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Dragon(_) => self
-                    .states
-                    .dragon_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::BirdLarge(_) => self
-                    .states
-                    .bird_large_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::FishSmall(_) => self
-                    .states
-                    .fish_small_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::BipedLarge(_) => self
-                    .states
-                    .biped_large_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::BipedSmall(_) => self
-                    .states
-                    .biped_small_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Golem(_) => self
-                    .states
-                    .golem_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Theropod(_) => self
-                    .states
-                    .theropod_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
                 Body::QuadrupedLow(_) => self
                     .states
                     .quadruped_low_states
                     .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Arthropod(_) => self
-                    .states
-                    .arthropod_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Object(_) => self
-                    .states
-                    .object_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Ship(_) => self
-                    .states
-                    .ship_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Item(_) => self
-                    .states
-                    .item_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Crustacean(_) => self
-                    .states
-                    .crustacean_states
-                    .get(&entity)
-                    .map(|state| &state.heads),
-                Body::Plugin(_) => {
-                    #[cfg(not(feature = "plugins"))]
-                    unreachable!("Plugins require feature");
-                    #[cfg(feature = "plugins")]
-                    self.states
-                        .plugin_states
-                        .get(&entity)
-                        .map(|state| &state.heads)
-                },
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| {
+                        vec![
+                            (skeleton.head_l_upper * Vec4::unit_w()).xyz(),
+                            (skeleton.head_c_upper * Vec4::unit_w()).xyz(),
+                            (skeleton.head_r_upper * Vec4::unit_w()).xyz(),
+                        ]
+                    }),
+                _ => None,
             })
-            .map(|v| v.as_slice())
-            .unwrap_or(&[])
-    }
-
-    pub fn get_tail(
-        &self,
-        scene_data: &SceneData,
-        entity: EcsEntity,
-    ) -> Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)> {
-        scene_data
-            .state
-            .ecs()
-            .read_storage::<Body>()
-            .get(entity)
-            .and_then(|b| match b {
-                Body::Humanoid(_) => self.states.character_states.get(&entity)?.tail,
-                Body::QuadrupedSmall(_) => self.states.quadruped_small_states.get(&entity)?.tail,
-                Body::QuadrupedMedium(_) => self.states.quadruped_medium_states.get(&entity)?.tail,
-                Body::BirdMedium(_) => self.states.bird_medium_states.get(&entity)?.tail,
-                Body::FishMedium(_) => self.states.fish_medium_states.get(&entity)?.tail,
-                Body::Dragon(_) => self.states.dragon_states.get(&entity)?.tail,
-                Body::BirdLarge(_) => self.states.bird_large_states.get(&entity)?.tail,
-                Body::FishSmall(_) => self.states.fish_small_states.get(&entity)?.tail,
-                Body::BipedLarge(_) => self.states.biped_large_states.get(&entity)?.tail,
-                Body::BipedSmall(_) => self.states.biped_small_states.get(&entity)?.tail,
-                Body::Golem(_) => self.states.golem_states.get(&entity)?.tail,
-                Body::Theropod(_) => self.states.theropod_states.get(&entity)?.tail,
-                Body::QuadrupedLow(_) => self.states.quadruped_low_states.get(&entity)?.tail,
-                Body::Arthropod(_) => self.states.arthropod_states.get(&entity)?.tail,
-                Body::Object(_) => self.states.object_states.get(&entity)?.tail,
-                Body::Ship(_) => self.states.ship_states.get(&entity)?.tail,
-                Body::Item(_) => self.states.item_states.get(&entity)?.tail,
-                Body::Crustacean(_) => self.states.crustacean_states.get(&entity)?.tail,
-                Body::Plugin(_) => {
-                    #[cfg(not(feature = "plugins"))]
-                    unreachable!("Plugins require feature");
-                    #[cfg(feature = "plugins")]
-                    self.states.plugin_states.get(&entity)?.tail
-                },
-            })
+            .unwrap_or(Vec::new())
     }
 
     pub fn viewpoint_offset(&self, scene_data: &SceneData, entity: EcsEntity) -> Vec3<f32> {
@@ -7724,92 +7620,95 @@ impl FigureMgr {
                     .states
                     .character_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 0.0, 4.0, 1.0)).xyz()),
                 Body::QuadrupedSmall(_) => self
                     .states
                     .quadruped_small_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
-                Body::QuadrupedMedium(_) => self
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
+                Body::QuadrupedMedium(b) => self
                     .states
                     .quadruped_medium_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
-                Body::BirdMedium(_) => self
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * quadruped_medium::viewpoint(b)).xyz()),
+                Body::BirdMedium(b) => self
                     .states
                     .bird_medium_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * bird_medium::viewpoint(b)).xyz()),
                 Body::FishMedium(_) => self
                     .states
                     .fish_medium_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 5.0, 0.0, 1.0)).xyz()),
                 Body::Dragon(_) => self
                     .states
                     .dragon_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head_upper * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz()),
                 Body::BirdLarge(_) => self
                     .states
                     .bird_large_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 3.0, 6.0, 1.0)).xyz()),
                 Body::FishSmall(_) => self
                     .states
                     .fish_small_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.chest * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
                 Body::BipedLarge(_) => self
                     .states
                     .biped_large_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.jaw * Vec4::new(0.0, 4.0, 0.0, 1.0)).xyz()),
                 Body::BipedSmall(_) => self
                     .states
                     .biped_small_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
                 Body::Golem(_) => self
                     .states
                     .golem_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 0.0, 5.0, 1.0)).xyz()),
                 Body::Theropod(_) => self
                     .states
                     .theropod_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
                 Body::QuadrupedLow(_) => self
                     .states
                     .quadruped_low_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head_c_upper * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz()),
                 Body::Arthropod(_) => self
                     .states
                     .arthropod_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
-                Body::Object(_) => self
-                    .states
-                    .object_states
-                    .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
-                Body::Ship(_) => self
-                    .states
-                    .ship_states
-                    .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
-                Body::Item(_) => self
-                    .states
-                    .item_states
-                    .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.head * Vec4::new(0.0, 7.0, 0.0, 1.0)).xyz()),
+                Body::Object(_) => None,
+                Body::Ship(_) => None,
+                Body::Item(_) => None,
                 Body::Crustacean(_) => self
                     .states
                     .crustacean_states
                     .get(&entity)
-                    .and_then(|state| state.viewpoint_offset),
+                    .map(|state| &state.computed_skeleton)
+                    .map(|skeleton| (skeleton.chest * Vec4::new(0.0, 7.0, 0.0, 1.0)).xyz()),
                 Body::Plugin(_) => {
                     #[cfg(not(feature = "plugins"))]
                     unreachable!("Plugins require feature");
@@ -7818,11 +7717,238 @@ impl FigureMgr {
                         self.states
                             .plugin_states
                             .get(&entity)
-                            .and_then(|state| state.viewpoint_offset)
+                            .map(|state| &state.computed_skeleton)
+                            .map(|skeleton| (skeleton.bone0 * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz())
                     }
                 },
             })
             .unwrap_or_else(Vec3::zero)
+    }
+
+    pub fn lantern_offset(&self, scene_data: &SceneData, entity: EcsEntity) -> Option<Vec3<f32>> {
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|b| match b {
+                Body::Humanoid(_) => self.states.character_states.get(&entity).map(|state| {
+                    state
+                        .computed_skeleton
+                        .lantern
+                        .mul_point(Vec3::new(0.0, 0.5, -6.0))
+                }),
+                Body::Item(_) => self.states.item_states.get(&entity).map(|state| {
+                    state
+                        .computed_skeleton
+                        .bone0
+                        .mul_point(Vec3::new(0.0, 0.0, 3.5))
+                }),
+                _ => None,
+            })
+    }
+
+    pub fn mount_transform(
+        &self,
+        scene_data: &SceneData,
+        entity: EcsEntity,
+    ) -> Option<Transform<f32, f32, f32>> {
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|body| match body {
+                Body::Humanoid(_) => self.states.character_states.get(&entity).map(|state| {
+                    character::mount_transform(&state.computed_skeleton, &state.skeleton)
+                }),
+                Body::QuadrupedSmall(b) => {
+                    self.states
+                        .quadruped_small_states
+                        .get(&entity)
+                        .map(|state| {
+                            quadruped_small::mount_transform(
+                                b,
+                                &state.computed_skeleton,
+                                &state.skeleton,
+                            )
+                        })
+                },
+                Body::QuadrupedMedium(b) => {
+                    self.states
+                        .quadruped_medium_states
+                        .get(&entity)
+                        .map(|state| {
+                            quadruped_medium::mount_transform(
+                                b,
+                                &state.computed_skeleton,
+                                &state.skeleton,
+                            )
+                        })
+                },
+                Body::BirdMedium(b) => self.states.bird_medium_states.get(&entity).map(|state| {
+                    bird_medium::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::FishMedium(b) => self.states.fish_medium_states.get(&entity).map(|state| {
+                    fish_medium::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::Dragon(b) => self.states.dragon_states.get(&entity).map(|state| {
+                    dragon::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::BirdLarge(b) => self.states.bird_large_states.get(&entity).map(|state| {
+                    bird_large::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::FishSmall(b) => self.states.fish_small_states.get(&entity).map(|state| {
+                    fish_small::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::BipedLarge(b) => self.states.biped_large_states.get(&entity).map(|state| {
+                    biped_large::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::BipedSmall(b) => self.states.biped_small_states.get(&entity).map(|state| {
+                    biped_small::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::Golem(b) => self.states.golem_states.get(&entity).map(|state| {
+                    golem::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::Theropod(b) => self.states.theropod_states.get(&entity).map(|state| {
+                    theropod::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::QuadrupedLow(b) => {
+                    self.states.quadruped_low_states.get(&entity).map(|state| {
+                        quadruped_low::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                    })
+                },
+                Body::Arthropod(b) => self.states.arthropod_states.get(&entity).map(|state| {
+                    arthropod::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::Object(_) => None,
+                Body::Ship(_) => None,
+                Body::Item(_) => None,
+                Body::Crustacean(b) => self.states.crustacean_states.get(&entity).map(|state| {
+                    crustacean::mount_transform(b, &state.computed_skeleton, &state.skeleton)
+                }),
+                Body::Plugin(_) => {
+                    #[cfg(not(feature = "plugins"))]
+                    unreachable!("Plugins require feature");
+                    #[cfg(feature = "plugins")]
+                    Some(Transform {
+                        position: body.mount_offset().into_tuple().into(),
+                        ..Default::default()
+                    })
+                },
+            })
+    }
+
+    fn trail_points(
+        &self,
+        scene_data: &SceneData,
+        entity: EcsEntity,
+        main_trail: bool,
+    ) -> Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)> {
+        let transform_trail = |mat: Mat4<f32>, trail: (Vec3<f32>, Vec3<f32>)| {
+            (mat.mul_point(trail.0), mat.mul_point(trail.1))
+        };
+
+        scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|body| match body {
+                Body::Humanoid(_) => self.states.character_states.get(&entity).and_then(|state| {
+                    let weapon_offsets = |slot| {
+                        scene_data
+                            .state
+                            .ecs()
+                            .read_storage::<Inventory>()
+                            .get(entity)
+                            .and_then(|inv| inv.equipped(slot))
+                            .and_then(|item| {
+                                if let ItemKind::Tool(tool) = &*item.kind() {
+                                    Some(tool.kind)
+                                } else {
+                                    None
+                                }
+                            })
+                            .map(|tool_kind| {
+                                let lengths = match tool_kind {
+                                    ToolKind::Sword => (0.0, 29.25),
+                                    ToolKind::Axe => (10.0, 19.25),
+                                    ToolKind::Hammer => (10.0, 19.25),
+                                    ToolKind::Staff => (10.0, 19.25),
+                                    ToolKind::Sceptre => (10.0, 19.25),
+                                    _ => (0.0, 0.0),
+                                };
+                                (
+                                    Vec3::new(0.0, 0.0, lengths.0),
+                                    Vec3::new(0.0, 0.0, lengths.1),
+                                )
+                            })
+                    };
+
+                    let weapon_trails =
+                        state.skeleton.main_weapon_trail || state.skeleton.off_weapon_trail;
+                    if weapon_trails {
+                        if state.skeleton.main_weapon_trail && main_trail {
+                            weapon_offsets(EquipSlot::ActiveMainhand).map(|weapon_offsets| {
+                                transform_trail(state.computed_skeleton.main, weapon_offsets)
+                            })
+                        } else if state.skeleton.off_weapon_trail && !main_trail {
+                            weapon_offsets(EquipSlot::ActiveOffhand).map(|weapon_offsets| {
+                                transform_trail(state.computed_skeleton.second, weapon_offsets)
+                            })
+                        } else {
+                            None
+                        }
+                    } else if state.skeleton.glider_trails {
+                        // Offsets
+                        const GLIDER_VERT: f32 = 5.0;
+                        const GLIDER_HORIZ: f32 = 15.0;
+                        // Trail width
+                        const GLIDER_WIDTH: f32 = 1.0;
+
+                        if main_trail {
+                            Some(transform_trail(
+                                state.computed_skeleton.glider,
+                                (
+                                    Vec3::new(GLIDER_HORIZ, 0.0, GLIDER_VERT),
+                                    Vec3::new(GLIDER_HORIZ + GLIDER_WIDTH, 0.0, GLIDER_VERT),
+                                ),
+                            ))
+                        } else {
+                            Some(transform_trail(
+                                state.computed_skeleton.glider,
+                                (
+                                    Vec3::new(-GLIDER_HORIZ, 0.0, GLIDER_VERT),
+                                    Vec3::new(-(GLIDER_HORIZ + GLIDER_WIDTH), 0.0, GLIDER_VERT),
+                                ),
+                            ))
+                        }
+                    } else {
+                        None
+                    }
+                }),
+                Body::Ship(b) => self.states.ship_states.get(&entity).and_then(|state| {
+                    let attr = anim::ship::SkeletonAttr::from(b);
+                    let propeller_trail = |length| {
+                        (
+                            Vec3::new(0.0, 0.0, length * 0.5),
+                            Vec3::new(0.0, 0.0, length),
+                        )
+                    };
+
+                    if main_trail {
+                        attr.bone1_prop_trail_offset.map(|length| {
+                            transform_trail(state.computed_skeleton.bone1, propeller_trail(length))
+                        })
+                    } else {
+                        attr.bone2_prop_trail_offset.map(|length| {
+                            transform_trail(state.computed_skeleton.bone2, propeller_trail(length))
+                        })
+                    }
+                }),
+                _ => None,
+            })
     }
 
     pub fn figure_count(&self) -> usize { self.states.count() }
@@ -7997,14 +8123,8 @@ impl FigureAtlas {
 }
 
 pub struct FigureStateMeta {
-    lantern_offset: Option<anim::vek::Vec3<f32>>,
-    viewpoint_offset: Option<anim::vek::Vec3<f32>>,
-    heads: Vec<anim::vek::Vec3<f32>>,
-    tail: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
-    pub main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
-    pub off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
-    // Animation to be applied to rider of this entity
-    mount_transform: anim::vek::Transform<f32, f32, f32>,
+    pub primary_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    pub secondary_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Contains the position of this figure or if it is a rider it will contain the mount's
     // mount_world_pos
     // Unlike the interpolated position stored in the ecs this will be propagated along
@@ -8039,19 +8159,20 @@ impl FigureStateMeta {
     }
 }
 
-pub struct FigureState<S, D = ()> {
+pub struct FigureState<S: Skeleton, D = ()> {
     meta: FigureStateMeta,
-    skeleton: S,
+    pub skeleton: S,
+    pub computed_skeleton: S::ComputedSkeleton,
     pub extra: D,
 }
 
-impl<S, D> Deref for FigureState<S, D> {
+impl<S: Skeleton, D> Deref for FigureState<S, D> {
     type Target = FigureStateMeta;
 
     fn deref(&self) -> &Self::Target { &self.meta }
 }
 
-impl<S, D> DerefMut for FigureState<S, D> {
+impl<S: Skeleton, D> DerefMut for FigureState<S, D> {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.meta }
 }
 
@@ -8064,12 +8185,13 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub scale: f32,
     pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
     pub body: Option<Body>,
-    pub tools: (Option<ToolKind>, Option<ToolKind>),
     pub col: Rgba<f32>,
     pub dt: f32,
     pub is_player: bool,
     pub terrain: Option<&'a Terrain>,
     pub ground_vel: Vec3<f32>,
+    pub primary_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    pub secondary_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
 }
 
 pub trait FigureData: Sized {
@@ -8107,18 +8229,13 @@ impl FigureData for BoundTerrainLocals {
 impl<S: Skeleton, D: FigureData> FigureState<S, D> {
     pub fn new(renderer: &mut Renderer, skeleton: S, body: S::Body) -> Self {
         let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
-        let offsets =
+        let computed_skeleton =
             anim::compute_matrices(&skeleton, anim::vek::Mat4::identity(), &mut buf, body);
         let bone_consts = figure_bone_data_from_anim(&buf);
         Self {
             meta: FigureStateMeta {
-                lantern_offset: offsets.lantern,
-                viewpoint_offset: offsets.viewpoint,
-                heads: offsets.heads.clone(),
-                tail: offsets.tail,
-                main_abs_trail_points: None,
-                off_abs_trail_points: None,
-                mount_transform: offsets.mount_bone,
+                primary_abs_trail_points: None,
+                secondary_abs_trail_points: None,
                 mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
                 last_ori: Ori::default().into(),
@@ -8134,6 +8251,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
                 bound: renderer.create_figure_bound_locals(&[FigureLocals::default()], bone_consts),
             },
             skeleton,
+            computed_skeleton,
             extra: D::new(renderer),
         }
     }
@@ -8150,12 +8268,13 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
             scale,
             mount_transform_pos,
             body,
-            tools,
             col,
             dt,
             is_player,
             terrain,
             ground_vel,
+            primary_trail_points,
+            secondary_trail_points,
         }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
         model: Option<&impl ModelEntry>,
@@ -8288,34 +8407,27 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         );
         renderer.update_consts(&mut self.meta.bound.0, &[locals]);
 
-        let offsets = anim::compute_matrices(&self.skeleton, mat, buf, skel_body);
+        self.computed_skeleton = anim::compute_matrices(&self.skeleton, mat, buf, skel_body);
 
         let new_bone_consts = figure_bone_data_from_anim(buf);
 
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
-        self.lantern_offset = offsets.lantern;
-        self.viewpoint_offset = offsets.viewpoint;
-        self.heads.clone_from(&offsets.heads);
-        self.tail = offsets.tail;
-        // Handle weapon trails
-        fn handle_weapon_trails(
+
+        fn handle_trails(
             trail_mgr: &mut TrailMgr,
-            new_weapon_trail_mat: Option<(anim::vek::Mat4<f32>, anim::TrailSource)>,
+            new_rel_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
             old_abs_trail_points: &mut Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
             entity: EcsEntity,
-            is_main_weapon: bool,
+            primary_trail: bool,
             pos: anim::vek::Vec3<f32>,
-            tool: Option<ToolKind>,
         ) {
-            let weapon_offsets = new_weapon_trail_mat.map(|(mat, trail)| {
-                let (trail_start, trail_end) = trail.relative_offsets(tool);
-                ((mat * trail_start).xyz(), (mat * trail_end).xyz())
-            });
-            let new_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
+            let new_abs_trail_points =
+                new_rel_trail_points.map(|(start, end)| (start + pos, end + pos));
+
             if let (Some((p1, p2)), Some((p4, p3))) = (&old_abs_trail_points, new_abs_trail_points)
             {
                 let trail_mgr_offset = trail_mgr.offset();
-                let quad_mesh = trail_mgr.entity_mesh_or_insert(entity, is_main_weapon);
+                let quad_mesh = trail_mgr.entity_mesh_or_insert(entity, primary_trail);
                 let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
                     pos: p.into_array(),
                 };
@@ -8326,28 +8438,25 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         }
 
         if let (Some(trail_mgr), Some(entity)) = (trail_mgr, entity) {
-            handle_weapon_trails(
+            handle_trails(
                 trail_mgr,
-                offsets.primary_trail_mat,
-                &mut self.main_abs_trail_points,
+                *primary_trail_points,
+                &mut self.primary_abs_trail_points,
                 *entity,
                 true,
                 pos_with_mount_offset,
-                tools.0,
             );
-            handle_weapon_trails(
+            handle_trails(
                 trail_mgr,
-                offsets.secondary_trail_mat,
-                &mut self.off_abs_trail_points,
+                *secondary_trail_points,
+                &mut self.secondary_abs_trail_points,
                 *entity,
                 false,
                 pos_with_mount_offset,
-                tools.1,
             );
         }
 
         // TODO: compute the mount bone only when it is needed
-        self.mount_transform = offsets.mount_bone;
         self.mount_world_pos = pos_with_mount_offset;
 
         let smoothing = (5.0 * dt).min(1.0);
@@ -8366,8 +8475,6 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
     }
 
     pub fn bound(&self) -> &pipelines::figure::BoundLocals { &self.bound }
-
-    pub fn skeleton_mut(&mut self) -> &mut S { &mut self.skeleton }
 }
 
 fn figure_bone_data_from_anim(

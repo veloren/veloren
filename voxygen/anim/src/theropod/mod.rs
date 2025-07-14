@@ -10,33 +10,34 @@ pub use self::{
     run::RunAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::theropod::Body;
 
-skeleton_impls!(struct TheropodSkeleton {
-    + head,
-    + jaw,
-    + neck,
-    + chest_front,
-    + chest_back,
-    + tail_front,
-    + tail_back,
-    + hand_l,
-    + hand_r,
-    + leg_l,
-    + leg_r,
-    + foot_l,
-    + foot_r,
+skeleton_impls!(struct TheropodSkeleton ComputedTheropodSkeleton {
+    + head
+    + jaw
+    + neck
+    + chest_front
+    + chest_back
+    + tail_front
+    + tail_back
+    + hand_l
+    + hand_r
+    + leg_l
+    + leg_r
+    + foot_l
+    + foot_r
 });
 
 impl Skeleton for TheropodSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedTheropodSkeleton;
 
-    const BONE_COUNT: usize = 13;
+    const BONE_COUNT: usize = ComputedTheropodSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"theropod_compute_mats\0";
 
@@ -47,7 +48,7 @@ impl Skeleton for TheropodSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
 
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
@@ -58,43 +59,24 @@ impl Skeleton for TheropodSkeleton {
         let leg_l_mat = chest_back_mat * Mat4::<f32>::from(self.leg_l);
         let leg_r_mat = chest_back_mat * Mat4::<f32>::from(self.leg_r);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
-            make_bone(neck_mat),
-            make_bone(chest_front_mat),
-            make_bone(chest_back_mat),
-            make_bone(tail_front_mat),
-            make_bone(tail_front_mat * Mat4::<f32>::from(self.tail_back)),
-            make_bone(chest_front_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(chest_front_mat * Mat4::<f32>::from(self.hand_r)),
-            make_bone(leg_l_mat),
-            make_bone(leg_r_mat),
-            make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
-            make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
-        ];
-
-        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
-            (comp::body::theropod::Species::Archaeos, _) => (neck_mat, self.neck.orientation),
-            (comp::body::theropod::Species::Odonto, _) => (head_mat, self.head.orientation),
-            (comp::body::theropod::Species::Yale | comp::body::theropod::Species::Dodarock, _) => {
-                (chest_back_mat, self.chest_back.orientation)
-            },
-            _ => (chest_front_mat, self.chest_front.orientation),
+        let computed_skeleton = ComputedTheropodSkeleton {
+            head: head_mat,
+            jaw: head_mat * Mat4::<f32>::from(self.jaw),
+            neck: neck_mat,
+            chest_front: chest_front_mat,
+            chest_back: chest_back_mat,
+            tail_front: tail_front_mat,
+            tail_back: tail_front_mat * Mat4::<f32>::from(self.tail_back),
+            hand_l: chest_front_mat * Mat4::<f32>::from(self.hand_l),
+            hand_r: chest_front_mat * Mat4::<f32>::from(self.hand_r),
+            leg_l: leg_l_mat,
+            leg_r: leg_r_mat,
+            foot_l: leg_l_mat * Mat4::<f32>::from(self.foot_l),
+            foot_r: leg_r_mat * Mat4::<f32>::from(self.foot_r),
         };
 
-        let mount_position = mount_mat.mul_point(mount_point(&body));
-
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                ..Default::default()
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -284,9 +266,35 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedTheropodSkeleton,
+    skeleton: &TheropodSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
     use comp::theropod::Species::*;
+
     match (body.species, body.body_type) {
+        (Archaeos, _) => (computed_skeleton.neck, skeleton.neck.orientation),
+        (Odonto, _) => (computed_skeleton.head, skeleton.head.orientation),
+        (Yale | Dodarock, _) => (
+            computed_skeleton.chest_back,
+            skeleton.chest_back.orientation,
+        ),
+        _ => (
+            computed_skeleton.chest_front,
+            skeleton.chest_front.orientation,
+        ),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedTheropodSkeleton,
+    skeleton: &TheropodSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::theropod::Species::*;
+
+    let mount_point = match (body.species, body.body_type) {
         (Archaeos, _) => (0.0, 2.5, 6.0),
         (Odonto, _) => (0.0, 10.0, 2.0),
         (Sandraptor, _) => (0.0, -2.0, 5.0),
@@ -298,5 +306,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Dodarock, _) => (0.0, 3.5, 5.0),
         (Axebeak, _) => (0.0, -3.5, 6.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

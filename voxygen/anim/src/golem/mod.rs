@@ -12,33 +12,34 @@ pub use self::{
     run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::golem::Body;
 
-skeleton_impls!(struct GolemSkeleton {
-    + head,
-    + jaw,
-    + upper_torso,
-    + lower_torso,
-    + shoulder_l,
-    + shoulder_r,
-    + hand_l,
-    + hand_r,
-    + leg_l,
-    + leg_r,
-    + foot_l,
-    + foot_r,
-    torso,
+skeleton_impls!(struct GolemSkeleton ComputedGolemSkeleton {
+    + head
+    + jaw
+    + upper_torso
+    + lower_torso
+    + shoulder_l
+    + shoulder_r
+    + hand_l
+    + hand_r
+    + leg_l
+    + leg_r
+    + foot_l
+    + foot_r
+    torso
 });
 
 impl Skeleton for GolemSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedGolemSkeleton;
 
-    const BONE_COUNT: usize = 12;
+    const BONE_COUNT: usize = ComputedGolemSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"golem_compute_mats\0";
 
@@ -48,7 +49,7 @@ impl Skeleton for GolemSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
@@ -60,37 +61,23 @@ impl Skeleton for GolemSkeleton {
         let shoulder_r_mat = upper_torso_mat * Mat4::<f32>::from(self.shoulder_r);
         let head_mat = upper_torso_mat * Mat4::<f32>::from(self.head);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(upper_torso_mat * Mat4::<f32>::from(self.head) * Mat4::<f32>::from(self.jaw)),
-            make_bone(upper_torso_mat),
-            make_bone(lower_torso_mat),
-            make_bone(upper_torso_mat * Mat4::<f32>::from(self.shoulder_l)),
-            make_bone(upper_torso_mat * Mat4::<f32>::from(self.shoulder_r)),
-            make_bone(shoulder_l_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(shoulder_r_mat * Mat4::<f32>::from(self.hand_r)),
-            make_bone(leg_l_mat),
-            make_bone(leg_r_mat),
-            make_bone(leg_l_mat * Mat4::<f32>::from(self.foot_l)),
-            make_bone(leg_r_mat * Mat4::<f32>::from(self.foot_r)),
-        ];
+        let computed_skeleton = ComputedGolemSkeleton {
+            head: head_mat,
+            jaw: upper_torso_mat * Mat4::<f32>::from(self.head) * Mat4::<f32>::from(self.jaw),
+            upper_torso: upper_torso_mat,
+            lower_torso: lower_torso_mat,
+            shoulder_l: upper_torso_mat * Mat4::<f32>::from(self.shoulder_l),
+            shoulder_r: upper_torso_mat * Mat4::<f32>::from(self.shoulder_r),
+            hand_l: shoulder_l_mat * Mat4::<f32>::from(self.hand_l),
+            hand_r: shoulder_r_mat * Mat4::<f32>::from(self.hand_r),
+            leg_l: leg_l_mat,
+            leg_r: leg_r_mat,
+            foot_l: leg_l_mat * Mat4::<f32>::from(self.foot_l),
+            foot_r: leg_r_mat * Mat4::<f32>::from(self.foot_r),
+        };
 
-        let (mount_mat, mount_orientation) = (
-            head_mat,
-            self.torso.orientation * self.upper_torso.orientation * self.head.orientation,
-        );
-        let mount_position = mount_mat.mul_point(mount_point(&body));
-
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 5.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -253,9 +240,24 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    computed_skeleton: &ComputedGolemSkeleton,
+    skeleton: &GolemSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (
+        computed_skeleton.head,
+        skeleton.torso.orientation * skeleton.upper_torso.orientation * skeleton.head.orientation,
+    )
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedGolemSkeleton,
+    skeleton: &GolemSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::golem::Species::*;
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (StoneGolem, _) => (0.0, 0.5, 10.0),
         (Treant, _) => (0.0, 0.0, 14.0),
         (ClayGolem, _) => (0.0, 0.0, 12.0),
@@ -266,5 +268,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Mogwai, _) => (0.0, 11.0, 10.5),
         (IronGolem, _) => (0.0, 0.0, 17.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

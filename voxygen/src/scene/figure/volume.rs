@@ -19,6 +19,7 @@ impl From<&Self> for VolumeKey {
 impl anim::Skeleton for VolumeKey {
     type Attr = Self;
     type Body = Self;
+    type ComputedSkeleton = ();
 
     const BONE_COUNT: usize = 4;
     #[cfg(feature = "hot-anim")]
@@ -31,7 +32,7 @@ impl anim::Skeleton for VolumeKey {
         base_mat: anim::vek::Mat4<f32>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> anim::Offsets {
+    ) -> Self::ComputedSkeleton {
         self.compute_matrices_inner(base_mat, buf, body)
     }
 
@@ -40,7 +41,7 @@ impl anim::Skeleton for VolumeKey {
         base_mat: anim::vek::Mat4<f32>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
         _: Self::Body,
-    ) -> anim::Offsets {
+    ) -> Self::ComputedSkeleton {
         let bone = base_mat;
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
@@ -50,7 +51,7 @@ impl anim::Skeleton for VolumeKey {
             anim::make_bone(bone),
         ];
 
-        anim::Offsets::default()
+        //anim::Offsets::default()
     }
 }
 

@@ -4,24 +4,25 @@ pub mod swim;
 // Reexports
 pub use self::{idle::IdleAnimation, swim::SwimAnimation};
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::fish_small::Body;
 
-skeleton_impls!(struct FishSmallSkeleton {
-    + chest,
-    + tail,
-    + fin_l,
-    + fin_r,
+skeleton_impls!(struct FishSmallSkeleton ComputedFishSmallSkeleton {
+    + chest
+    + tail
+    + fin_l
+    + fin_r
 });
 
 impl Skeleton for FishSmallSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedFishSmallSkeleton;
 
-    const BONE_COUNT: usize = 4;
+    const BONE_COUNT: usize = ComputedFishSmallSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"fish_small_compute_mats\0";
 
@@ -33,32 +34,20 @@ impl Skeleton for FishSmallSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> Offsets {
+        _body: Self::Body,
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(1.0 / 13.0);
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(chest_mat),
-            make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.fin_l)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.fin_r)),
-        ];
+        let computed_skeleton = ComputedFishSmallSkeleton {
+            chest: chest_mat,
+            tail: chest_mat * Mat4::<f32>::from(self.tail),
+            fin_l: chest_mat * Mat4::<f32>::from(self.fin_l),
+            fin_r: chest_mat * Mat4::<f32>::from(self.fin_r),
+        };
 
-        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
-        let mount_orientation = mount_bone_ori;
-
-        Offsets {
-            viewpoint: Some((chest_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -121,11 +110,30 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    computed_skeleton: &ComputedFishSmallSkeleton,
+    skeleton: &FishSmallSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (computed_skeleton.chest, skeleton.chest.orientation)
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedFishSmallSkeleton,
+    skeleton: &FishSmallSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::fish_small::Species::*;
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (Clownfish, _) => (0.0, 0.5, 3.0),
         (Piranha, _) => (0.0, -1.0, 4.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

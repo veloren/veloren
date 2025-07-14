@@ -18,33 +18,34 @@ pub use self::{
 
 use common::comp::{self};
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 
 pub type Body = comp::crustacean::Body;
 
-skeleton_impls!(struct CrustaceanSkeleton {
-    + chest,
-    + tail_f,
-    + tail_b,
-    + arm_l,
-    + pincer_l0,
-    + pincer_l1,
-    + arm_r,
-    + pincer_r0,
-    + pincer_r1,
-    + leg_fl,
-    + leg_cl,
-    + leg_bl,
-    + leg_fr,
-    + leg_cr,
-    + leg_br,
+skeleton_impls!(struct CrustaceanSkeleton ComputedCrustaceanSkeleton {
+    + chest
+    + tail_f
+    + tail_b
+    + arm_l
+    + pincer_l0
+    + pincer_l1
+    + arm_r
+    + pincer_r0
+    + pincer_r1
+    + leg_fl
+    + leg_cl
+    + leg_bl
+    + leg_fr
+    + leg_cr
+    + leg_br
 });
 
 impl Skeleton for CrustaceanSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedCrustaceanSkeleton;
 
-    const BONE_COUNT: usize = 15;
+    const BONE_COUNT: usize = ComputedCrustaceanSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"crustacean_compute_s\0";
 
@@ -55,7 +56,7 @@ impl Skeleton for CrustaceanSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 6.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
@@ -74,45 +75,26 @@ impl Skeleton for CrustaceanSkeleton {
         let leg_cr_mat = chest_mat * Mat4::<f32>::from(self.leg_cr);
         let leg_br_mat = chest_mat * Mat4::<f32>::from(self.leg_br);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(chest_mat),
-            make_bone(tail_f_mat),
-            make_bone(tail_b_mat),
-            make_bone(arm_l_mat),
-            make_bone(pincer_l0_mat),
-            make_bone(pincer_l1_mat),
-            make_bone(arm_r_mat),
-            make_bone(pincer_r0_mat),
-            make_bone(pincer_r1_mat),
-            make_bone(leg_fl_mat),
-            make_bone(leg_cl_mat),
-            make_bone(leg_bl_mat),
-            make_bone(leg_fr_mat),
-            make_bone(leg_cr_mat),
-            make_bone(leg_br_mat),
-        ];
+        let computed_skeleton = ComputedCrustaceanSkeleton {
+            chest: chest_mat,
+            tail_f: tail_f_mat,
+            tail_b: tail_b_mat,
+            arm_l: arm_l_mat,
+            pincer_l0: pincer_l0_mat,
+            pincer_l1: pincer_l1_mat,
+            arm_r: arm_r_mat,
+            pincer_r0: pincer_r0_mat,
+            pincer_r1: pincer_r1_mat,
+            leg_fl: leg_fl_mat,
+            leg_cl: leg_cl_mat,
+            leg_bl: leg_bl_mat,
+            leg_fr: leg_fr_mat,
+            leg_cr: leg_cr_mat,
+            leg_br: leg_br_mat,
+        };
 
-        // TODO: mount points
-        //use comp::arthropod::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let mount_orientation = mount_bone_ori;
-
-        Offsets {
-            viewpoint: Some((chest_mat * Vec4::new(0.0, 7.0, 0.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -175,12 +157,31 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    computed_skeleton: &ComputedCrustaceanSkeleton,
+    skeleton: &CrustaceanSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (computed_skeleton.chest, skeleton.chest.orientation)
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedCrustaceanSkeleton,
+    skeleton: &CrustaceanSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::crustacean::Species::*;
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (Crab, _) => (0.0, -3.5, 6.0),
         (SoldierCrab, _) => (0.0, -2.5, 8.0),
         (Karkatha, _) => (0.0, -1.0, 32.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

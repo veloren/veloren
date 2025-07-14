@@ -16,7 +16,7 @@ pub use self::{
     shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::{
     comp::{self},
     states::utils::StageSection,
@@ -25,30 +25,31 @@ use core::convert::TryFrom;
 
 pub type Body = comp::quadruped_medium::Body;
 
-skeleton_impls!(struct QuadrupedMediumSkeleton {
-    + head,
-    + neck,
-    + jaw,
-    + tail,
-    + torso_front,
-    + torso_back,
-    + ears,
-    + leg_fl,
-    + leg_fr,
-    + leg_bl,
-    + leg_br,
-    + foot_fl,
-    + foot_fr,
-    + foot_bl,
-    + foot_br,
-    mount,
+skeleton_impls!(struct QuadrupedMediumSkeleton ComputedQuadrupedMediumSkeleton {
+    + head
+    + neck
+    + jaw
+    + tail
+    + torso_front
+    + torso_back
+    + ears
+    + leg_fl
+    + leg_fr
+    + leg_bl
+    + leg_br
+    + foot_fl
+    + foot_fr
+    + foot_bl
+    + foot_br
+    mount
 });
 
 impl Skeleton for QuadrupedMediumSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedQuadrupedMediumSkeleton;
 
-    const BONE_COUNT: usize = 15;
+    const BONE_COUNT: usize = ComputedQuadrupedMediumSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"quadruped_medium_compute_mats\0";
 
@@ -61,7 +62,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
 
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
@@ -73,77 +74,26 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let leg_br_mat = torso_back_mat * Mat4::<f32>::from(self.leg_br);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(neck_mat),
-            make_bone(head_mat * Mat4::<f32>::from(self.jaw)),
-            make_bone(torso_back_mat * Mat4::<f32>::from(self.tail)),
-            make_bone(torso_front_mat),
-            make_bone(torso_back_mat),
-            make_bone(head_mat * Mat4::<f32>::from(self.ears)),
-            make_bone(leg_fl_mat),
-            make_bone(leg_fr_mat),
-            make_bone(leg_bl_mat),
-            make_bone(leg_br_mat),
-            make_bone(leg_fl_mat * Mat4::<f32>::from(self.foot_fl)),
-            make_bone(leg_fr_mat * Mat4::<f32>::from(self.foot_fr)),
-            make_bone(leg_bl_mat * Mat4::<f32>::from(self.foot_bl)),
-            make_bone(leg_br_mat * Mat4::<f32>::from(self.foot_br)),
-        ];
-
-        use comp::quadruped_medium::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
-            (Mammoth, _) => (
-                head_mat,
-                self.torso_front.orientation * self.neck.orientation * self.head.orientation,
-            ),
-            (Akhlut, _) => (
-                neck_mat,
-                self.torso_front.orientation * self.neck.orientation,
-            ),
-            _ => (torso_front_mat, self.torso_front.orientation),
+        let computed_skeleton = ComputedQuadrupedMediumSkeleton {
+            head: head_mat,
+            neck: neck_mat,
+            jaw: head_mat * Mat4::<f32>::from(self.jaw),
+            tail: torso_back_mat * Mat4::<f32>::from(self.tail),
+            torso_front: torso_front_mat,
+            torso_back: torso_back_mat,
+            ears: head_mat * Mat4::<f32>::from(self.ears),
+            leg_fl: leg_fl_mat,
+            leg_fr: leg_fr_mat,
+            leg_bl: leg_bl_mat,
+            leg_br: leg_br_mat,
+            foot_fl: leg_fl_mat * Mat4::<f32>::from(self.foot_fl),
+            foot_fr: leg_fr_mat * Mat4::<f32>::from(self.foot_fr),
+            foot_bl: leg_bl_mat * Mat4::<f32>::from(self.foot_bl),
+            foot_br: leg_br_mat * Mat4::<f32>::from(self.foot_br),
         };
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let mount_orientation = mount_bone_ori;
 
-        Offsets {
-            viewpoint: match body.species {
-                Akhlut | Catoblepas | Lion => {
-                    Some((head_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz())
-                },
-                Barghest | Saber => Some((head_mat * Vec4::new(0.0, 8.0, 3.0, 1.0)).xyz()),
-                Cattle | Highland | Bonerattler | Ngoubou | Yak => {
-                    Some((head_mat * Vec4::new(0.0, 6.0, -1.0, 1.0)).xyz())
-                },
-                Antelope | Deer | Donkey | Bear | Mouflon | Panda => {
-                    Some((head_mat * Vec4::new(0.0, 3.0, 3.0, 1.0)).xyz())
-                },
-                Camel | Hirdrasil | Horse | Kelpie | Zebra => {
-                    Some((head_mat * Vec4::new(0.0, 2.0, 5.0, 1.0)).xyz())
-                },
-                Darkhound | Llama | Snowleopard | Tiger | Wolf | ClaySteed => {
-                    Some((head_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz())
-                },
-                Dreadhorn | Mammoth | Moose | Tarasque => {
-                    Some((head_mat * Vec4::new(0.0, 13.0, -3.0, 1.0)).xyz())
-                },
-                Frostfang => Some((head_mat * Vec4::new(0.0, 5.0, 3.0, 1.0)).xyz()),
-                Grolgar | Roshwalr => Some((head_mat * Vec4::new(0.0, 8.0, 6.0, 1.0)).xyz()),
-                _ => Some((head_mat * Vec4::new(0.0, 2.0, 0.0, 1.0)).xyz()),
-            },
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -771,9 +721,55 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
-    use comp::quadruped_medium::{BodyType::*, Species::*};
+pub fn viewpoint(body: &Body) -> Vec4<f32> {
+    use comp::quadruped_medium::Species::*;
+    match body.species {
+        Akhlut | Catoblepas | Lion => Vec4::new(0.0, 8.0, 0.0, 1.0),
+        Barghest | Saber => Vec4::new(0.0, 8.0, 3.0, 1.0),
+        Cattle | Highland | Bonerattler | Ngoubou | Yak => Vec4::new(0.0, 6.0, -1.0, 1.0),
+        Antelope | Deer | Donkey | Bear | Mouflon | Panda => Vec4::new(0.0, 3.0, 3.0, 1.0),
+        Camel | Hirdrasil | Horse | Kelpie | Zebra => Vec4::new(0.0, 2.0, 5.0, 1.0),
+        Darkhound | Llama | Snowleopard | Tiger | Wolf | ClaySteed => Vec4::new(0.0, 4.0, 1.0, 1.0),
+        Dreadhorn | Mammoth | Moose | Tarasque => Vec4::new(0.0, 13.0, -3.0, 1.0),
+        Frostfang => Vec4::new(0.0, 5.0, 3.0, 1.0),
+        Grolgar | Roshwalr => Vec4::new(0.0, 8.0, 6.0, 1.0),
+        _ => Vec4::new(0.0, 2.0, 0.0, 1.0),
+    }
+}
+
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedQuadrupedMediumSkeleton,
+    skeleton: &QuadrupedMediumSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    use comp::quadruped_medium::Species::*;
+
     match (body.species, body.body_type) {
+        (Mammoth, _) => (
+            computed_skeleton.head,
+            skeleton.torso_front.orientation
+                * skeleton.neck.orientation
+                * skeleton.head.orientation,
+        ),
+        (Akhlut, _) => (
+            computed_skeleton.neck,
+            skeleton.torso_front.orientation * skeleton.neck.orientation,
+        ),
+        _ => (
+            computed_skeleton.torso_front,
+            skeleton.torso_front.orientation,
+        ),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedQuadrupedMediumSkeleton,
+    skeleton: &QuadrupedMediumSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::quadruped_medium::{BodyType::*, Species::*};
+
+    let mount_point = match (body.species, body.body_type) {
         (Grolgar, _) => (0.0, -6.0, 8.0),
         (Saber, _) => (0.0, -17.0, 5.5),
         (Tuskram, _) => (0.0, -17.0, 4.0),
@@ -814,7 +810,14 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Bristleback, _) => (0.0, -7.0, 6.0),
         (ClaySteed, _) => (0.0, -9.0, 3.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }
 
 pub fn quadruped_medium_alpha(

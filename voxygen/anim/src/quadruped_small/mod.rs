@@ -14,28 +14,29 @@ pub use self::{
     stunned::StunnedAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::quadruped_small::Body;
 
-skeleton_impls!(struct QuadrupedSmallSkeleton {
-    + head,
-    + chest,
-    + leg_fl,
-    + leg_fr,
-    + leg_bl,
-    + leg_br,
-    + tail,
-    mount,
+skeleton_impls!(struct QuadrupedSmallSkeleton ComputedQuadrupedSmallSkeleton {
+    + head
+    + chest
+    + leg_fl
+    + leg_fr
+    + leg_bl
+    + leg_br
+    + tail
+    mount
 });
 
 impl Skeleton for QuadrupedSmallSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedQuadrupedSmallSkeleton;
 
-    const BONE_COUNT: usize = 7;
+    const BONE_COUNT: usize = ComputedQuadrupedSmallSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"quadruped_small_compute_mats\0";
 
@@ -48,34 +49,24 @@ impl Skeleton for QuadrupedSmallSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let chest_mat = base_mat
             * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0)
             * Mat4::<f32>::from(self.chest);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(chest_mat),
-            make_bone(chest_mat * Mat4::<f32>::from(self.leg_fl)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.leg_fr)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.leg_bl)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.leg_br)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.tail)),
-        ];
-        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
-        let mount_orientation = mount_bone_ori;
+        let computed_skeleton = ComputedQuadrupedSmallSkeleton {
+            head: head_mat,
+            chest: chest_mat,
+            leg_fl: chest_mat * Mat4::<f32>::from(self.leg_fl),
+            leg_fr: chest_mat * Mat4::<f32>::from(self.leg_fr),
+            leg_bl: chest_mat * Mat4::<f32>::from(self.leg_bl),
+            leg_br: chest_mat * Mat4::<f32>::from(self.leg_br),
+            tail: chest_mat * Mat4::<f32>::from(self.tail),
+        };
 
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -420,9 +411,21 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    computed_skeleton: &ComputedQuadrupedSmallSkeleton,
+    skeleton: &QuadrupedSmallSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (computed_skeleton.chest, skeleton.chest.orientation)
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedQuadrupedSmallSkeleton,
+    skeleton: &QuadrupedSmallSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::quadruped_small::{BodyType::*, Species::*};
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (Pig, _) => (0.0, 1.0, 4.0),
         (Fox, _) => (0.0, 0.0, 2.5),
         (Sheep, _) => (0.0, -1.0, 3.5),
@@ -454,5 +457,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (TreantSapling, _) => (0.0, -4.0, 1.5),
         (MossySnail, _) => (0.0, -2.0, 6.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

@@ -290,12 +290,13 @@ impl Scene {
                 scale: 1.0,
                 mount_transform_pos: None,
                 body: None,
-                tools: (None, None),
                 col: Rgba::broadcast(1.0),
                 dt,
                 is_player: false,
                 terrain: None,
                 ground_vel: Vec3::zero(),
+                primary_trail_points: None,
+                secondary_trail_points: None,
             }
         }
 
@@ -305,7 +306,7 @@ impl Scene {
             });
             let params = figure_params(scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
-                char_state.skeleton_mut(),
+                &char_state.skeleton,
                 (
                     active_tool_kind,
                     second_tool_kind,
@@ -317,8 +318,7 @@ impl Scene {
                 &anim::character::SkeletonAttr::from(&body),
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
-            *char_state.skeleton_mut() =
-                Lerp::lerp(&*char_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+            char_state.skeleton = Lerp::lerp(&char_state.skeleton, &tgt_skeleton, dt_lerp);
             let (model, _) = self.char_model_cache.get_or_create_model(
                 renderer,
                 &mut self.figure_atlas,
@@ -348,7 +348,7 @@ impl Scene {
         });
         let params = figure_params(scene_data.delta_time, self.airship_pos);
         let tgt_skeleton = anim::ship::IdleAnimation::update_skeleton(
-            airship_state.skeleton_mut(),
+            &airship_state.skeleton,
             (
                 None,
                 None,
@@ -362,8 +362,7 @@ impl Scene {
             &anim::ship::SkeletonAttr::from(&airship_body),
         );
         let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
-        *airship_state.skeleton_mut() =
-            Lerp::lerp(&*airship_state.skeleton_mut(), &tgt_skeleton, dt_lerp);
+        airship_state.skeleton = Lerp::lerp(&airship_state.skeleton, &tgt_skeleton, dt_lerp);
         let (model, _) = self.airship_model_cache.get_or_create_terrain_model(
             renderer,
             &mut self.figure_atlas,
