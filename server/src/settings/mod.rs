@@ -189,7 +189,6 @@ pub struct Settings {
     pub max_players: u16,
     pub world_seed: u32,
     pub server_name: String,
-    pub start_time: f64,
     /// Length of a day in minutes.
     pub day_length: f64,
     /// When set to None, loads the default map file (if available); otherwise,
@@ -232,7 +231,6 @@ impl Default for Settings {
             server_name: "Veloren Server".into(),
             max_players: 100,
             day_length: DAY_LENGTH_DEFAULT,
-            start_time: 9.0 * 3600.0,
             map_file: None,
             max_view_distance: Some(65),
             max_player_group_size: 6,
