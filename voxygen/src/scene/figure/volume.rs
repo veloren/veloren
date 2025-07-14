@@ -50,8 +50,6 @@ impl anim::Skeleton for VolumeKey {
             anim::make_bone(bone),
             anim::make_bone(bone),
         ];
-
-        //anim::Offsets::default()
     }
 }
 

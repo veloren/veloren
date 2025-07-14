@@ -1279,6 +1279,9 @@
             "common.items.armor.misc.head.bamboo_twig",
         ): "armor-misc-head-bamboo_twig",
         Simple(
+            "common.items.armor.misc.head.pipe",
+        ): "armor-misc-head-pipe",
+        Simple(
             "common.items.armor.misc.head.bear_bonnet",
         ): "armor-misc-head-bear_bonnet",
         Simple(
