@@ -35,6 +35,7 @@ ItemDef(
             "bronze_pants",
             "bronze_shoulder",
             "bronze_head",
+            "pipe",
             // Weapon components
             "short_hilt",
             "medium_hilt",

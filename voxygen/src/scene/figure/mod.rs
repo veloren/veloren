@@ -722,7 +722,7 @@ struct FigureUpdateParams<'a> {
 
 pub struct FigureMgr {
     atlas: FigureAtlas,
-    model_cache: FigureModelCache,
+    character_model_cache: FigureModelCache<CharacterSkeleton>,
     theropod_model_cache: FigureModelCache<TheropodSkeleton>,
     quadruped_small_model_cache: FigureModelCache<QuadrupedSmallSkeleton>,
     quadruped_medium_model_cache: FigureModelCache<QuadrupedMediumSkeleton>,
@@ -750,7 +750,7 @@ impl FigureMgr {
     pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             atlas: FigureAtlas::new(renderer),
-            model_cache: FigureModelCache::new(),
+            character_model_cache: FigureModelCache::new(),
             theropod_model_cache: FigureModelCache::new(),
             quadruped_small_model_cache: FigureModelCache::new(),
             quadruped_medium_model_cache: FigureModelCache::new(),
@@ -782,7 +782,7 @@ impl FigureMgr {
         let plugin_reloaded = self.plugin_model_cache.watcher_reloaded();
         #[cfg(not(feature = "plugins"))]
         let plugin_reloaded = false;
-        self.model_cache.watcher_reloaded()
+        self.character_model_cache.watcher_reloaded()
             || self.theropod_model_cache.watcher_reloaded()
             || self.quadruped_small_model_cache.watcher_reloaded()
             || self.quadruped_medium_model_cache.watcher_reloaded()
@@ -810,7 +810,7 @@ impl FigureMgr {
         if self.any_watcher_reloaded() {
             self.atlas.allocator.clear();
 
-            self.model_cache.clear_models();
+            self.character_model_cache.clear_models();
             self.theropod_model_cache.clear_models();
             self.quadruped_small_model_cache.clear_models();
             self.quadruped_medium_model_cache.clear_models();
@@ -833,7 +833,7 @@ impl FigureMgr {
             self.plugin_model_cache.clear_models();
         }
 
-        self.model_cache.clean(&mut self.atlas, tick);
+        self.character_model_cache.clean(&mut self.atlas, tick);
         self.theropod_model_cache.clean(&mut self.atlas, tick);
         self.quadruped_small_model_cache
             .clean(&mut self.atlas, tick);
@@ -1397,7 +1397,7 @@ impl FigureMgr {
 
         match body {
             Body::Humanoid(body) => {
-                let (model, skeleton_attr) = self.model_cache.get_or_create_model(
+                let (model, skeleton_attr) = self.character_model_cache.get_or_create_model(
                     renderer,
                     &mut self.atlas,
                     body,
@@ -7055,7 +7055,7 @@ impl FigureMgr {
 
         let FigureMgr {
             atlas: atlas_,
-            model_cache,
+            character_model_cache: model_cache,
             theropod_model_cache,
             quadruped_small_model_cache,
             quadruped_medium_model_cache,

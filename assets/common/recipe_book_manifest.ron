@@ -1896,6 +1896,14 @@
         ],
         craft_sprite: Some(Anvil),
     ),
+    "pipe": (
+        output: ("common.items.armor.misc.head.pipe", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.twigs"), 3, false),
+            (Item("common.items.crafting_ing.living_embers"), 1, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     "seashell_necklace": (
         output: ("common.items.armor.misc.neck.shell", 1),
         inputs: [
