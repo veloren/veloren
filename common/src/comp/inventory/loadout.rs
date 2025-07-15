@@ -226,20 +226,34 @@ impl Loadout {
     /// returned, or if there are no free slots then the first occupied slot
     /// will be returned. The bool part of the tuple indicates whether an item
     /// is already equipped in the slot.
-    pub(super) fn get_slot_to_equip_into(&self, item_kind: &ItemKind) -> Option<EquipSlot> {
+    pub(super) fn get_slot_to_equip_into(&self, item: &Item) -> Option<EquipSlot> {
         let mut suitable_slots = self
             .slots
             .iter()
-            .filter(|s| self.slot_can_hold(s.equip_slot, Some(item_kind)));
+            .filter(|s| self.slot_can_hold(s.equip_slot, Some(&*item.kind())));
 
-        let first = suitable_slots.next();
+        let first_suitable = suitable_slots.next();
 
-        first
+        let mut differing_suitable_slots =
+            first_suitable
+                .into_iter()
+                .chain(suitable_slots)
+                .filter(|loadout_slot| {
+                    loadout_slot.slot.as_ref().is_none_or(|equipped_item| {
+                        equipped_item.item_definition_id() != item.item_definition_id()
+                            || equipped_item.durability_lost() != item.durability_lost()
+                    })
+                });
+
+        let first_differing = differing_suitable_slots.next();
+
+        first_differing
             .into_iter()
-            .chain(suitable_slots)
+            .chain(differing_suitable_slots)
             .find(|loadout_slot| loadout_slot.slot.is_none())
             .map(|x| x.equip_slot)
-            .or_else(|| first.map(|x| x.equip_slot))
+            .or_else(|| first_differing.map(|x| x.equip_slot))
+            .or_else(|| first_suitable.map(|x| x.equip_slot))
     }
 
     /// Returns all items currently equipped that an item of the given ItemKind
@@ -524,10 +538,6 @@ mod tests {
         comp::{
             Item,
             inventory::{
-                item::{
-                    ItemKind,
-                    armor::{Armor, ArmorKind, Protection},
-                },
                 loadout::Loadout,
                 slot::{ArmorSlot, EquipSlot},
                 test_helpers::get_test_bag,
@@ -579,13 +589,7 @@ mod tests {
             Time(0.0),
         );
 
-        let result = loadout
-            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag,
-                Protection::Normal(0.0),
-                Protection::Normal(0.0),
-            )))
-            .unwrap();
+        let result = loadout.get_slot_to_equip_into(&get_test_bag(1)).unwrap();
 
         assert_eq!(EquipSlot::Armor(ArmorSlot::Bag2), result);
     }
@@ -615,13 +619,7 @@ mod tests {
             Time(0.0),
         );
 
-        let result = loadout
-            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag,
-                Protection::Normal(0.0),
-                Protection::Normal(0.0),
-            )))
-            .unwrap();
+        let result = loadout.get_slot_to_equip_into(&get_test_bag(1)).unwrap();
 
         assert_eq!(EquipSlot::Armor(ArmorSlot::Bag1), result);
     }

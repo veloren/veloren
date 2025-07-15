@@ -884,7 +884,7 @@ impl Inventory {
             return Ok(None);
         };
 
-        let Some(equip_slot) = self.loadout.get_slot_to_equip_into(&item.kind()) else {
+        let Some(equip_slot) = self.loadout.get_slot_to_equip_into(item) else {
             return Ok(None);
         };
 
@@ -915,7 +915,7 @@ impl Inventory {
     pub fn free_after_equip(&self, inv_slot: InvSlotId) -> i32 {
         let (inv_slot_for_equipped, slots_from_equipped) = self
             .get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(&item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(item))
             .and_then(|equip_slot| self.equipped(equip_slot))
             .map_or((1, 0), |item| {
                 (
