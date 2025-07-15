@@ -5752,7 +5752,7 @@ impl AgentData<'_> {
         // Less frequent mixup attacks
         fn rand_special(rng: &mut impl Rng) -> InputKind {
             choose_weighted(rng, [
-                (WHIRLWIND, 20.0),
+                (WHIRLWIND, 6.0),
                 (VERTICAL_STRIKE, 6.0),
                 (OVERHEAT, 6.0),
                 (EXPLOSIVE_STRIKE, 1.0),
@@ -5900,7 +5900,7 @@ impl AgentData<'_> {
                     controller.push_basic_input(PARRY_PUNISH);
                     agent.combat_state.conditions
                         [ActionStateConditions::VerticalStrikeCombo as usize] = true;
-                } else if agent.combat_state.timers[ActionStateTimers::Special as usize] > 5.0 {
+                } else if agent.combat_state.timers[ActionStateTimers::Special as usize] > 10.0 {
                     // Use a special ability periodically
                     let rand_special = rand_special(rng);
                     match rand_special {

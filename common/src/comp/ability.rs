@@ -1280,7 +1280,6 @@ impl Default for CharacterAbility {
                     conditional: None,
                 },
                 dodgeable: Dodgeable::Roll,
-                parryable_override: false,
                 precision_flank_multipliers: Default::default(),
                 precision_flank_invert: false,
             },

@@ -82,8 +82,6 @@ pub struct MeleeConstructor {
     pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
     #[serde(default)]
     pub dodgeable: Dodgeable,
-    #[serde(default)]
-    pub parryable_override: bool,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
     #[serde(default)]
@@ -367,8 +365,7 @@ impl MeleeConstructor {
                     .with_effect(knockback)
             },
         }
-        .with_precision(precision_mult)
-        .with_parryable_override(self.parryable_override);
+        .with_precision(precision_mult);
 
         let attack = if let Some((effect, requirement)) = self.attack_effect {
             let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)

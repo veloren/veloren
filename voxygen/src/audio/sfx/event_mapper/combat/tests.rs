@@ -94,7 +94,6 @@ fn maps_basic_melee() {
                         conditional: None,
                     },
                     dodgeable: common::comp::ability::Dodgeable::Roll,
-                    parryable_override: false,
                     precision_flank_multipliers: Default::default(),
                     precision_flank_invert: false,
                 },
