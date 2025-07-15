@@ -222,10 +222,9 @@ impl Loadout {
     }
 
     /// Gets a slot that an item of a particular `ItemKind` can be equipped
-    /// into. The first empty slot compatible with the item will be
-    /// returned, or if there are no free slots then the first occupied slot
-    /// will be returned. The bool part of the tuple indicates whether an item
-    /// is already equipped in the slot.
+    /// into. A slot compatible with the item will be returned, prioritizing
+    /// empty slots, then slots with differing items, and returning the first
+    /// slot if no other is availible.
     pub(super) fn get_slot_to_equip_into(&self, item: &Item) -> Option<EquipSlot> {
         let mut suitable_slots = self
             .slots
