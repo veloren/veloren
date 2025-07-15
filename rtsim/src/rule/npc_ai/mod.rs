@@ -981,11 +981,43 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
                         // TODO: Don't report self
                         let phrase = if let Some(killer) = killer {
                             // TODO: For now, we don't make sentiment changes if the killer was an
-                            // NPC because NPCs can't hurt one-another.
+                            // NPC in some cases because some NPCs can't hurt one-another.
                             // This should be changed in the future.
-                            if !matches!(killer, Actor::Npc(_)) {
+                            let can_damage_killer = if let Actor::Npc(killer) = killer {
+                                data.npcs.get(killer).is_some_and(|killer| {
+                                    match (&ctx.npc.role, &killer.role) {
+                                        (Role::Vehicle, _) | (_, Role::Vehicle) => false,
+                                        (Role::Civilised(_), Role::Civilised(_)) => false,
+                                        (Role::Civilised(_), _) => true,
+                                        (Role::Wild, Role::Wild) => false,
+                                        (Role::Wild, _) => true,
+                                        (Role::Monster, Role::Monster) => false,
+                                        (Role::Monster, _) => true,
+                                    }
+                                })
+                            } else {
+                                true
+                            };
+
+                            // TODO: Roles themselves are kind of a hack, and so is this. This is
+                            // mostly a fix for npcs getting angry if you kill for example an ogre.
+                            let is_victim_inherent_enemy = if let Actor::Npc(victim) = actor {
+                                data.npcs.get(victim).is_some_and(|victim| {
+                                    matches!(
+                                        (&ctx.npc.role, &victim.role),
+                                        (Role::Civilised(_), Role::Monster)
+                                    )
+                                })
+                            } else {
+                                false
+                            };
+
+                            let is_victim_enemy = is_victim_inherent_enemy
+                                || ctx.sentiments.toward(actor).is(Sentiment::ENEMY);
+
+                            if can_damage_killer {
                                 // TODO: Don't hard-code sentiment change
-                                let change = if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
+                                let change = if is_victim_enemy {
                                     // Like the killer if we have negative sentiment towards the
                                     // killed.
                                     0.25
@@ -1005,7 +1037,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
                                     .limit_below(Sentiment::ENEMY)
                             }
 
-                            if ctx.sentiments.toward(actor).is(Sentiment::ENEMY) {
+                            if is_victim_enemy {
                                 "npc-speech-witness_enemy_murder"
                             } else {
                                 "npc-speech-witness_murder"
