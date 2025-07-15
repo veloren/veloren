@@ -227,6 +227,7 @@ impl Attack {
                             time,
                         },
                     });
+
                     block_strength
                 } else {
                     0.0

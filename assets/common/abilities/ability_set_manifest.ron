@@ -951,6 +951,7 @@
             Simple(None, "common.abilities.custom.gigas_fire.fire_pillars"),
             Simple(None, "common.abilities.custom.gigas_fire.targeted_fire_pillar"),
             Simple(None, "common.abilities.custom.gigas_fire.ashen_summons"),
+            Simple(None, "common.abilities.custom.gigas_fire.parry_punish"),
         ],
     ),
     Custom("Ashen Axe"): (

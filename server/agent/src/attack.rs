@@ -5712,6 +5712,7 @@ impl AgentData<'_> {
 
         enum ActionStateConditions {
             VerticalStrikeCombo,
+            WhirlwindTwice,
         }
 
         const FAST_SLASH: InputKind = InputKind::Primary;
@@ -5726,6 +5727,7 @@ impl AgentData<'_> {
         const FIRE_PILLARS: InputKind = InputKind::Ability(7);
         const TARGETED_FIRE_PILLAR: InputKind = InputKind::Ability(8);
         const ASHEN_SUMMONS: InputKind = InputKind::Ability(9);
+        const PARRY_PUNISH: InputKind = InputKind::Ability(10);
 
         fn choose_weighted<const N: usize>(
             rng: &mut impl Rng,
@@ -5750,11 +5752,11 @@ impl AgentData<'_> {
         // Less frequent mixup attacks
         fn rand_special(rng: &mut impl Rng) -> InputKind {
             choose_weighted(rng, [
-                (LAVA_LEAP, 5.0),
-                (VERTICAL_STRIKE, 5.0),
-                (OVERHEAT, 5.0),
-                (WHIRLWIND, 5.0),
+                (WHIRLWIND, 6.0),
+                (VERTICAL_STRIKE, 6.0),
+                (OVERHEAT, 6.0),
                 (EXPLOSIVE_STRIKE, 1.0),
+                (LAVA_LEAP, 1.0),
                 (FIRE_PILLARS, 1.0),
             ])
         }
@@ -5819,6 +5821,17 @@ impl AgentData<'_> {
         let tgt_airborne = tgt_data
             .physics_state
             .is_some_and(|physics| physics.on_ground.is_none() && physics.in_liquid().is_none());
+        let tgt_missed_parry = match tgt_data.char_state {
+            Some(CharacterState::RiposteMelee(data)) => {
+                matches!(data.stage_section, StageSection::Recover) && data.whiffed
+            },
+            Some(CharacterState::BasicBlock(data)) => {
+                matches!(data.stage_section, StageSection::Recover)
+                    && !data.static_data.parry_window.recover
+                    && !data.is_parry
+            },
+            _ => false,
+        };
         let casting_beam = matches!(self.char_state, CharacterState::BasicBeam(_))
             && self.char_state.stage_section() != Some(StageSection::Recover);
 
@@ -5872,18 +5885,34 @@ impl AgentData<'_> {
 
                 agent.combat_state.conditions
                     [ActionStateConditions::VerticalStrikeCombo as usize] = false;
+            } else if agent.combat_state.conditions[ActionStateConditions::WhirlwindTwice as usize]
+            {
+                controller.push_basic_input(WHIRLWIND);
+                agent.combat_state.conditions[ActionStateConditions::WhirlwindTwice as usize] =
+                    false;
             } else if agent.combat_state.timers[ActionStateTimers::OutOfMeleeRange as usize]
                 > FORCE_GAP_CLOSER_TIMEOUT
             {
                 // Use a gap closer if the target has been out of melee distance for a while
                 controller.push_basic_input(LAVA_LEAP);
             } else if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
-                if agent.combat_state.timers[ActionStateTimers::Special as usize] > 10.0 {
+                if tgt_missed_parry {
+                    controller.push_basic_input(PARRY_PUNISH);
+                    agent.combat_state.conditions
+                        [ActionStateConditions::VerticalStrikeCombo as usize] = true;
+                } else if agent.combat_state.timers[ActionStateTimers::Special as usize] > 10.0 {
                     // Use a special ability periodically
                     let rand_special = rand_special(rng);
-                    if rand_special == VERTICAL_STRIKE {
-                        agent.combat_state.conditions
-                            [ActionStateConditions::VerticalStrikeCombo as usize] = true;
+                    match rand_special {
+                        VERTICAL_STRIKE => {
+                            agent.combat_state.conditions
+                                [ActionStateConditions::VerticalStrikeCombo as usize] = true
+                        },
+                        WHIRLWIND if rng.gen_bool(0.2) => {
+                            agent.combat_state.conditions
+                                [ActionStateConditions::WhirlwindTwice as usize] = true
+                        },
+                        _ => {},
                     }
                     controller.push_basic_input(rand_special);
 
@@ -5891,7 +5920,16 @@ impl AgentData<'_> {
                         rng.gen_range(0.0..3.0 + 5.0 * damage_fraction);
                 } else if attack_data.angle > 90.0 {
                     // Cast an aoe ability to hit the target if they are behind the entity
-                    controller.push_basic_input(rand_aoe(rng));
+                    let rand_aoe = rand_aoe(rng);
+                    match rand_aoe {
+                        WHIRLWIND if rng.gen_bool(0.2) => {
+                            agent.combat_state.conditions
+                                [ActionStateConditions::WhirlwindTwice as usize] = true
+                        },
+                        _ => {},
+                    }
+
+                    controller.push_basic_input(rand_aoe);
                 } else {
                     // Use a random basic melee hit
                     controller.push_basic_input(rand_basic(rng, damage_fraction));

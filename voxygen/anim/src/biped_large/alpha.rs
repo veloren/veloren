@@ -362,6 +362,57 @@ impl Animation for AlphaAnimation {
                     next.leg_l.position += Vec3::new(0.0, -4.0, 0.0) * move2;
                     next.leg_l.orientation.rotate_z(PI / 4.0 * move2);
                 },
+                // Mirrored version of the vertical strike
+                Some("common.abilities.custom.gigas_fire.parry_punish") => {
+                    let pullback = (1.0 - move3).powi(3);
+                    let move1 = move1base * pullback;
+                    let move2 = move2base * pullback;
+
+                    init_gigas_fire(&mut next);
+
+                    next.control.position += Vec3::new(0.0, 0.0, -20.0) * move1;
+                    next.control.orientation.rotate_y(-PI / 2.5 * move1);
+                    next.control.orientation.rotate_x(-PI / 3.0 * move1);
+                    next.control.orientation.rotate_z(PI / 4.0 * move1);
+                    next.shoulder_r.position += Vec3::new(-5.0, 5.0, 0.0) * move1;
+                    next.shoulder_r.orientation.rotate_z(PI / 4.0 * move1);
+                    next.torso.orientation.rotate_z(PI / 3.0 * move1);
+                    next.lower_torso.orientation.rotate_z(-PI / 8.0 * move1);
+                    next.leg_l.position += Vec3::new(-2.0, -2.0, 0.0) * move1;
+                    next.leg_l.orientation.rotate_y(PI / 8.0 * move1);
+                    next.leg_l.orientation.rotate_z(PI / 8.0 * move1);
+                    next.foot_l.position += Vec3::new(-4.0, -4.0, 0.0) * move1;
+                    next.foot_l.orientation.rotate_z(PI / 7.0 * move1);
+                    next.leg_r.position += Vec3::new(-2.0, 3.0, 0.0) * move1;
+                    next.leg_r.orientation.rotate_y(-PI / 8.0 * move1);
+                    next.leg_r.orientation.rotate_z(PI / 8.0 * move1);
+                    next.foot_r.position += Vec3::new(0.0, 4.0, 0.0) * move1;
+                    next.foot_r.orientation.rotate_z(-PI / 8.0 * move1);
+
+                    next.control.position += Vec3::new(-3.0, -6.0, 40.0) * move2;
+                    next.control.orientation.rotate_y(-1.3 * PI * move2);
+                    next.control
+                        .orientation
+                        .rotate_x(PI / 3.0 * (PI * move2).sin());
+                    next.control.orientation.rotate_z(PI / 1.1 * move2);
+                    next.shoulder_r.position += Vec3::new(5.0, -5.0, 0.0) * move2;
+                    next.shoulder_r.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.shoulder_r.orientation.rotate_x(PI / 2.5 * move2);
+                    next.shoulder_l.position += Vec3::new(5.0, 5.0, 0.0) * move2;
+                    next.shoulder_l.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.shoulder_l.orientation.rotate_x(PI / 2.5 * move2);
+                    next.torso.orientation.rotate_z(-PI / 2.0 * move2);
+                    next.lower_torso.orientation.rotate_z(PI / 8.0 * move2);
+                    next.foot_l.position +=
+                        Vec3::new(2.0, 8.0, 0.0) * move2 + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.leg_l.position +=
+                        Vec3::new(2.0, 4.0, 0.0) * move2 + Vec3::new(0.0, 0.0, 5.0) * move2.powi(2);
+                    next.leg_l.orientation.rotate_z(-PI / 4.0 * move2);
+                    next.foot_r.position += Vec3::new(0.0, -8.0, 0.0) * move2;
+                    next.foot_r.orientation.rotate_z(PI / 5.0 * move2);
+                    next.leg_r.position += Vec3::new(0.0, -4.0, 0.0) * move2;
+                    next.leg_r.orientation.rotate_z(-PI / 4.0 * move2);
+                },
                 Some("common.abilities.custom.gigas_fire.explosive_strike") => {
                     let (move1base, move2base, move3) = match stage_section {
                         Some(StageSection::Buildup) => (anim_time, 0.0, 0.0),

@@ -153,7 +153,6 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -202,7 +201,6 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -243,7 +241,6 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -289,7 +286,6 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
             },
@@ -329,7 +325,6 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(energy)
                     .with_effect(knockback)
             },
@@ -366,11 +361,11 @@ impl MeleeConstructor {
 
                 Attack::default()
                     .with_damage(damage)
-                    .with_precision(precision_mult)
                     .with_effect(poise)
                     .with_effect(knockback)
             },
-        };
+        }
+        .with_precision(precision_mult);
 
         let attack = if let Some((effect, requirement)) = self.attack_effect {
             let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)
