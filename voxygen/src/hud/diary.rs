@@ -39,6 +39,7 @@ use common::{
         skillset::{SkillGroupKind, SkillSet},
     },
     resources::BattleMode,
+    uid::Uid,
 };
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
@@ -204,6 +205,7 @@ pub struct Diary<'a> {
     energy: &'a Energy,
     poise: &'a Poise,
     body: &'a Body,
+    uid: &'a Uid,
     msm: &'a MaterialStatManifest,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -243,7 +245,7 @@ impl Default for DiaryShow {
 impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,
-        _client: &'a Client,
+        client: &'a Client,
         global_state: &'a GlobalState,
         skill_set: &'a SkillSet,
         active_abilities: &'a ActiveAbilities,
@@ -253,6 +255,7 @@ impl<'a> Diary<'a> {
         energy: &'a Energy,
         poise: &'a Poise,
         body: &'a Body,
+        uid: &'a Uid,
         msm: &'a MaterialStatManifest,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
@@ -268,7 +271,7 @@ impl<'a> Diary<'a> {
     ) -> Self {
         Self {
             show,
-            client: _client,
+            client,
             global_state,
             skill_set,
             active_abilities,
@@ -278,6 +281,7 @@ impl<'a> Diary<'a> {
             energy,
             poise,
             body,
+            uid,
             msm,
             imgs,
             item_imgs,
@@ -1212,21 +1216,21 @@ impl Widget for Diary<'_> {
                             _ => None,
                         });
 
-                    let player_info = self
+                    let (name, _gender, battle_mode) = self
                         .client
                         .player_list()
-                        .get(&self.client.uid().unwrap())
-                        .unwrap();
-                    let (name, _gender, battle_mode) = player_info.character.as_ref().map_or_else(
-                        || ("Unknown".to_string(), None, BattleMode::PvP),
-                        |character_info| {
-                            (
-                                self.localized_strings.get_content(&character_info.name),
-                                character_info.gender,
-                                character_info.battle_mode,
-                            )
-                        },
-                    );
+                        .get(self.uid)
+                        .and_then(|info| info.character.as_ref())
+                        .map_or_else(
+                            || ("Unknown".to_string(), None, BattleMode::PvP),
+                            |character_info| {
+                                (
+                                    self.localized_strings.get_content(&character_info.name),
+                                    character_info.gender,
+                                    character_info.battle_mode,
+                                )
+                            },
+                        );
 
                     // Stat values
                     let value = match stat {
