@@ -3168,6 +3168,7 @@ impl Hud {
         let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
         let bodies = ecs.read_storage::<comp::Body>();
         let poises = ecs.read_storage::<comp::Poise>();
+        let uids = ecs.read_storage::<Uid>();
         let combos = ecs.read_storage::<comp::Combo>();
         let combo = combos.get(entity);
         let time = ecs.read_resource::<Time>();
@@ -3772,6 +3773,7 @@ impl Hud {
                 Some(energy),
                 Some(body),
                 Some(poise),
+                Some(uid),
             ) = (
                 skill_sets.get(entity),
                 inventories.get(entity),
@@ -3780,6 +3782,7 @@ impl Hud {
                 energies.get(entity),
                 bodies.get(entity),
                 poises.get(entity),
+                uids.get(entity),
             ) {
                 let context = AbilityContext::from(stances.get(entity), Some(inventory), combo);
                 for event in Diary::new(
@@ -3794,6 +3797,7 @@ impl Hud {
                     energy,
                     poise,
                     body,
+                    uid,
                     &msm,
                     &self.imgs,
                     &self.item_imgs,
