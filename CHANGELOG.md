@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added fire gigas
 - Consumables drop their container after getting consumed.
 - Added separate settings to toggle rain effects
+- One new overworld track.
 
 ### Changed
 
