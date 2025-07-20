@@ -1,5 +1,6 @@
 #!/bin/bash
-# cargo clippy is a superset of cargo check, so we don't check manually
+# cargo clippy is a superset of cargo check,
+# so we don't check manually.
 
 time cargo clippy \
     --all-targets \
@@ -7,13 +8,13 @@ time cargo clippy \
     --features="bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,asset_tweak,bin,stat,cli" \
     -- -D warnings &&
 
-# Ensure that the veloren-voxygen default-publish feature builds as it excludes some default features
+# Ensure that the veloren-voxygen default-publish feature builds as it excludes some default features.
 time cargo clippy -p \
     veloren-voxygen --locked \
     --no-default-features \
     --features="default-publish" \
     -- -D warnings &&
 
-# Ensure that test-server compiles
+# Ensure that test-server compiles.
 time cargo clippy --locked --bin veloren-server-cli --no-default-features -F simd  -- -D warnings &&
-time cargo fmt --all -- --check
+time cargo fmt --all -- --check;

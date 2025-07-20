@@ -1,14 +1,14 @@
 unittests:
-  extends: .recompile-branch
+  extends: .run-on-code-changes
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "check"]
   variables:
     GIT_DEPTH: 9999999999999
   script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/unittest.sh
-    - source ./.gitlab/scripts/unittest.sh
+    - ln -s /dockercache/target target;
+    - cat ./.gitlab/scripts/unittest.sh;
+    - source ./.gitlab/scripts/unittest.sh;
   retry:
     max: 2
 
@@ -18,16 +18,16 @@ translation:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "check"]
   script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/translation.sh
-    - source ./.gitlab/scripts/translation.sh
-    - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
-    - echo $TAGUUID # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name
-    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
-    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
-    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
-    - echo '\copy translations ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql
-    - cat upload.sql
+    - ln -s /dockercache/target target;
+    - cat ./.gitlab/scripts/translation.sh;
+    - source ./.gitlab/scripts/translation.sh;
+    - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works";
+    - echo ${TAGUUID}; # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name.
+    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql;
+    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql;
+    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql;
+    - echo '\copy translations ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql;
+    - cat upload.sql;
     - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=cidb.veloren.net port=30432 dbname=translations" -U hgseehzjtsrghtjdcqw -f upload.sql;
   retry:
     max: 2
@@ -38,24 +38,23 @@ benchmarks:
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/bench:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "check", "benchmark"]
   script:
-    - unset DISABLE_GIT_LFS_CHECK
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/benchmark.sh
-    - source ./.gitlab/scripts/benchmark.sh
-    - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works"
-    - echo $TAGUUID # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name
-    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql
-    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql
-    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql
+    - unset DISABLE_GIT_LFS_CHECK;
+    - ln -s /dockercache/target target;
+    - cat ./.gitlab/scripts/benchmark.sh;
+    - source ./.gitlab/scripts/benchmark.sh;
+    - TAGUUID="Z$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)" || echo "ignore this returncode, dont ask me why, it works";
+    - echo ${TAGUUID}; # Use TAGUUID to mitigate https://xkcd.com/327/ in the branch name.
+    - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql;
+    - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql;
+    - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql;
     - find target/criterion -wholename "*new/*.csv" -exec echo '\copy benchmarks ("group", "function", "value", throughput_num, throughput_type, sample_measured_value, unit, iteration_count) from '"'{}' csv header" >> upload.sql \;
-    - cat upload.sql
+    - cat upload.sql;
     - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=cidb.veloren.net port=30432 dbname=benchmarks" -U hgseehzjtsrghtjdcqw -f upload.sql;
   retry:
     max: 2
 
-# Coverage is needed on master for the README.md badge to work
+# Coverage is needed on master for the README.md badge to work.
 # tmp remove simd as it doesnt work with tarpaulin: https://github.com/rust-lang/rust/issues/77529
-
 coverage:
   extends: .release
   stage: build
@@ -63,184 +62,66 @@ coverage:
   coverage: '/^\d+.\d+% coverage/'
   tags: ["veloren/veloren", "check"]
   script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/coverage.sh
-    - source ./.gitlab/scripts/coverage.sh
+    - ln -s /dockercache/target target;
+    - cat ./.gitlab/scripts/coverage.sh;
+    - source ./.gitlab/scripts/coverage.sh;
   retry:
     max: 2
 
-#linux, windows, macos builds here as template
-.tlinux-x86_64:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux-x86_64:${CACHE_IMAGE_TAG}
-  script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/linux-x86_64.sh
-    - source ./.gitlab/scripts/linux-x86_64.sh
-    - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
-    - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - veloren-server-cli
-      - veloren-voxygen
-      - assets/
-      - LICENSE
-    expire_in: 1 week
-
-.tlinux-aarch64:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux-aarch64:${CACHE_IMAGE_TAG}
-  script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/linux-aarch64.sh
-    - source ./.gitlab/scripts/linux-aarch64.sh
-    - cp -r target/aarch64-unknown-linux-gnu/release/veloren-server-cli $CI_PROJECT_DIR
-    - cp -r target/aarch64-unknown-linux-gnu/release/veloren-voxygen $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - veloren-server-cli
-      - veloren-voxygen
-      - assets/
-      - LICENSE
-    expire_in: 1 week
-
-.twindows-x86_64:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows-x86_64:${CACHE_IMAGE_TAG}
-  script:
-    - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/windows-x86_64.sh
-    - source ./.gitlab/scripts/windows-x86_64.sh
-    - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
-    - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
-    - cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
-    - cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libstdc++-6.dll $CI_PROJECT_DIR
-    - cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - veloren-server-cli.exe
-      - veloren-voxygen.exe
-      - assets/
-      - LICENSE
-      - libgcc_s_seh-1.dll
-      - libstdc++-6.dll
-      - libwinpthread-1.dll
-    expire_in: 1 week
-
-# Use a yaml anchor to allow the same before_script to be used in both .tmacos-x86_64 and .tmacos-aarch64
-# https://docs.gitlab.com/ee/ci/yaml/yaml_optimization.html#yaml-anchors-for-scripts
-.tmacos-install-script: &tmacos-install-script
-  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-  - wget -q https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-macos-universal.tar.gz
-  - tar -xzf cmake-3.31.8-macos-universal.tar.gz
-  - ls -la cmake-3.31.8-macos-universal/CMake.app/Contents
-  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/bin/* /usr/local/bin/
-  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/share/* /usr/local/share/
-  - which cmake
-  - cmake --version
-.tmacos-before-script: &tmacos-before-script
-  - source $HOME/.cargo/env
-  - cargo --version
-  - rustup toolchain list
-  - export DISABLE_GIT_LFS_CHECK=true
-  - export VELOREN_ASSETS="$(pwd)/assets"
-  - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
-  - export RUSTFLAGS="-D warnings"
-  - export CARGO_INCREMENTAL=0
-
-.tmacos:
-  tags: ["saas-macos-large-m2pro"]
-  image: macos-15-xcode-16
-  script:
-    - export MACOSX_DEPLOYMENT_TARGET="10.13"
-    - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --profile ${PROFILE} --no-default-features --features default-publish --target $RUST_TARGET
-    - cp -r target/$RUST_TARGET/${PROFILE}/veloren-server-cli $CI_PROJECT_DIR
-    - cp -r target/$RUST_TARGET/${PROFILE}/veloren-voxygen $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - veloren-server-cli
-      - veloren-voxygen
-      - assets/
-      - LICENSE
-    expire_in: 1 week
-
-.tmacos-x86_64:
-  extends:
-    - .tmacos
-  before_script:
-    - *tmacos-install-script
-    # Using fat LTO on macos_x86_64 caused timeouts in the build pipeline, overriding it to thin here fixes this
-    - export PROFILE="release-thinlto"
-    - *tmacos-before-script
-    - rustup target add x86_64-apple-darwin
-    - export RUST_TARGET="x86_64-apple-darwin"
-
-.tmacos-aarch64:
-  extends:
-    - .tmacos
-  before_script:
-    - *tmacos-install-script
-    - export PROFILE="release"
-    - *tmacos-before-script
-    - rustup target add aarch64-apple-darwin
-    - export RUST_TARGET="aarch64-apple-darwin"
-
-# build on release or master
-linux-x86_64:
-  extends:
-    - .tlinux-x86_64
-    - .release
-  tags: ["veloren/veloren", "build", "publish", "trusted"]
-
-linux-aarch64:
-  extends:
-    - .tlinux-aarch64
-    - .release
-  tags: ["veloren/veloren", "build", "publish", "trusted"]
-
+# Build on release or master.
 windows-x86_64:
   extends:
-    - .twindows-x86_64
     - .release
+    - .build-windows-x86_64
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 macos-x86_64:
   extends:
-    - .tmacos-x86_64
     - .release
-  tags: ["saas-macos-large-m2pro"]
+    - .build-macos-x86_64
 
 macos-aarch64:
   extends:
-    - .tmacos-aarch64
     - .release
-  tags: ["saas-macos-large-m2pro"]
+    - .build-macos-aarch64
 
-# if NOT release or master, allow optional builds
-opt-linux-x86_64:
+linux-x86_64:
   extends:
-    - .tlinux-x86_64
-    - .optional-release
-  tags: ["veloren/veloren", "build"]
+    - .release
+    - .build-linux-x86_64
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
-opt-linux-aarch64:
+linux-aarch64:
   extends:
-    - .tlinux-aarch64
-    - .optional-release
-  tags: ["veloren/veloren", "build"]
+    - .release
+    - .build-linux-aarch64
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
 
+# If NOT release or master, allow optional builds.
 opt-windows-x86_64:
   extends:
-    - .twindows-x86_64
     - .optional-release
+    - .build-windows-x86_64
   tags: ["veloren/veloren", "build"]
 
 opt-macos-x86_64:
   extends:
-    - .tmacos-x86_64
     - .optional-release
-  tags: ["saas-macos-large-m2pro"]
+    - .build-macos-x86_64
 
 opt-macos-aarch64:
   extends:
-    - .tmacos-aarch64
     - .optional-release
-  tags: ["saas-macos-large-m2pro"]
+    - .build-macos-aarch64
+
+opt-linux-x86_64:
+  extends:
+    - .optional-release
+    - .build-linux-x86_64
+  tags: ["veloren/veloren", "build"]
+
+opt-linux-aarch64:
+  extends:
+    - .optional-release
+    - .build-linux-aarch64
+  tags: ["veloren/veloren", "build"]

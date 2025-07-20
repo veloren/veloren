@@ -1,25 +1,17 @@
 stages:
   - check
-  - build-nightly
   - build
   - publish
 
 variables:
-  # Note: this is deprecated!
-  # https://docs.gitlab.com/ee/ci/yaml/#git-strategy
-  # However in gitlab web ui it's set to fetch so it should be fine ¯\_(ツ)_/¯
   GIT_STRATEGY: fetch
-  # Note: this is deprecated!
-  # https://docs.gitlab.com/ee/ci/yaml/#shallow-cloning
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
   CACHE_IMAGE_TAG: 2cca2eaa
   TAG_REGEX: '/^v[0-9]+\.[0-9]+\.[0-9]+$/'
 
 default:
-  # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
   interruptible: true
-  # Retry automatically in case the runner times out or there's a runner failure
   retry:
     max: 2
     when:
@@ -28,16 +20,17 @@ default:
   tags:
     - veloren/veloren
 
-# NOTE: overriden for the `.tmacos` template so relevant changes need to be mirrored there
-before_script:
-  - source $HOME/.cargo/env
-  - df -h /
-  - free -h
-  - cargo --version
-  - source ./.gitlab/scripts/env.sh
-  - rm -rf target || echo "it seems that sometimes OLD data is left over"
+  # NOTE: The `.build-macos-x86_64` and `.build-macos-aarch64` job templates
+  # override this keyword so relevant changes need to be mirrored there.
+  before_script:
+    - source ${HOME}/.cargo/env;
+    - df -h /;
+    - free -h;
+    - cargo --version;
+    - source ./.gitlab/scripts/env.sh;
+    - rm -rf target || echo "it seems that sometimes OLD data is left over";
 
-# 8866215 is the user that is used to sync data to the collaboration repos
+# 8866215 is the user that is used to sync data to the collaboration repos.
 workflow:
   rules:
     - if: $CI_MERGE_REQUEST_IID
@@ -46,8 +39,7 @@ workflow:
     - if: $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/ && $GITLAB_USER_ID != "8866215"
 
 include:
-  - local: .gitlab/CI/recompile.yml
-  - local: .gitlab/CI/release.yml
+  - local: .gitlab/CI/templates.yml
   - local: .gitlab/CI/check.gitlab-ci.yml
   - local: .gitlab/CI/build.gitlab-ci.yml
   - local: .gitlab/CI/publish.gitlab-ci.yml
