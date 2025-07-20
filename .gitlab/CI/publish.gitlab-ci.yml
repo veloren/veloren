@@ -1,14 +1,7 @@
-# Publishes veloren-server-cli to the gitlab container registry
+# Publishes veloren-server-cli to the GitLab container registry.
 # https://gitlab.com/veloren/veloren/container_registry
-.publish:
-  stage: publish
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: on_success
-    - when: never
-
 docker:
-  extends: .publish
+  stage: publish
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -16,34 +9,36 @@ docker:
   dependencies:
     - linux-x86_64
   before_script:
-    - ls "$CI_PROJECT_DIR/server-cli/"
+    - ls "${CI_PROJECT_DIR}/server-cli/";
   script:
     # Help kaniko identify that it is running in a container.
-    # avoids this issue: https://github.com/GoogleContainerTools/kaniko/issues/1542
-    - export container=docker
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    # Avoids this issue: https://github.com/GoogleContainerTools/kaniko/issues/1542
+    - export container=docker;
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json;
     - |
-      source "$CI_PROJECT_DIR/.gitlab/scripts/util.sh";
+      source "${CI_PROJECT_DIR}/.gitlab/scripts/util.sh";
       publishdockertag;
       if [ "${PUBLISH_DOCKER_TAG}"  != "" ]; then
-        /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}"
+        /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}";
       fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+    - when: never
 
 gittag:
-  extends: .publish
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
+  stage: publish
   image: bitnami/git:latest
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
   before_script:
-    - git --version
-    - git lfs --version
+    - git --version;
+    - git lfs --version;
   script:
-    - git config --global user.email "gitlab-veloren-bot@veloren.net"
-    - git config --global user.name "veloren-bot"
-    - git config --global http.postBuffer 52428800
-    - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
+    - git config --global user.email "gitlab-veloren-bot@veloren.net";
+    - git config --global user.name "veloren-bot";
+    - git config --global http.postBuffer 52428800;
+    - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8};
     - |
       if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
         git reflog expire --expire=now --all;
@@ -52,11 +47,11 @@ gittag:
         git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
         git push origin "${SCHEDULE_CADENCE}" -f || echo "failed pushed, trying again" && sleep 5 && git status && git fsck && git push origin "${SCHEDULE_CADENCE}" -f;
       fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
 
 pages:
-  extends: .publish
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+  stage: publish
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   dependencies: []
   tags: ["veloren/veloren", "publish"]
@@ -65,7 +60,9 @@ pages:
       - public
     expire_in: 4 weeks
   script:
-    - rm -rf public
-    - mkdir -p public
-    - RUSTDOCFLAGS="--enable-index-page -Zunstable-options" cargo doc --no-deps --document-private-items
-    - mv target/doc/* public
+    - rm -rf public;
+    - mkdir -p public;
+    - RUSTDOCFLAGS="--enable-index-page -Zunstable-options" cargo doc --no-deps --document-private-items;
+    - mv target/doc/* public;
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"

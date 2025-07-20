@@ -1,2 +1,2 @@
 #!/bin/bash
-time cargo bench
+time cargo bench;

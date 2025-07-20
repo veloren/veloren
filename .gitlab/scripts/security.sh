@@ -1,2 +1,2 @@
 #!/bin/bash
-time cargo audit
+time cargo audit;
