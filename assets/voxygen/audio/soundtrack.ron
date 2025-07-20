@@ -17,6 +17,20 @@
         // Overworld exploration tracks
 
         Individual((
+            title: "Lost Among Vast",
+            path: "voxygen.audio.soundtrack.overworld.lost_among_vast",
+            length: 165.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Grassland, 1),
+                (Forest, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("unii", "https://www.youtube.com/@uniior"),
+        )),
+        Individual((
             title: "Graceful Journey",
             path: "voxygen.audio.soundtrack.overworld.graceful_journey",
             length: 240.0,
