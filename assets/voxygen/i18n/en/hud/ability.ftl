@@ -359,13 +359,15 @@ common-abilities-hammer-wide_wallop = Wide Wallop
         Pull back and send them flying
 common-abilities-hammer-scornful_swipe = Scornful Swipe
     .desc =
-        Bolster your fortitude and stamina by taunting your enemies before striking at them. If you fall to an enemy they become empowered.
+        Increases your poise resistance and energy reward.
+        If you fall to an enemy their attack damage and vulnerability to damage are increased.
 common-abilities-hammer-tremor = Tremor
     .desc =
         Strike the earth with enough force that the ground beneath your foes trembles.
 common-abilities-hammer-vigorous_bash = Vigorous Bash
     .desc =
-        Use the head of your hammer to quickly strike your foes, giving a surge of adrenaline if the target is off balance.
+        Use the head of your hammer to quickly strike your foes.
+        Awards 4 combo bonus if your enemy is stunned.
 common-abilities-hammer-heavy_whorl = Heavy Whorl
     .desc =
         You strike all foes surrounding you with your hammer.
@@ -380,22 +382,28 @@ common-abilities-hammer-dual_intercept = Intercept
         Charge forward with your hammers throwing your weight behind your strike.
 common-abilities-hammer-retaliate = Retaliate
     .desc =
-        After blocking an attack, retaliate with a heavy strike back.
+        Block and counter your foe's attack in one swift move!
 common-abilities-hammer-spine_cracker = Spine Cracker
     .desc =
-        When you foe turns their back to you, strike them hard in the back, targeting the weak part of their spine.
+        Get behind your foe and strike them hard in the back! 
+        Multiplies your damage significantly and lowers the target poise.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-breach = Breach
     .desc =
         Breach through your enemy's attempt at defense with a heavy strike from your hammer.
+        Deals extra damage and lowers the target poise.
 common-abilities-hammer-pile_driver = Pile Driver
     .desc =
         Strike your enemy into the ground, stopping their movement until they free their legs.
+        Decreases your enemy movement speed.
 common-abilities-hammer-lung_pummel = Lung Pummel
     .desc =
         Swipe your hammer into your foe's side, winding them.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-helm_crusher = Helm Crusher
     .desc =
         Bash your enemy's head with your hammer, concussing them.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-iron_tempest = Iron Tempest
     .desc =
         Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
@@ -404,25 +412,36 @@ common-abilities-hammer-dual_iron_tempest = Iron Tempest
         Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
 common-abilities-hammer-upheaval = Upheaval
     .desc =
-        Slam your hammer into your foe, knocking them into the air and leaving them vulnerable to staggers.
+        Slam your hammer into your foe, knocking them into the air.
+        Increases the poise damage received by the target.
 common-abilities-hammer-dual_upheaval = Upheaval
     .desc =
-        Slam your hammers into your foes, knocking them into the air and leaving them vulnerable to staggers.
+        Slam your hammer into your foe, knocking them into the air.
+        Increases the poise damage received by the target.
 common-abilities-hammer-rampart = Rampart
     .desc =
-        Strike the ground, causing very mild tectonic uplift which protects your allies from attacks.
+        Strike the ground, causing very mild tectonic uplift.
+        Reduces incoming damage for all your party members.
 common-abilities-hammer-tenacity = Tenacity
     .desc =
-        Hold yourself strong as you withstand attack after attack, managing to keep attacking all the while.
+        Hold yourself strong as you withstand attack after attack.
+        Increases your damage resistance and decreases movement speed.
+        Each hit received boosts your energy. 
 common-abilities-hammer-thunderclap = Thunderclap
     .desc =
         Unleash a devastating, adrenaline-fueled overhead strike against your foe.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-seismic_shock = Seismic Shock
     .desc =
-        After buildup up enough momentum in your hammer, strike the ground with enough force that it erupts outward, throwing your foes into the air.
+        Strike the ground with enough force to throw your foes into the air.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-earthshaker = Earthshaker
     .desc =
-        Slam the head of your blood-soaked hammer into the ground, unleashing a shockwave that knocks the wind out of everyone around you.
+        Slam your hammer into the ground to unleash a shockwave around you.
+        Reduces the movement speed and energy rewards of your enemies.
+        Requires { $min_combo } combo to use.
 common-abilities-hammer-judgement = Judgement
     .desc =
-        Bring your hammer down on your foe with all your weight, potentially killing them outright if they are staggered.
+        Bring your hammer down on your foe with all your weight.
+        Greatly increases the damage if your target is stunned.
+        Requires { $min_combo } combo to use.
