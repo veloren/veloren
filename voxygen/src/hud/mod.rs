@@ -3608,6 +3608,9 @@ impl Hud {
                     },
                 }
             }
+
+            // Set to false only after the chat widget is cleared and updated
+            self.clear_chat = false;
         } else {
             let mut persisted_state = self.persisted_state.borrow_mut();
             for message in self.new_messages.drain(..) {
@@ -3619,7 +3622,6 @@ impl Hud {
 
         self.new_messages.clear();
         self.new_notifications.clear();
-        self.clear_chat = false;
 
         // Windows
 
