@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Can no longer get bags with items still in them into the inventory by "using" another bag.
 - Npcs don't get angry if you kill a monster infront of them, and can get happy if you saved them from it.
 - Map markers are kept between character selection screens.
+- Using "/clear" now works when chat is not shown.
 
 ## [0.17.0] - 2024-12-28
 
