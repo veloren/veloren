@@ -701,6 +701,27 @@ pub fn ability_description<'a>(
                 "min_combo_upg" => 40,
             }),
         ),
+        "common-abilities-hammer-earthshaker"
+        | "common-abilities-hammer-judgement"
+        | "common-abilities-hammer-seismic_shock"
+        | "common-abilities-hammer-thunderclap" => (
+            loc.get_msg(&ability_i18n_key),
+            loc.get_attr_ctx(&ability_i18n_key, "desc", &i18n::fluent_args! {
+                "min_combo" => 20,
+            }),
+        ),
+        "common-abilities-hammer-lung_pummel" | "common-abilities-hammer-spine_cracker" => (
+            loc.get_msg(&ability_i18n_key),
+            loc.get_attr_ctx(&ability_i18n_key, "desc", &i18n::fluent_args! {
+                "min_combo" => 5,
+            }),
+        ),
+        "common-abilities-hammer-helm_crusher" => (
+            loc.get_msg(&ability_i18n_key),
+            loc.get_attr_ctx(&ability_i18n_key, "desc", &i18n::fluent_args! {
+                "min_combo" => 10,
+            }),
+        ),
         // Default case, no input values
         ability_i18n_key => (
             loc.get_msg(ability_i18n_key),
