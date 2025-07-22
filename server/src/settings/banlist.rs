@@ -126,9 +126,14 @@ pub enum BanOperation {
     Ban {
         reason: String,
         info: BanInfo,
+        /// See [`Ban::upgrade_to_ip_ban`]
+        upgrade_to_ip: bool,
         /// NOTE: Should always be higher than the `now` date provided to
         /// [`Banlist::ban_operation`] , if this is present!
         end_date: Option<chrono::DateTime<chrono::Utc>>,
+    },
+    UpgradeToIpBan {
+        ip: NormalizedIpAddr,
     },
     BanIp {
         reason: String,
@@ -701,6 +706,10 @@ mod v2 {
         /// NOTE: Should always be higher than the `date` in the record
         /// containing this, if this is present!
         pub end_date: Option<DateTime<Utc>>,
+        /// Upgrade this regular ban to an IP ban once the player attempts to
+        /// connect. Setting this to `true` in an IP ban has no effect.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        pub upgrade_to_ip: bool,
     }
 
     impl Ban {
@@ -780,6 +789,7 @@ mod v2 {
                         reason,
                         info: info.map(BanInfo::migrate),
                         end_date,
+                        upgrade_to_ip: false,
                     }),
                     prev::BanAction::Unban(info) => BanAction::Unban(BanInfo::migrate(info)),
                 },
@@ -1281,11 +1291,13 @@ mod v2 {
                         reason,
                         info,
                         end_date,
+                        upgrade_to_ip: upgrade_to_ip_ban,
                     } => {
                         let ban = Ban {
                             reason,
                             info: Some(info),
                             end_date,
+                            upgrade_to_ip: upgrade_to_ip_ban,
                         };
                         let frontend_info = ban.info();
                         let action = BanAction::Ban(ban);
@@ -1295,6 +1307,30 @@ mod v2 {
                         banlist
                             .apply_ban_record(uuid, ban_record, overwrite, now)
                             .map(|_| Some(frontend_info))
+                    },
+                    BanOperation::UpgradeToIpBan { ip } => {
+                        let Some(ban_entry) = banlist
+                            .uuid_bans
+                            .get_mut(&uuid)
+                            .filter(|ban| !ban.current.is_expired(now))
+                        else {
+                            warn!(?uuid, "No active ban exists for this uuid");
+                            return None;
+                        };
+                        let BanAction::Ban(ban) = &mut ban_entry.current.action else {
+                            warn!(?uuid, "This uuid is not banned");
+                            return None;
+                        };
+                        if !mem::take(&mut ban.upgrade_to_ip) {
+                            warn!(?uuid, "The current ban on this uuid is not upgradeable");
+                            return None;
+                        }
+                        let info = ban.info();
+                        let ip_record = make_ip_record(ban_entry.action.clone());
+
+                        banlist
+                            .apply_ip_ban_record(ip, ip_record, overwrite, now)
+                            .map(|()| Some(info))
                     },
                     BanOperation::BanIp {
                         reason,
@@ -1306,6 +1342,7 @@ mod v2 {
                             reason,
                             info: Some(info),
                             end_date,
+                            upgrade_to_ip: false,
                         };
                         let frontend_info = ban.info();
                         let action = BanAction::Ban(ban);
