@@ -541,6 +541,15 @@ npc-speech-pilot-continue_hold =
     .a2 = Continuing to hold!
     .a3 = Another ship is loading, we'll be holding for a bit longer.
 
+npc-speech-pirate =
+    .a0 = Yarrr!
+    .a2 = Mateys, let's party!
+    .a3 = What will we do with a drunken sailor~
+npc-speech-pirate_raid =
+    .a0 = Come raid { $site } with me.
+    .a1 = Come plunder { $site } matey.
+    .a2 = We're going to plunder { $site }.
+
 ## Signs
 
 npc-signs-keep_out =  Keep Out!

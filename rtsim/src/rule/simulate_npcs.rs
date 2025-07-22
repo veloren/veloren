@@ -280,10 +280,12 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 }
             }
             // Add the NPC to their new home population
-            if let Some(new_home) = data.sites.get_mut(new_home) {
+            if let Some(new_home) = new_home
+                && let Some(new_home) = data.sites.get_mut(new_home)
+            {
                 new_home.population.insert(npc_id);
             }
-            npc.home = Some(new_home);
+            npc.home = new_home;
         }
 
         // Set hired status if required (I'm a poet and I didn't know it)

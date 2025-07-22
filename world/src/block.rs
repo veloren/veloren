@@ -224,11 +224,8 @@ pub fn block_from_structure(
         StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, *color)),
         StructureBlock::Filled(kind, color) => Some(Block::new(*kind, *color)),
         StructureBlock::Sprite(sprite) => Some(sprite.get_block(with_sprite)),
-        StructureBlock::SpriteWithCfg(kind, sprite_cfg) => {
-            return Some((
-                with_sprite(*kind).into_vacant().with_sprite(*kind),
-                Some(sprite_cfg.clone()),
-            ));
+        StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
+            return Some((sprite.get_block(with_sprite), Some(sprite_cfg.clone())));
         },
         StructureBlock::EntitySpawner(_entitykind, _spawn_chance) => {
             Some(Block::new(BlockKind::Air, Rgb::new(255, 255, 255)))

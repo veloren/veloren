@@ -44,6 +44,15 @@ impl Rule for CleanUp {
                     true
                 });
 
+            // Clean up site population.
+            data.sites.iter_mut()
+                .filter(|(_, site)| (site.seed as u64 + ctx.event.tick) % SITE_CLEANUP_TICK_SKIP == 0)
+                .for_each(|(id, site)| {
+                site.population.retain(|npc_id| {
+                    data.npcs.get(*npc_id).is_some_and(|npc| npc.home == Some(id))
+                });
+            });
+
             // Clean up entities
             data.npcs
                 .iter_mut()

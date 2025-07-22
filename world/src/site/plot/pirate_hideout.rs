@@ -56,26 +56,16 @@ impl Structure for PirateHideout {
             .translate(model_pos)
             .fill(Fill::Prefab(Box::new(model), model_pos, rng));
 
-        if thread_rng.gen_range(0..=3) < 1 {
-            // buccaneer
-            painter.spawn(
-                EntityInfo::at(center.with_z(base + 2).as_()).with_asset_expect(
-                    "common.entity.spot.buccaneer",
-                    &mut thread_rng,
-                    None,
-                ),
-            )
-        }
         // npcs
         let npc_radius = 15;
-        let phi = TAU / 5.0;
-        for n in 1..=5 {
+        let phi = TAU / 2.0;
+        for n in 1..=2 {
             let npc_pos = Vec2::new(
                 center.x + (npc_radius as f32 * ((n as f32 * phi).cos())) as i32,
                 center.y + (npc_radius as f32 * ((n as f32 * phi).sin())) as i32,
             );
 
-            match RandomField::new(0).get(npc_pos.with_z(base + 2)) % 10 {
+            match RandomField::new(0).get(npc_pos.with_z(base + 2)) % 2 {
                 // rat
                 0 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(
@@ -85,17 +75,9 @@ impl Structure for PirateHideout {
                     ),
                 ),
                 // parrot
-                1 => painter.spawn(
-                    EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(
-                        "common.entity.wild.peaceful.parrot",
-                        &mut thread_rng,
-                        None,
-                    ),
-                ),
-                // pirates
                 _ => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(
-                        "common.entity.spot.pirate",
+                        "common.entity.wild.peaceful.parrot",
                         &mut thread_rng,
                         None,
                     ),

@@ -12,7 +12,7 @@ use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
-use crate::terrain::{SpriteCfg, SpriteKind};
+use crate::terrain::SpriteCfg;
 
 make_case_elim!(
     structure_block,
@@ -60,7 +60,7 @@ make_case_elim!(
         CherryLeaves = 37,
         AutumnLeaves = 38,
         RedwoodWood = 39,
-        SpriteWithCfg(kind: SpriteKind, sprite_cfg: SpriteCfg) = 40,
+        SpriteWithCfg(kind: StructureSprite, sprite_cfg: SpriteCfg) = 40,
     }
 );
 
@@ -311,10 +311,11 @@ mod tests {
     use crate::{
         generation::tests::validate_entity_config,
         lottery::{LootSpec, tests::validate_loot_spec},
+        terrain::Block,
     };
     use std::ops::Deref;
 
-    pub fn validate_sprite_and_cfg(sprite: SpriteKind, sprite_cfg: &SpriteCfg) {
+    pub fn validate_sprite_and_cfg(sprite: StructureSprite, sprite_cfg: &SpriteCfg) {
         let SpriteCfg {
             // TODO: write validation for UnlockKind?
             unlock: _,
@@ -322,6 +323,11 @@ mod tests {
             content: _,
             loot_table,
         } = sprite_cfg;
+
+        let sprite = sprite
+            .get_block(Block::air)
+            .get_sprite()
+            .expect("This should have the sprite");
 
         if let Some(loot_table) = loot_table.clone() {
             if !sprite.is_defined_as_container() {

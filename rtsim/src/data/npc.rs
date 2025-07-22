@@ -57,9 +57,10 @@ pub struct PathingMemory {
 
 #[derive(Default)]
 pub struct Controller {
+    pub npc_actions: Vec<(NpcId, Box<dyn Action<(), ()>>)>,
     pub actions: Vec<NpcAction>,
     pub activity: Option<NpcActivity>,
-    pub new_home: Option<SiteId>,
+    pub new_home: Option<Option<SiteId>>,
     pub look_dir: Option<Dir>,
     pub hiring: Option<Option<(Actor, Time)>>,
 }
@@ -116,11 +117,29 @@ impl Controller {
         self.actions.push(NpcAction::Say(target.into(), content));
     }
 
+    pub fn npc_dialogue(
+        &mut self,
+        target: NpcId,
+        content: impl Into<Option<comp::Content>>,
+        response: impl Action<(), ()>,
+    ) {
+        if let Some(content) = content.into() {
+            self.say(Actor::Npc(target), content);
+        }
+        self.npc_action(target, response);
+    }
+
+    pub fn npc_action(&mut self, target: NpcId, response: impl Action<(), ()>) {
+        self.npc_actions.push((target, Box::new(response)));
+    }
+
     pub fn attack(&mut self, target: impl Into<Actor>) {
         self.actions.push(NpcAction::Attack(target.into()));
     }
 
-    pub fn set_new_home(&mut self, new_home: SiteId) { self.new_home = Some(new_home); }
+    pub fn set_new_home(&mut self, new_home: impl Into<Option<SiteId>>) {
+        self.new_home = Some(new_home.into());
+    }
 
     pub fn set_newly_hired(&mut self, actor: Actor, expires: Time) {
         self.hiring = Some(Some((actor, expires)));
@@ -151,6 +170,23 @@ impl Controller {
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
                 kind: DialogueKind::End,
+            }));
+    }
+
+    pub fn dialogue_response(
+        &mut self,
+        session: DialogueSession,
+        tag: u32,
+        response: &(u16, Response),
+    ) {
+        self.actions
+            .push(NpcAction::Dialogue(session.target, Dialogue {
+                id: session.id,
+                kind: DialogueKind::Response {
+                    tag,
+                    response: response.1.clone(),
+                    response_id: response.0,
+                },
             }));
     }
 
@@ -261,6 +297,9 @@ pub struct Npc {
 
     #[serde(skip)]
     pub brain: Option<Brain>,
+
+    #[serde(skip)]
+    pub npc_dialogue: VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
 }
 
 impl Clone for Npc {
@@ -286,6 +325,7 @@ impl Clone for Npc {
             inbox: Default::default(),
             mode: Default::default(),
             brain: Default::default(),
+            npc_dialogue: Default::default(),
         }
     }
 }
@@ -316,6 +356,7 @@ impl Npc {
             inbox: Default::default(),
             mode: SimulationMode::Simulated,
             brain: None,
+            npc_dialogue: Default::default(),
         }
     }
 
@@ -359,7 +400,7 @@ impl Npc {
 
     pub fn profession(&self) -> Option<Profession> {
         match &self.role {
-            Role::Civilised(profession) => profession.clone(),
+            Role::Civilised(profession) => *profession,
             Role::Monster | Role::Wild | Role::Vehicle => None,
         }
     }

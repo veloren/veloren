@@ -40,7 +40,7 @@ pub struct Interactables {
 #[derive(Clone, Debug)]
 pub enum BlockInteraction {
     Collect { steal: bool },
-    Unlock(UnlockKind),
+    Unlock { kind: UnlockKind, steal: bool },
     Craft(CraftingTab),
     // TODO: mining blocks don't use the interaction key, so it might not be the best abstraction
     // to have them here, will see how things turn out
@@ -118,7 +118,10 @@ impl BlockInteraction {
                 };
 
                 if let Some(unlock) = unlock {
-                    Some((block, BlockInteraction::Unlock(unlock)))
+                    Some((block, BlockInteraction::Unlock {
+                        kind: unlock,
+                        steal: block.is_owned(),
+                    }))
                 } else if let Some(mine_tool) = block.mine_tool() {
                     Some((block, BlockInteraction::Mine(mine_tool)))
                 } else {
@@ -153,7 +156,7 @@ impl BlockInteraction {
             | BlockInteraction::Read(_)
             | BlockInteraction::LightToggle(_)
             | BlockInteraction::Craft(_)
-            | BlockInteraction::Unlock(_) => GameInput::Interact,
+            | BlockInteraction::Unlock { .. } => GameInput::Interact,
             BlockInteraction::Mine(_) => GameInput::Primary,
             BlockInteraction::Mount => GameInput::Mount,
         }
@@ -162,7 +165,7 @@ impl BlockInteraction {
     pub fn range(&self) -> f32 {
         match self {
             BlockInteraction::Collect { .. }
-            | BlockInteraction::Unlock(_)
+            | BlockInteraction::Unlock { .. }
             | BlockInteraction::Mine(_)
             | BlockInteraction::Craft(_) => consts::MAX_PICKUP_RANGE,
             BlockInteraction::Mount => consts::MAX_MOUNT_RANGE,
@@ -521,7 +524,7 @@ impl Interactable {
             Self::Block  { interaction: BlockInteraction::Craft(_), .. }         => 3,
             Self::Block  { interaction: BlockInteraction::Collect { .. }, .. }   => 3,
             Self::Entity { interaction: EntityInteraction::HelpDowned, .. }      => 2,
-            Self::Block  { interaction: BlockInteraction::Unlock(_), .. }        => 1,
+            Self::Block  { interaction: BlockInteraction::Unlock { .. }, .. }    => 1,
             Self::Block  { interaction: BlockInteraction::Read(_), .. }          => 1,
             Self::Block  { interaction: BlockInteraction::LightToggle(_), .. }   => 1,
             Self::Entity { interaction: EntityInteraction::Pet, .. }             => 0,

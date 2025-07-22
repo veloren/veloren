@@ -163,7 +163,10 @@ fn humanoid_config(profession: &Profession) -> &'static str {
         Profession::Blacksmith => "common.entity.village.blacksmith",
         Profession::Chef => "common.entity.village.chef",
         Profession::Alchemist => "common.entity.village.alchemist",
-        Profession::Pirate => "common.entity.spot.pirate",
+        Profession::Pirate(leader) => match leader {
+            false => "common.entity.spot.pirate",
+            true => "common.entity.spot.buccaneer",
+        },
         Profession::Cultist => "common.entity.dungeon.cultist.cultist",
     }
 }
@@ -284,11 +287,13 @@ fn get_npc_entity_info(
             .with_body(BodyBuilder::Exact(npc.body));
         EntityInfo::at(pos.0)
             .with_entity_config(entity_config, Some(config_asset), &mut rng, time)
-            .with_alignment(if matches!(profession, Profession::Cultist) {
-                comp::Alignment::Enemy
-            } else {
-                comp::Alignment::Npc
-            })
+            .with_alignment(
+                if matches!(profession, Profession::Cultist | Profession::Pirate(_)) {
+                    comp::Alignment::Enemy
+                } else {
+                    comp::Alignment::Npc
+                },
+            )
             .with_economy(economy.as_ref())
             .with_lazy_loadout(profession_extra_loadout(Some(&profession)))
             .with_alias(npc.get_name())

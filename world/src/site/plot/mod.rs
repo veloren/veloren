@@ -161,6 +161,7 @@ impl PlotKindMeta<'_> {
     }
 }
 
+#[derive(strum::Display)]
 pub enum PlotKind {
     House(House),
     AirshipDock(AirshipDock),

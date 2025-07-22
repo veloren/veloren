@@ -96,7 +96,7 @@ fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
                 Profession::Blacksmith => "npc-info-role_blacksmith",
                 Profession::Chef => "npc-info-role_chef",
                 Profession::Alchemist => "npc-info-role_alchemist",
-                Profession::Pirate => "npc-info-role_pirate",
+                Profession::Pirate(_) => "npc-info-role_pirate",
                 Profession::Cultist => "npc-info-role_cultist",
                 Profession::Herbalist => "npc-info-role_herbalist",
                 Profession::Captain => "npc-info-role_captain",

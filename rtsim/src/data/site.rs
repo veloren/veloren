@@ -13,6 +13,7 @@ use world::site::Site as WorldSite;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Site {
+    pub uid: u64,
     pub seed: u32,
     pub wpos: Vec2<i32>,
     pub faction: Option<FactionId>,
@@ -71,6 +72,7 @@ impl Site {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Sites {
+    pub uid_counter: u64,
     pub sites: HopSlotMap<SiteId, Site>,
 
     #[serde(skip_serializing, skip_deserializing)]
@@ -78,8 +80,12 @@ pub struct Sites {
 }
 
 impl Sites {
-    pub fn create(&mut self, site: Site) -> SiteId {
+    pub fn create(&mut self, mut site: Site) -> SiteId {
         let world_site = site.world_site;
+
+        site.uid = self.uid_counter;
+        self.uid_counter = self.uid_counter.wrapping_add(1);
+
         let key = self.sites.insert(site);
         if let Some(world_site) = world_site {
             self.world_site_map.insert(world_site, key);

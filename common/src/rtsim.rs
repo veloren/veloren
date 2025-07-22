@@ -393,7 +393,7 @@ pub enum Role {
 
 // Note: the `serde(name = "...")` is to minimise the length of field
 // identifiers for the sake of rtsim persistence
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Profession {
     #[serde(rename = "0")]
     Farmer,
@@ -412,7 +412,8 @@ pub enum Profession {
     #[serde(rename = "7")]
     Alchemist,
     #[serde(rename = "8")]
-    Pirate,
+    /// True if leader
+    Pirate(bool),
     #[serde(rename = "9")]
     Cultist,
     #[serde(rename = "10")]

@@ -1,6 +1,7 @@
 pub mod predicate;
 
 use predicate::Predicate;
+use rand::Rng;
 
 use crate::{
     RtState,
@@ -71,6 +72,7 @@ pub struct NpcCtx<'a, 'd> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
+    pub npc_dialogue: &'a mut VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
     pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,
@@ -79,6 +81,30 @@ pub struct NpcCtx<'a, 'd> {
     pub dt: f32,
     pub rng: ChaChaRng,
     pub system_data: &'a NpcSystemData<'d>,
+}
+
+fn discrete_chance(dt: f64, chance_per_second: f64) -> f64 {
+    if dt <= 1.0 {
+        (dt * chance_per_second).clamp(0.0, 1.0)
+    } else {
+        let n_chance = 1.0 - chance_per_second.clamp(0.0, 1.0);
+        1.0 - n_chance.powf(dt)
+    }
+}
+
+#[test]
+fn test_discrete_chance() {
+    // 0.2 chance per second over 10 seconds = ~89%
+    let p = discrete_chance(10.0, 0.2);
+    assert!((p - 0.89).abs() < 0.005);
+}
+
+impl NpcCtx<'_, '_> {
+    /// Chance for something to happen each second.
+    pub fn chance(&mut self, chance: f64) -> bool {
+        let p = discrete_chance(self.dt as f64, chance);
+        self.rng.gen_bool(p)
+    }
 }
 
 #[derive(SystemData)]
