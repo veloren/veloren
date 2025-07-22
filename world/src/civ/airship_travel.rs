@@ -1124,13 +1124,6 @@ impl Airships {
     }
 }
 
-// #[derive(Debug, Clone)]
-// enum EdgeRemovalStackNodeType {
-//     Find,
-//     Check,
-//     Undo,
-// }
-
 #[cfg(debug_assertions)]
 macro_rules! debug_airship_eulerization {
     ($($arg:tt)*) => {
