@@ -1,7 +1,12 @@
 use crate::{
     RtState, Rule, RuleError,
-    data::{Site, npc::Profession},
+    data::{
+        Site,
+        architect::{Population, TrackedPopulation},
+        npc::Profession,
+    },
     event::OnSetup,
+    gen::wanted_population,
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
@@ -190,6 +195,20 @@ impl Rule for Migrate {
             // Group the airship captains by route
             data.airship_sim
                 .configure_route_pilots(&ctx.world.civs().airships);
+
+            // Calculate architect populations
+            data.architect.wanted_population = wanted_population(ctx.world, ctx.index);
+
+            data.architect.population = Population::default();
+
+            for npc in data.npcs.values() {
+                let pop = TrackedPopulation::from_body_and_role(&npc.body, &npc.role);
+                data.architect.population.add(pop, 1);
+            }
+
+            for death in data.architect.deaths.iter() {
+                data.architect.population.on_spawn(death);
+            }
         });
 
         Ok(Self)

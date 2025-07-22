@@ -37,10 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Serverside gizmos for debugging things like pathfinding.
 - A potion which permanently changes the characters body type.
 - Internal settings for audio samplerate and buffer size.
-- Added fire gigas
+- Added fire gigas.
 - Consumables drop their container after getting consumed.
-- Added separate settings to toggle rain effects
+- Added separate settings to toggle rain effects.
 - One new overworld track.
+- Pirates sometimes going to raid towns.
 
 ### Changed
 

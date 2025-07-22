@@ -65,10 +65,7 @@ use common::{
     vol::ReadVol,
 };
 #[cfg(feature = "worldgen")]
-use common::{
-    terrain::{TERRAIN_CHUNK_BLOCKS_LG, TerrainChunkSize},
-    weather,
-};
+use common::{terrain::TERRAIN_CHUNK_BLOCKS_LG, weather};
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
@@ -1351,6 +1348,71 @@ fn handle_site(
     ))
 }
 
+#[cfg(feature = "worldgen")]
+fn resolve_site(
+    server: &Server,
+    key: &str,
+) -> CmdResult<(
+    common::store::Id<world::site::Site>,
+    Option<common::store::Id<world::site::Plot>>,
+)> {
+    use rand::seq::IteratorRandom;
+
+    if let Some(id) = key.strip_prefix("rtsim@") {
+        let id = id
+            .parse::<u64>()
+            .map_err(|_| Content::Plain(format!("Expected number after 'rtsim@', got {id}")))?;
+
+        let ws = server
+            .state
+            .ecs()
+            .read_resource::<crate::rtsim::RtSim>()
+            .state()
+            .data()
+            .sites
+            .values()
+            .find(|site| site.uid == id)
+            .map(|site| site.world_site)
+            .ok_or(Content::Plain(format!(
+                "Could not find rtsim site with id {id}."
+            )))?;
+
+        let ws = ws.ok_or_else(|| {
+            Content::Plain(format!(
+                "The site '{key}' isn't associated with a world site."
+            ))
+        })?;
+
+        return Ok((ws, None));
+    }
+
+    if let Some(plot_name) = key.strip_prefix("plot:") {
+        let plot_name = plot_name.to_lowercase();
+        return server
+            .index
+            .sites
+            .iter()
+            .flat_map(|(id, site)| {
+                site.plots
+                    .iter()
+                    .filter(|(_, plot)| plot.kind().to_string().to_lowercase().contains(&plot_name))
+                    .map(move |(plot_id, _)| (id, Some(plot_id)))
+            })
+            .choose(&mut thread_rng())
+            .ok_or_else(|| {
+                Content::Plain(format!("Couldn't find a plot with the key '{plot_name}'"))
+            });
+    }
+
+    server
+        .index
+        .sites
+        .iter()
+        .find(|(_, site)| site.name() == key)
+        .map(|(id, _)| (id, None))
+        .ok_or_else(|| Content::localized("command-site-not-found"))
+}
+
 /// TODO: Add autocompletion if possible (might require modifying enum to handle
 /// dynamic values).
 #[cfg(feature = "worldgen")]
@@ -1362,21 +1424,19 @@ fn handle_site(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     if let (Some(dest_name), dismount_volume) = parse_cmd_args!(args, String, bool) {
-        let site = server
-            .world
-            .civs()
-            .sites()
-            .find(|site| {
-                site.site_tmp
-                    .is_some_and(|id| server.index.sites[id].name() == dest_name)
-            })
-            .ok_or_else(|| Content::localized("command-site-not-found"))?;
+        let (site, plot) = resolve_site(server, &dest_name)?;
+        let site = server.index.sites.get(site);
+        let site_pos = if let Some(plot) = plot {
+            let plot = site.plots.get(plot);
+            site.tile_center_wpos(plot.root_tile())
+        } else {
+            site.origin
+        };
 
-        let site_pos = server.world.find_accessible_pos(
-            server.index.as_index_ref(),
-            TerrainChunkSize::center_wpos(site.center),
-            false,
-        );
+        let site_pos =
+            server
+                .world
+                .find_accessible_pos(server.index.as_index_ref(), site_pos, false);
 
         server
             .state

@@ -1095,7 +1095,7 @@ impl PlayState for SessionState {
                                             } => {
                                                 match interaction {
                                                     BlockInteraction::Collect { .. }
-                                                    | BlockInteraction::Unlock(_) => {
+                                                    | BlockInteraction::Unlock { .. } => {
                                                         if block.is_collectible(
                                                             client
                                                                 .state()

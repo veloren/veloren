@@ -55,6 +55,8 @@ impl Site {
         };
 
         Self {
+            // This is assigned later
+            uid: 0,
             seed: rng.gen(),
             wpos,
             world_site: Some(world_site_id),

@@ -1,5 +1,6 @@
 use common::{
     comp::{self, Body},
+    resources::TimeOfDay,
     rtsim::{Actor, Personality, Profession, Role},
     terrain::CoordinateConversions,
 };
@@ -12,7 +13,10 @@ use world::{CONFIG, IndexRef, World, sim::SimChunk, site::SiteKind};
 
 use crate::{
     Data, EventCtx, OnTick, RtState,
-    data::{Npc, architect::Death},
+    data::{
+        Npc,
+        architect::{Death, TrackedPopulation},
+    },
     event::OnDeath,
 };
 
@@ -58,7 +62,164 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
 
     let data = &mut *ctx.state.data_mut();
 
-    let mut count_to_spawn = thread_rng().gen_range(1..20);
+    let mut rng = thread_rng();
+    let mut count_to_spawn = rng.gen_range(1..20);
+
+    let pop = data.architect.population.clone();
+    'outer: for (pop, count) in pop
+        .iter()
+        .zip(data.architect.wanted_population.iter())
+        .filter(|((_, current), (_, wanted))| current < wanted)
+        .map(|((pop, current), (_, wanted))| (pop, wanted - current))
+    {
+        for _ in 0..count {
+            let (body, role) = match pop {
+                TrackedPopulation::Adventurers => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Adventurer(rng.gen_range(0..=3)))),
+                ),
+                TrackedPopulation::Merchants => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Merchant)),
+                ),
+                TrackedPopulation::Guards => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Guard)),
+                ),
+                TrackedPopulation::Captains => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Captain)),
+                ),
+                TrackedPopulation::OtherTownNpcs => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(match rng.gen_range(0..10) {
+                        0 => Profession::Hunter,
+                        1 => Profession::Blacksmith,
+                        2 => Profession::Chef,
+                        3 => Profession::Alchemist,
+                        4..=5 => Profession::Herbalist,
+                        _ => Profession::Farmer,
+                    })),
+                ),
+                TrackedPopulation::Pirates => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Pirate(false))),
+                ),
+                TrackedPopulation::PirateCaptains => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Pirate(true))),
+                ),
+                TrackedPopulation::Cultists => (
+                    Body::Humanoid(comp::humanoid::Body::random()),
+                    Role::Civilised(Some(Profession::Cultist)),
+                ),
+                TrackedPopulation::GigasFrost => (
+                    Body::BipedLarge(comp::biped_large::Body::random_with(
+                        &mut rng,
+                        &comp::biped_large::Species::Gigasfrost,
+                    )),
+                    Role::Monster,
+                ),
+                TrackedPopulation::GigasFire => (
+                    Body::BipedLarge(comp::biped_large::Body::random_with(
+                        &mut rng,
+                        &comp::biped_large::Species::Gigasfire,
+                    )),
+                    Role::Monster,
+                ),
+                TrackedPopulation::OtherMonsters => {
+                    let species = [
+                        comp::biped_large::Species::Ogre,
+                        comp::biped_large::Species::Cyclops,
+                        comp::biped_large::Species::Wendigo,
+                        comp::biped_large::Species::Cavetroll,
+                        comp::biped_large::Species::Mountaintroll,
+                        comp::biped_large::Species::Swamptroll,
+                        comp::biped_large::Species::Blueoni,
+                        comp::biped_large::Species::Redoni,
+                        comp::biped_large::Species::Tursus,
+                    ]
+                    .choose(&mut rng)
+                    .unwrap();
+
+                    (
+                        Body::BipedLarge(comp::biped_large::Body::random_with(&mut rng, species)),
+                        Role::Monster,
+                    )
+                },
+                TrackedPopulation::CloudWyvern => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::CloudWyvern,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::FrostWyvern => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::FrostWyvern,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::SeaWyvern => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::SeaWyvern,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::FlameWyvern => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::FlameWyvern,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::WealdWyvern => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::WealdWyvern,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::Phoenix => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::Phoenix,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::Roc => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::Roc,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::Cockatrice => (
+                    Body::BirdLarge(comp::bird_large::Body::random_with(
+                        &mut rng,
+                        &comp::bird_large::Species::Cockatrice,
+                    )),
+                    Role::Wild,
+                ),
+                TrackedPopulation::Other => continue 'outer,
+            };
+
+            let fake_death = Death {
+                time: TimeOfDay(tod.0 - MIN_SPAWN_DELAY),
+                body,
+                role,
+                faction: None,
+            };
+
+            data.architect.population.on_spawn(&fake_death);
+
+            data.architect.deaths.push_front(fake_death);
+        }
+
+        count_to_spawn += count;
+    }
 
     // @perf: Could reuse previous allocation here.
     let mut failed_spawn = Vec::new();
@@ -66,6 +227,14 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
     while count_to_spawn > 0
         && let Some(death) = data.architect.deaths.pop_front()
     {
+        if data.architect.population.of_death(&death)
+            >= data.architect.wanted_population.of_death(&death)
+        {
+            data.architect.population.on_death(&death);
+            // If we have more than enough of this npc, we skip spawning a new one.
+            continue;
+        }
+
         if death.time.0 + MIN_SPAWN_DELAY > tod.0 {
             data.architect.deaths.push_front(death);
             break;
@@ -100,7 +269,7 @@ fn role_personality(rng: &mut impl Rng, role: &Role) -> Personality {
             Some(Profession::Guard | Profession::Merchant | Profession::Captain) => {
                 Personality::random_good(rng)
             },
-            Some(Profession::Cultist | Profession::Pirate) => Personality::random_evil(rng),
+            Some(Profession::Cultist | Profession::Pirate(_)) => Personality::random_evil(rng),
             None
             | Some(
                 Profession::Farmer
@@ -157,7 +326,7 @@ fn spawn_anywhere(
     attempt(false);
 }
 
-fn spawn_any_settlement(
+fn spawn_at_plot(
     data: &mut Data,
     world: &World,
     index: IndexRef,
@@ -165,34 +334,32 @@ fn spawn_any_settlement(
     rng: &mut impl Rng,
     body: Body,
     personality: Personality,
+    match_plot: impl Fn(&Data, common::rtsim::SiteId, &world::site::Plot) -> bool,
 ) -> bool {
-    if let Some((id, site)) = data
+    let sites = &index.sites;
+    let data_ref = &*data;
+    let match_plot = &match_plot;
+    if let Some((id, site, plot)) = data
         .sites
         .iter()
-        .filter(|(_, site)| {
-            !site.is_loaded()
-                && site
-                    .world_site
-                    .map(|s| {
-                        index.sites.get(s).any_plot(|p| {
-                            matches!(
-                                p.kind().meta(),
-                                Some(world::site::plot::PlotKindMeta::House { .. })
-                            )
-                        })
-                    })
-                    .unwrap_or(false)
+        .filter(|(_, site)| !site.is_loaded())
+        .filter_map(|(id, site)| Some((id, site.world_site?)))
+        .flat_map(|(id, world_site)| {
+            let world_site = sites.get(world_site);
+            world_site
+                .filter_plots(move |plot| match_plot(data_ref, id, plot))
+                .map(move |plot| (id, world_site, plot))
         })
         .choose(rng)
     {
-        let wpos = site.wpos;
+        let wpos = site.tile_center_wpos(plot.root_tile());
         let wpos = wpos
             .as_()
             .with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
         let mut npc = Npc::new(rng.gen(), wpos, body, death.role.clone())
             .with_personality(personality)
             .with_home(id);
-        if let Some(faction) = site.faction {
+        if let Some(faction) = data.sites[id].faction {
             npc = npc.with_faction(faction);
         }
         data.spawn_npc(npc);
@@ -200,6 +367,59 @@ fn spawn_any_settlement(
         true
     } else {
         false
+    }
+}
+
+fn spawn_profession(
+    data: &mut Data,
+    world: &World,
+    index: IndexRef,
+    death: &Death,
+    rng: &mut impl Rng,
+    body: Body,
+    personality: Personality,
+    profession: Option<Profession>,
+) -> bool {
+    match profession {
+        Some(Profession::Pirate(captain)) => {
+            spawn_at_plot(
+                data,
+                world,
+                index,
+                death,
+                rng,
+                body,
+                personality,
+                |data, s, p| {
+                    // Don't spawn multiple captains at the same site.
+                    if captain
+                        && data.sites[s].population.iter().any(|npc| {
+                            data.npcs.get(*npc).is_some_and(|npc| {
+                                matches!(npc.profession(), Some(Profession::Pirate(true)))
+                            })
+                        })
+                    {
+                        return false;
+                    }
+                    matches!(p.kind(), world::site::PlotKind::PirateHideout(_))
+                },
+            )
+        },
+        _ => spawn_at_plot(
+            data,
+            world,
+            index,
+            death,
+            rng,
+            body,
+            personality,
+            |_, _, p| {
+                matches!(
+                    p.kind().meta(),
+                    Some(world::site::plot::PlotKindMeta::House { .. })
+                )
+            },
+        ),
     }
 }
 
@@ -234,9 +454,16 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
         }
     } else {
         match &death.role {
-            Role::Civilised(_) => {
-                spawn_any_settlement(data, world, index, death, &mut rng, body, personality)
-            },
+            Role::Civilised(profession) => spawn_profession(
+                data,
+                world,
+                index,
+                death,
+                &mut rng,
+                body,
+                personality,
+                *profession,
+            ),
             Role::Wild => {
                 let site_filter: fn(&SiteKind) -> bool = match body {
                     Body::BirdLarge(body) => match body.species {
@@ -363,8 +590,17 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
     // If enough time has passed, try spawning anyway.
     if !did_spawn && death.time.0 + MIN_SPAWN_DELAY * 5.0 < data.time_of_day.0 {
         match death.role {
-            Role::Civilised(_) => {
-                if !spawn_any_settlement(data, world, index, death, &mut rng, body, personality) {
+            Role::Civilised(profession) => {
+                if !spawn_profession(
+                    data,
+                    world,
+                    index,
+                    death,
+                    &mut rng,
+                    body,
+                    personality,
+                    profession,
+                ) {
                     spawn_anywhere(data, world, death, &mut rng, body, personality)
                 }
             },

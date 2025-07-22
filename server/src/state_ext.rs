@@ -776,18 +776,11 @@ impl StateExt for State {
             return true;
         };
 
-        // Don't permit players to send non-plain content... yet.
-        // TODO: Eventually, it would be nice for players to be able to send messages
-        // that get localised on their client!
+        // Don't permit players to send non-plain content sent from their clients...
+        // yet. TODO: Eventually, it would be nice for players to be able to
+        // send messages that get localised on their client!
         let Some(msg) = msg.as_plain() else {
-            if !from_client {
-                warn!(
-                    "Non-plain chat message with a player as the sender was filtered out. This \
-                     message did not come directly from the client so this is probably a bug in \
-                     the server as these message types are not allowed currently."
-                )
-            }
-            return false;
+            return !from_client;
         };
 
         match automod.validate_chat_msg(

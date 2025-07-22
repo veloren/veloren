@@ -9,7 +9,7 @@
             8: Filled(Air, (r: 255, g: 255, b: 255)),
             20: Sprite(ShortGrass()),
             19: Sprite(Mushroom()),
-            18: SpriteWithCfg(CommonLockedChest, (
+            18: SpriteWithCfg(CommonLockedChest(), (
                 loot_table: "common.loot_tables.spot.wolf_burrow",
             )),
             17: Sprite(Bones()),
