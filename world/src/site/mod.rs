@@ -3171,7 +3171,9 @@ impl Site {
                                 };
 
                                 match fill {
-                                    Fill::ResourceSprite { .. } => canvas.map_resource(pos, map),
+                                    Fill::ResourceSprite { .. } | Fill::Prefab(..) => {
+                                        canvas.map_resource(pos, map)
+                                    },
                                     _ => canvas.map(pos, map),
                                 };
 
