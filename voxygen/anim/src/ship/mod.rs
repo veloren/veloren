@@ -3,24 +3,25 @@ pub mod idle;
 // Reexports
 pub use self::idle::IdleAnimation;
 
-use super::{FigureBoneData, Offsets, Skeleton, TrailSource, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::ship::Body;
 
-skeleton_impls!(struct ShipSkeleton {
-    + bone0,
-    + bone1,
-    + bone2,
-    + bone3,
+skeleton_impls!(struct ShipSkeleton ComputedShipSkeleton {
+    + bone0
+    + bone1
+    + bone2
+    + bone3
 });
 
 impl Skeleton for ShipSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedShipSkeleton;
 
-    const BONE_COUNT: usize = 4;
+    const BONE_COUNT: usize = ComputedShipSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"ship_compute_mats\0";
 
@@ -29,38 +30,24 @@ impl Skeleton for ShipSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> Offsets {
+        _body: Self::Body,
+    ) -> Self::ComputedSkeleton {
         // Ships are normal scale
         let scale_mat = Mat4::scaling_3d(1.0);
-
-        let attr = SkeletonAttr::from(&body);
 
         let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
         let bone1_mat = bone0_mat * Mat4::<f32>::from(self.bone1);
         let bone2_mat = bone0_mat * Mat4::<f32>::from(self.bone2);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(bone0_mat),
-            make_bone(bone1_mat),
-            make_bone(bone2_mat),
-            make_bone(bone0_mat * Mat4::<f32>::from(self.bone3)),
-        ];
-        Offsets {
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: (base_mat * scale_mat)
-                    .mul_point(comp::Body::Ship(body).mount_offset().into_tuple().into()),
-                ..Default::default()
-            },
-            primary_trail_mat: attr
-                .bone1_prop_trail_offset
-                .map(|offset| (bone1_mat, TrailSource::Propeller(offset))),
-            secondary_trail_mat: attr
-                .bone2_prop_trail_offset
-                .map(|offset| (bone2_mat, TrailSource::Propeller(offset))),
-            ..Default::default()
-        }
+        let computed_skeleton = ComputedShipSkeleton {
+            bone0: bone0_mat,
+            bone1: bone1_mat,
+            bone2: bone2_mat,
+            bone3: bone0_mat * Mat4::<f32>::from(self.bone3),
+        };
+
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -72,8 +59,8 @@ pub struct SkeletonAttr {
     bone1_ori: f32,
     bone2_ori: f32,
     bone_rotation_rate: f32,
-    bone1_prop_trail_offset: Option<f32>,
-    bone2_prop_trail_offset: Option<f32>,
+    pub bone1_prop_trail_offset: Option<f32>,
+    pub bone2_prop_trail_offset: Option<f32>,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {

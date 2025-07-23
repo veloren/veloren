@@ -18,29 +18,30 @@ pub use self::{
     shoot::ShootAnimation, stunned::StunnedAnimation, summon::SummonAnimation, swim::SwimAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::bird_medium::Body;
 
-skeleton_impls!(struct BirdMediumSkeleton {
-    + head,
-    + chest,
-    + tail,
-    + wing_in_l,
-    + wing_in_r,
-    + wing_out_l,
-    + wing_out_r,
-    + leg_l,
-    + leg_r,
+skeleton_impls!(struct BirdMediumSkeleton ComputedBirdMediumSkeleton {
+    + head
+    + chest
+    + tail
+    + wing_in_l
+    + wing_in_r
+    + wing_out_l
+    + wing_out_r
+    + leg_l
+    + leg_r
 });
 
 impl Skeleton for BirdMediumSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedBirdMediumSkeleton;
 
-    const BONE_COUNT: usize = 9;
+    const BONE_COUNT: usize = ComputedBirdMediumSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"bird_medium_compute_mats\0";
 
@@ -54,7 +55,7 @@ impl Skeleton for BirdMediumSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
@@ -67,37 +68,20 @@ impl Skeleton for BirdMediumSkeleton {
         let leg_l_mat = base_mat * Mat4::<f32>::from(self.leg_l);
         let leg_r_mat = base_mat * Mat4::<f32>::from(self.leg_r);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(chest_mat),
-            make_bone(tail_mat),
-            make_bone(wing_in_l_mat),
-            make_bone(wing_in_r_mat),
-            make_bone(wing_out_l_mat),
-            make_bone(wing_out_r_mat),
-            make_bone(leg_l_mat),
-            make_bone(leg_r_mat),
-        ];
-        use common::comp::body::bird_medium::Species::*;
+        let computed_skeleton = ComputedBirdMediumSkeleton {
+            head: head_mat,
+            chest: chest_mat,
+            tail: tail_mat,
+            wing_in_l: wing_in_l_mat,
+            wing_in_r: wing_in_r_mat,
+            wing_out_l: wing_out_l_mat,
+            wing_out_r: wing_out_r_mat,
+            leg_l: leg_l_mat,
+            leg_r: leg_r_mat,
+        };
 
-        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        let mount_position = mount_bone_mat.mul_point(mount_point(&body));
-        let mount_orientation = mount_bone_ori;
-
-        Offsets {
-            viewpoint: match body.species {
-                Bat | BloodmoonBat | VampireBat => {
-                    Some((head_mat * Vec4::new(0.0, 5.0, -4.0, 1.0)).xyz())
-                },
-                _ => Some((head_mat * Vec4::new(0.0, 3.0, 2.0, 1.0)).xyz()),
-            },
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -312,9 +296,29 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn viewpoint(body: &Body) -> Vec4<f32> {
+    use comp::bird_medium::Species::*;
+    match body.species {
+        Bat | BloodmoonBat | VampireBat => Vec4::new(0.0, 5.0, -4.0, 1.0),
+        _ => Vec4::new(0.0, 3.0, 2.0, 1.0),
+    }
+}
+
+pub fn mount_mat(
+    computed_skeleton: &ComputedBirdMediumSkeleton,
+    skeleton: &BirdMediumSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (computed_skeleton.chest, skeleton.chest.orientation)
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedBirdMediumSkeleton,
+    skeleton: &BirdMediumSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::bird_medium::{BodyType::*, Species::*};
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (SnowyOwl, _) => (0.0, -4.0, 2.0),
         (HornedOwl, _) => (0.0, -4.0, 1.0),
         (Duck, _) => (0.0, -3.0, 2.0),
@@ -335,5 +339,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (BloodmoonBat, _) => (0.0, 0.5, 3.5),
         (VampireBat, _) => (0.0, 0.0, -1.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

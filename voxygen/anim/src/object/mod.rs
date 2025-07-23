@@ -5,22 +5,23 @@ pub mod shoot;
 // Reexports
 pub use self::{beam::BeamAnimation, idle::IdleAnimation, shoot::ShootAnimation};
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::object::Body;
 
-skeleton_impls!(struct ObjectSkeleton {
-    + bone0,
-    + bone1,
+skeleton_impls!(struct ObjectSkeleton ComputedObjectSkeleton {
+    + bone0
+    + bone1
 });
 
 impl Skeleton for ObjectSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedObjectSkeleton;
 
-    const BONE_COUNT: usize = 2;
+    const BONE_COUNT: usize = ComputedObjectSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"object_compute_mats\0";
 
@@ -29,24 +30,19 @@ impl Skeleton for ObjectSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> Offsets {
+        _body: Self::Body,
+    ) -> Self::ComputedSkeleton {
         let scale_mat = Mat4::scaling_3d(1.0 / 11.0);
 
         let bone0_mat = base_mat * scale_mat * Mat4::<f32>::from(self.bone0);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(bone0_mat),
-            make_bone(scale_mat * Mat4::<f32>::from(self.bone1)), /* Decorellated from ori */
-        ];
-        Offsets {
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: comp::Body::Object(body).mount_offset().into_tuple().into(),
-                ..Default::default()
-            },
-            ..Default::default()
-        }
+        let computed_skeleton = ComputedObjectSkeleton {
+            bone0: bone0_mat,
+            bone1: scale_mat * Mat4::<f32>::from(self.bone1), /* Decorellated from ori */
+        };
+
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 

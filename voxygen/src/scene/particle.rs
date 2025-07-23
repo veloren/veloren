@@ -12,8 +12,11 @@ use common::{
     assets::{AssetExt, DotVoxAsset},
     comp::{
         self, Beam, Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState,
-        Pos, Scale, Shockwave, Vel, ability::Dodgeable, aura, beam, biped_large, body, buff,
-        item::Reagent, object, shockwave,
+        Pos, Scale, Shockwave, Vel,
+        ability::Dodgeable,
+        aura, beam, biped_large, body, buff,
+        item::{ItemDefinitionId, Reagent},
+        object, shockwave,
     },
     figure::Segment,
     outcome::Outcome,
@@ -672,6 +675,7 @@ impl ParticleMgr {
                 .retain(|p| p.alive_until > scene_data.state.get_time());
 
             // add new Particle
+            self.maintain_armor_particles(scene_data, figure_mgr);
             self.maintain_body_particles(scene_data);
             self.maintain_char_state_particles(scene_data, figure_mgr);
             self.maintain_beam_particles(scene_data, lights);
@@ -690,6 +694,94 @@ impl ParticleMgr {
 
             // remove all timings
             self.scheduler.clear();
+        }
+    }
+
+    fn maintain_armor_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
+        prof_span!("ParticleMgr::maintain_armor_particles");
+        let ecs = scene_data.state.ecs();
+
+        for (entity, interpolated, inv) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Interpolated>(),
+            &ecs.read_storage::<Inventory>(),
+        )
+            .join()
+        {
+            for item in inv.equipped_items() {
+                if let ItemDefinitionId::Simple(str) = item.item_definition_id() {
+                    if &*str == "common.items.armor.misc.head.pipe" {
+                        self.maintain_pipe_particles(
+                            scene_data,
+                            figure_mgr,
+                            entity,
+                            interpolated.pos,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fn maintain_pipe_particles(
+        &mut self,
+        scene_data: &SceneData,
+        figure_mgr: &FigureMgr,
+        entity: Entity,
+        pos: Vec3<f32>,
+    ) {
+        prof_span!("ParticleMgr::maintain_pipe_particles");
+        let Some((species, body_type)) = scene_data
+            .state
+            .ecs()
+            .read_storage::<Body>()
+            .get(entity)
+            .and_then(|body| {
+                if let Body::Humanoid(body) = body {
+                    Some((body.species, body.body_type))
+                } else {
+                    None
+                }
+            })
+        else {
+            return;
+        };
+        let Some(skeleton) = figure_mgr
+            .states
+            .character_states
+            .get(&entity)
+            .map(|state| &state.computed_skeleton)
+        else {
+            return;
+        };
+        let time = scene_data.state.get_time();
+
+        // TODO: compute offsets instead of hardcoding
+        use body::humanoid::{BodyType::*, Species::*};
+        let pipe_offset = match (species, body_type) {
+            (Orc, Male) => Vec3::new(5.5, 10.5, 0.0),
+            (Orc, Female) => Vec3::new(4.5, 10.0, -2.5),
+            (Human, Male) => Vec3::new(4.5, 12.0, -3.0),
+            (Human, Female) => Vec3::new(4.5, 11.5, -3.0),
+            (Elf, Male) => Vec3::new(4.5, 12.0, -3.0),
+            (Elf, Female) => Vec3::new(4.5, 9.5, -3.0),
+            (Dwarf, Male) => Vec3::new(4.5, 11.0, -4.0),
+            (Dwarf, Female) => Vec3::new(4.5, 11.0, -3.0),
+            (Draugr, Male) => Vec3::new(4.5, 9.5, -0.75),
+            (Draugr, Female) => Vec3::new(4.5, 9.5, -2.0),
+            (Danari, Male) => Vec3::new(4.5, 10.5, -1.25),
+            (Danari, Female) => Vec3::new(4.5, 10.5, -1.25),
+        };
+
+        for _ in 0..self.scheduler.heartbeats(Duration::from_secs(6)) {
+            self.particles.resize_with(self.particles.len() + 10, || {
+                Particle::new(
+                    Duration::from_millis(1500),
+                    time,
+                    ParticleMode::PipeSmoke,
+                    pos + skeleton.head.mul_point(pipe_offset),
+                )
+            });
         }
     }
 
@@ -784,6 +876,7 @@ impl ParticleMgr {
         figure_mgr: &FigureMgr,
         entity: Entity,
         pos: Vec3<f32>,
+        body: &Body,
         state: &CharacterState,
         inventory: Option<&Inventory>,
     ) {
@@ -808,9 +901,20 @@ impl ParticleMgr {
             _ => return,
         };
 
-        let Some((start, end)) = figure_mgr.get_tail(scene_data, entity) else {
+        let Some(skeleton) = figure_mgr
+            .states
+            .quadruped_low_states
+            .get(&entity)
+            .map(|state| &state.computed_skeleton)
+        else {
             return;
         };
+        let Some(attr) = anim::quadruped_low::SkeletonAttr::try_from(body).ok() else {
+            return;
+        };
+
+        let start = (skeleton.tail_front * Vec4::unit_w()).xyz();
+        let end = (skeleton.tail_rear * Vec4::new(0.0, -attr.tail_rear_length, 0.0, 1.0)).xyz();
 
         let start = pos + start;
         let end = pos + end;
@@ -1716,8 +1820,8 @@ impl ParticleMgr {
                         if let Some(states::glide::Boost::Forward(_)) = &glide.booster
                             && let Some(figure_state) =
                                 figure_mgr.states.character_states.get(&entity)
-                            && let Some(tp0) = figure_state.main_abs_trail_points
-                            && let Some(tp1) = figure_state.off_abs_trail_points
+                            && let Some(tp0) = figure_state.primary_abs_trail_points
+                            && let Some(tp1) = figure_state.secondary_abs_trail_points
                         {
                             for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
                                 self.particles.push(Particle::new(
@@ -1796,6 +1900,7 @@ impl ParticleMgr {
                         figure_mgr,
                         entity,
                         interpolated.pos,
+                        body,
                         character_state,
                         inventory,
                     );

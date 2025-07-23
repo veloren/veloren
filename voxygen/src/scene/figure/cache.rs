@@ -283,7 +283,7 @@ impl CharacterCacheKey {
     }
 }
 
-pub(crate) struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
+pub(crate) struct FigureModelCache<Skel>
 where
     Skel: Skeleton,
     Skel::Body: BodySpec,

@@ -111,6 +111,7 @@ const int FIRE_GIGAS_EXPLOSION = 70;
 const int FIRE_PILLAR_INDICATOR = 71;
 const int FIRE_PILLAR = 72;
 const int FIRE_LOW_SHOCKWAVE = 73;
+const int PIPE_SMOKE = 74;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1178,6 +1179,17 @@ void main() {
                 vec3(((5.0 + 3.0 * pow(rand0, 2)) * (1 - min(slow_start(0.05), 0.8)))),
                 vec4(mix(vec3(5.0, 2.0 + 1.0 * rand2, 0.4), vec3(4.0, 1.2, 0.4), pow(percent(), 3)), 0.7),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case PIPE_SMOKE:
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
+                ),
+                vec3(1.0 - slow_start(0.01)),
+                vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
             );
             break;
         default:

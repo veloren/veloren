@@ -2,15 +2,43 @@
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 
+macro_rules! replace_with_unit {
+    ($_:tt) => {
+        ()
+    };
+}
+
 macro_rules! skeleton_impls {
-    { struct $Skeleton:ident { $( $(+ $bone_vis:vis)? $bone:ident ),* $(,)? $(:: $($field:ident : $field_ty:ty),* $(,)? )? } } => {
+    {
+        struct $Skeleton:ident $ComputedSkeleton:ident {
+            $(+ $mesh_bone:ident)*
+            $($bone:ident)*
+            $(::
+            $($field:ident : $field_ty:ty),* $(,)?
+            )?
+        }
+    } => {
+        #[derive(Clone, Default)]
+        pub struct $ComputedSkeleton {
+            $(pub $mesh_bone: $crate::vek::Mat4<f32>,)*
+        }
+
+        impl $ComputedSkeleton {
+            pub const BONE_COUNT: usize = [$(replace_with_unit!($mesh_bone),)*].len();
+
+            pub fn set_figure_bone_data(&self, buf: &mut [$crate::FigureBoneData; $crate::MAX_BONE_COUNT]) {
+                *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
+                    $($crate::make_bone(self.$mesh_bone),)*
+                ];
+            }
+        }
+
         #[derive(Clone, Default)]
         pub struct $Skeleton {
-            $(
-                $($bone_vis)? $bone: $crate::Bone,
-            )*
+            $(pub $mesh_bone: $crate::Bone,)*
+            $(pub $bone: $crate::Bone,)*
             $($(
-                $field : $field_ty,
+                pub $field : $field_ty,
             )*)?
         }
 
@@ -23,9 +51,8 @@ macro_rules! skeleton_impls {
 
             fn lerp_unclamped_precise(from: Self, to: Self, factor: Factor) -> Self::Output {
                 Self::Output {
-                    $(
-                        $bone: Lerp::lerp_unclamped_precise(from.$bone, to.$bone, factor),
-                    )*
+                    $($mesh_bone: Lerp::lerp_unclamped_precise(from.$mesh_bone, to.$mesh_bone, factor),)*
+                    $($bone: Lerp::lerp_unclamped_precise(from.$bone, to.$bone, factor),)*
                     $($(
                         $field : to.$field.clone(),
                     )*)?
@@ -34,9 +61,8 @@ macro_rules! skeleton_impls {
 
             fn lerp_unclamped(from: Self, to: Self, factor: Factor) -> Self::Output {
                 Self::Output {
-                    $(
-                        $bone: Lerp::lerp_unclamped(from.$bone, to.$bone, factor),
-                    )*
+                    $($mesh_bone: Lerp::lerp_unclamped(from.$mesh_bone, to.$mesh_bone, factor),)*
+                    $($bone: Lerp::lerp_unclamped(from.$bone, to.$bone, factor),)*
                     $($(
                         $field : to.$field.clone(),
                     )*)?
@@ -71,7 +97,6 @@ pub mod vek;
 
 use self::vek::*;
 use bytemuck::{Pod, Zeroable};
-use common::comp::tool::ToolKind;
 #[cfg(feature = "use-dyn-lib")]
 use {
     common_dynlib::LoadedLib, lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc,
@@ -105,68 +130,10 @@ lazy_static! {
 #[cfg(feature = "use-dyn-lib")]
 pub fn init() { lazy_static::initialize(&LIB); }
 
-// Offsets that will be returned after computing the skeleton matrices
-#[derive(Default)]
-pub struct Offsets {
-    pub lantern: Option<Vec3<f32>>,
-    pub viewpoint: Option<Vec3<f32>>,
-    pub mount_bone: Transform<f32, f32, f32>,
-    pub primary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
-    pub secondary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
-    pub heads: Vec<Vec3<f32>>,
-    pub tail: Option<(Vec3<f32>, Vec3<f32>)>,
-}
-
-#[derive(Clone, Copy)]
-pub enum TrailSource {
-    Weapon,
-    GliderLeft,
-    GliderRight,
-    Propeller(f32),
-}
-
-impl TrailSource {
-    pub fn relative_offsets(&self, tool: Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>) {
-        // Offsets
-        const GLIDER_VERT: f32 = 5.0;
-        const GLIDER_HORIZ: f32 = 15.0;
-        // Trail width
-        const GLIDER_WIDTH: f32 = 1.0;
-
-        match self {
-            Self::Weapon => {
-                let lengths = match tool {
-                    Some(ToolKind::Sword) => (0.0, 29.25),
-                    Some(ToolKind::Axe) => (10.0, 19.25),
-                    Some(ToolKind::Hammer) => (10.0, 19.25),
-                    Some(ToolKind::Staff) => (10.0, 19.25),
-                    Some(ToolKind::Sceptre) => (10.0, 19.25),
-                    _ => (0.0, 0.0),
-                };
-                (
-                    Vec4::new(0.0, 0.0, lengths.0, 1.0),
-                    Vec4::new(0.0, 0.0, lengths.1, 1.0),
-                )
-            },
-            Self::GliderLeft => (
-                Vec4::new(GLIDER_HORIZ, 0.0, GLIDER_VERT, 1.0),
-                Vec4::new(GLIDER_HORIZ + GLIDER_WIDTH, 0.0, GLIDER_VERT, 1.0),
-            ),
-            Self::GliderRight => (
-                Vec4::new(-GLIDER_HORIZ, 0.0, GLIDER_VERT, 1.0),
-                Vec4::new(-(GLIDER_HORIZ + GLIDER_WIDTH), 0.0, GLIDER_VERT, 1.0),
-            ),
-            Self::Propeller(length) => (
-                Vec4::new(0.0, 0.0, *length * 0.5, 1.0),
-                Vec4::new(0.0, 0.0, *length, 1.0),
-            ),
-        }
-    }
-}
-
 pub trait Skeleton: Send + Sync + 'static {
     type Attr;
     type Body;
+    type ComputedSkeleton;
 
     const BONE_COUNT: usize;
 
@@ -178,7 +145,7 @@ pub trait Skeleton: Send + Sync + 'static {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         #[cfg(not(feature = "use-dyn-lib"))]
         {
             self.compute_matrices_inner(base_mat, buf, body)
@@ -189,7 +156,12 @@ pub trait Skeleton: Send + Sync + 'static {
             let lib = &lock.as_ref().unwrap().lib;
 
             let compute_fn: common_dynlib::Symbol<
-                fn(&Self, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], Self::Body) -> Offsets,
+                fn(
+                    &Self,
+                    Mat4<f32>,
+                    &mut [FigureBoneData; MAX_BONE_COUNT],
+                    Self::Body,
+                ) -> Self::ComputedSkeleton,
             > = unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
                 panic!(
                     "Trying to use: {} but had error: {:?}",
@@ -210,7 +182,7 @@ pub trait Skeleton: Send + Sync + 'static {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets;
+    ) -> Self::ComputedSkeleton;
 }
 
 pub fn compute_matrices<S: Skeleton>(
@@ -218,7 +190,7 @@ pub fn compute_matrices<S: Skeleton>(
     base_mat: Mat4<f32>,
     buf: &mut [FigureBoneData; MAX_BONE_COUNT],
     body: S::Body,
-) -> Offsets {
+) -> S::ComputedSkeleton {
     S::compute_matrices(skeleton, base_mat, buf, body)
 }
 

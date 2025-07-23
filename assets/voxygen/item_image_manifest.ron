@@ -3393,6 +3393,10 @@
         "voxel.armor.misc.head.bamboo_twig",
         (2.5, 4.5, 0.0), (-120.0, -240.0,1.0), 2.3,
     ),
+    Simple("common.items.armor.misc.head.pipe"): VoxTrans(
+        "voxel.armor.misc.head.pipe",
+        (2.5, 4.5, 0.0), (-120.0, -240.0,1.0), 2.3,
+    ),
     Simple("common.items.armor.misc.head.scarlet_spectacles"): VoxTrans(
         "voxel.armor.misc.head.scarlet_spectacles.scarlet_spectacles",
         (-0.5, 0.0, 0.0), (295.0, 30.0, 0.0), 0.9,

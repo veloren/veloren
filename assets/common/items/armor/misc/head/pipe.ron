@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Pipe",
+    legacy_description: "Each puff you take fills you with a sense of euphoria.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct(()),
+    )),
+    quality: Common,
+    tags: [],
+)

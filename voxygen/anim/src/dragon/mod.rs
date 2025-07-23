@@ -5,35 +5,36 @@ pub mod run;
 // Reexports
 pub use self::{fly::FlyAnimation, idle::IdleAnimation, run::RunAnimation};
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp;
 use core::convert::TryFrom;
 
 pub type Body = comp::dragon::Body;
 
-skeleton_impls!(struct DragonSkeleton {
-    + head_upper,
-    + head_lower,
-    + jaw,
-    + chest_front,
-    + chest_rear,
-    + tail_front,
-    + tail_rear,
-    + wing_in_l,
-    + wing_in_r,
-    + wing_out_l,
-    + wing_out_r,
-    + foot_fl,
-    + foot_fr,
-    + foot_bl,
-    + foot_br,
+skeleton_impls!(struct DragonSkeleton ComputedDragonSkeleton {
+    + head_upper
+    + head_lower
+    + jaw
+    + chest_front
+    + chest_rear
+    + tail_front
+    + tail_rear
+    + wing_in_l
+    + wing_in_r
+    + wing_out_l
+    + wing_out_r
+    + foot_fl
+    + foot_fr
+    + foot_bl
+    + foot_br
 });
 
 impl Skeleton for DragonSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedDragonSkeleton;
 
-    const BONE_COUNT: usize = 15;
+    const BONE_COUNT: usize = ComputedDragonSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"dragon_compute_mats\0";
 
@@ -43,8 +44,8 @@ impl Skeleton for DragonSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> Offsets {
+        _body: Self::Body,
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(1.0);
         let chest_front_mat = base_mat * Mat4::<f32>::from(self.chest_front);
         let chest_rear_mat = chest_front_mat * Mat4::<f32>::from(self.chest_rear);
@@ -54,46 +55,57 @@ impl Skeleton for DragonSkeleton {
         let tail_front_mat = chest_rear_mat * Mat4::<f32>::from(self.tail_front);
         let head_upper_mat = head_lower_mat * Mat4::<f32>::from(self.head_upper);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_upper_mat),
-            make_bone(head_lower_mat),
-            make_bone(head_upper_mat * Mat4::<f32>::from(self.jaw)),
-            make_bone(chest_front_mat),
-            make_bone(chest_rear_mat),
-            make_bone(tail_front_mat),
-            make_bone(tail_front_mat * Mat4::<f32>::from(self.tail_rear)),
-            make_bone(wing_in_l_mat),
-            make_bone(wing_in_r_mat),
-            make_bone(wing_in_l_mat * Mat4::<f32>::from(self.wing_out_l)),
-            make_bone(wing_in_r_mat * Mat4::<f32>::from(self.wing_out_r)),
-            make_bone(chest_front_mat * Mat4::<f32>::from(self.foot_fl)),
-            make_bone(chest_front_mat * Mat4::<f32>::from(self.foot_fr)),
-            make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_bl)),
-            make_bone(chest_rear_mat * Mat4::<f32>::from(self.foot_br)),
-        ];
+        let computed_skeleton = ComputedDragonSkeleton {
+            head_upper: head_upper_mat,
+            head_lower: head_lower_mat,
+            jaw: head_upper_mat * Mat4::<f32>::from(self.jaw),
+            chest_front: chest_front_mat,
+            chest_rear: chest_rear_mat,
+            tail_front: tail_front_mat,
+            tail_rear: tail_front_mat * Mat4::<f32>::from(self.tail_rear),
+            wing_in_l: wing_in_l_mat,
+            wing_in_r: wing_in_r_mat,
+            wing_out_l: wing_in_l_mat * Mat4::<f32>::from(self.wing_out_l),
+            wing_out_r: wing_in_r_mat * Mat4::<f32>::from(self.wing_out_r),
+            foot_fl: chest_front_mat * Mat4::<f32>::from(self.foot_fl),
+            foot_fr: chest_front_mat * Mat4::<f32>::from(self.foot_fr),
+            foot_bl: chest_rear_mat * Mat4::<f32>::from(self.foot_bl),
+            foot_br: chest_rear_mat * Mat4::<f32>::from(self.foot_br),
+        };
 
-        let mount_position = chest_front_mat.mul_point(mount_point(&body));
-        let mount_orientation = self.chest_front.orientation;
-
-        Offsets {
-            viewpoint: Some((head_upper_mat * Vec4::new(0.0, 8.0, 0.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                ..Default::default()
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    computed_skeleton: &ComputedDragonSkeleton,
+    skeleton: &DragonSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (
+        computed_skeleton.chest_front,
+        skeleton.chest_front.orientation,
+    )
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedDragonSkeleton,
+    skeleton: &DragonSkeleton,
+) -> Transform<f32, f32, f32> {
     use comp::dragon::Species::*;
-    match (body.species, body.body_type) {
+
+    let mount_point = match (body.species, body.body_type) {
         (Reddragon, _) => (0.0, 0.5, 5.5),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }
 
 pub struct SkeletonAttr {

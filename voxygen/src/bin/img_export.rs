@@ -5,9 +5,9 @@ use anim::{
     biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
     bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
     crustacean::CrustaceanSkeleton, dragon::DragonSkeleton, fish_medium::FishMediumSkeleton,
-    fish_small::FishSmallSkeleton, golem::GolemSkeleton, object::ObjectSkeleton,
-    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
-    quadruped_small::QuadrupedSmallSkeleton, theropod::TheropodSkeleton,
+    fish_small::FishSmallSkeleton, golem::GolemSkeleton, quadruped_low::QuadrupedLowSkeleton,
+    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
+    theropod::TheropodSkeleton,
 };
 use clap::Parser;
 use common::{
@@ -397,7 +397,7 @@ fn load_npc_bones(
     let time = 0.0;
 
     let mut buf = [FigureBoneData::default(); 16];
-    let offsets = match info.body {
+    let mount_mat = match info.body {
         Body::Humanoid(body) => {
             let back_carry_offset = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Back))
@@ -429,8 +429,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::character::SkeletonAttr::from(&body),
             );
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
 
-            skel.compute_matrices(base_mat, &mut buf, body)
+            anim::character::mount_mat(&computed_skel, &skel).0
         },
         Body::QuadrupedSmall(body) => {
             let skel = anim::quadruped_small::IdleAnimation::update_skeleton(
@@ -440,8 +441,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::quadruped_small::SkeletonAttr::from(&body),
             );
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
 
-            skel.compute_matrices(base_mat, &mut buf, body)
+            anim::quadruped_small::mount_mat(&computed_skel, &skel).0
         },
         Body::QuadrupedMedium(body) => {
             let skel = anim::quadruped_medium::IdleAnimation::update_skeleton(
@@ -451,7 +453,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::quadruped_medium::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::quadruped_medium::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::BirdMedium(body) => {
             let skel = anim::bird_medium::IdleAnimation::update_skeleton(
@@ -461,7 +465,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::bird_medium::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::bird_medium::mount_mat(&computed_skel, &skel).0
         },
         Body::FishMedium(body) => {
             let skel = anim::fish_medium::IdleAnimation::update_skeleton(
@@ -477,7 +483,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::fish_medium::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::fish_medium::mount_mat(&computed_skel, &skel).0
         },
         Body::Dragon(body) => {
             let skel = anim::dragon::IdleAnimation::update_skeleton(
@@ -487,7 +495,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::dragon::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::dragon::mount_mat(&computed_skel, &skel).0
         },
         Body::BirdLarge(body) => {
             let skel = anim::bird_large::IdleAnimation::update_skeleton(
@@ -497,7 +507,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::bird_large::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::bird_large::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::FishSmall(body) => {
             let skel = anim::fish_small::IdleAnimation::update_skeleton(
@@ -513,7 +525,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::fish_small::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::fish_small::mount_mat(&computed_skel, &skel).0
         },
         Body::BipedLarge(body) => {
             let skel = anim::biped_large::IdleAnimation::update_skeleton(
@@ -523,7 +537,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::biped_large::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::biped_large::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::BipedSmall(body) => {
             let skel = anim::biped_small::IdleAnimation::update_skeleton(
@@ -539,18 +555,11 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::biped_small::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::biped_small::mount_mat(&body, &computed_skel, &skel).0
         },
-        Body::Object(body) => {
-            let skel = anim::object::IdleAnimation::update_skeleton(
-                &ObjectSkeleton::default(),
-                (active_tool_kind, second_tool_kind, time),
-                0.0,
-                &mut 1.0,
-                &anim::object::SkeletonAttr::from(&body),
-            );
-            skel.compute_matrices(base_mat, &mut buf, body)
-        },
+        Body::Object(_) => Mat4::identity(), // Objects do not support mounting
         Body::Golem(body) => {
             let skel = anim::golem::IdleAnimation::update_skeleton(
                 &GolemSkeleton::default(),
@@ -559,7 +568,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::golem::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::golem::mount_mat(&computed_skel, &skel).0
         },
         Body::Theropod(body) => {
             let skel = anim::theropod::IdleAnimation::update_skeleton(
@@ -569,7 +580,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::theropod::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::theropod::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::QuadrupedLow(body) => {
             let skel = anim::quadruped_low::IdleAnimation::update_skeleton(
@@ -583,7 +596,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::quadruped_low::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::quadruped_low::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::Arthropod(body) => {
             let skel = anim::arthropod::IdleAnimation::update_skeleton(
@@ -593,7 +608,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::arthropod::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::arthropod::mount_mat(&body, &computed_skel, &skel).0
         },
         Body::Crustacean(body) => {
             let skel = anim::crustacean::IdleAnimation::update_skeleton(
@@ -603,7 +620,9 @@ fn load_npc_bones(
                 &mut 1.0,
                 &anim::crustacean::SkeletonAttr::from(&body),
             );
-            skel.compute_matrices(base_mat, &mut buf, body)
+            let computed_skel = skel.compute_matrices(base_mat, &mut buf, body);
+
+            anim::crustacean::mount_mat(&computed_skel, &skel).0
         },
         Body::Item(_) => panic!("Item bodies aren't supported"),
         Body::Ship(_) => panic!("Ship bodies aren't supported"),
@@ -624,11 +643,7 @@ fn load_npc_bones(
         .collect();
 
     if let Some(rider) = info.rider {
-        bones.extend(load_npc_bones(
-            *rider,
-            manifests,
-            Mat4::from(offsets.mount_bone),
-        ));
+        bones.extend(load_npc_bones(*rider, manifests, mount_mat));
     }
 
     bones

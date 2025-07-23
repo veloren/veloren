@@ -25,27 +25,27 @@ pub use self::{
     stunned::StunnedAnimation, summon::SummonAnimation, wield::WieldAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 use std::f32::consts::PI;
 
 pub type Body = comp::biped_small::Body;
 
-skeleton_impls!(struct BipedSmallSkeleton {
-    + head,
-    + chest,
-    + pants,
-    + tail,
-    + main,
-    + second,
-    + hand_l,
-    + hand_r,
-    + foot_l,
-    + foot_r,
-    control,
-    control_l,
-    control_r,
+skeleton_impls!(struct BipedSmallSkeleton ComputedBipedSmallSkeleton {
+    + head
+    + chest
+    + pants
+    + tail
+    + main
+    + second
+    + hand_l
+    + hand_r
+    + foot_l
+    + foot_r
+    control
+    control_l
+    control_r
     :: // Begin non-bone fields
     // Allows right hand to not be moved by control bone
     detach_right: bool,
@@ -54,8 +54,9 @@ skeleton_impls!(struct BipedSmallSkeleton {
 impl Skeleton for BipedSmallSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedBipedSmallSkeleton;
 
-    const BONE_COUNT: usize = 10;
+    const BONE_COUNT: usize = ComputedBipedSmallSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"biped_small_compute_mats\0";
 
@@ -68,7 +69,7 @@ impl Skeleton for BipedSmallSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
@@ -78,53 +79,27 @@ impl Skeleton for BipedSmallSkeleton {
         let control_r_mat = Mat4::<f32>::from(self.control_r);
         let head_mat = chest_mat * Mat4::<f32>::from(self.head);
         let tail_mat = pants_mat * Mat4::<f32>::from(self.tail);
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(chest_mat),
-            make_bone(pants_mat),
-            make_bone(tail_mat),
-            make_bone(control_mat * Mat4::<f32>::from(self.main)),
-            make_bone(control_mat * control_r_mat * Mat4::<f32>::from(self.second)),
-            make_bone(control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l)),
-            make_bone(
-                if self.detach_right {
-                    chest_mat
-                } else {
-                    control_mat
-                } * control_r_mat
-                    * Mat4::<f32>::from(self.hand_r),
-            ),
-            make_bone(base_mat * Mat4::<f32>::from(self.foot_l)),
-            make_bone(base_mat * Mat4::<f32>::from(self.foot_r)),
-        ];
 
-        use comp::biped_small::Species::*;
-        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
-            (Sahagin | Mandragora | Kappa | Gnoll | Bushly | Irrwurz | TreasureEgg, _) => {
-                (chest_mat, self.chest.orientation)
-            },
-            (GoblinThug | GoblinChucker | GoblinRuffian, _) => (
-                chest_mat,
-                self.chest.orientation * Quaternion::rotation_x(0.7),
-            ),
-            (Myrmidon, _) => (
-                tail_mat,
-                self.chest.orientation * self.pants.orientation * self.tail.orientation,
-            ),
-            _ => (head_mat, self.chest.orientation * self.head.orientation),
+        let computed_skeleton = ComputedBipedSmallSkeleton {
+            head: head_mat,
+            chest: chest_mat,
+            pants: pants_mat,
+            tail: tail_mat,
+            main: control_mat * Mat4::<f32>::from(self.main),
+            second: control_mat * control_r_mat * Mat4::<f32>::from(self.second),
+            hand_l: control_mat * control_l_mat * Mat4::<f32>::from(self.hand_l),
+            hand_r: if self.detach_right {
+                chest_mat
+            } else {
+                control_mat
+            } * control_r_mat
+                * Mat4::<f32>::from(self.hand_r),
+            foot_l: base_mat * Mat4::<f32>::from(self.foot_l),
+            foot_r: base_mat * Mat4::<f32>::from(self.foot_r),
         };
-        let mount_position = mount_mat.mul_point(mount_point(&body));
 
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 0.0, 1.0)).xyz()),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -666,10 +641,41 @@ pub fn biped_small_wield_bow(
         Quaternion::rotation_x(-0.3 + 0.5 * speednorm) * Quaternion::rotation_y(0.5 * speednorm);
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedBipedSmallSkeleton,
+    skeleton: &BipedSmallSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
     use comp::biped_small::Species::*;
-    // TODO: Come up with a way to position rider
+
     match (body.species, body.body_type) {
+        (Sahagin | Mandragora | Kappa | Gnoll | Bushly | Irrwurz | TreasureEgg, _) => {
+            (computed_skeleton.chest, skeleton.chest.orientation)
+        },
+        (GoblinThug | GoblinChucker | GoblinRuffian, _) => (
+            computed_skeleton.chest,
+            skeleton.chest.orientation * Quaternion::rotation_x(0.7),
+        ),
+        (Myrmidon, _) => (
+            computed_skeleton.tail,
+            skeleton.chest.orientation * skeleton.pants.orientation * skeleton.tail.orientation,
+        ),
+        _ => (
+            computed_skeleton.head,
+            skeleton.chest.orientation * skeleton.head.orientation,
+        ),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedBipedSmallSkeleton,
+    skeleton: &BipedSmallSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::biped_small::Species::*;
+
+    // TODO: Come up with a way to position rider
+    let mount_point = match (body.species, body.body_type) {
         (Gnome, _) => (0.0, -4.0, -1.0),
         (Sahagin, _) => (0.0, 0.0, 5.0),
         (Adlet, _) => (0.0, -4.0, 1.0),
@@ -702,5 +708,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (PurpleLegoom, _) => (0.0, -3.5, 7.5),
         (RedLegoom, _) => (0.0, -3.5, 5.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }

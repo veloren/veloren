@@ -68,7 +68,7 @@ pub use self::{
     wallrun::WallrunAnimation,
     wield::WieldAnimation,
 };
-use super::{FigureBoneData, Offsets, Skeleton, TrailSource, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{
     self,
     tool::{Hands, ToolKind},
@@ -77,27 +77,27 @@ use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::humanoid::Body;
 
-skeleton_impls!(struct CharacterSkeleton {
-    + head,
-    + chest,
-    + belt,
-    + back,
-    + shorts,
-    + hand_l,
-    + hand_r,
-    + foot_l,
-    + foot_r,
-    + shoulder_l,
-    + shoulder_r,
-    + glider,
-    + main,
-    + second,
-    + lantern,
-    + hold,
-    torso,
-    control,
-    control_l,
-    control_r,
+skeleton_impls!(struct CharacterSkeleton ComputedCharacterSkeleton {
+    + head
+    + chest
+    + belt
+    + back
+    + shorts
+    + hand_l
+    + hand_r
+    + foot_l
+    + foot_r
+    + shoulder_l
+    + shoulder_r
+    + glider
+    + main
+    + second
+    + lantern
+    + hold
+    torso
+    control
+    control_l
+    control_r
     :: // Begin non-bone fields
     holding_lantern: bool,
     // The offset from the back that carried weapons should be given to avoid clipping due to, say, a backpack
@@ -121,8 +121,9 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedCharacterSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedCharacterSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"character_compute_mats\0";
 
@@ -132,7 +133,7 @@ impl Skeleton for CharacterSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         // TODO: extract scaler from body to it's own method so we can call that
         // directly instead of going through SkeletonAttr? (note todo also
         // appiles to other body variant animations)
@@ -157,61 +158,28 @@ impl Skeleton for CharacterSkeleton {
         let second_mat = control_r_mat * Mat4::<f32>::from(self.second);
         let glider_mat = chest_mat * Mat4::<f32>::from(self.glider);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(chest_mat),
-            make_bone(chest_mat * Mat4::<f32>::from(self.belt)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.back)),
-            make_bone(shorts_mat),
-            make_bone(control_l_mat * hand_l_mat),
-            make_bone(hand_r_mat),
-            make_bone(torso_mat * Mat4::<f32>::from(self.foot_l)),
-            make_bone(torso_mat * Mat4::<f32>::from(self.foot_r)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_l)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_r)),
-            make_bone(glider_mat),
-            make_bone(main_mat),
-            make_bone(second_mat),
-            make_bone(lantern_mat),
+        let computed_skeleton = ComputedCharacterSkeleton {
+            head: head_mat,
+            chest: chest_mat,
+            belt: chest_mat * Mat4::<f32>::from(self.belt),
+            back: chest_mat * Mat4::<f32>::from(self.back),
+            shorts: shorts_mat,
+            hand_l: control_l_mat * hand_l_mat,
+            hand_r: hand_r_mat,
+            foot_l: torso_mat * Mat4::<f32>::from(self.foot_l),
+            foot_r: torso_mat * Mat4::<f32>::from(self.foot_r),
+            shoulder_l: chest_mat * Mat4::<f32>::from(self.shoulder_l),
+            shoulder_r: chest_mat * Mat4::<f32>::from(self.shoulder_r),
+            glider: glider_mat,
+            main: main_mat,
+            second: second_mat,
+            lantern: lantern_mat,
             // FIXME: Should this be control_l_mat?
-            make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
-        ];
+            hold: control_mat * hand_l_mat * Mat4::<f32>::from(self.hold),
+        };
 
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-        let mount_position = (chest_mat * Vec4::from_point(Vec3::new(5.5, 0.0, 6.5)))
-            .homogenized()
-            .xyz();
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let mount_orientation =
-            self.torso.orientation * self.chest.orientation * Quaternion::rotation_y(0.4);
-
-        let weapon_trails = self.main_weapon_trail || self.off_weapon_trail;
-        Offsets {
-            lantern: Some((lantern_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz()),
-            viewpoint: Some((head_mat * Vec4::new(0.0, 0.0, 4.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            primary_trail_mat: if weapon_trails {
-                self.main_weapon_trail
-                    .then_some((main_mat, TrailSource::Weapon))
-            } else {
-                self.glider_trails
-                    .then_some((glider_mat, TrailSource::GliderLeft))
-            },
-            secondary_trail_mat: if weapon_trails {
-                self.off_weapon_trail
-                    .then_some((second_mat, TrailSource::Weapon))
-            } else {
-                self.glider_trails
-                    .then_some((glider_mat, TrailSource::GliderRight))
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -345,6 +313,28 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             bhr: (1.0, 2.0, -2.0, PI / 2.0, 0.0, 0.0),
             bc: (-5.0, 9.0, 1.0, 0.0, 1.2, -0.6),
         }
+    }
+}
+
+pub fn mount_mat(
+    computed_skeleton: &ComputedCharacterSkeleton,
+    skeleton: &CharacterSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
+    (
+        computed_skeleton.chest,
+        skeleton.torso.orientation * skeleton.chest.orientation * Quaternion::rotation_y(0.4),
+    )
+}
+
+pub fn mount_transform(
+    computed_skeleton: &ComputedCharacterSkeleton,
+    skeleton: &CharacterSkeleton,
+) -> Transform<f32, f32, f32> {
+    let (mount_mat, orientation) = mount_mat(computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(Vec3::new(5.5, 0.0, 6.5)),
+        orientation,
+        scale: Vec3::one(),
     }
 }
 

@@ -1,5 +1,3 @@
-use crate::{Offsets, make_bone};
-
 use super::{
     Skeleton,
     vek::{Lerp, Mat4, Transform, Vec3, Vec4},
@@ -10,23 +8,23 @@ use vek::Quaternion;
 
 pub type Body = comp::plugin::Body;
 
-skeleton_impls!(struct PluginSkeleton {
-    + bone0,
-    + bone1,
-    + bone2,
-    + bone3,
-    + bone4,
-    + bone5,
-    + bone6,
-    + bone7,
-    + bone8,
-    + bone9,
-    + bone10,
-    + bone11,
-    + bone12,
-    + bone13,
-    + bone14,
-    + bone15,
+skeleton_impls!(struct PluginSkeleton ComputedPluginSkeleton {
+    + bone0
+    + bone1
+    + bone2
+    + bone3
+    + bone4
+    + bone5
+    + bone6
+    + bone7
+    + bone8
+    + bone9
+    + bone10
+    + bone11
+    + bone12
+    + bone13
+    + bone14
+    + bone15
 });
 
 impl PluginSkeleton {
@@ -71,8 +69,9 @@ impl PluginSkeleton {
 impl Skeleton for PluginSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedPluginSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedPluginSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"plugin_compute_mats\0";
 
@@ -81,43 +80,31 @@ impl Skeleton for PluginSkeleton {
         &self,
         base_mat: Mat4<f32>,
         buf: &mut [crate::FigureBoneData; crate::MAX_BONE_COUNT],
-        body: Self::Body,
-    ) -> crate::Offsets {
+        _body: Self::Body,
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(1.0 / 13.0);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(base_mat * Mat4::<f32>::from(self.bone0)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone1)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone2)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone3)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone4)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone5)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone6)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone7)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone8)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone9)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone10)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone11)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone12)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone13)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone14)),
-            make_bone(base_mat * Mat4::<f32>::from(self.bone15)),
-        ];
-        Offsets {
-            lantern: None,
-            viewpoint: Some(
-                (base_mat * Mat4::<f32>::from(self.bone0) * Vec4::new(0.0, 3.0, 0.0, 1.0)).xyz(),
-            ),
-            // TODO: see quadruped_medium for how to animate this
-            mount_bone: Transform {
-                position: comp::Body::Plugin(body).mount_offset().into_tuple().into(),
-                ..Default::default()
-            },
-            primary_trail_mat: None,
-            secondary_trail_mat: None,
-            heads: Default::default(),
-            tail: None,
-        }
+        let computed_skeleton = ComputedPluginSkeleton {
+            bone0: base_mat * Mat4::<f32>::from(self.bone0),
+            bone1: base_mat * Mat4::<f32>::from(self.bone1),
+            bone2: base_mat * Mat4::<f32>::from(self.bone2),
+            bone3: base_mat * Mat4::<f32>::from(self.bone3),
+            bone4: base_mat * Mat4::<f32>::from(self.bone4),
+            bone5: base_mat * Mat4::<f32>::from(self.bone5),
+            bone6: base_mat * Mat4::<f32>::from(self.bone6),
+            bone7: base_mat * Mat4::<f32>::from(self.bone7),
+            bone8: base_mat * Mat4::<f32>::from(self.bone8),
+            bone9: base_mat * Mat4::<f32>::from(self.bone9),
+            bone10: base_mat * Mat4::<f32>::from(self.bone10),
+            bone11: base_mat * Mat4::<f32>::from(self.bone11),
+            bone12: base_mat * Mat4::<f32>::from(self.bone12),
+            bone13: base_mat * Mat4::<f32>::from(self.bone13),
+            bone14: base_mat * Mat4::<f32>::from(self.bone14),
+            bone15: base_mat * Mat4::<f32>::from(self.bone15),
+        };
+
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 

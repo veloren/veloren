@@ -21,7 +21,7 @@ pub use self::{
     tailwhip::TailwhipAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::{
     comp::{self},
     states::utils::StageSection,
@@ -30,31 +30,32 @@ use core::convert::TryFrom;
 
 pub type Body = comp::quadruped_low::Body;
 
-skeleton_impls!(struct QuadrupedLowSkeleton {
-    + head_c_upper,
-    + pub head_c_lower,
-    + jaw_c,
-    + head_l_upper,
-    + pub head_l_lower,
-    + jaw_l,
-    + head_r_upper,
-    + pub head_r_lower,
-    + jaw_r,
-    + chest,
-    + tail_front,
-    + tail_rear,
-    + foot_fl,
-    + foot_fr,
-    + foot_bl,
-    + foot_br,
-    mount,
+skeleton_impls!(struct QuadrupedLowSkeleton ComputedQuadrupedLowSkeleton {
+    + head_c_upper
+    + head_c_lower
+    + jaw_c
+    + head_l_upper
+    + head_l_lower
+    + jaw_l
+    + head_r_upper
+    + head_r_lower
+    + jaw_r
+    + chest
+    + tail_front
+    + tail_rear
+    + foot_fl
+    + foot_fr
+    + foot_bl
+    + foot_br
+    mount
 });
 
 impl Skeleton for QuadrupedLowSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedQuadrupedLowSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedQuadrupedLowSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"quadruped_low_compute_mats\0";
 
@@ -67,13 +68,13 @@ impl Skeleton for QuadrupedLowSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let attr = SkeletonAttr::from(&body);
         let base_mat = base_mat * Mat4::scaling_3d(attr.scaler / 11.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
-        let tail_front = chest_mat * Mat4::<f32>::from(self.tail_front);
-        let tail_rear = tail_front * Mat4::<f32>::from(self.tail_rear);
+        let tail_front_mat = chest_mat * Mat4::<f32>::from(self.tail_front);
+        let tail_rear_mat = tail_front_mat * Mat4::<f32>::from(self.tail_rear);
         let head_c_lower_mat = chest_mat * Mat4::<f32>::from(self.head_c_lower);
         let head_c_upper_mat = head_c_lower_mat * Mat4::<f32>::from(self.head_c_upper);
         let head_l_lower_mat = chest_mat * Mat4::<f32>::from(self.head_l_lower);
@@ -81,64 +82,27 @@ impl Skeleton for QuadrupedLowSkeleton {
         let head_r_lower_mat = chest_mat * Mat4::<f32>::from(self.head_r_lower);
         let head_r_upper_mat = head_r_lower_mat * Mat4::<f32>::from(self.head_r_upper);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_c_upper_mat),
-            make_bone(head_c_lower_mat),
-            make_bone(head_c_upper_mat * Mat4::<f32>::from(self.jaw_c)),
-            make_bone(head_l_upper_mat),
-            make_bone(head_l_lower_mat),
-            make_bone(head_l_upper_mat * Mat4::<f32>::from(self.jaw_l)),
-            make_bone(head_r_upper_mat),
-            make_bone(head_r_lower_mat),
-            make_bone(head_r_upper_mat * Mat4::<f32>::from(self.jaw_r)),
-            make_bone(chest_mat),
-            make_bone(tail_front),
-            make_bone(tail_rear),
-            make_bone(chest_mat * Mat4::<f32>::from(self.foot_fl)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.foot_fr)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.foot_bl)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.foot_br)),
-        ];
-        //let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
-        // Offset from the mounted bone's origin.
-        // Note: This could be its own bone if we need to animate it independently.
-
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-
-        use comp::quadruped_low::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
-            (Maneater, _) => (
-                head_c_upper_mat,
-                self.chest.orientation
-                    * self.head_c_lower.orientation
-                    * self.head_c_upper.orientation,
-            ),
-            _ => (chest_mat, self.chest.orientation),
+        let computed_skeleton = ComputedQuadrupedLowSkeleton {
+            head_c_upper: head_c_upper_mat,
+            head_c_lower: head_c_lower_mat,
+            jaw_c: head_c_upper_mat * Mat4::<f32>::from(self.jaw_c),
+            head_l_upper: head_l_upper_mat,
+            head_l_lower: head_l_lower_mat,
+            jaw_l: head_l_upper_mat * Mat4::<f32>::from(self.jaw_l),
+            head_r_upper: head_r_upper_mat,
+            head_r_lower: head_r_lower_mat,
+            jaw_r: head_r_upper_mat * Mat4::<f32>::from(self.jaw_r),
+            chest: chest_mat,
+            tail_front: tail_front_mat,
+            tail_rear: tail_rear_mat,
+            foot_fl: chest_mat * Mat4::<f32>::from(self.foot_fl),
+            foot_fr: chest_mat * Mat4::<f32>::from(self.foot_fr),
+            foot_bl: chest_mat * Mat4::<f32>::from(self.foot_bl),
+            foot_br: chest_mat * Mat4::<f32>::from(self.foot_br),
         };
-        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
-        let mount_orientation = mount_bone_ori;
 
-        Offsets {
-            viewpoint: Some((head_c_upper_mat * Vec4::new(0.0, 4.0, 1.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            heads: vec![
-                (head_l_upper_mat * Vec4::unit_w()).xyz(),
-                (head_c_upper_mat * Vec4::unit_w()).xyz(),
-                (head_r_upper_mat * Vec4::unit_w()).xyz(),
-            ],
-            tail: Some((
-                (tail_front * Vec4::unit_w()).xyz(),
-                (tail_rear * Vec4::new(0.0, -attr.tail_rear_length, 0.0, 1.0)).xyz(),
-            )),
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -151,7 +115,7 @@ pub struct SkeletonAttr {
     chest: (f32, f32),
     tail_front: (f32, f32),
     tail_rear: (f32, f32),
-    tail_rear_length: f32,
+    pub tail_rear_length: f32,
     feet_f: (f32, f32, f32),
     feet_b: (f32, f32, f32),
     lean: (f32, f32),
@@ -495,9 +459,32 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         }
     }
 }
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedQuadrupedLowSkeleton,
+    skeleton: &QuadrupedLowSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
     use comp::quadruped_low::Species::*;
+
     match (body.species, body.body_type) {
+        (Maneater, _) => (
+            computed_skeleton.head_c_upper,
+            skeleton.chest.orientation
+                * skeleton.head_c_lower.orientation
+                * skeleton.head_c_upper.orientation,
+        ),
+        _ => (computed_skeleton.chest, skeleton.chest.orientation),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedQuadrupedLowSkeleton,
+    skeleton: &QuadrupedLowSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::quadruped_low::Species::*;
+
+    let mount_point = match (body.species, body.body_type) {
         (Crocodile, _) => (0.0, 3.5, 3.5),
         (Alligator, _) => (0.0, 2.5, 3.0),
         (Salamander, _) => (0.0, 2.0, 4.0),
@@ -523,7 +510,14 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (Snaretongue, _) => (0.0, 2.0, 6.0),
         (Hydra, _) => (0.0, 2.0, 4.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }
 
 pub fn quadruped_low_alpha(

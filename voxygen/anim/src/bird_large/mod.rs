@@ -23,36 +23,37 @@ pub use self::{
     summon::SummonAnimation, swim::SwimAnimation,
 };
 
-use super::{FigureBoneData, Offsets, Skeleton, make_bone, vek::*};
+use super::{FigureBoneData, Skeleton, vek::*};
 use common::comp::{self};
 use core::convert::TryFrom;
 
 pub type Body = comp::bird_large::Body;
 
-skeleton_impls!(struct BirdLargeSkeleton {
-    + head,
-    + beak,
-    + neck,
-    + chest,
-    + tail_front,
-    + tail_rear,
-    + wing_in_l,
-    + wing_in_r,
-    + wing_mid_l,
-    + wing_mid_r,
-    + wing_out_l,
-    + wing_out_r,
-    + leg_l,
-    + leg_r,
-    + foot_l,
-    + foot_r,
+skeleton_impls!(struct BirdLargeSkeleton ComputedBirdLargeSkeleton {
+    + head
+    + beak
+    + neck
+    + chest
+    + tail_front
+    + tail_rear
+    + wing_in_l
+    + wing_in_r
+    + wing_mid_l
+    + wing_mid_r
+    + wing_out_l
+    + wing_out_r
+    + leg_l
+    + leg_r
+    + foot_l
+    + foot_r
 });
 
 impl Skeleton for BirdLargeSkeleton {
     type Attr = SkeletonAttr;
     type Body = Body;
+    type ComputedSkeleton = ComputedBirdLargeSkeleton;
 
-    const BONE_COUNT: usize = 16;
+    const BONE_COUNT: usize = ComputedBirdLargeSkeleton::BONE_COUNT;
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8] = b"bird_large_compute_mats\0";
 
@@ -66,7 +67,7 @@ impl Skeleton for BirdLargeSkeleton {
         base_mat: Mat4<f32>,
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
-    ) -> Offsets {
+    ) -> Self::ComputedSkeleton {
         let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 8.0);
 
         let chest_mat = base_mat * Mat4::<f32>::from(self.chest);
@@ -86,49 +87,27 @@ impl Skeleton for BirdLargeSkeleton {
         let foot_l_mat = leg_l_mat * Mat4::<f32>::from(self.foot_l);
         let foot_r_mat = leg_r_mat * Mat4::<f32>::from(self.foot_r);
 
-        *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
-            make_bone(head_mat),
-            make_bone(beak_mat),
-            make_bone(neck_mat),
-            make_bone(chest_mat),
-            make_bone(tail_front_mat),
-            make_bone(tail_rear_mat),
-            make_bone(wing_in_l_mat),
-            make_bone(wing_in_r_mat),
-            make_bone(wing_mid_l_mat),
-            make_bone(wing_mid_r_mat),
-            make_bone(wing_out_l_mat),
-            make_bone(wing_out_r_mat),
-            make_bone(leg_l_mat),
-            make_bone(leg_r_mat),
-            make_bone(foot_l_mat),
-            make_bone(foot_r_mat),
-        ];
-
-        use comp::bird_large::Species::*;
-        // NOTE: We apply the ori from base_mat externally so we don't need to worry
-        // about it here for now.
-        let (mount_mat, mount_orientation) = match (body.species, body.body_type) {
-            (SeaWyvern | FlameWyvern | Phoenix | Cockatrice, _) => {
-                (chest_mat, self.chest.orientation)
-            },
-            _ => (neck_mat, self.chest.orientation * self.neck.orientation),
+        let computed_skeleton = ComputedBirdLargeSkeleton {
+            head: head_mat,
+            beak: beak_mat,
+            neck: neck_mat,
+            chest: chest_mat,
+            tail_front: tail_front_mat,
+            tail_rear: tail_rear_mat,
+            wing_in_l: wing_in_l_mat,
+            wing_in_r: wing_in_r_mat,
+            wing_mid_l: wing_mid_l_mat,
+            wing_mid_r: wing_mid_r_mat,
+            wing_out_l: wing_out_l_mat,
+            wing_out_r: wing_out_r_mat,
+            leg_l: leg_l_mat,
+            leg_r: leg_r_mat,
+            foot_l: foot_l_mat,
+            foot_r: foot_r_mat,
         };
 
-        // Offset from the mounted bone's origin.
-        let mount_position = (mount_mat * Vec4::from_point(mount_point(&body)))
-            .homogenized()
-            .xyz();
-
-        Offsets {
-            viewpoint: Some((head_mat * Vec4::new(0.0, 3.0, 6.0, 1.0)).xyz()),
-            mount_bone: Transform {
-                position: mount_position,
-                orientation: mount_orientation,
-                scale: Vec3::one(),
-            },
-            ..Default::default()
-        }
+        computed_skeleton.set_figure_bone_data(buf);
+        computed_skeleton
     }
 }
 
@@ -327,9 +306,32 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+pub fn mount_mat(
+    body: &Body,
+    computed_skeleton: &ComputedBirdLargeSkeleton,
+    skeleton: &BirdLargeSkeleton,
+) -> (Mat4<f32>, Quaternion<f32>) {
     use comp::bird_large::Species::*;
+
     match (body.species, body.body_type) {
+        (SeaWyvern | FlameWyvern | Phoenix | Cockatrice, _) => {
+            (computed_skeleton.chest, skeleton.chest.orientation)
+        },
+        _ => (
+            computed_skeleton.neck,
+            skeleton.chest.orientation * skeleton.neck.orientation,
+        ),
+    }
+}
+
+pub fn mount_transform(
+    body: &Body,
+    computed_skeleton: &ComputedBirdLargeSkeleton,
+    skeleton: &BirdLargeSkeleton,
+) -> Transform<f32, f32, f32> {
+    use comp::bird_large::Species::*;
+
+    let mount_point = match (body.species, body.body_type) {
         (Phoenix, _) => (0.0, 0.5, 7.5),
         (Cockatrice, _) => (0.0, 5.0, 6.5),
         (Roc, _) => (0.0, 5.5, 6.5),
@@ -339,5 +341,12 @@ fn mount_point(body: &Body) -> Vec3<f32> {
         (SeaWyvern, _) => (0.0, 8.0, 7.0),
         (WealdWyvern, _) => (0.0, 0.0, 9.0),
     }
-    .into()
+    .into();
+
+    let (mount_mat, orientation) = mount_mat(body, computed_skeleton, skeleton);
+    Transform {
+        position: mount_mat.mul_point(mount_point),
+        orientation,
+        scale: Vec3::one(),
+    }
 }
