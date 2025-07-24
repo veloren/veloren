@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added separate settings to toggle rain effects.
 - One new overworld track.
 - Pirates sometimes going to raid towns.
+- Croatian language support.
 
 ### Changed
 
