@@ -1493,10 +1493,14 @@ fn write_column<R: Rng>(
                         .ok()
                         .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(3), biome.crystal * 0.005) {
-                        [(SpriteKind::CrystalLow, 0.95), (SpriteKind::Amethyst, 0.05)]
-                            .choose_weighted(rng, |(_, w)| *w)
-                            .ok()
-                            .map(|s| s.0)
+                        [
+                            (SpriteKind::CrystalLow, 0.95),
+                            (SpriteKind::Amethyst, 0.05),
+                            (SpriteKind::Lodestone, 0.1),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(13), biome.fire * 0.0006) {
                         [
                             (SpriteKind::Pyrebloom, 0.3),

@@ -967,6 +967,7 @@
     Simple("common.items.boss_drops.potions"): "voxel.sprite.potion.potion_red",
     Simple("common.items.mineral.ore.velorite"): "voxel.item.mineral.ore.velorite",
     Simple("common.items.mineral.ore.veloritefrag"): "voxel.item.mineral.ore.veloritefrag",
+    Simple("common.items.mineral.ore.lodestone"): "voxel.item.mineral.ore.lodestone",
     Simple("common.items.food.spore_corruption"): "voxel.item.food.corruption_spore",
     Simple("common.items.food.cheese"): "voxel.item.food.dwarven_cheese_quarter",
     Simple("common.items.food.mushroom"): "voxel.sprite.mushrooms.mushroom-10",
@@ -1000,6 +1001,7 @@
     Simple("common.items.consumable.firedrop"): "voxel.object.firedrop",
     Simple("common.items.consumable.poison_clot"): "voxel.object.poison_clot",
     Simple("common.items.consumable.gelid_gel"): "voxel.object.gelid_gel",
+    Simple("common.items.consumable.levin_dust"): "voxel.object.levin_dust",
     // Throwables
     Simple("common.items.utility.bomb"): "voxel.sprite.bomb.bomb",
     Simple("common.items.utility.surprise_egg"): "voxel.object.surprise_egg",

@@ -17,10 +17,10 @@ use common::{
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
-        CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent, EventBus,
-        InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent,
-        SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
+        ArcEvent, BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
+        CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
+        EventBus, InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent,
+        ShootEvent, SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -518,6 +518,13 @@ pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {
     let state = server.state_mut();
     state
         .create_shockwave(ev.properties, ev.pos, ev.ori)
+        .build();
+}
+
+pub fn handle_arc(server: &mut Server, ev: ArcEvent) {
+    let state = server.state_mut();
+    state
+        .create_arc(ev.arc, ev.target, ev.owner, ev.pos)
         .build();
 }
 

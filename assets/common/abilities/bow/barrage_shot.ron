@@ -10,7 +10,7 @@ RapidRanged(
         kind: Pointed,
         attack: Some((
             damage: 5,
-            energy: 4,
+            energy: Some(4),
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

@@ -10,12 +10,10 @@ ChargedRanged(
         ),
         attack: Some((
             damage: 0,
-            energy: 0,
             damage_effect: Some(Energy(-10)),
         )),
         scaled: Some((
             damage: 10,
-            energy: 0,
             damage_effect: Some(4),
         )),
     ),

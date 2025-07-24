@@ -112,6 +112,8 @@ impl CharacterBehavior for Data {
                             Some(self.static_data.ability_info),
                         );
 
+                    dbg!(self.static_data.ability_info.input_attr);
+
                     let num_projectiles = self
                         .static_data
                         .num_projectiles

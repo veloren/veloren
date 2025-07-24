@@ -661,6 +661,9 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.freeze_arrow" => imgs.bow_freeze_arrow,
         "common.abilities.bow.freezing_arrow" => imgs.bow_freezing_arrow,
         "common.abilities.bow.freezing_broadhead" => imgs.bow_freezing_broadhead,
+        "common.abilities.bow.jolt_arrow" => imgs.bow_jolt_arrow,
+        "common.abilities.bow.lightning_arrow" => imgs.bow_lightning_arrow,
+        "common.abilities.bow.lightning_broadhead" => imgs.bow_lightning_broadhead,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

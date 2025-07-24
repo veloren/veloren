@@ -347,6 +347,9 @@ image_ids! {
         bow_freeze_arrow: "voxygen.element.skills.bow.freeze_arrow",
         bow_freezing_arrow: "voxygen.element.skills.bow.freezing_arrow",
         bow_freezing_broadhead: "voxygen.element.skills.bow.freezing_broadhead",
+        bow_jolt_arrow: "voxygen.element.skills.bow.jolt_arrow",
+        bow_lightning_arrow: "voxygen.element.skills.bow.lightning_arrow",
+        bow_lightning_broadhead: "voxygen.element.skills.bow.lightning_broadhead",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

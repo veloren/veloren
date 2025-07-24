@@ -3,7 +3,7 @@ use crate::{
     character::CharacterId,
     combat::{AttackSource, AttackTarget, CombatEffect, DeathEffects, RiderEffects},
     comp::{
-        self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
+        self, ArcProperties, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
         ability::Dodgeable,
         agent::Sound,
         beam,
@@ -323,6 +323,13 @@ pub struct ExplosionEvent {
     pub pos: Vec3<f32>,
     pub explosion: Explosion,
     pub owner: Option<Uid>,
+}
+
+pub struct ArcEvent {
+    pub arc: ArcProperties,
+    pub owner: Option<Uid>,
+    pub target: Uid,
+    pub pos: Pos,
 }
 
 pub struct BonkEvent {

@@ -210,10 +210,12 @@ impl CharacterBehavior for Data {
                                     hit_entity: Vec::new(),
                                     timeout: Vec::new(),
                                     time_left: duration,
+                                    init_time: Secs(duration.as_secs_f64()),
                                     owner: Some(*data.uid),
                                     ignore_group: true,
                                     is_sticky: false,
                                     is_point: false,
+                                    homing: None,
                                 });
 
                                 let mut rng = rand::rng();

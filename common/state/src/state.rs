@@ -275,6 +275,7 @@ impl State {
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
         ecs.register::<comp::Beam>();
+        ecs.register::<comp::Arc>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();

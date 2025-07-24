@@ -10,12 +10,10 @@ ChargedRanged(
         ),
         attack: Some((
             damage: 5,
-            energy: 0,
         )),
         scaled: Some((
             damage: 20,
             knockback: Some(10),
-            energy: 0,
         )),
     ),
     buildup_duration: 0.3,

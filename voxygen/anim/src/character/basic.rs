@@ -1601,7 +1601,8 @@ impl Animation for BasicAction {
                 | "common.abilities.bow.lesser_scatterburst"
                 | "common.abilities.bow.burning_arrow"
                 | "common.abilities.bow.poison_arrow"
-                | "common.abilities.bow.freezing_arrow",
+                | "common.abilities.bow.freezing_arrow"
+                | "common.abilities.bow.lightning_arrow",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1618,7 +1619,8 @@ impl Animation for BasicAction {
                 | "common.abilities.bow.greater_scatterburst"
                 | "common.abilities.bow.burning_broadhead"
                 | "common.abilities.bow.poison_broadhead"
-                | "common.abilities.bow.freezing_broadhead",
+                | "common.abilities.bow.freezing_broadhead"
+                | "common.abilities.bow.lightning_broadhead",
             ) => {
                 bow_start(&mut next, s_a);
 
@@ -1703,7 +1705,8 @@ impl Animation for BasicAction {
             Some(
                 "common.abilities.bow.ignite_arrow"
                 | "common.abilities.bow.drench_arrow"
-                | "common.abilities.bow.freeze_arrow",
+                | "common.abilities.bow.freeze_arrow"
+                | "common.abilities.bow.jolt_arrow",
             ) => {
                 bow_start(&mut next, s_a);
             },

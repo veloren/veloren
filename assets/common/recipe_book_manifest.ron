@@ -2910,4 +2910,12 @@
         ],
         craft_sprite: Some(Cauldron),
     ),
+    "levin_dust": (
+        output: ("common.items.consumable.levin_dust", 10),
+        inputs: [
+            (Item("common.items.mineral.ore.lodestone"), 1, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
 }

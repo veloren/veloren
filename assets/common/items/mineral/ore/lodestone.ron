@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Lodestone",
+    legacy_description: "description.txt",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

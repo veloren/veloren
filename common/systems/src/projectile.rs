@@ -10,14 +10,14 @@ use common::{
     },
     effect,
     event::{
-        BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt, Emitter,
-        EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent, HealthChangeEvent,
-        KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent, PossessEvent, ShootEvent,
-        SoundEvent,
+        ArcEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt,
+        Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent,
+        HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent,
+        PossessEvent, ShootEvent, SoundEvent,
     },
     event_emitters,
     outcome::Outcome,
-    resources::{DeltaTime, Time},
+    resources::{DeltaTime, Secs, Time},
     uid::{IdMaps, Uid},
     util::Dir,
 };
@@ -51,6 +51,7 @@ event_emitters! {
         buff: BuffEvent,
         bonk: BonkEvent,
         possess: PossessEvent,
+        arc: ArcEvent,
     }
 }
 
@@ -66,7 +67,6 @@ pub struct ReadData<'a> {
     positions: ReadStorage<'a, Pos>,
     alignments: ReadStorage<'a, Alignment>,
     physics_states: ReadStorage<'a, PhysicsState>,
-    velocities: ReadStorage<'a, Vel>,
     inventories: ReadStorage<'a, Inventory>,
     groups: ReadStorage<'a, Group>,
     energies: ReadStorage<'a, Energy>,
@@ -90,6 +90,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
         Read<'a, EventBus<Outcome>>,
+        WriteStorage<'a, Vel>,
     );
 
     const NAME: &'static str = "projectile";
@@ -98,18 +99,17 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut orientations, mut projectiles, outcomes): Self::SystemData,
+        (read_data, mut orientations, mut projectiles, outcomes, mut velocities): Self::SystemData,
     ) {
         let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
         let mut rng = rand::rng();
 
         // Attacks
-        'projectile_loop: for (entity, pos, physics, vel, body, projectile) in (
+        'projectile_loop: for (entity, pos, physics, body, projectile) in (
             &read_data.entities,
             &read_data.positions,
             &read_data.physics_states,
-            &read_data.velocities,
             &read_data.bodies,
             &mut projectiles,
         )
@@ -200,7 +200,7 @@ impl<'a> System<'a> for Sys {
                         owner,
                         ori: orientations.get(entity),
                         pos,
-                        vel,
+                        vel: velocities.get(entity).map_or(Vec3::zero(), |v| v.0),
                     };
 
                     let target = entity_of(other);
@@ -287,10 +287,35 @@ impl<'a> System<'a> for Sys {
                 if projectile_vanished {
                     continue 'projectile_loop;
                 }
-            } else if let Some(ori) = orientations.get_mut(entity)
-                && let Some(dir) = Dir::from_unnormalized(vel.0)
-            {
-                *ori = dir.into();
+            } else {
+                if let Some(ori) = orientations.get_mut(entity)
+                    && let Some(dir) = velocities
+                        .get(entity)
+                        .and_then(|v| Dir::from_unnormalized(v.0))
+                {
+                    *ori = dir.into();
+                }
+
+                if let Some(vel) = velocities.get_mut(entity)
+                    && let Some((tgt_uid, rate)) = projectile.homing
+                    && let Some(tgt_pos) = read_data
+                        .id_maps
+                        .uid_entity(tgt_uid)
+                        .and_then(|e| read_data.positions.get(e))
+                    && let Some((init_dir, tgt_dir)) = Dir::from_unnormalized(vel.0).zip(
+                        Dir::from_unnormalized(tgt_pos.0.with_z(tgt_pos.0.z + 1.0) - pos.0),
+                    )
+                {
+                    // We want the homing to be weaker when projectile first fired
+                    let time_factor = (projectile.init_time.0 as f32
+                        - projectile.time_left.as_secs_f32())
+                    .min(1.0);
+                    let factor = (rate * read_data.dt.0 / init_dir.angle_between(*tgt_dir)
+                        * time_factor)
+                        .min(1.0);
+                    let new_dir = init_dir.slerped_to(tgt_dir, factor);
+                    *vel = Vel(*new_dir * vel.0.magnitude());
+                }
             }
 
             if projectile.time_left == Duration::ZERO {
@@ -352,10 +377,12 @@ impl<'a> System<'a> for Sys {
                                         hit_entity: Vec::new(),
                                         timeout: vec![projectile::Effect::Firework(reagent)],
                                         time_left: Duration::from_secs(1),
+                                        init_time: Secs(1.0),
                                         ignore_group: true,
                                         is_sticky: true,
                                         is_point: true,
                                         owner: projectile.owner,
+                                        homing: None,
                                     },
                                     speed,
                                     object: None,
@@ -399,7 +426,7 @@ struct ProjectileInfo<'a> {
     owner: Option<EcsEntity>,
     ori: Option<&'a Ori>,
     pos: &'a Pos,
-    vel: &'a Vel,
+    vel: Vec3<f32>,
 }
 
 struct ProjectileTargetInfo<'a> {
@@ -476,10 +503,7 @@ fn dispatch_hit(
                 outcomes_emitter.emit(Outcome::ProjectileHit {
                     pos: target_pos,
                     body,
-                    vel: read_data
-                        .velocities
-                        .get(projectile_entity)
-                        .map_or(Vec3::zero(), |v| v.0),
+                    vel: projectile_info.vel,
                     source: projectile_info.owner_uid,
                     target: read_data.uids.get(target).copied(),
                 });
@@ -517,8 +541,8 @@ fn dispatch_hit(
                 // the upper 10% of an entity's dimensions. The line segment is from the
                 // projectile's positions on the current and previous tick.
                 let curr_pos = projectile_info.pos.0;
-                let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
-                let vel = projectile_info.vel.0;
+                let last_pos = projectile_info.pos.0 - projectile_info.vel * read_data.dt.0;
+                let vel = projectile_info.vel;
                 let (target_height, target_radius) = read_data
                     .bodies
                     .get(target)
@@ -614,6 +638,14 @@ fn dispatch_hit(
                 pos,
                 explosion: e,
                 owner: owner_uid,
+            });
+        },
+        projectile::Effect::Arc(a) => {
+            emitters.emit(ArcEvent {
+                arc: a,
+                owner: projectile_info.owner_uid,
+                target: projectile_target_info.uid,
+                pos: *projectile_info.pos,
             });
         },
         projectile::Effect::Bonk => {

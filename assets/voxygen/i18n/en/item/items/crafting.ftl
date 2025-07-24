@@ -302,6 +302,9 @@ sprite-velorite-velorite_ore = Velorite
 sprite-velorite-velorite = Velorite Fragment
     .desc = Small runes sparkle on its surface, though you don't know what it means.
 
+sprite-velorite-lodestone = Lodestone
+    .desc = A crystalline rock that seems to be slightly magnetic.
+
 sprite-mineral-ingot-bloodsteel = Bloodsteel Ingot
     .desc =
         An alloy of bloodstone and iron, with a dark red color.
@@ -376,3 +379,6 @@ object-consumable-poison_clot = Poison Clot
 
 object-consumable-gelid_gel = Gelid Gel
     .desc = Adhesive bits of gel packed with frigid air.
+
+object-consumable-levin_dust = Levin Dust
+    .desc = Tingling powder with a natural magnetic charge.

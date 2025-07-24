@@ -2,6 +2,7 @@ pub mod ability;
 mod admin;
 pub mod agent;
 pub mod anchor;
+pub mod arc;
 pub mod aura;
 pub mod beam;
 pub mod body;
@@ -50,6 +51,7 @@ pub use self::{
         TradingBehavior,
     },
     anchor::Anchor,
+    arc::{Arc, ArcProperties},
     aura::{Aura, AuraChange, AuraKind, Auras, EnteredAuras},
     beam::Beam,
     body::{

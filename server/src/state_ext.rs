@@ -95,6 +95,13 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder<'_>;
+    fn create_arc(
+        &mut self,
+        arc: comp::ArcProperties,
+        target: Uid,
+        owner: Option<Uid>,
+        pos: comp::Pos,
+    ) -> EcsEntityBuilder<'_>;
     /// Creates a safezone
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder<'_>;
     fn create_wiring(
@@ -400,6 +407,26 @@ impl StateExt for State {
             })
             .with(comp::ShockwaveHitEntities {
                 hit_entities: Vec::<Uid>::new(),
+            })
+    }
+
+    fn create_arc(
+        &mut self,
+        arc: comp::ArcProperties,
+        target: Uid,
+        owner: Option<Uid>,
+        pos: comp::Pos,
+    ) -> EcsEntityBuilder<'_> {
+        let time = self.get_time();
+
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Arc {
+                properties: arc,
+                last_arc_time: Time(time),
+                hit_entities: vec![target],
+                owner,
             })
     }
 

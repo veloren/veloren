@@ -4,7 +4,7 @@ use crate::{
         DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
-        self,
+        self, ArcProperties,
         ability::Dodgeable,
         item::{Reagent, tool},
     },
@@ -29,6 +29,7 @@ pub enum Effect {
     Firework(Reagent),
     SurpriseEgg,
     TrainingDummy,
+    Arc(ArcProperties),
 }
 
 #[derive(Clone, Debug)]
@@ -39,6 +40,9 @@ pub struct Projectile {
     pub timeout: Vec<Effect>,
     /// Time left until the projectile will despawn
     pub time_left: Duration,
+    /// Max duration of projectile (should be equal to time_left when projectile
+    /// is created)
+    pub init_time: Secs,
     pub owner: Option<Uid>,
     /// Whether projectile collides with entities in the same group as its
     /// owner
@@ -47,6 +51,9 @@ pub struct Projectile {
     pub is_sticky: bool,
     /// Whether the projectile should use a point collider
     pub is_point: bool,
+    /// Whether the projectile should home towards a target entity and at what
+    /// rate (in deg/s)
+    pub homing: Option<(Uid, f32)>,
 }
 
 impl Component for Projectile {
@@ -68,13 +75,17 @@ impl Projectile {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectileConstructor {
     pub kind: ProjectileConstructorKind,
     pub attack: Option<ProjectileAttack>,
     pub scaled: Option<Scaled>,
+    /// In degrees per second
+    pub homing_rate: Option<f32>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Scaled {
     damage: f32,
     poise: Option<f32>,
@@ -86,6 +97,7 @@ pub struct Scaled {
 fn default_true() -> bool { true }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProjectileAttack {
     pub damage: f32,
     pub poise: Option<f32>,
@@ -103,6 +115,7 @@ pub struct ProjectileAttack {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum ProjectileConstructorKind {
     // I want a better name for 'Pointed' and 'Blunt'
     Pointed,
@@ -112,6 +125,12 @@ pub enum ProjectileConstructorKind {
         min_falloff: f32,
         reagent: Option<Reagent>,
         terrain: Option<(f32, ColorPreset)>,
+    },
+    Arcing {
+        distance: f32,
+        arcs: u32,
+        min_delay: Secs,
+        max_delay: Secs,
     },
     Possess,
     Hazard {
@@ -195,6 +214,9 @@ impl ProjectileConstructor {
                     dev_panic!("This should be unreachable");
                     (DamageSource::Projectile, DamageKind::Piercing)
                 },
+                ProjectileConstructorKind::Arcing { .. } => {
+                    (DamageSource::Energy, DamageKind::Energy)
+                },
             };
 
             let mut damage = AttackDamage::new(
@@ -250,6 +272,11 @@ impl ProjectileConstructor {
             attack
         });
 
+        let homing = ability_info
+            .and_then(|a| a.input_attr)
+            .and_then(|i| i.target_entity)
+            .zip(self.homing_rate);
+
         match self.kind {
             ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Blunt => {
                 let mut hit_entity = vec![Effect::Vanish];
@@ -263,10 +290,12 @@ impl ProjectileConstructor {
                     hit_entity,
                     timeout: Vec::new(),
                     time_left: Duration::from_secs(15),
+                    init_time: Secs(15.0),
                     owner,
                     ignore_group: true,
                     is_sticky: true,
                     is_point: true,
+                    homing,
                 }
             },
             ProjectileConstructorKind::Hazard {
@@ -284,10 +313,12 @@ impl ProjectileConstructor {
                     hit_entity,
                     timeout: Vec::new(),
                     time_left: Duration::from_secs_f64(duration.0),
+                    init_time: duration,
                     owner,
                     ignore_group: true,
                     is_sticky,
                     is_point: false,
+                    homing,
                 }
             },
             ProjectileConstructorKind::Explosive {
@@ -324,10 +355,47 @@ impl ProjectileConstructor {
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
                     timeout: Vec::new(),
                     time_left: Duration::from_secs(10),
+                    init_time: Secs(10.0),
                     owner,
                     ignore_group: true,
                     is_sticky: true,
                     is_point: true,
+                    homing,
+                }
+            },
+            ProjectileConstructorKind::Arcing {
+                distance,
+                arcs,
+                min_delay,
+                max_delay,
+            } => {
+                let mut hit_entity = vec![Effect::Vanish];
+
+                if let Some(attack) = attack {
+                    hit_entity.push(Effect::Attack(attack.clone()));
+
+                    let arc = ArcProperties {
+                        attack,
+                        distance,
+                        arcs,
+                        min_delay,
+                        max_delay,
+                    };
+
+                    hit_entity.push(Effect::Arc(arc));
+                }
+
+                Projectile {
+                    hit_solid: Vec::new(),
+                    hit_entity,
+                    timeout: Vec::new(),
+                    time_left: Duration::from_secs(10),
+                    init_time: Secs(10.0),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
                 }
             },
             ProjectileConstructorKind::ExplosiveHazard {
@@ -366,10 +434,12 @@ impl ProjectileConstructor {
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
                     timeout: Vec::new(),
                     time_left: Duration::from_secs_f64(duration.0),
+                    init_time: duration,
                     owner,
                     ignore_group: true,
                     is_sticky,
                     is_point: false,
+                    homing,
                 }
             },
             ProjectileConstructorKind::Possess => Projectile {
@@ -377,40 +447,48 @@ impl ProjectileConstructor {
                 hit_entity: vec![Effect::Stick, Effect::Possess],
                 timeout: Vec::new(),
                 time_left: Duration::from_secs(10),
+                init_time: Secs(10.0),
                 owner,
                 ignore_group: false,
                 is_sticky: true,
                 is_point: true,
+                homing,
             },
             ProjectileConstructorKind::Firework(reagent) => Projectile {
                 hit_solid: Vec::new(),
                 hit_entity: Vec::new(),
                 timeout: vec![Effect::Firework(reagent)],
                 time_left: Duration::from_secs(3),
+                init_time: Secs(3.0),
                 owner,
                 ignore_group: true,
                 is_sticky: true,
                 is_point: true,
+                homing,
             },
             ProjectileConstructorKind::SurpriseEgg => Projectile {
                 hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
                 hit_entity: vec![Effect::SurpriseEgg, Effect::Vanish],
                 timeout: Vec::new(),
                 time_left: Duration::from_secs(15),
+                init_time: Secs(15.0),
                 owner,
                 ignore_group: true,
                 is_sticky: true,
                 is_point: true,
+                homing,
             },
             ProjectileConstructorKind::TrainingDummy => Projectile {
                 hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
                 hit_entity: vec![Effect::TrainingDummy, Effect::Vanish],
                 timeout: vec![Effect::TrainingDummy],
                 time_left: Duration::from_secs(15),
+                init_time: Secs(15.0),
                 owner,
                 ignore_group: true,
                 is_sticky: true,
                 is_point: false,
+                homing,
             },
         }
     }
@@ -489,6 +567,11 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::ExplosiveHazard { ref mut radius, .. } => {
                 *radius *= stats.range;
             },
+            ProjectileConstructorKind::Arcing {
+                ref mut distance, ..
+            } => {
+                *distance *= stats.range;
+            },
         }
 
         self
@@ -529,7 +612,8 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::Hazard { .. }
             | ProjectileConstructorKind::Firework(_)
             | ProjectileConstructorKind::SurpriseEgg
-            | ProjectileConstructorKind::TrainingDummy => false,
+            | ProjectileConstructorKind::TrainingDummy
+            | ProjectileConstructorKind::Arcing { .. } => false,
             ProjectileConstructorKind::Explosive { .. }
             | ProjectileConstructorKind::ExplosiveHazard { .. } => true,
         }

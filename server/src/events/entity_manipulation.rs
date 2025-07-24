@@ -2028,6 +2028,7 @@ impl ServerEvent for BonkEvent {
                                             without_combo: false,
                                         }),
                                         scaled: None,
+                                        homing_rate: None,
                                     }
                                     .create_projectile(
                                         None,

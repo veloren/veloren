@@ -3932,6 +3932,10 @@
         "voxel.object.gelid_gel",
         (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
     ),
+    Simple("common.items.consumable.levin_dust"): VoxTrans(
+        "voxel.object.levin_dust",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
     // Admin consumables
     Simple("common.items.debug.golden_cheese"): VoxTrans(
         "voxel.item.food.item_cheese",

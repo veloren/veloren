@@ -1472,6 +1472,7 @@ impl CharacterAbility {
                 ground_shockwaves: false,
                 air_shockwaves: true,
                 explosions: true,
+                arcs: true,
             },
             was_cancel: remaining_duration > 0.0,
             meta: Default::default(),
@@ -3609,6 +3610,7 @@ pub enum ItemEnum {
     Firedrop,
     PoisonClot,
     GelidGel,
+    LevinDust,
 }
 
 impl ItemEnum {
@@ -3622,6 +3624,9 @@ impl ItemEnum {
             },
             Self::GelidGel => {
                 ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.gelid_gel"))
+            },
+            Self::LevinDust => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.levin_dust"))
             },
         }
     }

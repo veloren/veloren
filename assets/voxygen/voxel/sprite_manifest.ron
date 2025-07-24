@@ -7242,6 +7242,18 @@ Gold: [
         filter: (damage: (start: 4, end: 6)),
     ),
 ],
+Lodestone: [
+    (
+        variations: [
+            (
+                model: "voxygen.voxel.item.mineral.ore.lodestone",
+                offset: (-3.0, -3.0, 0.0),
+                lod_axes: (0.0, 0.0, 0.0),
+            ),
+        ],
+        wind_sway: 0.0,
+    ),
+],
 CrystalHigh: [(
     variations: [
         (

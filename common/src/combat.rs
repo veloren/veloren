@@ -54,6 +54,7 @@ pub enum AttackSource {
     AirShockwave,
     UndodgeableShockwave,
     Explosion,
+    Arc,
 }
 
 pub const FULL_FLANK_ANGLE: f32 = std::f32::consts::PI / 4.0;
@@ -1441,7 +1442,7 @@ impl From<AttackSource> for DamageSource {
             AttackSource::AirShockwave
             | AttackSource::GroundShockwave
             | AttackSource::UndodgeableShockwave => DamageSource::Shockwave,
-            AttackSource::Beam => DamageSource::Energy,
+            AttackSource::Beam | AttackSource::Arc => DamageSource::Energy,
         }
     }
 }

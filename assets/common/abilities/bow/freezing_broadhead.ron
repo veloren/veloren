@@ -10,7 +10,6 @@ ChargedRanged(
         ),
         attack: Some((
             damage: 5,
-            energy: 0,
             buff: Some((
                 kind: Chilled,
                 dur_secs: 10,
@@ -21,7 +20,6 @@ ChargedRanged(
         scaled: Some((
             damage: 20,
             knockback: Some(10),
-            energy: 0,
         )),
     ),
     buildup_duration: 0.3,

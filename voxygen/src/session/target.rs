@@ -73,13 +73,14 @@ pub(super) fn targets_under_cursor(
     };
     let scales = ecs.read_storage();
     let colliders = ecs.read_storage();
-    let char_states = ecs.read_storage();
+    let char_states = ecs.read_storage::<comp::CharacterState>();
+    let player_char_state = char_states.get(player_entity);
     // Get the player's cylinder
     let player_cylinder = Cylinder::from_components(
         player_pos,
         scales.get(player_entity).copied(),
         colliders.get(player_entity),
-        char_states.get(player_entity),
+        player_char_state,
     );
     let terrain = client.state().terrain();
 
@@ -173,8 +174,14 @@ pub(super) fn targets_under_cursor(
     let entity_target = nearby
         .iter()
         .map(|(e, p, r, _)| (e, *p, r))
-        // Find first one that intersects the ray segment
-        .find(|(_, p, r)| seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2))
+        // Find first one that intersects the ray segment, allow for entities nearby to the camera ray when wielding a weapon (as some abilities target an entity)
+        .find(|(_, p, r)| {
+            if player_char_state.is_some_and(|cs| cs.is_wield()) {
+                seg_ray.projected_point(*p).distance_squared(*p) < (*r + cam_pos.distance(*p) / 10.0).powi(2)
+            } else {
+                seg_ray.projected_point(*p).distance_squared(*p) < r.powi(2)
+            }
+        })
         .and_then(|(e, p, _)| {
             // Get the entity's cylinder
             let target_cylinder = Cylinder::from_components(

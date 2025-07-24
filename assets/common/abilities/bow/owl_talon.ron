@@ -2,11 +2,9 @@ SelfBuff(
     buildup_duration: 0.1,
     cast_duration: 0.1,
     recover_duration: 0.1,
-    buff_kind: OwlTalon,
-    buff_data: (
-        strength: 0.2,
-        duration: None,
-    ),
+    buffs: [
+        BuffDesc(kind: OwlTalon, data: BuffData(strength: 0.2, duration: None)),
+    ],
     buff_cat: Some(RemoveOnAttack),
     use_raw_buff_strength: true,
     energy_cost: 10,

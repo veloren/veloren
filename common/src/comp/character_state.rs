@@ -1350,12 +1350,20 @@ pub struct DurationsInfo {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct AttackFilters {
+    #[serde(default)]
     pub melee: bool,
+    #[serde(default)]
     pub projectiles: bool,
+    #[serde(default)]
     pub beams: bool,
+    #[serde(default)]
     pub ground_shockwaves: bool,
+    #[serde(default)]
     pub air_shockwaves: bool,
+    #[serde(default)]
     pub explosions: bool,
+    #[serde(default)]
+    pub arcs: bool,
 }
 
 impl AttackFilters {
@@ -1368,6 +1376,7 @@ impl AttackFilters {
             AttackSource::AirShockwave => self.air_shockwaves,
             AttackSource::UndodgeableShockwave => false,
             AttackSource::Explosion => self.explosions,
+            AttackSource::Arc => self.arcs,
         }
     }
 }

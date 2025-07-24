@@ -2559,6 +2559,9 @@
             "common.items.mineral.ore.veloritefrag",
         ): "sprite-velorite-velorite",
         Simple(
+            "common.items.mineral.ore.lodestone",
+        ): "sprite-velorite-lodestone",
+        Simple(
             "common.items.mineral.ingot.bloodsteel",
         ): "sprite-mineral-ingot-bloodsteel",
         Simple(
@@ -3696,6 +3699,9 @@
         Simple(
             "common.items.consumable.gelid_gel"
         ): "object-consumable-gelid_gel",
+        Simple(
+            "common.items.consumable.levin_dust"
+        ): "object-consumable-levin_dust",
         Simple(
             "common.items.lantern.black_0",
         ): "lantern-black",
