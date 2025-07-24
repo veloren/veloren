@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pirates sometimes going to raid towns.
 - Croatian language support.
 - Made space for airship travel agent at docks.
+- Hired adventurers will now go to taverns in towns while the employer stays in the town.
 
 ### Changed
 
