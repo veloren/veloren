@@ -397,7 +397,7 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
 }
 
 impl<S: State, R: 'static> Action<S, R> for Box<dyn Action<S, R>> {
-    fn is_same(&self, other: &Self) -> bool { (**self).dyn_is_same(other) }
+    fn is_same(&self, other: &Self) -> bool { (**self).dyn_is_same(&**other) }
 
     fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool {
         match (other as &dyn Any).downcast_ref::<Self>() {
@@ -919,7 +919,9 @@ impl<
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R0> {
         if let Some(new_a1) = (self.f)(ctx, state) {
-            self.a1 = Some(new_a1);
+            if self.a1.as_ref().is_none_or(|a1| !a1.is_same(&new_a1)) {
+                self.a1 = Some(new_a1);
+            }
         }
 
         if let Some(a1) = &mut self.a1 {

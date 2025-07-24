@@ -638,7 +638,7 @@ fn adventure() -> impl Action<DefaultState> {
     .debug(move || "adventure")
 }
 
-fn hired<S: State>(tgt: Actor) -> impl Action<S> {
+fn hired(tgt: Actor) -> impl Action<DefaultState> {
     follow_actor(tgt, 5.0)
         // Stop following if we're no longer hired
         .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.is_none_or(|(a, _)| a != tgt))
@@ -671,6 +671,46 @@ fn hired<S: State>(tgt: Actor) -> impl Action<S> {
                             }))
                             .boxed());
                     }
+                }
+
+                let data = ctx.state.data();
+
+
+                if let Some(visiting) = ctx.npc.current_site &&
+                   let Some(visiting_site) = data.sites.get(visiting) &&
+                   let Some(visiting_ws) = visiting_site.world_site &&
+                   let Some(pos) = util::locate_actor(ctx, tgt) &&
+                   let Some(chunk) = ctx.world.sim().get_wpos(pos.xy().as_()) &&
+                   chunk.sites.contains(&visiting_ws) &&
+                   let site_taverns = ctx.index.sites.get(visiting_ws).plots.iter().filter_map(|(pid, plot)| match plot.kind() { PlotKind::Tavern(t) => Some((pid, t)), _ => None  }).collect::<Vec<_>>() &&
+                   !site_taverns.is_empty() &&
+                   let Some((pid, tavern)) = site_taverns.get(ctx.npc.seed as usize % site_taverns.len())
+                   {
+                    let tavern_name = tavern.name.clone();
+                    return Some(just(move |ctx, _| {
+                        ctx.controller.say(
+                            tgt,
+                            Content::localized_with_args(
+                                "npc-dialogue-hire_arrive_tavern",
+                                [("tavern", Content::Plain(tavern_name.clone()))]
+                            )
+                        )
+                    })
+                    .then(
+                        go_to_tavern(visiting, *pid).stop_if(move |ctx: &mut NpcCtx<'_, '_>| {
+                            ctx.npc.hiring.is_none_or(|(tgt, _)| {
+                                util::locate_actor(ctx, tgt).is_none_or(|pos|
+                                    ctx.world.sim()
+                                        .get_wpos(pos.xy().as_())
+                                        .is_none_or(|chunk|
+                                            !chunk.sites.contains(&visiting_ws)
+                                        )
+                                )
+                            })
+                        })
+                    )
+                    .map(|_, _| ())
+                    .boxed());
                 }
             }
 
@@ -916,96 +956,11 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                             .boxed());
                     fun_activities.push(action);
                 }
-                if let Some(tavern) = ws.plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng) {
-                    let tavern_name = tavern.name.clone();
+                if let Some(tavern) = ws.plots.iter().filter_map(|(pid, p)| match p.kind() {  PlotKind::Tavern(_) => Some(pid), _ => None }).choose(&mut ctx.rng) {
                     let wait_time = ctx.rng.gen_range(100.0..300.0);
+                    let action = go_to_tavern(visiting_site, tavern).stop_if(timeout(wait_time)).map(|_, _| ());
 
-                    let (stage_aabr, stage_z) = tavern.rooms.values().flat_map(|room| {
-                        room.details.iter().filter_map(|detail| match detail {
-                            tavern::Detail::Stage { aabr } => Some((*aabr, room.bounds.min.z + 1)),
-                            _ => None,
-                        })
-                    }).choose(&mut ctx.rng).unwrap_or((tavern.bounds, tavern.door_wpos.z));
-
-                    let bar_pos = tavern.rooms.values().flat_map(|room|
-                        room.details.iter().filter_map(|detail| match detail {
-                            tavern::Detail::Bar { aabr } => {
-                                let side = site::util::Dir::from_vec2(room.bounds.center().xy() - aabr.center());
-                                let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();
-
-                                Some(pos.with_z(room.bounds.min.z))
-                            }
-                            _ => None,
-                        })
-                    ).choose(&mut ctx.rng).unwrap_or(stage_aabr.center().with_z(stage_z));
-
-                    // Pick a chair that is theirs for the stay
-                    let chair_pos = tavern.rooms.values().flat_map(|room| {
-                        let z = room.bounds.min.z;
-                        room.details.iter().filter_map(move |detail| match detail {
-                            tavern::Detail::Table { pos, chairs } => Some(chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())),
-                            _ => None,
-                        })
-                        .flatten()
-                    }
-                    ).choose(&mut ctx.rng)
-                    // This path is possible, but highly unlikely.
-                    .unwrap_or(bar_pos);
-
-                    let stage_aabr = stage_aabr.as_::<f32>();
-                    let stage_z = stage_z as f32;
-
-                    let action = casual(travel_to_point(tavern.door_wpos.xy().as_() + 0.5, 0.8).then(choose(move |ctx, (last_action, _)| {
-                            let action = [0, 1, 2].into_iter().filter(|i| *last_action != Some(*i)).choose(&mut ctx.rng).expect("We have at least 2 elements");
-                            let socialize_repeat = || socialize().map_state(|(_, timer)| timer).repeat();
-                            match action {
-                                // Go and dance on a stage.
-                                0 => {
-                                    casual(
-                                        now(move |ctx, (last_action, _)| {
-                                            *last_action = Some(action);
-                                            goto(stage_aabr.min.map2(stage_aabr.max, |a, b| ctx.rng.gen_range(a..b)).with_z(stage_z), WALKING_SPEED, 1.0)
-                                        })
-                                        .then(just(move |ctx,_| ctx.controller.do_dance(None)).repeat().stop_if(timeout(ctx.rng.gen_range(20.0..30.0))))
-                                        .map(|_, _| ())
-                                        .debug(|| "Dancing on the stage")
-                                    )
-                                },
-                                // Go and sit at a table.
-                                1 => {
-                                    casual(
-                                        now(move |ctx, (last_action, _)| {
-                                            *last_action = Some(action);
-                                            goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0)
-                                                .then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))
-                                                    // .then(socialize().map_state(|(_, timer)| timer))
-                                                    .repeat().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))
-                                                )
-                                                .map(|_, _| ())
-                                        })
-                                        .debug(move || format!("Sitting in a chair at {} {} {}", chair_pos.x, chair_pos.y, chair_pos.z))
-                                    )
-                                },
-                                // Go to the bar.
-                                _ => {
-                                    casual(
-                                        now(move |ctx, (last_action, _)| {
-                                            *last_action = Some(action);
-                                            goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize_repeat().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
-                                        }).debug(|| "At the bar")
-                                    )
-                                },
-                            }
-                        })
-                        .with_state((None::<u32>, every_range(5.0..10.0)))
-                        .repeat()
-                        .stop_if(timeout(wait_time)))
-                        .map(|_, _| ())
-                        .debug(move || format!("At the tavern '{}'", tavern_name))
-                        .boxed()
-                    );
-
-                    fun_activities.push(action);
+                    fun_activities.push(casual(action));
                 }
             }
 
@@ -1148,6 +1103,114 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         }))
     })
     .debug(move || format!("villager at site {:?}", visiting_site))
+}
+
+fn go_to_tavern(site_id: SiteId, tavern_plot: Id<site::Plot>) -> impl Action<DefaultState> {
+    now(move |ctx, _| {
+        let data = ctx.state.data();
+        if let Some(site) = data.sites.get(site_id)
+            && let Some(ws) = site.world_site
+            && let PlotKind::Tavern(tavern) = ctx.index.sites.get(ws).plots.get(tavern_plot).kind()
+        {
+            let tavern_name = tavern.name.clone();
+            let (stage_aabr, stage_z) = tavern
+                .rooms
+                .values()
+                .flat_map(|room| {
+                    room.details.iter().filter_map(|detail| match detail {
+                        tavern::Detail::Stage { aabr } => Some((*aabr, room.bounds.min.z + 1)),
+                        _ => None,
+                    })
+                })
+                .choose(&mut ctx.rng)
+                .unwrap_or((tavern.bounds, tavern.door_wpos.z));
+
+            let bar_pos = tavern
+                .rooms
+                .values()
+                .flat_map(|room| {
+                    room.details.iter().filter_map(|detail| match detail {
+                        tavern::Detail::Bar { aabr } => {
+                            let side = site::util::Dir::from_vec2(
+                                room.bounds.center().xy() - aabr.center(),
+                            );
+                            let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();
+
+                            Some(pos.with_z(room.bounds.min.z))
+                        },
+                        _ => None,
+                    })
+                })
+                .choose(&mut ctx.rng)
+                .unwrap_or(stage_aabr.center().with_z(stage_z));
+
+            // Pick a chair that is theirs for the stay
+            let chair_pos = tavern.rooms.values().flat_map(|room| {
+            let z = room.bounds.min.z;
+            room.details.iter().filter_map(move |detail| match detail {
+                tavern::Detail::Table { pos, chairs } => Some(chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())),
+                _ => None,
+            })
+            .flatten()
+        }
+        ).choose(&mut ctx.rng)
+        // This path is possible, but highly unlikely.
+        .unwrap_or(bar_pos);
+
+            let stage_aabr = stage_aabr.as_::<f32>();
+            let stage_z = stage_z as f32;
+
+            travel_to_point(tavern.door_wpos.xy().as_() + 0.5, 0.8).then(choose(move |ctx, (last_action, _)| {
+                let action = [0, 1, 2].into_iter().filter(|i| *last_action != Some(*i)).choose(&mut ctx.rng).expect("We have at least 2 elements");
+                let socialize_repeat = || socialize().map_state(|(_, timer)| timer).repeat();
+                match action {
+                    // Go and dance on a stage.
+                    0 => {
+                        casual(
+                            now(move |ctx, (last_action, _)| {
+                                *last_action = Some(action);
+                                goto(stage_aabr.min.map2(stage_aabr.max, |a, b| ctx.rng.gen_range(a..b)).with_z(stage_z), WALKING_SPEED, 1.0)
+                            })
+                            .then(just(move |ctx,_| ctx.controller.do_dance(None)).repeat().stop_if(timeout(ctx.rng.gen_range(20.0..30.0))))
+                            .map(|_, _| ())
+                            .debug(|| "Dancing on the stage")
+                        )
+                    },
+                    // Go and sit at a table.
+                    1 => {
+                        casual(
+                            now(move |ctx, (last_action, _)| {
+                                *last_action = Some(action);
+                                goto(chair_pos.as_() + 0.5, WALKING_SPEED, 1.0)
+                                    .then(just(move |ctx, _| ctx.controller.do_sit(None, Some(chair_pos)))
+                                        // .then(socialize().map_state(|(_, timer)| timer))
+                                        .repeat().stop_if(timeout(ctx.rng.gen_range(30.0..60.0)))
+                                    )
+                                    .map(|_, _| ())
+                            })
+                            .debug(move || format!("Sitting in a chair at {} {} {}", chair_pos.x, chair_pos.y, chair_pos.z))
+                        )
+                    },
+                    // Go to the bar.
+                    _ => {
+                        casual(
+                            now(move |ctx, (last_action, _)| {
+                                *last_action = Some(action);
+                                goto(bar_pos.as_() + 0.5, WALKING_SPEED, 1.0).then(socialize_repeat().stop_if(timeout(ctx.rng.gen_range(10.0..25.0)))).map(|_, _| ())
+                            }).debug(|| "At the bar")
+                        )
+                    },
+                }
+            })
+            .with_state((None::<u32>, every_range(5.0..10.0)))
+            .repeat())
+            .map(|_, _| ())
+            .debug(move || format!("At the tavern '{}'", tavern_name))
+            .l()
+        } else {
+            just(|_, _| {}).r()
+        }
+    })
 }
 
 fn pilot<S: State>(ship: common::comp::ship::Body) -> impl Action<S> {
