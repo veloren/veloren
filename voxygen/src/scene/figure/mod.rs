@@ -8467,7 +8467,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt / scale;
+            self.acc_vel += (self.avg_vel - *ground_vel).dot(*ori * Vec3::unit_y()) * dt / scale;
         } else {
             self.acc_vel = 0.0;
         }

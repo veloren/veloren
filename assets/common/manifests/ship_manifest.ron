@@ -297,6 +297,7 @@
             145: Air(Helm(0)),
             146: Air(Lantern(4)),
             147: Block(GlowingRock),
+            148: Air(TrainSmoke()),
         },
     ),
 }

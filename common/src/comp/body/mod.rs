@@ -1517,7 +1517,7 @@ impl Body {
                     species: crustacean::Species::Crab,
                     ..
                 })
-                // Allows for reverse ger!
+                // Allows for reverse gear!
                 | Body::Ship(ship::Body::Train)
         )
     }

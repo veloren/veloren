@@ -23,7 +23,6 @@ use crate::{
     event::{BuffEvent, ChangeStanceEvent, ComboChangeEvent, InventoryManipEvent, LocalEvent},
     mounting::Volume,
     outcome::Outcome,
-    spiral::Spiral2d,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, CoordinateConversions, TerrainGrid, UnlockKind},
     util::Dir,
@@ -173,7 +172,7 @@ impl Body {
                 quadruped_low::Species::Hydra => 100.0,
             },
             Body::Ship(ship::Body::Carriage) => 40.0,
-            Body::Ship(ship::Body::Train) => 18.0,
+            Body::Ship(ship::Body::Train) => 15.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 85.0,
@@ -198,13 +197,7 @@ impl Body {
         }
     }
 
-    pub fn air_accel(&self) -> f32 {
-        match self {
-            // TODO: This is a hack
-            Body::Ship(ship::Body::Train) => self.base_accel(),
-            _ => self.base_accel() * 0.025,
-        }
-    }
+    pub fn air_accel(&self) -> f32 { self.base_accel() * 0.025 }
 
     /// Attempt to determine the maximum speed of the character
     /// when moving on the ground
@@ -460,34 +453,6 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
         swim_move(data, update, efficiency, submersion);
     } else {
         basic_move(data, update, efficiency);
-    }
-
-    // Snap trains to the closest track
-    if matches!(&data.body, Body::Ship(ship::Body::Train))
-        // Get the 9 closest chunks...
-        && let chunks = Spiral2d::new().take(9).filter_map(|r| data.terrain.get_key(update.pos.0.xy().as_().wpos_to_cpos() + r))
-        // ...and each track in those chunks.
-        && let tracks = chunks.flat_map(|c| c.meta().tracks().iter())
-        // Find the closest point on the closest track
-        && let Some((bez, (t, track_closest))) = tracks
-            .map(|bez| (bez, bez.binary_search_point_by_steps(update.pos.0, 16, 0.05)))
-            .min_by_key(|(_, (_, p))| (p.distance_squared(update.pos.0) * 1000.0) as i32)
-    {
-        update.pos.0 = if data.physics.on_ground.is_some() {
-            track_closest.with_z(update.pos.0.z)
-        } else {
-            track_closest
-        };
-        let track_dir = bez.normalized_tangent(t);
-        let train_dir = if update.ori.look_vec().dot(track_dir) > 0.0 {
-            Dir::new(track_dir)
-        } else {
-            Dir::new(-track_dir)
-        };
-        update.ori = update
-            .ori
-            .yawed_towards(train_dir)
-            .pitched_towards(train_dir);
     }
 }
 

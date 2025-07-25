@@ -107,6 +107,7 @@ sprites! {
         FireBlock  = 0x03, // FireBlock for Burning Buff
         HotSurface = 0x04,
         Stones2    = 0x05, // Same as `Stones` but not collectible
+        TrainSmoke = 0x06,
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
