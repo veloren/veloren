@@ -277,7 +277,7 @@
     ),
     Train: (
         bone0: (
-            offset: (-7.5, -18.0, 0.0),
+            offset: (-7.5, -22.0, 0.0),
             central: "train.loco",
         ),
         bone1: (
