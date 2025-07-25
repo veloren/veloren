@@ -275,4 +275,28 @@
             19: Air(Lantern(4)),
         },
     ),
+    Train: (
+        bone0: (
+            offset: (-7.5, -18.0, 0.0),
+            central: "train.loco",
+        ),
+        bone1: (
+            offset: (-2.5, -7.5, -2.5),
+            central: "train.large_wheels",
+        ),
+        bone2: (
+            offset: (-2.5, -7.5, -2.5),
+            central: "train.large_wheels",
+        ),
+        bone3: (
+            offset: (0.0, 0.0, 0.0),
+            central: "empty",
+        ),
+
+        custom_indices: {
+            145: Air(Helm(0)),
+            146: Air(Lantern(4)),
+            147: Block(GlowingRock),
+        },
+    ),
 }

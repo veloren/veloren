@@ -21,13 +21,14 @@ pub const ALL_BODIES: [Body; 6] = [
 ];
 
 pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
-pub const ALL_SHIPS: [Body; 6] = [
+pub const ALL_SHIPS: [Body; 7] = [
     Body::SailBoat,
     Body::Galleon,
     Body::Skiff,
     Body::Submarine,
     Body::Carriage,
     Body::Cart,
+    Body::Train,
 ];
 
 #[derive(
@@ -44,6 +45,7 @@ pub enum Body {
     Submarine = 6,
     Carriage = 7,
     Cart = 8,
+    Train = 9,
 }
 
 impl From<Body> for super::Body {
@@ -77,6 +79,7 @@ impl Body {
             Body::Carriage => Some("carriage.structure"),
             Body::Cart => Some("cart.structure"),
             Body::Volume => None,
+            Body::Train => Some("train.loco"),
         }
     }
 
@@ -90,6 +93,7 @@ impl Body {
             Body::Submarine => Vec3::new(2.0, 15.0, 8.0),
             Body::Carriage => Vec3::new(5.0, 12.0, 2.0),
             Body::Cart => Vec3::new(3.0, 6.0, 1.0),
+            Body::Train => Vec3::new(1.0, 1.0, 2.0),
         }
     }
 
@@ -126,8 +130,10 @@ impl Body {
             Body::Carriage => Density(WATER_DENSITY * 0.5),
             Body::Cart => Density(500.0 / self.dimensions().product()), /* Carts get a constant */
             // mass
-            _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
-                                                                      * buoyant */
+            _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be
+                                                                       * very */
+            // buoyant
+            Body::Train => Density(WATER_DENSITY * 5.0),
         }
     }
 
@@ -161,7 +167,7 @@ impl Body {
         matches!(self, Body::SailBoat | Body::Galleon | Body::Skiff)
     }
 
-    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage | Body::Cart) }
+    pub fn has_wheels(&self) -> bool { matches!(self, Body::Carriage | Body::Cart | Body::Train) }
 
     pub fn make_collider(&self) -> Collider {
         match self.manifest_entry() {
@@ -191,6 +197,7 @@ impl Body {
             Body::Galleon => 6.0,
             Body::Skiff => 6.0,
             Body::Submarine => 4.0,
+            Body::Train => 12.0,
             _ => 10.0,
         }
     }

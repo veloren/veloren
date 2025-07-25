@@ -933,7 +933,9 @@ impl PhysicsData<'_> {
                         character_state.is_some_and(|cs| matches!(cs, CharacterState::Climb(_)));
 
                     let friction_factor = |vel: Vec3<f32>| {
-                        if let Some(Body::Ship(ship)) = body
+                        if let Some(Body::Ship(common::comp::body::ship::Body::Train)) = body {
+                            0.0
+                        } else if let Some(Body::Ship(ship)) = body
                             && ship.has_wheels()
                         {
                             vel.try_normalized()

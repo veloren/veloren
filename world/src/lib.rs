@@ -480,7 +480,7 @@ impl World {
             rtsim_resource_blocks: Vec::new(),
         };
 
-        if index.features.train_tracks {
+        if index.features.train_tracks || true {
             layer::apply_trains_to(&mut canvas, &self.sim, sim_chunk, chunk_center_wpos2d);
         }
 
