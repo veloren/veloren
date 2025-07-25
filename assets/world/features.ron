@@ -13,5 +13,5 @@
     wildlife_density: 1.0,
     peak_naming: true,
     biome_naming: true,
-    train_tracks: false, // TODO: train stations, train entities
+    train_tracks: true, // TODO: train stations, train entities
 )

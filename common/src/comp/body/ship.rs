@@ -129,10 +129,10 @@ impl Body {
             Body::Submarine => Density(WATER_DENSITY), // Neutrally buoyant
             Body::Carriage => Density(WATER_DENSITY * 0.5),
             Body::Cart => Density(500.0 / self.dimensions().product()), /* Carts get a constant */
-            // mass
-            _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be */
-            // very
-            Body::Train => Density(WATER_DENSITY),
+            // Trains are heavy as hell
+            Body::Train => Density(WATER_DENSITY * 1.5),
+            _ => Density(AIR_DENSITY * 0.95 + WATER_DENSITY * 0.05), /* Most boats should be very
+                                                                      * buoyant */
         }
     }
 

@@ -24,7 +24,7 @@ use crate::{
     mounting::Volume,
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
-    terrain::{Block, CoordinateConversions, TerrainGrid, UnlockKind},
+    terrain::{Block, TerrainGrid, UnlockKind},
     util::Dir,
     vol::ReadVol,
 };
@@ -172,7 +172,7 @@ impl Body {
                 quadruped_low::Species::Hydra => 100.0,
             },
             Body::Ship(ship::Body::Carriage) => 40.0,
-            Body::Ship(ship::Body::Train) => 15.0,
+            Body::Ship(ship::Body::Train) => 9.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 85.0,
