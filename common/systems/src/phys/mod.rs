@@ -1178,7 +1178,7 @@ impl PhysicsData<'_> {
                                         return;
                                     }
 
-                                    let mut physics_state_delta = physics_state.clone();
+                                    let mut physics_state_delta = PhysicsState::default();
 
                                     // Helper function for computing a transformation matrix and its
                                     // inverse. Should

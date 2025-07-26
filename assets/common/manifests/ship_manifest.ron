@@ -298,6 +298,7 @@
             146: Air(Lantern(4)),
             147: Block(GlowingRock),
             148: Air(TrainSmoke()),
+            149: Block(Lava),
         },
     ),
 }
