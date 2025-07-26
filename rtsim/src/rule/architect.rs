@@ -228,7 +228,7 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
         && let Some(death) = data.architect.deaths.pop_front()
     {
         if data.architect.population.of_death(&death)
-            >= data.architect.wanted_population.of_death(&death)
+            > data.architect.wanted_population.of_death(&death)
         {
             data.architect.population.on_death(&death);
             // If we have more than enough of this npc, we skip spawning a new one.
