@@ -184,3 +184,5 @@ subtitle-utterance-vampire-bat-hurt = Bat hurting
 subtitle-utterance-legoom-calm = Legoom calling
 subtitle-utterance-legoom-hurt = Legoom hurting
 subtitle-utterance-legoom-angry = Legoom shouting
+
+subtitle-train-chugg = Chugging train

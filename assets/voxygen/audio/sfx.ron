@@ -802,7 +802,7 @@
             ],
             threshold: 0.5,
             subtitle: "subtitle-instrument_oud",
-        ),        
+        ),
         Music(Instrument, Custom("Steeltonguedrum")): (
             files: [
             "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_eg",
@@ -1027,29 +1027,29 @@
             "voxygen.audio.sfx.instrument.banjo.banjo_cecgce",
             "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
             "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
-            "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
             "voxygen.audio.sfx.instrument.banjo.banjo_daece",
             "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
             "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
             "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
             "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
             "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
             "voxygen.audio.sfx.instrument.banjo.banjo_egga",
             "voxygen.audio.sfx.instrument.banjo.banjo_gd1gd1ac1",
             "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
             "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
             "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
             "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
             "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
             "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
-            "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",            
+            "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
             "voxygen.audio.sfx.instrument.banjo.banjo_ceceac1ce",
             "voxygen.audio.sfx.instrument.banjo.banjo_egegac1eg",
-	    "voxygen.audio.sfx.instrument.banjo.banjo_cecegd1ce",            
+	    "voxygen.audio.sfx.instrument.banjo.banjo_cecegd1ce",
             ],
             threshold: 0.5,
             subtitle: "subtitle-instrument_banjo",
@@ -1061,7 +1061,7 @@
             threshold: 0.3,
             subtitle: "subtitle-pickup_instrument",
         ),
-        //        
+        //
         // Spear
         //
         Wield(Spear): (
@@ -1098,7 +1098,7 @@
             ],
             threshold: 0.3,
             subtitle: "subtitle-pickup_spear",
-        ),        
+        ),
         //
         // Dagger
         //
@@ -1558,7 +1558,7 @@
                     "voxygen.audio.sfx.abilities.klonk",
             ],
             threshold: 0.4,
-        ),        
+        ),
         SmashKlonk: (
             files: [
                     "voxygen.audio.sfx.abilities.smashklonk",
@@ -1792,7 +1792,7 @@
                 ],
             threshold: 1.8,
             subtitle: "subtitle-bleep",
-        ),        
+        ),
         FlashFreeze: (
             files: [
                     "voxygen.audio.sfx.abilities.minotaur_smash_2",
@@ -1903,7 +1903,7 @@
             ],
             threshold: 1.3,
             subtitle: "subtitle-utterance-vampire-bat-angry",
-        ),        
+        ),
         Utterance(Angry, Adlet): (
             files: [
                 "voxygen.audio.sfx.utterance.adlet_angry1",
@@ -2126,7 +2126,7 @@
             ],
             threshold: 1.2,
             subtitle: "subtitle-utterance-vampire-bat-hurt",
-        ),        
+        ),
         Utterance(Angry, Wendigo): (
             files: [
                 "voxygen.audio.sfx.utterance.wendigo_angry1",
@@ -2212,6 +2212,34 @@
             ],
             threshold: 1.0,
             subtitle: "subtitle-lightning",
+        ),
+        TrainChugg: (
+            files: [
+                "voxygen.audio.sfx.vehicle.train_chugg",
+            ],
+            threshold: 1.0,
+            subtitle: None,
+        ),
+        TrainAmbience: (
+            files: [
+                "voxygen.audio.sfx.vehicle.train_ambience",
+            ],
+            threshold: 1.0,
+            subtitle: None,
+        ),
+        TrainClack: (
+            files: [
+                "voxygen.audio.sfx.vehicle.train_tracks",
+            ],
+            threshold: 1.0,
+            subtitle: None,
+        ),
+        TrainSpeed: (
+            files: [
+                "voxygen.audio.sfx.vehicle.train_speed",
+            ],
+            threshold: 1.0,
+            subtitle: "subtitle-train-chugg",
         ),
     }
 )

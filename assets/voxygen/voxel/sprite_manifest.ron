@@ -7423,5 +7423,15 @@ SeaUrchin: [(
     ],
     wind_sway: 0.0,
 )],
+Bell: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.bell",
+            offset: (-5.5, -4.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
 
 }

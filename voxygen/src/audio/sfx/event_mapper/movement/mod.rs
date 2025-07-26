@@ -110,6 +110,7 @@ impl EventMapper for MovementEventMapper {
                         pos.0,
                         Some(Self::get_volume_for_body_type(body)),
                         player_pos.0,
+                        None,
                     );
                     internal_state.time = Instant::now();
                     internal_state.steps_taken = 0.0;

@@ -2,6 +2,7 @@ mod block;
 mod campfire;
 mod combat;
 mod movement;
+mod vehicle;
 
 use client::Client;
 use common::terrain::TerrainChunk;
@@ -11,6 +12,7 @@ use block::BlockEventMapper;
 use campfire::CampfireEventMapper;
 use combat::CombatEventMapper;
 use movement::MovementEventMapper;
+use vehicle::VehicleEventMapper;
 
 use super::SfxTriggers;
 use crate::{
@@ -43,6 +45,7 @@ impl SfxEventMapper {
                 Box::new(MovementEventMapper::new()),
                 Box::new(BlockEventMapper::new()),
                 Box::new(CampfireEventMapper::new()),
+                Box::new(VehicleEventMapper::new()),
             ],
         }
     }

@@ -9,6 +9,7 @@
 //! defined in the client
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 
+use client::EcsEntity;
 use kira::{
     Easing, StartTime, Tween,
     clock::ClockTime,
@@ -31,8 +32,8 @@ use super::soundcache::{AnySoundData, AnySoundHandle};
 /// observe to prevent tracking distant entities. It approximates the distance
 /// at which the volume of the sfx emitted is too quiet to be meaningful for the
 /// player.
-pub const SFX_DIST_LIMIT: f32 = 100.0;
-pub const SFX_DIST_LIMIT_SQR: f32 = 10000.0;
+pub const SFX_DIST_LIMIT: f32 = 250.0;
+pub const SFX_DIST_LIMIT_SQR: f32 = SFX_DIST_LIMIT * SFX_DIST_LIMIT;
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
@@ -324,6 +325,8 @@ pub struct SfxChannel {
     track: SpatialTrackHandle,
     source: Option<AnySoundHandle>,
     pub pos: Vec3<f32>,
+    // Allow the position to be updated over time
+    pub pos_entity: Option<EcsEntity>,
 }
 
 impl SfxChannel {
@@ -339,6 +342,7 @@ impl SfxChannel {
             track,
             source: None,
             pos: Vec3::zero(),
+            pos_entity: None,
         })
     }
 
@@ -386,14 +390,12 @@ impl SfxChannel {
         self.track.set_position(emitter_pos, tween);
         self.pos = emitter_pos;
 
-        let player_distance_to_source_sqr = player_pos
-            .distance_squared(self.pos)
-            .min(SFX_DIST_LIMIT_SQR);
         // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
         // 1.0 being closest to the player.
-        let ratio = (-(player_distance_to_source_sqr - SFX_DIST_LIMIT_SQR) / SFX_DIST_LIMIT_SQR)
-            .powf(5.0)
-            .clamp(0.0, 1.0);
+        let ratio = 1.0
+            - (player_pos.distance(self.pos) / SFX_DIST_LIMIT)
+                .clamp(0.0, 1.0)
+                .sqrt();
         self.set_volume(ratio);
     }
 }

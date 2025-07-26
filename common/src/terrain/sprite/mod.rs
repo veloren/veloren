@@ -444,6 +444,7 @@ sprites! {
         TerracottaStatue = 0x46,
         TerracottaBlock = 0x47,
         MetalChain = 0x48,
+        Bell = 0x49,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -689,6 +690,7 @@ impl SpriteKind {
             SpriteKind::ShortCactus => 1.36,
             SpriteKind::MedFlatCactus => 1.36,
             SpriteKind::ShortFlatCactus => 0.91,
+            SpriteKind::Bell => 1.0,
             // TODO: Find suitable heights.
             SpriteKind::Apple
             | SpriteKind::Beehive

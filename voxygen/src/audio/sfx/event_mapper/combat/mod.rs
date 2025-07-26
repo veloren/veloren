@@ -78,7 +78,7 @@ impl EventMapper for CombatEventMapper {
                     && let Some(player_pos) = state.read_component_copied::<Pos>(player_entity)
                 {
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
-                    audio.emit_sfx(sfx_trigger_item, pos.0, None, player_pos.0);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None, player_pos.0, None);
                     sfx_state.time = Instant::now();
                 }
 

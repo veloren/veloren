@@ -299,6 +299,7 @@
             147: Block(GlowingRock),
             148: Air(TrainSmoke()),
             149: Block(Lava),
+            150: Air(Bell(0)),
         },
     ),
 }
