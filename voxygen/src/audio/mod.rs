@@ -11,7 +11,6 @@ use channel::{
     AmbienceChannel, AmbienceChannelTag, LoopPoint, MusicChannel, MusicChannelTag, SfxChannel,
     UiChannel,
 };
-use client::EcsEntity;
 use cpal::{
     Device, SampleRate, StreamConfig, SupportedStreamConfigRange,
     traits::{DeviceTrait, HostTrait},
@@ -644,7 +643,7 @@ impl AudioFrontend {
         volume: Option<f32>,
         player_pos: Vec3<f32>,
     ) {
-        self.emit_sfx_ext(trigger_item, emitter_pos, volume, player_pos, None);
+        self.emit_sfx_ext(trigger_item, emitter_pos, volume, player_pos);
     }
 
     pub fn emit_sfx_ext(
@@ -653,7 +652,6 @@ impl AudioFrontend {
         emitter_pos: Vec3<f32>,
         volume: Option<f32>,
         player_pos: Vec3<f32>,
-        emitter_pos_entity: Option<EcsEntity>,
     ) -> Option<SfxHandle> {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
             self.emit_subtitle(subtitle, Some(emitter_pos), dur);
@@ -663,8 +661,8 @@ impl AudioFrontend {
                 && let Some((channel_idx, channel)) = inner.channels.get_empty_sfx_channel()
             {
                 let sound = load_ogg(sfx_file, false);
-                channel.pos_entity = emitter_pos_entity;
-                channel.update(emitter_pos, player_pos);
+                channel.set_pos(emitter_pos);
+                channel.update(player_pos);
 
                 let source = sound.volume(to_decibels(volume.unwrap_or(1.0) * 5.0));
                 Some(SfxHandle {

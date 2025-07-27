@@ -87,7 +87,6 @@ impl EventMapper for VehicleEventMapper {
                             pos.0,
                             Some((1.0 - chugg_lerp) * 5.0),
                             player_pos.0,
-                            Some(entity),
                         );
                         internal_state.last_chugg = Instant::now();
                     }
@@ -100,13 +99,7 @@ impl EventMapper for VehicleEventMapper {
                         {
                             internal_state.last_speed = (
                                 Instant::now(),
-                                audio.emit_sfx_ext(
-                                    Some((event, item)),
-                                    pos.0,
-                                    None,
-                                    player_pos.0,
-                                    Some(entity),
-                                ),
+                                audio.emit_sfx_ext(Some((event, item)), pos.0, None, player_pos.0),
                             );
                         }
 
@@ -116,6 +109,7 @@ impl EventMapper for VehicleEventMapper {
                             .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
                         {
                             chan.set_volume(volume);
+                            chan.set_pos(pos.0);
                         }
                     }
                     // Train ambience
@@ -126,13 +120,7 @@ impl EventMapper for VehicleEventMapper {
                         {
                             internal_state.last_ambience = (
                                 Instant::now(),
-                                audio.emit_sfx_ext(
-                                    Some((event, item)),
-                                    pos.0,
-                                    None,
-                                    player_pos.0,
-                                    Some(entity),
-                                ),
+                                audio.emit_sfx_ext(Some((event, item)), pos.0, None, player_pos.0),
                             );
                         }
 
@@ -142,6 +130,7 @@ impl EventMapper for VehicleEventMapper {
                             .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
                         {
                             chan.set_volume(volume);
+                            chan.set_pos(pos.0);
                         }
                     }
                     // Train clack
@@ -154,7 +143,6 @@ impl EventMapper for VehicleEventMapper {
                             pos.0,
                             Some(speed.clamp(25.0, 50.0) / 8.0),
                             player_pos.0,
-                            Some(entity),
                         );
                         internal_state.last_clack = Instant::now();
                     }

@@ -75,7 +75,6 @@ impl EventMapper for CampfireEventMapper {
                         pos.0,
                         Some(CAMPFIRE_VOLUME),
                         player_pos.0,
-                        Some(entity),
                     );
                     internal_state.time = Instant::now();
                 }

@@ -89,8 +89,8 @@ use common::{
     DamageSource,
     assets::{self, AssetExt, AssetHandle},
     comp::{
-        Body, CharacterAbilityType, Health, InventoryUpdateEvent, Pos, UtteranceKind, beam,
-        biped_large, biped_small, bird_large, bird_medium, crustacean, humanoid,
+        Body, CharacterAbilityType, Health, InventoryUpdateEvent, UtteranceKind, beam, biped_large,
+        biped_small, bird_large, bird_medium, crustacean, humanoid,
         item::{AbilitySpec, ItemDefinitionId, ItemDesc, ItemKind, ToolKind, item_key::ItemKey},
         object,
         poise::PoiseState,
@@ -452,15 +452,9 @@ impl SfxMgr {
         // Update continuing sounds with player position
         if let Some(inner) = audio.inner.as_mut() {
             let player_pos = client.position().unwrap_or_default();
-            let positions = client.state().read_storage::<Pos>();
             inner.channels.sfx.iter_mut().for_each(|c| {
                 if !c.is_done() {
-                    c.update(
-                        c.pos_entity
-                            .and_then(|e| Some(positions.get(e)?.0))
-                            .unwrap_or(c.pos),
-                        player_pos,
-                    )
+                    c.update(player_pos)
                 }
             })
         }

@@ -9,7 +9,6 @@
 //! defined in the client
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 
-use client::EcsEntity;
 use kira::{
     Easing, StartTime, Tween,
     clock::ClockTime,
@@ -324,9 +323,7 @@ impl AmbienceChannel {
 pub struct SfxChannel {
     track: SpatialTrackHandle,
     source: Option<AnySoundHandle>,
-    pub pos: Vec3<f32>,
-    // Allow the position to be updated over time
-    pub pos_entity: Option<EcsEntity>,
+    pos: Vec3<f32>,
     // Increments every time we play a distinct sound through this channel
     pub play_counter: usize,
 }
@@ -344,7 +341,6 @@ impl SfxChannel {
             track,
             source: None,
             pos: Vec3::zero(),
-            pos_entity: None,
             play_counter: 0,
         })
     }
@@ -380,6 +376,8 @@ impl SfxChannel {
         self.track.set_volume(audio::to_decibels(volume), tween)
     }
 
+    pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
+
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
@@ -387,13 +385,12 @@ impl SfxChannel {
     }
 
     /// Update volume of sounds based on position of player
-    pub fn update(&mut self, emitter_pos: Vec3<f32>, player_pos: Vec3<f32>) {
+    pub fn update(&mut self, player_pos: Vec3<f32>) {
         let tween = Tween {
             duration: Duration::from_secs_f32(0.0),
             ..Default::default()
         };
-        self.track.set_position(emitter_pos, tween);
-        self.pos = emitter_pos;
+        self.track.set_position(self.pos, tween);
 
         // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
         // 1.0 being closest to the player.
