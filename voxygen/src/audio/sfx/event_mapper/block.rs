@@ -238,7 +238,6 @@ impl EventMapper for BlockEventMapper {
                                         block_pos,
                                         Some(sounds.volume),
                                         player_pos.0,
-                                        None,
                                     );
                                 }
                                 internal_state.time = Instant::now();

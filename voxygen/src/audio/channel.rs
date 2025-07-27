@@ -327,6 +327,8 @@ pub struct SfxChannel {
     pub pos: Vec3<f32>,
     // Allow the position to be updated over time
     pub pos_entity: Option<EcsEntity>,
+    // Increments every time we play a distinct sound through this channel
+    pub play_counter: usize,
 }
 
 impl SfxChannel {
@@ -343,6 +345,7 @@ impl SfxChannel {
             source: None,
             pos: Vec3::zero(),
             pos_entity: None,
+            play_counter: 0,
         })
     }
 
@@ -350,13 +353,15 @@ impl SfxChannel {
         self.source = source_handle;
     }
 
-    pub fn play(&mut self, source: AnySoundData) {
+    pub fn play(&mut self, source: AnySoundData) -> usize {
         match self.track.play(source) {
             Ok(handle) => self.source = Some(handle),
             Err(e) => {
                 warn!(?e, "Cannot play sfx")
             },
         }
+        self.play_counter += 1;
+        self.play_counter
     }
 
     pub fn stop(&mut self) {

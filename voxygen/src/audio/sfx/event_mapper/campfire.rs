@@ -70,7 +70,7 @@ impl EventMapper for CampfireEventMapper {
                 {
                     let sfx_trigger_item = triggers.get_key_value(&mapped_event);
                     const CAMPFIRE_VOLUME: f32 = 0.8;
-                    audio.emit_sfx(
+                    audio.emit_sfx_ext(
                         sfx_trigger_item,
                         pos.0,
                         Some(CAMPFIRE_VOLUME),

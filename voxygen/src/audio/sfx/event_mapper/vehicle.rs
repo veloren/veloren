@@ -1,7 +1,10 @@
 /// EventMapper::Campfire maps sfx to campfires
 use crate::{
     AudioFrontend,
-    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggers},
+    audio::{
+        SfxHandle,
+        sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggers},
+    },
     scene::{Camera, Terrain},
 };
 
@@ -20,8 +23,8 @@ use std::time::{Duration, Instant};
 #[derive(Clone)]
 struct PreviousEntityState {
     last_chugg: Instant,
-    last_speed: Instant,
-    last_ambience: Instant,
+    last_speed: (Instant, Option<SfxHandle>),
+    last_ambience: (Instant, Option<SfxHandle>),
     last_clack: Instant,
 }
 
@@ -29,8 +32,8 @@ impl Default for PreviousEntityState {
     fn default() -> Self {
         Self {
             last_chugg: Instant::now(),
-            last_speed: Instant::now(),
-            last_ambience: Instant::now(),
+            last_speed: (Instant::now(), None),
+            last_ambience: (Instant::now(), None),
             last_clack: Instant::now(),
         }
     }
@@ -79,7 +82,7 @@ impl EventMapper for VehicleEventMapper {
                             >= 7.5 / speed.min(50.0)
                         && chugg_lerp < 1.0
                     {
-                        audio.emit_sfx(
+                        audio.emit_sfx_ext(
                             Some((event, item)),
                             pos.0,
                             Some((1.0 - chugg_lerp) * 5.0),
@@ -89,38 +92,64 @@ impl EventMapper for VehicleEventMapper {
                         internal_state.last_chugg = Instant::now();
                     }
                     // High-speed chugging
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainSpeed)
-                        && internal_state.last_speed.elapsed().as_secs_f32() >= item.threshold
-                        && chugg_lerp > 0.0
-                    {
-                        audio.emit_sfx(
-                            Some((event, item)),
-                            pos.0,
-                            Some(chugg_lerp * 10.0),
-                            player_pos.0,
-                            Some(entity),
-                        );
-                        internal_state.last_speed = Instant::now();
+                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainSpeed) {
+                        let volume = chugg_lerp * 10.0;
+
+                        if internal_state.last_speed.0.elapsed().as_secs_f32() >= item.threshold
+                            && chugg_lerp > 0.0
+                        {
+                            internal_state.last_speed = (
+                                Instant::now(),
+                                audio.emit_sfx_ext(
+                                    Some((event, item)),
+                                    pos.0,
+                                    None,
+                                    player_pos.0,
+                                    Some(entity),
+                                ),
+                            );
+                        }
+
+                        if let Some(chan) = internal_state
+                            .last_speed
+                            .1
+                            .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
+                        {
+                            chan.set_volume(volume);
+                        }
                     }
                     // Train ambience
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainAmbience)
-                        && internal_state.last_ambience.elapsed().as_secs_f32() >= item.threshold
-                    {
-                        audio.emit_sfx(
-                            Some((event, item)),
-                            pos.0,
-                            Some(speed.clamp(20.0, 50.0) / 8.0),
-                            player_pos.0,
-                            Some(entity),
-                        );
-                        internal_state.last_ambience = Instant::now();
+                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainAmbience) {
+                        let volume = speed.clamp(20.0, 50.0) / 8.0;
+
+                        if internal_state.last_ambience.0.elapsed().as_secs_f32() >= item.threshold
+                        {
+                            internal_state.last_ambience = (
+                                Instant::now(),
+                                audio.emit_sfx_ext(
+                                    Some((event, item)),
+                                    pos.0,
+                                    None,
+                                    player_pos.0,
+                                    Some(entity),
+                                ),
+                            );
+                        }
+
+                        if let Some(chan) = internal_state
+                            .last_ambience
+                            .1
+                            .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
+                        {
+                            chan.set_volume(volume);
+                        }
                     }
                     // Train clack
                     if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainClack)
                         && internal_state.last_clack.elapsed().as_secs_f32() >= 48.0 / speed
                         && speed > 25.0
                     {
-                        audio.emit_sfx(
+                        audio.emit_sfx_ext(
                             Some((event, item)),
                             pos.0,
                             Some(speed.clamp(25.0, 50.0) / 8.0),
@@ -156,9 +185,9 @@ impl VehicleEventMapper {
             now.duration_since(
                 event
                     .last_chugg
-                    .max(event.last_ambience)
+                    .max(event.last_ambience.0)
                     .max(event.last_clack)
-                    .max(event.last_speed),
+                    .max(event.last_speed.0),
             ) < Duration::from_secs(TRACKING_TIMEOUT)
                 || entity.id() == player.id()
         });

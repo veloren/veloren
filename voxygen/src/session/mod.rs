@@ -360,7 +360,6 @@ impl SessionState {
                                 client.position().unwrap_or_default(),
                                 None,
                                 pos,
-                                None,
                             ),
                         }
 

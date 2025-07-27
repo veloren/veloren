@@ -110,6 +110,12 @@ struct Effects {
     ambience: FilterHandle,
 }
 
+#[derive(Copy, Clone)]
+pub struct SfxHandle {
+    channel_idx: usize,
+    play_id: usize,
+}
+
 #[derive(Default)]
 struct Channels {
     music: Vec<MusicChannel>,
@@ -126,8 +132,14 @@ impl Channels {
     }
 
     /// Retrive an empty sfx channel from the list
-    fn get_sfx_channel(&mut self) -> Option<&mut SfxChannel> {
-        self.sfx.iter_mut().find(|c| c.is_done())
+    fn get_empty_sfx_channel(&mut self) -> Option<(usize, &mut SfxChannel)> {
+        self.sfx.iter_mut().enumerate().find(|(_, c)| c.is_done())
+    }
+
+    fn get_sfx_channel(&mut self, sfx: &SfxHandle) -> Option<&mut SfxChannel> {
+        self.sfx
+            .get_mut(sfx.channel_idx)
+            .filter(|c| c.play_counter == sfx.play_id)
     }
 
     /// Retrive an empty UI channel from the list
@@ -458,6 +470,8 @@ impl AudioFrontend {
         }
     }
 
+    fn channels_mut(&mut self) -> Option<&mut Channels> { Some(&mut self.inner.as_mut()?.channels) }
+
     /// Construct in `no-audio` mode for debugging
     pub fn no_audio() -> Self {
         Self {
@@ -629,21 +643,36 @@ impl AudioFrontend {
         emitter_pos: Vec3<f32>,
         volume: Option<f32>,
         player_pos: Vec3<f32>,
-        emitter_pos_entity: Option<EcsEntity>,
     ) {
+        self.emit_sfx_ext(trigger_item, emitter_pos, volume, player_pos, None);
+    }
+
+    pub fn emit_sfx_ext(
+        &mut self,
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        emitter_pos: Vec3<f32>,
+        volume: Option<f32>,
+        player_pos: Vec3<f32>,
+        emitter_pos_entity: Option<EcsEntity>,
+    ) -> Option<SfxHandle> {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
             self.emit_subtitle(subtitle, Some(emitter_pos), dur);
             // Play sound in empty channel at given position
             if self.sfx_enabled()
                 && let Some(inner) = self.inner.as_mut()
-                && let Some(channel) = inner.channels.get_sfx_channel()
+                && let Some((channel_idx, channel)) = inner.channels.get_empty_sfx_channel()
             {
                 let sound = load_ogg(sfx_file, false);
                 channel.pos_entity = emitter_pos_entity;
                 channel.update(emitter_pos, player_pos);
 
                 let source = sound.volume(to_decibels(volume.unwrap_or(1.0) * 5.0));
-                channel.play(source);
+                Some(SfxHandle {
+                    channel_idx,
+                    play_id: channel.play(source),
+                })
+            } else {
+                None
             }
         } else {
             warn!(
@@ -651,6 +680,7 @@ impl AudioFrontend {
                 trigger_item,
                 backtrace::Backtrace::new(),
             );
+            None
         }
     }
 
