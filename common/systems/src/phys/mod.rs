@@ -970,8 +970,8 @@ impl PhysicsData<'_> {
                         let track_dir = (line.end - line.start).normalized();
                         let track_closest = line.projected_point(tgt_pos);
 
-                        // Clamp velocity to direction of rail
-                        vel.0 = track_dir * vel.0.dot(track_dir);
+                        // vel.0 = track_dir * vel.0.dot(track_dir); // Clamp velocity to direction of rail
+                        vel.0 += (track_closest - tgt_pos) / read.dt.0.max(0.001); // Correct velocity according to position update
                         // Clamp position to track
                         tgt_pos = track_closest;
 
