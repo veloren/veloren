@@ -19,7 +19,7 @@
         Individual((
             title: "Lost Among Vast",
             path: "voxygen.audio.soundtrack.overworld.lost_among_vast",
-            length: 165.0,
+            length: 167.0,
             timing: Night,
             weather: None,
             biomes: [
