@@ -238,7 +238,7 @@ pub enum Fill {
 
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
-    Slabs(BlockKind, Rgb<u8>, Vec3<u8>, u8),
+    PlankWall(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
     // we probably need an evaluator for the primitive tree that gets which point is queried at
@@ -534,18 +534,23 @@ impl Fill {
                     })
                 },
                 Fill::Block(block) => Some(*block),
-                Fill::Brick(bk, col, range) => Some(Block::new(
+                Fill::Brick(bk, col, range) => {
+                    let pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
+                    Some(Block::new(
+                        *bk,
+                        *col + ((((pos.x ^ pos.y ^ pos.z) as u8).reverse_bits() as u16
+                            * *range as u16)
+                            >> 8) as u8,
+                        // *col + (RandomField::new(13)
+                        //     .get(pos)
+                        //     % *range as u32) as u8,
+                    ))
+                },
+                Fill::PlankWall(bk, col, range) => Some(Block::new(
                     *bk,
                     *col + (RandomField::new(13)
-                        .get((pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1))
+                        .get((pos + Vec3::new(pos.z, pos.z, 0) * 8) / Vec3::new(16, 16, 1))
                         % *range as u32) as u8,
-                )),
-                Fill::Slabs(bk, col, sz, range) => Some(Block::new(
-                    *bk,
-                    *col + (RandomField::new(13).get(
-                        pos / sz.as_()
-                            + Vec3::new(pos.z * 2 / sz.z as i32, pos.z * 2 / sz.z as i32, 0),
-                    ) % *range as u32) as u8,
                 )),
                 Fill::Gradient(gradient, bk) => Some(Block::new(*bk, gradient.sample(pos.as_()))),
                 Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {

@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
     Land,
+    all::ForestKind,
     site::util::{Dir, sprites::PainterSpriteExt},
     util::{DIRS, RandomField, Sampler},
 };
@@ -14,22 +15,19 @@ use vek::*;
 
 #[derive(Copy, Clone)]
 enum Style {
-    Wooden,
+    Wooden(Rgb<u8>),
     Stone,
+    Brick,
     Daub,
 }
 
 impl Style {
-    fn get_fill(&self) -> Fill {
+    fn get_fill(self) -> Fill {
         match self {
-            Self::Wooden => Fill::Slabs(
-                BlockKind::Wood,
-                Rgb::new(63, 28, 12),
-                Vec3::new(1, 1, 6),
-                24,
-            ),
-            Self::Stone => Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24),
+            Self::Wooden(color) => Fill::PlankWall(BlockKind::Wood, color, 64),
+            Self::Stone => Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 50),
             Self::Daub => Fill::Brick(BlockKind::Wood, Rgb::new(200, 180, 150), 24),
+            Self::Brick => Fill::Brick(BlockKind::Rock, Rgb::new(100, 45, 14), 48),
         }
     }
 }
@@ -54,6 +52,7 @@ pub struct House {
     christmas_decorations: bool,
     lower_style: Style,
     upper_style: Style,
+    gable_style: Style,
 }
 
 impl House {
@@ -82,22 +81,41 @@ impl House {
 
         let christmas_decorations = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
 
-        let tree_density =
-            land.get_interpolated(site.tile_center_wpos(door_tile), |c| c.tree_density);
-        let humidity = land.get_interpolated(site.tile_center_wpos(door_tile), |c| c.humidity);
-        let upper_style = if tree_density > 0.85 {
-            Style::Wooden
-        } else if humidity > 0.75 {
-            Style::Stone
-        } else {
-            Style::Daub
+        let door_wpos = site.tile_center_wpos(door_tile);
+        let upper_style = match land.make_forest_lottery(door_wpos).choose_seeded(rng.gen())
+            // Don't use wood for some houses, even in woody areas
+            .filter(|_| rng.gen_bool(0.75))
+        {
+            Some(
+                ForestKind::Cedar
+                | ForestKind::AutumnTree
+                | ForestKind::Frostpine
+                | ForestKind::Mangrove,
+            ) => Style::Wooden(Rgb::new(63, 28, 12)),
+            Some(ForestKind::Oak | ForestKind::Swamp | ForestKind::Baobab) => {
+                Style::Wooden(Rgb::new(102, 87, 63))
+            },
+            Some(ForestKind::Acacia | ForestKind::Birch | ForestKind::Palm) => {
+                Style::Wooden(Rgb::new(130, 104, 102))
+            },
+            Some(
+                ForestKind::Mapletree | ForestKind::Redwood | ForestKind::Pine | ForestKind::Cherry,
+            ) => Style::Wooden(Rgb::new(117, 95, 46)),
+            _ if rng.gen_bool(0.5) => Style::Brick,
+            _ => Style::Daub,
         };
         let lower_style = match upper_style {
             // Nothing else can support stone
             Style::Stone => Style::Stone,
+            Style::Brick => Style::Brick,
             // Stone may appear below anything else
+            _ if rng.gen_bool(0.3) => Style::Brick,
             _ if rng.gen_bool(0.5) => Style::Stone,
             _ => upper_style,
+        };
+        let gable_style = match upper_style {
+            Style::Wooden(_) | Style::Daub => upper_style,
+            Style::Stone | Style::Brick => Style::Daub,
         };
 
         Self {
@@ -135,6 +153,7 @@ impl House {
             christmas_decorations,
             lower_style,
             upper_style,
+            gable_style,
         }
     }
 
@@ -159,6 +178,7 @@ impl Structure for House {
 
         let wall_fill_upper = self.upper_style.get_fill();
         let wall_fill_lower = self.lower_style.get_fill();
+        let wall_fill_gable = self.gable_style.get_fill();
 
         // Roof
         let roof_lip = 1;
@@ -395,7 +415,7 @@ impl Structure for House {
         );
         painter.fill(roof_empty, Fill::Block(Block::empty()));
         let roof_walls = painter.prim(Primitive::union(roof_front, roof_rear));
-        painter.fill(roof_walls, wall_fill_upper.clone());
+        painter.fill(roof_walls, wall_fill_gable.clone());
         let max_overhang = (self.levels as i32 - 1) * self.overhang;
         let (roof_beam, roof_beam_right, roof_beam_left) = match self.front {
             Dir::Y => (
@@ -653,8 +673,13 @@ impl Structure for House {
                 })),
             };
 
-            // Ground floor has rock walls
-            let wall_block_fill = if i < 2 {
+            let is_lower = i <= 1;
+            let style = if is_lower {
+                self.lower_style
+            } else {
+                self.upper_style
+            };
+            let wall_block_fill = if is_lower {
                 wall_fill_lower.clone()
             } else {
                 wall_fill_upper.clone()
@@ -666,9 +691,16 @@ impl Structure for House {
                 .union(inner_level)
                 .without(outer_level.intersect(inner_level));
 
+            let pillar_fill = match self.upper_style {
+                Style::Wooden(color) => Fill::Block(Block::new(BlockKind::Wood, color / 2)),
+                Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(85, 35, 8))),
+                // Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(40, 44, 45))),
+                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+            };
+
             // Wall Pillars
             // Only upper non-stone floors have wooden beams in the walls
-            if i > 1 {
+            if !matches!(style, Style::Stone) {
                 let mut pillars_y = painter.prim(Primitive::Empty);
                 let mut overhang_supports = painter.prim(Primitive::Empty);
 
@@ -873,16 +905,17 @@ impl Structure for House {
                             .with_z(alt + previous_height + 1),
                     })),
                 };
-                let pillars = painter.prim(Primitive::union(pillars3, pillars4));
+                let pillars = if matches!(style, Style::Brick) {
+                    pillars4
+                } else {
+                    painter.prim(Primitive::union(pillars3, pillars4))
+                };
                 painter.fill(
                     painter.prim(Primitive::intersect(walls, pillars)),
-                    Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+                    pillar_fill.clone(),
                 );
 
-                painter.fill(
-                    overhang_supports,
-                    Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
-                );
+                painter.fill(overhang_supports, pillar_fill.clone());
             }
 
             // Windows x axis
@@ -1289,7 +1322,7 @@ impl Structure for House {
                 );
                 painter.fill(
                     painter.prim(Primitive::intersect(shed_wall_beams, shed_walls)),
-                    Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+                    pillar_fill,
                 );
 
                 // Dormers

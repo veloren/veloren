@@ -1,10 +1,11 @@
 use crate::{
     ColumnSample, IndexRef,
+    all::ForestKind,
     column::ColumnGen,
     sim::{self, SimChunk},
     util::Sampler,
 };
-use common::{terrain::TerrainChunkSize, vol::RectVolSize};
+use common::{lottery::Lottery, terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
 /// A wrapper type that may contain a reference to a generated world. If not,
@@ -81,5 +82,12 @@ impl<'a> Land<'a> {
     ) -> Option<ColumnSample<'sample>> {
         self.sim
             .and_then(|sim| ColumnGen::new(sim).get((wpos, index, None)))
+    }
+
+    pub fn make_forest_lottery(&self, wpos: Vec2<i32>) -> Lottery<Option<ForestKind>> {
+        match self.sim {
+            Some(sim) => sim.make_forest_lottery(wpos),
+            None => Lottery::from(vec![(1.0, None)]),
+        }
     }
 }
