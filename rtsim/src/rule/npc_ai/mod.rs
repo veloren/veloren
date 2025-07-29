@@ -53,6 +53,7 @@ use common::{
         compass::{Direction, Distance},
         item::ItemDef,
     },
+    match_some,
     path::Path,
     rtsim::{
         Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, Response, Role,
@@ -675,16 +676,13 @@ fn hired(tgt: Actor) -> impl Action<DefaultState> {
 
                 let data = ctx.state.data();
 
-
                 if let Some(visiting) = ctx.npc.current_site &&
                    let Some(visiting_site) = data.sites.get(visiting) &&
                    let Some(visiting_ws) = visiting_site.world_site &&
                    let Some(pos) = util::locate_actor(ctx, tgt) &&
                    let Some(chunk) = ctx.world.sim().get_wpos(pos.xy().as_()) &&
                    chunk.sites.contains(&visiting_ws) &&
-                   let site_taverns = ctx.index.sites.get(visiting_ws).plots.iter().filter_map(|(pid, plot)| match plot.kind() { PlotKind::Tavern(t) => Some((pid, t)), _ => None  }).collect::<Vec<_>>() &&
-                   !site_taverns.is_empty() &&
-                   let Some((pid, tavern)) = site_taverns.get(ctx.npc.seed as usize % site_taverns.len())
+                   let Some((pid, tavern)) = ctx.index.sites.get(visiting_ws).plots.iter().filter_map(|(pid, plot)| match_some!(plot.kind(), PlotKind::Tavern(t) => (pid, t))).choose(&mut ctx.npc.rng(14))
                    {
                     let tavern_name = tavern.name.clone();
                     return Some(just(move |ctx, _| {
@@ -697,7 +695,7 @@ fn hired(tgt: Actor) -> impl Action<DefaultState> {
                         )
                     })
                     .then(
-                        go_to_tavern(visiting, *pid).stop_if(move |ctx: &mut NpcCtx<'_, '_>| {
+                        go_to_tavern(visiting, pid).stop_if(move |ctx: &mut NpcCtx<'_, '_>| {
                             ctx.npc.hiring.is_none_or(|(tgt, _)| {
                                 util::locate_actor(ctx, tgt).is_none_or(|pos|
                                     ctx.world.sim()
