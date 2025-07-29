@@ -194,6 +194,7 @@ pub enum SfxEvent {
     StrigoiHead,
     BloodmoonHeiressSummon,
     TrainChugg,
+    TrainChuggSteam,
     TrainAmbience,
     TrainClack,
     TrainSpeed,

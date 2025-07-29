@@ -23,6 +23,7 @@ use std::time::{Duration, Instant};
 #[derive(Clone)]
 struct PreviousEntityState {
     last_chugg: Instant,
+    last_chugg_steam: Instant,
     last_speed: (Instant, Option<SfxHandle>),
     last_ambience: (Instant, Option<SfxHandle>),
     last_clack: Instant,
@@ -32,6 +33,7 @@ impl Default for PreviousEntityState {
     fn default() -> Self {
         Self {
             last_chugg: Instant::now(),
+            last_chugg_steam: Instant::now(),
             last_speed: (Instant::now(), None),
             last_ambience: (Instant::now(), None),
             last_clack: Instant::now(),
@@ -85,14 +87,28 @@ impl EventMapper for VehicleEventMapper {
                         audio.emit_sfx_ext(
                             Some((event, item)),
                             pos.0,
-                            Some((1.0 - chugg_lerp) * 5.0),
+                            Some(((1.0 - chugg_lerp) * 4.0).min(3.0)),
                             player_pos.0,
                         );
                         internal_state.last_chugg = Instant::now();
                     }
+                    // Steam release
+                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainChuggSteam)
+                        && internal_state.last_chugg_steam.elapsed().as_secs_f32()
+                        >= 10.0 / speed.min(50.0)
+                        && chugg_lerp < 1.0
+                        {
+                            audio.emit_sfx_ext(
+                                Some((event, item)),
+                                               pos.0,
+                                               Some((1.0 - chugg_lerp) * 4.0),
+                                               player_pos.0,
+                            );
+                            internal_state.last_chugg_steam = Instant::now();
+                        }
                     // High-speed chugging
                     if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainSpeed) {
-                        let volume = chugg_lerp * 10.0;
+                        let volume = chugg_lerp * 8.0;
 
                         if internal_state.last_speed.0.elapsed().as_secs_f32() >= item.threshold
                             && chugg_lerp > 0.0
@@ -114,7 +130,7 @@ impl EventMapper for VehicleEventMapper {
                     }
                     // Train ambience
                     if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainAmbience) {
-                        let volume = speed.clamp(20.0, 50.0) / 8.0;
+                        let volume = speed.clamp(20.0, 50.0) / 10.0;
 
                         if internal_state.last_ambience.0.elapsed().as_secs_f32() >= item.threshold
                         {
@@ -141,7 +157,7 @@ impl EventMapper for VehicleEventMapper {
                         audio.emit_sfx_ext(
                             Some((event, item)),
                             pos.0,
-                            Some(speed.clamp(25.0, 50.0) / 8.0),
+                            Some(speed.clamp(25.0, 50.0) / 18.0),
                             player_pos.0,
                         );
                         internal_state.last_clack = Instant::now();

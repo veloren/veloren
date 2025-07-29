@@ -2220,6 +2220,13 @@
             threshold: 1.0,
             subtitle: None,
         ),
+        TrainChuggSteam: (
+            files: [
+                "voxygen.audio.sfx.vehicle.train_chugg_steam",
+            ],
+            threshold: 1.0,
+            subtitle: None,
+        ),
         TrainAmbience: (
             files: [
                 "voxygen.audio.sfx.vehicle.train_ambience",
