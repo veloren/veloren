@@ -305,10 +305,9 @@ fn smalltalk_to<S: State>(tgt: Actor) -> impl Action<S> {
             } else if ctx.rng.gen_bool(0.6) && DayPeriod::from(ctx.time_of_day.0).is_dark() {
                 Content::localized("npc-speech-night")
             } else if ctx.rng.gen_bool(0.3)
-                && let Some(profession_comment) = match ctx.npc.profession() {
-                    Some(Profession::Pirate(_)) => Some(Content::localized("npc-speech-pirate")),
-                    _ => None,
-                }
+                && let Some(profession_comment) = match_some!(ctx.npc.profession(),
+                    Some(Profession::Pirate(_)) => Content::localized("npc-speech-pirate"),
+                )
             {
                 profession_comment
             } else {
@@ -919,7 +918,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
 
             if let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site {
                 let ws = ctx.index.sites.get(ws_id);
-                if let Some(arena) = ws.plots().find_map(|p| match p.kind() { PlotKind::DesertCityArena(a) => Some(a), _ => None}) {
+                if let Some(arena) = ws.plots().find_map(|p| match_some!(p.kind(), PlotKind::DesertCityArena(a) => a)) {
                     let wait_time = ctx.rng.gen_range(100.0..300.0);
                     // We don't use Z coordinates for seats because they are complicated to calculate from the Ramp procedural generation
                     // and using goto_2d seems to work just fine. However it also means that NPC will never go seat on the stands
@@ -954,7 +953,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                             .boxed());
                     fun_activities.push(action);
                 }
-                if let Some(tavern) = ws.plots.iter().filter_map(|(pid, p)| match p.kind() {  PlotKind::Tavern(_) => Some(pid), _ => None }).choose(&mut ctx.rng) {
+                if let Some(tavern) = ws.plots.iter().filter_map(|(pid, p)| match_some!(p.kind(), PlotKind::Tavern(_) => pid)).choose(&mut ctx.rng) {
                     let wait_time = ctx.rng.gen_range(100.0..300.0);
                     let action = go_to_tavern(visiting_site, tavern).stop_if(timeout(wait_time)).map(|_, _| ());
 
@@ -1058,15 +1057,14 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
         } else if matches!(ctx.npc.profession(), Some(Profession::Chef))
             && ctx.rng.gen_bool(0.8)
             && let Some(ws_id) = ctx.state.data().sites[visiting_site].world_site
-            && let Some(tavern) = ctx.index.sites.get(ws_id).plots().filter_map(|p| match p.kind() {  PlotKind::Tavern(a) => Some(a), _ => None }).choose(&mut ctx.rng)
+            && let Some(tavern) = ctx.index.sites.get(ws_id).plots().filter_map(|p| match_some!(p.kind(), PlotKind::Tavern(a) => a)).choose(&mut ctx.rng)
             && let Some((bar_pos, room_center)) = tavern.rooms.values().flat_map(|room|
-                room.details.iter().filter_map(|detail| match detail {
+                room.details.iter().filter_map(|detail| match_some!(detail,
                     tavern::Detail::Bar { aabr } => {
                         let center = aabr.center();
-                        Some((center.with_z(room.bounds.min.z), room.bounds.center().xy()))
-                    }
-                    _ => None,
-                })
+                        (center.with_z(room.bounds.min.z), room.bounds.center().xy())
+                    },
+                ))
             ).choose(&mut ctx.rng) {
 
             let face_dir = Dir::from_unnormalized((room_center - bar_pos).as_::<f32>().with_z(0.0)).unwrap_or_else(|| Dir::random_2d(&mut ctx.rng));
@@ -1115,9 +1113,8 @@ fn go_to_tavern(site_id: SiteId, tavern_plot: Id<site::Plot>) -> impl Action<Def
                 .rooms
                 .values()
                 .flat_map(|room| {
-                    room.details.iter().filter_map(|detail| match detail {
-                        tavern::Detail::Stage { aabr } => Some((*aabr, room.bounds.min.z + 1)),
-                        _ => None,
+                    room.details.iter().filter_map(|detail| {
+                        match_some!(detail, tavern::Detail::Stage { aabr } => (*aabr, room.bounds.min.z + 1))
                     })
                 })
                 .choose(&mut ctx.rng)
@@ -1127,17 +1124,16 @@ fn go_to_tavern(site_id: SiteId, tavern_plot: Id<site::Plot>) -> impl Action<Def
                 .rooms
                 .values()
                 .flat_map(|room| {
-                    room.details.iter().filter_map(|detail| match detail {
+                    room.details.iter().filter_map(|detail| match_some!(detail,
                         tavern::Detail::Bar { aabr } => {
                             let side = site::util::Dir::from_vec2(
                                 room.bounds.center().xy() - aabr.center(),
                             );
                             let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();
 
-                            Some(pos.with_z(room.bounds.min.z))
+                            pos.with_z(room.bounds.min.z)
                         },
-                        _ => None,
-                    })
+                    ))
                 })
                 .choose(&mut ctx.rng)
                 .unwrap_or(stage_aabr.center().with_z(stage_z));
@@ -1145,10 +1141,9 @@ fn go_to_tavern(site_id: SiteId, tavern_plot: Id<site::Plot>) -> impl Action<Def
             // Pick a chair that is theirs for the stay
             let chair_pos = tavern.rooms.values().flat_map(|room| {
             let z = room.bounds.min.z;
-            room.details.iter().filter_map(move |detail| match detail {
-                tavern::Detail::Table { pos, chairs } => Some(chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())),
-                _ => None,
-            })
+            room.details.iter().filter_map(move |detail| match_some!(detail,
+                tavern::Detail::Table { pos, chairs } => chairs.into_iter().map(move |dir| pos.with_z(z) + dir.to_vec2())
+            ))
             .flatten()
         }
         ).choose(&mut ctx.rng)

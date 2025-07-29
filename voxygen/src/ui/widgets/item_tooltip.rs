@@ -14,6 +14,7 @@ use common::{
             armor::Protection, item_key::ItemKey, modular::ModularComponent,
         },
     },
+    match_some,
     recipe::RecipeBookManifest,
     trade::SitePrices,
 };
@@ -485,10 +486,10 @@ impl Widget for ItemTooltip<'_> {
 
         let item_kind = util::kind_text(item_kind, i18n).to_string();
 
-        let material = item.tags().into_iter().find_map(|t| match t {
-            ItemTag::MaterialKind(material) => Some(material),
-            _ => None,
-        });
+        let material = item
+            .tags()
+            .into_iter()
+            .find_map(|t| match_some!(t, ItemTag::MaterialKind(m) => m));
 
         let subtitle = if let Some(material) = material {
             format!(
