@@ -20,10 +20,7 @@ use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::info;
 use world::{
-    IndexRef, World,
-    civ::airship_travel::AirshipSpawningLocation,
-    site::PlotKind,
-    util::seed_expan,
+    IndexRef, World, civ::airship_travel::AirshipSpawningLocation, site::PlotKind, util::seed_expan,
 };
 
 pub fn wanted_population(world: &World, index: IndexRef) -> Population {
