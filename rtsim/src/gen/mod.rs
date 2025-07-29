@@ -4,7 +4,6 @@ pub mod site;
 
 use crate::data::{
     CURRENT_VERSION, Data, Nature,
-    airship::AirshipSpawningLocation,
     architect::{Population, TrackedPopulation},
     faction::Faction,
     npc::{Npc, Npcs, Profession},
@@ -22,11 +21,8 @@ use rand_chacha::ChaChaRng;
 use tracing::info;
 use world::{
     IndexRef, World,
-    civ::airship_travel::{AirshipDockingSide, Airships},
-    site::{PlotKind, plot::PlotKindMeta},
-    CONFIG, IndexRef, World,
     civ::airship_travel::AirshipSpawningLocation,
-    site::{PlotKind, SiteKind},
+    site::PlotKind,
     util::seed_expan,
 };
 
