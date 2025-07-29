@@ -1461,16 +1461,14 @@ impl Site {
                 //airship dock
                 6 if (size > 0.125 && airship_docks == 0) => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    // if let Some((_aabr, _, _door_dir, alt)) = attempt(10, || {
-                    //     site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
-                    // }) {
-                    let size = 3.0 as u32;
+                    // The airship dock rendered size is 10x10.
+                    // The rendering code allows for a margin of 1 tile
+                    // and we want to keep the dock footprint as small as possible.
+                    // The area range for the aabr is fixed at size squared (81) since the
+                    // dock structure is square.
+                    let size = 9u32;
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            4..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
+                        site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let airship_dock = plot::AirshipDock::generate(
                             land,
@@ -1498,7 +1496,6 @@ impl Site {
                     } else {
                         site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
-                    // }
                 },
                 7 if (size > 0.125 && taverns < 2) => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Tavern);
@@ -2001,15 +1998,10 @@ impl Site {
                 },
                 3 if airship_dock < 1 => {
                     // SavannahAirshipDock
-
-                    let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = 9u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            4..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(48, || {
+                        site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let savannah_airship_dock = plot::SavannahAirshipDock::generate(
                             land,
@@ -2160,14 +2152,15 @@ impl Site {
                 },
                 3 if airship_docks < 1 => {
                     // CoastalAirshipDock
-                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    // The airship dock rendered size is 10x10.
+                    // The rendering code allows for a margin of 1 tile
+                    // and we want to keep the dock footprint as small as possible.
+                    // The area range for the aabr is fixed at size squared (81) since the
+                    // dock structure is square.
+                    let size = 9u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            7..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
+                        site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let coastal_airship_dock = plot::CoastalAirshipDock::generate(
                             land,
@@ -2356,16 +2349,17 @@ impl Site {
                         generator_stats.success(&site.name, GenStatPlotKind::Temple);
                     }
                 },
-                // DesertCityAirshipDock
                 3 if airship_docks < 1 => {
-                    let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    // DesertCityAirshipDock
+                    // The airship dock rendered size is 10x10.
+                    // The rendering code allows for a margin of 1 tile
+                    // and we want to keep the dock footprint as small as possible.
+                    // The area range for the aabr is fixed at size squared (81) since the
+                    // dock structure is square.
+                    let size = 9u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            8..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(100, || {
+                        site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let desert_city_airship_dock = plot::DesertCityAirshipDock::generate(
                             land,

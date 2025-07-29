@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::util::gradient::WrapMode,
+    site::{gen::PrimitiveTransform, util::gradient::WrapMode},
     util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, Sampler, within_distance},
 };
 use common::{
@@ -250,6 +250,57 @@ impl Structure for CliffTownAirshipDock {
                             )
                             .intersect(limit_up)
                             .fill(wood.clone());
+
+                        // Travel Agent desk
+                        let rotation = -f32::atan2(door_dir.x as f32, door_dir.y as f32);
+                        painter
+                            .aabb(Aabb {
+                                min: Vec2::new(plot_center.x - 5, plot_center.y - 5)
+                                    .with_z(floor_level + 1),
+                                max: Vec2::new(plot_center.x - 10, plot_center.y - 10)
+                                    .with_z(floor_level + 6),
+                            })
+                            .rotate_about(
+                                Mat3::rotation_z(rotation).as_(),
+                                plot_center.with_z(base),
+                            )
+                            .clear();
+                        painter
+                            .line(
+                                Vec2::new(plot_center.x - 6, plot_center.y - 9)
+                                    .with_z(floor_level + 1),
+                                Vec2::new(plot_center.x - 9, plot_center.y - 6)
+                                    .with_z(floor_level + 1),
+                                0.5,
+                            )
+                            .rotate_about(
+                                Mat3::rotation_z(rotation).as_(),
+                                plot_center.with_z(base),
+                            )
+                            .fill(brick.clone());
+                        painter
+                            .line(
+                                Vec2::new(plot_center.x - 10, plot_center.y - 10)
+                                    .with_z(floor_level + 1),
+                                Vec2::new(plot_center.x - 10, plot_center.y - 10)
+                                    .with_z(floor_level + 6),
+                                0.5,
+                            )
+                            .rotate_about(
+                                Mat3::rotation_z(rotation).as_(),
+                                plot_center.with_z(base),
+                            )
+                            .fill(brick.clone());
+                        let agent_lantern_pos = Vec2::new(plot_center.x - 9, plot_center.y - 9);
+                        let agent_lantern_pos_rotated = (plot_center.map(|i| i as f32)
+                            + Mat2::rotation_z(rotation)
+                                * (agent_lantern_pos - plot_center).map(|i| i as f32))
+                        .map(|f| f.round() as i32);
+                        painter.sprite(
+                            agent_lantern_pos_rotated.with_z(floor_level + 5),
+                            SpriteKind::WallLampMesa,
+                        );
+
                         // lanterns & cargo
                         for dir in NEIGHBORS {
                             let lantern_pos = plot_center + (dir * (platform_length - 6));

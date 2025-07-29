@@ -44,15 +44,13 @@ impl SavannahAirshipDock {
             land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
         }) + 2;
         let base = alt + 1;
-        let length = 18;
+        let length = 21;
         let platform_height = 40;
-        let mut docking_positions = vec![];
-        let top_floor = base + platform_height - 2;
-        for dir in CARDINALS {
-            let docking_pos = center + dir * (length + 5);
-            docking_positions.push(docking_pos.with_z(top_floor));
-        }
-
+        let top_floor = base + platform_height - 3;
+        let docking_positions = CARDINALS
+            .iter()
+            .map(|dir| (center + dir * 31).with_z(top_floor))
+            .collect::<Vec<_>>();
         Self {
             door_tile: door_tile_pos,
             alt,
@@ -66,11 +64,11 @@ impl SavannahAirshipDock {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: {
-                // dock is 4 tiles = 24 blocks in radius
-                // airships are 20 blocks wide.
-                // Leave extra space for tree width (at least 15 extra).
-                // Don't allow trees within 24 + 20 + 15 = 59 blocks of the dock center
-                const AIRSHIP_MIN_TREE_DIST2: i32 = 59;
+                // dock is 5 tiles = 30 blocks in radius
+                // airships are 39 blocks wide.
+                // Tree can be up to 20 blocks in radius.
+                // Don't allow trees within 30 + 39 + 20 = 89 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 89;
                 !within_distance(wpos, self.center, AIRSHIP_MIN_TREE_DIST2)
             },
             waypoints: false,
@@ -165,7 +163,7 @@ impl Structure for SavannahAirshipDock {
             .fill(clay.clone());
         // docks
         for dir in CARDINALS {
-            let dock_pos = center + dir * (length + 2);
+            let dock_pos = center + dir * 26;
             painter
                 .cylinder(Aabb {
                     min: (dock_pos - 5).with_z(base + platform_height - 3),
@@ -242,6 +240,55 @@ impl Structure for SavannahAirshipDock {
                         .with_z(base + (storeys * height) + (height / 2) - 2 + reed_var as i32),
                 })
                 .clear();
+
+            if b == 1 {
+                // Agent Desk
+                let agent_z_pos = base - 2 + ((storeys - 1) * (height + 2));
+                painter
+                    .cylinder_with_radius(
+                        center.with_z(agent_z_pos),
+                        (length + 1 - (storeys - 1)) as f32,
+                        6.0,
+                    )
+                    .intersect(painter.aabb(Aabb {
+                        min: (Vec2::new(center.x - 3, center.y + 4)).with_z(agent_z_pos),
+                        max: (Vec2::new(center.x - 30, center.y + 30)).with_z(agent_z_pos + 7),
+                    }))
+                    .fill(clay.clone());
+                painter
+                    .cylinder_with_radius(
+                        center.with_z(agent_z_pos),
+                        (length + 1 - (storeys - 1)) as f32,
+                        5.0,
+                    )
+                    .intersect(painter.aabb(Aabb {
+                        min: (Vec2::new(center.x - 4, center.y + 5)).with_z(agent_z_pos),
+                        max: (Vec2::new(center.x - 30, center.y + 30)).with_z(agent_z_pos + 6),
+                    }))
+                    .clear();
+                painter
+                    .cylinder_with_radius(
+                        Vec2::new(center.x - 4, center.y + 5).with_z(agent_z_pos),
+                        (length - 4 - (storeys - 1)) as f32,
+                        1.0,
+                    )
+                    .intersect(painter.aabb(Aabb {
+                        min: (Vec2::new(center.x - 4, center.y + 5)).with_z(agent_z_pos),
+                        max: (Vec2::new(center.x - 30, center.y + 30)).with_z(agent_z_pos + 2),
+                    }))
+                    .fill(color.clone());
+                painter
+                    .cylinder_with_radius(
+                        Vec2::new(center.x - 4, center.y + 5).with_z(agent_z_pos),
+                        (length - 5 - (storeys - 1)) as f32,
+                        1.0,
+                    )
+                    .intersect(painter.aabb(Aabb {
+                        min: (Vec2::new(center.x - 4, center.y + 5)).with_z(agent_z_pos),
+                        max: (Vec2::new(center.x - 30, center.y + 30)).with_z(agent_z_pos + 2),
+                    }))
+                    .clear();
+            }
             // room
             for s in 0..storeys {
                 let room = painter.cylinder(Aabb {
@@ -270,6 +317,7 @@ impl Structure for SavannahAirshipDock {
                         .fill(clay.clone());
                 }
             }
+
             // clear rooms
             painter
                 .cylinder(Aabb {

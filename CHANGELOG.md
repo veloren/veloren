@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - One new overworld track.
 - Pirates sometimes going to raid towns.
 - Croatian language support.
+- Made space for airship travel agent at docks.
 
 ### Changed
 
@@ -90,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Danari horns are now showed when wearing a hat or helmet.
 - Debuff icons have been updated to be more vibrant and identifiable. 
 - Made hammer skills descrptions clearer.
+- Updated airship docks to add more space between docking platforms.
 
 ### Removed
 
