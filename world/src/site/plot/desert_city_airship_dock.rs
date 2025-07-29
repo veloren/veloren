@@ -50,13 +50,12 @@ impl DesertCityAirshipDock {
         let length = 14;
         let height = 2 * (length / 3);
         let floors = 4;
-        let mut docking_positions = vec![];
         let base = alt + 1;
         let top_floor = base + 5 + (height * (floors + 1));
-        for dir in CARDINALS {
-            let docking_pos = center + dir * (length * 2);
-            docking_positions.push(docking_pos.with_z(top_floor));
-        }
+        let docking_positions = CARDINALS
+            .iter()
+            .map(|dir| (center + dir * 31).with_z(top_floor))
+            .collect::<Vec<_>>();
         Self {
             bounds,
             door_tile: door_tile_pos,
@@ -73,12 +72,12 @@ impl DesertCityAirshipDock {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: {
-                // dock is 3 tiles = 18 blocks in radius
-                // airships are 20 blocks wide.
-                // Leave extra space for tree width (at lease 15 extra).
-                // Don't allow trees within 18 + 20 + 15 = 53 blocks of the dock center
-                const AIRSHIP_MIN_TREE_DIST2: i32 = 53;
-                !within_distance(wpos, self.center, AIRSHIP_MIN_TREE_DIST2)
+                // dock is 5 tiles = 30 blocks in radius
+                // airships are 39 blocks wide.
+                // Tree can be up to 20 blocks in radius.
+                // Don't allow trees within 30 + 39 + 20 = 89 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST: i32 = 89;
+                !within_distance(wpos, self.center, AIRSHIP_MIN_TREE_DIST)
             },
             waypoints: false,
             ..SpawnRules::default()
@@ -165,6 +164,33 @@ impl Structure for DesertCityAirshipDock {
         for f in 0..=floors {
             let bldg_base = base + f * (height + 1);
             let bldg_length = length;
+            if f == floors {
+                // Agent Desk
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - 7, center.y - 5).with_z(bldg_base + height),
+                        max: Vec2::new(center.x - 12, center.y + 5).with_z(bldg_base + height + 6),
+                    })
+                    .fill(sandstone.clone());
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - 8, center.y - 4).with_z(bldg_base + height),
+                        max: Vec2::new(center.x - 11, center.y + 4).with_z(bldg_base + height + 5),
+                    })
+                    .clear();
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - 11, center.y - 5).with_z(bldg_base + height),
+                        max: Vec2::new(center.x - 12, center.y + 5).with_z(bldg_base + height + 5),
+                    })
+                    .clear();
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - 10, center.y - 4).with_z(bldg_base + height),
+                        max: Vec2::new(center.x - 11, center.y + 4).with_z(bldg_base + height + 2),
+                    })
+                    .fill(wood.clone());
+            }
             // room
             painter
                 .aabb(Aabb {
@@ -328,7 +354,7 @@ impl Structure for DesertCityAirshipDock {
                 for dir in CARDINALS {
                     let gangway_pos_1 = center + dir * (3 * (bldg_length / 2));
                     let gangway_pos_2 = center + dir * ((3 * (bldg_length / 2)) - 4);
-                    let dock_pos = center + dir * ((bldg_length * 2) - 3);
+                    let dock_pos = center + dir * 27;
                     painter
                         .aabb(Aabb {
                             min: (gangway_pos_2 - 3).with_z(bldg_base + height - 1),

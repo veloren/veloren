@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::place_circular,
+    site::gen::{PrimitiveTransform, place_circular},
     util::{CARDINALS, RandomField, Sampler, within_distance},
 };
 use common::{
@@ -49,12 +49,11 @@ impl CoastalAirshipDock {
         let bldg_height = 12;
         let base = alt + 1;
         let center = bounds.center();
-        let mut docking_positions = vec![];
         let top_floor = base + (bldg_height * 6) - 3;
-        for dir in CARDINALS {
-            let docking_pos = center + dir * (size - 1);
-            docking_positions.push(docking_pos.with_z(top_floor - 1));
-        }
+        let docking_positions = CARDINALS
+            .iter()
+            .map(|dir| (center + dir * 31).with_z(top_floor - 1))
+            .collect::<Vec<_>>();
         Self {
             door_tile: door_tile_pos,
             alt,
@@ -70,11 +69,11 @@ impl CoastalAirshipDock {
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: {
-                // dock is 3 tiles = 18 blocks in radius
-                // airships are 20 blocks wide.
-                // Leave extra space for tree width (at lease 15 extra).
-                // Don't allow trees within 18 + 20 + 15 = 53 blocks of the dock center
-                const AIRSHIP_MIN_TREE_DIST2: i32 = 53;
+                // dock is 5 tiles = 30 blocks in radius
+                // airships are 39 blocks wide.
+                // Tree can be up to 20 blocks in radius.
+                // Don't allow trees within 30 + 39 + 20 = 89 blocks of the dock center
+                const AIRSHIP_MIN_TREE_DIST2: i32 = 89;
                 !within_distance(wpos, self.center, AIRSHIP_MIN_TREE_DIST2)
             },
             waypoints: false,
@@ -169,38 +168,117 @@ impl Structure for CoastalAirshipDock {
         let size = self.size;
         let room_offset = size / 6;
         let bldg_height = self.bldg_height;
+        let tower_height = (bldg_height as f32 * 1.5).round() as i32;
         for r in 0..=4 {
             let bldg_size = size - (room_offset * r);
             let bldg_base = base + ((bldg_height + 2) * r);
+            let level_height = bldg_base + bldg_height;
             if r == 4 {
+                // Center platform
                 painter
-                    .cylinder(Aabb {
-                        min: (center - bldg_size - 2).with_z(bldg_base + bldg_height - 1),
-                        max: (center + bldg_size + 2).with_z(bldg_base + bldg_height),
-                    })
+                    .cylinder_with_radius(
+                        center.with_z(level_height - 1),
+                        (bldg_size + 5) as f32,
+                        1.0,
+                    )
                     .fill(white.clone());
+                // blue walls
                 painter
-                    .cylinder(Aabb {
-                        min: (center - bldg_size - 2).with_z(bldg_base + bldg_height),
-                        max: (center + bldg_size + 2).with_z(bldg_base + bldg_height + 1),
-                    })
+                    .cylinder_with_radius(center.with_z(level_height), (bldg_size + 5) as f32, 1.0)
+                    .fill(blue_broken.clone());
+
+                // Agent Desk
+
+                // Agent booth back wall, less than ~ 1 quadrant
+                let agent_booth_mask = painter.aabb(Aabb {
+                    min: (Vec2::new(center.x - (bldg_size - 4), center.y + (bldg_size - 4)))
+                        .with_z(level_height),
+                    max: (Vec2::new(center.x - (bldg_size + 5), center.y + (bldg_size + 5)))
+                        .with_z(level_height + 2),
+                });
+                painter
+                    .cylinder_with_radius(center.with_z(level_height), (bldg_size + 5) as f32, 2.0)
+                    .intersect(agent_booth_mask)
+                    .fill(blue_broken.clone());
+
+                // Clear top
+                painter
+                    .cylinder_with_radius(center.with_z(level_height), (bldg_size + 4) as f32, 2.0)
+                    .clear();
+
+                // Agent booth front wall
+                painter
+                    .cylinder_with_radius(center.with_z(level_height), (bldg_size + 2) as f32, 1.0)
+                    .intersect(agent_booth_mask)
+                    .fill(blue_broken.clone());
+                // Clear excess Agent booth front wall
+                painter
+                    .cylinder_with_radius(center.with_z(level_height), (bldg_size + 1) as f32, 1.0)
+                    .intersect(agent_booth_mask)
+                    .clear();
+                // Agent booth connecting walls
+                painter
+                    .line(
+                        Vec2::new(center.x - (bldg_size + 3), center.y + (bldg_size - 5))
+                            .with_z(level_height),
+                        Vec2::new(center.x - (bldg_size + 2), center.y + (bldg_size - 5))
+                            .with_z(level_height),
+                        0.5,
+                    )
                     .fill(blue_broken.clone());
                 painter
-                    .cylinder(Aabb {
-                        min: (center - bldg_size - 1).with_z(bldg_base + bldg_height),
-                        max: (center + bldg_size + 1).with_z(bldg_base + bldg_height + 1),
+                    .line(
+                        Vec2::new(center.x - (bldg_size - 4), center.y + (bldg_size + 1))
+                            .with_z(level_height),
+                        Vec2::new(center.x - (bldg_size - 4), center.y + (bldg_size + 2))
+                            .with_z(level_height),
+                        0.5,
+                    )
+                    .fill(blue_broken.clone());
+
+                // Clear the gangways
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - 3, center.y + bldg_size * 2).with_z(level_height),
+                        max: Vec2::new(center.x + 3, center.y - (bldg_size * 2))
+                            .with_z(level_height + 1),
+                    })
+                    .clear();
+                painter
+                    .aabb(Aabb {
+                        min: Vec2::new(center.x - bldg_size * 2, center.y - 3).with_z(level_height),
+                        max: Vec2::new(center.x + bldg_size * 2, center.y + 3)
+                            .with_z(level_height + 1),
                     })
                     .clear();
 
+                // Cable Tower
+                painter
+                    .cylinder_with_radius(center.with_z(level_height), 1.0, tower_height as f32)
+                    .fill(white.clone());
+                painter
+                    .cone_with_radius(center.with_z(level_height + tower_height), 4.0, 3.0)
+                    .fill(white.clone());
+
+                let glowing =
+                    Fill::Block(Block::new(BlockKind::GlowingRock, Rgb::new(30, 187, 235)));
+                painter
+                    .sphere(Aabb {
+                        min: (center - 4).with_z(level_height + tower_height + 3),
+                        max: (center + 4).with_z(level_height + tower_height + 11),
+                    })
+                    .fill(glowing.clone());
+
+                // cargo
                 let cargo_pos = Vec2::new(center.x, center.y + 5);
-                for dir in CARDINALS {
+                for dir in CARDINALS.iter() {
                     let sprite_pos = cargo_pos + dir;
                     let rows = 1 + (RandomField::new(0).get(sprite_pos.with_z(base)) % 3) as i32;
                     for r in 0..rows {
                         painter
                             .aabb(Aabb {
-                                min: (sprite_pos).with_z(bldg_base + bldg_height + r),
-                                max: (sprite_pos + 1).with_z(bldg_base + bldg_height + 1 + r),
+                                min: (sprite_pos).with_z(level_height + r),
+                                max: (sprite_pos + 1).with_z(level_height + 1 + r),
                             })
                             .fill(Fill::Block(Block::air(
                                 match (RandomField::new(0).get(sprite_pos.with_z(base + r)) % 2)
@@ -212,37 +290,56 @@ impl Structure for CoastalAirshipDock {
                             )));
                         if r > 1 {
                             painter.owned_resource_sprite(
-                                sprite_pos.with_z(bldg_base + bldg_height + 1 + r),
+                                sprite_pos.with_z(level_height + 1 + r),
                                 SpriteKind::Crate,
                                 0,
                             );
                         }
                     }
 
-                    // docks
-                    let gangway_pos = center + dir * (size / 2);
-                    let dock_pos = center + dir * (size - 4);
+                    // gangway and dock
+                    let dock_pos = center + dir * 27;
+                    let rotation = -f32::atan2(dir.x as f32, dir.y as f32);
+
                     painter
                         .aabb(Aabb {
-                            min: (gangway_pos - 3).with_z(bldg_base + bldg_height - 1),
-                            max: (gangway_pos + 3).with_z(bldg_base + bldg_height),
+                            min: Vec2::new(center.x - 4, center.y + bldg_size + 1)
+                                .with_z(level_height - 1),
+                            max: Vec2::new(center.x + 4, center.y + 27).with_z(level_height),
                         })
+                        .rotate_about(Mat3::rotation_z(rotation).as_(), center.with_z(base))
                         .fill(white.clone());
                     painter
-                        .cylinder(Aabb {
-                            min: (dock_pos - 4).with_z(bldg_base + bldg_height),
-                            max: (dock_pos + 4).with_z(bldg_base + bldg_height + 1),
-                        })
+                        .cylinder_with_radius(dock_pos.with_z(level_height), 5.0, 1.0)
                         .fill(blue_broken.clone());
                     painter
-                        .cylinder(Aabb {
-                            min: (dock_pos - 3).with_z(bldg_base + bldg_height - 1),
-                            max: (dock_pos + 3).with_z(bldg_base + bldg_height + 1),
-                        })
+                        .cylinder_with_radius(dock_pos.with_z(level_height - 1), 4.0, 2.0)
+                        .fill(white.clone());
+
+                    // suspension cables
+                    painter
+                        .line(
+                            Vec2::new(center.x - 4, center.y + 2)
+                                .with_z(level_height + tower_height),
+                            Vec2::new(center.x - 4, center.y + tower_height + 2)
+                                .with_z(level_height),
+                            0.75,
+                        )
+                        .rotate_about(Mat3::rotation_z(rotation).as_(), center.with_z(base))
+                        .fill(white.clone());
+                    painter
+                        .line(
+                            Vec2::new(center.x + 3, center.y + 2)
+                                .with_z(level_height + tower_height),
+                            Vec2::new(center.x + 3, center.y + tower_height + 2)
+                                .with_z(level_height),
+                            0.75,
+                        )
+                        .rotate_about(Mat3::rotation_z(rotation).as_(), center.with_z(base))
                         .fill(white.clone());
                 }
                 // campfire
-                let campfire_pos = center.with_z(bldg_base + bldg_height);
+                let campfire_pos = (center + Vec2::new(0, -3)).with_z(level_height);
                 painter.spawn(
                     EntityInfo::at(campfire_pos.map(|e| e as f32 + 0.5))
                         .into_special(SpecialEntity::Waypoint),
@@ -251,7 +348,7 @@ impl Structure for CoastalAirshipDock {
             painter
                 .cylinder(Aabb {
                     min: (center - bldg_size).with_z(bldg_base - 2),
-                    max: (center + bldg_size).with_z(bldg_base + bldg_height),
+                    max: (center + bldg_size).with_z(level_height),
                 })
                 .fill(white.clone());
         }
