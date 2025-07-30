@@ -25,3 +25,8 @@ itertools = { workspace = true }
 rayon = { workspace = true }
 specs = { workspace = true, features = ["shred-derive"] }
 take-once = "0.1.2"
+num-traits = { workspace = true }
+once_cell = { version = "1.21.3", optional = true }
+
+[features]
+airship_log = ["dep:once_cell"]

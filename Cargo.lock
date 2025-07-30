@@ -1735,6 +1735,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "delaunator"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ab46e386c7a38300a0d93b0f3e484bc2ee0aded66c47b14762ec9ab383934fa"
+dependencies = [
+ "robust",
+]
+
+[[package]]
 name = "deranged"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5989,6 +5998,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "robust"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5864e7ef1a6b7bcf1d6ca3f655e65e724ed3b52546a0d0a663c991522f552ea"
+
+[[package]]
 name = "ron"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6321,7 +6336,7 @@ dependencies = [
  "log",
  "memmap2 0.5.10",
  "smithay-client-toolkit 0.16.1",
- "tiny-skia",
+ "tiny-skia 0.8.4",
 ]
 
 [[package]]
@@ -7230,7 +7245,22 @@ dependencies = [
  "bytemuck",
  "cfg-if 1.0.0",
  "png",
- "tiny-skia-path",
+ "tiny-skia-path 0.8.4",
+]
+
+[[package]]
+name = "tiny-skia"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83d13394d44dae3207b52a326c0c85a8bf87f1541f23b0d143811088497b09ab"
+dependencies = [
+ "arrayref",
+ "arrayvec",
+ "bytemuck",
+ "cfg-if 1.0.0",
+ "log",
+ "png",
+ "tiny-skia-path 0.11.4",
 ]
 
 [[package]]
@@ -7238,6 +7268,17 @@ name = "tiny-skia-path"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adbfb5d3f3dd57a0e11d12f4f13d4ebbbc1b5c15b7ab0a156d030b21da5f677c"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "strict-num",
+]
+
+[[package]]
+name = "tiny-skia-path"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c9e7fc0c2e86a30b117d0462aa261b72b7a99b7ebd7deb3a14ceda95c5bdc93"
 dependencies = [
  "arrayref",
  "bytemuck",
@@ -8077,6 +8118,8 @@ dependencies = [
  "fxhash",
  "hashbrown 0.15.3",
  "itertools 0.14.0",
+ "num-traits",
+ "once_cell",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -8326,6 +8369,7 @@ dependencies = [
  "criterion",
  "csv",
  "deflate",
+ "delaunator",
  "enum-map",
  "enumset",
  "fallible-iterator",
@@ -8354,6 +8398,7 @@ dependencies = [
  "signal-hook",
  "strum",
  "svg_fmt",
+ "tiny-skia 0.11.4",
  "tracing",
  "tracing-subscriber",
  "vek 0.17.1",

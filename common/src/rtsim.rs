@@ -24,8 +24,6 @@ slotmap::new_key_type! { pub struct FactionId; }
 
 slotmap::new_key_type! { pub struct ReportId; }
 
-slotmap::new_key_type! { pub struct AirshipRouteId; }
-
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RtSimEntity(pub NpcId);
 

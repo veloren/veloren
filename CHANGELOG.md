@@ -92,6 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debuff icons have been updated to be more vibrant and identifiable. 
 - Made hammer skills descrptions clearer.
 - Updated airship docks to add more space between docking platforms.
+- Airships now travel along routes of many docks rather than out and back between two docks.
+- Airship docking time is reduced from 90 to 60 seconds.
 
 ### Removed
 

@@ -182,10 +182,33 @@ impl Body {
         }
     }
 
-    /// Max speed in block/s
+    /// Max speed in block/s.
+    /// This is the simulated speed of Ship bodies (which are NPCs).
+    ///
+    /// Air Vehicles:
+    /// Loaded (non-simulated) air ships don't have a speed, they have thrust
+    /// that produces acceleration and air resistance that produces drag.
+    /// The acceleration is modulated by a speed_factor assigned
+    /// by the agent, and the balance of forces results in a semi-constant
+    /// velocity (speed) when thrust and drag are in equilibrium. The
+    /// average velocity changes depending on wind and changes in altitude
+    /// (e.g. when terrain following and going up or down over mountains).
+    ///
+    /// Water Vehicles:
+    /// Loaded water ships also have thrust and drag, and a speed_factor that
+    /// modulates the resulting acceleration and top speed. Wind does have
+    /// an effect on the velocity of watercraft.
+    ///
+    /// The airship simulated speed below was chosen experimentally so that the
+    /// time required to complete one full circuit of an airship multi-leg
+    /// route is the same for simulated airships and loaded airships (one
+    /// where a player is continuously riding the airship).
+    ///
+    /// Other vehicles should be tuned if and when implemented, but for now the
+    /// airship is the only Ship in use.
     pub fn get_speed(&self) -> f32 {
         match self {
-            Body::DefaultAirship => 35.0,
+            Body::DefaultAirship => 23.0,
             Body::AirBalloon => 8.0,
             Body::SailBoat => 5.0,
             Body::Galleon => 6.0,

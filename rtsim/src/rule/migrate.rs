@@ -117,10 +117,6 @@ impl Rule for Migrate {
             }
 
             /*
-               When rtsim is first generated, the airship captain NPCs will have been assigned a route at this point.
-               When loading existing rtsim data, the captain NPCs will have no route assigned at this point.
-               If the world has changed, the routes may have changed.
-
                First, get all the location where airships can spawn. All available spawning points for airships must be used.
                It does not matter that site ids may be moved around. A captain may be assigned to any site, and
                it does not have to be the site that was previously assigned to the captain.
@@ -146,7 +142,7 @@ impl Rule for Migrate {
             */
 
             // get all the places to spawn an airship
-            let mut spawning_locations = data.airship_spawning_locations(ctx.world, ctx.index);
+            let mut spawning_locations = data.airship_spawning_locations(ctx.world);
 
             // The captains can't be registered inline with this code because it requires
             // mutable access to data.
@@ -154,14 +150,13 @@ impl Rule for Migrate {
             for captain_id in airship_captains.iter() {
                 if let Some(mount_link) = data.npcs.mounts.get_mount_link(*captain_id) {
                     let airship_id = mount_link.mount;
-                    if data.airship_sim.assigned_routes.get(captain_id).is_none() {
-                        if let Some(spawning_location) = spawning_locations.pop() {
-                            captains_to_register.push((*captain_id, airship_id, spawning_location));
-                        } else {
-                            // delete the captain (& airship) pair
-                            data.npcs.remove(*captain_id);
-                            data.npcs.remove(airship_id);
-                        }
+                    assert!(data.airship_sim.assigned_routes.get(captain_id).is_none());
+                    if let Some(spawning_location) = spawning_locations.pop() {
+                        captains_to_register.push((*captain_id, airship_id, spawning_location));
+                    } else {
+                        // delete the captain (& airship) pair
+                        data.npcs.remove(*captain_id);
+                        data.npcs.remove(airship_id);
                     }
                 }
             }
@@ -176,25 +171,18 @@ impl Rule for Migrate {
             // done inside the previous loop because this requires mutable
             // access to this (data).
             for (captain_id, airship_id, spawning_location) in captains_to_register.iter() {
-                // The airship position returned by register_airship_captain is the approach
-                // final position. From there, the airship will fly a transition
-                // phase to directly above the docking position.
-                if let Some(airship_pos) = data.airship_sim.register_airship_captain(
-                    spawning_location.docking_pos.map(|i| i as f32),
+                data.airship_sim.register_airship_captain(
+                    spawning_location,
                     *captain_id,
                     *airship_id,
-                    ctx.index.index,
-                    &ctx.world.civs().airships,
-                ) {
-                    // move the airship (the captain is the rider) into position
-                    let airship = data.npcs.get_mut(*airship_id).unwrap();
-                    airship.wpos = airship_pos;
-                }
+                    ctx.world,
+                    &mut data.npcs,
+                );
             }
 
             // Group the airship captains by route
             data.airship_sim
-                .configure_route_pilots(&ctx.world.civs().airships);
+                .configure_route_pilots(&ctx.world.civs().airships, &data.npcs);
 
             // Calculate architect populations
             data.architect.wanted_population = wanted_population(ctx.world, ctx.index);

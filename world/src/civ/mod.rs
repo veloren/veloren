@@ -3,6 +3,9 @@
 pub mod airship_travel;
 mod econ;
 
+#[cfg(feature = "airship_maps")]
+pub mod airship_route_map;
+
 use crate::{
     Index, IndexRef, Land,
     civ::airship_travel::Airships,
@@ -740,6 +743,10 @@ impl Civs {
             }
         }
 
+        prof_span!(guard, "generate airship routes");
+        this.airships.generate_airship_routes(ctx.sim, index);
+        drop(guard);
+
         // TODO: this looks optimizable
 
         // collect natural resources
@@ -760,11 +767,6 @@ impl Civs {
                     .add_chunk(ctx.sim.get(chpos).unwrap(), distance_squared);
             }
         });
-        drop(guard);
-
-        prof_span!(guard, "generate airship routes");
-        this.airships
-            .generate_airship_routes(sites, sim, index.seed);
         drop(guard);
 
         sites.iter_mut().for_each(|(_, s)| {
