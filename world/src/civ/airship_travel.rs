@@ -1874,7 +1874,7 @@ fn best_eulerian_circuit_segments(
 // ------------------------------------------------
 
 // Public so it could be used in other modules' tests.
-#[cfg(debug_assertions)]
+#[cfg(test)]
 pub fn airships_from_test_data() -> Airships {
     let mut store = Store::<Site>::default();
     let dummy_site = Site::default();

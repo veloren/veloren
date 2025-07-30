@@ -3,6 +3,7 @@ pub mod dir;
 pub mod find_dist;
 mod grid_hasher;
 pub mod lines;
+mod macros;
 mod option;
 pub mod plane;
 pub mod projection;

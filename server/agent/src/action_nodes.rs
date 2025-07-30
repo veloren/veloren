@@ -30,6 +30,7 @@ use common::{
     effect::{BuffEffect, Effect},
     event::{ChatEvent, EmitExt, SoundEvent},
     interaction::InteractionKind,
+    match_some,
     mounting::VolumePos,
     path::TraversalConfig,
     rtsim::NpcActivity,
@@ -619,10 +620,9 @@ impl AgentData<'_> {
                 None => {},
             }
 
-            let owner_uid = self.alignment.and_then(|alignment| match alignment {
-                Alignment::Owned(owner_uid) => Some(owner_uid),
-                _ => None,
-            });
+            let owner_uid = self
+                .alignment
+                .and_then(|alignment| match_some!(alignment, Alignment::Owned(uid) => uid));
 
             let owner = owner_uid.and_then(|owner_uid| get_entity_by_id(*owner_uid, read_data));
 

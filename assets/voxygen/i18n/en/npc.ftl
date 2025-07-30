@@ -453,6 +453,7 @@ npc-dialogue-hire_expired =
     .a0 = It's time for me to leave your service. See you around!
     .a1 = My service has ended, I'm going to go my own way now. Goodbye!
 npc-dialogue-hire_cancelled_unhappy = I can't continue working for you in good conscience. Goodbye.
+npc-dialogue-hire_arrive_tavern = I'll hang out at { $tavern } for a bit, see you later!
 npc-response-no_problem = No problem! See you later.
 
 npc-response-like_you =

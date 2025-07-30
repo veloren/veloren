@@ -23,6 +23,7 @@ use crate::{
         },
     },
     explosion::{ColorPreset, TerrainReplacementPreset},
+    match_some,
     resources::Secs,
     states::{
         behavior::JoinData,
@@ -139,10 +140,7 @@ impl ActiveAbilities {
     pub fn active_auxiliary_key(inv: Option<&Inventory>) -> AuxiliaryKey {
         let tool_kind = |slot| {
             inv.and_then(|inv| inv.equipped(slot))
-                .and_then(|item| match &*item.kind() {
-                    ItemKind::Tool(tool) => Some(tool.kind),
-                    _ => None,
-                })
+                .and_then(|item| match_some!(&*item.kind(), ItemKind::Tool(tool) => tool.kind))
         };
 
         (
@@ -213,10 +211,7 @@ impl ActiveAbilities {
         let scale_ability = |ability: CharacterAbility, equip_slot| {
             let tool_kind = inv
                 .and_then(|inv| inv.equipped(equip_slot))
-                .and_then(|item| match &*item.kind() {
-                    ItemKind::Tool(tool) => Some(tool.kind),
-                    _ => None,
-                });
+                .and_then(|item| match_some!(&*item.kind(), ItemKind::Tool(tool) => tool.kind));
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 

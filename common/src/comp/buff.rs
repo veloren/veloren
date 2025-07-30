@@ -5,6 +5,7 @@ use crate::{
     },
     comp::{Mass, Stats, aura::AuraKey},
     link::DynWeakLinkHandle,
+    match_some,
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -600,11 +601,10 @@ impl BuffKind {
     /// If a buff kind should also give resilience when applied, return the
     /// strength that resilience should have, otherwise return None
     pub fn resilience_ccr_strength(&self, data: BuffData) -> Option<f32> {
-        match self {
-            BuffKind::Amnesia => Some(0.3),
-            BuffKind::Frozen => Some(data.strength),
-            _ => None,
-        }
+        match_some!(self,
+            BuffKind::Amnesia => 0.3,
+            BuffKind::Frozen => data.strength,
+        )
     }
 
     pub fn apply_item_effect_reduction(

@@ -20,7 +20,7 @@ use common::{
         BuffEvent, ChangeBodyEvent, CreateItemDropEvent, CreateObjectEvent, DeleteEvent, EmitExt,
         HealthChangeEvent, InventoryManipEvent, PoiseChangeEvent, TamePetEvent,
     },
-    event_emitters,
+    event_emitters, match_some,
     mounting::VolumePos,
     outcome::Outcome,
     recipe::{self, RecipeBookManifest, default_component_recipe_book, default_repair_recipe_book},
@@ -547,12 +547,7 @@ impl ServerEvent for InventoryManipEvent {
                                 inventory.get(slot).map_or((false, None), |i| {
                                     let kind = i.kind();
                                     let is_equippable = kind.is_equippable();
-                                    let lantern_info = match &*kind {
-                                        ItemKind::Lantern(lantern) => {
-                                            Some((lantern.color(), lantern.strength()))
-                                        },
-                                        _ => None,
-                                    };
+                                    let lantern_info = match_some!(&*kind, ItemKind::Lantern(l) => (l.color(), l.strength()));
                                     (is_equippable, lantern_info)
                                 });
                             if is_equippable {
@@ -811,11 +806,8 @@ impl ServerEvent for InventoryManipEvent {
                         // Slot::Equip add more cases if needed
                         (Slot::Equip(slot::EquipSlot::Lantern), Slot::Inventory(slot))
                         | (Slot::Inventory(slot), Slot::Equip(slot::EquipSlot::Lantern)) => {
-                            inventory.get(slot).and_then(|i| match &*i.kind() {
-                                ItemKind::Lantern(lantern) => {
-                                    Some((lantern.color(), lantern.strength()))
-                                },
-                                _ => None,
+                            inventory.get(slot).and_then(|i| {
+                                match_some!(&*i.kind(), ItemKind::Lantern(l) => (l.color(), l.strength()))
                             })
                         },
                         _ => None,

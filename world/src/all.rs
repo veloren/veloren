@@ -2,7 +2,7 @@ use crate::{
     IndexRef,
     util::{math::close, sampler::Sampler},
 };
-use common::terrain::structure::StructureBlock;
+use common::{match_some, terrain::structure::StructureBlock};
 use std::ops::Range;
 use strum::EnumIter;
 use vek::*;
@@ -80,11 +80,10 @@ impl ForestKind {
     }
 
     pub fn near_water_range(&self) -> Option<Range<f32>> {
-        match self {
-            ForestKind::Palm => Some(0.35..1.8),
-            ForestKind::Swamp => Some(0.5..1.8),
-            _ => None,
-        }
+        match_some!(self,
+            ForestKind::Palm => 0.35..1.8,
+            ForestKind::Swamp => 0.5..1.8,
+        )
     }
 
     /// The relative rate at which this tree appears under ideal conditions

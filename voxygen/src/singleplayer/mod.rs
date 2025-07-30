@@ -1,4 +1,4 @@
-use common::clock::Clock;
+use common::{clock::Clock, match_some};
 use crossbeam_channel::{Receiver, Sender, TryRecvError, bounded, unbounded};
 use server::{
     Error as ServerError, Event, Input, Server, ServerInitStage,
@@ -159,17 +159,11 @@ impl SingleplayerState {
     }
 
     pub fn as_running(&self) -> Option<&Singleplayer> {
-        match self {
-            SingleplayerState::Running(s) => Some(s),
-            _ => None,
-        }
+        match_some!(self, SingleplayerState::Running(s) => s)
     }
 
     pub fn as_init(&self) -> Option<&SingleplayerWorlds> {
-        match self {
-            SingleplayerState::Init(s) => Some(s),
-            _ => None,
-        }
+        match_some!(self, SingleplayerState::Init(s) => s)
     }
 
     pub fn is_running(&self) -> bool { matches!(self, SingleplayerState::Running(_)) }

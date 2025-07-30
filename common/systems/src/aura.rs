@@ -9,7 +9,7 @@ use common::{
         group::Group,
     },
     event::{AuraEvent, BuffEvent, EmitExt},
-    event_emitters,
+    event_emitters, match_some,
     resources::Time,
     uid::{IdMaps, Uid},
 };
@@ -217,10 +217,7 @@ fn activate_aura(
                             || read_data
                                 .alignments
                                 .get(target)
-                                .and_then(|alignment| match alignment {
-                                    Alignment::Owned(uid) => Some(uid),
-                                    _ => None,
-                                })
+                                .and_then(|alignment| match_some!(alignment, Alignment::Owned(uid) => uid))
                                 .and_then(|uid| read_data.id_maps.uid_entity(*uid))
                                 .and_then(|owner| read_data.char_states.get(owner))
                                 .is_some_and(CharacterState::is_sitting))

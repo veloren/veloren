@@ -94,7 +94,7 @@ pub use self::{
 
 use super::*;
 use crate::util::DHashSet;
-use common::path::Path;
+use common::{match_some, path::Path};
 use vek::*;
 
 pub struct Plot {
@@ -113,10 +113,7 @@ impl Plot {
     }
 
     pub fn z_range(&self) -> Option<Range<i32>> {
-        match &self.kind {
-            PlotKind::House(house) => Some(house.z_range()),
-            _ => None,
-        }
+        match_some!(&self.kind, PlotKind::House(house) => house.z_range())
     }
 
     pub fn kind(&self) -> &PlotKind { &self.kind }
