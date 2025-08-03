@@ -27,7 +27,7 @@ impl Style {
             Self::Wooden(color) => Fill::PlankWall(BlockKind::Wood, color, 64),
             Self::Stone => Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 50),
             Self::Daub => Fill::Brick(BlockKind::Wood, Rgb::new(200, 180, 150), 24),
-            Self::Brick => Fill::Brick(BlockKind::Rock, Rgb::new(100, 45, 14), 48),
+            Self::Brick => Fill::Brick(BlockKind::Rock, Rgb::new(100, 32, 20), 48),
         }
     }
 }
@@ -179,6 +179,13 @@ impl Structure for House {
         let wall_fill_upper = self.upper_style.get_fill();
         let wall_fill_lower = self.lower_style.get_fill();
         let wall_fill_gable = self.gable_style.get_fill();
+
+        let pillar_fill = match self.upper_style {
+            Style::Wooden(color) => Fill::Block(Block::new(BlockKind::Wood, color / 2)),
+            Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(85, 35, 8))),
+            // Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(40, 44, 45))),
+            _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+        };
 
         // Roof
         let roof_lip = 1;
@@ -563,15 +570,15 @@ impl Structure for House {
 
         painter.fill(
             painter.prim(Primitive::intersect(roof_beam, roof_walls)),
-            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+            pillar_fill.clone(),
         );
         painter.fill(
             painter.prim(Primitive::union(roof_beam_left, roof_beam_right)),
-            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+            pillar_fill.clone(),
         );
         painter.fill(
             painter.prim(Primitive::intersect(rafters2, roof_walls)),
-            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+            pillar_fill.clone(),
         );
 
         // Walls
@@ -690,13 +697,6 @@ impl Structure for House {
             let walls = outer_level
                 .union(inner_level)
                 .without(outer_level.intersect(inner_level));
-
-            let pillar_fill = match self.upper_style {
-                Style::Wooden(color) => Fill::Block(Block::new(BlockKind::Wood, color / 2)),
-                Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(85, 35, 8))),
-                // Style::Brick => Fill::Block(Block::new(BlockKind::Rock, Rgb::new(40, 44, 45))),
-                _ => Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
-            };
 
             // Wall Pillars
             // Only upper non-stone floors have wooden beams in the walls
@@ -1322,7 +1322,7 @@ impl Structure for House {
                 );
                 painter.fill(
                     painter.prim(Primitive::intersect(shed_wall_beams, shed_walls)),
-                    pillar_fill,
+                    pillar_fill.clone(),
                 );
 
                 // Dormers
