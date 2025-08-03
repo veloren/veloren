@@ -95,17 +95,17 @@ impl EventMapper for VehicleEventMapper {
                     // Steam release
                     if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainChuggSteam)
                         && internal_state.last_chugg_steam.elapsed().as_secs_f32()
-                        >= 10.0 / speed.min(50.0)
+                            >= 10.0 / speed.min(50.0)
                         && chugg_lerp < 1.0
-                        {
-                            audio.emit_sfx_ext(
-                                Some((event, item)),
-                                               pos.0,
-                                               Some((1.0 - chugg_lerp) * 4.0),
-                                               player_pos.0,
-                            );
-                            internal_state.last_chugg_steam = Instant::now();
-                        }
+                    {
+                        audio.emit_sfx_ext(
+                            Some((event, item)),
+                            pos.0,
+                            Some((1.0 - chugg_lerp) * 4.0),
+                            player_pos.0,
+                        );
+                        internal_state.last_chugg_steam = Instant::now();
+                    }
                     // High-speed chugging
                     if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainSpeed) {
                         let volume = chugg_lerp * 8.0;

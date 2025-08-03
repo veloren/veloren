@@ -956,16 +956,12 @@ impl PhysicsData<'_> {
                         // ...and each track in those chunks.
                         && let tracks = chunks.flat_map(|c| c.meta().tracks().iter())
                         // Find the closest point on the closest track
-                        && let Ok(line) = tracks
+                        && let Some(line) = tracks
                             .flat_map(|bez| (0..32).map(move |i| LineSegment3 {
                                 start: bez.evaluate(i as f32 / 32.0),
                                 end: bez.evaluate((i + 1) as f32 / 32.0),
                             }))
                             .min_by_key(|line| (line.distance_to_point(tgt_pos) * 1000.0) as i32)
-                            .ok_or_else(|| {
-                                println!("No tracks!");
-                                ()
-                            })
                     {
                         let track_dir = (line.end - line.start).normalized();
                         let track_closest = line.projected_point(tgt_pos);

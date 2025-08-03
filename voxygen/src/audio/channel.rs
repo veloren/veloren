@@ -395,7 +395,7 @@ impl SfxChannel {
         // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
         // 1.0 being closest to the player.
         let ratio = 1.0
-            - (player_pos.distance(self.pos) / SFX_DIST_LIMIT)
+            - (player_pos.distance(self.pos) * (1.0 / SFX_DIST_LIMIT))
                 .clamp(0.0, 1.0)
                 .sqrt();
         self.set_volume(ratio);
