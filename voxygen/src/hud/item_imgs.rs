@@ -1,4 +1,7 @@
-use crate::ui::{Graphic, SampleStrat, Transform, Ui};
+use crate::{
+    scene::figure::load::recolor_grey,
+    ui::{Graphic, SampleStrat, Transform, Ui},
+};
 use common::{
     assets::{self, AssetCombined, AssetExt, AssetHandle, Concatenate, DotVoxAsset, ReloadWatcher},
     comp::item::item_key::ItemKey,
@@ -20,25 +23,43 @@ pub fn animate_by_pulse(ids: &[Id], pulse: f32) -> Id {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ImageSpec {
     Png(String),
-    Vox(String, #[serde(default)] u32),
-    // (specifier, offset, (axis, 2 * angle / pi), zoom, model_index)
-    VoxTrans(String, [f32; 3], [f32; 3], f32, #[serde(default)] u32),
+    Vox(
+        String,
+        #[serde(default)] u32,
+        #[serde(default)] Option<[u8; 3]>,
+    ),
+    // (specifier, offset, (axis, 2 * angle / pi), zoom, model_index, color)
+    VoxTrans(
+        String,
+        [f32; 3],
+        [f32; 3],
+        f32,
+        #[serde(default)] u32,
+        #[serde(default)] Option<[u8; 3]>,
+    ),
 }
 impl ImageSpec {
     pub fn create_graphic(&self) -> Graphic {
         match self {
             ImageSpec::Png(specifier) => Graphic::Image(graceful_load_img(specifier), None),
-            ImageSpec::Vox(specifier, model_index) => Graphic::Voxel(
-                graceful_load_segment_no_skin(specifier, *model_index),
+            ImageSpec::Vox(specifier, model_index, color) => Graphic::Voxel(
+                graceful_load_segment_no_skin(specifier, *model_index, *color),
                 Transform {
                     stretch: false,
                     ..Default::default()
                 },
                 SampleStrat::None,
             ),
-            ImageSpec::VoxTrans(specifier, offset, [rot_x, rot_y, rot_z], zoom, model_index) => {
+            ImageSpec::VoxTrans(
+                specifier,
+                offset,
+                [rot_x, rot_y, rot_z],
+                zoom,
+                model_index,
+                color,
+            ) => {
                 Graphic::Voxel(
-                    graceful_load_segment_no_skin(specifier, *model_index),
+                    graceful_load_segment_no_skin(specifier, *model_index, *color),
                     Transform {
                         ori: Quaternion::rotation_x(rot_x * std::f32::consts::PI / 180.0)
                             .rotated_y(rot_y * std::f32::consts::PI / 180.0)
@@ -168,12 +189,22 @@ fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     handle.read().to_image()
 }
 
-fn graceful_load_segment_no_skin(specifier: &str, model_index: u32) -> Arc<Segment> {
+fn graceful_load_segment_no_skin(
+    specifier: &str,
+    model_index: u32,
+    color: Option<[u8; 3]>,
+) -> Arc<Segment> {
     use common::figure::{MatSegment, mat_cell::MatCell};
-    let mat_seg = MatSegment::from_vox_model_index(
+    let mut mat_seg = MatSegment::from_vox_model_index(
         &graceful_load_vox(specifier).read().0,
         model_index as usize,
     );
+
+    if let Some(color) = color {
+        let color = Vec3::from(color);
+        mat_seg = mat_seg.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(color)));
+    }
+
     let seg = mat_seg
         .map(|mat_cell| match mat_cell {
             MatCell::None => None,

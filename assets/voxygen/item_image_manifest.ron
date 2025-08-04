@@ -1,5 +1,5 @@
 //  Png(specifier),
-//  Vox(specier),
+//  Vox(specifier),
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
     // Crafting Stations
@@ -1950,11 +1950,11 @@
     // Cultist Clothing
     Simple("common.items.armor.cultist.chest"): VoxTrans(
         "voxel.armor.cultist.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((30, 0, 64)),
     ),
     Simple("common.items.armor.cultist.pants"): VoxTrans(
         "voxel.armor.cultist.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0, Some((30, 0, 64)),
     ),
     Simple("common.items.armor.cultist.belt"): VoxTrans(
         "voxel.armor.cultist.belt",
@@ -1966,11 +1966,11 @@
     ),
     Simple("common.items.armor.cultist.hand"): VoxTrans(
         "voxel.armor.cultist.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0, Some((30, 0, 64)),
     ),
     Simple("common.items.armor.cultist.shoulder"): VoxTrans(
         "voxel.armor.cultist.shoulder",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((30, 0, 64)),
     ),
     Simple("common.items.armor.cultist.bandana"): VoxTrans(
         "voxel.armor.cultist.bandana",
@@ -1983,43 +1983,43 @@
     ),
     Simple("common.items.armor.misc.chest.worker_green_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((88, 108, 65)),
     ),
     Simple("common.items.armor.misc.chest.worker_green_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((88, 108, 65)),
     ),
     Simple("common.items.armor.misc.chest.worker_red_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((124, 38, 46)),
     ),
     Simple("common.items.armor.misc.chest.worker_red_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((124, 38, 46)),
     ),
     Simple("common.items.armor.misc.chest.worker_purple_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((64, 47, 56)),
     ),
     Simple("common.items.armor.misc.chest.worker_purple_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((64, 47, 56)),
     ),
     Simple("common.items.armor.misc.chest.worker_yellow_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((184, 132, 40)),
     ),
     Simple("common.items.armor.misc.chest.worker_yellow_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((184, 132, 40)),
     ),
     Simple("common.items.armor.misc.chest.worker_orange_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((135, 82, 67)),
     ),
     Simple("common.items.armor.misc.chest.worker_orange_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((135, 82, 67)),
     ),
     // Alchemist
     Simple("common.items.armor.alchemist.belt"): VoxTrans(
@@ -3329,7 +3329,7 @@
     //misc
     Simple("common.items.armor.misc.pants.hunting"): VoxTrans(
         "voxel.armor.misc.pants.grayscale",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0, Some((49, 95, 59)),
     ),
     Simple("common.items.armor.misc.foot.ski"): VoxTrans(
         "voxel.armor.misc.foot.ski",
@@ -3370,7 +3370,7 @@
     ),
     Simple("common.items.npc_armor.back.backpack_blue"): VoxTrans(
         "voxel.armor.misc.back.backpack",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0, Some((76, 72, 178)),
     ),
     //Hats
     Simple("common.items.armor.misc.head.gnarling_mask"): VoxTrans(
@@ -3463,7 +3463,7 @@
     ),
     Simple("common.items.armor.miner.helmet"): VoxTrans(
         "voxel.armor.miner.helmet",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3,
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.3, 0, Some((146, 32, 32)),
     ),
     Simple("common.items.armor.misc.head.hare_hat"): VoxTrans(
         "voxel.armor.misc.head.hare_hat",

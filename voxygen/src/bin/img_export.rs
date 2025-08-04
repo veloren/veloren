@@ -80,8 +80,8 @@ pub fn main() {
             let manifest = ItemImagesSpec::load_expect("voxygen.item_image_manifest");
             for (_, spec) in manifest.read().0.iter() {
                 let specifier = match spec {
-                    ImageSpec::Vox(specifier, _) => specifier,
-                    ImageSpec::VoxTrans(specifier, _, _, _, _) => specifier,
+                    ImageSpec::Vox(specifier, _, _) => specifier,
+                    ImageSpec::VoxTrans(specifier, _, _, _, _, _) => specifier,
                     _ => continue,
                 };
                 if args.filter.as_ref().is_some_and(|f| !specifier.contains(f)) {
