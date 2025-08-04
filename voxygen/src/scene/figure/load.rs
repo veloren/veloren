@@ -93,7 +93,7 @@ pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> BoneMeshes {
     (load_segment(mesh_name), position)
 }
 
-fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
+pub fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
     use common::util::{linear_to_srgb, srgb_to_linear_fast};
 
     const BASE_GREY: f32 = 178.0;
