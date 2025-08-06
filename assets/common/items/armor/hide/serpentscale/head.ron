@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Serpentscale Armet",
+    legacy_description: "Decorated in the hide of a mythical leviathan.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(5.2)),
+            precision_power: Some(0.08),
+            stealth: Some(0.12),
+        )),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 1),
+    ],
+)

@@ -117,11 +117,11 @@
             color: None
         ),
         "common.items.armor.hide.rawhide.pants": (
-            vox_spec: ("armor.hide.rawhide.pants", (-5.0, -3.5, 1.0)),
+            vox_spec: ("armor.hide.rawhide", (-5.0, -3.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.hide.leather.pants": (
-            vox_spec: ("armor.hide.leather.pants", (-5.0, -3.5, 1.0)),
+            vox_spec: ("armor.hide.leather", (-5.0, -3.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.miner.pants": (
@@ -129,19 +129,23 @@
             color: None
         ),
         "common.items.armor.hide.scale.pants": (
-            vox_spec: ("armor.hide.scale.pants", (-5.0, -3.5, 0.0)),
+            vox_spec: ("armor.hide.scale", (-5.0, -3.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.hide.carapace.pants": (
-            vox_spec: ("armor.hide.carapace.pants", (-6.0, -3.5, 1.0)),
+            vox_spec: ("armor.hide.carapace", (-6.0, -3.5, 1.0), 6),
+            color: None
+        ),
+        "common.items.armor.hide.serpentscale.pants": (
+            vox_spec: ("armor.hide.serpentscale", (-5.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.hide.primal.pants": (
-            vox_spec: ("armor.hide.primal.pants", (-6.0, -3.5, 1.0)),
+            vox_spec: ("armor.hide.primal", (-6.0, -3.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.hide.dragonscale.pants": (
-            vox_spec: ("armor.hide.dragonscale.pants", (-5.0, -3.5, -1.0)),
+            vox_spec: ("armor.hide.dragonscale", (-5.0, -3.5, -1.0), 6),
             color: None
         ),
         "common.items.armor.savage.pants": (

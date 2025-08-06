@@ -11,6 +11,7 @@ ItemDef(
             "leather_hands",
             "leather_pants",
             "leather_shoulder",
+            "leather_head",
         ],
     ),
     quality: Common,

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Serpentscale Girlde",
+    legacy_description: "A shimmering buckle lures creatures of the deep.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Serpentscale"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 1),
+    ],
+)

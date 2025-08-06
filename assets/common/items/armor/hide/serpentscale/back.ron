@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Serpentscale Mantle",
+    legacy_description: "The slick scales push through water effortlessly.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Serpentscale"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 1),
+    ],
+)

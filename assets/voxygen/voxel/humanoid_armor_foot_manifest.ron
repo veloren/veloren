@@ -81,11 +81,11 @@
           color: None
         ),
         "common.items.armor.hide.rawhide.foot": (
-            vox_spec: ("armor.hide.rawhide.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.hide.rawhide", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.hide.leather.foot": (
-            vox_spec: ("armor.hide.leather.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.hide.leather", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.miner.foot": (
@@ -93,19 +93,23 @@
             color: None
         ),
         "common.items.armor.hide.scale.foot": (
-            vox_spec: ("armor.hide.scale.foot", (-2.5, -4.5, -2.0)),
+            vox_spec: ("armor.hide.scale", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.hide.carapace.foot": (
-            vox_spec: ("armor.hide.carapace.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.hide.carapace", (-2.5, -3.5, -2.0), 2),
+            color: None
+        ),
+        "common.items.armor.hide.serpentscale.foot": (
+            vox_spec: ("armor.hide.serpentscale", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.hide.primal.foot": (
-            vox_spec: ("armor.hide.primal.foot", (-2.5, -4.5, -2.0)),
+            vox_spec: ("armor.hide.primal", (-2.5, -4.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.hide.dragonscale.foot": (
-            vox_spec: ("armor.hide.dragonscale.foot", (-2.5, -5.5, -2.0)),
+            vox_spec: ("armor.hide.dragonscale", (-2.5, -5.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.savage.foot": (

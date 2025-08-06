@@ -631,6 +631,13 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "rawhide_head": (
+        output: ("common.items.armor.hide.rawhide.head", 3),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     //ARMOR/HIDE/LEATHER
     "leather_back": (
         output: ("common.items.armor.hide.leather.back", 1),
@@ -688,6 +695,14 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "leather_head": (
+        output: ("common.items.armor.hide.leather.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     //ARMOR/HIDE/SCALE
     "scale_back": (
         output: ("common.items.armor.hide.scale.back", 1),
@@ -742,6 +757,14 @@
         inputs: [
             (Item("common.items.crafting_ing.hide.scales"), 8, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "scale_head": (
+        output: ("common.items.armor.hide.scale.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -806,6 +829,88 @@
             (Item("common.items.crafting_ing.hide.carapace"), 8, false),
             (Item("common.items.mineral.ingot.steel"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 6, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "carapace_head": (
+        output: ("common.items.armor.hide.carapace.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 3, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 6, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    //ARMOR/HIDE/Serpentscale
+    "serpentscale_back": (
+        output: ("common.items.armor.hide.serpentscale.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 3, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_belt": (
+        output: ("common.items.armor.hide.serpentscale.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 2, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_chest": (
+        output: ("common.items.armor.hide.serpentscale.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 10, false),
+            (Item("common.items.mineral.ingot.steel"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 4, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_feet": (
+        output: ("common.items.armor.hide.serpentscale.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 3, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_hands": (
+        output: ("common.items.armor.hide.serpentscale.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 3, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_pants": (
+        output: ("common.items.armor.hide.serpentscale.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 8, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 4, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_shoulder": (
+        output: ("common.items.armor.hide.serpentscale.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 8, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 6, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "serpentscale_head": (
+        output: ("common.items.armor.hide.serpentscale.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 3, false),
+            (Item("common.items.mineral.ingot.steel"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 6, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -877,6 +982,16 @@
         ],
         craft_sprite: Some(CraftingBench),
     ),
+    "primal_head": (
+        output: ("common.items.armor.hide.primal.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.large_horn"), 2, false),
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 2, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     //ARMOR/HIDE/DRAGONSCALE
     "dragonscale_back": (
         output: ("common.items.armor.hide.dragonscale.back", 1),
@@ -942,6 +1057,15 @@
             (Item("common.items.mineral.ingot.bloodsteel"), 3, false),
             (Item("common.items.crafting_ing.leather.rigid_leather"), 2, false),
             (Item("common.items.crafting_ing.hide.scales"), 6, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    "dragonscale_head": (
+        output: ("common.items.armor.hide.dragonscale.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 3, false),
+            (Item("common.items.mineral.ingot.bloodsteel"), 2, false),
+            (Item("common.items.crafting_ing.leather.rigid_leather"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),

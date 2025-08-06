@@ -11,6 +11,7 @@ ItemDef(
             "primal_hands",
             "primal_pants",
             "primal_shoulder",
+            "primal_head",
         ],
     ),
     quality: Epic,

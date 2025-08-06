@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Rawhide Bracers",
-    legacy_description: "Tightly packed pieces of leather. Light-weight and sturdy!",
+    legacy_description: "Hopefully these will keep your hands from shaking whilst skinning your next kill.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Rawhide"),

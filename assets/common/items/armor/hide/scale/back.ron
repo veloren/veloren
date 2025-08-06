@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Scale Cape",
-    legacy_description: "Each embedded scale provides additional protection.",
+    legacy_description: "Each scale is delicately placed to create a foldable material.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Scale"),

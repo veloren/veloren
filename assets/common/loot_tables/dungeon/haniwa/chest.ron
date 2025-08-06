@@ -21,6 +21,7 @@
             (1.0, Item("common.items.recipes.armor.bloodsteel")),
             (1.0, Item("common.items.recipes.armor.moonweave")),
             (1.0, Item("common.items.recipes.armor.primal")),
+            (1.0, Item("common.items.recipes.armor.serpentscale")),
             (1.0, Item("common.items.recipes.weapons.bloodsteel")),
             (1.0, Item("common.items.recipes.weapons.frostwood")),
         ]),

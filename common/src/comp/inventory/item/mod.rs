@@ -155,6 +155,7 @@ pub enum Material {
     RigidLeather,
     Scale,
     Carapace,
+    Serpentscale,
     Plate,
     Dragonscale,
 }
@@ -202,6 +203,7 @@ impl Material {
             | Material::RigidLeather
             | Material::Scale
             | Material::Carapace
+            | Material::Serpentscale
             | Material::Plate
             | Material::Dragonscale => MaterialKind::Hide,
         }
@@ -249,6 +251,7 @@ impl Material {
             Material::RigidLeather => Some("common.items.crafting_ing.leather.rigid_leather"),
             Material::Scale => Some("common.items.crafting_ing.hide.scales"),
             Material::Carapace => Some("common.items.crafting_ing.hide.carapace"),
+            Material::Serpentscale => Some("common.items.crafting_ing.hide.serpent_scale"),
             Material::Plate => Some("common.items.crafting_ing.hide.plate"),
             Material::Dragonscale => Some("common.items.crafting_ing.hide.dragon_scale"),
         }

@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Dragonscale Mesail",
+    legacy_description: "Greedy whispers echo obsessively throughout the helm.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(6.0)),
+            precision_power: Some(0.08),
+            stealth: Some(0.15),
+        )),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Dragonscale),
+        SalvageInto(Dragonscale, 1),
+    ],
+)

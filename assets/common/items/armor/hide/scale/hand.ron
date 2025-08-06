@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Scale Fists",
-    legacy_description: "Each embedded scale provides additional protection.",
+    legacy_description: "The sharp scales cut through the wind, making your strikes feel lighter.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Scale"),

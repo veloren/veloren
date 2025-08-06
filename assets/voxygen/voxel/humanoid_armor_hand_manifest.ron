@@ -172,21 +172,21 @@
         ),
         "common.items.armor.hide.rawhide.hand": (
             left: (
-                vox_spec: ("armor.hide.rawhide.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.rawhide", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.rawhide.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.rawhide", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.hide.leather.hand": (
             left: (
-                vox_spec: ("armor.hide.leather.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.leather", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.leather.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.leather", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
@@ -202,41 +202,51 @@
         ),
         "common.items.armor.hide.scale.hand": (
             left: (
-                vox_spec: ("armor.hide.scale.hand", (-3.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.scale", (-2.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.scale.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.hide.scale", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.hide.carapace.hand": (
             left: (
-                vox_spec: ("armor.hide.carapace.hand", (-3.5, -2.5, -3.5)),
+                vox_spec: ("armor.hide.carapace", (-3.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.carapace.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.hide.carapace", (-1.5, -2.5, -3.5), 3),
+                color: None
+            )
+        ),
+        "common.items.armor.hide.serpentscale.hand": (
+            left: (
+                vox_spec: ("armor.hide.serpentscale", (-3.5, -1.5, -2.5), 3),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.hide.serpentscale", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.hide.primal.hand": (
             left: (
-                vox_spec: ("armor.hide.primal.hand", (-3.5, -2.5, -3.5)),
+                vox_spec: ("armor.hide.primal", (-3.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.primal.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.hide.primal", (-1.5, -2.5, -3.5), 3),
                 color: None
             )
         ),
         "common.items.armor.hide.dragonscale.hand": (
             left: (
-                vox_spec: ("armor.hide.dragonscale.hand", (-5.5, -1.5, -3.5)),
+                vox_spec: ("armor.hide.dragonscale", (-3.5, -2.0, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.hide.dragonscale.hand", (-1.5, -1.5, -3.5)),
+                vox_spec: ("armor.hide.dragonscale", (-1.5, -2.0, -3.5), 3),
                 color: None
             )
         ),

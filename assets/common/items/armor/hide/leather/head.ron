@@ -1,10 +1,12 @@
 ItemDef(
-    legacy_name: "Leather Cap",
-    legacy_description: "Swift like the wind.",
+    legacy_name: "Leather Cowl",
+    legacy_description: "The thick hood keeps your eyes perfectly adjusted for the night.",
     kind: Armor((
         kind: Head,
         stats: Direct((
-            protection: Some(Normal(1.0)),
+            protection: Some(Normal(3.333)),
+            precision_power: Some(0.05333),
+            stealth: Some(0.1),
         )),
     )),
     quality: Common,

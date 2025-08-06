@@ -69,31 +69,35 @@
             color: None
         ),
         "common.items.armor.hide.rawhide.back": (
-            vox_spec: ("armor.hide.rawhide.back", (-4.0, -1.5, -7.0)),
+            vox_spec: ("armor.hide.rawhide", (-4.0, -1.5, -7.0), 1),
             color: None
         ),
         "common.items.armor.hide.leather.back": (
-            vox_spec: ("armor.hide.leather.back", (-5.0, -1.5, -11.0)),
+            vox_spec: ("armor.hide.leather", (-5.0, -1.5, -10.0), 1),
             color: None
         ),
         "common.items.armor.miner.back": (
-            vox_spec: ("armor.hide.leather.back", (-5.0, -1.5, -11.0)),
+            vox_spec: ("armor.hide.leather", (-5.0, -1.5, -10.0), 1),
             color: None
         ),
         "common.items.armor.hide.scale.back": (
-            vox_spec: ("armor.hide.scale.back", (-5.0, -1.5, -10.0)),
+            vox_spec: ("armor.hide.scale", (-4.0, -1.5, -8.0), 1),
             color: None
         ),
         "common.items.armor.hide.carapace.back": (
-            vox_spec: ("armor.hide.carapace.back", (-5.0, -1.5, -10.0)),
+            vox_spec: ("armor.hide.carapace", (-5.0, -2.0, -10.5), 1),
+            color: None
+        ),
+        "common.items.armor.hide.serpentscale.back": (
+            vox_spec: ("armor.hide.serpentscale", (-5.0, -2.0, -9.5), 1),
             color: None
         ),
         "common.items.armor.hide.primal.back": (
-            vox_spec: ("armor.hide.primal.back", (-5.0, -3.5, -10.0)),
+            vox_spec: ("armor.hide.primal", (-5.0, -3.0, -10.0), 1),
             color: None
         ),
         "common.items.armor.hide.dragonscale.back": (
-            vox_spec: ("armor.hide.dragonscale.back", (-7.0, -2.5, -12.0)),
+            vox_spec: ("armor.hide.dragonscale", (-6.0, -2.5, -12.0), 1),
             color: None
         ),
         "common.items.armor.savage.back": (

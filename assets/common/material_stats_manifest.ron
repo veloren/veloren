@@ -160,6 +160,12 @@
             precision_power: Some(0.648),
             stealth: Some(1.215),
         ),
+        // Currently set to a ~60:40 ration for precision and stealth respectively (11.1% increase in precision power)
+        "Serpentscale": (
+            protection: Some(Normal(46.8)),
+            precision_power: Some(0.72),
+            stealth: Some(1.08),
+        ),
         "Plate": (
             protection: Some(Normal(51.6)),
             precision_power: Some(0.696),
@@ -175,37 +181,31 @@
             protection: Some(Normal(12.0)),
             energy_max: Some(45.0),
             energy_reward: Some(0.45),
-            stealth: Some(0.45),
         ),
         "Wool": (
             protection: Some(Normal(20.0)),
             energy_max: Some(60.0),
             energy_reward: Some(0.6),
-            stealth: Some(0.6),
         ),
         "Silk": (
             protection: Some(Normal(26.4)),
             energy_max: Some(72.0),
             energy_reward: Some(0.72),
-            stealth: Some(0.72),
         ),
         "Lifecloth": (
             protection: Some(Normal(31.2)),
             energy_max: Some(81.0),
             energy_reward: Some(0.81),
-            stealth: Some(0.81),
         ),
         "Moonweave": (
             protection: Some(Normal(34.4)),
             energy_max: Some(87.0),
             energy_reward: Some(0.87),
-            stealth: Some(0.87),
         ),
         "Sunsilk": (
             protection: Some(Normal(36.0)),
             energy_max: Some(90.0),
             energy_reward: Some(0.9),
-            stealth: Some(0.9),
         ),
         // Misc Sets
         "Alchemist": (
@@ -341,7 +341,6 @@
             energy_max: Some(72.9),
             energy_reward: Some(0.729),
             precision_power: Some(0.388),
-            stealth: Some(1.51875),
         ),
         "Adventurer": (
             protection: Some(Normal(18.225)),

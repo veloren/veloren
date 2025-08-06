@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Rawhide Cap",
+    legacy_description: "The smell of crudely skinned hide reminds you of your first.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            precision_power: Some(0.04),
+            stealth: Some(0.075),
+        )),
+    )),
+    quality: Low,
+    tags: [
+        Material(Rawhide),
+        SalvageInto(Rawhide, 1),
+    ],
+)

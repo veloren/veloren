@@ -10,6 +10,10 @@
     belt: Item("common.items.armor.hide.rawhide.belt"),
     legs: Item("common.items.armor.hide.rawhide.pants"),
     feet: Item("common.items.armor.hide.rawhide.foot"),
+    head: Choice([
+        (1, Item("common.items.armor.hide.rawhide.head")),
+        (1, None),
+    ]),
     lantern: Choice([
         (1, Item("common.items.lantern.black_0")),
     ]),

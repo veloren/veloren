@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Primal Crest",
+    legacy_description: "No longer a trophy, but the crest of a monster.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(5.733)),
+            precision_power: Some(0.07733),
+            stealth: Some(0.145),
+        )),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+        SalvageInto(Plate, 1),
+    ],
+)

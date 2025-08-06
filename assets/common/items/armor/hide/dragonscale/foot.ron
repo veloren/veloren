@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Dragonscale Spurs",
-    legacy_description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
+    legacy_description: "The thunderous footsteps of a mighty beast now lay beneath you.",
     kind: Armor((
         kind: Foot,
         stats: FromSet("Dragonscale"),

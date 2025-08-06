@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Carapace Shoulderpads",
-    legacy_description: "Made from the shell that once shielded a beast.",
+    legacy_description: "The heavy carapace feels light compared to your burdens.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Carapace"),

@@ -1865,6 +1865,10 @@
         "voxel.item.recipe.recipe_leatherworking",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
+    Simple("common.items.recipes.armor.serpentscale"): VoxTrans(
+        "voxel.item.recipe.recipe_leatherworking",
+        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
+    ),
     Simple("common.items.recipes.armor.primal"): VoxTrans(
         "voxel.item.recipe.recipe_leatherworking",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
@@ -2620,179 +2624,238 @@
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //Rawhide Set
-    Simple("common.items.armor.hide.rawhide.chest"): VoxTrans(
-        "voxel.armor.hide.rawhide.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.rawhide.pants"): VoxTrans(
-        "voxel.armor.hide.rawhide.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.rawhide.belt"): VoxTrans(
-        "voxel.armor.hide.rawhide.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.rawhide.foot"): VoxTrans(
-        "voxel.armor.hide.rawhide.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.rawhide.hand"): VoxTrans(
-        "voxel.armor.hide.rawhide.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.rawhide.shoulder"): VoxTrans(
-        "voxel.armor.hide.rawhide.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.rawhide.head"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.rawhide.back"): VoxTrans(
-        "voxel.armor.hide.rawhide.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.rawhide.foot"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.rawhide.hand"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.rawhide.shoulder"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.rawhide.belt"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.rawhide.pants"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.rawhide.chest"): VoxTrans(
+        "voxel.armor.hide.rawhide",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
     ),
     //Leather set
-    Simple("common.items.armor.hide.leather.chest"): VoxTrans(
-        "voxel.armor.hide.leather.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.leather.pants"): VoxTrans(
-        "voxel.armor.hide.leather.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.leather.belt"): VoxTrans(
-        "voxel.armor.hide.leather.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.leather.foot"): VoxTrans(
-        "voxel.armor.hide.leather.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.leather.hand"): VoxTrans(
-        "voxel.armor.hide.leather.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.leather.shoulder"): VoxTrans(
-        "voxel.armor.hide.leather.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.leather.head"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.leather.back"): VoxTrans(
-        "voxel.armor.hide.leather.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.leather.foot"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.leather.hand"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.leather.shoulder"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.leather.belt"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.leather.pants"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.leather.chest"): VoxTrans(
+        "voxel.armor.hide.leather",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
     ),
     //Scale Set
-    Simple("common.items.armor.hide.scale.chest"): VoxTrans(
-        "voxel.armor.hide.scale.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.scale.pants"): VoxTrans(
-        "voxel.armor.hide.scale.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.scale.belt"): VoxTrans(
-        "voxel.armor.hide.scale.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.scale.foot"): VoxTrans(
-        "voxel.armor.hide.scale.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.scale.hand"): VoxTrans(
-        "voxel.armor.hide.scale.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.scale.shoulder"): VoxTrans(
-        "voxel.armor.hide.scale.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.scale.head"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.scale.back"): VoxTrans(
-        "voxel.armor.hide.scale.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.scale.foot"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.scale.hand"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.scale.shoulder"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.scale.belt"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.scale.pants"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.scale.chest"): VoxTrans(
+        "voxel.armor.hide.scale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
     ),
     //Carapace Set
-    Simple("common.items.armor.hide.carapace.chest"): VoxTrans(
-        "voxel.armor.hide.carapace.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.carapace.pants"): VoxTrans(
-        "voxel.armor.hide.carapace.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.carapace.belt"): VoxTrans(
-        "voxel.armor.hide.carapace.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.carapace.foot"): VoxTrans(
-        "voxel.armor.hide.carapace.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.carapace.hand"): VoxTrans(
-        "voxel.armor.hide.carapace.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.carapace.shoulder"): VoxTrans(
-        "voxel.armor.hide.carapace.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.carapace.head"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.carapace.back"): VoxTrans(
-        "voxel.armor.hide.carapace.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.carapace.foot"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.carapace.hand"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.carapace.shoulder"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.carapace.belt"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.carapace.pants"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.carapace.chest"): VoxTrans(
+        "voxel.armor.hide.carapace",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
+    ),
+
+    //Serpentscale Set
+    Simple("common.items.armor.hide.serpentscale.head"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
+    ),
+    Simple("common.items.armor.hide.serpentscale.back"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.serpentscale.foot"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.serpentscale.hand"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.serpentscale.shoulder"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.serpentscale.belt"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.serpentscale.pants"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.serpentscale.chest"): VoxTrans(
+        "voxel.armor.hide.serpentscale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
     ),
     //Primal Set
-    Simple("common.items.armor.hide.primal.chest"): VoxTrans(
-        "voxel.armor.hide.primal.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.primal.pants"): VoxTrans(
-        "voxel.armor.hide.primal.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.primal.belt"): VoxTrans(
-        "voxel.armor.hide.primal.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.primal.foot"): VoxTrans(
-        "voxel.armor.hide.primal.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.primal.hand"): VoxTrans(
-        "voxel.armor.hide.primal.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.primal.shoulder"): VoxTrans(
-        "voxel.armor.hide.primal.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.primal.head"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.primal.back"): VoxTrans(
-        "voxel.armor.hide.primal.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
+    ),
+    Simple("common.items.armor.hide.primal.foot"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.primal.hand"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.primal.shoulder"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.primal.belt"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.primal.pants"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.primal.chest"): VoxTrans(
+        "voxel.armor.hide.primal",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
     ),
     //Dragonscale Set
-    Simple("common.items.armor.hide.dragonscale.chest"): VoxTrans(
-        "voxel.armor.hide.dragonscale.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Simple("common.items.armor.hide.dragonscale.pants"): VoxTrans(
-        "voxel.armor.hide.dragonscale.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.dragonscale.belt"): VoxTrans(
-        "voxel.armor.hide.dragonscale.belt",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.dragonscale.foot"): VoxTrans(
-        "voxel.armor.hide.dragonscale.foot",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.dragonscale.hand"): VoxTrans(
-        "voxel.armor.hide.dragonscale.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Simple("common.items.armor.hide.dragonscale.shoulder"): VoxTrans(
-        "voxel.armor.hide.dragonscale.shoulder",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    Simple("common.items.armor.hide.dragonscale.head"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 0,
     ),
     Simple("common.items.armor.hide.dragonscale.back"): VoxTrans(
-        "voxel.armor.hide.dragonscale.back",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 1,
     ),
+    Simple("common.items.armor.hide.dragonscale.foot"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 2,
+    ),
+    Simple("common.items.armor.hide.dragonscale.hand"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 3,
+    ),
+    Simple("common.items.armor.hide.dragonscale.shoulder"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0, 4,
+    ),
+    Simple("common.items.armor.hide.dragonscale.belt"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9, 5,
+    ),
+    Simple("common.items.armor.hide.dragonscale.pants"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 6,
+    ),
+    Simple("common.items.armor.hide.dragonscale.chest"): VoxTrans(
+        "voxel.armor.hide.dragonscale",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 7,
+    ),
+
     //Savage Set
     Simple("common.items.armor.savage.chest"): VoxTrans(
         "voxel.armor.savage.chest",
@@ -3598,10 +3661,6 @@
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
     // Heads
-    Simple("common.items.armor.hide.leather.head"): VoxTrans(
-        "voxel.armor.misc.head.leather-0",
-        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
-    ),
     Simple("common.items.armor.assassin.head"): VoxTrans(
         "voxel.armor.misc.head.assa_mask-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
@@ -3981,6 +4040,10 @@
     ),
     Simple("common.items.crafting_ing.hide.scales"): VoxTrans(
         "voxel.item.crafting.hide.scale",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.hide.serpent_scale"): VoxTrans(
+        "voxel.item.crafting.hide.serpent_scale",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
     ),
     Simple("common.items.crafting_ing.hide.dragon_scale"): VoxTrans(

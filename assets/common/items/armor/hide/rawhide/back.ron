@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Rawhide Cloak",
-    legacy_description: "Tightly packed pieces of leather. Light-weight and sturdy!",
+    legacy_description: "A thin cloak made up of whatever hide you had left.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Rawhide"),

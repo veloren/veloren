@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Carapace Kabuto",
+    legacy_description: "A trophy nearing the heights of your ego.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(5.2)),
+            precision_power: Some(0.072),
+            stealth: Some(0.135),
+        )),
+    )),
+    quality: High,
+    tags: [
+        Material(Carapace),
+        SalvageInto(Carapace, 1),
+    ],
+)
