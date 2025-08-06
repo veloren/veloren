@@ -126,6 +126,7 @@ pub enum ParticleMode {
     FirePillar = 72,
     FireLowShockwave = 73,
     PipeSmoke = 74,
+    TrainSmoke = 75,
 }
 
 impl ParticleMode {

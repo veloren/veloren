@@ -2,7 +2,7 @@ use common::{
     comp::{
         Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
-        body::ship::figuredata::VOXEL_COLLIDER_MANIFEST,
+        body::ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, Wings},
         inventory::item::armor::Friction,
     },
@@ -13,10 +13,11 @@ use common::{
     mounting::{Rider, VolumeRider},
     outcome::Outcome,
     resources::{DeltaTime, GameMode, TimeOfDay},
+    spiral::Spiral2d,
     states,
     terrain::{CoordinateConversions, TerrainGrid},
     uid::Uid,
-    util::{Projection, SpatialGrid},
+    util::{Dir, Projection, SpatialGrid},
     weather::WeatherGrid,
 };
 use common_base::{prof_span, span};
@@ -907,6 +908,8 @@ impl PhysicsData<'_> {
                         Vec3::zero()
                     };
 
+                    let mut tgt_pos = pos.0 + pos_delta;
+
                     // What's going on here?
                     // Because collisions need to be resolved against multiple
                     // colliders, this code takes the current position and
@@ -924,7 +927,6 @@ impl PhysicsData<'_> {
                     // resolves these sort of things well anyway.
                     // At the very least, we don't do things that result in glitchy
                     // velocities or entirely broken position snapping.
-                    let mut tgt_pos = pos.0 + pos_delta;
 
                     let was_on_ground = physics_state.on_ground.is_some();
                     let block_snap =
@@ -947,98 +949,144 @@ impl PhysicsData<'_> {
                         }
                     };
 
-                    match &collider {
-                        Collider::Voxel { .. } | Collider::Volume(_) => {
-                            // For now, treat entities with voxel colliders
-                            // as their bounding cylinders for the purposes of
-                            // colliding them with terrain.
-                            //
-                            // Additionally, multiply radius by 0.1 to make
-                            // the cylinder smaller to avoid lag.
-                            let radius = collider.bounding_radius() * scale * 0.1;
-                            let (_, z_max) = collider.get_z_limits(scale);
-                            let z_min = 0.0;
+                    // Snap trains to the closest track, skipping other collision code
+                    if matches!(body, Some(Body::Ship(ship::Body::Train)))
+                        // Get the 9 closest chunks...
+                        && let chunks = Spiral2d::new().take(9).filter_map(|r| read.terrain.get_key(tgt_pos.xy().as_().wpos_to_cpos() + r))
+                        // ...and each track in those chunks.
+                        && let tracks = chunks.flat_map(|c| c.meta().tracks().iter())
+                        // Find the closest point on the closest track
+                        && let Some(line) = tracks
+                            .flat_map(|bez| (0..32).map(move |i| LineSegment3 {
+                                start: bez.evaluate(i as f32 / 32.0),
+                                end: bez.evaluate((i + 1) as f32 / 32.0),
+                            }))
+                            .min_by_key(|line| (line.distance_to_point(tgt_pos) * 1000.0) as i32)
+                    {
+                        let track_dir = (line.end - line.start).normalized();
+                        let track_closest = line.projected_point(tgt_pos);
 
-                            let mut cpos = *pos;
-                            let cylinder = (radius, z_min, z_max);
-                            collision::box_voxel_collision(
-                                cylinder,
-                                &*read.terrain,
-                                entity,
-                                &mut cpos,
-                                tgt_pos,
-                                &mut vel,
-                                physics_state,
-                                &read.dt,
-                                was_on_ground,
-                                block_snap,
-                                climbing,
-                                |entity, vel, surface_normal| {
-                                    land_on_ground = Some((entity, vel, surface_normal))
-                                },
-                                read,
-                                &ori,
-                                friction_factor,
-                            );
-                            tgt_pos = cpos.0;
-                        },
-                        Collider::CapsulePrism {
-                            z_min: _,
-                            z_max,
-                            p0: _,
-                            p1: _,
-                            radius: _,
-                        } => {
-                            // Scale collider
-                            let radius = collider.bounding_radius().min(0.45) * scale;
-                            let z_min = 0.0;
-                            let z_max = z_max.clamped(1.2, 1.95) * scale;
+                        // vel.0 = track_dir * vel.0.dot(track_dir); // Clamp velocity to direction of rail
+                        vel.0 += (track_closest - tgt_pos) / read.dt.0.max(0.001); // Correct velocity according to position update
+                        // Clamp position to track
+                        tgt_pos = track_closest;
 
-                            let cylinder = (radius, z_min, z_max);
-                            let mut cpos = *pos;
-                            collision::box_voxel_collision(
-                                cylinder,
-                                &*read.terrain,
-                                entity,
-                                &mut cpos,
-                                tgt_pos,
-                                &mut vel,
-                                physics_state,
-                                &read.dt,
-                                was_on_ground,
-                                block_snap,
-                                climbing,
-                                |entity, vel, surface_normal| {
-                                    land_on_ground = Some((entity, vel, surface_normal))
-                                },
-                                read,
-                                &ori,
-                                friction_factor,
-                            );
+                        // Apply friction
+                        let fric = 0.0025f32;
+                        vel.0 *= (1.0 - fric).powf(read.dt.0 * 60.0);
 
-                            // Sticky things shouldn't move when on a surface
-                            if physics_state.on_surface().is_some() && sticky.is_some() {
-                                vel.0 = physics_state.ground_vel;
-                            }
+                        use common::terrain::{Block, BlockKind};
+                        // Fake the train being sat on the ground
+                        physics_state.on_ground = Some(Block::new(BlockKind::Rock, Rgb::zero()));
+                        physics_state.in_fluid = Some(Fluid::Air {
+                            elevation: tgt_pos.z,
+                            vel: Vel::default(),
+                        });
 
-                            tgt_pos = cpos.0;
-                        },
-                        Collider::Point => {
-                            let mut pos = *pos;
+                        let train_dir = if ori.look_vec().dot(track_dir) > 0.0 {
+                            Dir::new(track_dir)
+                        } else {
+                            Dir::new(-track_dir)
+                        };
+                        let tgt_ori = ori
+                            .yawed_towards(train_dir)
+                            .pitched_towards(train_dir)
+                            .uprighted();
+                        ori = ori.slerped_towards(tgt_ori, (1.0 - ori.angle_between(tgt_ori) * 25.0).clamp(0.15, 0.5));
+                    } else {
+                        match &collider {
+                            Collider::Voxel { .. } | Collider::Volume(_) => {
+                                // For now, treat entities with voxel colliders
+                                // as their bounding cylinders for the purposes of
+                                // colliding them with terrain.
+                                //
+                                // Additionally, multiply radius by 0.1 to make
+                                // the cylinder smaller to avoid lag.
+                                let radius = collider.bounding_radius() * scale * 0.1;
+                                let (_, z_max) = collider.get_z_limits(scale);
+                                let z_min = 0.0;
 
-                            collision::point_voxel_collision(
-                                entity,
-                                &mut pos,
-                                pos_delta,
-                                &mut vel,
-                                physics_state,
-                                sticky.is_some(),
-                                &mut outcomes,
-                                read,
-                            );
+                                let mut cpos = *pos;
+                                let cylinder = (radius, z_min, z_max);
+                                collision::box_voxel_collision(
+                                    cylinder,
+                                    &*read.terrain,
+                                    entity,
+                                    &mut cpos,
+                                    tgt_pos,
+                                    &mut vel,
+                                    physics_state,
+                                    &read.dt,
+                                    was_on_ground,
+                                    block_snap,
+                                    climbing,
+                                    |entity, vel, surface_normal| {
+                                        land_on_ground = Some((entity, vel, surface_normal))
+                                    },
+                                    read,
+                                    &ori,
+                                    friction_factor,
+                                );
+                                tgt_pos = cpos.0;
+                            },
+                            Collider::CapsulePrism {
+                                z_min: _,
+                                z_max,
+                                p0: _,
+                                p1: _,
+                                radius: _,
+                            } => {
+                                // Scale collider
+                                let radius = collider.bounding_radius().min(0.45) * scale;
+                                let z_min = 0.0;
+                                let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                            tgt_pos = pos.0;
-                        },
+                                let cylinder = (radius, z_min, z_max);
+                                let mut cpos = *pos;
+                                collision::box_voxel_collision(
+                                    cylinder,
+                                    &*read.terrain,
+                                    entity,
+                                    &mut cpos,
+                                    tgt_pos,
+                                    &mut vel,
+                                    physics_state,
+                                    &read.dt,
+                                    was_on_ground,
+                                    block_snap,
+                                    climbing,
+                                    |entity, vel, surface_normal| {
+                                        land_on_ground = Some((entity, vel, surface_normal))
+                                    },
+                                    read,
+                                    &ori,
+                                    friction_factor,
+                                );
+
+                                // Sticky things shouldn't move when on a surface
+                                if physics_state.on_surface().is_some() && sticky.is_some() {
+                                    vel.0 = physics_state.ground_vel;
+                                }
+
+                                tgt_pos = cpos.0;
+                            },
+                            Collider::Point => {
+                                let mut pos = *pos;
+
+                                collision::point_voxel_collision(
+                                    entity,
+                                    &mut pos,
+                                    pos_delta,
+                                    &mut vel,
+                                    physics_state,
+                                    sticky.is_some(),
+                                    &mut outcomes,
+                                    read,
+                                );
+
+                                tgt_pos = pos.0;
+                            },
+                        }
                     }
 
                     // Compute center and radius of tick path bounding sphere
@@ -1126,7 +1174,7 @@ impl PhysicsData<'_> {
                                         return;
                                     }
 
-                                    let mut physics_state_delta = physics_state.clone();
+                                    let mut physics_state_delta = PhysicsState::default();
 
                                     // Helper function for computing a transformation matrix and its
                                     // inverse. Should

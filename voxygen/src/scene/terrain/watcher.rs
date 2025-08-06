@@ -19,6 +19,7 @@ pub enum Interaction {
     LightToggle(bool),
 }
 
+#[derive(Copy, Clone)]
 pub enum FireplaceType {
     House,
     Workshop, // this also includes witch hut
@@ -61,6 +62,7 @@ pub struct BlocksOfInterest {
     // area for optimization
     pub interactables: Vec<(Vec3<i32>, Interaction)>,
     pub lights: Vec<(Vec3<i32>, u8)>,
+    pub train_smokes: Vec<Vec3<i32>>,
     // needed for biome specific smoke variations
     pub temperature: f32,
     pub humidity: f32,
@@ -101,6 +103,7 @@ impl BlocksOfInterest {
         let mut frogs = Vec::new();
         let mut one_way_walls = Vec::new();
         let mut spores = Vec::new();
+        let mut train_smokes = Vec::new();
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
@@ -189,6 +192,9 @@ impl BlocksOfInterest {
                             SpriteKind::Ember => {
                                 fires.push(pos);
                                 smokers.push(SmokerProperties::new(pos, FireplaceType::House));
+                            },
+                            SpriteKind::TrainSmoke => {
+                                train_smokes.push(pos);
                             },
                             SpriteKind::FireBlock => {
                                 fire_bowls.push(pos);
@@ -323,6 +329,7 @@ impl BlocksOfInterest {
             lights,
             temperature,
             humidity,
+            train_smokes,
         }
     }
 }

@@ -193,6 +193,11 @@ pub enum SfxEvent {
     Charge,
     StrigoiHead,
     BloodmoonHeiressSummon,
+    TrainChugg,
+    TrainChuggSteam,
+    TrainAmbience,
+    TrainClack,
+    TrainSpeed,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Deserialize, Hash, Eq)]
@@ -450,7 +455,7 @@ impl SfxMgr {
             let player_pos = client.position().unwrap_or_default();
             inner.channels.sfx.iter_mut().for_each(|c| {
                 if !c.is_done() {
-                    c.update(c.pos, player_pos)
+                    c.update(player_pos)
                 }
             })
         }

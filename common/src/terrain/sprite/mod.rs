@@ -107,6 +107,7 @@ sprites! {
         FireBlock  = 0x03, // FireBlock for Burning Buff
         HotSurface = 0x04,
         Stones2    = 0x05, // Same as `Stones` but not collectible
+        TrainSmoke = 0x06,
     },
     // Furniture. In the future, we might add an attribute to customise material
     // TODO: Remove sizes and variants, represent with attributes
@@ -443,6 +444,7 @@ sprites! {
         TerracottaStatue = 0x46,
         TerracottaBlock = 0x47,
         MetalChain = 0x48,
+        Bell = 0x49,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -688,6 +690,7 @@ impl SpriteKind {
             SpriteKind::ShortCactus => 1.36,
             SpriteKind::MedFlatCactus => 1.36,
             SpriteKind::ShortFlatCactus => 0.91,
+            SpriteKind::Bell => 1.0,
             // TODO: Find suitable heights.
             SpriteKind::Apple
             | SpriteKind::Beehive

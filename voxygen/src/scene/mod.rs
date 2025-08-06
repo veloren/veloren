@@ -1534,11 +1534,11 @@ impl Scene {
                     for bezier in chunk.meta().tracks().iter() {
                         let shape_id = self.debug.add_shape(DebugShape::TrainTrack {
                             path: *bezier,
-                            rail_width: 0.25,
-                            rail_sep: 1.0,
-                            plank_width: 0.5,
-                            plank_height: 0.125,
-                            plank_sep: 2.0,
+                            rail_width: 0.35,
+                            rail_sep: 2.5,
+                            plank_width: 0.75,
+                            plank_height: 0.25,
+                            plank_sep: 6.0,
                         });
                         ret.push(shape_id);
                         self.debug

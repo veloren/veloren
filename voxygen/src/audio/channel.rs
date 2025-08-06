@@ -31,8 +31,8 @@ use super::soundcache::{AnySoundData, AnySoundHandle};
 /// observe to prevent tracking distant entities. It approximates the distance
 /// at which the volume of the sfx emitted is too quiet to be meaningful for the
 /// player.
-pub const SFX_DIST_LIMIT: f32 = 100.0;
-pub const SFX_DIST_LIMIT_SQR: f32 = 10000.0;
+pub const SFX_DIST_LIMIT: f32 = 200.0;
+pub const SFX_DIST_LIMIT_SQR: f32 = SFX_DIST_LIMIT * SFX_DIST_LIMIT;
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
@@ -323,7 +323,9 @@ impl AmbienceChannel {
 pub struct SfxChannel {
     track: SpatialTrackHandle,
     source: Option<AnySoundHandle>,
-    pub pos: Vec3<f32>,
+    pos: Vec3<f32>,
+    // Increments every time we play a distinct sound through this channel
+    pub play_counter: usize,
 }
 
 impl SfxChannel {
@@ -339,6 +341,7 @@ impl SfxChannel {
             track,
             source: None,
             pos: Vec3::zero(),
+            play_counter: 0,
         })
     }
 
@@ -346,13 +349,15 @@ impl SfxChannel {
         self.source = source_handle;
     }
 
-    pub fn play(&mut self, source: AnySoundData) {
+    pub fn play(&mut self, source: AnySoundData) -> usize {
         match self.track.play(source) {
             Ok(handle) => self.source = Some(handle),
             Err(e) => {
                 warn!(?e, "Cannot play sfx")
             },
         }
+        self.play_counter += 1;
+        self.play_counter
     }
 
     pub fn stop(&mut self) {
@@ -371,6 +376,8 @@ impl SfxChannel {
         self.track.set_volume(audio::to_decibels(volume), tween)
     }
 
+    pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
+
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
@@ -378,22 +385,19 @@ impl SfxChannel {
     }
 
     /// Update volume of sounds based on position of player
-    pub fn update(&mut self, emitter_pos: Vec3<f32>, player_pos: Vec3<f32>) {
+    pub fn update(&mut self, player_pos: Vec3<f32>) {
         let tween = Tween {
             duration: Duration::from_secs_f32(0.0),
             ..Default::default()
         };
-        self.track.set_position(emitter_pos, tween);
-        self.pos = emitter_pos;
+        self.track.set_position(self.pos, tween);
 
-        let player_distance_to_source_sqr = player_pos
-            .distance_squared(self.pos)
-            .min(SFX_DIST_LIMIT_SQR);
         // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
         // 1.0 being closest to the player.
-        let ratio = (-(player_distance_to_source_sqr - SFX_DIST_LIMIT_SQR) / SFX_DIST_LIMIT_SQR)
-            .powf(5.0)
-            .clamp(0.0, 1.0);
+        let ratio = 1.0
+            - (player_pos.distance(self.pos) * (1.0 / SFX_DIST_LIMIT))
+                .clamp(0.0, 1.0)
+                .sqrt();
         self.set_volume(ratio);
     }
 }

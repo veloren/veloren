@@ -1468,8 +1468,8 @@ impl FigureMgr {
 
                 let target_base = match (
                     physics.on_ground.is_some(),
-                    rel_vel.magnitude_squared() > 0.01, // Moving
-                    physics.in_liquid().is_some(),      // In water
+                    rel_vel.magnitude_squared() > 0.1, // Moving
+                    physics.in_liquid().is_some(),     // In water
                     is_riding,
                     physics.skating_active,
                 ) {
@@ -8467,7 +8467,14 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            self.acc_vel += (self.avg_vel - *ground_vel).magnitude() * dt / scale;
+            // Vehicle wheels can turn backwards, and don't turn if movement is lateral to
+            // the orientation
+            let rate = if matches!(body, Some(Body::Ship(ship)) if ship.has_wheels()) {
+                (self.avg_vel - *ground_vel).dot(*ori * Vec3::unit_y())
+            } else {
+                (self.avg_vel - *ground_vel).magnitude()
+            };
+            self.acc_vel += rate * dt / scale;
         } else {
             self.acc_vel = 0.0;
         }

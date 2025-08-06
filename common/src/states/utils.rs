@@ -172,6 +172,7 @@ impl Body {
                 quadruped_low::Species::Hydra => 100.0,
             },
             Body::Ship(ship::Body::Carriage) => 40.0,
+            Body::Ship(ship::Body::Train) => 9.0,
             Body::Ship(_) => 0.0,
             Body::Arthropod(arthropod) => match arthropod.species {
                 arthropod::Species::Tarantula => 85.0,
@@ -262,6 +263,7 @@ impl Body {
                 _ => 2.0,
             },
             Body::Ship(ship::Body::Carriage) => 0.04,
+            Body::Ship(ship::Body::Train) => 0.0,
             Body::Ship(ship) if ship.has_water_thrust() => 5.0 / self.dimensions().y,
             Body::Ship(_) => 6.0 / self.dimensions().y,
             Body::Arthropod(_) => 3.5,

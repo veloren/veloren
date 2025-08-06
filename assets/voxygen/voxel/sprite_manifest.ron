@@ -263,7 +263,7 @@ LanternpostWoodLantern: [(
             offset: (-9.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -308,7 +308,7 @@ LampMetalShinglesRed: [(
     ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LampMetalShinglesCyan: [(
     variations: [
         (
@@ -327,7 +327,7 @@ LampMetalShinglesCyan: [(
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -359,7 +359,7 @@ LampTerracotta: [(
             offset: (-6.5, -6.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -721,10 +721,10 @@ LanternAirshipWallBlackS: [(
             offset: (-5.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],   
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LanternAirshipWallBrownS: [(
     variations: [
         (
@@ -743,7 +743,7 @@ LanternAirshipWallBrownS: [(
             offset: (-5.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -765,10 +765,10 @@ LanternAirshipWallChestnutS: [(
             offset: (-5.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LanternAirshipWallRedS: [(
     variations: [
         (
@@ -787,10 +787,10 @@ LanternAirshipWallRedS: [(
             offset: (-5.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LanternAirshipGroundBlackS: [(
     variations: [
         (
@@ -809,10 +809,10 @@ LanternAirshipGroundBlackS: [(
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LanternAirshipGroundBrownS: [(
     variations: [
         (
@@ -831,7 +831,7 @@ LanternAirshipGroundBrownS: [(
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -853,10 +853,10 @@ LanternAirshipGroundChestnutS: [(
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
-)], 
+)],
 LanternAirshipGroundRedS: [(
     variations: [
         (
@@ -875,7 +875,7 @@ LanternAirshipGroundRedS: [(
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
-    ],    
+    ],
     wind_sway: 0,
     filter: (light_enabled: true),
 )],
@@ -1520,6 +1520,16 @@ SmokeDummy: [(
     ],
     wind_sway: 0.8,
 )],
+TrainSmoke: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.ember.dummy",
+            offset: (-5.5, -5.5, -5.5),
+            lod_axes: (1.0, 1.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.8,
+)],
 
 // Scarecrow
 Scarecrow: [(
@@ -1600,7 +1610,7 @@ Helm: [(
     wind_sway: 0,
 )],
 
-// Bed 
+// Bed
 
 BedWoodWoodlandHead: [(
     variations: [
@@ -1870,7 +1880,7 @@ ChairWoodWoodland2: [(
 )],
 
 // ChairDouble
-   
+
 BenchWoodWoodlandGreen1: [(
     variations: [
         (
@@ -2669,7 +2679,7 @@ CliffDecorBlock: [(
            model: "voxygen.voxel.sprite.furniture.cliff_decor_block-0",
            offset: (-5.5, -5.5, 0.0),
            lod_axes: (0.0, 0.0, 0.0),
-        ),           
+        ),
         (
            model: "voxygen.voxel.sprite.furniture.cliff_decor_block-1",
            offset: (-5.5, -5.5, 0.0),
@@ -2724,7 +2734,7 @@ CliffDecorBlock: [(
            model: "voxygen.voxel.sprite.furniture.cliff_decor_block-11",
            offset: (-5.5, -5.5, 0.0),
            lod_axes: (0.0, 0.0, 0.0),
-        ),                                                                                                        
+        ),
     ],
     wind_sway: 0.0,
 )],
@@ -7409,6 +7419,16 @@ SeaUrchin: [(
             model: "voxygen.voxel.sprite.sea_urchin.sea_urchin",
             offset: (-5.0, -6.5, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+Bell: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.bell",
+            offset: (-5.5, -4.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.0,
