@@ -1199,7 +1199,7 @@ impl Site {
             (64.0, 1), // house
             (5.0, 2),  // guard tower
             (25.0, 3), // field
-            (32.0, 4), // castle
+            //(32.0, 4), // castle
             (5.0, 5),  // workshop
             (15.0, 6), // airship dock
             (15.0, 7), // tavern
