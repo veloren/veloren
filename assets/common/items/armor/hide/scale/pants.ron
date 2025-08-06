@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Scale Leggings",
-    legacy_description: "Each embedded scale provides additional protection.",
+    legacy_description: "The lightweight scales help you stay quiet as you stalk through grass.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Scale"),

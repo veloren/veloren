@@ -10,6 +10,7 @@ ItemDef(
             "carapace_hands",
             "carapace_pants",
             "carapace_shoulder",
+            "carapace_head",
         ],
     ),
     quality: High,

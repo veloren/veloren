@@ -94,6 +94,9 @@ sprite-crafting_ing-hide-animal_hide = Animal Hide
 sprite-crafting_ing-hide-carapace = Hard Carapace
     .desc = Tough, hard carapace, a shield to many creatures.
 
+sprite-crafting_ing-hide-serpent_scale = Serpent Scale
+    .desc = Razor sharp scales that cut those who dare touch it.
+
 sprite-crafting_ing-hide-dragon_scale = Dragon Scale
     .desc = Tough scale from a legendary beast, hot to the touch.
 

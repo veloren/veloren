@@ -12,6 +12,10 @@
     belt: Item("common.items.armor.hide.carapace.belt"),
     legs: Item("common.items.armor.hide.carapace.pants"),
     feet: Item("common.items.armor.hide.carapace.foot"),
+    head: Choice([
+        (1, Item("common.items.armor.hide.carapace.head")),
+        (1, None),
+    ]),
     lantern: Choice([
         (1, Item("common.items.lantern.black_0")),
         (1, Item("common.items.lantern.blue_0")),

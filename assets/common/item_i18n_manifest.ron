@@ -985,6 +985,9 @@
             "common.items.armor.hide.carapace.shoulder",
         ): "armor-hide-carapace-shoulder",
         Simple(
+            "common.items.armor.hide.carapace.head",
+        ): "armor-hide-carapace-head",
+        Simple(
             "common.items.armor.hide.primal.back",
         ): "armor-hide-primal-back",
         Simple(
@@ -1006,6 +1009,9 @@
             "common.items.armor.hide.primal.shoulder",
         ): "armor-hide-primal-shoulder",
         Simple(
+            "common.items.armor.hide.primal.head",
+        ): "armor-hide-primal-head",
+        Simple(
             "common.items.armor.hide.leather.back",
         ): "armor-hide-leather-back",
         Simple(
@@ -1022,7 +1028,7 @@
         ): "armor-hide-leather-hand",
         Simple(
             "common.items.armor.hide.leather.head",
-        ): "armor-misc-head-leather-0",
+        ): "armor-hide-leather-head",
         Simple(
             "common.items.armor.hide.leather.pants",
         ): "armor-hide-leather-pants",
@@ -1051,6 +1057,9 @@
             "common.items.armor.hide.rawhide.shoulder",
         ): "armor-hide-rawhide-shoulder",
         Simple(
+            "common.items.armor.hide.rawhide.head",
+        ): "armor-hide-rawhide-head",
+        Simple(
             "common.items.armor.hide.scale.back",
         ): "armor-hide-scale-back",
         Simple(
@@ -1072,6 +1081,33 @@
             "common.items.armor.hide.scale.shoulder",
         ): "armor-hide-scale-shoulder",
         Simple(
+            "common.items.armor.hide.scale.head",
+        ): "armor-hide-scale-head",
+        Simple(
+            "common.items.armor.hide.serpentscale.back",
+        ): "armor-hide-serpentscale-back",
+        Simple(
+            "common.items.armor.hide.serpentscale.belt",
+        ): "armor-hide-serpentscale-belt",
+        Simple(
+            "common.items.armor.hide.serpentscale.chest",
+        ): "armor-hide-serpentscale-chest",
+        Simple(
+            "common.items.armor.hide.serpentscale.foot",
+        ): "armor-hide-serpentscale-foot",
+        Simple(
+            "common.items.armor.hide.serpentscale.hand",
+        ): "armor-hide-serpentscale-hand",
+        Simple(
+            "common.items.armor.hide.serpentscale.pants",
+        ): "armor-hide-serpentscale-pants",
+        Simple(
+            "common.items.armor.hide.serpentscale.shoulder",
+        ): "armor-hide-serpentscale-shoulder",
+        Simple(
+            "common.items.armor.hide.serpentscale.head",
+        ): "armor-hide-serpentscale-head",
+        Simple(
             "common.items.armor.hide.dragonscale.back",
         ): "armor-hide-dragonscale-back",
         Simple(
@@ -1092,6 +1128,9 @@
         Simple(
             "common.items.armor.hide.dragonscale.shoulder",
         ): "armor-hide-dragonscale-shoulder",
+        Simple(
+            "common.items.armor.hide.dragonscale.head",
+        ): "armor-hide-dragonscale-head",
         Simple(
             "common.items.armor.cloth_blue.belt",
         ): "armor-cloth_blue-belt",
@@ -3465,6 +3504,9 @@
         Simple(
             "common.items.crafting_ing.hide.carapace",
         ): "sprite-crafting_ing-hide-carapace",
+        Simple(
+            "common.items.crafting_ing.hide.serpent_scale",
+        ): "sprite-crafting_ing-hide-serpent_scale",
         Simple(
             "common.items.crafting_ing.hide.dragon_scale",
         ): "sprite-crafting_ing-hide-dragon_scale",
@@ -7503,6 +7545,7 @@
         Simple("common.items.recipes.armor.bloodsteel"): "recipe-armor-bloodsteel",
         Simple("common.items.recipes.armor.brinestone"): "recipe-armor-brinestone",
         Simple("common.items.recipes.armor.carapace"): "recipe-armor-carapace",
+        Simple("common.items.recipes.armor.serpentscale"): "recipe-armor-serpentscale",
         Simple("common.items.recipes.armor.cobalt"): "recipe-armor-cobalt",
         Simple("common.items.recipes.armor.dragonscale"): "recipe-armor-dragonscale",
         Simple("common.items.recipes.armor.druid"): "recipe-armor-druid",

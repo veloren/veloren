@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Scale Helmet",
+    legacy_description: "To find prey, one must learn how they think.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(4.4)),
+            precision_power: Some(0.064),
+            stealth: Some(0.12),
+        )),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Scale),
+        SalvageInto(Scale, 1),
+    ],
+)

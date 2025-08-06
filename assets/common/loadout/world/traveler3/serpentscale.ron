@@ -1,0 +1,27 @@
+#![enable(implicit_some)]
+(
+    shoulders: Item("common.items.armor.hide.serpentscale.shoulder"),
+    chest: Item("common.items.armor.hide.serpentscale.chest"),
+    gloves: Item("common.items.armor.hide.serpentscale.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.hide.serpentscale.back")),
+        (1, None),
+    ]),
+    belt: Item("common.items.armor.hide.serpentscale.belt"),
+    legs: Item("common.items.armor.hide.serpentscale.pants"),
+    feet: Item("common.items.armor.hide.serpentscale.foot"),
+    head: Choice([
+        (1, Item("common.items.armor.hide.serpentscale.head")),
+        (1, None),
+    ]),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.red_0")),
+        (1, Item("common.items.lantern.geode_purp")),
+        (1, Item("common.items.boss_drops.lantern")),
+    ]),
+)

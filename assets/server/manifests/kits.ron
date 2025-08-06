@@ -393,7 +393,8 @@
         // Potion Kit
         (Item("common.items.consumable.potion_med"), 100),
 
-         // Hide
+        // Hide
+        // Primal
         (Item("common.items.armor.hide.primal.back"), 1),
         (Item("common.items.armor.hide.primal.belt"), 1),
         (Item("common.items.armor.hide.primal.chest"), 1),
@@ -401,6 +402,16 @@
         (Item("common.items.armor.hide.primal.hand"), 1),
         (Item("common.items.armor.hide.primal.pants"), 1),
         (Item("common.items.armor.hide.primal.shoulder"), 1),
+        (Item("common.items.armor.hide.primal.head"), 1),
+        // Serpentscale
+        (Item("common.items.armor.hide.serpentscale.back"), 1),
+        (Item("common.items.armor.hide.serpentscale.belt"), 1),
+        (Item("common.items.armor.hide.serpentscale.chest"), 1),
+        (Item("common.items.armor.hide.serpentscale.foot"), 1),
+        (Item("common.items.armor.hide.serpentscale.hand"), 1),
+        (Item("common.items.armor.hide.serpentscale.pants"), 1),
+        (Item("common.items.armor.hide.serpentscale.shoulder"), 1),
+        (Item("common.items.armor.hide.serpentscale.head"), 1),
 
         // Cloth
         (Item("common.items.armor.cloth.moonweave.back"), 1),
@@ -485,6 +496,7 @@
         (Item("common.items.armor.hide.rawhide.hand"), 1),
         (Item("common.items.armor.hide.rawhide.pants"), 1),
         (Item("common.items.armor.hide.rawhide.shoulder"), 1),
+        (Item("common.items.armor.hide.rawhide.head"), 1),
     ],
     "leather": [
         (Item("common.items.armor.hide.leather.back"), 1),
@@ -494,6 +506,7 @@
         (Item("common.items.armor.hide.leather.hand"), 1),
         (Item("common.items.armor.hide.leather.pants"), 1),
         (Item("common.items.armor.hide.leather.shoulder"), 1),
+        (Item("common.items.armor.hide.leather.head"), 1),
     ],
     "scale": [
         (Item("common.items.armor.hide.scale.back"), 1),
@@ -503,6 +516,7 @@
         (Item("common.items.armor.hide.scale.hand"), 1),
         (Item("common.items.armor.hide.scale.pants"), 1),
         (Item("common.items.armor.hide.scale.shoulder"), 1),
+        (Item("common.items.armor.hide.scale.head"), 1),
     ],
     "carapace": [
         (Item("common.items.armor.hide.carapace.back"), 1),
@@ -512,6 +526,17 @@
         (Item("common.items.armor.hide.carapace.hand"), 1),
         (Item("common.items.armor.hide.carapace.pants"), 1),
         (Item("common.items.armor.hide.carapace.shoulder"), 1),
+        (Item("common.items.armor.hide.carapace.head"), 1),
+    ],
+    "serpentscale": [
+        (Item("common.items.armor.hide.serpentscale.back"), 1),
+        (Item("common.items.armor.hide.serpentscale.belt"), 1),
+        (Item("common.items.armor.hide.serpentscale.chest"), 1),
+        (Item("common.items.armor.hide.serpentscale.foot"), 1),
+        (Item("common.items.armor.hide.serpentscale.hand"), 1),
+        (Item("common.items.armor.hide.serpentscale.pants"), 1),
+        (Item("common.items.armor.hide.serpentscale.shoulder"), 1),
+        (Item("common.items.armor.hide.serpentscale.head"), 1),
     ],
     "primal": [
         (Item("common.items.armor.hide.primal.back"), 1),
@@ -521,6 +546,7 @@
         (Item("common.items.armor.hide.primal.hand"), 1),
         (Item("common.items.armor.hide.primal.pants"), 1),
         (Item("common.items.armor.hide.primal.shoulder"), 1),
+        (Item("common.items.armor.hide.primal.head"), 1),
     ],
     "dragonscale": [
         (Item("common.items.armor.hide.dragonscale.back"), 1),
@@ -530,6 +556,7 @@
         (Item("common.items.armor.hide.dragonscale.hand"), 1),
         (Item("common.items.armor.hide.dragonscale.pants"), 1),
         (Item("common.items.armor.hide.dragonscale.shoulder"), 1),
+        (Item("common.items.armor.hide.dragonscale.head"), 1),
     ],
     "linen": [
         (Item("common.items.armor.cloth.linen.back"), 1),
@@ -1059,6 +1086,7 @@
         (Item("common.items.recipes.armor.orichalcum"),1),
         (Item("common.items.recipes.armor.primal"),1),
         (Item("common.items.recipes.armor.scale"),1),
+        (Item("common.items.recipes.armor.serpentscale"), 1),
         (Item("common.items.recipes.armor.silken"),1),
         (Item("common.items.recipes.armor.steel"),1),
         (Item("common.items.recipes.armor.sunsilk"),1),

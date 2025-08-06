@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "",
+    legacy_description: "",
+    kind: RecipeGroup(
+        recipes: [
+            "serpentscale_back",
+            "serpentscale_belt",
+            "serpentscale_chest",
+            "serpentscale_feet",
+            "serpentscale_hands",
+            "serpentscale_pants",
+            "serpentscale_shoulder",
+            "serpentscale_head",
+        ],
+    ),
+    quality: Epic,
+    tags: [],
+)

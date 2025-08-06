@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Serpentscale Fists",
+    legacy_description: "Razor sharp scales imbue your weapon with the maw of a beast.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Serpentscale"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 1),
+    ],
+)

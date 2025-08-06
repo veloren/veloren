@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Primal Shoulders",
-    legacy_description: "Smithed from hide tougher than steel.",
+    legacy_description: "Sharp spikes ward off your conscience.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Plate"),

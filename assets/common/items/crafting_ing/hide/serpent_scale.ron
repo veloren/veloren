@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Serpent Scale",
+    legacy_description: "Razor sharp scales that cut those who dare touch it.",
+    kind: Ingredient(
+        descriptor: "Serpentscale",
+    ),
+    quality: Epic,
+    tags: [MaterialKind(Hide), Material(Serpentscale)],
+)

@@ -10,6 +10,7 @@ ItemDef(
             "dragonscale_hands",
             "dragonscale_pants",
             "dragonscale_shoulder",
+            "dragonscale_head",
         ],
     ),
     quality: Legendary,

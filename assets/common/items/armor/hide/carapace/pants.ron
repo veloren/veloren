@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Carapace Leggings",
-    legacy_description: "Made from the shell that once shielded a beast.",
+    legacy_description: "Your stride feels secure whilst covered in thick chitin.",
     kind: Armor((
         kind: Pants,
         stats: FromSet("Carapace"),

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Serpentscale Cuisses",
+    legacy_description: "Waterproof scales to wade through the murky water.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Serpentscale"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 2),
+    ],
+)

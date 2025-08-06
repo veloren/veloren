@@ -354,6 +354,11 @@ recipes: {
             (Item("common.items.crafting_ing.leather.simple_leather"), 2),
         ],
     ),
+    ItemDefId("common.items.armor.hide.rawhide.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.simple_leather"), 1),
+        ],
+    ),
     // ARMOR/HIDE/LEATHER
     ItemDefId("common.items.armor.hide.leather.back"): (
         inputs: [
@@ -388,6 +393,11 @@ recipes: {
     ItemDefId("common.items.armor.hide.leather.shoulder"): (
         inputs: [
             (Item("common.items.crafting_ing.leather.thick_leather"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.leather.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.leather.thick_leather"), 1),
         ],
     ),
     // ARMOR/HIDE/SCALE
@@ -433,6 +443,12 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 2),
         ],
     ),
+    ItemDefId("common.items.armor.hide.scale.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.scales"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
     // ARMOR/HIDE/CARAPACE
     ItemDefId("common.items.armor.hide.carapace.back"): (
         inputs: [
@@ -476,6 +492,61 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 4),
         ],
     ),
+    ItemDefId("common.items.armor.hide.carapace.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.carapace"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
+    // ARMOR/HIDE/SERPENTSCALE
+    ItemDefId("common.items.armor.hide.serpentscale.back"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.belt"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.chest"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 3),
+            (Item("common.items.mineral.ore.veloritefrag"), 9),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.foot"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.hand"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.pants"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.shoulder"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 2),
+            (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.serpentscale.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.serpent_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
+        ],
+    ),
     // ARMOR/HIDE/PRIMAL
     ItemDefId("common.items.armor.hide.primal.back"): (
         inputs: [
@@ -517,6 +588,12 @@ recipes: {
         inputs: [
             (Item("common.items.crafting_ing.hide.plate"), 2),
             (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.primal.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.plate"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     // ARMOR/HIDE/DRAGONSCALE
@@ -567,6 +644,13 @@ recipes: {
             (Item("common.items.crafting_ing.hide.dragon_scale"), 2),
             (Item("common.items.mineral.ore.veloritefrag"), 8),
             (Item("common.items.mineral.ore.velorite"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.hide.dragonscale.head"): (
+        inputs: [
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 4),
+            (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
     // ARMOR/CLOTH/LINEN
@@ -856,6 +940,11 @@ recipes: {
             (Item("common.items.mineral.ingot.bronze"), 2),
         ],
     ),
+    ItemDefId("common.items.armor.mail.bronze.head"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bronze"), 1),
+        ],
+    ),
     // ARMOR/MAIL/IRON
     ItemDefId("common.items.armor.mail.iron.back"): (
         inputs: [
@@ -890,6 +979,11 @@ recipes: {
     ItemDefId("common.items.armor.mail.iron.shoulder"): (
         inputs: [
             (Item("common.items.mineral.ingot.iron"), 2),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.iron.head"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.iron"), 1),
         ],
     ),
     // ARMOR/MAIL/STEEL
@@ -935,6 +1029,12 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 2),
         ],
     ),
+    ItemDefId("common.items.armor.mail.steel.head"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.steel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 1),
+        ],
+    ),
     // ARMOR/MAIL/COBALT
     ItemDefId("common.items.armor.mail.bloodsteel.back"): (
         inputs: [
@@ -978,6 +1078,12 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 4),
         ],
     ),
+    ItemDefId("common.items.armor.mail.cobalt.head"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.cobalt"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 2),
+        ],
+    ),
     // ARMOR/MAIL/BLOODSTEEL
     ItemDefId("common.items.armor.mail.bloodsteel.back"): (
         inputs: [
@@ -1019,6 +1125,12 @@ recipes: {
         inputs: [
             (Item("common.items.mineral.ingot.bloodsteel"), 2),
             (Item("common.items.mineral.ore.veloritefrag"), 6),
+        ],
+    ),
+    ItemDefId("common.items.armor.mail.bloodsteel.head"): (
+        inputs: [
+            (Item("common.items.mineral.ingot.bloodsteel"), 1),
+            (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
     // ARMOR/MAIL/ORICHALCUM
@@ -1078,6 +1190,7 @@ recipes: {
             (Item("common.items.mineral.ore.velorite"), 1),
         ],
     ),
+    // ARMOR/BRINESTONE
     ItemDefId("common.items.armor.brinestone.back"): (
         inputs: [
             (Item("common.items.crafting_ing.brinestone"), 1),

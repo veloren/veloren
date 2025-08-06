@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Primal Cape",
-    legacy_description: "Smithed from hide tougher than steel.",
+    legacy_description: "The sturdy leather is still soaked in blood.",
     kind: Armor((
         kind: Back,
         stats: FromSet("Plate"),

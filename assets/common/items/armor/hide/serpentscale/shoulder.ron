@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Serpentscale Spaulders",
+    legacy_description: "The frilled shoulders cut through the frigid water.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Serpentscale"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Serpentscale),
+        SalvageInto(Serpentscale, 1),
+    ],
+)

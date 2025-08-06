@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Rawhide Shoulderpads",
-    legacy_description: "Tightly packed pieces of leather. Light-weight and sturdy!",
+    legacy_description: "You carry the burden of the many lives you've taken.",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Rawhide"),

@@ -151,11 +151,11 @@
           color: None
         ),
         "common.items.armor.hide.rawhide.chest": (
-            vox_spec: ("armor.hide.rawhide.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.rawhide", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.hide.leather.chest": (
-            vox_spec: ("armor.hide.leather.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.leather", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.miner.chest": (
@@ -163,19 +163,23 @@
             color: None
         ),
         "common.items.armor.hide.scale.chest": (
-            vox_spec: ("armor.hide.scale.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.scale", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.hide.carapace.chest": (
-            vox_spec: ("armor.hide.carapace.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.carapace", (-7.0, -3.5, 2.0), 7),
+            color: None
+        ),
+        "common.items.armor.hide.serpentscale.chest": (
+            vox_spec: ("armor.hide.serpentscale", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.hide.primal.chest": (
-            vox_spec: ("armor.hide.primal.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.primal", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.hide.dragonscale.chest": (
-            vox_spec: ("armor.hide.dragonscale.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.hide.dragonscale", (-7.0, -4.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.savage.chest": (

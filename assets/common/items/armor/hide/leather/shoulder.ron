@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Leather Shoulderpads",
-    legacy_description: "Swift like the wind.",
+    legacy_description: "The weight on your shoulders keeps increasing. Is it the material or your conscience?",
     kind: Armor((
         kind: Shoulder,
         stats: FromSet("Leather"),

@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Dragonscale Gloves",
-    legacy_description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
+    legacy_description: "Sharp claws reside where were once soft hands.",
     kind: Armor((
         kind: Hand,
         stats: FromSet("Dragonscale"),
