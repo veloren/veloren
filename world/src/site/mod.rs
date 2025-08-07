@@ -460,15 +460,22 @@ impl Site {
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
     ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>, Option<i32>)> {
+        // Choose a random plaza as the center of our search
+        let search_center = self
+            .plazas
+            .choose(rng)
+            .map(|&p| self.plot(p).root_tile)
+            .unwrap_or_default();
+
+        // Search in a random direction from the plaza
         let dir = Vec2::<f32>::zero()
             .map(|_| rng.gen_range(-1.0..1.0))
             .normalized();
+        let search_offset = dir.map2(min_dims.into(), |e: f32, sz: u32| {
+            (e * sz as f32 * 0.75 + 10.0).round() as i32
+        });
 
-        // go from the site origin (0,0) at a random angle, as far as possible (up to
-        // the site radius / 6 because sites have ridiculously big radii like 160-600)
-        let search_pos = dir.map(|e: f32| e.round() as i32) * ((self.radius() / 6.0) as i32);
-
-        self.find_aabr(search_pos, area_range, min_dims)
+        self.find_aabr(search_center + search_offset, area_range, min_dims)
     }
 
     pub fn make_plaza_at(
@@ -1191,8 +1198,8 @@ impl Site {
         let build_chance = Lottery::from(vec![
             (64.0, 1), // house
             (5.0, 2),  // guard tower
-            (15.0, 3), // field
-            (5.0, 4),  // castle
+            (25.0, 3), // field
+            //(32.0, 4), // castle
             (5.0, 5),  // workshop
             (15.0, 6), // airship dock
             (15.0, 7), // tavern
@@ -1312,10 +1319,10 @@ impl Site {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 // Castle
-                4 if castles < 1 => {
+                4 if size > 0.2 && castles < 1 => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Castle);
-                    if let Some((aabr, _entrance_tile, _door_dir, _alt)) = attempt(32, || {
-                        site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
+                    if let Some((aabr, _entrance_tile, _door_dir, _alt)) = attempt(64, || {
+                        site.find_rural_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
                         let offset = rng.gen_range(5..(aabr.size().w.min(aabr.size().h) - 4));
                         let gate_aabr = Aabr {

@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made space for airship travel agent at docks.
 - Hired adventurers will now go to taverns in towns while the employer stays in the town.
 - New hide lineage armor set known as Serpentscale.
+- Added more varieties of house-building materials
 
 ### Changed
 
@@ -91,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Tidal Warrior model.
 - Emitted sfx now take into account both player and camera position, instead of just camera position, when determining volume.
 - Danari horns are now showed when wearing a hat or helmet.
-- Debuff icons have been updated to be more vibrant and identifiable. 
+- Debuff icons have been updated to be more vibrant and identifiable.
 - Made hammer skills descrptions clearer.
 - Updated airship docks to add more space between docking platforms.
 - Airships now travel along routes of many docks rather than out and back between two docks.

@@ -89,7 +89,7 @@ impl TileGrid {
         };
 
         let mut last_growth = 0;
-        for i in 0..32 {
+        for i in 0.. {
             if i - last_growth >= 4
                 || aabr.size().product()
                     + if i % 2 == 0 {
@@ -260,14 +260,18 @@ impl Tile {
         )
     }
 
+    // Whether a tile is an obstacle for construction
     pub fn is_obstacle(&self) -> bool {
-        matches!(self.kind, TileKind::Hazard(_)) || self.is_building()
+        self.is_building()
+            || matches!(self.kind, TileKind::Hazard(_))
+            || matches!(self.kind, TileKind::Path { .. })
+            || matches!(self.kind, TileKind::Field)
     }
 
     pub fn is_building(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Building | TileKind::Castle | TileKind::Wall(_)
+            TileKind::Building | TileKind::Castle | TileKind::Wall(_) | TileKind::Gate
         )
     }
 }

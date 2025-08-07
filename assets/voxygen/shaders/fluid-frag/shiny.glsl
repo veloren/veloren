@@ -70,7 +70,7 @@ void wave_dx(vec4 posx, vec4 posy, vec2 dir, float speed, float frequency, float
 // Modified to allow calculating the wave function 4 times at once using different positions (used for intepolation
 // for moving water). The general idea is to sample the wave function at different positions, where those positions
 // depend on increments of the velocity, and then interpolate between those velocities to get a smooth water velocity.
-vec4 wave_height(vec4 posx, vec4 posy) {
+vec4 base_wave_height(vec4 posx, vec4 posy) {
     float iter = 0.0;
     float phase = 4.0;
     float weight = 1.5;
@@ -110,10 +110,37 @@ vec4 wave_height(vec4 posx, vec4 posy) {
     return w / ws * scale;
 }
 
-float wave_height_vel(vec2 pos) {
+vec4 wave_height(vec4 posx, vec4 posy, float z) {
+    vec4 h = base_wave_height(
+        mod(posx, vec4(3000.0)) + z * 0.2,
+        mod(posy, vec4(3000.0)) + z * 0.2
+    );
+
+    #if (FLUID_MODE == FLUID_MODE_HIGH)
+        for (uint i = 0u; i < light_shadow_count.y; i ++) {
+            Shadow S = shadows[i];
+            vec3 shadow_pos = S.shadow_pos_radius.xyz;// + focus_off.xyz;
+            float radius = S.shadow_pos_radius.w;
+
+            vec4 dist = vec4(
+                distance(vec3(posx.x, posy.x, z - 1), shadow_pos),
+                distance(vec3(posx.y, posy.y, z - 1), shadow_pos),
+                distance(vec3(posx.z, posy.z, z - 1), shadow_pos),
+                distance(vec3(posx.w, posy.w, z - 1), shadow_pos)
+            );
+
+            h += sin(dist * 15.1 - tick.z * 15.0) / (pow(dist * radius, vec4(2.0)) + 1.0);
+        }
+    #endif
+
+    return h;
+}
+
+float wave_height_vel(vec3 pos) {
     vec4 heights = wave_height(
         pos.x - tick.z * floor(f_vel.x) - vec2(0.0, tick.z).xyxy,
-        pos.y - tick.z * floor(f_vel.y) - vec2(0.0, tick.z).xxyy
+        pos.y - tick.z * floor(f_vel.y) - vec2(0.0, tick.z).xxyy,
+        pos.z
     );
     return mix(
         mix(heights.x, heights.y, fract(f_vel.x + 1.0)),
@@ -166,11 +193,11 @@ void main() {
     }
     vec3 c_norm = cross(f_norm, b_norm);
 
-    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(3000.0)) - (f_pos.z + focus_off.z) * 0.2;
+    vec3 wave_pos = f_pos + focus_off.xyz;
     float wave_sample_dist = 0.1;
-    float wave00 = wave_height_vel(wave_pos.xy);
-    float wave10 = wave_height_vel(wave_pos.xy + vec2(wave_sample_dist, 0));
-    float wave01 = wave_height_vel(wave_pos.xy + vec2(0, wave_sample_dist));
+    float wave00 = wave_height_vel(wave_pos);
+    float wave10 = wave_height_vel(wave_pos + vec3(wave_sample_dist, 0, 0));
+    float wave01 = wave_height_vel(wave_pos + vec3(0, wave_sample_dist, 0));
 
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing
@@ -421,6 +448,7 @@ void main() {
             opacity = min(sqrt(max(opacity, clamp((f_pos.z - cam_pos.z) * 0.05, 0.0, 1.0))), 0.99);
         }
     }
+
     vec4 color = vec4(surf_color, opacity);// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));
     // vec4 color = vec4(surf_color, mix(1.0, 1.0 / (1.0 + /*0.25 * *//*diffuse_light*/(/*f_light * point_shadow*/reflected_light_point)), passthrough));
     // vec4 color = vec4(surf_color, mix(1.0, length(cam_attenuation), passthrough));
