@@ -74,7 +74,7 @@ pub struct GlobalState {
     pub singleplayer: SingleplayerState,
     // TODO: redo this so that the watcher doesn't have to exist for reloading to occur
     pub i18n: LocalizationHandle,
-    pub clipboard: iced_winit::Clipboard,
+    pub clipboard: ui::ice::Clipboard,
     /// Used to clear the shadow textures when entering a PlayState that doesn't
     /// utilise shadows.
     pub clear_shadows_next_frame: bool,

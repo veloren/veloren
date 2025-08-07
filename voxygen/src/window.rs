@@ -11,12 +11,12 @@ use crossbeam_channel as channel;
 use gilrs::{EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
-use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use strum::{AsRefStr, EnumIter};
 use tracing::{error, warn};
 use vek::*;
-use winit::monitor::VideoMode;
+use winit::monitor::VideoModeHandle;
 
 /// Represents a key that the game menus recognise after input mapping
 #[derive(
@@ -80,8 +80,6 @@ pub enum Event {
     ScaleFactorChanged(f64),
     /// The window has been moved.
     Moved(Vec2<u32>),
-    /// A key has been typed that corresponds to a specific character.
-    Char(char),
     /// The cursor has been panned across the screen while grabbed.
     CursorPan(Vec2<f32>),
     /// The cursor has been moved across the screen while ungrabbed.
@@ -117,258 +115,49 @@ pub type MouseButton = winit::event::MouseButton;
 pub type PressState = winit::event::ElementState;
 pub type EventLoop = winit::event_loop::EventLoop<()>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum KeyMouse {
-    Key(winit::event::VirtualKeyCode),
+    Key(winit::keyboard::Key),
     Mouse(winit::event::MouseButton),
-    ScanKey(winit::event::ScanCode),
 }
 
 impl KeyMouse {
+    pub fn into_upper(mut self) -> Self {
+        if let KeyMouse::Key(winit::keyboard::Key::Character(c)) = &mut self {
+            *c = c.to_ascii_uppercase().into();
+        }
+        self
+    }
+
     /// Returns key description (e.g Left Shift)
-    pub fn display_string(&self, key_layout: &Option<KeyLayout>) -> String {
+    pub fn display_string(&self) -> String {
         use self::KeyMouse::*;
-        use winit::event::{MouseButton, VirtualKeyCode::*};
-        let key_string = match self {
-            Key(Key1) => "1",
-            Key(Key2) => "2",
-            Key(Key3) => "3",
-            Key(Key4) => "4",
-            Key(Key5) => "5",
-            Key(Key6) => "6",
-            Key(Key7) => "7",
-            Key(Key8) => "8",
-            Key(Key9) => "9",
-            Key(Key0) => "0",
-            Key(A) => "A",
-            Key(B) => "B",
-            Key(C) => "C",
-            Key(D) => "D",
-            Key(E) => "E",
-            Key(F) => "F",
-            Key(G) => "G",
-            Key(H) => "H",
-            Key(I) => "I",
-            Key(J) => "J",
-            Key(K) => "K",
-            Key(L) => "L",
-            Key(M) => "M",
-            Key(N) => "N",
-            Key(O) => "O",
-            Key(P) => "P",
-            Key(Q) => "Q",
-            Key(R) => "R",
-            Key(S) => "S",
-            Key(T) => "T",
-            Key(U) => "U",
-            Key(V) => "V",
-            Key(W) => "W",
-            Key(X) => "X",
-            Key(Y) => "Y",
-            Key(Z) => "Z",
-            Key(Escape) => "ESC",
-            Key(F1) => "F1",
-            Key(F2) => "F2",
-            Key(F3) => "F3",
-            Key(F4) => "F4",
-            Key(F5) => "F5",
-            Key(F6) => "F6",
-            Key(F7) => "F7",
-            Key(F8) => "F8",
-            Key(F9) => "F9",
-            Key(F10) => "F10",
-            Key(F11) => "F11",
-            Key(F12) => "F12",
-            Key(F13) => "F13",
-            Key(F14) => "F14",
-            Key(F15) => "F15",
-            Key(F16) => "F16",
-            Key(F17) => "F17",
-            Key(F18) => "F18",
-            Key(F19) => "F19",
-            Key(F20) => "F20",
-            Key(F21) => "F21",
-            Key(F22) => "F22",
-            Key(F23) => "F23",
-            Key(F24) => "F24",
-            Key(Snapshot) => "Print Screen",
-            Key(Scroll) => "Scroll Lock",
-            Key(Pause) => "Pause/Break",
-            Key(Insert) => "Insert",
-            Key(Home) => "Home",
-            Key(Delete) => "Delete",
-            Key(End) => "End",
-            Key(PageDown) => "PageDown",
-            Key(PageUp) => "PageUp",
-            Key(Left) => "Left Arrow",
-            Key(Up) => "Up Arrow",
-            Key(Right) => "Right Arrow",
-            Key(Down) => "Down Arrow",
-            Key(Back) => "Backspace",
-            Key(Return) => "Enter",
-            Key(Space) => "Space",
-            Key(Compose) => "Compose",
-            Key(Caret) => "^",
-            Key(Numlock) => "Numlock",
-            Key(Numpad0) => "Numpad 0",
-            Key(Numpad1) => "Numpad 1",
-            Key(Numpad2) => "Numpad 2",
-            Key(Numpad3) => "Numpad 3",
-            Key(Numpad4) => "Numpad 4",
-            Key(Numpad5) => "Numpad 5",
-            Key(Numpad6) => "Numpad 6",
-            Key(Numpad7) => "Numpad 7",
-            Key(Numpad8) => "Numpad 8",
-            Key(Numpad9) => "Numpad 9",
-            Key(AbntC1) => "Abnt C1",
-            Key(AbntC2) => "Abnt C2",
-            Key(NumpadAdd) => "Numpad +",
-            Key(Apostrophe) => "'",
-            Key(Apps) => "Context Menu",
-            Key(At) => "@",
-            Key(Ax) => "Ax",
-            Key(Backslash) => "\\",
-            Key(Calculator) => "Calculator",
-            Key(Capital) => "Caps Lock",
-            Key(Colon) => ":",
-            Key(Comma) => ",",
-            Key(Convert) => "Convert",
-            Key(NumpadDecimal) => "Numpad .",
-            Key(NumpadDivide) => "Numpad /",
-            Key(Equals) => "=",
-            Key(Grave) => "`",
-            Key(Kana) => "Kana",
-            Key(Kanji) => "Kanji",
-            Key(LBracket) => "[",
-            Key(RBracket) => "]",
-            Key(Mail) => "Mail",
-            Key(MediaSelect) => "MediaSelect",
-            Key(MediaStop) => "MediaStop",
-            Key(Minus) => "-",
-            Key(Plus) => "+",
-            Key(NumpadMultiply) => "Numpad *",
-            Key(Mute) => "Mute",
-            Key(MyComputer) => "My Computer",
-            Key(NavigateBackward) => "Navigate Backward",
-            Key(NavigateForward) => "Navigate Forward",
-            Key(NoConvert) => "Non Convert",
-            Key(NumpadComma) => "Num ,",
-            Key(NumpadEnter) => "Num Enter",
-            Key(NumpadEquals) => "Num =",
-            Key(OEM102) => "<",
-            Key(Period) => ".",
-            Key(Power) => "Power",
-            Key(PlayPause) => "Play / Pause",
-            Key(PrevTrack) => "Prev Track",
-            Key(NextTrack) => "Next Track",
-            Key(LAlt) => {
-                if cfg!(target_os = "macos") {
-                    "Left Option"
-                } else {
-                    // Assume Windows, Linux, BSD, etc.
-                    "Left Alt"
-                }
+        use winit::{event::MouseButton, keyboard::Key::*};
+
+        match self {
+            Key(key) => match key {
+                Named(key) => format!("{key:?}"),
+                Character(c) => c.to_string(),
+                Unidentified(key) => format!("Unknown ({key:?})"),
+                Dead(dead) => format!("Dead ({dead:?})"),
             },
-            Key(RAlt) => {
-                if cfg!(target_os = "macos") {
-                    "Right Option"
-                } else {
-                    // Assume Windows, Linux, BSD, etc.
-                    "Right Alt"
-                }
-            },
-            Key(LControl) => {
-                if cfg!(target_os = "macos") {
-                    "Left Cmd"
-                } else {
-                    // Assume Windows, Linux, BSD, etc.
-                    "Left Ctrl"
-                }
-            },
-            Key(RControl) => {
-                if cfg!(target_os = "macos") {
-                    "Right Cmd"
-                } else {
-                    // Assume Windows, Linux, BSD, etc.
-                    "Right Ctrl"
-                }
-            },
-            Key(LShift) => "Left Shift",
-            Key(RShift) => "Right Shift",
-            // Key doesn't usually have a right counterpart on modern keyboards, to omit the
-            // qualifier. The exception to this is Mac OS which doesn't usually have
-            // this key at all, so we keep the qualifier to minimise ambiguity.
-            Key(LWin) => {
-                if cfg!(target_family = "windows") {
-                    "Win"
-                } else if cfg!(target_os = "macos") {
-                    // Extra qualifier because both Ctrl and Win map to Cmd on Mac
-                    "Left Cmd (Super)"
-                } else {
-                    // Assume Linux, BSD, etc.
-                    "Super"
-                }
-            },
-            // Most keyboards don't have this key, so throw in all the qualifiers
-            Key(RWin) => {
-                if cfg!(target_family = "windows") {
-                    "Right Win"
-                } else if cfg!(target_os = "macos") {
-                    // Extra qualifier because both Ctrl and Win map to Cmd on Mac
-                    "Right Cmd (Super)"
-                } else {
-                    // Assume Linux, BSD, etc.
-                    "Right Super"
-                }
-            },
-            Key(Semicolon) => ";",
-            Key(Slash) => "/",
-            Key(Sleep) => "Sleep",
-            Key(Stop) => "Media Stop",
-            Key(NumpadSubtract) => "Num -",
-            Key(Sysrq) => "Sysrq",
-            Key(Tab) => "Tab",
-            Key(Underline) => "_",
-            Key(Unlabeled) => "No Name",
-            Key(VolumeDown) => "Volume Down",
-            Key(VolumeUp) => "Volume Up",
-            Key(Wake) => "Wake",
-            Key(WebBack) => "Browser Back",
-            Key(WebFavorites) => "Browser Favorites",
-            Key(WebForward) => "Browser Forward",
-            Key(WebHome) => "Browser Home",
-            Key(WebRefresh) => "Browser Refresh",
-            Key(WebSearch) => "Browser Search",
-            Key(WebStop) => "Browser Stop",
-            Key(Yen) => "Yen",
-            Key(Copy) => "Copy",
-            Key(Paste) => "Paste",
-            Key(Cut) => "Cut",
-            Key(Asterisk) => "*",
-            Mouse(MouseButton::Left) => "Left Click",
-            Mouse(MouseButton::Right) => "Right Click",
-            Mouse(MouseButton::Middle) => "Middle Click",
+            Mouse(MouseButton::Left) => String::from("Left Click"),
+            Mouse(MouseButton::Right) => String::from("Right Click"),
+            Mouse(MouseButton::Middle) => String::from("Middle Click"),
+            Mouse(MouseButton::Forward) => String::from("Mouse Forward"),
+            Mouse(MouseButton::Back) => String::from("Mouse Back"),
             Mouse(MouseButton::Other(button)) => {
                 // Additional mouse buttons after middle click start at 1
-                return format!("Mouse {}", button + 3);
+                format!("Mouse {}", button + 3)
             },
-            ScanKey(scancode) => {
-                return if let Some(layout) = key_layout {
-                    layout.get_key_as_string(*scancode)
-                } else {
-                    format!("Unknown (0x{:X})", scancode)
-                };
-            },
-        };
-
-        key_string.to_owned()
+        }
     }
 
     /// If it exists, returns the shortened version of a key name
     /// (e.g. Left Click -> M1)
-    pub fn try_shortened(&self, _key_layout: &Option<KeyLayout>) -> Option<String> {
+    pub fn try_shortened(&self) -> Option<String> {
         use self::KeyMouse::*;
-        use winit::event::{MouseButton, VirtualKeyCode::*};
+        use winit::event::MouseButton;
         let key_string = match self {
             Mouse(MouseButton::Left) => "M1",
             Mouse(MouseButton::Right) => "M2",
@@ -377,9 +166,6 @@ impl KeyMouse {
                 // Additional mouse buttons after middle click start at 1
                 return Some(format!("M{}", button + 3));
             },
-            Key(Back) => "Back",
-            Key(LShift) => "LShft",
-            Key(RShift) => "RShft",
             _ => return None,
         };
 
@@ -390,22 +176,22 @@ impl KeyMouse {
     /// If key doesn't have shorter version, use regular one.
     ///
     /// Use it in case if space does really matter.
-    pub fn display_shortest(&self, key_layout: &Option<KeyLayout>) -> String {
-        self.try_shortened(key_layout)
-            .unwrap_or_else(|| self.display_string(key_layout))
+    pub fn display_shortest(&self) -> String {
+        self.try_shortened()
+            .unwrap_or_else(|| self.display_string())
     }
 }
 
 pub struct Window {
     renderer: Renderer,
-    window: winit::window::Window,
+    window: Arc<winit::window::Window>,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
     pub zoom_inversion: bool,
     pub mouse_y_inversion: bool,
     fullscreen: FullScreenSettings,
-    modifiers: winit::event::ModifiersState,
+    modifiers: winit::keyboard::ModifiersState,
     // Track if at least one Resized event has occured since the last `fetch_events` call
     // Used for deduplication of resizes.
     resized: bool,
@@ -426,7 +212,6 @@ pub struct Window {
     // Used for screenshots & fullscreen toggle to deduplicate/postpone to after event handler
     take_screenshot: bool,
     toggle_fullscreen: bool,
-    pub key_layout: Option<KeyLayout>,
 }
 
 impl Window {
@@ -434,11 +219,11 @@ impl Window {
         settings: &Settings,
         runtime: &tokio::runtime::Runtime,
     ) -> Result<(Window, EventLoop), Error> {
-        let event_loop = EventLoop::new();
+        let event_loop = EventLoop::new().unwrap();
 
         let window = settings.graphics.window;
 
-        let win_builder = winit::window::WindowBuilder::new()
+        let attributes = winit::window::Window::default_attributes()
             .with_title("Veloren")
             .with_inner_size(winit::dpi::LogicalSize::new(
                 window.size[0] as f64,
@@ -449,14 +234,18 @@ impl Window {
         // Avoid cpal / winit OleInitialize conflict
         // See: https://github.com/rust-windowing/winit/pull/1524
         #[cfg(target_family = "windows")]
-        let win_builder = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
-            win_builder,
-            false,
+        let attributes = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
+            attributes, false,
         );
 
-        let window = win_builder.build(&event_loop).unwrap();
+        #[expect(deprecated)]
+        let window = Arc::new(event_loop.create_window(attributes).unwrap());
 
-        let renderer = Renderer::new(&window, settings.graphics.render_mode.clone(), runtime)?;
+        let renderer = Renderer::new(
+            Arc::clone(&window),
+            settings.graphics.render_mode.clone(),
+            runtime,
+        )?;
 
         let keypress_map = HashMap::new();
 
@@ -499,18 +288,6 @@ impl Window {
 
         let scale_factor = window.scale_factor();
 
-        let key_layout = match KeyLayout::new_from_window(&window) {
-            Ok(kl) => Some(kl),
-            Err(err) => {
-                warn!(
-                    ?err,
-                    "Failed to construct the scancode to keyname mapper, falling back to \
-                     displaying Unknown(<scancode>)."
-                );
-                None
-            },
-        };
-
         let mut this = Self {
             renderer,
             window,
@@ -538,7 +315,6 @@ impl Window {
             message_receiver,
             take_screenshot: false,
             toggle_fullscreen: false,
-            key_layout,
         };
 
         this.set_fullscreen_mode(settings.graphics.fullscreen);
@@ -927,7 +703,6 @@ impl Window {
                 self.events
                     .push(Event::Moved(Vec2::new(x as u32, y as u32)));
             },
-            WindowEvent::ReceivedCharacter(c) => self.events.push(Event::Char(c)),
             WindowEvent::MouseInput { button, state, .. } => {
                 if let (true, Some(game_inputs)) =
                     // Mouse input not mapped to input if it is not grabbed
@@ -949,44 +724,41 @@ impl Window {
                 }
                 self.events.push(Event::MouseButton(button, state));
             },
-            WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers,
+            WindowEvent::ModifiersChanged(modifiers) => self.modifiers = modifiers.state(),
             WindowEvent::KeyboardInput {
-                input,
+                event,
                 is_synthetic,
                 ..
             } => {
                 // Ignore synthetic tab presses so that we don't get tabs when alt-tabbing back
                 // into the window
                 if matches!(
-                    input.virtual_keycode,
-                    Some(winit::event::VirtualKeyCode::Tab)
+                    event.logical_key,
+                    winit::keyboard::Key::Named(winit::keyboard::NamedKey::Tab)
                 ) && is_synthetic
                 {
                     return;
                 }
                 // Ignore Alt-F4 so we don't try to do anything heavy like take a screenshot
                 // when the window is about to close
-                if matches!(input, winit::event::KeyboardInput {
+                if matches!(event, winit::event::KeyEvent {
                     state: winit::event::ElementState::Pressed,
-                    virtual_keycode: Some(winit::event::VirtualKeyCode::F4),
+                    logical_key: winit::keyboard::Key::Named(winit::keyboard::NamedKey::Tab),
                     ..
-                }) && self.modifiers.alt()
+                }) && self.modifiers.alt_key()
                 {
                     return;
                 }
 
-                let input_key = match input.virtual_keycode {
-                    Some(key) => KeyMouse::Key(key),
-                    None => KeyMouse::ScanKey(input.scancode),
-                };
-
-                if let Some(game_inputs) =
-                    Window::map_input(input_key, controls, &mut self.remapping_keybindings)
-                {
+                if let Some(game_inputs) = Window::map_input(
+                    KeyMouse::Key(event.logical_key),
+                    controls,
+                    &mut self.remapping_keybindings,
+                ) {
                     for game_input in game_inputs {
                         match game_input {
                             GameInput::Fullscreen => {
-                                if input.state == winit::event::ElementState::Pressed
+                                if event.state == winit::event::ElementState::Pressed
                                     && !Self::is_pressed(
                                         &mut self.keypress_map,
                                         GameInput::Fullscreen,
@@ -997,11 +769,11 @@ impl Window {
                                 Self::set_pressed(
                                     &mut self.keypress_map,
                                     GameInput::Fullscreen,
-                                    input.state,
+                                    event.state,
                                 );
                             },
                             GameInput::Screenshot => {
-                                self.take_screenshot = input.state
+                                self.take_screenshot = event.state
                                     == winit::event::ElementState::Pressed
                                     && !Self::is_pressed(
                                         &mut self.keypress_map,
@@ -1010,12 +782,12 @@ impl Window {
                                 Self::set_pressed(
                                     &mut self.keypress_map,
                                     GameInput::Screenshot,
-                                    input.state,
+                                    event.state,
                                 );
                             },
                             _ => self.events.push(Event::InputUpdate(
                                 *game_input,
-                                input.state == winit::event::ElementState::Pressed,
+                                event.state == winit::event::ElementState::Pressed,
                             )),
                         }
                     }
@@ -1126,10 +898,10 @@ impl Window {
         resolution: [u16; 2],
         bit_depth: Option<u16>,
         refresh_rate_millihertz: Option<u32>,
-        correct_res: Option<Vec<VideoMode>>,
-        correct_depth: Option<Option<VideoMode>>,
-        correct_rate: Option<Option<VideoMode>>,
-    ) -> Option<VideoMode> {
+        correct_res: Option<Vec<VideoModeHandle>>,
+        correct_depth: Option<Option<VideoModeHandle>>,
+        correct_rate: Option<Option<VideoModeHandle>>,
+    ) -> Option<VideoModeHandle> {
         // if a previous iteration of this method filtered the available video modes for
         // the correct resolution already, load that value, otherwise filter it
         // in this iteration
@@ -1267,7 +1039,7 @@ impl Window {
         resolution: [u16; 2],
         bit_depth: Option<u16>,
         refresh_rate_millihertz: Option<u32>,
-    ) -> Option<VideoMode> {
+    ) -> Option<VideoModeHandle> {
         // (resolution, bit depth, refresh rate) represents a video mode
         // spec: as specified
         // max: maximum value available
@@ -1343,10 +1115,11 @@ impl Window {
     pub fn needs_refresh_resize(&mut self) { self.needs_refresh_resize = true; }
 
     pub fn set_size(&mut self, new_size: Vec2<u32>) {
-        self.window.set_inner_size(winit::dpi::LogicalSize::new(
-            new_size.x as f64,
-            new_size.y as f64,
-        ));
+        self.window
+            .set_min_inner_size(Some(winit::dpi::LogicalSize::new(
+                new_size.x as f64,
+                new_size.y as f64,
+            )));
     }
 
     pub fn send_event(&mut self, event: Event) { self.events.push(event) }
@@ -1420,6 +1193,8 @@ impl Window {
         controls: &'a mut ControlSettings,
         remapping: &mut Option<GameInput>,
     ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
+        let key_mouse = key_mouse.into_upper();
+
         match *remapping {
             // TODO: save settings
             Some(game_input) => {
@@ -1439,7 +1214,7 @@ impl Window {
 
     pub fn window(&self) -> &winit::window::Window { &self.window }
 
-    pub fn modifiers(&self) -> winit::event::ModifiersState { self.modifiers }
+    pub fn modifiers(&self) -> winit::keyboard::ModifiersState { self.modifiers }
 
     pub fn scale_factor(&self) -> f64 { self.scale_factor }
 }

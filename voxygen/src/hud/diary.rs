@@ -929,7 +929,6 @@ impl Widget for Diary<'_> {
 
                     // Display Slot Keybinding
                     let keys = &self.global_state.settings.controls;
-                    let key_layout = &self.global_state.window.key_layout;
                     let ability_key = [
                         GameInput::Slot1,
                         GameInput::Slot2,
@@ -939,7 +938,7 @@ impl Widget for Diary<'_> {
                     ]
                     .get(i)
                     .and_then(|input| keys.get_binding(*input))
-                    .map(|key| key.display_shortest(key_layout))
+                    .map(|key| key.display_shortest())
                     .unwrap_or_default();
 
                     Text::new(&ability_key)

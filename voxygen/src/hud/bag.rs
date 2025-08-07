@@ -777,7 +777,6 @@ impl Widget for Bag<'_> {
         common_base::prof_span!("Bag::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let i18n = &self.localized_strings;
-        let key_layout = &self.global_state.window.key_layout;
 
         let mut event = None;
         let bag_tooltip = Tooltip::new({
@@ -1364,7 +1363,7 @@ impl Widget for Bag<'_> {
                         i18n.get_msg_ctx(
                             "hud-bag-swap_equipped_weapons_desc",
                             &i18n::fluent_args! {
-                                "key" => key.display_string(key_layout)
+                                "key" => key.display_string()
                             },
                         )
                     } else {

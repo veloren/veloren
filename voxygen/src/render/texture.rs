@@ -59,14 +59,14 @@ impl Texture {
         });
 
         queue.write_texture(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
             buffer.as_slice(),
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(image.width() * bytes_per_pixel),
                 rows_per_image: Some(image.height()),
@@ -93,6 +93,7 @@ impl Texture {
             label: None,
             format: Some(format),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
             mip_level_count: None,
@@ -148,6 +149,7 @@ impl Texture {
             label: None,
             format: Some(wgpu::TextureFormat::Rgba8UnormSrgb),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
             mip_level_count: None,
@@ -186,7 +188,7 @@ impl Texture {
         let byte_len = size.width as usize
             * size.height as usize
             * size.depth_or_array_layers as usize
-            * self.format.block_size(None).unwrap() as usize;
+            * self.format.block_copy_size(None).unwrap() as usize;
         let zeros = vec![0; byte_len];
 
         self.update(queue, [0, 0], [size.width, size.height], &zeros);
@@ -195,7 +197,7 @@ impl Texture {
     /// Update a texture with the given data (used for updating the glyph cache
     /// texture).
     pub fn update(&self, queue: &wgpu::Queue, offset: [u32; 2], size: [u32; 2], data: &[u8]) {
-        let bytes_per_pixel = self.format.block_size(None).unwrap();
+        let bytes_per_pixel = self.format.block_copy_size(None).unwrap();
 
         debug_assert_eq!(
             data.len(),
@@ -203,7 +205,7 @@ impl Texture {
         );
         // TODO: Only works for 2D images
         queue.write_texture(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &self.tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d {
@@ -214,7 +216,7 @@ impl Texture {
                 aspect: wgpu::TextureAspect::All,
             },
             data,
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(size[0] * bytes_per_pixel),
                 rows_per_image: Some(size[1]),

@@ -1511,7 +1511,6 @@ impl Hud {
         let fps = global_state.clock.stats().average_tps;
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let i18n = &global_state.i18n.read();
-        let key_layout = &global_state.window.key_layout;
 
         if self.show.ingame {
             prof_span!("ingame elements");
@@ -2030,7 +2029,6 @@ impl Hud {
                         &global_state.settings.controls,
                         properties,
                         pulse,
-                        &global_state.window.key_layout,
                         interaction_options,
                     )
                     .x_y(0.0, 100.0)
@@ -2273,7 +2271,6 @@ impl Hud {
                         &global_state.settings.controls,
                         overitem_properties,
                         self.pulse,
-                        &global_state.window.key_layout,
                         interactions
                             .iter()
                             .map(|interaction| interaction_text(interaction))
@@ -2333,7 +2330,6 @@ impl Hud {
                     &global_state.settings.controls,
                     overitem_properties,
                     self.pulse,
-                    &global_state.window.key_layout,
                     vec![(
                         Some(interaction.game_input()),
                         i18n.get_msg(interaction_text).to_string(),
@@ -2533,7 +2529,6 @@ impl Hud {
                     &global_state.settings.controls,
                     &self.imgs,
                     &self.fonts,
-                    &global_state.window.key_layout,
                     interaction_options,
                     &time,
                 )
@@ -2681,7 +2676,6 @@ impl Hud {
                     &global_state.settings.controls,
                     &self.imgs,
                     &self.fonts,
-                    &global_state.window.key_layout,
                     Vec::new(),
                     &time,
                 )
@@ -3033,7 +3027,7 @@ impl Hud {
                 Text::new(&i18n.get_msg_ctx(
                     "hud-press_key_to_show_keybindings_fmt",
                     &i18n::fluent_args! {
-                        "key" => help_key.display_string(key_layout),
+                        "key" => help_key.display_string(),
                     },
                 ))
                 .color(TEXT_COLOR)
@@ -3051,7 +3045,7 @@ impl Hud {
                 Text::new(&i18n.get_msg_ctx(
                     "hud-press_key_to_toggle_lantern_fmt",
                     &i18n::fluent_args! {
-                        "key" => toggle_lantern_key.display_string(key_layout),
+                        "key" => toggle_lantern_key.display_string(),
                     },
                 ))
                 .color(TEXT_COLOR)
@@ -3155,7 +3149,6 @@ impl Hud {
                 &global_state.i18n,
                 &global_state.settings,
                 prompt_dialog_settings,
-                &global_state.window.key_layout,
             )
             .set(self.ids.prompt_dialog, ui_widgets)
             {
@@ -3951,7 +3944,7 @@ impl Hud {
         {
             if self.show.free_look {
                 let msg = i18n.get_msg_ctx("hud-free_look_indicator", &i18n::fluent_args! {
-                    "key" => freelook_key.display_string(key_layout),
+                    "key" => freelook_key.display_string(),
                 });
                 Text::new(&msg)
                     .color(TEXT_BG)
@@ -4019,7 +4012,7 @@ impl Hud {
         {
             if self.show.camera_clamp {
                 let msg = i18n.get_msg_ctx("hud-camera_clamp_indicator", &i18n::fluent_args! {
-                    "key" => cameraclamp_key.display_string(key_layout),
+                    "key" => cameraclamp_key.display_string(),
                 });
                 Text::new(&msg)
                     .color(TEXT_BG)
@@ -4513,7 +4506,7 @@ impl Hud {
                     }
                     let tutorial_click_msg =
                         i18n.get_msg_ctx("hud-tutorial_click_here", &i18n::fluent_args! {
-                            "key" => toggle_cursor_key.display_string(key_layout),
+                            "key" => toggle_cursor_key.display_string(),
                         });
                     Image::new(self.imgs.sp_indicator_arrow)
                         .w_h(20.0, 11.0)
@@ -5009,7 +5002,6 @@ impl Hud {
             },
             // Else the player is typing in chat
             WinEvent::InputUpdate(_key, _) => self.typing(),
-            WinEvent::Char(_) => self.typing(),
             WinEvent::Focused(state) => {
                 self.force_ungrab = !state;
                 true

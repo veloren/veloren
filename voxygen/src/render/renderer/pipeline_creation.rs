@@ -439,10 +439,13 @@ fn create_shader_module(
     // let label = [file_name, "\n\n", source].concat();
     #[expect(unsafe_code)]
     Ok(unsafe {
-        device.create_shader_module_unchecked(wgpu::ShaderModuleDescriptor {
-            label: Some(file_name),
-            source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
-        })
+        device.create_shader_module_trusted(
+            wgpu::ShaderModuleDescriptor {
+                label: Some(file_name),
+                source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
+            },
+            wgpu::ShaderRuntimeChecks::unchecked(),
+        )
     })
 }
 
@@ -1004,7 +1007,7 @@ fn create_ingame_and_shadow_pipelines(
 /// creation of other pipelines into the background
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
 pub(super) fn initial_create_pipelines(
-    device: Arc<wgpu::Device>,
+    device: wgpu::Device,
     layouts: Layouts,
     shaders: Shaders,
     pipeline_modes: PipelineModes,
@@ -1082,7 +1085,7 @@ pub(super) fn initial_create_pipelines(
 /// TODO: report progress
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
 pub(super) fn recreate_pipelines(
-    device: Arc<wgpu::Device>,
+    device: wgpu::Device,
     immutable_layouts: Arc<ImmutableLayouts>,
     shaders: Shaders,
     pipeline_modes: PipelineModes,

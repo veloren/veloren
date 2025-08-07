@@ -21,7 +21,6 @@ use crate::{
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
-use keyboard_keynames::key_layout::KeyLayout;
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 use common::assets::{self, AssetExt};
@@ -362,7 +361,6 @@ impl Controls {
     fn view(
         &mut self,
         settings: &Settings,
-        key_layout: &Option<KeyLayout>,
         dt: f32,
         #[cfg(feature = "singleplayer")] worlds: &crate::singleplayer::SingleplayerWorlds,
     ) -> Element<Message> {
@@ -448,7 +446,6 @@ impl Controls {
                 button_style,
                 settings.interface.loading_tips,
                 &settings.controls,
-                key_layout,
             ),
             #[cfg(feature = "singleplayer")]
             Screen::WorldSelector { screen } => screen.view(
@@ -822,7 +819,6 @@ impl MainMenuUi {
         let (messages, _) = self.ui.maintain(
             self.controls.view(
                 &global_state.settings,
-                &global_state.window.key_layout,
                 dt.as_secs_f32(),
                 #[cfg(feature = "singleplayer")]
                 worlds,

@@ -223,7 +223,7 @@ pub fn maintain_egui_inner(
     added_cylinder_shape_id: Option<u64>,
     experimental_shaders: Vec<(String, bool)>,
 ) -> EguiActions {
-    platform.begin_frame();
+    platform.begin_pass();
     let ctx = &platform.context();
 
     let mut egui_actions = EguiActions::default();
@@ -310,13 +310,16 @@ pub fn maintain_egui_inner(
         .default_height(200.0)
         .show(ctx, |ui| {
             Plot::new("Frame Time").show(ui, |plot_ui| {
-                plot_ui.line(Line::new(PlotPoints::from_iter(
-                    egui_state
-                        .frame_times
-                        .iter()
-                        .enumerate()
-                        .map(|(i, x)| [i as f64, *x as f64]),
-                )))
+                plot_ui.line(Line::new(
+                    "Frame Time",
+                    PlotPoints::from_iter(
+                        egui_state
+                            .frame_times
+                            .iter()
+                            .enumerate()
+                            .map(|(i, x)| [i as f64, *x as f64]),
+                    ),
+                ))
             });
         });
 
@@ -335,14 +338,14 @@ pub fn maintain_egui_inner(
                 ui.add(
                     Slider::new(&mut max_entity_distance, 1.0..=100000.0)
                         .logarithmic(true)
-                        .clamp_to_range(true)
+                        .clamping(egui::SliderClamping::Always)
                         .text("Max entity distance"),
                 );
 
                 ui.add(
                     Slider::new(&mut selected_entity_cylinder_height, 0.1..=100.0)
                         .logarithmic(true)
-                        .clamp_to_range(true)
+                        .clamping(egui::SliderClamping::Always)
                         .text("Cylinder height"),
                 );
 

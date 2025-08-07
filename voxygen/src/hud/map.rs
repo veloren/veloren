@@ -209,8 +209,8 @@ fn get_site_economy(site: &SiteMarker) -> String {
     }
 }
 
-impl From<KeyMouse> for ConrodMouseButton {
-    fn from(key: KeyMouse) -> Self {
+impl From<&KeyMouse> for ConrodMouseButton {
+    fn from(key: &KeyMouse) -> Self {
         match key {
             KeyMouse::Mouse(MouseButton::Left) => ConrodMouseButton::Left,
             KeyMouse::Mouse(MouseButton::Right) => ConrodMouseButton::Right,
@@ -263,7 +263,6 @@ impl Widget for Map<'_> {
             .cloned()
             .flatten()
             .unwrap_or(KeyMouse::Mouse(MouseButton::Middle));
-        let key_layout = &self.global_state.window.key_layout;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -388,7 +387,7 @@ impl Widget for Map<'_> {
                 if let Some(click) = ui
                     .widget_input(widget)
                     .clicks()
-                    .button(ConrodMouseButton::from(location_marker_binding))
+                    .button(ConrodMouseButton::from(&location_marker_binding))
                     .next()
                 {
                     match marker {
@@ -1602,7 +1601,7 @@ impl Widget for Map<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
 
-        Text::new(&location_marker_binding.display_shortest(key_layout))
+        Text::new(&location_marker_binding.display_shortest())
             .right_from(state.ids.zoom_txt, 15.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)

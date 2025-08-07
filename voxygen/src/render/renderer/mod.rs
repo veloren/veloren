@@ -97,7 +97,6 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
-#[expect(clippy::large_enum_variant)] // They are both pretty large
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -133,9 +132,9 @@ enum State {
 /// GPU, along with pipeline state objects (PSOs) needed to renderer different
 /// kinds of models to the screen.
 pub struct Renderer {
-    device: Arc<wgpu::Device>,
+    device: wgpu::Device,
     queue: wgpu::Queue,
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     surface_config: wgpu::SurfaceConfiguration,
 
     sampler: wgpu::Sampler,
@@ -167,7 +166,7 @@ pub struct Renderer {
     take_screenshot: Option<screenshot::ScreenshotFn>,
 
     profiler: wgpu_profiler::GpuProfiler,
-    profile_times: Vec<wgpu_profiler::GpuTimerScopeResult>,
+    profile_times: Vec<wgpu_profiler::GpuTimerQueryResult>,
     profiler_features_enabled: bool,
 
     ui_premultiply_uploads: ui::BatchedUploads,
@@ -195,7 +194,7 @@ impl Renderer {
     /// Create a new `Renderer` from a variety of backend-specific components
     /// and the window targets.
     pub fn new(
-        window: &winit::window::Window,
+        window: Arc<winit::window::Window>,
         mode: RenderMode,
         runtime: &tokio::runtime::Runtime,
     ) -> Result<Self, RenderError> {
@@ -217,35 +216,28 @@ impl Renderer {
                 "dx12" => Some(wgpu::Backends::DX12),
                 "primary" => Some(wgpu::Backends::PRIMARY),
                 "opengl" | "gl" => Some(wgpu::Backends::GL),
-                "dx11" => Some(wgpu::Backends::DX11),
                 "secondary" => Some(wgpu::Backends::SECONDARY),
                 "all" => Some(wgpu::Backends::all()),
                 _ => None,
             })
             .unwrap_or(wgpu::Backends::PRIMARY | wgpu::Backends::SECONDARY);
 
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends,
-            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
-            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
             // TODO: Look into what we want here.
             flags: wgpu::InstanceFlags::from_build_config().with_env(),
+            backend_options: wgpu::BackendOptions::default(),
         });
 
         let dims = window.inner_size();
 
-        // This is unsafe because the window handle must be valid, if you find a way to
-        // have an invalid winit::Window then you have bigger issues
-        #[expect(unsafe_code)]
-        let surface =
-            unsafe { instance.create_surface(window) }.expect("Failed to create a surface");
+        let surface = instance
+            .create_surface(window)
+            .expect("Failed to create a surface");
 
-        let adapters = instance
-            .enumerate_adapters(backends)
-            .enumerate()
-            .collect::<Vec<_>>();
+        let adapters = instance.enumerate_adapters(backends);
 
-        for (i, adapter) in adapters.iter() {
+        for (i, adapter) in adapters.iter().enumerate() {
             let info = adapter.get_info();
             info!(
                 ?info.name,
@@ -258,13 +250,15 @@ impl Renderer {
         }
 
         let adapter = match std::env::var("WGPU_ADAPTER").ok() {
-            Some(filter) if !filter.is_empty() => adapters.into_iter().find_map(|(i, adapter)| {
-                let info = adapter.get_info();
+            Some(filter) if !filter.is_empty() => {
+                adapters.into_iter().enumerate().find_map(|(i, adapter)| {
+                    let info = adapter.get_info();
 
-                let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
+                    let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
 
-                full_name.contains(&filter).then_some(adapter)
-            }),
+                    full_name.contains(&filter).then_some(adapter)
+                })
+            },
             Some(_) | None => {
                 runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                     power_preference: wgpu::PowerPreference::HighPerformance,
@@ -286,7 +280,7 @@ impl Renderer {
         );
         let graphics_backend = format!("{:?}", &info.backend);
 
-        let limits = wgpu::Limits {
+        let required_limits = wgpu::Limits {
             max_push_constant_size: 64,
             ..Default::default()
         };
@@ -321,11 +315,12 @@ impl Renderer {
             &wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
-                features: wgpu::Features::DEPTH_CLIP_CONTROL
+                required_features: wgpu::Features::DEPTH_CLIP_CONTROL
                     | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER
                     | wgpu::Features::PUSH_CONSTANTS
                     | (adapter.features() & wgpu_profiler::GpuProfiler::ALL_WGPU_TIMER_FEATURES),
-                limits,
+                required_limits,
+                memory_hints: wgpu::MemoryHints::Performance,
             },
             trace_path,
         ))?;
@@ -360,6 +355,7 @@ impl Renderer {
         let present_mode = other_modes.present_mode.into();
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            desired_maximum_frame_latency: 2,
             format,
             width: dims.width,
             height: dims.height,
@@ -476,11 +472,8 @@ impl Renderer {
             }
         };
 
-        // Arcify the device
-        let device = Arc::new(device);
-
         let (interface_pipelines, creating) = pipeline_creation::initial_create_pipelines(
-            Arc::clone(&device),
+            device.clone(),
             Layouts {
                 immutable: Arc::clone(&layouts.immutable),
                 postprocess: Arc::clone(&layouts.postprocess),
@@ -562,12 +555,13 @@ impl Renderer {
         let quad_index_buffer_u32 =
             create_quad_index_buffer_u32(&device, QUAD_INDEX_BUFFER_U32_START_VERT_LEN as usize);
         other_modes.profiler_enabled &= profiler_features_enabled;
-        let profiler = wgpu_profiler::GpuProfiler::new(wgpu_profiler::GpuProfilerSettings {
-            enable_timer_scopes: other_modes.profiler_enabled,
-            enable_debug_groups: other_modes.profiler_enabled,
-            max_num_pending_frames: 4,
-        })
-        .expect("Error creating profiler");
+        let profiler =
+            wgpu_profiler::GpuProfiler::new(&device, wgpu_profiler::GpuProfilerSettings {
+                enable_timer_queries: other_modes.profiler_enabled,
+                enable_debug_groups: other_modes.profiler_enabled,
+                max_num_pending_frames: 4,
+            })
+            .expect("Error creating profiler");
 
         #[cfg(feature = "egui-ui")]
         let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
@@ -674,7 +668,7 @@ impl Renderer {
             }
             self.profiler
                 .change_settings(wgpu_profiler::GpuProfilerSettings {
-                    enable_timer_scopes: self.other_modes.profiler_enabled,
+                    enable_timer_queries: self.other_modes.profiler_enabled,
                     enable_debug_groups: self.other_modes.profiler_enabled,
                     max_num_pending_frames: 4,
                 })
@@ -710,19 +704,16 @@ impl Renderer {
     /// Nested timings immediately follow their parent
     /// Returns Vec<(how nested this timing is, label, length in seconds)>
     pub fn timings(&self) -> Vec<(u8, &str, f64)> {
-        use wgpu_profiler::GpuTimerScopeResult;
         fn recursive_collect<'a>(
             vec: &mut Vec<(u8, &'a str, f64)>,
-            result: &'a GpuTimerScopeResult,
+            result: &'a wgpu_profiler::GpuTimerQueryResult,
             nest_level: u8,
         ) {
-            vec.push((
-                nest_level,
-                &result.label,
-                result.time.end - result.time.start,
-            ));
+            if let Some(time) = &result.time {
+                vec.push((nest_level, &result.label, time.end - time.start));
+            }
             result
-                .nested_scopes
+                .nested_queries
                 .iter()
                 .for_each(|child| recursive_collect(vec, child, nest_level + 1));
         }
@@ -921,6 +912,7 @@ impl Renderer {
                 label: None,
                 format: Some(format),
                 dimension: Some(wgpu::TextureViewDimension::D2),
+                usage: None,
                 // TODO: why is this not Color?
                 aspect: wgpu::TextureAspect::All,
                 base_mip_level: 0,
@@ -967,6 +959,7 @@ impl Renderer {
             label: None,
             format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
             mip_level_count: None,
@@ -993,6 +986,7 @@ impl Renderer {
             label: None,
             format: Some(wgpu::TextureFormat::Depth32Float),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::DepthOnly,
             base_mip_level: 0,
             mip_level_count: None,
@@ -1254,7 +1248,9 @@ impl Renderer {
                 self.surface.configure(&self.device, &self.surface_config);
                 return Ok(None);
             },
-            Err(err @ wgpu::SurfaceError::OutOfMemory) => return Err(err.into()),
+            Err(err @ (wgpu::SurfaceError::OutOfMemory | wgpu::SurfaceError::Other)) => {
+                return Err(err.into());
+            },
         };
         let encoder = self
             .device
@@ -1279,7 +1275,7 @@ impl Renderer {
                 *recreating = Some((
                     pipeline_modes.clone(),
                     pipeline_creation::recreate_pipelines(
-                        Arc::clone(&self.device),
+                        self.device.clone(),
                         Arc::clone(&self.layouts.immutable),
                         self.shaders.cloned(),
                         pipeline_modes,
@@ -1422,7 +1418,7 @@ impl Renderer {
         let tex = Texture::new_raw(&self.device, texture_info, view_info, sampler_info);
 
         let size = texture_info.size;
-        let block_size = texture_info.format.block_size(None).unwrap();
+        let block_size = texture_info.format.block_copy_size(None).unwrap();
         assert_eq!(
             size.width as usize
                 * size.height as usize

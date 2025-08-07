@@ -12,7 +12,6 @@ use i18n::Localization;
 use std::borrow::Cow;
 
 use crate::hud::{CollectFailedData, HudCollectFailedReason, HudLootOwner};
-use keyboard_keynames::key_layout::KeyLayout;
 
 pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
 pub const NEGATIVE_TEXT_COLOR: Color = Color::Rgba(0.91, 0.15, 0.17, 1.0);
@@ -46,7 +45,6 @@ pub struct Overitem<'a> {
     common: widget::CommonBuilder,
     properties: OveritemProperties,
     pulse: f32,
-    key_layout: &'a Option<KeyLayout>,
     // GameInput optional so we can just show stuff like "needs pickaxe"
     interaction_options: Vec<(Option<GameInput>, String, Color)>,
 }
@@ -61,7 +59,6 @@ impl<'a> Overitem<'a> {
         controls: &'a ControlSettings,
         properties: OveritemProperties,
         pulse: f32,
-        key_layout: &'a Option<KeyLayout>,
         interaction_options: Vec<(Option<GameInput>, String, Color)>,
     ) -> Self {
         Self {
@@ -74,7 +71,6 @@ impl<'a> Overitem<'a> {
             common: widget::CommonBuilder::default(),
             properties,
             pulse,
-            key_layout,
             interaction_options,
         }
     }
@@ -188,7 +184,7 @@ impl Widget for Overitem<'_> {
                 })
                 .map(|(input, action, color)| {
                     if let Some(input) = input {
-                        let input = input.display_string(self.key_layout);
+                        let input = input.display_string();
                         (format!("{}  {action}", input.as_str()), color)
                     } else {
                         (action.to_string(), color)

@@ -19,7 +19,7 @@ use common_base::prof_span;
 use core::ops::Range;
 use std::sync::Arc;
 use vek::Aabr;
-use wgpu_profiler::scope::{ManualOwningScope, OwningScope, Scope};
+use wgpu_profiler::{OwningScope, Scope};
 #[cfg(feature = "egui-ui")]
 use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform::Platform};
 
@@ -67,10 +67,83 @@ impl Pipelines<'_> {
     }
 }
 
+struct ManualScope<'a> {
+    profiler: &'a mut wgpu_profiler::GpuProfiler,
+    encoder: Option<wgpu::CommandEncoder>,
+    scope: Option<wgpu_profiler::GpuProfilerQuery>,
+}
+
+impl<'a> ManualScope<'a> {
+    fn start(
+        label: &str,
+        profiler: &'a mut wgpu_profiler::GpuProfiler,
+        mut encoder: wgpu::CommandEncoder,
+    ) -> Self {
+        let scope = profiler.begin_query(label, &mut encoder);
+        Self {
+            profiler,
+            encoder: Some(encoder),
+            scope: Some(scope),
+        }
+    }
+
+    fn encoder(&mut self) -> &mut wgpu::CommandEncoder { self.encoder.as_mut().unwrap() }
+
+    #[must_use]
+    #[track_caller]
+    pub fn scope(&mut self, label: impl Into<String>) -> Scope<'_, wgpu::CommandEncoder> {
+        let encoder = self.encoder.as_mut().unwrap();
+
+        let scope = self
+            .profiler
+            .begin_query(label, encoder)
+            .with_parent(self.scope.as_ref());
+
+        Scope {
+            profiler: self.profiler,
+            recorder: encoder,
+            scope: Some(scope),
+        }
+    }
+
+    #[track_caller]
+    fn scoped_render_pass<'pass>(
+        &'pass mut self,
+        label: &str,
+        descriptor: wgpu::RenderPassDescriptor<'_>,
+    ) -> OwningScope<'pass, wgpu::RenderPass<'pass>> {
+        let encoder = self.encoder.as_mut().unwrap();
+
+        let child_scope = self
+            .profiler
+            .begin_pass_query(label, encoder)
+            .with_parent(self.scope.as_ref());
+        let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            timestamp_writes: child_scope.render_pass_timestamp_writes(),
+            label: descriptor.label.or(Some(&child_scope.label)),
+            ..descriptor
+        });
+
+        OwningScope {
+            profiler: self.profiler,
+            recorder: render_pass,
+            scope: Some(child_scope),
+        }
+    }
+
+    fn end_query(&mut self) -> (&mut wgpu_profiler::GpuProfiler, wgpu::CommandEncoder) {
+        let mut encoder = self.encoder.take().unwrap();
+        self.profiler
+            .end_query(&mut encoder, self.scope.take().unwrap());
+        (self.profiler, encoder)
+    }
+}
+
 // Borrow the fields we need from the renderer so that the GpuProfiler can be
 // disjointedly borrowed mutably
 struct RendererBorrow<'frame> {
     queue: &'frame wgpu::Queue,
+    #[allow(unused)]
     device: &'frame wgpu::Device,
     #[cfg(feature = "egui-ui")]
     surface_config: &'frame wgpu::SurfaceConfiguration,
@@ -88,7 +161,7 @@ struct RendererBorrow<'frame> {
 
 pub struct Drawer<'frame> {
     surface_view: wgpu::TextureView,
-    encoder: Option<ManualOwningScope<'frame, wgpu::CommandEncoder>>,
+    encoder: ManualScope<'frame>,
     borrow: RendererBorrow<'frame>,
     surface_texture: Option<wgpu::SurfaceTexture>,
     globals: &'frame GlobalsBindGroup,
@@ -139,8 +212,7 @@ impl<'frame> Drawer<'frame> {
             egui_render_pass: &mut renderer.egui_renderpass,
         };
 
-        let encoder =
-            ManualOwningScope::start("frame", &mut renderer.profiler, encoder, borrow.device);
+        let encoder = ManualScope::start("frame", &mut renderer.profiler, encoder);
 
         // Create a view to the surface texture.
         let surface_view = surface_texture
@@ -152,7 +224,7 @@ impl<'frame> Drawer<'frame> {
 
         Self {
             surface_view,
-            encoder: Some(encoder),
+            encoder,
             borrow,
             surface_texture: Some(surface_texture),
             globals,
@@ -172,12 +244,9 @@ impl<'frame> Drawer<'frame> {
 
         if let RainOcclusionMap::Enabled(ref rain_occlusion_renderer) = self.borrow.shadow?.rain_map
         {
-            let encoder = self.encoder.as_mut().unwrap();
-            let device = self.borrow.device;
-            let mut render_pass = encoder.scoped_render_pass(
+            let mut render_pass = self.encoder.scoped_render_pass(
                 "rain_occlusion_pass",
-                device,
-                &wgpu::RenderPassDescriptor {
+                wgpu::RenderPassDescriptor {
                     label: Some("rain occlusion pass"),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
@@ -213,23 +282,22 @@ impl<'frame> Drawer<'frame> {
         }
 
         if let ShadowMap::Enabled(ref shadow_renderer) = self.borrow.shadow?.map {
-            let encoder = self.encoder.as_mut().unwrap();
-            let device = self.borrow.device;
             let mut render_pass =
-                encoder.scoped_render_pass("shadow_pass", device, &wgpu::RenderPassDescriptor {
-                    label: Some("shadow pass"),
-                    color_attachments: &[],
-                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                        view: &shadow_renderer.directed_depth.view,
-                        depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(1.0),
-                            store: wgpu::StoreOp::Store,
+                self.encoder
+                    .scoped_render_pass("shadow_pass", wgpu::RenderPassDescriptor {
+                        label: Some("shadow pass"),
+                        color_attachments: &[],
+                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                            view: &shadow_renderer.directed_depth.view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: wgpu::StoreOp::Store,
+                            }),
+                            stencil_ops: None,
                         }),
-                        stencil_ops: None,
-                    }),
-                    timestamp_writes: None,
-                    occlusion_query_set: None,
-                });
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                    });
 
             render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
@@ -250,40 +318,39 @@ impl<'frame> Drawer<'frame> {
         // are not enabled
         let shadow = self.borrow.shadow?;
 
-        let encoder = self.encoder.as_mut().unwrap();
-        let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass("first_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("first pass"),
-                color_attachments: &[
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: &self.borrow.views.tgt_color,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+            self.encoder
+                .scoped_render_pass("first_pass", wgpu::RenderPassDescriptor {
+                    label: Some("first pass"),
+                    color_attachments: &[
+                        Some(wgpu::RenderPassColorAttachment {
+                            view: &self.borrow.views.tgt_color,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        }),
+                        Some(wgpu::RenderPassColorAttachment {
+                            view: &self.borrow.views.tgt_mat,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        }),
+                    ],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.borrow.views.tgt_depth,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(0.0),
                             store: wgpu::StoreOp::Store,
-                        },
+                        }),
+                        stencil_ops: None,
                     }),
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: &self.borrow.views.tgt_mat,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: wgpu::StoreOp::Store,
-                        },
-                    }),
-                ],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.borrow.views.tgt_depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
@@ -301,23 +368,22 @@ impl<'frame> Drawer<'frame> {
         let pipelines = &self.borrow.pipelines.all()?;
         let shadow = self.borrow.shadow?;
 
-        let encoder = self.encoder.as_mut().unwrap();
-        let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass("volumetric_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("volumetric pass (clouds)"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &self.borrow.views.tgt_color_pp,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
+            self.encoder
+                .scoped_render_pass("volumetric_pass", wgpu::RenderPassDescriptor {
+                    label: Some("volumetric pass (clouds)"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.borrow.views.tgt_color_pp,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
@@ -334,30 +400,29 @@ impl<'frame> Drawer<'frame> {
         let pipelines = &self.borrow.pipelines.all()?;
         let shadow = self.borrow.shadow?;
 
-        let encoder = self.encoder.as_mut().unwrap();
-        let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass("transparent_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("transparent pass (trails)"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &self.borrow.views.tgt_color_pp,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.borrow.views.tgt_depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
+            self.encoder
+                .scoped_render_pass("transparent_pass", wgpu::RenderPassDescriptor {
+                    label: Some("transparent pass (trails)"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.borrow.views.tgt_color_pp,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.borrow.views.tgt_depth,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
                     }),
-                    stencil_ops: None,
-                }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
         render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
@@ -389,26 +454,24 @@ impl<'frame> Drawer<'frame> {
                 None => return,
             };
 
-        let device = self.borrow.device;
-        let mut encoder = self.encoder.as_mut().unwrap().scope("bloom", device);
+        let mut encoder = self.encoder.scope("bloom");
 
         let mut run_bloom_pass = |bind, view, label: String, pipeline, load| {
             let pass_label = format!("bloom {} pass", label);
-            let mut render_pass =
-                encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
-                    label: Some(&pass_label),
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        resolve_target: None,
-                        view,
-                        ops: wgpu::Operations {
-                            store: wgpu::StoreOp::Store,
-                            load,
-                        },
-                    })],
-                    depth_stencil_attachment: None,
-                    timestamp_writes: None,
-                    occlusion_query_set: None,
-                });
+            let mut render_pass = encoder.scoped_render_pass(&label, wgpu::RenderPassDescriptor {
+                label: Some(&pass_label),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    resolve_target: None,
+                    view,
+                    ops: wgpu::Operations {
+                        store: wgpu::StoreOp::Store,
+                        load,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
 
             render_pass.set_bind_group(0, bind, &[]);
             render_pass.set_pipeline(pipeline);
@@ -473,8 +536,6 @@ impl<'frame> Drawer<'frame> {
         let Some(premultiply_alpha) = self.borrow.pipelines.premultiply_alpha() else {
             return;
         };
-        let encoder = self.encoder.as_mut().unwrap();
-        let device = self.borrow.device;
 
         let targets = self.borrow.ui_premultiply_uploads.take();
 
@@ -483,20 +544,21 @@ impl<'frame> Drawer<'frame> {
             let profile_name = format!("{UI_PREMULTIPLY_PASS} {i}");
             let label = format!("ui premultiply pass {i}");
             let mut render_pass =
-                encoder.scoped_render_pass(&profile_name, device, &wgpu::RenderPassDescriptor {
-                    label: Some(&label),
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: &target_texture.view,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: wgpu::StoreOp::Store,
-                        },
-                    })],
-                    depth_stencil_attachment: None,
-                    timestamp_writes: None,
-                    occlusion_query_set: None,
-                });
+                self.encoder
+                    .scoped_render_pass(&profile_name, wgpu::RenderPassDescriptor {
+                        label: Some(&label),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &target_texture.view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Load,
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                    });
             render_pass.set_pipeline(&premultiply_alpha.pipeline);
             for upload in &uploads {
                 let (source_bind_group, push_constant_data) = upload.draw_data(&target_texture);
@@ -515,28 +577,27 @@ impl<'frame> Drawer<'frame> {
     pub fn third_pass(&mut self) -> ThirdPassDrawer {
         self.run_ui_premultiply_passes();
 
-        let encoder = self.encoder.as_mut().unwrap();
-        let device = self.borrow.device;
         let mut render_pass =
-            encoder.scoped_render_pass("third_pass", device, &wgpu::RenderPassDescriptor {
-                label: Some("third pass (postprocess + ui)"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    // If a screenshot was requested render to that as an intermediate texture
-                    // instead
-                    view: self
-                        .taking_screenshot
-                        .as_ref()
-                        .map_or(&self.surface_view, |s| s.texture_view()),
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
+            self.encoder
+                .scoped_render_pass("third_pass", wgpu::RenderPassDescriptor {
+                    label: Some("third pass (postprocess + ui)"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        // If a screenshot was requested render to that as an intermediate texture
+                        // instead
+                        view: self
+                            .taking_screenshot
+                            .as_ref()
+                            .map_or(&self.surface_view, |s| s.texture_view()),
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
 
@@ -550,9 +611,9 @@ impl<'frame> Drawer<'frame> {
     pub fn draw_egui(&mut self, platform: &mut Platform, scale_factor: f32) {
         span!(guard, "Draw egui");
 
-        let output = platform.end_frame(None);
+        let output = platform.end_pass(None);
 
-        let paint_jobs = platform.context().tessellate(output.shapes);
+        let paint_jobs = platform.context().tessellate(output.shapes, scale_factor);
 
         let screen_descriptor = ScreenDescriptor {
             physical_width: self.borrow.surface_config.width,
@@ -578,7 +639,7 @@ impl<'frame> Drawer<'frame> {
         self.borrow
             .egui_render_pass
             .execute(
-                self.encoder.as_mut().unwrap(),
+                self.encoder.encoder(),
                 self.taking_screenshot
                     .as_ref()
                     .map_or(&self.surface_view, |s| s.texture_view()),
@@ -609,12 +670,7 @@ impl<'frame> Drawer<'frame> {
         }
 
         if let Some(ShadowMap::Enabled(shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
-            let device = self.borrow.device;
-            let mut encoder = self
-                .encoder
-                .as_mut()
-                .unwrap()
-                .scope("point shadows", device);
+            let mut encoder = self.encoder.scope("point shadows");
             const STRIDE: usize = std::mem::size_of::<shadow::PointLightMatrix>();
             let data = bytemuck::cast_slice(matrices);
 
@@ -628,6 +684,7 @@ impl<'frame> Drawer<'frame> {
                             label: Some("Point shadow cubemap face"),
                             format: None,
                             dimension: Some(wgpu::TextureViewDimension::D2),
+                            usage: None,
                             aspect: wgpu::TextureAspect::DepthOnly,
                             base_mip_level: 0,
                             mip_level_count: None,
@@ -637,7 +694,7 @@ impl<'frame> Drawer<'frame> {
 
                 let label = format!("point shadow face-{} pass", face);
                 let mut render_pass =
-                    encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
+                    encoder.scoped_render_pass(&label, wgpu::RenderPassDescriptor {
                         label: Some(&label),
                         color_attachments: &[],
                         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
@@ -685,12 +742,9 @@ impl<'frame> Drawer<'frame> {
     /// aren't used here they are needed for the ShadowMap to exist)
     pub fn clear_shadows(&mut self) {
         if let Some(ShadowMap::Enabled(shadow_renderer)) = self.borrow.shadow.map(|s| &s.map) {
-            let device = self.borrow.device;
-            let encoder = self.encoder.as_mut().unwrap();
-            let _ = encoder.scoped_render_pass(
+            let _ = self.encoder.scoped_render_pass(
                 "clear_directed_shadow",
-                device,
-                &wgpu::RenderPassDescriptor {
+                wgpu::RenderPassDescriptor {
                     label: Some("clear directed shadow pass"),
                     color_attachments: &[],
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
@@ -716,6 +770,7 @@ impl<'frame> Drawer<'frame> {
                             label: Some("Point shadow cubemap face"),
                             format: None,
                             dimension: Some(wgpu::TextureViewDimension::D2),
+                            usage: None,
                             aspect: wgpu::TextureAspect::DepthOnly,
                             base_mip_level: 0,
                             mip_level_count: None,
@@ -724,20 +779,22 @@ impl<'frame> Drawer<'frame> {
                         });
 
                 let label = format!("clear point shadow face-{} pass", face);
-                let _ = encoder.scoped_render_pass(&label, device, &wgpu::RenderPassDescriptor {
-                    label: Some(&label),
-                    color_attachments: &[],
-                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                        view: &view,
-                        depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(1.0),
-                            store: wgpu::StoreOp::Store,
+                let _ = self
+                    .encoder
+                    .scoped_render_pass(&label, wgpu::RenderPassDescriptor {
+                        label: Some(&label),
+                        color_attachments: &[],
+                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                            view: &view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: wgpu::StoreOp::Store,
+                            }),
+                            stencil_ops: None,
                         }),
-                        stencil_ops: None,
-                    }),
-                    timestamp_writes: None,
-                    occlusion_query_set: None,
-                });
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                    });
             }
         }
     }
@@ -745,8 +802,6 @@ impl<'frame> Drawer<'frame> {
 
 impl Drop for Drawer<'_> {
     fn drop(&mut self) {
-        let mut encoder = self.encoder.take().unwrap();
-
         // If taking a screenshot and the blit pipeline is available
         // NOTE: blit pipeline should always be available for now so we don't report an
         // error if it isn't
@@ -756,10 +811,9 @@ impl Drop for Drawer<'_> {
             .zip(self.borrow.pipelines.blit())
             .map(|(screenshot, blit)| {
                 // Image needs to be copied from the screenshot texture to the swapchain texture
-                let mut render_pass = encoder.scoped_render_pass(
+                let mut render_pass = self.encoder.scoped_render_pass(
                     "screenshot blit",
-                    self.borrow.device,
-                    &wgpu::RenderPassDescriptor {
+                    wgpu::RenderPassDescriptor {
                         label: Some("Blit screenshot pass"),
                         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                             view: &self.surface_view,
@@ -781,10 +835,10 @@ impl Drop for Drawer<'_> {
                 // Issues a command to copy from the texture to a buffer and returns a closure
                 // that will send the buffer off to another thread to be mapped
                 // and processed.
-                screenshot.copy_to_buffer(&mut encoder)
+                screenshot.copy_to_buffer(self.encoder.encoder())
             });
 
-        let (mut encoder, profiler) = encoder.end_scope();
+        let (profiler, mut encoder) = self.encoder.end_query();
         profiler.resolve_queries(&mut encoder);
 
         // It is recommended to only do one submit per frame
@@ -812,9 +866,7 @@ pub struct ShadowPassDrawer<'pass> {
 
 impl<'pass> ShadowPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
-        let mut render_pass = self
-            .render_pass
-            .scope("directed_figure_shadows", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("directed_figure_shadows");
 
         render_pass.set_pipeline(&self.shadow_renderer.figure_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -823,9 +875,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     }
 
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
-        let mut render_pass = self
-            .render_pass
-            .scope("directed_terrain_shadows", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("directed_terrain_shadows");
 
         render_pass.set_pipeline(&self.shadow_renderer.terrain_directed_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -834,9 +884,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     }
 
     pub fn draw_debug_shadows(&mut self) -> DebugShadowDrawer<'_, 'pass> {
-        let mut render_pass = self
-            .render_pass
-            .scope("directed_debug_shadows", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("directed_debug_shadows");
 
         render_pass.set_pipeline(&self.shadow_renderer.debug_directed_pipeline.pipeline);
         set_quad_index_buffer::<debug::Vertex>(&mut render_pass, self.borrow);
@@ -854,9 +902,7 @@ pub struct RainOcclusionPassDrawer<'pass> {
 
 impl<'pass> RainOcclusionPassDrawer<'pass> {
     pub fn draw_figure_shadows(&mut self) -> FigureShadowDrawer<'_, 'pass> {
-        let mut render_pass = self
-            .render_pass
-            .scope("directed_figure_rain_occlusion", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("directed_figure_rain_occlusion");
 
         render_pass.set_pipeline(&self.rain_occlusion_renderer.figure_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -865,9 +911,7 @@ impl<'pass> RainOcclusionPassDrawer<'pass> {
     }
 
     pub fn draw_terrain_shadows(&mut self) -> TerrainShadowDrawer<'_, 'pass> {
-        let mut render_pass = self
-            .render_pass
-            .scope("directed_terrain_rain_occlusion", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("directed_terrain_rain_occlusion");
 
         render_pass.set_pipeline(&self.rain_occlusion_renderer.terrain_pipeline.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -957,7 +1001,7 @@ pub struct FirstPassDrawer<'pass> {
 
 impl<'pass> FirstPassDrawer<'pass> {
     pub fn draw_skybox<'data: 'pass>(&mut self, model: &'data Model<skybox::Vertex>) {
-        let mut render_pass = self.render_pass.scope("skybox", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("skybox");
 
         render_pass.set_pipeline(&self.pipelines.skybox.pipeline);
         set_quad_index_buffer::<skybox::Vertex>(&mut render_pass, self.borrow);
@@ -966,7 +1010,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_debug(&mut self) -> DebugDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("debug", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("debug");
 
         render_pass.set_pipeline(&self.pipelines.debug.pipeline);
         set_quad_index_buffer::<debug::Vertex>(&mut render_pass, self.borrow);
@@ -975,7 +1019,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_lod_terrain<'data: 'pass>(&mut self, model: &'data Model<lod_terrain::Vertex>) {
-        let mut render_pass = self.render_pass.scope("lod_terrain", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("lod_terrain");
 
         render_pass.set_pipeline(&self.pipelines.lod_terrain.pipeline);
         set_quad_index_buffer::<lod_terrain::Vertex>(&mut render_pass, self.borrow);
@@ -984,7 +1028,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_figures(&mut self) -> FigureDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("figures", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("figures");
 
         render_pass.set_pipeline(&self.pipelines.figure.pipeline);
         // Note: figures use the same vertex type as the terrain
@@ -994,7 +1038,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_terrain(&mut self) -> TerrainDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("terrain", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("terrain");
 
         render_pass.set_pipeline(&self.pipelines.terrain.pipeline);
         set_quad_index_buffer::<terrain::Vertex>(&mut render_pass, self.borrow);
@@ -1006,7 +1050,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_particles(&mut self) -> ParticleDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("particles", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("particles");
 
         render_pass.set_pipeline(&self.pipelines.particle.pipeline);
         set_quad_index_buffer::<particle::Vertex>(&mut render_pass, self.borrow);
@@ -1015,7 +1059,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_ropes(&mut self) -> RopeDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("ropes", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("ropes");
 
         render_pass.set_pipeline(&self.pipelines.rope.pipeline);
         set_quad_index_buffer::<rope::Vertex>(&mut render_pass, self.borrow);
@@ -1028,7 +1072,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         globals: &'data sprite::SpriteGlobalsBindGroup,
         atlas_textures: &'data AtlasTextures<sprite::Locals, FigureSpriteAtlasData>,
     ) -> SpriteDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("sprites", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("sprites");
 
         render_pass.set_pipeline(&self.pipelines.sprite.pipeline);
         set_quad_index_buffer::<sprite::Vertex>(&mut render_pass, self.borrow);
@@ -1042,7 +1086,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_lod_objects(&mut self) -> LodObjectDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("lod objects", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("lod objects");
 
         render_pass.set_pipeline(&self.pipelines.lod_object.pipeline);
         set_quad_index_buffer::<lod_object::Vertex>(&mut render_pass, self.borrow);
@@ -1051,7 +1095,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 
     pub fn draw_fluid(&mut self) -> FluidDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("fluid");
 
         render_pass.set_pipeline(&self.pipelines.fluid.pipeline);
         set_quad_index_buffer::<fluid::Vertex>(&mut render_pass, self.borrow);
@@ -1159,12 +1203,14 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
         model: &'data Model<particle::Vertex>,
         instances: &'data Instances<particle::Instance>,
     ) {
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
-        self.render_pass
-            .set_vertex_buffer(1, instances.buf().slice(..));
-        self.render_pass
+        if instances.count() != 0 {
+            self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+            self.render_pass
+                .set_vertex_buffer(1, instances.buf().slice(..));
+            self.render_pass
             // TODO: since we cast to u32 maybe this should returned by the len/count functions?
             .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..instances.count() as u32);
+        }
     }
 }
 
@@ -1304,7 +1350,7 @@ impl<'pass> TransparentPassDrawer<'pass> {
     pub fn draw_trails(&mut self) -> Option<TrailDrawer<'_, 'pass>> {
         let shadow = &self.borrow.shadow?;
 
-        let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("trails");
 
         render_pass.set_pipeline(&self.trail_pipeline.pipeline);
         set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
@@ -1343,7 +1389,7 @@ impl<'pass> ThirdPassDrawer<'pass> {
             None => return,
         };
 
-        let mut render_pass = self.render_pass.scope("postprocess", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("postprocess");
         render_pass.set_pipeline(&postprocess.pipeline);
         render_pass.set_bind_group(1, &self.borrow.locals.postprocess_bind.bind_group, &[]);
         render_pass.draw(0..3, 0..1);
@@ -1354,7 +1400,7 @@ impl<'pass> ThirdPassDrawer<'pass> {
     pub fn draw_ui(&mut self) -> Option<UiDrawer<'_, 'pass>> {
         let ui = self.borrow.pipelines.ui()?;
 
-        let mut render_pass = self.render_pass.scope("ui", self.borrow.device);
+        let mut render_pass = self.render_pass.scope("ui");
         render_pass.set_pipeline(&ui.pipeline);
         set_quad_index_buffer::<ui::Vertex>(&mut render_pass, self.borrow);
 

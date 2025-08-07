@@ -101,6 +101,7 @@ impl LodData {
                 label: None,
                 format: Some(format),
                 dimension: Some(wgpu::TextureViewDimension::D2),
+                usage: None,
                 aspect: wgpu::TextureAspect::All,
                 base_mip_level: 0,
                 mip_level_count: None,
@@ -168,6 +169,7 @@ impl LodData {
                 label: None,
                 format: Some(wgpu::TextureFormat::Rgba8Unorm),
                 dimension: Some(wgpu::TextureViewDimension::D2),
+                usage: None,
                 aspect: wgpu::TextureAspect::All,
                 base_mip_level: 0,
                 mip_level_count: None,
@@ -219,8 +221,9 @@ impl LodTerrainPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[Vertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -254,7 +257,7 @@ impl LodTerrainPipeline {
             },
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 targets: &[
                     Some(wgpu::ColorTargetState {
                         format,
@@ -267,8 +270,10 @@ impl LodTerrainPipeline {
                         write_mask: wgpu::ColorWrites::ALL,
                     }),
                 ],
+                compilation_options: Default::default(),
             }),
             multiview: None,
+            cache: None,
         });
 
         Self {

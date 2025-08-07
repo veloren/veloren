@@ -20,7 +20,6 @@ use conrod_core::{
     widget_ids,
 };
 use i18n::Localization;
-use keyboard_keynames::key_layout::KeyLayout;
 
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 widget_ids! {
@@ -98,7 +97,6 @@ pub struct Overhead<'a> {
     controls: &'a ControlSettings,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
-    key_layout: &'a Option<KeyLayout>,
     interaction_options: Vec<(GameInput, String)>,
     time: &'a Time,
 
@@ -117,7 +115,6 @@ impl<'a> Overhead<'a> {
         controls: &'a ControlSettings,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
-        key_layout: &'a Option<KeyLayout>,
         interaction_options: Vec<(GameInput, String)>,
         time: &'a Time,
     ) -> Self {
@@ -131,7 +128,6 @@ impl<'a> Overhead<'a> {
             controls,
             imgs,
             fonts,
-            key_layout,
             interaction_options,
             time,
             common: widget::CommonBuilder::default(),
@@ -505,13 +501,7 @@ impl Widget for Overhead<'_> {
                     .filter_map(|(input, action)| {
                         Some((self.controls.get_binding(*input)?, action))
                     })
-                    .map(|(input, action)| {
-                        format!(
-                            "{}  {}",
-                            input.display_string(self.key_layout).as_str(),
-                            action
-                        )
-                    })
+                    .map(|(input, action)| format!("{}  {}", input.display_string(), action))
                     .collect::<Vec<_>>()
                     .join("\n");
 
