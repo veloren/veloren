@@ -59,7 +59,7 @@ impl From<ControlSettingsSerde> for ControlSettings {
 /// (roll and wall jump) are both situations where you cannot glide (the other
 /// default mapping for Shift).
 #[cfg(target_os = "macos")]
-const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(Key(NamedKey::Shift));
+const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(Key::Named(NamedKey::Shift));
 #[cfg(not(target_os = "macos"))]
 const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
 

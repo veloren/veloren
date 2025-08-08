@@ -62,6 +62,11 @@ fn conrod_convert_key(key: &winit::keyboard::Key) -> input::Key {
             winit::keyboard::NamedKey::Copy => input::keyboard::Key::Copy,
             winit::keyboard::NamedKey::Paste => input::keyboard::Key::Paste,
             winit::keyboard::NamedKey::Cut => input::keyboard::Key::Cut,
+            // `winit` doesn't differenciate between left and right so we map everything to the
+            // right.
+            winit::keyboard::NamedKey::Shift => input::keyboard::Key::RShift,
+            winit::keyboard::NamedKey::Control => input::keyboard::Key::RCtrl,
+            winit::keyboard::NamedKey::Alt => input::keyboard::Key::RAlt,
             _ => input::keyboard::Key::Unknown,
         },
         winit::keyboard::Key::Character(c) => match c.as_str() {
@@ -125,7 +130,11 @@ fn conrod_convert_mouse_button(button: &event::MouseButton) -> input::Button {
     })
 }
 
-fn conrod_convert_event(event: &WindowEvent, window: &winit::window::Window) -> Option<Input> {
+fn conrod_convert_event(
+    event: &WindowEvent,
+    window: &winit::window::Window,
+    modifiers: winit::keyboard::ModifiersState,
+) -> Option<Input> {
     let hidpi = window.scale_factor();
     let winit::dpi::LogicalSize { width, height } = window.inner_size().to_logical::<f64>(hidpi);
     let tx = |x: f64| x - width / 2.0;
@@ -138,6 +147,18 @@ fn conrod_convert_event(event: &WindowEvent, window: &winit::window::Window) -> 
         },
         WindowEvent::Focused(focused) => Input::Focus(*focused),
         WindowEvent::KeyboardInput { event, .. } => {
+            // `conrod` expects different events for text input and pressed keys.
+            // We work around that by sending the key as text but only if no modifiers are
+            // pressed, so that shortcuts still work.
+            if !modifiers.alt_key() && !modifiers.control_key() {
+                if let winit::keyboard::Key::Character(c) = &event.logical_key {
+                    return event
+                        .state
+                        .is_pressed()
+                        .then(|| Input::Text(c.as_str().to_owned()));
+                }
+            }
+
             let key = input::Button::Keyboard(conrod_convert_key(&event.logical_key));
 
             match event.state {
@@ -202,10 +223,14 @@ fn conrod_convert_event(event: &WindowEvent, window: &winit::window::Window) -> 
 pub struct Event(pub Input);
 
 impl Event {
-    pub fn try_from(event: &event::Event<()>, window: &winit::window::Window) -> Option<Self> {
+    pub fn try_from(
+        event: &event::Event<()>,
+        window: &winit::window::Window,
+        modifiers: winit::keyboard::ModifiersState,
+    ) -> Option<Self> {
         match event {
             event::Event::WindowEvent { event, .. } => {
-                conrod_convert_event(event, window).map(Self)
+                conrod_convert_event(event, window, modifiers).map(Self)
             },
             _ => None,
         }

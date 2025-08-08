@@ -48,9 +48,7 @@ default-publish = [
     "discord",
     "simd",
 ]
-# Temp for bug on current wgpu version that has access violation in vulkan when constructing egui pipeline
-default-no-egui = ["default-publish", "hot-reloading", "shaderc-from-source"]
-default = ["default-no-egui", "egui-ui"]
+default = ["default-publish", "hot-reloading", "shaderc-from-source", "egui-ui"]
 
 [dependencies]
 client = { package = "veloren-client", path = "../client" }

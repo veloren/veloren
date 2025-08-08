@@ -57,14 +57,13 @@ pub fn run(
             event: winit::event::WindowEvent::Resized(_),
             ..
         }) {
+            let window = &mut global_state.window;
             // Get events for the ui.
-            if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
-                global_state.window.send_event(Event::Ui(event));
+            if let Some(event) = ui::Event::try_from(&event, window.window(), window.modifiers()) {
+                window.send_event(Event::Ui(event));
             }
             // iced ui events
-            // TODO: no clone
             if let winit::event::Event::WindowEvent { event, .. } = &event {
-                let window = &mut global_state.window;
                 if let Some(event) =
                     ui::ice::window_event(event, window.scale_factor(), window.modifiers())
                 {

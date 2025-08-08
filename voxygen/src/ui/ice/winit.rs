@@ -93,6 +93,20 @@ pub fn window_event(
             let key_code = key_code(&event.logical_key)?;
             let modifiers = self::modifiers(modifiers);
 
+            // `iced` expects different events for text input and pressed keys.
+            // We work around that by sending the key as text but only if no modifiers are
+            // pressed, so that shortcuts still work.
+            if !modifiers.alt && !modifiers.control {
+                if let winit::keyboard::Key::Character(c) = &event.logical_key {
+                    if let Some(c) = c.chars().next() {
+                        return event
+                            .state
+                            .is_pressed()
+                            .then_some(Event::Keyboard(keyboard::Event::CharacterReceived(c)));
+                    }
+                }
+            }
+
             match event.state {
                 winit::event::ElementState::Pressed => keyboard::Event::KeyPressed {
                     key_code,
