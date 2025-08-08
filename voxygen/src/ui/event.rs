@@ -150,7 +150,7 @@ fn conrod_convert_event(
             // `conrod` expects different events for text input and pressed keys.
             // We work around that by sending the key as text but only if no modifiers are
             // pressed, so that shortcuts still work.
-            if !modifiers.alt_key() && !modifiers.control_key() {
+            if !modifiers.alt_key() && !modifiers.control_key() && !modifiers.super_key() {
                 if let winit::keyboard::Key::Character(c) = &event.logical_key {
                     return event
                         .state
