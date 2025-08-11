@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Npcs don't get angry if you kill a monster infront of them, and can get happy if you saved them from it.
 - Map markers are kept between character selection screens.
 - Using "/clear" now works when chat is not shown.
+- A server crash when loading some myrmion arenas.
 
 ## [0.17.0] - 2024-12-28
 
