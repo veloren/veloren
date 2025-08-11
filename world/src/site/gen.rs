@@ -324,6 +324,7 @@ impl Fill {
                     },
                 };
                 aabb_contains(*aabb, pos)
+                    && inner.is_valid()
                     && (inner.projected_point(pos.xy()) - pos.xy())
                         .map(|e| e.abs())
                         .reduce_max() as f32
@@ -338,6 +339,7 @@ impl Fill {
                     max: aabb.max.xy() - inset,
                 };
                 aabb_contains(*aabb, pos)
+                    && inner.is_valid()
                     && (inner.projected_point(pos.xy()) - pos.xy())
                         .map(|e| e.abs())
                         .reduce_max() as f32
@@ -359,6 +361,7 @@ impl Fill {
                     }
                 };
                 aabb_contains(*aabb, pos)
+                    && inner.is_valid()
                     && (inner.projected_point(pos.xy()) - pos.xy())
                         .map(|e| e.abs())
                         .reduce_max() as f32
