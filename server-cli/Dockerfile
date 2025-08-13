@@ -5,13 +5,13 @@ LABEL com.centurylinklabs.watchtower.stop-signal="SIGUSR1"
 
 ARG PROJECTNAME=server-cli
 
-# librust-backtrace+libbacktrace-dev = backtrace functionality
+# librust-backtrace+serde-dev = backtrace functionality
 # iproute2 and net-tools for diagnostic purposes
 RUN apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y --no-install-recommends --assume-yes \
         ca-certificates \
-        librust-backtrace+libbacktrace-dev \
+        librust-backtrace+serde-dev \
         iproute2 \
         net-tools \
     && rm -rf /var/lib/apt/lists/*;
