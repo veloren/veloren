@@ -8,8 +8,9 @@
 [
     // Stones
     (0.5, Item("common.items.mineral.ore.velorite")),
-    (0.75, Item("common.items.mineral.gem.topaz")),
-    (0.75, Item("common.items.mineral.gem.amethyst")),
+    (0.3, Item("common.items.mineral.gem.topaz")),
+    (0.3, Item("common.items.mineral.gem.amethyst")),
+    (0.3, Item("common.items.mineral.gem.sapphire")),
     (1.5, Item("common.items.mineral.ore.veloritefrag")),
     (4.0, Item("common.items.crafting_ing.stones")),
 

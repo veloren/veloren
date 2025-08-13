@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         descriptor: "Sapphire",
     ),
-    quality: High,
+    quality: Moderate,
     tags: [],
 )

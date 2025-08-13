@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         descriptor: "Diamond",
     ),
-    quality: Epic,
+    quality: High,
     tags: [],
 )
