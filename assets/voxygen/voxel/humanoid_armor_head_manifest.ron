@@ -1132,39 +1132,39 @@
             color: None
         ),
         (Human, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-4.0, -5.0, 8.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-4.0, -4.0, 6.0)),
             color: None
         ),
         (Elf, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, 6.0)),
             color: None
         ),
         (Elf, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, 8.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, 6.0)),
             color: None
         ),
         (Dwarf, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -3.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -4.0, 6.0)),
             color: None
         ),
         (Dwarf, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -3.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -4.0, 6.0)),
             color: None
         ),
         (Danari, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 8.5)),
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 8.0)),
             color: None
         ),
         (Danari, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 9.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, 8.0)),
             color: None
         ),
         (Draugr, Male, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 8.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -5.0, 8.0)),
             color: None
         ),
         (Draugr, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -5.0, 7.0)),
             color: None
         ),
         (Orc, Male, "common.items.armor.misc.head.spikeguard"): (
@@ -1172,7 +1172,7 @@
             color: None
         ),
         (Orc, Female, "common.items.armor.misc.head.spikeguard"): (
-            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -6.0, 6.0)),
             color: None
         ),
         //
@@ -1499,11 +1499,11 @@
             color: None
         ),
         (Danari, Female, "common.items.armor.ashen.head"): (
-            vox_spec: ("armor.ashen.ashen", (-2.0, -6.0, 0.0), 0),
+            vox_spec: ("armor.ashen.ashen", (-2.0, -6.0, -1.0), 0),
             color: None
         ),
         (Draugr, Male, "common.items.armor.ashen.head"): (
-            vox_spec: ("armor.ashen.ashen", (-6.0, -6.0, -0.5), 0),
+            vox_spec: ("armor.ashen.ashen", (-6.0, -6.0, -1.0), 0),
             color: None
         ),
         (Draugr, Female, "common.items.armor.ashen.head"): (
@@ -1511,7 +1511,7 @@
             color: None
         ),
         (Orc, Male, "common.items.armor.ashen.head"): (
-            vox_spec: ("armor.ashen.ashen", (-3.0, -4.5, -2.5), 0),
+            vox_spec: ("armor.ashen.ashen", (-3.0, -4.5, -1.0), 0),
             color: None
         ),
         (Orc, Female, "common.items.armor.ashen.head"): (

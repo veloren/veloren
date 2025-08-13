@@ -1669,7 +1669,7 @@
     ),
     Simple("common.items.tool.instruments.washboard"): VoxTrans(
         "voxel.weapon.tool.washboard",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 0.8,
+        (0.0, 0.0, 0.0), (-45.0, -90.0, 0.0), 0.8,
     ),
     Simple("common.items.tool.instruments.kalimba"): VoxTrans(
         "voxel.weapon.tool.wooden_kalimba",

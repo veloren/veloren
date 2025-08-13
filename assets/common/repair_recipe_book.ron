@@ -215,47 +215,15 @@ recipes: {
     ItemDefId("common.items.armor.misc.pants.worker_brown"): ( inputs: [], ),
     ItemDefId("common.items.armor.misc.pants.worker_blue"): ( inputs: [], ),
     ItemDefId("common.items.armor.misc.foot.sandals"): ( inputs: [], ),
-    // Twigs set
-    ItemDefId("common.items.armor.adventurer.head"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.back"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.belt"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.chest"): (
-        inputs: [
-        (Item("common.items.crafting_ing.twigs"), 3),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.foot"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.hand"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 1),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.pants"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 2),
-        ],
-    ),
-    ItemDefId("common.items.armor.adventurer.shoulder"): (
-        inputs: [
-            (Item("common.items.crafting_ing.twigs"), 2),
-        ],
-    ),
+    // Adventurer set
+    ItemDefId("common.items.armor.adventurer.head"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.back"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.belt"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.chest"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.foot"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.hand"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.pants"): ( inputs: [], ),
+    ItemDefId("common.items.armor.adventurer.shoulder"): ( inputs: [], ),
     // Twigsleaves set
     ItemDefId("common.items.armor.twigsleaves.belt"): (
         inputs: [

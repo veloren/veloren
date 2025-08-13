@@ -1,11 +1,11 @@
 RapidMelee(
     buildup_duration: 0.2,
     swing_duration: 0.2,
-    recover_duration: 0.4,
+    recover_duration: 0.45,
     melee_constructor: (
         kind: Slash(
-            damage: 10,
-            poise: 5,
+            damage: 8,
+            poise: 2.5,
             knockback: 0,
             energy_regen: 0,
         ),
@@ -15,7 +15,7 @@ RapidMelee(
     ),
     energy_cost: 5,
     max_strikes: Some(2),
-    ori_modifier: 1.0,
+    ori_modifier: 0.3,
     move_modifier: 1.0,
     meta: (
         init_event: Some(EnterStance(Sword(Cleaving))),
