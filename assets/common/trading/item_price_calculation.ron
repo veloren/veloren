@@ -8,11 +8,11 @@ loot_tables: [
     (0.04, false, "common.loot_tables.weapons.legendary"),
 
     // Non-craftable Armor
-    (15.0, true, "common.loot_tables.armor.cloth"),
-    (12.0, true, "common.loot_tables.armor.adventurer"),
+    (12.0, true, "common.loot_tables.armor.cloth"),
+    (14.0, true, "common.loot_tables.armor.adventurer"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
     (2.0, false, "common.trading.misc_armor"),
-    (0.22, false, "common.loot_tables.armor.pirate"),
+    (1.0, false, "common.loot_tables.armor.pirate"),
     (0.15, false, "common.loot_tables.spot.buccaneer"),
     (0.10, false, "common.loot_tables.armor.witch"),
     (0.09, false, "common.loot_tables.armor.cultist"),

@@ -1,7 +1,7 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 0.25,
-    swing_duration: 0.05,
+    buildup_duration: 1.0,
+    swing_duration: 0.25,
     hit_timing: 0.5,
     recover_duration: 0.075,
     melee_constructor: (
@@ -11,7 +11,7 @@ BasicMelee(
             knockback: 0.0,
             energy_regen: 0.0,
         ),
-        range: 4.5,
+        range: 4.0,
         angle: 20.0,
     ),
 )

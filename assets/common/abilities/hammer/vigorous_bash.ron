@@ -19,7 +19,10 @@ ComboMelee2(
                 buildup: Some(Forward(0.2)),
                 swing: Some(Forward(0.3)),
             ),
-            custom_combo: (conditional: Some((4, TargetPoised))),
+            custom_combo: (
+                base: Some(2),
+                conditional: Some((3, TargetPoised)),
+            ),
         ),
     ],
     energy_cost_per_strike: 15,

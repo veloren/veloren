@@ -13,9 +13,7 @@
             247: Sprite(DoorDark(4)),
             248: Sprite(DoorDark(0)),
             251: Sprite(SmokeDummy()),
-            244: SpriteWithCfg(WitchChest(), (
-                loot_table: "common.loot_tables.spot.witch",
-            )),
+            244: Sprite(WitchChest()),
          },
     ),
 ]

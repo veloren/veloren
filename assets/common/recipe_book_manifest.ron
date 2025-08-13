@@ -632,9 +632,9 @@
         craft_sprite: Some(CraftingBench),
     ),
     "rawhide_head": (
-        output: ("common.items.armor.hide.rawhide.head", 3),
+        output: ("common.items.armor.hide.rawhide.head", 1),
         inputs: [
-            (Item("common.items.crafting_ing.leather.simple_leather"), 2, false),
+            (Item("common.items.crafting_ing.leather.simple_leather"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
     ),
@@ -2685,25 +2685,25 @@
         is_recycling: false,
     ),
     "lockpick_copper": (
-        output: ("common.items.utility.lockpick.lockpick_copper", 2),
+        output: ("common.items.utility.lockpick.lockpick_copper", 3),
         inputs: [
-            (Item("common.items.mineral.ingot.copper"), 3, false),
+            (Item("common.items.mineral.ingot.copper"), 2, false),
         ],
         craft_sprite: Some(Anvil),
     ),
     "lockpick_iron": (
-        output: ("common.items.utility.lockpick.lockpick_iron", 2),
+        output: ("common.items.utility.lockpick.lockpick_iron", 3),
         inputs: [
-            (Item("common.items.mineral.ingot.iron"), 3, false),
+            (Item("common.items.mineral.ingot.iron"), 2, false),
         ],
         craft_sprite: Some(Anvil),
     ),
     //NOTE: Cobalt and Steel will be the same tier in the squish, on top of steel not requiring an extra mat
     //so cobalt will act as the T3A pick variant.
     "lockpick_cobalt": (
-        output: ("common.items.utility.lockpick.lockpick_cobalt", 2),
+        output: ("common.items.utility.lockpick.lockpick_cobalt", 3),
         inputs: [
-            (Item("common.items.mineral.ingot.cobalt"), 3, false),
+            (Item("common.items.mineral.ingot.cobalt"), 2, false),
         ],
         craft_sprite: Some(Anvil),
     ),

@@ -31,6 +31,7 @@
     (0.15, Item("common.items.crafting_ing.hide.plate")),
     (0.22, Item("common.items.crafting_ing.hide.leather_troll")),
     (0.15, Item("common.items.crafting_ing.hide.rugged_hide")),
+    (0.15, Item("common.items.crafting_ing.hide.serpent_scale")),
     (0.38, Item("common.items.crafting_ing.hide.carapace")),
     (0.6, Item("common.items.crafting_ing.hide.scales")),
     (1.1, Item("common.items.crafting_ing.hide.tough_hide")),

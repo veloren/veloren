@@ -1,6 +1,6 @@
 ItemDef(
     legacy_name: "Adventurer Belt",
-    legacy_description: "Forged to preserve life, at the cost of another.",
+    legacy_description: "Adventurers can never be caught with their pants down.",
     kind: Armor((
         kind: Belt,
         stats: FromSet("Adventurer"),

@@ -525,15 +525,15 @@
     Simple("common.items.armor.merchant.shoulder"): "voxel.armor.merchant.shoulder_l",
     Simple("common.items.armor.merchant.turban"  ): "voxel.armor.merchant.turban",
     Simple("common.items.armor.merchant.back"    ): "voxel.armor.merchant.back",
-    //Pirate Captain
+    //Buccaneer
     Simple("common.items.armor.buccaneer.head"    ): ("voxel.armor.buccaneer.buccaneer", 0),
     Simple("common.items.armor.buccaneer.back"    ): ("voxel.armor.buccaneer.buccaneer", 1),
-    Simple("common.items.armor.buccaneer.belt"    ): ("voxel.armor.buccaneer.buccaneer", 2),
-    Simple("common.items.armor.buccaneer.chest"   ): ("voxel.armor.buccaneer.buccaneer", 3),
-    Simple("common.items.armor.buccaneer.foot"    ): ("voxel.armor.buccaneer.buccaneer", 4),
-    Simple("common.items.armor.buccaneer.hand"    ): ("voxel.armor.buccaneer.buccaneer", 5),
+    Simple("common.items.armor.buccaneer.foot"    ): ("voxel.armor.buccaneer.buccaneer", 2),
+    Simple("common.items.armor.buccaneer.hand"   ): ("voxel.armor.buccaneer.buccaneer", 3),
+    Simple("common.items.armor.buccaneer.shoulder"    ): ("voxel.armor.buccaneer.buccaneer", 4),
+    Simple("common.items.armor.buccaneer.belt"    ): ("voxel.armor.buccaneer.buccaneer", 5),
     Simple("common.items.armor.buccaneer.pants"   ): ("voxel.armor.buccaneer.buccaneer", 6),
-    Simple("common.items.armor.buccaneer.shoulder"): ("voxel.armor.buccaneer.buccaneer", 7),
+    Simple("common.items.armor.buccaneer.chest"): ("voxel.armor.buccaneer.buccaneer", 7),
     //Pirate
     Simple("common.items.armor.pirate.head"    ): ("voxel.armor.pirate.pirate", 0),
     Simple("common.items.armor.pirate.back"    ): ("voxel.armor.pirate.pirate", 1),
