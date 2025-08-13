@@ -1404,6 +1404,7 @@ fn write_column<R: Rng>(
                             (SpriteKind::GrassBlueLong, 2.0),
                             (SpriteKind::Moonbell, 0.01),
                             (SpriteKind::SporeReed, 2.5),
+                            (SpriteKind::Sapphire, 0.02),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
@@ -1428,6 +1429,7 @@ fn write_column<R: Rng>(
                                 (SpriteKind::LanternPlant, 0.1),
                                 (SpriteKind::LanternFlower, 0.1),
                                 (SpriteKind::LushFlower, 0.2),
+                                (SpriteKind::Emerald, 0.06),
                             ]
                             .choose_weighted(rng, |(_, w)| *w)
                             .ok()
@@ -1459,6 +1461,7 @@ fn write_column<R: Rng>(
                                 (SpriteKind::LanternFlower, 0.3),
                                 (SpriteKind::LushFlower, 0.5),
                                 (SpriteKind::LushMushroom, 1.0),
+                                (SpriteKind::Emerald, 0.08),
                             ]
                             .choose_weighted(rng, |(_, w)| *w)
                             .ok()
@@ -1472,6 +1475,7 @@ fn write_column<R: Rng>(
                             (SpriteKind::DeadPlant, 1.5),
                             (SpriteKind::EnsnaringWeb, 0.5),
                             (SpriteKind::Mud, 0.025),
+                            (SpriteKind::Topaz, 0.033),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
@@ -1489,33 +1493,46 @@ fn write_column<R: Rng>(
                         .ok()
                         .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(3), biome.crystal * 0.005) {
-                        Some(SpriteKind::CrystalLow)
+                        [(SpriteKind::CrystalLow, 0.95), (SpriteKind::Amethyst, 0.05)]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(13), biome.fire * 0.0006) {
                         [
                             (SpriteKind::Pyrebloom, 0.3),
                             (SpriteKind::Bloodstone, 0.3),
                             (SpriteKind::Gold, 0.2),
+                            (SpriteKind::Ruby, 0.15),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()
                         .map(|(s, _)| *s)
                     } else if biome.icy > 0.5 && rand.chance(wpos2d.with_z(23), biome.icy * 0.005) {
-                        Some(SpriteKind::IceCrystal)
+                        [(SpriteKind::IceCrystal, 0.98), (SpriteKind::Diamond, 0.02)]
+                            .choose_weighted(rng, |(_, w)| *w)
+                            .ok()
+                            .map(|s| s.0)
                     } else if biome.icy > 0.5
                         && rand.chance(wpos2d.with_z(31), biome.icy * biome.mineral * 0.005)
                     {
-                        Some(SpriteKind::GlowIceCrystal)
+                        [
+                            (SpriteKind::GlowIceCrystal, 0.98),
+                            (SpriteKind::Diamond, 0.02),
+                        ]
+                        .choose_weighted(rng, |(_, w)| *w)
+                        .ok()
+                        .map(|s| s.0)
                     } else if rand.chance(wpos2d.with_z(5), 0.0015) {
                         [
-                            (Some(SpriteKind::VeloriteFrag), 0.3),
-                            (Some(SpriteKind::Velorite), 0.15),
-                            (Some(SpriteKind::Amethyst), 0.15),
-                            (Some(SpriteKind::Topaz), 0.15),
-                            (Some(SpriteKind::Diamond), 0.02),
-                            (Some(SpriteKind::Ruby), 0.05),
-                            (Some(SpriteKind::Emerald), 0.04),
-                            (Some(SpriteKind::Sapphire), 0.04),
-                            (None, 10.0),
+                            (Some(SpriteKind::VeloriteFrag), 0.23),
+                            (Some(SpriteKind::Velorite), 0.14),
+                            (Some(SpriteKind::Amethyst), 0.14),
+                            (Some(SpriteKind::Topaz), 0.14),
+                            (Some(SpriteKind::Sapphire), 0.14),
+                            (Some(SpriteKind::Diamond), 0.07),
+                            (Some(SpriteKind::Ruby), 0.07),
+                            (Some(SpriteKind::Emerald), 0.07),
+                            (None, 9.0),
                         ]
                         .choose_weighted(rng, |(_, w)| *w)
                         .ok()

@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         descriptor: "Amethyst",
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

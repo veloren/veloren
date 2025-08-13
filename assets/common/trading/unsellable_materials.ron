@@ -15,10 +15,9 @@
     (1.0, Item("common.items.mineral.ore.iron")),
 
     // High tier Gems
-    (0.1, Item("common.items.mineral.gem.diamond")),
-    (0.3, Item("common.items.mineral.gem.ruby")),
-    (0.35, Item("common.items.mineral.gem.emerald")),
-    (0.4, Item("common.items.mineral.gem.sapphire")),
+    (0.2, Item("common.items.mineral.gem.diamond")),
+    (0.2, Item("common.items.mineral.gem.ruby")),
+    (0.2, Item("common.items.mineral.gem.emerald")),
 
     // High tier woods
     (0.05, Item("common.items.log.eldwood")),

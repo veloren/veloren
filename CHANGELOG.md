@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airships now travel along routes of many docks rather than out and back between two docks.
 - Airship docking time is reduced from 90 to 60 seconds.
 - All hide lienage armor sets now have helmets.
+- Increased gem spawn rates in caves; each gem node has a specific biome in which they generate more frequently.
 
 ### Removed
 

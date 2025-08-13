@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         descriptor: "Topaz",
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )
