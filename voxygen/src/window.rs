@@ -234,7 +234,7 @@ impl Window {
         // Avoid cpal / winit OleInitialize conflict
         // See: https://github.com/rust-windowing/winit/pull/1524
         #[cfg(target_family = "windows")]
-        let attributes = winit::platform::windows::WindowBuilderExtWindows::with_drag_and_drop(
+        let attributes = winit::platform::windows::WindowAttributesExtWindows::with_drag_and_drop(
             attributes, false,
         );
 
