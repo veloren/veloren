@@ -14,7 +14,6 @@ use client::ClientInitStage;
 use common::assets::{self, AssetExt};
 use i18n::Localization;
 use iced::{Align, Column, Container, Length, Row, Space, Text, button};
-use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "singleplayer")]
 use server::{ServerInitStage, WorldCivStage, WorldGenerateStage, WorldSimStage};
@@ -95,7 +94,6 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
         controls: &ControlSettings,
-        key_layout: &Option<KeyLayout>,
     ) -> Element<Message> {
         // TODO: add built in support for animated images
         let frame_index = (time * self.loading_animation.speed_factor as f64)
@@ -106,10 +104,10 @@ impl Screen {
             ConnectionState::InProgress => {
                 let tip = if show_tip {
                     let key = |code| match controls.keybindings.get(&code) {
-                        Some(Some(key_mouse)) => key_mouse.display_string(key_layout),
+                        Some(Some(key_mouse)) => key_mouse.display_string(),
                         Some(None) => i18n.get_msg("main-unbound_key_tip").into_owned(),
                         None => match ControlSettings::default_binding(code) {
-                            Some(key_mouse) => key_mouse.display_string(key_layout),
+                            Some(key_mouse) => key_mouse.display_string(),
                             None => i18n.get_msg("main-unbound_key_tip").into_owned(),
                         },
                     };

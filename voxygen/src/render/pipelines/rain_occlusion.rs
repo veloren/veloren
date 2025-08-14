@@ -110,8 +110,9 @@ impl RainOcclusionFigurePipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[TerrainVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -145,6 +146,7 @@ impl RainOcclusionFigurePipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {
@@ -179,8 +181,9 @@ impl RainOcclusionPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[TerrainVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -214,6 +217,7 @@ impl RainOcclusionPipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {

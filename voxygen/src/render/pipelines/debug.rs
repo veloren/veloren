@@ -95,8 +95,9 @@ impl DebugPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[Vertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -130,7 +131,7 @@ impl DebugPipeline {
             },
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 targets: &[
                     Some(wgpu::ColorTargetState {
                         format,
@@ -143,8 +144,10 @@ impl DebugPipeline {
                         write_mask: wgpu::ColorWrites::empty(),
                     }),
                 ],
+                compilation_options: Default::default(),
             }),
             multiview: None,
+            cache: None,
         });
 
         Self {

@@ -56,8 +56,9 @@ impl SkyboxPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[Vertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -91,7 +92,7 @@ impl SkyboxPipeline {
             },
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 targets: &[
                     Some(wgpu::ColorTargetState {
                         format,
@@ -111,8 +112,10 @@ impl SkyboxPipeline {
                         write_mask: wgpu::ColorWrites::ALL,
                     }),
                 ],
+                compilation_options: Default::default(),
             }),
             multiview: None,
+            cache: None,
         });
 
         Self {

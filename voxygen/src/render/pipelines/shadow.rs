@@ -107,8 +107,9 @@ impl ShadowFigurePipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[TerrainVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -142,6 +143,7 @@ impl ShadowFigurePipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {
@@ -176,8 +178,9 @@ impl ShadowPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[TerrainVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -211,6 +214,7 @@ impl ShadowPipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {
@@ -247,8 +251,9 @@ impl PointShadowPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[TerrainVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -282,6 +287,7 @@ impl PointShadowPipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {
@@ -316,8 +322,9 @@ impl ShadowDebugPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[DebugVertex::desc()],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -351,6 +358,7 @@ impl ShadowDebugPipeline {
             },
             fragment: None,
             multiview: None,
+            cache: None,
         });
 
         Self {

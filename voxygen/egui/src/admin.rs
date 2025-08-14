@@ -1,6 +1,6 @@
 use crate::{AdminCommandState, EguiAction, EguiActions};
 use common::cmd::ServerChatCommand;
-use egui::{CollapsingHeader, Context, Resize, Slider, Ui, Vec2, Window, style::Margin};
+use egui::{CollapsingHeader, Context, Resize, Slider, Ui, Vec2, Window, epaint::Margin};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -69,7 +69,7 @@ fn draw_kits(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut Egui
 }
 
 fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
-    ui.spacing_mut().window_margin = Margin::same(10.0);
+    ui.spacing_mut().window_margin = Margin::same(10);
     Resize::default()
         .default_size([400.0, 200.0])
         .show(ui, |ui| {
@@ -77,7 +77,7 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
                 ui.add(
                     Slider::new(&mut state.give_item_qty, 1..=100000)
                         .logarithmic(true)
-                        .clamp_to_range(true)
+                        .clamping(egui::SliderClamping::Always)
                         .text("Qty"),
                 );
                 if ui.button("Give Items").clicked() {
@@ -108,7 +108,7 @@ fn draw_give_items(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mu
         });
 }
 fn draw_spawn_entities(ui: &mut Ui, state: &mut AdminCommandState, egui_actions: &mut EguiActions) {
-    ui.spacing_mut().window_margin = Margin::same(10.0);
+    ui.spacing_mut().window_margin = Margin::same(10);
     Resize::default()
         .default_size([400.0, 200.0])
         .show(ui, |ui| {
@@ -116,7 +116,7 @@ fn draw_spawn_entities(ui: &mut Ui, state: &mut AdminCommandState, egui_actions:
                 ui.add(
                     Slider::new(&mut state.spawn_entity_qty, 1..=49)
                         .logarithmic(true)
-                        .clamp_to_range(true)
+                        .clamping(egui::SliderClamping::Always)
                         .text("Qty"),
                 );
                 if ui.button("Spawn Entities").clicked() {

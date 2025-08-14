@@ -26,7 +26,7 @@ use i18n::Localization;
 
 use itertools::Itertools;
 use std::{iter::once, rc::Rc};
-use winit::monitor::VideoMode;
+use winit::monitor::VideoModeHandle;
 
 widget_ids! {
     struct Ids {
@@ -170,7 +170,7 @@ impl<'a> Video<'a> {
 pub struct State {
     ids: Ids,
     // Resolution, Bit Depth and Refresh Rate
-    video_modes: Vec<VideoMode>,
+    video_modes: Vec<VideoModeHandle>,
 }
 const FPS_CHOICES: [Fps; 17] = [
     Fps::Max(15),
@@ -1558,7 +1558,7 @@ impl Widget for Video<'_> {
         }
 
         // Bit Depth and Refresh Rate
-        let correct_res: Vec<&VideoMode> = state
+        let correct_res: Vec<&VideoModeHandle> = state
             .video_modes
             .iter()
             .filter(|mode| {

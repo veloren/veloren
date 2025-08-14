@@ -84,8 +84,9 @@ impl BlitPipeline {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: vs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 buffers: &[],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -104,14 +105,16 @@ impl BlitPipeline {
             },
             fragment: Some(wgpu::FragmentState {
                 module: fs_module,
-                entry_point: "main",
+                entry_point: Some("main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: surface_config.format,
                     blend: None,
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             multiview: None,
+            cache: None,
         });
 
         Self {

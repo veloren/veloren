@@ -404,8 +404,7 @@ impl<'a> Skillbar<'a> {
         text_background: widget::Id,
         text: widget::Id,
     ) {
-        let key_layout = &self.global_state.window.key_layout;
-        let key_desc = key_mouse.display_shortest(key_layout);
+        let key_desc = key_mouse.display_shortest();
 
         //Create shadow
         Text::new(&key_desc)
@@ -426,7 +425,6 @@ impl<'a> Skillbar<'a> {
 
     fn show_give_up_message(&self, state: &State, ui: &mut UiCell) {
         let localized_strings = self.localized_strings;
-        let key_layout = &self.global_state.window.key_layout;
         let hardcore = self.client.current::<Hardcore>().is_some();
 
         if let Some(key) = self
@@ -437,7 +435,7 @@ impl<'a> Skillbar<'a> {
         {
             let respawn_msg =
                 localized_strings.get_msg_ctx("hud-press_key_to_give_up", &i18n::fluent_args! {
-                    "key" => key.display_string(key_layout)
+                    "key" => key.display_string()
                 });
             let penalty_msg = if hardcore {
                 self.localized_strings
@@ -498,7 +496,6 @@ impl<'a> Skillbar<'a> {
 
     fn show_death_message(&self, state: &State, ui: &mut UiCell) {
         let localized_strings = self.localized_strings;
-        let key_layout = &self.global_state.window.key_layout;
         let hardcore = self.client.current::<Hardcore>().is_some();
 
         if let Some(key) = self
@@ -517,12 +514,12 @@ impl<'a> Skillbar<'a> {
                 localized_strings.get_msg_ctx(
                     "hud-press_key_to_return_to_char_menu",
                     &i18n::fluent_args! {
-                        "key" => key.display_string(key_layout)
+                        "key" => key.display_string()
                     },
                 )
             } else {
                 localized_strings.get_msg_ctx("hud-press_key_to_respawn", &i18n::fluent_args! {
-                    "key" => key.display_string(key_layout)
+                    "key" => key.display_string()
                 })
             };
             let penalty_msg = if hardcore {
@@ -1038,7 +1035,6 @@ impl<'a> Skillbar<'a> {
 
     fn show_slotbar(&mut self, state: &State, ui: &mut UiCell, slot_offset: f64) {
         let shortcuts = self.global_state.settings.interface.shortcut_numbers;
-        let key_layout = &self.global_state.window.key_layout;
 
         // TODO: avoid this
         let content_source = (
@@ -1202,7 +1198,7 @@ impl<'a> Skillbar<'a> {
                     let position_bg = entry.shortcut_position_bg;
                     let (id, id_bg) = entry.shortcut_widget_ids;
 
-                    let key_desc = key.display_shortest(key_layout);
+                    let key_desc = key.display_shortest();
                     // shortcut text
                     Text::new(&key_desc)
                         .position(position)

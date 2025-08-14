@@ -51,6 +51,7 @@ impl TakeScreenshot {
             label: Some("screenshot tex view"),
             format: Some(surface_config.format),
             dimension: Some(wgpu::TextureViewDimension::D2),
+            usage: None,
             aspect: wgpu::TextureAspect::All,
             base_mip_level: 0,
             mip_level_count: None,
@@ -60,7 +61,7 @@ impl TakeScreenshot {
 
         let bind_group = blit_layout.bind(device, &view, sampler);
 
-        let bytes_per_pixel = surface_config.format.block_size(None).unwrap();
+        let bytes_per_pixel = surface_config.format.block_copy_size(None).unwrap();
         let padded_bytes_per_row = padded_bytes_per_row(surface_config.width, bytes_per_pixel);
 
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -102,15 +103,15 @@ impl TakeScreenshot {
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
         // Copy image to a buffer
         encoder.copy_texture_to_buffer(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &self.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            wgpu::ImageCopyBuffer {
+            wgpu::TexelCopyBufferInfo {
                 buffer: &self.buffer,
-                layout: wgpu::ImageDataLayout {
+                layout: wgpu::TexelCopyBufferLayout {
                     offset: 0,
                     bytes_per_row: Some(padded_bytes_per_row),
                     rows_per_image: None,

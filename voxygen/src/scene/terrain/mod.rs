@@ -703,6 +703,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                         label: Some("Terrain atlas texture view"),
                         format: Some(fmt),
                         dimension: Some(wgpu::TextureViewDimension::D2),
+                        usage: None,
                         aspect: wgpu::TextureAspect::All,
                         base_mip_level: 0,
                         mip_level_count: None,

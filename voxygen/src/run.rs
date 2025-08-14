@@ -8,8 +8,12 @@ use crate::{
 use common_base::{prof_span, span};
 use std::{mem, time::Duration};
 use tracing::debug;
+use winit::event_loop::ActiveEventLoop;
 
-pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
+pub fn run(
+    mut global_state: GlobalState,
+    event_loop: EventLoop,
+) -> Result<(), winit::error::EventLoopError> {
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states.last_mut().map(|current_state| {
@@ -27,18 +31,19 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
     let mut poll_span = None;
     let mut event_span = None;
 
-    event_loop.run(move |event, _, control_flow| {
+    #[expect(deprecated)]
+    event_loop.run(move |event, event_loop| {
         // Continuously run loop since we handle sleeping
-        *control_flow = winit::event_loop::ControlFlow::Poll;
+        event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
 
         #[cfg(feature = "egui-ui")]
-        {
+        if let winit::event::Event::WindowEvent { event, .. } = &event {
             let enabled_for_current_state = states.last().is_some_and(|state| state.egui_enabled());
 
             // Only send events to the egui UI when it is being displayed.
             if enabled_for_current_state && global_state.settings.interface.egui_enabled() {
-                global_state.egui_state.platform.handle_event(&event);
-                if global_state.egui_state.platform.captures_event(&event) {
+                global_state.egui_state.platform.handle_event(event);
+                if global_state.egui_state.platform.captures_event(event) {
                     return;
                 }
             }
@@ -52,14 +57,13 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             event: winit::event::WindowEvent::Resized(_),
             ..
         }) {
+            let window = &mut global_state.window;
             // Get events for the ui.
-            if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
-                global_state.window.send_event(Event::Ui(event));
+            if let Some(event) = ui::Event::try_from(&event, window.window(), window.modifiers()) {
+                window.send_event(Event::Ui(event));
             }
             // iced ui events
-            // TODO: no clone
             if let winit::event::Event::WindowEvent { event, .. } = &event {
-                let window = &mut global_state.window;
                 if let Some(event) =
                     ui::ice::window_event(event, window.scale_factor(), window.modifiers())
                 {
@@ -74,11 +78,11 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                 prof_span!(span, "Process Events");
                 event_span = Some(span);
             },
-            winit::event::Event::MainEventsCleared => {
+            winit::event::Event::AboutToWait => {
                 event_span.take();
                 poll_span.take();
                 if polled_twice {
-                    handle_main_events_cleared(&mut states, control_flow, &mut global_state);
+                    handle_main_events_cleared(&mut states, event_loop, &mut global_state);
                 }
                 prof_span!(span, "Poll Winit");
                 poll_span = Some(span);
@@ -108,7 +112,7 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                 span!(_guard, "Handle DeviceEvent");
                 global_state.window.handle_device_event(event)
             },
-            winit::event::Event::LoopDestroyed => {
+            winit::event::Event::LoopExiting => {
                 // Save any unsaved changes to settings and profile
                 global_state
                     .settings
@@ -119,12 +123,12 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             },
             _ => {},
         }
-    });
+    })
 }
 
 fn handle_main_events_cleared(
     states: &mut Vec<Box<dyn PlayState>>,
-    control_flow: &mut winit::event_loop::ControlFlow,
+    event_loop: &ActiveEventLoop,
     global_state: &mut GlobalState,
 ) {
     span!(guard, "Handle MainEventsCleared");
@@ -198,7 +202,7 @@ fn handle_main_events_cleared(
     }
 
     if exit {
-        *control_flow = winit::event_loop::ControlFlow::Exit;
+        event_loop.exit();
     }
 
     let mut capped_fps = false;

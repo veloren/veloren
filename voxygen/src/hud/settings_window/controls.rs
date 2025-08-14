@@ -108,7 +108,6 @@ impl Widget for Controls<'_> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
-        let key_layout = &self.global_state.window.key_layout;
 
         Rectangle::fill_with(args.rect.dim(), color::TRANSPARENT)
             .xy(args.rect.xy())
@@ -388,8 +387,8 @@ impl Widget for Controls<'_> {
                         (
                             format!(
                                 "{} {}",
-                                key.display_string(key_layout),
-                                key.try_shortened(key_layout)
+                                key.display_string(),
+                                key.try_shortened()
                                     .map_or("".to_owned(), |short| format!("({})", short))
                             ),
                             if controls.has_conflicting_bindings(key) {

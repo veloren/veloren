@@ -153,7 +153,6 @@ impl Widget for Group<'_> {
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
         let localized_strings = self.localized_strings;
-        let key_layout = &self.global_state.window.key_layout;
         let buff_ani = ((self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8) + 0.5; //Animation timer
         let debug_on = self.global_state.settings.interface.toggle_debug;
         let offset = if debug_on { 270.0 } else { 0.0 };
@@ -848,7 +847,7 @@ impl Widget for Group<'_> {
                 .settings
                 .controls
                 .get_binding(GameInput::AcceptGroupInvite)
-                .map_or_else(|| "".into(), |key| key.display_string(key_layout));
+                .map_or_else(|| "".into(), |key| key.display_string());
             if Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
                 .bottom_left_with_margins_on(state.ids.bg, 15.0, 15.0)
@@ -873,7 +872,7 @@ impl Widget for Group<'_> {
                 .settings
                 .controls
                 .get_binding(GameInput::DeclineGroupInvite)
-                .map_or_else(|| "".into(), |key| key.display_string(key_layout));
+                .map_or_else(|| "".into(), |key| key.display_string());
             if Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
                 .bottom_right_with_margins_on(state.ids.bg, 15.0, 15.0)

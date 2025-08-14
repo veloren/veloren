@@ -266,8 +266,7 @@ impl Buttons<'_> {
         text_background: widget::Id,
         text: widget::Id,
     ) {
-        let key_layout = &self.global_state.window.key_layout;
-        let key_desc = key_mouse.display_shortest(key_layout);
+        let key_desc = key_mouse.display_shortest();
 
         //Create shadow
         Text::new(&key_desc)
