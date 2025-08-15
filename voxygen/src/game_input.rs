@@ -216,6 +216,12 @@ impl GameInput {
             GameInput::SpectateSpeedBoost => &[GameInput::Glide],
             GameInput::WallJump => &[GameInput::Mount, GameInput::Jump],
 
+            GameInput::SwimDown | GameInput::Sneak | GameInput::CancelClimb => &[GameInput::Roll],
+
+            GameInput::SpectateSpeedBoost => &[GameInput::Glide],
+
+            GameInput::SpectateViewpoint => &[GameInput::MapSetMarker],
+
             _ => &[],
         }
     }
