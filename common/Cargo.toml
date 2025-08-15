@@ -94,10 +94,7 @@ specs = { workspace = true, features = [
 
 [dev-dependencies]
 #bench
-criterion = { version = "0.5.1", default-features = false, features = [
-    "rayon",
-    "cargo_bench_support",
-] }
+criterion = { workspace = true }
 rand_chacha = { workspace = true }
 
 #test

@@ -23,4 +23,4 @@ tracing-subscriber = { version = "0.3.7", default-features = false, features = [
 # Tracy
 # NOTE: This must be kept in sync with the `profiling` version in `common/base`.
 # NOTE: `=` since the minor version of tracing-tracy bumped a major version of `tracy-client`
-tracing-tracy = { version = "=0.11.3", optional = true }
+tracing-tracy = { version = "=0.11.4", optional = true }
