@@ -135,7 +135,13 @@ impl<'a> System<'a> for Sys {
                         .extract_if(.., |action| match action {
                             ControlAction::StartInput { input: i, .. }
                             | ControlAction::CancelInput(i) => {
-                                matches!(i, InputKind::Jump | InputKind::WallJump | InputKind::Fly | InputKind::Roll)
+                                matches!(
+                                    i,
+                                    InputKind::Jump
+                                        | InputKind::WallJump
+                                        | InputKind::Fly
+                                        | InputKind::Roll
+                                )
                             },
                             _ => false,
                         })
@@ -261,7 +267,13 @@ impl<'a> System<'a> for Sys {
                     .extract_if(.., |action| match action {
                         ControlAction::StartInput { input: i, .. }
                         | ControlAction::CancelInput(i) => {
-                            matches!(i, InputKind::Jump | InputKind::WallJump | InputKind::Fly | InputKind::Roll)
+                            matches!(
+                                i,
+                                InputKind::Jump
+                                    | InputKind::WallJump
+                                    | InputKind::Fly
+                                    | InputKind::Roll
+                            )
                         },
                         _ => false,
                     })

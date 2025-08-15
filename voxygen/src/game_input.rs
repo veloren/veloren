@@ -198,7 +198,7 @@ impl GameInput {
             return bindings_a.contains(&b);
         }
 
-        return bindings_a.iter().any(|x| bindings_b.contains(x));
+        bindings_a.iter().any(|x| bindings_b.contains(x))
     }
 
     /// If two GameInputs are able to be bound at the same time, then they will
