@@ -74,7 +74,7 @@ use crate::{
     session::{
         interactable::{self, BlockInteraction, EntityInteraction},
         settings_change::{
-            Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
+            Audio, Chat as ChatChange, Interface as InterfaceChange, Inventory, SettingsChange,
         },
     },
     settings::chat::ChatFilter,
@@ -94,7 +94,7 @@ use common::{
         ability::{AuxiliaryAbility, Stance},
         fluid_dynamics,
         inventory::{
-            CollectFailedReason,
+            CollectFailedReason, InventorySortOrder,
             slot::{InvSlotId, Slot},
             trade_pricing::TradePricing,
         },
@@ -712,7 +712,7 @@ pub enum Event {
     },
     DropSlot(comp::slot::Slot),
     SplitDropSlot(comp::slot::Slot),
-    SortInventory,
+    SortInventory(InventorySortOrder),
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
     Ability(usize, bool),
@@ -3309,7 +3309,15 @@ impl Hud {
                             self.force_ungrab = true
                         };
                     },
-                    Some(bag::Event::SortInventory) => self.events.push(Event::SortInventory),
+                    Some(bag::Event::ChangeInventorySortOrder(sort_order)) => {
+                        self.events
+                            .push(Event::SettingsChange(SettingsChange::Inventory(
+                                Inventory::ChangeSortOrder(sort_order),
+                            )));
+                    },
+                    Some(bag::Event::SortInventory(sort_order)) => {
+                        self.events.push(Event::SortInventory(sort_order))
+                    },
                     Some(bag::Event::SwapEquippedWeapons) => {
                         self.events.push(Event::SwapEquippedWeapons)
                     },

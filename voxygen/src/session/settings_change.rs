@@ -15,6 +15,7 @@ use crate::{
     },
     window::{FullScreenSettings, Window},
 };
+use common::comp::inventory::InventorySortOrder;
 use i18n::{LanguageMetadata, LocalizationHandle};
 use std::rc::Rc;
 
@@ -165,6 +166,10 @@ pub enum Interface {
     ResetInterfaceSettings,
 }
 #[derive(Clone)]
+pub enum Inventory {
+    ChangeSortOrder(InventorySortOrder),
+}
+#[derive(Clone)]
 pub enum Language {
     ChangeLanguage(Box<LanguageMetadata>),
     ToggleSendToServer(bool),
@@ -200,6 +205,7 @@ pub enum SettingsChange {
     Gameplay(Gameplay),
     Graphics(Graphics),
     Interface(Interface),
+    Inventory(Inventory),
     Language(Language),
     Networking(Networking),
     Accessibility(Accessibility),
@@ -722,6 +728,11 @@ impl SettingsChange {
                         settings.interface.row_background_opacity = opacity;
                     },
                 }
+            },
+            SettingsChange::Inventory(inventory_change) => match inventory_change {
+                Inventory::ChangeSortOrder(sort_order) => {
+                    settings.inventory.sort_order = sort_order
+                },
             },
             SettingsChange::Language(language_change) => match language_change {
                 Language::ChangeLanguage(new_language) => {

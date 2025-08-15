@@ -13,6 +13,7 @@ pub mod gamepad;
 pub mod gameplay;
 pub mod graphics;
 pub mod interface;
+pub mod inventory;
 pub mod language;
 pub mod networking;
 
@@ -23,6 +24,7 @@ pub use gamepad::GamepadSettings;
 pub use gameplay::GameplaySettings;
 pub use graphics::{Fps, GraphicsSettings, get_fps};
 pub use interface::InterfaceSettings;
+pub use inventory::InventorySettings;
 pub use language::LanguageSettings;
 pub use networking::NetworkingSettings;
 
@@ -45,6 +47,7 @@ pub struct Settings {
     pub language: LanguageSettings,
     pub screenshots_path: PathBuf,
     pub controller: GamepadSettings,
+    pub inventory: InventorySettings,
 }
 
 impl Default for Settings {
@@ -80,6 +83,7 @@ impl Default for Settings {
             language: LanguageSettings::default(),
             screenshots_path,
             controller: GamepadSettings::default(),
+            inventory: InventorySettings::default(),
         }
     }
 }
