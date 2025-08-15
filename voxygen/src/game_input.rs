@@ -57,6 +57,8 @@ pub enum GameInput {
     MoveRight,
     #[strum(serialize = "gameinput-jump")]
     Jump,
+#[strum(serialize = "gameinput-walljump")]
+    WallJump,
     #[strum(serialize = "gameinput-sit")]
     Sit,
     #[strum(serialize = "gameinput-crawl")]

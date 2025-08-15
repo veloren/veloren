@@ -141,6 +141,7 @@ impl ControlSettings {
             GameInput::MoveBack => char("S"),
             GameInput::MoveRight => char("D"),
             GameInput::Jump => Key::Named(NamedKey::Space),
+            GameInput::WallJump => Key::Named(NamedKey::Space),
             GameInput::Sit => char("K"),
             GameInput::Crawl => Key::Named(NamedKey::ArrowDown),
             GameInput::Dance => char("J"),

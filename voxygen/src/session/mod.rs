@@ -523,6 +523,7 @@ impl SessionState {
                 | GameInput::MoveRight
                 | GameInput::MoveBack
                 | GameInput::Jump
+                | GameInput::WallJump
                 | GameInput::Roll
                 | GameInput::Sneak
                 | GameInput::AutoWalk
@@ -899,6 +900,15 @@ impl PlayState for SessionState {
                                 self.walking_speed = false;
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
+                                    state,
+                                    None,
+                                    self.target_entity,
+                                );
+                            },
+                            GameInput::WallJump => {
+                                self.walking_speed = false;
+                                self.client.borrow_mut().handle_input(
+                                    InputKind::WallJump,
                                     state,
                                     None,
                                     self.target_entity,

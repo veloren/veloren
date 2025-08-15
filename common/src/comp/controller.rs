@@ -222,6 +222,7 @@ pub enum InputKind {
     Roll = 4,
     Jump = 5,
     Fly = 6,
+    WallJump = 7,
 }
 
 impl InputKind {
@@ -242,7 +243,7 @@ impl From<InputKind> for Option<ability::AbilityInput> {
             InputKind::Secondary => Some(AbilityInput::Secondary),
             InputKind::Roll => Some(AbilityInput::Movement),
             InputKind::Ability(index) => Some(AbilityInput::Auxiliary(index)),
-            InputKind::Jump | InputKind::Fly => None,
+            InputKind::Jump | InputKind::WallJump | InputKind::Fly => None,
         }
     }
 }
