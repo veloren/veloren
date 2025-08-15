@@ -117,8 +117,8 @@ void main() {
         uvec2 col_sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
         #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
             nz = (vec2(
-                noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)).x,
-                noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01)).x
+                noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)),
+                noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01))
             ) - 0.5) * (dir.z < 0.0 ? color.a : 1.0);
 
             const float n2 = 1.3325;
