@@ -46,7 +46,6 @@ const DEFAULT_INVENTORY_SLOTS: usize = 18;
 /// NOTE: Do not add a PartialEq instance for Inventory; that's broken!
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Inventory {
-    next_sort_order: InventorySortOrder,
     loadout: Loadout,
     /// The "built-in" slots belonging to the inventory itself, all other slots
     /// are provided by equipped items
@@ -76,7 +75,7 @@ impl Error {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum InventorySortOrder {
     Name,
     Quality,
@@ -86,7 +85,7 @@ pub enum InventorySortOrder {
 }
 
 impl InventorySortOrder {
-    fn next(&self) -> InventorySortOrder {
+    pub fn next(&self) -> InventorySortOrder {
         match self {
             InventorySortOrder::Name => InventorySortOrder::Quality,
             InventorySortOrder::Quality => InventorySortOrder::Tag,
@@ -133,7 +132,6 @@ impl Inventory {
 
     pub fn with_loadout_humanoid(loadout: Loadout) -> Inventory {
         Inventory {
-            next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; DEFAULT_INVENTORY_SLOTS],
             overflow_items: Vec::new(),
@@ -143,7 +141,6 @@ impl Inventory {
 
     pub fn with_loadout_animal(loadout: Loadout) -> Inventory {
         Inventory {
-            next_sort_order: InventorySortOrder::Name,
             loadout,
             slots: vec![None; 1],
             overflow_items: Vec::new(),
@@ -232,10 +229,13 @@ impl Inventory {
     }
 
     /// Sorts the inventory using the next sort order
-    pub fn sort(&mut self) {
-        let sort_order = self.next_sort_order;
+    pub fn sort(&mut self, sort_order: InventorySortOrder) {
         let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
+        // always sort by name first to guarantee consistent result
+        // when reordering items manually and then sorting again
+        #[expect(deprecated)]
+        items.sort_by(|a, b| Ord::cmp(&a.name(), &b.name()));
         items.sort_by(|a, b| match sort_order {
             #[expect(deprecated)]
             InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
@@ -262,13 +262,7 @@ impl Inventory {
             "It is impossible for there to be insufficient inventory space when sorting the \
              inventory",
         );
-
-        self.next_sort_order = self.next_sort_order.next();
     }
-
-    /// Returns the sort order that will be used when Inventory::sort() is next
-    /// called
-    pub fn next_sort_order(&self) -> InventorySortOrder { self.next_sort_order }
 
     /// Same as [`push`], but if `slot` is empty it will put the item there.
     /// Stackables will first be merged into existing stacks even when a `slot`

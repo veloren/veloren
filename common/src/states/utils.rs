@@ -1237,8 +1237,11 @@ pub fn handle_manipulate_loadout(
             let inv_manip = InventoryManip::Drop(Slot::Equip(equip));
             output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
         },
-        InventoryAction::Sort => {
-            output_events.emit_server(InventoryManipEvent(data.entity, InventoryManip::Sort));
+        InventoryAction::Sort(sort_order) => {
+            output_events.emit_server(InventoryManipEvent(
+                data.entity,
+                InventoryManip::Sort(sort_order),
+            ));
         },
         InventoryAction::Use(slot @ Slot::Equip(_)) => {
             let inv_manip = InventoryManip::Use(slot);

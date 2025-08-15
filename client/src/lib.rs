@@ -24,7 +24,10 @@ use common::{
         controller::CraftEvent,
         gizmos::Gizmos,
         group,
-        inventory::item::{ItemKind, modular, tool},
+        inventory::{
+            InventorySortOrder,
+            item::{ItemKind, modular, tool},
+        },
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
@@ -1438,8 +1441,10 @@ impl Client {
         }
     }
 
-    pub fn sort_inventory(&mut self) {
-        self.control_action(ControlAction::InventoryAction(InventoryAction::Sort));
+    pub fn sort_inventory(&mut self, sort_order: InventorySortOrder) {
+        self.control_action(ControlAction::InventoryAction(InventoryAction::Sort(
+            sort_order,
+        )));
     }
 
     pub fn perform_trade_action(&mut self, action: TradeAction) {

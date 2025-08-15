@@ -2,6 +2,7 @@ use crate::{
     comp::{
         BuffKind, ability,
         inventory::{
+            InventorySortOrder,
             item::tool::ToolKind,
             slot::{EquipSlot, InvSlotId, Slot},
         },
@@ -25,7 +26,7 @@ pub enum InventoryEvent {
     SplitSwap(InvSlotId, InvSlotId),
     Drop(InvSlotId),
     SplitDrop(InvSlotId),
-    Sort,
+    Sort(InventorySortOrder),
     CraftRecipe {
         craft_event: CraftEvent,
         craft_sprite: Option<VolumePos>,
@@ -40,7 +41,7 @@ pub enum InventoryAction {
     Swap(EquipSlot, Slot),
     Drop(EquipSlot),
     Use(Slot),
-    Sort,
+    Sort(InventorySortOrder),
     Collect(Vec3<i32>),
     // TODO: Not actually inventory-related: refactor to allow sprite interaction without
     // inventory manipulation!
@@ -60,7 +61,7 @@ pub enum InventoryManip {
     SplitSwap(Slot, Slot),
     Drop(Slot),
     SplitDrop(Slot),
-    Sort,
+    Sort(InventorySortOrder),
     CraftRecipe {
         craft_event: CraftEvent,
         craft_sprite: Option<VolumePos>,
@@ -80,7 +81,7 @@ impl From<InventoryEvent> for InventoryManip {
             },
             InventoryEvent::Drop(inv) => Self::Drop(Slot::Inventory(inv)),
             InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
-            InventoryEvent::Sort => Self::Sort,
+            InventoryEvent::Sort(sort_order) => Self::Sort(sort_order),
             InventoryEvent::CraftRecipe {
                 craft_event,
                 craft_sprite,

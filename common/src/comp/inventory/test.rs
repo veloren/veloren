@@ -18,7 +18,6 @@ fn push_full() {
     let msm = &MaterialStatManifest::load().read();
     let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
-        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
@@ -40,7 +39,6 @@ fn push_all_full() {
     let msm = &MaterialStatManifest::load().read();
     let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
-        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
@@ -72,7 +70,6 @@ fn push_unique_all_full() {
     let msm = &MaterialStatManifest::load().read();
     let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
-        next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
             .iter()
             .map(|a| Some(a.duplicate(ability_map, msm)))
@@ -96,7 +93,6 @@ fn push_all_empty() {
     let msm = &MaterialStatManifest::load().read();
     let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
-        next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],
@@ -117,7 +113,6 @@ fn push_all_unique_empty() {
     let msm = &MaterialStatManifest::load().read();
     let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
-        next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
         loadout: LoadoutBuilder::empty().build(),
         overflow_items: vec![],

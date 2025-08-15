@@ -1154,8 +1154,8 @@ impl ServerEvent for InventoryManipEvent {
                         );
                     }
                 },
-                comp::InventoryManip::Sort => {
-                    inventory.sort();
+                comp::InventoryManip::Sort(sort_order) => {
+                    inventory.sort(sort_order);
                 },
                 comp::InventoryManip::SwapEquippedWeapons => {
                     inventory.swap_equipped_weapons(*data.time);
