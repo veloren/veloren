@@ -150,7 +150,7 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-criterion = { version = "0.5.1", default-features = false, features = [
+criterion = { version = "0.7", default-features = false, features = [
     "rayon",
     "cargo_bench_support",
 ] }

@@ -2,8 +2,8 @@ use common::{
     terrain::{Block, SpriteKind, TerrainGrid},
     vol::SampleVol,
 };
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use std::sync::Arc;
+use criterion::{Criterion, criterion_group, criterion_main};
+use std::{hint::black_box, sync::Arc};
 use vek::*;
 use veloren_voxygen::{mesh::terrain::generate_mesh, scene::terrain::BlocksOfInterest};
 use world::{World, sim};

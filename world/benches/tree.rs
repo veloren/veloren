@@ -1,4 +1,5 @@
-use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
+use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
+use std::hint::black_box;
 use veloren_world::layer::tree::{ProceduralTree, TreeConfig};
 
 fn tree(c: &mut Criterion) {
