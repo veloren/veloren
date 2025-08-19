@@ -885,6 +885,23 @@ impl AgentData<'_> {
         controller: &mut Controller,
         relaxed: bool,
     ) -> bool {
+        // If we already have a healing buff active, don't start another one.
+        if self.buffs.is_some_and(|buffs| {
+            buffs.iter_active().flatten().any(|buff| {
+                buff.kind.effects(&buff.data).iter().any(|effect| {
+                    if let comp::BuffEffect::HealthChangeOverTime { rate, .. } = effect
+                        && *rate > 0.0
+                    {
+                        true
+                    } else {
+                        false
+                    }
+                })
+            })
+        }) {
+            return false;
+        }
+
         // Wait for potion sickness to wear off if potions are less than 50% effective.
         let heal_multiplier = self.stats.map_or(1.0, |s| s.item_effect_reduction);
         if heal_multiplier < 0.5 {
