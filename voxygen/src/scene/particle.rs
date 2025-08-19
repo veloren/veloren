@@ -701,10 +701,13 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_armor_particles");
         let ecs = scene_data.state.ecs();
 
-        for (entity, interpolated, inv) in (
+        for (entity, interpolated, body, scale, inv, physics) in (
             &ecs.entities(),
             &ecs.read_storage::<Interpolated>(),
+            &ecs.read_storage::<Body>(),
+            ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Inventory>(),
+            &ecs.read_storage::<PhysicsState>(),
         )
             .join()
         {
@@ -716,6 +719,9 @@ impl ParticleMgr {
                             figure_mgr,
                             entity,
                             interpolated.pos,
+                            body,
+                            scale,
+                            physics,
                         )
                     }
                 }
@@ -729,59 +735,57 @@ impl ParticleMgr {
         figure_mgr: &FigureMgr,
         entity: Entity,
         pos: Vec3<f32>,
+        body: &Body,
+        scale: Option<&Scale>,
+        physics: &PhysicsState,
     ) {
         prof_span!("ParticleMgr::maintain_pipe_particles");
-        let Some((species, body_type)) = scene_data
-            .state
-            .ecs()
-            .read_storage::<Body>()
-            .get(entity)
-            .and_then(|body| {
-                if let Body::Humanoid(body) = body {
-                    Some((body.species, body.body_type))
-                } else {
-                    None
-                }
-            })
-        else {
-            return;
-        };
-        let Some(skeleton) = figure_mgr
-            .states
-            .character_states
-            .get(&entity)
-            .map(|state| &state.computed_skeleton)
-        else {
-            return;
-        };
-        let time = scene_data.state.get_time();
+        if physics
+            .in_liquid()
+            .is_none_or(|depth| body.eye_height(scale.map_or(1.0, |scale| scale.0)) > depth)
+        {
+            let Body::Humanoid(body) = body else {
+                return;
+            };
+            let Some(skeleton) = figure_mgr
+                .states
+                .character_states
+                .get(&entity)
+                .map(|state| &state.computed_skeleton)
+            else {
+                return;
+            };
+            let time = scene_data.state.get_time();
 
-        // TODO: compute offsets instead of hardcoding
-        use body::humanoid::{BodyType::*, Species::*};
-        let pipe_offset = match (species, body_type) {
-            (Orc, Male) => Vec3::new(5.5, 10.5, 0.0),
-            (Orc, Female) => Vec3::new(4.5, 10.0, -2.5),
-            (Human, Male) => Vec3::new(4.5, 12.0, -3.0),
-            (Human, Female) => Vec3::new(4.5, 11.5, -3.0),
-            (Elf, Male) => Vec3::new(4.5, 12.0, -3.0),
-            (Elf, Female) => Vec3::new(4.5, 9.5, -3.0),
-            (Dwarf, Male) => Vec3::new(4.5, 11.0, -4.0),
-            (Dwarf, Female) => Vec3::new(4.5, 11.0, -3.0),
-            (Draugr, Male) => Vec3::new(4.5, 9.5, -0.75),
-            (Draugr, Female) => Vec3::new(4.5, 9.5, -2.0),
-            (Danari, Male) => Vec3::new(4.5, 10.5, -1.25),
-            (Danari, Female) => Vec3::new(4.5, 10.5, -1.25),
-        };
+            // TODO: compute offsets instead of hardcoding
+            use body::humanoid::{BodyType::*, Species::*};
+            let pipe_offset = match (body.species, body.body_type) {
+                (Orc, Male) => Vec3::new(5.5, 10.5, 0.0),
+                (Orc, Female) => Vec3::new(4.5, 10.0, -2.5),
+                (Human, Male) => Vec3::new(4.5, 12.0, -3.0),
+                (Human, Female) => Vec3::new(4.5, 11.5, -3.0),
+                (Elf, Male) => Vec3::new(4.5, 12.0, -3.0),
+                (Elf, Female) => Vec3::new(4.5, 9.5, -3.0),
+                (Dwarf, Male) => Vec3::new(4.5, 11.0, -4.0),
+                (Dwarf, Female) => Vec3::new(4.5, 11.0, -3.0),
+                (Draugr, Male) => Vec3::new(4.5, 9.5, -0.75),
+                (Draugr, Female) => Vec3::new(4.5, 9.5, -2.0),
+                (Danari, Male) => Vec3::new(4.5, 10.5, -1.25),
+                (Danari, Female) => Vec3::new(4.5, 10.5, -1.25),
+            };
 
-        for _ in 0..self.scheduler.heartbeats(Duration::from_secs(6)) {
-            self.particles.resize_with(self.particles.len() + 10, || {
-                Particle::new(
-                    Duration::from_millis(1500),
-                    time,
-                    ParticleMode::PipeSmoke,
-                    pos + skeleton.head.mul_point(pipe_offset),
-                )
-            });
+            let mut rng = rand::thread_rng();
+            let dt = scene_data.state.get_delta_time();
+            if rng.gen_bool((0.16 * dt as f64).min(1.0)) {
+                self.particles.resize_with(self.particles.len() + 10, || {
+                    Particle::new(
+                        Duration::from_millis(1500),
+                        time,
+                        ParticleMode::PipeSmoke,
+                        pos + skeleton.head.mul_point(pipe_offset),
+                    )
+                });
+            }
         }
     }
 
