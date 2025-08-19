@@ -200,15 +200,13 @@ pub(super) fn targets_under_cursor(
         });
 
     let solid_ray_dist = solid_cam_ray.map(|r| r.0);
-    let terrain_target = if let (None, Some(distance)) = (entity_target, solid_ray_dist) {
-        solid_pos.map(|position| Target {
+    let terrain_target = solid_pos
+        .zip(solid_ray_dist)
+        .map(|(position, distance)| Target {
             kind: Terrain,
             distance,
             position,
-        })
-    } else {
-        None
-    };
+        });
 
     let build_target = if let (true, Some(distance)) = (can_build, solid_ray_dist) {
         place_block_pos

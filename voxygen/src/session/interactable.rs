@@ -189,6 +189,7 @@ pub(super) fn get_interactables(
     collect_target: Option<Target<target::Collectable>>,
     entity_target: Option<Target<target::Entity>>,
     mine_target: Option<Target<target::Mine>>,
+    terrain_target: Option<Target<target::Terrain>>,
     scene: &Scene,
 ) -> Result<HashMap<GameInput, (f32, Interactable)>, GetInteractablesError> {
     span!(_guard, "select_interactable");
@@ -458,6 +459,10 @@ pub(super) fn get_interactables(
                         (collect_target, volume_pos, interaction),
                         (Some(target), VolumePos { kind: Volume::Terrain, pos }, BlockInteraction::Collect { .. } | BlockInteraction::Unlock { .. })
                             if target.position_int() == *pos)
+                || matches!(
+                    (terrain_target, volume_pos),
+                    (Some(target), VolumePos { kind: Volume::Terrain, pos })
+                        if target.position_int() == *pos)
         },
         Interactable::Entity { entity, .. } => {
             entity_target.is_some_and(|target| target.kind.0 == *entity)
