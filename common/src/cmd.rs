@@ -184,6 +184,8 @@ lazy_static! {
             BuffKind::Heartseeker => "heartseeker",
             BuffKind::EagleEye => "eagle_eye",
             BuffKind::Chilled => "chilled",
+            BuffKind::ArdentHunter => "ardent_hunter",
+            BuffKind::ArdentHunted => "ardent_hunted",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

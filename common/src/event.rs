@@ -502,6 +502,9 @@ pub struct CreateSpriteEvent {
 pub struct EntityAttackedHookEvent {
     pub entity: EcsEntity,
     pub attacker: Option<EcsEntity>,
+    pub attack_dir: Dir,
+    pub damage_dealt: f32,
+    pub attack_source: AttackSource,
 }
 
 pub struct ChangeAbilityEvent {

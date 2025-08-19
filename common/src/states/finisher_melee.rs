@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
@@ -31,7 +31,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -79,7 +79,7 @@ impl CharacterBehavior for Data {
                         output_events,
                         self.static_data.minimum_combo,
                     );
-                    let mut melee_constructor = self.static_data.melee_constructor;
+                    let mut melee_constructor = self.static_data.melee_constructor.clone();
 
                     if let Some(scaling) = self.static_data.scaling {
                         let scaling_factor = scaling

@@ -405,7 +405,8 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::OwlTalon
         | BuffKind::HeavyNock
         | BuffKind::Heartseeker
-        | BuffKind::EagleEye => {
+        | BuffKind::EagleEye
+        | BuffKind::ArdentHunter => {
             tracing::error!("Player was killed by a positive buff!");
             "mysterious"
         },
@@ -420,7 +421,8 @@ fn get_buff_ident(buff: BuffKind) -> &'static str {
         | BuffKind::Winded
         | BuffKind::Amnesia
         | BuffKind::OffBalance
-        | BuffKind::Chilled => {
+        | BuffKind::Chilled
+        | BuffKind::ArdentHunted => {
             tracing::error!("Player was killed by a debuff that doesn't do damage!");
             "mysterious"
         },

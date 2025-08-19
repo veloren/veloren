@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     pub buildup_duration: Duration,
     pub buildup_melee_timing: f32,
@@ -33,7 +33,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     pub static_data: StaticData,
     pub timer: Duration,
@@ -65,10 +65,10 @@ impl CharacterBehavior for Data {
                             combat::compute_precision_mult(data.inventory, data.msm);
                         let tool_stats = get_tool_stats(data, self.static_data.ability_info);
 
-                        if let Some(melee) = self.static_data.melee {
+                        if let Some(melee) = &self.static_data.melee {
                             data.updater.insert(
                                 data.entity,
-                                melee.create_melee(
+                                melee.clone().create_melee(
                                     precision_mult,
                                     tool_stats,
                                     data.stats,
@@ -117,7 +117,7 @@ impl CharacterBehavior for Data {
                         let precision_mult =
                             combat::compute_precision_mult(data.inventory, data.msm);
 
-                        let projectile = self.static_data.projectile.create_projectile(
+                        let projectile = self.static_data.projectile.clone().create_projectile(
                             Some(*data.uid),
                             precision_mult,
                             data.stats,

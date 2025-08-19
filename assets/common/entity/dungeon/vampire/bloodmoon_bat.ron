@@ -7,6 +7,13 @@
     inventory: (
         loadout: FromBody,
     ),
-    death_effects: [Transform(entity_spec: "common.entity.dungeon.vampire.bloodmoon_heiress")],
+    death_effects: [
+        (
+            target: Target,
+            effect: Transform(entity_spec: "common.entity.dungeon.vampire.bloodmoon_heiress"),
+            requirements: [],
+            modifications: [],
+        ),
+    ],
     meta: [],
 )

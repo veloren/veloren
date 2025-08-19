@@ -14,7 +14,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
 pub struct StaticData {
     /// How much energy is drained per second when charging
@@ -86,8 +86,8 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             StageSection::Buildup => {
-                if let Some((buildup, strike)) = self.static_data.buildup_strike {
-                    if self.timer < buildup {
+                if let Some((buildup, strike)) = &self.static_data.buildup_strike {
+                    if self.timer < *buildup {
                         if let CharacterState::ChargedMelee(c) = &mut update.character {
                             c.timer = tick_attack_or_default(data, self.timer, None);
                         }
@@ -97,7 +97,7 @@ impl CharacterBehavior for Data {
                         let tool_stats = get_tool_stats(data, self.static_data.ability_info);
                         data.updater.insert(
                             data.entity,
-                            strike.create_melee(
+                            strike.clone().create_melee(
                                 precision_mult,
                                 tool_stats,
                                 data.stats,
@@ -125,11 +125,10 @@ impl CharacterBehavior for Data {
                     .min(1.0);
 
                     // Charge the attack
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        charge_amount: charge,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                        c.charge_amount = charge;
+                    }
 
                     // Consumes energy if there's enough left and RMB is held down
                     update
@@ -139,10 +138,9 @@ impl CharacterBehavior for Data {
                     && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Maintains charge
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and RMB is held down
                     update
@@ -150,13 +148,12 @@ impl CharacterBehavior for Data {
                         .change_by(-self.static_data.energy_drain * data.dt.0 / 5.0);
                 } else {
                     // Transitions to swing
-                    update.character = CharacterState::ChargedMelee(Data {
-                        stage_section: StageSection::Action,
-                        timer: Duration::default(),
-                        movement_modifier: self.static_data.movement_modifier.swing,
-                        ori_modifier: self.static_data.ori_modifier.swing,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.stage_section = StageSection::Action;
+                        c.timer = Duration::default();
+                        c.movement_modifier = self.static_data.movement_modifier.swing;
+                        c.ori_modifier = self.static_data.ori_modifier.swing;
+                    }
                 }
             },
             StageSection::Action => {
@@ -166,11 +163,10 @@ impl CharacterBehavior for Data {
                     && !self.exhausted
                 {
                     // Swing
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                        c.exhausted = true;
+                    }
 
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
@@ -191,6 +187,7 @@ impl CharacterBehavior for Data {
                         data.entity,
                         self.static_data
                             .melee_constructor
+                            .clone()
                             .custom_combo(custom_combo)
                             .handle_scaling(self.charge_amount)
                             .create_melee(
@@ -212,32 +209,29 @@ impl CharacterBehavior for Data {
                     }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to recover
-                    update.character = CharacterState::ChargedMelee(Data {
-                        stage_section: StageSection::Recover,
-                        timer: Duration::default(),
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.stage_section = StageSection::Recover;
+                        c.timer = Duration::default();
+                        c.movement_modifier = self.static_data.movement_modifier.recover;
+                        c.ori_modifier = self.static_data.ori_modifier.recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::ChargedMelee(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::ChargedMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_melee_ability(data, &mut update);

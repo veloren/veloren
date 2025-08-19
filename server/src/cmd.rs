@@ -25,8 +25,8 @@ use assets::{AssetExt, Ron};
 use authc::Uuid;
 use chrono::{DateTime, NaiveTime, Timelike, Utc};
 use common::{
-    CachedSpatialGrid, Damage, DamageKind, DamageSource, Explosion, GroupTarget, LoadoutBuilder,
-    RadiusEffect, assets,
+    CachedSpatialGrid, Damage, DamageKind, Explosion, GroupTarget, LoadoutBuilder, RadiusEffect,
+    assets,
     calendar::Calendar,
     cmd::{
         AreaKind, BUFF_PACK, BUFF_PARSER, EntityTarget, KIT_MANIFEST_PATH, KitSpec,
@@ -3807,7 +3807,6 @@ fn handle_explosion(
         explosion: Explosion {
             effects: vec![
                 RadiusEffect::Entity(Effect::Damage(Damage {
-                    source: DamageSource::Explosion,
                     kind: DamageKind::Energy,
                     value: 100.0 * power,
                 })),
@@ -4460,10 +4459,11 @@ fn handle_death_effect(
                 ));
             }
 
-            combat::DeathEffect::Transform {
+            let effect = combat::CombatEffect::Transform {
                 entity_spec: entity_config,
                 allow_players: true,
-            }
+            };
+            combat::StatEffect::new(combat::StatEffectTarget::Target, effect)
         },
         unknown_effect => {
             return Err(Content::localized_with_args(
@@ -5908,7 +5908,9 @@ fn build_buff(
             | BuffKind::HeavyNock
             | BuffKind::Heartseeker
             | BuffKind::EagleEye
-            | BuffKind::Chilled => {
+            | BuffKind::Chilled
+            | BuffKind::ArdentHunter
+            | BuffKind::ArdentHunted => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

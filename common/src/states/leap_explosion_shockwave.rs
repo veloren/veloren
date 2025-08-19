@@ -2,7 +2,7 @@ use crate::{
     Explosion, RadiusEffect,
     combat::{
         self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback,
+        DamageKind, GroupTarget, Knockback,
     },
     comp::{
         CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents,
@@ -20,7 +20,7 @@ use std::time::Duration;
 use vek::Vec3;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the state is moving
     pub movement_duration: Duration,
@@ -89,7 +89,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -115,17 +115,15 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 // Wait for `buildup_duration` to expire
                 if self.timer < self.static_data.buildup_duration {
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to leap portion of state after buildup delay
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Movement,
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Movement;
+                    }
                 }
             },
             StageSection::Movement => {
@@ -145,26 +143,23 @@ impl CharacterBehavior for Data {
                     // If we were to set a timeout for state, this would be
                     // outside if block and have else check for > movement
                     // duration * some multiplier
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else if data.physics.on_ground.is_some() | data.physics.in_liquid().is_some() {
                     // Transitions to swing portion of state upon hitting ground
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Explosion
                     let explosion_pos = if self.static_data.eye_height {
@@ -175,10 +170,9 @@ impl CharacterBehavior for Data {
                     };
 
                     let mut effects = vec![RadiusEffect::Attack {
-                        attack: Attack::default()
+                        attack: Attack::new(Some(self.static_data.ability_info))
                             .with_damage(AttackDamage::new(
                                 Damage {
-                                    source: DamageSource::Explosion,
                                     kind: DamageKind::Crushing,
                                     value: self.static_data.explosion_damage,
                                 },
@@ -234,18 +228,17 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let mut shockwave_damage = AttackDamage::new(
                         Damage {
-                            source: DamageSource::Shockwave,
                             kind: self.static_data.shockwave_damage_kind,
                             value: self.static_data.shockwave_damage,
                         },
                         Some(GroupTarget::OutOfGroup),
                         rand::random(),
                     );
-                    if let Some(effect) = self.static_data.shockwave_damage_effect {
-                        shockwave_damage = shockwave_damage.with_effect(effect);
+                    if let Some(effect) = &self.static_data.shockwave_damage_effect {
+                        shockwave_damage = shockwave_damage.with_effect(effect.clone());
                     }
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let shockwave_attack = Attack::default()
+                    let shockwave_attack = Attack::new(Some(self.static_data.ability_info))
                         .with_damage(shockwave_damage)
                         .with_precision(precision_mult)
                         .with_effect(shockwave_poise)
@@ -268,24 +261,22 @@ impl CharacterBehavior for Data {
                     });
 
                     // Transitions to recover
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::LeapExplosionShockwave(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::LeapExplosionShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

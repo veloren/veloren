@@ -3,7 +3,7 @@ SelfBuff(
     cast_duration: 0.1,
     recover_duration: 0.1,
     buffs: [
-        BuffDesc(kind: SnareShot, data: BuffData(strength: 1.0, duration: Some(5.0))),
+        BuffDesc(kind: SnareShot, data: BuffData(strength: 1.0, secondary_duration: Some(5.0))),
     ],
     buff_cat: Some(RemoveOnShoot),
     energy_cost: 10,

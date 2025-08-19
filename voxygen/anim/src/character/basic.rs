@@ -1710,6 +1710,13 @@ impl Animation for BasicAction {
             ) => {
                 bow_start(&mut next, s_a);
             },
+            Some("common.abilities.bow.ardent_hunt") => {
+                bow_start(&mut next, s_a);
+
+                next.foot_l.position += Vec3::new(0.0, 2.0, 0.0) * move1;
+                next.control.position += Vec3::new(6.0, 3.0, 5.0) * move1;
+                next.control.orientation.rotate_y(move1 * -1.0);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

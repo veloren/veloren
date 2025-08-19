@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use std::{error::Error, fmt};
 
-use crate::combat::{AttackEffect, CombatRequirement, DamagedEffect, DeathEffect};
+use crate::combat::{AttackEffect, AttackedModification, CombatRequirement, StatEffect};
 
 use super::Body;
 
@@ -95,12 +95,14 @@ pub struct Stats {
     pub mitigations_penetration: f32,
     pub energy_reward_modifier: f32,
     /// This creates effects when the entity is damaged
-    pub effects_on_damaged: Vec<DamagedEffect>,
+    pub effects_on_damaged: Vec<StatEffect>,
     /// This creates effects when the entity is killed
-    pub effects_on_death: Vec<DeathEffect>,
+    pub effects_on_death: Vec<StatEffect>,
     pub disable_auxiliary_abilities: bool,
     pub crowd_control_resistance: f32,
     pub item_effect_reduction: f32,
+    /// This modifies attacks that target this entity
+    pub attacked_modifications: Vec<AttackedModification>,
 }
 
 impl Stats {
@@ -131,6 +133,7 @@ impl Stats {
             disable_auxiliary_abilities: false,
             crowd_control_resistance: 0.0,
             item_effect_reduction: 1.0,
+            attacked_modifications: Vec::new(),
         }
     }
 

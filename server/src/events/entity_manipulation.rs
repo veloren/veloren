@@ -22,13 +22,13 @@ use common::{
     CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
     assets::{AssetExt, Ron},
     combat::{
-        self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, DamageContributor, DeathEffect,
-        DeathEffects,
+        self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, CombatEffect, CombatModification,
+        DamageContributor, DeathEffects, StatEffect, StatEffectTarget,
     },
     comp::{
         self, Alignment, Auras, BASE_ABILITY_LIMIT, Body, BuffCategory, BuffEffect, CharacterState,
-        Energy, Group, Hardcore, Health, Inventory, Object, PickupItem, Player, Poise, PoiseChange,
-        Pos, Presence, PresenceKind, ProjectileConstructor, SkillSet, Stats,
+        Energy, Group, Hardcore, Health, HealthChange, Inventory, Object, PickupItem, Player,
+        Poise, PoiseChange, Pos, Presence, PresenceKind, ProjectileConstructor, SkillSet, Stats,
         ability::Dodgeable,
         aura::{self, EnteredAuras},
         buff,
@@ -127,6 +127,7 @@ event_emitters! {
         change_body: ChangeBodyEvent,
         outcome: Outcome,
         stance: ChangeStanceEvent,
+        transform: TransformEvent,
     }
 
     struct ReadEntityAttackedHookEvents[EntityAttackedHookEmitters] {
@@ -134,12 +135,28 @@ event_emitters! {
         combo_change: ComboChangeEvent,
         knockback: KnockbackEvent,
         energy_change: EnergyChangeEvent,
+        transform: TransformEvent,
+        health_change: HealthChangeEvent,
+        poise_change: PoiseChangeEvent,
     }
 
     struct HealthChangeEvents[HealthChangeEmitters] {
         destroy: DestroyEvent,
         downed: DownedEvent,
         outcome: Outcome,
+    }
+
+    struct DestroyEvents[DestroyEmitters] {
+        chat: ChatEvent,
+        create_item_drop: CreateItemDropEvent,
+        delete: DeleteEvent,
+        buff: BuffEvent,
+        transform: TransformEvent,
+        energy_change: EnergyChangeEvent,
+        health_change: HealthChangeEvent,
+        combo_change: ComboChangeEvent,
+        poise_change: PoiseChangeEvent,
+        knockback: KnockbackEvent,
     }
 }
 
@@ -531,10 +548,6 @@ pub struct DestroyEventData<'a> {
     index: ReadExpect<'a, IndexOwned>,
     areas_container: Read<'a, AreasContainer<NoDurabilityArea>>,
     outcomes: Read<'a, EventBus<Outcome>>,
-    create_item_drop: Read<'a, EventBus<CreateItemDropEvent>>,
-    delete_event: Read<'a, EventBus<DeleteEvent>>,
-    transform_events: Read<'a, EventBus<TransformEvent>>,
-    chat_events: Read<'a, EventBus<ChatEvent>>,
     entities_died_last_tick: Write<'a, EntitiesDiedLastTick>,
     melees: WriteStorage<'a, comp::Melee>,
     beams: WriteStorage<'a, comp::Beam>,
@@ -561,8 +574,11 @@ pub struct DestroyEventData<'a> {
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     #[cfg(feature = "worldgen")]
     presences: ReadStorage<'a, Presence>,
-    buff_events: Read<'a, EventBus<BuffEvent>>,
     masses: ReadStorage<'a, comp::Mass>,
+    event_buses: DestroyEvents<'a>,
+    buffs: ReadStorage<'a, comp::Buffs>,
+    orientations: ReadStorage<'a, comp::Ori>,
+    combos: ReadStorage<'a, comp::Combo>,
 }
 
 /// Handle an entity dying. If it is a player, it will send a message to all
@@ -573,12 +589,9 @@ impl ServerEvent for DestroyEvent {
     type SystemData<'a> = DestroyEventData<'a>;
 
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
-        let mut chat_emitter = data.chat_events.emitter();
-        let mut create_item_drop = data.create_item_drop.emitter();
-        let mut delete_emitter = data.delete_event.emitter();
         let mut outcomes_emitter = data.outcomes.emitter();
-        let mut buff_emitter = data.buff_events.emitter();
-        let mut transform_emitter = data.transform_events.emitter();
+        let mut emitters = data.event_buses.get_emitters();
+        let mut rng = rand::rng();
         data.entities_died_last_tick.0.clear();
 
         for ev in events {
@@ -635,9 +648,21 @@ impl ServerEvent for DestroyEvent {
             // Handle any effects on death
             if let Some(killed_stats) = data.stats.get(ev.entity) {
                 let attacker_entity = ev.cause.by.and_then(|x| data.id_maps.uid_entity(x.uid()));
-                let killed_uid = data.uids.get(ev.entity);
-                let attacker_stats = attacker_entity.and_then(|e| data.stats.get(e));
-                let attacker_mass = attacker_entity.and_then(|e| data.masses.get(e));
+                let attacker_dir = attacker_entity
+                    .and_then(|a| data.positions.get(a))
+                    .map(|p| p.0)
+                    .zip(data.positions.get(ev.entity).map(|p| p.0))
+                    .and_then(|(pos_a, pos_t)| Dir::from_unnormalized(pos_a - pos_t))
+                    .unwrap_or_default();
+                let damage_dealt = ev.cause.amount.abs();
+                let attack_source = ev.cause.cause.and_then(|c| {
+                    if let DamageSource::Attack(attack) = c {
+                        Some(attack)
+                    } else {
+                        None
+                    }
+                });
+
                 let mut death_effects = data
                     .death_effects
                     .remove(ev.entity)
@@ -648,91 +673,329 @@ impl ServerEvent for DestroyEvent {
                     .iter()
                     .map(Cow::Borrowed)
                     .chain(death_effects.as_mut().map_or(
-                        &mut core::iter::empty() as &mut dyn Iterator<Item = Cow<DeathEffect>>,
-                        |death_effects| death_effects as &mut dyn Iterator<Item = Cow<DeathEffect>>,
+                        &mut core::iter::empty() as &mut dyn Iterator<Item = Cow<StatEffect>>,
+                        |death_effects| death_effects as &mut dyn Iterator<Item = Cow<StatEffect>>,
                     ))
                 {
-                    match effect.as_ref() {
-                        DeathEffect::AttackerBuff {
-                            kind,
-                            strength,
-                            duration,
-                        } => {
+                    let dir = match effect.target {
+                        StatEffectTarget::Target => -attacker_dir,
+                        StatEffectTarget::Attacker => attacker_dir,
+                    };
+
+                    let dmg_contrib = data.uids.get(ev.entity).map(|uid| {
+                        DamageContributor::new(*uid, data.groups.get(ev.entity).copied())
+                    });
+
+                    let effect_target = match effect.target {
+                        StatEffectTarget::Target => ev.entity,
+                        StatEffectTarget::Attacker => {
                             if let Some(attacker) = attacker_entity {
-                                let dest_info = buff::DestInfo {
-                                    stats: attacker_stats,
-                                    mass: attacker_mass,
-                                };
-                                buff_emitter.emit(BuffEvent {
-                                    entity: attacker,
-                                    buff_change: buff::BuffChange::Add(buff::Buff::new(
-                                        *kind,
-                                        buff::BuffData::new(*strength, *duration),
-                                        vec![],
-                                        if let Some(uid) = killed_uid {
-                                            BuffSource::Character { by: *uid }
-                                        } else {
-                                            BuffSource::World
-                                        },
-                                        *data.time,
-                                        dest_info,
-                                        data.masses.get(ev.entity),
-                                    )),
-                                });
+                                attacker
+                            } else {
+                                continue;
                             }
                         },
-                        DeathEffect::Transform {
-                            entity_spec,
-                            allow_players,
-                        } => {
-                            if data.clients.contains(ev.entity) && !allow_players {
-                                continue;
-                            }
+                    };
 
-                            let Some(killed_uid) = killed_uid.copied() else {
-                                warn!(
-                                    "Could not handle transform death effect for entity without \
-                                     Uid"
-                                );
+                    let requirements_met = effect.requirements().all(|req| {
+                        req.requirement_met(
+                            (
+                                data.healths.get(effect_target),
+                                data.buffs.get(effect_target),
+                                data.character_states.get(effect_target),
+                                data.orientations.get(effect_target),
+                            ),
+                            (
+                                Some(ev.entity),
+                                data.energies.get(ev.entity),
+                                data.combos.get(ev.entity),
+                            ),
+                            ev.cause.by.map(|x| x.uid()),
+                            damage_dealt,
+                            &mut emitters,
+                            dir,
+                            attack_source,
+                            None,
+                        )
+                    });
 
-                                continue;
-                            };
-
-                            transform_emitter.emit(TransformEvent {
-                                target_entity: killed_uid,
-                                entity_info: {
-                                    let Ok(entity_config) = Ron::<EntityConfig>::load(entity_spec)
-                                        .inspect_err(|error| {
-                                            error!(
-                                                ?entity_spec,
-                                                ?error,
-                                                "Could not load entity configuration for death \
-                                                 effect"
-                                            )
-                                        })
-                                    else {
-                                        continue;
-                                    };
-
-                                    EntityInfo::at(
-                                        data.positions
-                                            .get(ev.entity)
-                                            .map(|pos| pos.0)
-                                            .unwrap_or_default(),
-                                    )
-                                    .with_entity_config(
-                                        entity_config.read().clone().into_inner(),
-                                        Some(entity_spec),
-                                        &mut rand::rng(),
-                                        None,
-                                    )
+                    if requirements_met {
+                        let mut strength_modifier = 1.0;
+                        for modification in effect.modifications() {
+                            match modification {
+                                CombatModification::RangeWeakening {
+                                    start_dist,
+                                    end_dist,
+                                    min_str,
+                                } => {
+                                    if let Some((pos_a, pos_b)) = data
+                                        .positions
+                                        .get(effect_target)
+                                        .zip(data.positions.get(ev.entity))
+                                    {
+                                        let dist = pos_a.0.distance(pos_b.0);
+                                        let p =
+                                            (dist - start_dist) / (end_dist - start_dist).min(0.1);
+                                        let strength = (1.0 - p.clamp(0.0, 1.0))
+                                            * (1.0 - min_str.clamp(0.0, 1.0))
+                                            + min_str;
+                                        strength_modifier *= strength;
+                                    }
                                 },
-                                allow_players: *allow_players,
-                                delete_on_failure: true,
-                            });
+                            }
+                        }
+                        let strength_modifier = strength_modifier;
 
-                            should_delete = false;
-                        },
+                        match &effect.effect {
+                            CombatEffect::Knockback(kb) => {
+                                let char_state = data.character_states.get(effect_target);
+                                let impulse =
+                                    kb.calculate_impulse(dir, char_state) * strength_modifier;
+                                if !impulse.is_approx_zero() {
+                                    emitters.emit(KnockbackEvent {
+                                        entity: effect_target,
+                                        impulse,
+                                    });
+                                }
+                            },
+                            CombatEffect::EnergyReward(ec) => {
+                                emitters.emit(EnergyChangeEvent {
+                                    entity: effect_target,
+                                    change: ec
+                                        * combat::compute_energy_reward_mod(
+                                            data.inventories.get(effect_target),
+                                            &data.msm,
+                                        )
+                                        * strength_modifier
+                                        * data
+                                            .stats
+                                            .get(effect_target)
+                                            .map_or(1.0, |s| s.energy_reward_modifier),
+                                    reset_rate: false,
+                                });
+                            },
+                            CombatEffect::Buff(b) => {
+                                if rng.random::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Add(b.to_buff(
+                                            *data.time,
+                                            (
+                                                data.uids.get(ev.entity).copied(),
+                                                data.masses.get(ev.entity),
+                                            ),
+                                            (
+                                                data.stats.get(effect_target),
+                                                data.masses.get(effect_target),
+                                            ),
+                                            damage_dealt,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            },
+                            CombatEffect::Lifesteal(l) => {
+                                let change = HealthChange {
+                                    amount: damage_dealt * l * strength_modifier,
+                                    by: dmg_contrib,
+                                    cause: None,
+                                    time: *data.time,
+                                    precise: false,
+                                    instance: rand::random(),
+                                };
+                                if change.amount.abs() > Health::HEALTH_EPSILON {
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Poise(p) => {
+                                let change = -Poise::apply_poise_reduction(
+                                    *p,
+                                    data.inventories.get(effect_target),
+                                    &data.msm,
+                                    data.character_states.get(effect_target),
+                                    data.stats.get(effect_target),
+                                ) * strength_modifier
+                                    * data
+                                        .stats
+                                        .get(ev.entity)
+                                        .map_or(1.0, |s| s.poise_damage_modifier);
+                                if change.abs() > Poise::POISE_EPSILON {
+                                    let poise_change = PoiseChange {
+                                        amount: change,
+                                        impulse: *dir,
+                                        by: dmg_contrib,
+                                        cause: None,
+                                        time: *data.time,
+                                    };
+                                    emitters.emit(PoiseChangeEvent {
+                                        entity: effect_target,
+                                        change: poise_change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Heal(h) => {
+                                let change = HealthChange {
+                                    amount: *h * strength_modifier,
+                                    by: dmg_contrib,
+                                    cause: None,
+                                    time: *data.time,
+                                    precise: false,
+                                    instance: rand::random(),
+                                };
+                                if change.amount.abs() > Health::HEALTH_EPSILON {
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Combo(c) => {
+                                emitters.emit(ComboChangeEvent {
+                                    entity: effect_target,
+                                    change: (*c as f32 * strength_modifier).ceil() as i32,
+                                });
+                            },
+                            CombatEffect::StageVulnerable(damage, section) => {
+                                if data
+                                    .character_states
+                                    .get(effect_target)
+                                    .is_some_and(|cs| cs.stage_section() == Some(*section))
+                                {
+                                    let change = HealthChange {
+                                        amount: -damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::RefreshBuff(chance, b) => {
+                                if rng.random::<f32>() < *chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Refresh(*b),
+                                    });
+                                }
+                            },
+                            CombatEffect::BuffsVulnerable(damage, buff) => {
+                                if data
+                                    .buffs
+                                    .get(effect_target)
+                                    .is_some_and(|b| b.contains(*buff))
+                                {
+                                    let change = HealthChange {
+                                        amount: -damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::StunnedVulnerable(damage) => {
+                                if data
+                                    .character_states
+                                    .get(effect_target)
+                                    .is_some_and(|cs| cs.is_stunned())
+                                {
+                                    let change = HealthChange {
+                                        amount: -damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::SelfBuff(b) => {
+                                if rng.random::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Add(b.to_self_buff(
+                                            *data.time,
+                                            (
+                                                data.uids.get(effect_target).copied(),
+                                                data.stats.get(effect_target),
+                                                data.masses.get(effect_target),
+                                            ),
+                                            damage_dealt,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            },
+                            CombatEffect::Energy(e) => {
+                                emitters.emit(EnergyChangeEvent {
+                                    entity: effect_target,
+                                    change: *e * strength_modifier,
+                                    reset_rate: true,
+                                });
+                            },
+                            CombatEffect::Transform {
+                                entity_spec,
+                                allow_players,
+                            } => {
+                                if (data.players.get(effect_target).is_none() || *allow_players)
+                                    && let Some(tgt_uid) = data.uids.get(effect_target)
+                                {
+                                    if matches!(effect.target, StatEffectTarget::Target) {
+                                        should_delete = false;
+                                    }
+                                    emitters.emit(TransformEvent {
+                                        target_entity: *tgt_uid,
+                                        entity_info: {
+                                            let Ok(entity_config) = Ron::<EntityConfig>::load(
+                                                entity_spec,
+                                            )
+                                            .inspect_err(|error| {
+                                                error!(
+                                                    ?entity_spec,
+                                                    ?error,
+                                                    "Could not load entity configuration for \
+                                                     death effect"
+                                                )
+                                            }) else {
+                                                continue;
+                                            };
+
+                                            EntityInfo::at(
+                                                data.positions
+                                                    .get(effect_target)
+                                                    .map(|p| p.0)
+                                                    .unwrap_or_default(),
+                                            )
+                                            .with_entity_config(
+                                                entity_config.read().clone().into_inner(),
+                                                Some(entity_spec),
+                                                &mut rng,
+                                                None,
+                                            )
+                                        },
+                                        allow_players: *allow_players,
+                                        delete_on_failure: false,
+                                    });
+                                }
+                            },
+                        }
                     }
                 }
             }
@@ -744,16 +1007,19 @@ impl ServerEvent for DestroyEvent {
                 .get(ev.entity, &data.entities)
             {
                 let kill_source = match (ev.cause.cause, ev.cause.by.map(|x| x.uid())) {
-                    (Some(DamageSource::Melee), Some(by)) => get_attacker_name(KillType::Melee, by),
-                    (Some(DamageSource::Projectile), Some(by)) => {
+                    (Some(DamageSource::Attack(AttackSource::Melee)), Some(by)) => {
+                        get_attacker_name(KillType::Melee, by)
+                    },
+                    (Some(DamageSource::Attack(AttackSource::Projectile)), Some(by)) => {
                         get_attacker_name(KillType::Projectile, by)
                     },
-                    (Some(DamageSource::Explosion), Some(by)) => {
+                    (Some(DamageSource::Attack(AttackSource::Explosion)), Some(by)) => {
                         get_attacker_name(KillType::Explosion, by)
                     },
-                    (Some(DamageSource::Energy), Some(by)) => {
-                        get_attacker_name(KillType::Energy, by)
-                    },
+                    (
+                        Some(DamageSource::Attack(AttackSource::Beam | AttackSource::Arc)),
+                        Some(by),
+                    ) => get_attacker_name(KillType::Energy, by),
                     (Some(DamageSource::Buff(buff_kind)), by) => {
                         if let Some(by) = by {
                             get_attacker_name(KillType::Buff(buff_kind), by)
@@ -767,7 +1033,7 @@ impl ServerEvent for DestroyEvent {
                     _ => KillSource::Other,
                 };
 
-                chat_emitter.emit(ChatEvent {
+                emitters.emit(ChatEvent {
                     msg: comp::UnresolvedChatMsg::death(kill_source, *uid),
                     from_client: false,
                 });
@@ -1008,7 +1274,7 @@ impl ServerEvent for DestroyEvent {
                         let mut rng = rand::rng();
                         let mut spawn_item = |item, loot_owner| {
                             let offset = item_offset_spiral.next().unwrap_or_default();
-                            create_item_drop.emit(CreateItemDropEvent {
+                            emitters.emit(CreateItemDropEvent {
                                 pos: Pos(pos.0 + Vec3::unit_z() * 0.25 + offset),
                                 vel: vel.copied().unwrap_or(comp::Vel(Vec3::zero())),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
@@ -1107,7 +1373,7 @@ impl ServerEvent for DestroyEvent {
             }
 
             if should_delete {
-                delete_emitter.emit(DeleteEvent(ev.entity));
+                emitters.emit(DeleteEvent(ev.entity));
             }
         }
     }
@@ -1177,7 +1443,6 @@ impl ServerEvent for LandOnGroundEvent {
 
                 // Emit health change
                 let damage = Damage {
-                    source: DamageSource::Falling,
                     kind: DamageKind::Crushing,
                     value: falldmg,
                 };
@@ -1196,6 +1461,7 @@ impl ServerEvent for LandOnGroundEvent {
                     1.0,
                     *time,
                     rand::random(),
+                    DamageSource::Falling,
                 );
 
                 health_change_emitter.emit(HealthChangeEvent {
@@ -1721,6 +1987,7 @@ impl ServerEvent for ExplosionEvent {
                                     energy: data.energies.get(entity_b),
                                     buffs: data.buffs.get(entity_b),
                                     mass: data.masses.get(entity_b),
+                                    player: data.players.get(entity_b),
                                 };
 
                                 // Check if entity is dodging
@@ -1901,6 +2168,7 @@ pub fn emit_effect_events(
                 1.0,
                 time,
                 rand::random(),
+                DamageSource::Other,
             );
             emitters.emit(HealthChangeEvent { entity, change })
         },
@@ -2129,7 +2397,16 @@ impl ServerEvent for BuffEvent {
                         let immunity_by_buff = buffs
                             .buffs
                             .values_mut()
-                            .flat_map(|b| b.kind.effects(&b.data))
+                            .flat_map(|b| {
+                                b.kind.effects(
+                                    &b.data,
+                                    if let BuffSource::Character { by } = b.source {
+                                        Some(by)
+                                    } else {
+                                        None
+                                    },
+                                )
+                            })
                             .find(|b| match b {
                                 BuffEffect::BuffImmunity(kind) => new_buff.kind == *kind,
                                 _ => false,
@@ -2390,7 +2667,7 @@ impl ServerEvent for ParryHookEvent {
                         by: uids
                             .get(ev.defender)
                             .map(|d| DamageContributor::new(*d, None)),
-                        cause: Some(DamageSource::Melee),
+                        cause: Some(DamageSource::Attack(ev.source)),
                         time: *time,
                     },
                 });
@@ -2446,6 +2723,15 @@ pub struct EntityAttackedHookData<'a> {
     clients: ReadStorage<'a, Client>,
     stats: ReadStorage<'a, Stats>,
     healths: ReadStorage<'a, Health>,
+    inventories: ReadStorage<'a, Inventory>,
+    buffs: ReadStorage<'a, comp::Buffs>,
+    players: ReadStorage<'a, Player>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
+    masses: ReadStorage<'a, comp::Mass>,
+    groups: ReadStorage<'a, Group>,
+    orientations: ReadStorage<'a, comp::Ori>,
+    combos: ReadStorage<'a, comp::Combo>,
+    energies: ReadStorage<'a, comp::Energy>,
 }
 
 impl ServerEvent for EntityAttackedHookEvent {
@@ -2456,6 +2742,7 @@ impl ServerEvent for EntityAttackedHookEvent {
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
         let mut emitters = data.event_busses.get_emitters();
         let mut outcomes = data.outcomes.emitter();
+        let mut rng = rand::rng();
 
         for ev in events {
             if let Some(attacker) = ev.attacker {
@@ -2548,21 +2835,322 @@ impl ServerEvent for EntityAttackedHookEvent {
 
             if let Some(stats) = data.stats.get(ev.entity) {
                 for effect in &stats.effects_on_damaged {
-                    use combat::DamagedEffect;
-                    match effect {
-                        DamagedEffect::Combo(c) => {
-                            emitters.emit(ComboChangeEvent {
-                                entity: ev.entity,
-                                change: *c,
-                            });
+                    let effect_target = match effect.target {
+                        StatEffectTarget::Target => ev.entity,
+                        StatEffectTarget::Attacker => {
+                            if let Some(attacker) = ev.attacker {
+                                attacker
+                            } else {
+                                continue;
+                            }
                         },
-                        DamagedEffect::Energy(e) => {
-                            emitters.emit(EnergyChangeEvent {
-                                entity: ev.entity,
-                                change: *e,
-                                reset_rate: false,
-                            });
-                        },
+                    };
+
+                    let dir = match effect.target {
+                        StatEffectTarget::Target => ev.attack_dir,
+                        StatEffectTarget::Attacker => -ev.attack_dir,
+                    };
+
+                    let dmg_contrib = data.uids.get(ev.entity).map(|uid| {
+                        DamageContributor::new(*uid, data.groups.get(ev.entity).copied())
+                    });
+
+                    let requirements_met = effect.requirements().all(|req| {
+                        req.requirement_met(
+                            (
+                                data.healths.get(effect_target),
+                                data.buffs.get(effect_target),
+                                data.character_states.get(effect_target),
+                                data.orientations.get(effect_target),
+                            ),
+                            (
+                                Some(ev.entity),
+                                data.energies.get(ev.entity),
+                                data.combos.get(ev.entity),
+                            ),
+                            ev.attacker.and_then(|e| data.uids.get(e)).copied(),
+                            ev.damage_dealt,
+                            &mut emitters,
+                            dir,
+                            Some(ev.attack_source),
+                            None,
+                        )
+                    });
+
+                    if requirements_met {
+                        let mut strength_modifier = 1.0;
+                        for modification in effect.modifications() {
+                            match modification {
+                                CombatModification::RangeWeakening {
+                                    start_dist,
+                                    end_dist,
+                                    min_str,
+                                } => {
+                                    if let Some((pos_a, pos_b)) = data
+                                        .positions
+                                        .get(effect_target)
+                                        .zip(data.positions.get(ev.entity))
+                                    {
+                                        let dist = pos_a.0.distance(pos_b.0);
+                                        let p =
+                                            (dist - start_dist) / (end_dist - start_dist).min(0.1);
+                                        let strength = (1.0 - p.clamp(0.0, 1.0))
+                                            * (1.0 - min_str.clamp(0.0, 1.0))
+                                            + min_str;
+                                        strength_modifier *= strength;
+                                    }
+                                },
+                            }
+                        }
+                        let strength_modifier = strength_modifier;
+
+                        match &effect.effect {
+                            CombatEffect::Knockback(kb) => {
+                                let char_state = data.character_states.get(effect_target);
+                                let impulse =
+                                    kb.calculate_impulse(dir, char_state) * strength_modifier;
+                                if !impulse.is_approx_zero() {
+                                    emitters.emit(KnockbackEvent {
+                                        entity: effect_target,
+                                        impulse,
+                                    });
+                                }
+                            },
+                            CombatEffect::EnergyReward(ec) => {
+                                emitters.emit(EnergyChangeEvent {
+                                    entity: effect_target,
+                                    change: ec
+                                        * combat::compute_energy_reward_mod(
+                                            data.inventories.get(effect_target),
+                                            &data.msm,
+                                        )
+                                        * strength_modifier
+                                        * data
+                                            .stats
+                                            .get(effect_target)
+                                            .map_or(1.0, |s| s.energy_reward_modifier),
+                                    reset_rate: false,
+                                });
+                            },
+                            CombatEffect::Buff(b) => {
+                                if rng.random::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Add(b.to_buff(
+                                            *data.time,
+                                            (
+                                                data.uids.get(ev.entity).copied(),
+                                                data.masses.get(ev.entity),
+                                            ),
+                                            (
+                                                data.stats.get(effect_target),
+                                                data.masses.get(effect_target),
+                                            ),
+                                            ev.damage_dealt,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            },
+                            CombatEffect::Lifesteal(l) => {
+                                let change = HealthChange {
+                                    amount: ev.damage_dealt * l * strength_modifier,
+                                    by: dmg_contrib,
+                                    cause: None,
+                                    time: *data.time,
+                                    precise: false,
+                                    instance: rand::random(),
+                                };
+                                if change.amount.abs() > Health::HEALTH_EPSILON {
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Poise(p) => {
+                                let change = -Poise::apply_poise_reduction(
+                                    *p,
+                                    data.inventories.get(effect_target),
+                                    &data.msm,
+                                    data.character_states.get(effect_target),
+                                    data.stats.get(effect_target),
+                                ) * strength_modifier
+                                    * data
+                                        .stats
+                                        .get(ev.entity)
+                                        .map_or(1.0, |s| s.poise_damage_modifier);
+                                if change.abs() > Poise::POISE_EPSILON {
+                                    let poise_change = PoiseChange {
+                                        amount: change,
+                                        impulse: *dir,
+                                        by: dmg_contrib,
+                                        cause: None,
+                                        time: *data.time,
+                                    };
+                                    emitters.emit(PoiseChangeEvent {
+                                        entity: effect_target,
+                                        change: poise_change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Heal(h) => {
+                                let change = HealthChange {
+                                    amount: *h * strength_modifier,
+                                    by: dmg_contrib,
+                                    cause: None,
+                                    time: *data.time,
+                                    precise: false,
+                                    instance: rand::random(),
+                                };
+                                if change.amount.abs() > Health::HEALTH_EPSILON {
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::Combo(c) => {
+                                emitters.emit(ComboChangeEvent {
+                                    entity: effect_target,
+                                    change: (*c as f32 * strength_modifier).ceil() as i32,
+                                });
+                            },
+                            CombatEffect::StageVulnerable(damage, section) => {
+                                if data
+                                    .character_states
+                                    .get(effect_target)
+                                    .is_some_and(|cs| cs.stage_section() == Some(*section))
+                                {
+                                    let change = HealthChange {
+                                        amount: -ev.damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::RefreshBuff(chance, b) => {
+                                if rng.random::<f32>() < *chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Refresh(*b),
+                                    });
+                                }
+                            },
+                            CombatEffect::BuffsVulnerable(damage, buff) => {
+                                if data
+                                    .buffs
+                                    .get(effect_target)
+                                    .is_some_and(|b| b.contains(*buff))
+                                {
+                                    let change = HealthChange {
+                                        amount: -ev.damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::StunnedVulnerable(damage) => {
+                                if data
+                                    .character_states
+                                    .get(effect_target)
+                                    .is_some_and(|cs| cs.is_stunned())
+                                {
+                                    let change = HealthChange {
+                                        amount: -ev.damage_dealt * damage * strength_modifier,
+                                        by: dmg_contrib,
+                                        cause: Some(DamageSource::Other),
+                                        time: *data.time,
+                                        precise: false,
+                                        instance: rand::random(),
+                                    };
+                                    emitters.emit(HealthChangeEvent {
+                                        entity: effect_target,
+                                        change,
+                                    });
+                                }
+                            },
+                            CombatEffect::SelfBuff(b) => {
+                                if rng.random::<f32>() < b.chance {
+                                    emitters.emit(BuffEvent {
+                                        entity: effect_target,
+                                        buff_change: buff::BuffChange::Add(b.to_self_buff(
+                                            *data.time,
+                                            (
+                                                data.uids.get(effect_target).copied(),
+                                                data.stats.get(effect_target),
+                                                data.masses.get(effect_target),
+                                            ),
+                                            ev.damage_dealt,
+                                            strength_modifier,
+                                        )),
+                                    });
+                                }
+                            },
+                            CombatEffect::Energy(e) => {
+                                emitters.emit(EnergyChangeEvent {
+                                    entity: effect_target,
+                                    change: *e * strength_modifier,
+                                    reset_rate: true,
+                                });
+                            },
+                            CombatEffect::Transform {
+                                entity_spec,
+                                allow_players,
+                            } => {
+                                if (data.players.get(effect_target).is_none() || *allow_players)
+                                    && let Some(tgt_uid) = data.uids.get(effect_target)
+                                {
+                                    emitters.emit(TransformEvent {
+                                        target_entity: *tgt_uid,
+                                        entity_info: {
+                                            let Ok(entity_config) = Ron::<EntityConfig>::load(
+                                                entity_spec,
+                                            )
+                                            .inspect_err(|error| {
+                                                error!(
+                                                    ?entity_spec,
+                                                    ?error,
+                                                    "Could not load entity configuration for \
+                                                     death effect"
+                                                )
+                                            }) else {
+                                                continue;
+                                            };
+
+                                            EntityInfo::at(
+                                                data.positions
+                                                    .get(effect_target)
+                                                    .map(|p| p.0)
+                                                    .unwrap_or_default(),
+                                            )
+                                            .with_entity_config(
+                                                entity_config.read().clone().into_inner(),
+                                                Some(entity_spec),
+                                                &mut rng,
+                                                None,
+                                            )
+                                        },
+                                        allow_players: *allow_players,
+                                        delete_on_failure: false,
+                                    });
+                                }
+                            },
+                        }
                     }
                 }
             }

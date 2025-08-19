@@ -760,7 +760,7 @@ pub fn handle_summon_beam_pillars(server: &mut Server, ev: SummonBeamPillarsEven
                     radius: ev.radius,
                     height: ev.height,
                     damage: ev.damage,
-                    damage_effect: ev.damage_effect,
+                    damage_effect: ev.damage_effect.clone(),
                     dodgeable: ev.dodgeable,
                     tick_rate: ev.tick_rate,
                     specifier: ev.specifier,

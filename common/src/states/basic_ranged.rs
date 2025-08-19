@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How much buildup is required before the attack
     pub buildup_duration: Duration,
@@ -71,10 +71,9 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                     match self.static_data.projectile_body {
                         Body::Object(LaserBeam) => {
                             // Send local event used for frontend shenanigans
@@ -106,20 +105,19 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.movement_modifier = c.static_data.movement_modifier.recover;
+                        c.ori_modifier = c.static_data.ori_modifier.recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if !self.exhausted {
                     // Fire
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let projectile = self.static_data.projectile.create_projectile(
+                    let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
                         precision_mult,
                         data.stats,
@@ -170,20 +168,18 @@ impl CharacterBehavior for Data {
                         });
                     }
 
-                    update.character = CharacterState::BasicRanged(Data {
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     if input_is_pressed(data, self.static_data.ability_info.input) {

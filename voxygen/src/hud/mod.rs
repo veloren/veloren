@@ -5538,6 +5538,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::HeavyNock => imgs.buff_heavynock,
         BuffKind::Heartseeker => imgs.buff_heartseeker,
         BuffKind::EagleEye => imgs.buff_eagleeye,
+        BuffKind::ArdentHunter => imgs.buff_ardenthunter,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_cursed_0,
@@ -5556,6 +5557,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Amnesia => imgs.debuff_amnesia_0,
         BuffKind::OffBalance => imgs.debuff_offbalance_0,
         BuffKind::Chilled => imgs.debuff_chilled,
+        BuffKind::ArdentHunted => imgs.debuff_ardenthunted,
     }
 }
 

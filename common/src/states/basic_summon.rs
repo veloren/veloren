@@ -33,7 +33,7 @@ use std::{
 use vek::*;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the state builds up for
     pub buildup_duration: Duration,
@@ -51,7 +51,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -84,19 +84,17 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicSummon(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicSummon(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::BasicSummon(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        movement_modifier: self.static_data.movement_modifier.swing,
-                        ori_modifier: self.static_data.ori_modifier.swing,
-                        ..*self
-                    });
+                    if let CharacterState::BasicSummon(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                        c.movement_modifier = self.static_data.movement_modifier.swing;
+                        c.ori_modifier = self.static_data.ori_modifier.swing;
+                    }
                 }
             },
             StageSection::Action => {
@@ -106,7 +104,7 @@ impl CharacterBehavior for Data {
                     if self.timer
                         > self.static_data.cast_duration * self.summon_count / summon_amount
                     {
-                        match self.static_data.summon_info {
+                        match &self.static_data.summon_info {
                             SummonInfo::Npc {
                                 summoned_amount: _,
                                 summon_distance,
@@ -120,19 +118,19 @@ impl CharacterBehavior for Data {
                             } => {
                                 let loadout = {
                                     let loadout_builder =
-                                        LoadoutBuilder::empty().with_default_maintool(&body);
+                                        LoadoutBuilder::empty().with_default_maintool(body);
                                     // If preset is none, use default equipment
                                     if let Some(preset) = loadout_config {
-                                        loadout_builder.with_preset(preset).build()
+                                        loadout_builder.with_preset(*preset).build()
                                     } else {
-                                        loadout_builder.with_default_equipment(&body).build()
+                                        loadout_builder.with_default_equipment(body).build()
                                     }
                                 };
 
                                 let skill_set = {
                                     let skillset_builder = SkillSetBuilder::default();
                                     if let Some(preset) = skillset_config {
-                                        skillset_builder.with_preset(preset).build()
+                                        skillset_builder.with_preset(*preset).build()
                                     } else {
                                         skillset_builder.build()
                                     }
@@ -142,7 +140,7 @@ impl CharacterBehavior for Data {
                                     use_npc_name
                                         .then(|| {
                                             let all_names = NPC_NAMES.read();
-                                            all_names.get_default_name(&body)
+                                            all_names.get_default_name(body)
                                         })
                                         .flatten()
                                         .unwrap_or_else(|| {
@@ -151,17 +149,17 @@ impl CharacterBehavior for Data {
                                                 body.gender_attr(),
                                             )
                                         }),
-                                    body,
+                                    *body,
                                 );
 
-                                let health = has_health.then(|| comp::Health::new(body));
+                                let health = has_health.then(|| comp::Health::new(*body));
 
                                 // Ray cast to check where summon should happen
                                 let summon_frac = self.summon_count as f32 / summon_amount as f32;
 
                                 let length =
                                     rand::rng().random_range(summon_distance.0..=summon_distance.1);
-                                let extra_height = if body == Body::Object(FieryTornado) {
+                                let extra_height = if *body == Body::Object(FieryTornado) {
                                     15.0
                                 } else {
                                     0.0
@@ -225,14 +223,14 @@ impl CharacterBehavior for Data {
                                     ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                     npc: NpcBuilder::new(
                                         stats,
-                                        body,
+                                        *body,
                                         comp::Alignment::Owned(*data.uid),
                                     )
                                     .with_skill_set(skill_set)
                                     .with_health(health)
-                                    .with_inventory(comp::Inventory::with_loadout(loadout, body))
+                                    .with_inventory(comp::Inventory::with_loadout(loadout, *body))
                                     .with_agent(
-                                        comp::Agent::from_body(&body)
+                                        comp::Agent::from_body(body)
                                             .with_behavior(Behavior::from(
                                                 BehaviorCapability::SPEAK,
                                             ))
@@ -246,7 +244,7 @@ impl CharacterBehavior for Data {
                                 output_events.emit_local(LocalEvent::CreateOutcome(
                                     Outcome::SummonedCreature {
                                         pos: data.pos.0,
-                                        body,
+                                        body: *body,
                                     },
                                 ));
                             },
@@ -269,7 +267,7 @@ impl CharacterBehavior for Data {
                                         .and_then(|target_uid| data.id_maps.uid_entity(target_uid))
                                         .map(AttackTarget::Entity),
                                     BeamPillarTarget::AllInRange(range) => {
-                                        Some(AttackTarget::AllInRange(range))
+                                        Some(AttackTarget::AllInRange(*range))
                                     },
                                 };
 
@@ -277,17 +275,19 @@ impl CharacterBehavior for Data {
                                     output_events.emit_server(SummonBeamPillarsEvent {
                                         summoner: data.entity,
                                         target,
-                                        buildup_duration: Duration::from_secs_f32(buildup_duration),
-                                        attack_duration: Duration::from_secs_f32(attack_duration),
-                                        beam_duration: Duration::from_secs_f32(beam_duration),
-                                        radius,
-                                        height,
-                                        damage,
-                                        damage_effect,
-                                        dodgeable,
-                                        tick_rate,
-                                        specifier,
-                                        indicator_specifier,
+                                        buildup_duration: Duration::from_secs_f32(
+                                            *buildup_duration,
+                                        ),
+                                        attack_duration: Duration::from_secs_f32(*attack_duration),
+                                        beam_duration: Duration::from_secs_f32(*beam_duration),
+                                        radius: *radius,
+                                        height: *height,
+                                        damage: *damage,
+                                        damage_effect: damage_effect.clone(),
+                                        dodgeable: *dodgeable,
+                                        tick_rate: *tick_rate,
+                                        specifier: *specifier,
+                                        indicator_specifier: *indicator_specifier,
                                     });
                                 }
                             },
@@ -311,7 +311,7 @@ impl CharacterBehavior for Data {
                                     .to_horizontal()
                                     .angle_between(Ori::from(Dir::right()));
 
-                                let phi = TAU / pillar_count as f32;
+                                let phi = TAU / *pillar_count as f32;
 
                                 output_events.emit_server(SummonBeamPillarsEvent {
                                     summoner: data.entity,
@@ -326,17 +326,17 @@ impl CharacterBehavior for Data {
                                                     .sin()),
                                         data.pos.0.z,
                                     )),
-                                    buildup_duration: Duration::from_secs_f32(buildup_duration),
-                                    attack_duration: Duration::from_secs_f32(attack_duration),
-                                    beam_duration: Duration::from_secs_f32(beam_duration),
-                                    radius: pillar_radius,
-                                    height,
-                                    damage,
-                                    damage_effect,
-                                    dodgeable,
-                                    tick_rate,
-                                    specifier,
-                                    indicator_specifier,
+                                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                                    attack_duration: Duration::from_secs_f32(*attack_duration),
+                                    beam_duration: Duration::from_secs_f32(*beam_duration),
+                                    radius: *pillar_radius,
+                                    height: *height,
+                                    damage: *damage,
+                                    damage_effect: damage_effect.clone(),
+                                    dodgeable: *dodgeable,
+                                    tick_rate: *tick_rate,
+                                    specifier: *specifier,
+                                    indicator_specifier: *indicator_specifier,
                                 });
                             },
                             SummonInfo::Crux {
@@ -358,10 +358,10 @@ impl CharacterBehavior for Data {
                                         body: object::Body::Crux,
                                         object: Some(Object::Crux {
                                             owner: *data.uid,
-                                            scale,
-                                            range,
-                                            strength,
-                                            duration: Secs(duration),
+                                            scale: *scale,
+                                            range: *range,
+                                            strength: *strength,
+                                            duration: Secs(*duration),
                                             pid_controller: Some(PidController::new(
                                                 kp,
                                                 ki,
@@ -382,40 +382,36 @@ impl CharacterBehavior for Data {
                             },
                         }
 
-                        update.character = CharacterState::BasicSummon(Data {
-                            timer: tick_attack_or_default(data, self.timer, None),
-                            summon_count: self.summon_count + 1,
-                            ..*self
-                        });
+                        if let CharacterState::BasicSummon(c) = &mut update.character {
+                            c.timer = tick_attack_or_default(data, self.timer, None);
+                            c.summon_count = self.summon_count + 1;
+                        }
                     } else {
                         // Cast
-                        update.character = CharacterState::BasicSummon(Data {
-                            timer: tick_attack_or_default(data, self.timer, None),
-                            ..*self
-                        });
+                        if let CharacterState::BasicSummon(c) = &mut update.character {
+                            c.timer = tick_attack_or_default(data, self.timer, None);
+                        }
                     }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::BasicSummon(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                    if let CharacterState::BasicSummon(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.movement_modifier = self.static_data.movement_modifier.recover;
+                        c.ori_modifier = self.static_data.ori_modifier.recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
-                    update.character = CharacterState::BasicSummon(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::BasicSummon(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);
@@ -437,7 +433,7 @@ pub enum BeamPillarTarget {
     AllInRange(f32),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum SummonInfo {
     Npc {
         summoned_amount: u32,

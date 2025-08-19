@@ -1,5 +1,5 @@
 use common::{
-    Damage, DamageKind, DamageSource, Explosion, GroupTarget, RadiusEffect,
+    Damage, DamageKind, Explosion, GroupTarget, RadiusEffect,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         Alignment, Body, Buffs, CharacterState, Combo, Content, Energy, Group, Health, Inventory,
@@ -13,7 +13,7 @@ use common::{
         ArcEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt,
         Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent,
         HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent,
-        PossessEvent, ShootEvent, SoundEvent,
+        PossessEvent, ShootEvent, SoundEvent, TransformEvent,
     },
     event_emitters,
     outcome::Outcome,
@@ -52,6 +52,7 @@ event_emitters! {
         bonk: BonkEvent,
         possess: PossessEvent,
         arc: ArcEvent,
+        transform: TransformEvent,
     }
 }
 
@@ -395,7 +396,6 @@ impl<'a> System<'a> for Sys {
                             explosion: Explosion {
                                 effects: vec![
                                     RadiusEffect::Entity(effect::Effect::Damage(Damage {
-                                        source: DamageSource::Explosion,
                                         kind: DamageKind::Energy,
                                         value: 5.0,
                                     })),
@@ -496,6 +496,7 @@ fn dispatch_hit(
                 energy: read_data.energies.get(target),
                 buffs: read_data.buffs.get(target),
                 mass: read_data.masses.get(target),
+                player: read_data.players.get(target),
             };
 
             // TODO: Is it possible to have projectile without body??

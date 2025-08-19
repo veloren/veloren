@@ -15,7 +15,7 @@ use rand::{Rng, rng};
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::TAU, time::Duration};
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
 pub struct StaticData {
     /// How long we've readied the weapon
@@ -84,29 +84,26 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Buildup to attack
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transition to shoot
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
                 if self.timer < self.static_data.shoot_duration {
                     // Draw projectile
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: self
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = self
                             .timer
                             .checked_add(Duration::from_secs_f32(data.dt.0 * self.speed))
-                            .unwrap_or_default(),
-                        ..*self
-                    });
+                            .unwrap_or_default();
+                    }
                 } else if input_is_pressed(data, self.static_data.ability_info.input)
                     && update.energy.current() >= self.static_data.energy_cost
                     && self
@@ -140,7 +137,7 @@ impl CharacterBehavior for Data {
                         data.inputs.look_dir
                     };
 
-                    let projectile = self.static_data.projectile.create_projectile(
+                    let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
                         precision_mult,
                         data.stats,
@@ -174,32 +171,29 @@ impl CharacterBehavior for Data {
                         1.0
                     };
 
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: Duration::default(),
-                        speed: new_speed,
-                        projectiles_fired: self.projectiles_fired + 1,
-                        ..*self
-                    });
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.speed = new_speed;
+                        c.projectiles_fired = self.projectiles_fired + 1;
+                    }
                 } else {
                     // Transition to recover
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recover from attack
-                    update.character = CharacterState::RapidRanged(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::RapidRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

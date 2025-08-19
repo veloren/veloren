@@ -904,7 +904,7 @@ impl AgentData<'_> {
         // If we already have a healing buff active, don't start another one.
         if self.buffs.is_some_and(|buffs| {
             buffs.iter_active().flatten().any(|buff| {
-                buff.kind.effects(&buff.data).iter().any(|effect| {
+                buff.kind.effects(&buff.data, None).iter().any(|effect| {
                     if let comp::BuffEffect::HealthChangeOverTime { rate, .. } = effect
                         && *rate > 0.0
                     {
@@ -933,7 +933,9 @@ impl AgentData<'_> {
                 },
                 Effect::Buff(BuffEffect { kind, data, .. }) => {
                     if let Some(duration) = data.duration {
-                        for effect in kind.effects(data) {
+                        // We don't care about seeing the optional combat requirements that can be
+                        // tacked onto buff effects, so we'll just pass in None to this
+                        for effect in kind.effects(data, None) {
                             match effect {
                                 comp::BuffEffect::HealthChangeOverTime { rate, kind, .. } => {
                                     let amount = match kind {

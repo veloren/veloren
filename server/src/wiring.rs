@@ -188,7 +188,7 @@ impl WiringAction {
                             pos,
                             dir: Dir::forward(),
                             body: Body::Object(object::Body::Arrow),
-                            projectile: constr.create_projectile(
+                            projectile: constr.clone().create_projectile(
                                 None,
                                 1.0,
                                 &comp::Stats::empty(Body::Object(object::Body::Arrow)),

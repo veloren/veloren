@@ -350,6 +350,7 @@ image_ids! {
         bow_jolt_arrow: "voxygen.element.skills.bow.jolt_arrow",
         bow_lightning_arrow: "voxygen.element.skills.bow.lightning_arrow",
         bow_lightning_broadhead: "voxygen.element.skills.bow.lightning_broadhead",
+        bow_ardent_hunt: "voxygen.element.skills.bow.ardent_hunt",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
@@ -862,6 +863,7 @@ image_ids! {
         buff_heavynock: "voxygen.element.de_buffs.buff_heavynock",
         buff_heartseeker: "voxygen.element.de_buffs.buff_heartseeker",
         buff_eagleeye: "voxygen.element.de_buffs.buff_eagleeye",
+        buff_ardenthunter: "voxygen.element.de_buffs.buff_ardenthunter",
 
         // Debuffs
         debuff_cursed_0: "voxygen.element.de_buffs.debuff_cursed_0",
@@ -881,6 +883,7 @@ image_ids! {
         debuff_amnesia_0: "voxygen.element.de_buffs.debuff_amnesia_0",
         debuff_offbalance_0: "voxygen.element.de_buffs.debuff_offbalance_0",
         debuff_chilled: "voxygen.element.de_buffs.debuff_chilled",
+        debuff_ardenthunted: "voxygen.element.de_buffs.debuff_ardenthunted",
 
         // Animation Frames
         // Buff Frame

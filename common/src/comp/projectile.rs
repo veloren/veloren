@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
+        DamageKind, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
         self, ArcProperties,
@@ -74,7 +74,7 @@ impl Projectile {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectileConstructor {
     pub kind: ProjectileConstructorKind,
@@ -96,7 +96,7 @@ pub struct Scaled {
 
 fn default_true() -> bool { true }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProjectileAttack {
     pub damage: f32,
@@ -196,32 +196,25 @@ impl ProjectileConstructor {
 
             let buff = a.buff.map(CombatEffect::Buff);
 
-            let (damage_source, damage_kind) = match self.kind {
+            let damage_kind = match self.kind {
                 ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Hazard { .. } => {
-                    (DamageSource::Projectile, DamageKind::Piercing)
+                    DamageKind::Piercing
                 },
-                ProjectileConstructorKind::Blunt => {
-                    (DamageSource::Projectile, DamageKind::Crushing)
-                },
+                ProjectileConstructorKind::Blunt => DamageKind::Crushing,
                 ProjectileConstructorKind::Explosive { .. }
                 | ProjectileConstructorKind::ExplosiveHazard { .. }
-                | ProjectileConstructorKind::Firework(_) => {
-                    (DamageSource::Explosion, DamageKind::Energy)
-                },
+                | ProjectileConstructorKind::Firework(_) => DamageKind::Energy,
                 ProjectileConstructorKind::Possess
                 | ProjectileConstructorKind::SurpriseEgg
                 | ProjectileConstructorKind::TrainingDummy => {
                     dev_panic!("This should be unreachable");
-                    (DamageSource::Projectile, DamageKind::Piercing)
+                    DamageKind::Piercing
                 },
-                ProjectileConstructorKind::Arcing { .. } => {
-                    (DamageSource::Energy, DamageKind::Energy)
-                },
+                ProjectileConstructorKind::Arcing { .. } => DamageKind::Energy,
             };
 
             let mut damage = AttackDamage::new(
                 Damage {
-                    source: damage_source,
                     kind: damage_kind,
                     value: a.damage,
                 },
@@ -237,15 +230,11 @@ impl ProjectileConstructor {
                 damage = damage.with_effect(damage_effect);
             }
 
-            let mut attack = Attack::default()
+            let mut attack = Attack::new(ability_info)
                 .with_stat_adjustments(entity_stats)
                 .with_damage(damage)
                 .with_precision(precision_mult)
                 .with_blockable(a.blockable);
-
-            if let Some(ai) = ability_info {
-                attack = attack.with_ability_info(ai);
-            }
 
             if !a.without_combo {
                 attack = attack.with_combo_increment();
@@ -510,9 +499,10 @@ impl ProjectileConstructor {
                 }
                 if let Some(s_dmg_eff) = scaled.damage_effect {
                     if attack.damage_effect.is_some() {
-                        attack.damage_effect = attack
-                            .damage_effect
-                            .map(|dmg_eff| dmg_eff.apply_multiplier(scale_values(1.0, s_dmg_eff)));
+                        attack.damage_effect =
+                            attack.damage_effect.as_ref().cloned().map(|dmg_eff| {
+                                dmg_eff.apply_multiplier(scale_values(1.0, s_dmg_eff))
+                            });
                     } else {
                         dev_panic!(
                             "Attempted to scale damage effect on a projectile that doesn't have a \

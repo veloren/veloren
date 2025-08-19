@@ -197,6 +197,12 @@ buff-eagleeye = Eagle Eye
 ## Chilled
 buff-chilled = Chilled
     .desc = The intense cold makes you a little slower and leaves you more vulnerable to forceful attacks.
+## Ardent Hunter
+buff-ardenthunter = Ardent Hunter
+    .desc = Your fervor causes your energy and adrenaline to rise as you see your arrows strike the target.
+## Aredent Hunted
+buff-ardenthunted = Ardent Hunted
+    .desc = You have been marked as a target by a fervent archer, causing them to feel a rush of energy and adrenaline with each arrow that strikes you.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

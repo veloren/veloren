@@ -37,6 +37,7 @@ event_emitters! {
         entity_attack_hoow: event::EntityAttackedHookEvent,
         combo_change: event::ComboChangeEvent,
         buff: event::BuffEvent,
+        transform: event::TransformEvent,
     }
 }
 
@@ -258,6 +259,7 @@ impl<'a> System<'a> for Sys {
                                 energy: read_data.energies.get(target),
                                 buffs: read_data.buffs.get(target),
                                 mass: read_data.masses.get(target),
+                                player: read_data.players.get(target),
                             };
 
                             let target_dodging = match beam.dodgeable {

@@ -886,5 +886,8 @@ fn execute_effect(
         BuffEffect::ItemEffectReduction(ier) => {
             stat.item_effect_reduction *= 1.0 - ier;
         },
+        BuffEffect::AttackedModification(am) => {
+            stat.attacked_modifications.push(am.clone());
+        },
     };
 }

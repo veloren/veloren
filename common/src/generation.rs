@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 use crate::{
     assets::{self, AssetExt, Error, Ron},
     calendar::Calendar,
-    combat::{DeathEffect, DeathEffects, RiderEffects},
+    combat::{DeathEffects, RiderEffects, StatEffect},
     comp::{
         Alignment, Body, Item, agent, humanoid,
         inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
@@ -163,7 +163,7 @@ pub struct EntityConfig {
     pub scale: f32,
 
     #[serde(default)]
-    pub death_effects: Vec<DeathEffect>,
+    pub death_effects: Vec<StatEffect>,
 
     /// Meta Info for optional fields
     /// Possible fields:
@@ -761,15 +761,13 @@ pub mod tests {
     }
 
     #[cfg(test)]
-    fn validate_death_effects(effects: Vec<DeathEffect>, config_asset: &str) {
+    fn validate_death_effects(effects: Vec<StatEffect>, config_asset: &str) {
         for effect in effects {
-            match effect {
-                DeathEffect::AttackerBuff {
-                    kind: _,
-                    strength: _,
-                    duration: _,
-                } => {},
-                DeathEffect::Transform {
+            use crate::combat::CombatEffect;
+            match effect.effect {
+                // We only care about testing transform, since that is the only one that can be
+                // failable at runtime (since it references an asset file)
+                CombatEffect::Transform {
                     entity_spec,
                     allow_players: _,
                 } => {
@@ -780,6 +778,19 @@ pub mod tests {
                         );
                     }
                 },
+                CombatEffect::Heal(_)
+                | CombatEffect::Buff(_)
+                | CombatEffect::Knockback(_)
+                | CombatEffect::EnergyReward(_)
+                | CombatEffect::Lifesteal(_)
+                | CombatEffect::Poise(_)
+                | CombatEffect::Combo(_)
+                | CombatEffect::StageVulnerable(_, _)
+                | CombatEffect::RefreshBuff(_, _)
+                | CombatEffect::BuffsVulnerable(_, _)
+                | CombatEffect::StunnedVulnerable(_)
+                | CombatEffect::SelfBuff(_)
+                | CombatEffect::Energy(_) => {},
             }
         }
     }

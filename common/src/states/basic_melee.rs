@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
@@ -40,7 +40,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -69,19 +69,17 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        movement_modifier: self.static_data.movement_modifier.swing,
-                        ori_modifier: self.static_data.ori_modifier.swing,
-                        ..*self
-                    });
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                        c.movement_modifier = self.static_data.movement_modifier.swing;
+                        c.ori_modifier = self.static_data.ori_modifier.swing;
+                    }
                 }
             },
             StageSection::Action => {
@@ -90,11 +88,10 @@ impl CharacterBehavior for Data {
                         >= self.static_data.swing_duration.as_secs_f32()
                             * self.static_data.hit_timing
                 {
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                        c.exhausted = true;
+                    }
 
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let tool_stats = get_tool_stats(data, self.static_data.ability_info);
@@ -103,6 +100,7 @@ impl CharacterBehavior for Data {
                         data.entity,
                         self.static_data
                             .melee_constructor
+                            .clone()
                             .create_melee(
                                 precision_mult,
                                 tool_stats,
@@ -131,34 +129,31 @@ impl CharacterBehavior for Data {
                     }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.movement_modifier = self.static_data.movement_modifier.recover;
+                        c.ori_modifier = self.static_data.ori_modifier.recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
-                    update.character = CharacterState::BasicMelee(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::BasicMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                        );
+                        c.movement_modifier = self.static_data.movement_modifier.recover;
+                        c.ori_modifier = self.static_data.ori_modifier.recover;
+                    }
                 } else {
                     // Done
                     if input_is_pressed(data, self.static_data.ability_info.input) {

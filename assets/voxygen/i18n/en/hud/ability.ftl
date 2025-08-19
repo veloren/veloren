@@ -494,3 +494,5 @@ common-abilities-bow-lightning_arrow = Lightning Arrow
     .desc = Your arrow is guided with a magnetic force to a nearby target.
 common-abilities-bow-lightning_broadhead = Lightning Broadhead
     .desc = Your arrow is charged with electricity, which arcs to nearby targets after striking an enemy.
+common-abilities-bow-ardent_hunt = Ardent Hunt
+    .desc = Enter a fervor when focusing on a specific target, causing a rush of adrenaline and energy with every arrow that strikes true.

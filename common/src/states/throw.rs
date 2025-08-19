@@ -24,7 +24,7 @@ pub enum ProjectileDir {
 }
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the weapon needs to be prepared for
     pub buildup_duration: Duration,
@@ -96,17 +96,15 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::Throw(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::Throw(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Charge,
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Charge;
+                    }
                 }
             },
             StageSection::Charge => {
@@ -132,10 +130,13 @@ impl CharacterBehavior for Data {
                     };
 
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let projectile = if self.static_data.projectile.scaled.is_some() {
-                        self.static_data.projectile.handle_scaling(charge_frac)
-                    } else {
-                        self.static_data.projectile
+                    let projectile = {
+                        let projectile = self.static_data.projectile.clone();
+                        if self.static_data.projectile.scaled.is_some() {
+                            projectile.handle_scaling(charge_frac)
+                        } else {
+                            projectile
+                        }
                     };
                     let projectile = projectile.create_projectile(
                         Some(*data.uid),
@@ -159,20 +160,18 @@ impl CharacterBehavior for Data {
                     });
 
                     // Exhausts ability and transitions to action
-                    update.character = CharacterState::Throw(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.charge_duration
                     && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Charges
-                    update.character = CharacterState::Throw(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and input is held down
                     update
@@ -180,10 +179,9 @@ impl CharacterBehavior for Data {
                         .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
-                    update.character = CharacterState::Throw(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and RMB is held down
                     update
@@ -194,30 +192,27 @@ impl CharacterBehavior for Data {
             StageSection::Action => {
                 if self.timer < self.static_data.throw_duration {
                     // Throws
-                    update.character = CharacterState::Throw(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transition to recover
-                    update.character = CharacterState::Throw(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::Throw(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::Throw(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

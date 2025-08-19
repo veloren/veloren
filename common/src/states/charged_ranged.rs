@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the weapon needs to be prepared for
     pub buildup_duration: Duration,
@@ -78,17 +78,15 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Charge,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Charge;
+                    }
                 }
             },
             StageSection::Charge => {
@@ -104,6 +102,7 @@ impl CharacterBehavior for Data {
                     let projectile = self
                         .static_data
                         .projectile
+                        .clone()
                         .handle_scaling(charge_frac)
                         .create_projectile(
                             Some(*data.uid),
@@ -111,8 +110,6 @@ impl CharacterBehavior for Data {
                             data.stats,
                             Some(self.static_data.ability_info),
                         );
-
-                    dbg!(self.static_data.ability_info.input_attr);
 
                     let num_projectiles = self
                         .static_data
@@ -145,20 +142,18 @@ impl CharacterBehavior for Data {
                         });
                     }
 
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.charge_duration
                     && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Charges
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and input is held down
                     update
@@ -166,10 +161,9 @@ impl CharacterBehavior for Data {
                         .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and RMB is held down
                     update
@@ -180,14 +174,13 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

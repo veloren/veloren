@@ -432,6 +432,7 @@ impl CharacterState {
                 .static_data
                 .projectile
                 .attack
+                .as_ref()
                 .map(|projectile_attack| projectile_attack.blockable),
             CharacterState::DashMelee(data) => Some(data.static_data.melee_constructor.blockable),
             CharacterState::ComboMelee2(data) => data
@@ -444,18 +445,21 @@ impl CharacterState {
                 .static_data
                 .projectile
                 .attack
+                .as_ref()
                 .map(|projectile_attack| projectile_attack.blockable),
             CharacterState::ChargedMelee(data) => Some(
                 data.static_data.melee_constructor.blockable
                     && data
                         .static_data
                         .buildup_strike
+                        .as_ref()
                         .is_none_or(|(_, buildup_strike)| buildup_strike.blockable),
             ),
             CharacterState::RapidRanged(data) => data
                 .static_data
                 .projectile
                 .attack
+                .as_ref()
                 .map(|projectile_attack| projectile_attack.blockable),
             CharacterState::BasicBeam(data) => Some(data.static_data.blockable),
             CharacterState::FinisherMelee(data) => {
@@ -467,7 +471,7 @@ impl CharacterState {
             },
             CharacterState::RapidMelee(data) => Some(data.static_data.melee_constructor.blockable),
             CharacterState::LeapRanged(data) => Some(
-                if let Some(melee) = data.static_data.melee
+                if let Some(melee) = &data.static_data.melee
                     && data.stage_section == StageSection::Buildup
                 {
                     melee.blockable
@@ -475,6 +479,7 @@ impl CharacterState {
                     data.static_data
                         .projectile
                         .attack
+                        .as_ref()
                         .is_some_and(|a| a.blockable)
                 },
             ),
@@ -625,11 +630,11 @@ impl CharacterState {
     pub fn block_angle(&self) -> f32 {
         match self {
             CharacterState::BasicBlock(c) => c.static_data.max_angle.to_radians(),
-            CharacterState::ComboMelee2(c) => {
-                let strike_data =
-                    c.static_data.strikes[c.completed_strikes % c.static_data.strikes.len()];
-                strike_data.melee_constructor.angle.to_radians()
-            },
+            CharacterState::ComboMelee2(c) => c.static_data.strikes
+                [c.completed_strikes % c.static_data.strikes.len()]
+            .melee_constructor
+            .angle
+            .to_radians(),
             CharacterState::RiposteMelee(c) => c.static_data.melee_constructor.angle.to_radians(),
             // TODO: Add more here as needed, maybe look into having character state return the
             // melee constructor if it has one and using that?
@@ -1062,7 +1067,7 @@ impl CharacterState {
                 ..Default::default()
             }),
             CharacterState::ChargedMelee(data) => Some(DurationsInfo {
-                buildup: data.static_data.buildup_strike.map(|x| x.0),
+                buildup: data.static_data.buildup_strike.as_ref().map(|x| x.0),
                 action: Some(data.static_data.swing_duration),
                 recover: Some(data.static_data.recover_duration),
                 charge: Some(data.static_data.charge_duration),
