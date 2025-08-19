@@ -1075,17 +1075,20 @@ impl AgentData<'_> {
                         .loot_owners
                         .get(entity).is_none_or(|loot_owner| {
                             !(is_humanoid
-                                && loot_owner.is_soft()
-                                // If we are hostile towards the owner, ignore their wish to not pick up the loot
-                                && loot_owner
-                                    .uid()
-                                    .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
                                 && loot_owner.can_pickup(
                                     *self.uid,
                                     read_data.groups.get(entity),
                                     self.alignment,
                                     self.body,
                                     None,
+                                ) 
+                                &&
+                                (
+                                    !loot_owner.is_soft() ||
+                                    // If we are hostile towards the owner, ignore their wish to not pick up the loot
+                                    loot_owner
+                                        .uid()
+                                        .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
                                 )
                         });
 
