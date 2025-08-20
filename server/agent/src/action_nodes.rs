@@ -1081,9 +1081,8 @@ impl AgentData<'_> {
                                     self.alignment,
                                     self.body,
                                     None,
-                                ) 
-                                &&
-                                (
+                                )
+                                && (
                                     !loot_owner.is_soft() ||
                                     // If we are hostile towards the owner, ignore their wish to not pick up the loot
                                     loot_owner
