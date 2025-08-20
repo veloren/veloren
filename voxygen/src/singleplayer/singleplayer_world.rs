@@ -48,19 +48,17 @@ fn write_world_meta(world: &SingleplayerWorld) {
 
     if let Err(e) = fs::create_dir_all(path) {
         error!("Failed to create world folder: {e}");
+        return;
     }
 
-    match fs::File::create(path.join("meta.ron")) {
-        Ok(file) => {
-            if let Err(e) = ron::ser::to_writer_pretty(
-                file,
-                &version::Current::from_world(world),
-                ron::ser::PrettyConfig::new(),
-            ) {
-                error!("Failed to create world meta file: {e}")
-            }
-        },
-        Err(e) => error!("Failed to create world meta file: {e}"),
+    let settings = ron::ser::to_string_pretty(
+        &version::Current::from_world(world),
+        ron::ser::PrettyConfig::new(),
+    )
+    .unwrap();
+
+    if let Err(e) = fs::write(path.join("meta.ron"), settings.as_bytes()) {
+        error!("Failed to create world meta file: {e}")
     }
 }
 

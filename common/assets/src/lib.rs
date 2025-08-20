@@ -461,9 +461,9 @@ pub mod asset_tweak {
     //! Will hot-reload (if corresponded feature is enabled).
     // TODO: don't use the same ASSETS_PATH as game uses?
     use super::{ASSETS_PATH, AssetExt, FileAsset};
-    use ron::ser::{PrettyConfig, to_writer_pretty};
+    use ron::ser::PrettyConfig;
     use serde::{Deserialize, Serialize, de::DeserializeOwned};
-    use std::{fs, path::Path};
+    use std::{fs, io::Write, path::Path};
 
     /// Specifier to use with tweak functions in this module
     ///
@@ -554,11 +554,12 @@ pub mod asset_tweak {
         T: Sized + Send + Sync + 'static + DeserializeOwned + Serialize,
     {
         fs::create_dir_all(tweak_dir).expect("failed to create directory for tweak files");
-        let f = fs::File::create(tweak_dir.join(filename)).unwrap_or_else(|error| {
+        let mut f = fs::File::create(tweak_dir.join(filename)).unwrap_or_else(|error| {
             panic!("failed to create file {:?}. Error: {:?}", filename, error)
         });
         let tweaker = AssetTweakWrapper(&value);
-        if let Err(e) = to_writer_pretty(f, &tweaker, PrettyConfig::new()) {
+        let ser = ron::ser::to_string_pretty(&tweaker, PrettyConfig::new()).unwrap();
+        if let Err(e) = f.write_all(ser.as_bytes()) {
             panic!("failed to write to file {:?}. Error: {:?}", filename, e);
         }
 

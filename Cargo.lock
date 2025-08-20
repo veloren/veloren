@@ -324,7 +324,7 @@ dependencies = [
  "hashbrown 0.15.3",
  "log",
  "notify",
- "ron 0.11.0",
+ "ron",
  "serde",
  "serde_json",
  "sync_file",
@@ -5903,18 +5903,6 @@ checksum = "e5864e7ef1a6b7bcf1d6ca3f655e65e724ed3b52546a0d0a663c991522f552ea"
 
 [[package]]
 name = "ron"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b91f7eff05f748767f183df4320a63d6936e9c6107d97c9e6bdd9784f4289c94"
-dependencies = [
- "base64 0.21.7",
- "bitflags 2.9.0",
- "serde",
- "serde_derive",
-]
-
-[[package]]
-name = "ron"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db09040cc89e461f1a265139777a2bde7f8d8c67c4936f700c63ce3e2904d468"
@@ -7782,7 +7770,7 @@ dependencies = [
  "num 0.4.3",
  "quinn",
  "rayon",
- "ron 0.8.1",
+ "ron",
  "rustls",
  "rustyline",
  "serde",
@@ -7846,7 +7834,7 @@ dependencies = [
  "rand 0.9.1",
  "rand_chacha 0.9.0",
  "rayon",
- "ron 0.8.1",
+ "ron",
  "roots",
  "serde",
  "serde_json",
@@ -7875,7 +7863,7 @@ dependencies = [
  "hashbrown 0.15.3",
  "image",
  "lazy_static",
- "ron 0.8.1",
+ "ron",
  "serde",
  "tracing",
  "walkdir",
@@ -8110,7 +8098,7 @@ dependencies = [
  "rand 0.9.1",
  "rayon",
  "refinery",
- "ron 0.8.1",
+ "ron",
  "rusqlite",
  "rustls",
  "rustls-pemfile",
@@ -8170,7 +8158,7 @@ dependencies = [
  "prometheus",
  "rand 0.9.1",
  "ratatui",
- "ron 0.8.1",
+ "ron",
  "serde",
  "shell-words",
  "signal-hook",
@@ -8233,7 +8221,7 @@ dependencies = [
  "rand_chacha 0.9.0",
  "rayon",
  "regex",
- "ron 0.8.1",
+ "ron",
  "serde",
  "serde_with",
  "sha2",
@@ -8338,7 +8326,7 @@ dependencies = [
  "rand 0.9.1",
  "rand_chacha 0.9.0",
  "rayon",
- "ron 0.8.1",
+ "ron",
  "rstar",
  "rusqlite",
  "serde",
