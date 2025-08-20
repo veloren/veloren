@@ -45,33 +45,11 @@ layout(location = 1) out uvec4 tgt_mat;
 
 const float FADE_DIST = 32.0;
 
-bool dither(float a) {
-    if (a < 1.0 / 17.0) {
-        return true;
-    }
-    if (a > 16.0 / 17.0) {
-        return false;
-    }
-
-    float r0 = floor(hash_one(f_inst_idx) * 16.0);
-    vec2 r1 = vec2(floor(r0 * 0.25), mod(r0, 4.0));
-    uvec2 pos = uvec2(gl_FragCoord.xy + r1) % 4;
-
-    mat4 bayer = mat4(
-        16.0, 5.0, 13.0, 1.0,
-        8.0, 12.0, 3.0, 9.0,
-        14.0, 2.0, 15.0, 3.0,
-        6.0, 10.0, 7.0, 11.0
-    ) / 17.0;
-
-    return a < bayer[pos.x][pos.y];
-}
-
 void main() {
     float render_alpha = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
 
     #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-        if (dither(render_alpha)) {
+        if (dither(gl_FragCoord.xy, render_alpha, f_inst_idx)) {
             discard;
         }
     #endif
