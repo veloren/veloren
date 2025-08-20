@@ -573,4 +573,6 @@ pub enum ExperimentalShader {
     /// Disables optimizations when shaderc is processing shaders (has priority
     /// over `EnableShadercOptimization`).
     DisableShadercOptimization,
+    /// Switches some transparency rendering to use discarding.
+    DiscardTransparency,
 }

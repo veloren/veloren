@@ -2,6 +2,10 @@
 
 #include <constants.glsl>
 
+#ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+    #include <random.glsl>
+#endif
+
 #define LIGHTING_TYPE LIGHTING_TYPE_REFLECTION
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
@@ -25,6 +29,7 @@ layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
 layout(location = 4) in vec2 f_inst_light;
+layout(location = 5) flat in uint f_inst_idx;
 
 layout(set = 2, binding = 0)
 uniform texture2D t_col_light;
@@ -40,7 +45,37 @@ layout(location = 1) out uvec4 tgt_mat;
 
 const float FADE_DIST = 32.0;
 
+bool dither(float a) {
+    if (a < 1.0 / 17.0) {
+        return true;
+    }
+    if (a > 16.0 / 17.0) {
+        return false;
+    }
+
+    float r0 = floor(hash_one(f_inst_idx) * 16.0);
+    vec2 r1 = vec2(floor(r0 * 0.25), mod(r0, 4.0));
+    uvec2 pos = uvec2(gl_FragCoord.xy + r1) % 4;
+
+    mat4 bayer = mat4(
+        16.0, 5.0, 13.0, 1.0,
+        8.0, 12.0, 3.0, 9.0,
+        14.0, 2.0, 15.0, 3.0,
+        6.0, 10.0, 7.0, 11.0
+    ) / 17.0;
+
+    return a < bayer[pos.x][pos.y];
+}
+
 void main() {
+    float render_alpha = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
+
+    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+        if (dither(render_alpha)) {
+            discard;
+        }
+    #endif
+
     float f_ao;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
@@ -135,7 +170,12 @@ void main() {
 
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
-    tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
+    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+        tgt_color = vec4(surf_color, 1.0);
+    #else
+        tgt_color = vec4(surf_color, render_alpha);
+    #endif
+
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
     //tgt_color = vec4(-f_norm, 1.0);
 #endif
