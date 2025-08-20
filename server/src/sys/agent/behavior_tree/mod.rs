@@ -354,12 +354,18 @@ fn do_idle_tree(bdata: &mut BehaviorData) -> bool { BehaviorTree::idle().run(bda
 /// If target is dead, forget them
 fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
     if let Some(Target { target, .. }) = bdata.agent.target {
-        // If target is dead or no longer exists, forget them
+        // If target is dead or no longer exists, forget them. If the target is an item
+        // we don't expect it to have a health.
         if bdata
             .read_data
-            .healths
+            .bodies
             .get(target)
-            .is_none_or(|tgt_health| tgt_health.is_dead)
+            .is_none_or(|b| !matches!(b, Body::Item(_)))
+            && bdata
+                .read_data
+                .healths
+                .get(target)
+                .is_none_or(|tgt_health| tgt_health.is_dead)
         {
             /*
             if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
@@ -405,40 +411,37 @@ fn do_pet_tree_if_owned(bdata: &mut BehaviorData) -> bool {
 
 /// If the target is an ItemDrop, go pick it up
 fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
-    if let Some(Target { target, .. }) = bdata.agent.target {
-        if let Some(Body::Item(body)) = bdata.read_data.bodies.get(target) {
-            if !matches!(body, body::item::Body::Thrown(_)) {
-                if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
-                    let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
-                    if dist_sqrd < NPC_PICKUP_RANGE.powi(2) {
-                        if let Some(uid) = bdata.read_data.uids.get(target) {
-                            bdata.controller.push_event(ControlEvent::InventoryEvent(
-                                InventoryEvent::Pickup(*uid),
-                            ));
-                        }
-                        bdata.agent.target = None;
-                    } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
-                        &*bdata.read_data.terrain,
-                        bdata.agent_data.pos.0,
-                        bdata.agent_data.vel.0,
-                        tgt_pos.0,
-                        TraversalConfig {
-                            min_tgt_dist: NPC_PICKUP_RANGE - 1.0,
-                            ..bdata.agent_data.traversal_config
-                        },
-                    ) {
-                        bdata.controller.inputs.move_dir = bearing
-                            .xy()
-                            .try_normalized()
-                            .unwrap_or_else(Vec2::zero)
-                            * speed.min(0.2 + (dist_sqrd - (NPC_PICKUP_RANGE - 1.5).powi(2)) / 8.0);
-                        bdata.agent_data.jump_if(bearing.z > 1.5, bdata.controller);
-                        bdata.controller.inputs.move_z = bearing.z;
-                    }
+    if let Some(Target { target, .. }) = bdata.agent.target
+        && let Some(Body::Item(body)) = bdata.read_data.bodies.get(target)
+        && !matches!(body, body::item::Body::Thrown(_))
+    {
+        if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
+            let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
+            if dist_sqrd < NPC_PICKUP_RANGE.powi(2) {
+                if let Some(uid) = bdata.read_data.uids.get(target) {
+                    bdata
+                        .controller
+                        .push_event(ControlEvent::InventoryEvent(InventoryEvent::Pickup(*uid)));
                 }
-                return true;
+                bdata.agent.target = None;
+            } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
+                &*bdata.read_data.terrain,
+                bdata.agent_data.pos.0,
+                bdata.agent_data.vel.0,
+                tgt_pos.0,
+                TraversalConfig {
+                    min_tgt_dist: NPC_PICKUP_RANGE - 1.0,
+                    ..bdata.agent_data.traversal_config
+                },
+            ) {
+                bdata.controller.inputs.move_dir =
+                    bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                        * speed.min(0.2 + (dist_sqrd - (NPC_PICKUP_RANGE - 1.5).powi(2)) / 8.0);
+                bdata.agent_data.jump_if(bearing.z > 1.5, bdata.controller);
+                bdata.controller.inputs.move_z = bearing.z;
             }
         }
+        return true;
     }
     false
 }

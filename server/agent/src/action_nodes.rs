@@ -885,6 +885,23 @@ impl AgentData<'_> {
         controller: &mut Controller,
         relaxed: bool,
     ) -> bool {
+        // If we already have a healing buff active, don't start another one.
+        if self.buffs.is_some_and(|buffs| {
+            buffs.iter_active().flatten().any(|buff| {
+                buff.kind.effects(&buff.data).iter().any(|effect| {
+                    if let comp::BuffEffect::HealthChangeOverTime { rate, .. } = effect
+                        && *rate > 0.0
+                    {
+                        true
+                    } else {
+                        false
+                    }
+                })
+            })
+        }) {
+            return false;
+        }
+
         // Wait for potion sickness to wear off if potions are less than 50% effective.
         let heal_multiplier = self.stats.map_or(1.0, |s| s.item_effect_reduction);
         if heal_multiplier < 0.5 {
@@ -1058,17 +1075,19 @@ impl AgentData<'_> {
                         .loot_owners
                         .get(entity).is_none_or(|loot_owner| {
                             !(is_humanoid
-                                && loot_owner.is_soft()
-                                // If we are hostile towards the owner, ignore their wish to not pick up the loot
-                                && loot_owner
-                                    .uid()
-                                    .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
                                 && loot_owner.can_pickup(
                                     *self.uid,
                                     read_data.groups.get(entity),
                                     self.alignment,
                                     self.body,
                                     None,
+                                )
+                                && (
+                                    !loot_owner.is_soft() ||
+                                    // If we are hostile towards the owner, ignore their wish to not pick up the loot
+                                    loot_owner
+                                        .uid()
+                                        .and_then(|uid| read_data.id_maps.uid_entity(uid)).is_none_or(|entity| !is_enemy(self, entity, read_data)))
                                 )
                         });
 

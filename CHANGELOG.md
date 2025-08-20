@@ -135,6 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Map markers are kept between character selection screens.
 - Using "/clear" now works when chat is not shown.
 - A server crash when loading some myrmion arenas.
+- Fixed agents spamming healing items, causing them not to heal.
+- Fixed agents not picking up their items.
 
 ## [0.17.0] - 2024-12-28
 
