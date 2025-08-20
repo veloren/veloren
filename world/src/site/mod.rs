@@ -1851,14 +1851,10 @@ impl Site {
                 },
                 2 if airship_docks < 1 => {
                     // CliffTownAirshipDock
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    let size = 25u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::AirshipDock);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
-                        site.find_roadside_aabr(
-                            &mut rng,
-                            8..(size + 1).pow(2),
-                            Extent2::broadcast(size),
-                        )
+                        site.find_roadside_aabr(&mut rng, 625..626, Extent2::broadcast(size))
                     }) {
                         let cliff_town_airship_dock = plot::CliffTownAirshipDock::generate(
                             land,
@@ -2272,7 +2268,8 @@ impl Site {
             hard_alt: Some(desert_city_arena_alt),
         });
 
-        let build_chance = Lottery::from(vec![(20.0, 1), (10.0, 2), (5.0, 3), (10.0, 4), (0.0, 5)]);
+        let build_chance =
+            Lottery::from(vec![(20.0, 1), (10.0, 2), (15.0, 3), (10.0, 4), (0.0, 5)]);
 
         let mut temples = 0;
         let mut airship_docks = 0;
@@ -2391,6 +2388,8 @@ impl Site {
                         });
                         airship_docks += 1;
                         generator_stats.success(&site.name, GenStatPlotKind::AirshipDock);
+                    } else {
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
                     }
                 },
                 // cactus farm

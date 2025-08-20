@@ -129,11 +129,6 @@ void main() {
     emitted_light *= f_ao;
     reflected_light *= f_ao;
 
-    vec3 glow = vec3(0);
-    if ((f_flags & FLAG_GLOW) > 0u) {
-        glow += vec3(1, 0.7, 0.3) * 2;
-    }
-
     vec3 side_color = surf_color;
     vec3 top_color = surf_color;
     if ((f_flags & FLAG_SNOW_COVERED) > 0u && f_norm.z > 0.0) {
@@ -141,6 +136,11 @@ void main() {
         top_color = mix(top_color, surf_color * 0.3, 0.5 + f_norm.z * 0.5);
     }
     surf_color = mix(side_color, top_color, pow(fract(model_pos.z * 0.1), 2.0));
+
+    vec3 glow = vec3(0);
+    if ((f_flags & FLAG_GLOW) > 0u) {
+        glow += surf_color * vec3(1, 0.7, 0.3) * 4;
+    }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light + glow, surf_color * reflected_light);
 

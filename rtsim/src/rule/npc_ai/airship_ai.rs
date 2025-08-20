@@ -37,7 +37,7 @@ const NEXT_PILOT_MOVING_VELOCITY_AVERAGE_CAPACITY: usize = 5;
 const NEXT_PILOT_MOVING_VELOCITY_AVERAGE_MIN_SIZE: usize = 3;
 const NEXT_PILOT_MOVING_DIST_AVERAGE_CAPACITY: usize = 3;
 const NEXT_PILOT_MOVING_DIST_AVERAGE_MIN_SIZE: usize = 2;
-const NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD: usize = 5;
+const NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD_SQR: usize = 5 * 5;
 const NEXT_PILOT_VELOCITY_RATIO_MIN: f32 = 1.05;
 const NEXT_PILOT_SPACING_THRESHOLD_SQR: f32 = 0.6 * 0.6; // squared because distances are compared while squared;
 const CLOSE_AIRSHIP_SPEED_FACTOR: f32 = 0.9;
@@ -99,7 +99,7 @@ struct AirshipRouteContext {
     /// The moving average of the next pilot's distance from my current docking
     /// position target pos.
     next_pilot_dist_to_my_docking_pos_tracker:
-        DistanceTrendTracker<NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD>,
+        DistanceTrendTracker<NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD_SQR>,
     /// The current avoidance mode for the airship.
     avoid_mode: AirshipAvoidanceMode,
     /// Whether the airship had to hold during the last flight.
