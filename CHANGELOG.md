@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hired adventurers will now go to taverns in towns while the employer stays in the town.
 - New hide lineage armor set known as Serpentscale.
 - Added more varieties of house-building materials
+- New LoD models for all five AirshipDock plots.
 
 ### Changed
 
@@ -99,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airship docking time is reduced from 90 to 60 seconds.
 - All hide lienage armor sets now have helmets.
 - Increased gem spawn rates in caves; each gem node has a specific biome in which they generate more frequently.
+- Cliff town airship docks now have extra space around the dock to preclude taller cliff buildings from interferring.
 
 ### Removed
 
@@ -137,6 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A server crash when loading some myrmion arenas.
 - Fixed agents spamming healing items, causing them not to heal.
 - Fixed agents not picking up their items.
+- Fixed the issue where cliff town airship docks were sometimes missing.
 
 ## [0.17.0] - 2024-12-28
 

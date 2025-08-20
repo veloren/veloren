@@ -55,7 +55,7 @@ impl CliffTownAirshipDock {
         for s in 0..storeys {
             if s == (storeys - 1) {
                 for dir in CARDINALS {
-                    let docking_pos = center + dir * (platform_length + 7);
+                    let docking_pos = center + dir * (platform_length + 9);
                     docking_positions.push(docking_pos.with_z(platform_level + 1));
                 }
             }
@@ -119,8 +119,8 @@ impl Structure for CliffTownAirshipDock {
             plot_center.y as f32,
             (base + 1) as f32,
         );
-        let gradient_var_1 = RandomField::new(0).get(plot_center.with_z(base)) as i32 % 8;
-        let gradient_var_2 = RandomField::new(0).get(plot_center.with_z(base + 1)) as i32 % 10;
+        let gradient_var_1 = (RandomField::new(0).get(plot_center.with_z(base)) % 8) as i32;
+        let gradient_var_2 = (RandomField::new(0).get(plot_center.with_z(base + 1)) % 10) as i32;
 
         let brick = Fill::Gradient(
             util::gradient::Gradient::new(
@@ -143,7 +143,7 @@ impl Structure for CliffTownAirshipDock {
         let window2 = Fill::Block(Block::air(SpriteKind::WindowArabic).with_ori(2).unwrap());
         let rope = Fill::Block(Block::air(SpriteKind::Rope));
 
-        let tube_var = RandomField::new(0).get(plot_center.with_z(base)) as i32 % 6;
+        let tube_var = (RandomField::new(0).get(plot_center.with_z(base)) % 6) as i32;
         let radius = 10.0 + tube_var as f32;
         let tubes = 3.0 + tube_var as f32;
         let phi = TAU / tubes;
@@ -163,8 +163,10 @@ impl Structure for CliffTownAirshipDock {
             let platform_length = self.platform_length;
             let mut ground_entries = 0;
             for s in 0..storeys {
-                let x_offset = RandomField::new(0).get((center - length).with_z(base)) as i32 % 10;
-                let y_offset = RandomField::new(0).get((center + length).with_z(base)) as i32 % 10;
+                let x_offset =
+                    (RandomField::new(0).get((center - length).with_z(base)) % 10) as i32;
+                let y_offset =
+                    (RandomField::new(0).get((center + length).with_z(base)) % 10) as i32;
                 let super_center =
                     Vec2::new(center.x - 3 + x_offset / 2, center.y - 3 + y_offset / 2);
                 // CliffTower Hoodoo Overlay
@@ -181,7 +183,7 @@ impl Structure for CliffTownAirshipDock {
                     for dir in LOCALITY {
                         let cone_pos = super_center + (dir * 2);
                         let cone_var =
-                            4 + RandomField::new(0).get(cone_pos.with_z(base)) as i32 % 4;
+                            4 + (RandomField::new(0).get(cone_pos.with_z(base)) % 4) as i32;
                         painter
                             .cone_with_radius(
                                 cone_pos.with_z(floor_level + (2 * height) + 5),

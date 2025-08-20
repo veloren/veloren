@@ -138,6 +138,18 @@ impl Lod {
                     lod::ObjectKind::CoastalWorkshop,
                     make_lod_object("coastal_workshop", renderer),
                 ),
+                (
+                    lod::ObjectKind::CoastalAirshipDock,
+                    make_lod_object("coastal_airship_dock", renderer),
+                ),
+                (
+                    lod::ObjectKind::DesertCityAirshipDock,
+                    make_lod_object("desert_city_airship_dock", renderer),
+                ),
+                (
+                    lod::ObjectKind::CliffTownAirshipDock,
+                    make_lod_object("cliff_town_airship_dock", renderer),
+                ),
             ]
             .into(),
         }
@@ -301,6 +313,57 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
         .collect()
 }
 
+/// Create LoD objects from an .obj asset file.
+///
+/// ### Object Colors
+///
+/// In the .obj LoD files, objects can have a specific color by setting the name
+/// of the object to the format "r_g_b" where the values are u8 integers. E.g.
+/// the line "o 1_0_0" would set the color of that object to red. Note that the
+/// leading 'o' is part of the Wavefront .obj file format (o means 'object').
+/// The object name follows the 'o'.
+///
+/// If the name of the object is 'InstCol', that means to use the instance
+/// color, i.e., the color from the worldgen lod::Object. The get_lod_zone()
+/// function creates lod::Object instances with a color field (usually black)
+/// that is the 'instance' color.  For example, City plots have houses
+/// with varying roof colors, and the house lod::Object that is the roof uses
+/// the instance color because it's name is set to InstCol.
+///
+/// These two choices, setting a specific color for an object by using the
+/// "r_g_b" format, or setting the name to 'InstCol' and using the instance
+/// color are mutually exclusive.
+///
+/// ### Glow
+///
+/// A glow effect can also be applied to the LoD object by using the "Glow" flag
+/// in the object name. If the name of an object includes 'Glow', the object
+/// will have a glowing effect. For example, the name 240_0_0_Glow would set the
+/// color to red and apply a glow effect. 'Glow' by itself means to apply a glow
+/// effect to the object using the default color seen below (127, 127, 127). The
+/// lod-object-frag shader applies a glow color that is tinted by the fragment
+/// surface color.
+///
+/// > **Note:** The keyword Glow is case-sensitive.
+///
+/// ### Backwards Compatibility
+///
+/// Previous versions of this function expected the object name to either be
+/// InstCol, Glow, or a color format. So, Glow, InstCol, and 255_0_0 were valid
+/// object names. This scheme continues to work, with the added functionality of
+/// being able to specify a color and the glow effect together.
+///
+/// ### Examples (without the leading "o"):
+///
+/// - `Glow` Apply a glow effect with the default glow color (light orange).
+/// - `255_0_0_Glow` The object will be a glowing red.
+/// - `255_255_0` The object will be yellow.
+/// - `This is an object` The object color will be the default light gray.
+/// - `The cone on top of the spire, uses Glow` The object will glow with a
+///   light orange color.
+/// - `InstCol` The object will use the instance color that is set in the
+///   worldgen lod::Object.
+/// - `InstCol Glow` The object will use the instance color. Glow is ignored.
 fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex> {
     let model = ObjAsset::load_expect(&format!("voxygen.lod.{}", name));
     let mesh = model
@@ -314,10 +377,14 @@ fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex
                 .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
                 .unwrap_or(Rgb::broadcast(127));
             let color = srgb_to_linear(color.map(|c| (c as f32 / 255.0)));
-            let flags = match objname {
-                "InstCol" => VertexFlags::INST_COLOR,
-                "Glow" => VertexFlags::GLOW,
-                _ => VertexFlags::empty(),
+            let flags = if objname.contains("InstCol") && objname.contains("Glow") {
+                VertexFlags::INST_COLOR | VertexFlags::GLOW
+            } else if objname.contains("Glow") {
+                VertexFlags::GLOW
+            } else if objname.contains("InstCol") {
+                VertexFlags::INST_COLOR
+            } else {
+                VertexFlags::empty()
             };
             obj.triangles().map(move |vs| {
                 let [a, b, c] = vs.map(|v| {

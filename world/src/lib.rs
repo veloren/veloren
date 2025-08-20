@@ -744,6 +744,21 @@ impl World {
                             Rgb::black(),
                             lod::ObjectKind::CoastalWorkshop,
                         )),
+                        site::plot::PlotKind::CoastalAirshipDock(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::CoastalAirshipDock,
+                        )),
+                        site::plot::PlotKind::DesertCityAirshipDock(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::DesertCityAirshipDock,
+                        )),
+                        site::plot::PlotKind::CliffTownAirshipDock(_) => Some((
+                            site.tile_wpos(plot.root_tile),
+                            Rgb::black(),
+                            lod::ObjectKind::CliffTownAirshipDock,
+                        )),
                         _ => None,
                     })
                 })
