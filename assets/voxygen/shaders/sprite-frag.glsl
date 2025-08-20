@@ -29,7 +29,10 @@ layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
 layout(location = 4) in vec2 f_inst_light;
+
+#ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
 layout(location = 5) flat in uint f_inst_idx;
+#endif
 
 layout(set = 2, binding = 0)
 uniform texture2D t_col_light;

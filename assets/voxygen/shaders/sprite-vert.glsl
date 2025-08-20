@@ -47,7 +47,9 @@ layout(location = 1) flat out vec3 f_norm;
 layout(location = 2) flat out float f_select;
 layout(location = 3) out vec2 f_uv_pos;
 layout(location = 4) out vec2 f_inst_light;
+#ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
 layout(location = 5) flat out uint f_inst_idx;
+#endif
 
 const float SCALE = 1.0 / 11.0;
 const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
@@ -208,7 +210,9 @@ void main() {
     // Select glowing
     f_select = (select_pos.w > 0 && select_pos.xyz == sprite_pos) ? 1.0 : 0.0;
 
-    f_inst_idx = gl_InstanceIndex;
+    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+        f_inst_idx = gl_InstanceIndex;
+    #endif
 
     gl_Position =
         all_mat *
