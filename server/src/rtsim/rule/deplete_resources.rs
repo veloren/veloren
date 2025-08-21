@@ -26,24 +26,22 @@ impl Rule for DepleteResources {
                     };
 
                     // Remove resources
-                    if let Some(res) = change.old.get_rtsim_resource() {
-                        if chunk_state.max_res[res] > 0 {
-                            chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32
-                                - get_resource_damage(change.old))
-                            .round()
-                            .max(0.0)
-                                / chunk_state.max_res[res] as f32;
-                        }
+                    if let Some(res) = change.old.get_rtsim_resource()
+                        && chunk_state.max_res[res] > 0
+                    {
+                        chunk_res[res] = ((chunk_res[res] * chunk_state.max_res[res] as f32
+                            - get_resource_damage(change.old))
+                            / chunk_state.max_res[res] as f32)
+                            .clamp(0.0, 1.0);
                     }
                     // Replenish resources
-                    if let Some(res) = change.new.get_rtsim_resource() {
-                        if chunk_state.max_res[res] > 0 {
-                            chunk_res[res] = (chunk_res[res] * chunk_state.max_res[res] as f32
-                                + get_resource_damage(change.new))
-                            .round()
-                            .max(0.0)
-                                / chunk_state.max_res[res] as f32;
-                        }
+                    if let Some(res) = change.new.get_rtsim_resource()
+                        && chunk_state.max_res[res] > 0
+                    {
+                        chunk_res[res] = ((chunk_res[res] * chunk_state.max_res[res] as f32
+                            + get_resource_damage(change.new))
+                            / chunk_state.max_res[res] as f32)
+                            .clamp(0.0, 1.0);
                     }
 
                     data.nature.set_chunk_resources(key, chunk_res);

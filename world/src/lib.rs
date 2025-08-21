@@ -587,9 +587,16 @@ impl World {
                         // we increment this before deciding whether we're going to spawn the
                         // resource.
                         supplement.rtsim_max_resources[res] += 1;
+                        if rtsim_resources[res] < 0.0 || rtsim_resources[res] > 1.0 {
+                            tracing::error!(
+                                "Rtsim resource {res:?} is not within the expected range \
+                                 0.0..=1.0 ({})",
+                                rtsim_resources[res]
+                            );
+                        }
                         // Throw a dice to determine whether this resource should actually spawn
                         // TODO: Don't throw a dice, try to generate the *exact* correct number
-                        if dynamic_rng.gen_bool(rtsim_resources[res] as f64) {
+                        if dynamic_rng.gen_bool(rtsim_resources[res].clamp(0.0, 1.0) as f64) {
                             block
                         } else {
                             block.into_vacant()
