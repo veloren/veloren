@@ -66,6 +66,8 @@ where
         "prometheus_hyper=info",
         "mio::poll=info",
         "mio::sys::windows=info",
+        "assets_manager::anycache=info",
+        "polling::epoll=info",
         "h2=info",
         "tokio_util=info",
         "rustls=info",
