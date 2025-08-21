@@ -587,13 +587,17 @@ impl World {
                         // we increment this before deciding whether we're going to spawn the
                         // resource.
                         supplement.rtsim_max_resources[res] += 1;
-                        if rtsim_resources[res] < 0.0 || rtsim_resources[res] > 1.0 {
-                            tracing::error!(
-                                "Rtsim resource {res:?} is not within the expected range \
-                                 0.0..=1.0 ({})",
-                                rtsim_resources[res]
-                            );
-                        }
+
+                        debug_assert!(
+                            0.0 <= rtsim_resources[res] && rtsim_resources[res] <= 1.0,
+                            "The rtsim resource {res:?} has the value '{}', which is not in the \
+                             expected range of 0.0..=1.0. When registering a block with the \
+                             sprite `{:?}`, with the damage `{:?}`.",
+                            rtsim_resources[res],
+                            block.get_sprite(),
+                            block.get_attr::<common::terrain::sprite::Damage>().ok(),
+                        );
+
                         // Throw a dice to determine whether this resource should actually spawn
                         // TODO: Don't throw a dice, try to generate the *exact* correct number
                         if dynamic_rng.gen_bool(rtsim_resources[res].clamp(0.0, 1.0) as f64) {
