@@ -68,8 +68,8 @@ voxygen-egui = { package = "veloren-voxygen-egui", path = "egui", optional = tru
 
 # Graphics
 winit = { version = "0.30.12", features = ["serde"] }
-wgpu = { version = "24", default-features = false, features = ["spirv", "glsl"] }
-wgpu-profiler = "0.22.0"
+wgpu = { version = "26", features = ["spirv"] }
+wgpu-profiler = "0.24"
 bytemuck = { version = "1.7", features = ["derive"] }
 # shaderc = "0.8.0"
 # Working around a current bug in shaderc that causes it to use the system installation even if we specify compile from source
@@ -84,10 +84,10 @@ iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag
 window_clipboard = "0.4.1"
 glyph_brush = "0.7.0"
 # EGUI
-egui = { version = "0.31", optional = true }
+egui = { version = "0.32", optional = true }
 # We should probably migrate to the official `egui-wgpu` and `egui-winit`
-egui_wgpu_backend = { version = "0.34", optional = true }
-egui_winit_platform = { version = "0.26", optional = true }
+egui_wgpu_backend = { version = "0.35", optional = true }
+egui_winit_platform = { version = "0.27", optional = true }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }
