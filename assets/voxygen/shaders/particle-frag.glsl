@@ -36,10 +36,9 @@ layout(location = 1) out uvec4 tgt_mat;
 const float FADE_DIST = 32.0;
 
 void main() {
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col.rgb, 1.0), 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, f_col.rgb, 1.0), 1);
+#else
 
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
@@ -121,6 +120,7 @@ void main() {
     if (f_mode == WATER_FOAM) {
         material = MAT_FLUID;
     }
-    
+
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), material);
+#endif
 }

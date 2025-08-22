@@ -150,10 +150,9 @@ float wave_height_vel(vec3 pos) {
 }
 
 void main() {
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, MU_SCATTER, 1.0), 0.5);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, MU_SCATTER, 1.0), 0.5);
+#else
 
     // First 3 normals are negative, next 3 are positive
     vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
@@ -461,4 +460,5 @@ void main() {
 
     tgt_color = color;
     tgt_mat = uvec4(uvec3((norm + 1.0) * 127.0), MAT_FLUID);
+#endif
 }

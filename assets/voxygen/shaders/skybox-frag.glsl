@@ -26,11 +26,9 @@ layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
 
 void main() {
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(get_sky_color(), 1);
-        return;
-    #endif
-
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(get_sky_color(), 1);
+#else
     vec3 cam_dir = normalize(f_pos - cam_pos.xyz);
 
     float cam_alt = alt_at(cam_pos.xy);
@@ -58,4 +56,5 @@ void main() {
 
     tgt_color = vec4(cam_attenuation * get_sky_color(normalize(f_pos), cam_pos.xyz, wpos, 1.0, true, refractionIndex, false, 1.0), 1.0);
     tgt_mat = uvec4(uvec3(0), MAT_SKY);
+#endif
 }

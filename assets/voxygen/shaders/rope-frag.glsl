@@ -79,10 +79,9 @@ void main() {
         floor(abs(fract(m_pos.z * 10.0 + atan(m_pos.x, m_pos.y) * 0.159) - 0.5) * 6.0) / 3.0
     );
 
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
+#else
 
     // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
 
@@ -229,10 +228,10 @@ void main() {
 
     //  // if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
     //     //     discard;
-    //     //     return;
     //  // }
     // }
 
     tgt_color = vec4(surf_color, 1.0);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
+#endif
 }
