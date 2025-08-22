@@ -1315,7 +1315,9 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::SpectateViewpoint if state => {
+                                let mut client = self.client.borrow_mut();
                                 if self.viewpoint_entity.is_some() {
+                                    client.stop_spectate_entity();
                                     self.viewpoint_entity = None;
                                     self.scene.camera_mut().set_mode(CameraMode::Freefly);
                                     let mut ori = self.scene.camera().get_orientation();
@@ -1325,6 +1327,10 @@ impl PlayState for SessionState {
                                     self.scene.camera_mut().set_orientation(ori);
                                 } else if let Some(target_entity) = entity_target {
                                     if self.scene.camera().get_mode() == CameraMode::Freefly {
+                                        // Notify the server that we start spectating an entity so
+                                        // we get viewpoint specific component packages.
+                                        client.start_spectate_entity(target_entity.kind.0);
+
                                         self.viewpoint_entity = Some(target_entity.kind.0);
                                         self.scene.camera_mut().set_mode(CameraMode::FirstPerson);
                                     }
@@ -1374,15 +1380,16 @@ impl PlayState for SessionState {
                 }
             }
 
-            if self.viewpoint_entity.is_some_and(|entity| {
-                !self
+            if let Some(viewpoint_entity) = self.viewpoint_entity
+                && !self
                     .client
                     .borrow()
                     .state()
                     .ecs()
                     .read_storage::<Pos>()
-                    .contains(entity)
-            }) {
+                    .contains(viewpoint_entity)
+            {
+                self.client.borrow_mut().stop_spectate_entity();
                 self.viewpoint_entity = None;
                 self.scene.camera_mut().set_mode(CameraMode::Freefly);
             }
@@ -2035,9 +2042,9 @@ impl PlayState for SessionState {
                     HudEvent::TradeAction(action) => {
                         self.client.borrow_mut().perform_trade_action(action);
                     },
-                    HudEvent::Ability(i, state) => {
+                    HudEvent::Ability { idx, state } => {
                         self.client.borrow_mut().handle_input(
-                            InputKind::Ability(i),
+                            InputKind::Ability(idx),
                             state,
                             default_select_pos,
                             self.target_entity,
@@ -2265,8 +2272,7 @@ impl PlayState for SessionState {
                     for outcome in outcomes {
                         self.scene
                             .handle_outcome(&outcome, &scene_data, &mut global_state.audio);
-                        self.hud
-                            .handle_outcome(&outcome, scene_data.client, global_state);
+                        self.hud.handle_outcome(&outcome, &scene_data, global_state);
                     }
                 }
             }

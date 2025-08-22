@@ -479,7 +479,6 @@ image_ids! {
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
         bag_ico: "voxygen.element.ui.generic.buttons.bag",
 
-
         // Other Icons/Art
         hardcore: "voxygen.element.ui.map.icons.dif_map_icon",
         skull: "voxygen.element.ui.generic.icons.skull",

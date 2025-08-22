@@ -4,7 +4,7 @@ use crate::{EditableSettings, Settings, client::Client};
 use common::{
     comp::{
         Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
-        Player, Pos, Presence, PresenceKind, Scale, SkillSet, Vel,
+        Player, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
     },
     event::{self, EmitExt},
     event_emitters,
@@ -13,6 +13,7 @@ use common::{
     resources::{DeltaTime, PlayerPhysicsSetting, PlayerPhysicsSettings},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
+    uid::IdMaps,
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -69,6 +70,7 @@ impl Sys {
         healths: &ReadStorage<'_, Health>,
         rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
         position: Option<&mut Pos>,
+        spectating_entity: &mut Option<Option<common::uid::Uid>>,
         controller: Option<&mut Controller>,
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, AreasContainer<BuildArea>>,
@@ -252,6 +254,13 @@ impl Sys {
                     }
                 }
             },
+            ClientGeneral::SpectateEntity(uid) => {
+                if let Some(admin) = maybe_admin
+                    && admin.0 >= AdminRole::Moderator
+                {
+                    *spectating_entity = Some(uid);
+                }
+            },
             ClientGeneral::SetBattleMode(battle_mode) => {
                 emitters.emit(event::SetBattleModeEvent {
                     entity,
@@ -293,6 +302,12 @@ impl<'a> System<'a> for Sys {
             ReadExpect<'a, SlowJobPool>,
             ReadExpect<'a, EditableSettings>,
         ),
+        (
+            Read<'a, IdMaps>,
+            Read<'a, DeltaTime>,
+            Read<'a, Settings>,
+            Read<'a, AreasContainer<BuildArea>>,
+        ),
         ReadStorage<'a, CanBuild>,
         WriteStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
@@ -308,9 +323,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Presence>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
-        Read<'a, DeltaTime>,
-        Read<'a, Settings>,
-        Read<'a, AreasContainer<BuildArea>>,
+        WriteStorage<'a, SpectatingEntity>,
         Write<'a, PlayerPhysicsSettings>,
         TerrainPersistenceData<'a>,
         ReadStorage<'a, Player>,
@@ -327,6 +340,7 @@ impl<'a> System<'a> for Sys {
             entities,
             events,
             (terrain, slow_jobs, editable_settings),
+            (id_maps, dt, settings, build_areas),
             can_build,
             mut force_updates,
             is_rider,
@@ -342,9 +356,7 @@ impl<'a> System<'a> for Sys {
             mut presences,
             mut clients,
             mut controllers,
-            dt,
-            settings,
-            build_areas,
+            mut spectating_entities,
             mut player_physics_settings_,
             mut terrain_persistence,
             players,
@@ -406,6 +418,7 @@ impl<'a> System<'a> for Sys {
                     let mut clearable_maybe_presence = maybe_presence.as_deref_mut();
                     let mut skill_set = skill_set.map(Cow::Borrowed);
                     let mut player_physics = None;
+                    let mut spectating_entity = None;
                     let _ = super::try_recv_all(client, 2, |client, msg| {
                         Self::handle_client_in_game_msg(
                             emitters,
@@ -421,6 +434,7 @@ impl<'a> System<'a> for Sys {
                             &healths,
                             &rare_writes,
                             pos.as_deref_mut(),
+                            &mut spectating_entity,
                             controller.as_deref_mut(),
                             &settings,
                             &build_areas,
@@ -554,12 +568,13 @@ impl<'a> System<'a> for Sys {
                     let physics_update = maybe_player.map(|p| p.uuid())
                         .zip(new_player_physics_setting
                              .filter(|_| old_player_physics_setting != new_player_physics_setting));
-                    (skill_set_update, physics_update)
+                     let spectating_entity_update = spectating_entity.map(|e| (entity, e));
+                    (skill_set_update, spectating_entity_update, physics_update)
                 },
             )
             // NOTE: Would be nice to combine this with the map_init somehow, but I'm not sure if
             // that's possible.
-            .filter(|(x, y)| x.is_some() || y.is_some())
+            .filter(|(x, y, z)| x.is_some() || y.is_some() || z.is_some())
             // NOTE: I feel like we shouldn't actually need to allocate here, but hopefully this
             // doesn't turn out to be important as there shouldn't be that many connected clients.
             // The reason we can't just use unzip is that the two sides might be different lengths.
@@ -572,9 +587,8 @@ impl<'a> System<'a> for Sys {
         // per uuid, so the physics update is sound and doesn't depend on evaluation
         // order, even though we're not updating directly by entity or uid (note that
         // for a given entity, we process messages serially).
-        deferred_updates
-            .iter_mut()
-            .for_each(|(skill_set_update, physics_update)| {
+        deferred_updates.iter_mut().for_each(
+            |(skill_set_update, spectating_entity_update, physics_update)| {
                 if let Some((entity, new_skill_set)) = skill_set_update {
                     // We know this exists, because we already iterated over it with the skillset
                     // lock taken, so we can ignore the error.
@@ -586,6 +600,17 @@ impl<'a> System<'a> for Sys {
                         .get_mut(*entity)
                         .map(|mut old_skill_set| mem::swap(&mut *old_skill_set, new_skill_set));
                 }
+                if let &mut Some((entity, spectating_uid)) = spectating_entity_update {
+                    if let Some(uid) = spectating_uid
+                        && let Some(spectated_entity) = id_maps.uid_entity(uid)
+                    {
+                        // We know this exists, so can ignore the error.
+                        let _ =
+                            spectating_entities.insert(entity, SpectatingEntity(spectated_entity));
+                    } else {
+                        spectating_entities.remove(entity);
+                    }
+                }
                 if let &mut Some((uuid, player_physics_setting)) = physics_update {
                     // We don't necessarily know this exists, but that's fine, because dropping
                     // player physics is a no op.
@@ -593,7 +618,8 @@ impl<'a> System<'a> for Sys {
                         .settings
                         .insert(uuid, player_physics_setting);
                 }
-            });
+            },
+        );
         // Finally, drop the deferred updates in another thread.
         slow_jobs.spawn("CHUNK_DROP", move || {
             drop(deferred_updates);

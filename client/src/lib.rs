@@ -1221,6 +1221,7 @@ impl Client {
                     | ClientGeneral::RequestLossyTerrainCompression { .. }
                     | ClientGeneral::UpdateMapMarker(_)
                     | ClientGeneral::SpectatePosition(_)
+                    | ClientGeneral::SpectateEntity(_)
                     | ClientGeneral::SetBattleMode(_) => {
                         #[cfg(feature = "tracy")]
                         {
@@ -1945,6 +1946,16 @@ impl Client {
         write
     }
 
+    pub fn start_spectate_entity(&mut self, entity: EcsEntity) {
+        if let Some(uid) = self.state.read_component_copied(entity) {
+            self.send_msg(ClientGeneral::SpectateEntity(Some(uid)));
+        } else {
+            warn!("Spectating entity without a `Uid` component");
+        }
+    }
+
+    pub fn stop_spectate_entity(&mut self) { self.send_msg(ClientGeneral::SpectateEntity(None)); }
+
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
     /// and sends the `ControlAction` event that signals to do the swap.
     pub fn swap_loadout(&mut self) { self.control_action(ControlAction::SwapEquippedWeapons) }
@@ -2075,7 +2086,7 @@ impl Client {
                 select_pos,
             });
         } else {
-            self.control_action(ControlAction::CancelInput(input));
+            self.control_action(ControlAction::CancelInput { input });
         }
     }
 

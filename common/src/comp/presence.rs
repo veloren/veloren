@@ -31,6 +31,14 @@ impl Component for Presence {
     type Storage = specs::DenseVecStorage<Self>;
 }
 
+#[derive(Debug, Clone, Copy)]
+/// The entity the player is currently spectating.
+pub struct SpectatingEntity(pub specs::Entity);
+
+impl Component for SpectatingEntity {
+    type Storage = specs::DerefFlaggedStorage<Self, specs::VecStorage<Self>>;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,

@@ -111,6 +111,8 @@ pub enum ClientGeneral {
     SetBattleMode(BattleMode),
 
     SpectatePosition(Vec3<f32>),
+    SpectateEntity(Option<common::uid::Uid>),
+
     //Only in Game, via terrain stream
     TerrainChunkRequest {
         key: Vec2<i32>,
@@ -174,7 +176,7 @@ impl ClientMsg {
                         | ClientGeneral::SetBattleMode(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
-                        ClientGeneral::SpectatePosition(_) => {
+                        ClientGeneral::SpectatePosition(_) | ClientGeneral::SpectateEntity(_) => {
                             c_type.can_spectate() && presence.is_some()
                         },
                         ClientGeneral::ChatMsg(_) => {

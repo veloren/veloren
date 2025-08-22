@@ -560,7 +560,7 @@ impl<'a> Skillbar<'a> {
         }
     }
 
-    fn show_stat_bars(&self, state: &State, ui: &mut UiCell) -> Option<Event> {
+    fn show_stat_bars(&self, state: &State, ui: &mut UiCell, events: &mut Vec<Event>) {
         let (hp_percentage, energy_percentage, poise_percentage): (f64, f64, f64) =
             if self.health.is_dead {
                 (0.0, 0.0, 0.0)
@@ -717,10 +717,9 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.bag_img_frame, ui)
             .was_clicked()
         {
-            return Some(Event::OpenBag);
+            events.push(Event::OpenBag);
         }
-        let invs = self.client.inventories();
-        let inventory = invs.get(self.info.viewpoint_entity)?;
+        let inventory = self.inventory;
 
         let space_used = inventory.populated_slots();
         let space_max = inventory.slots().count();
@@ -869,7 +868,7 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.exp_img_frame, ui)
                 .was_clicked()
             {
-                return Some(Event::OpenDiary(*selected_experience));
+                events.push(Event::OpenDiary(*selected_experience));
             }
 
             Text::new(&level_txt)
@@ -925,7 +924,7 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.exp_img_frame, ui)
                 .was_clicked()
             {
-                return Some(Event::OpenDiary(SkillGroupKind::General));
+                events.push(Event::OpenDiary(SkillGroupKind::General));
             }
 
             Image::new(self.imgs.spellbook_ico0)
@@ -1030,7 +1029,6 @@ impl<'a> Skillbar<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.poise_txt, ui);
         }
-        None
     }
 
     fn show_slotbar(&mut self, state: &State, ui: &mut UiCell, slot_offset: f64) {
@@ -1361,7 +1359,7 @@ pub struct State {
 }
 
 impl Widget for Skillbar<'_> {
-    type Event = Option<Event>;
+    type Event = Vec<Event>;
     type State = State;
     type Style = ();
 
@@ -1376,6 +1374,8 @@ impl Widget for Skillbar<'_> {
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Skillbar::update");
         let widget::UpdateArgs { state, ui, .. } = args;
+
+        let mut events = Vec::new();
 
         let slot_offset = 3.0;
 
@@ -1405,7 +1405,7 @@ impl Widget for Skillbar<'_> {
             .set(state.ids.frame, ui);
 
         // Health, Energy and Poise bars
-        let event = self.show_stat_bars(state, ui);
+        self.show_stat_bars(state, ui, &mut events);
 
         // Slots
         self.show_slotbar(state, ui, slot_offset);
@@ -1414,6 +1414,6 @@ impl Widget for Skillbar<'_> {
         if let Some(combo_floater) = self.combo_floater {
             self.show_combo_counter(combo_floater, state, ui);
         }
-        event
+        events
     }
 }

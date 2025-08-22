@@ -199,6 +199,9 @@ impl GameInput {
             GameInput::FreeLook => GameInput::FreeLook,
             GameInput::AutoWalk => GameInput::FreeLook,
 
+            GameInput::Glide => GameInput::Glide,
+            GameInput::SpectateSpeedBoost => GameInput::Glide,
+
             _ => *self,
         }
     }

@@ -99,7 +99,7 @@ pub use self::{
     },
     player::{AliasError, DisconnectReason, MAX_ALIAS_LEN, Player},
     poise::{Poise, PoiseChange, PoiseState},
-    presence::{Presence, PresenceKind},
+    presence::{Presence, PresenceKind, SpectatingEntity},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
     skillset::{

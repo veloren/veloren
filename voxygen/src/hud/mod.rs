@@ -70,7 +70,10 @@ use crate::{
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     key_state::KeyState,
     render::UiDrawer,
-    scene::camera::{self, Camera},
+    scene::{
+        SceneData,
+        camera::{self, Camera},
+    },
     session::{
         interactable::{self, BlockInteraction, EntityInteraction},
         settings_change::{
@@ -715,7 +718,10 @@ pub enum Event {
     SortInventory(InventorySortOrder),
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
-    Ability(usize, bool),
+    Ability {
+        idx: usize,
+        state: bool,
+    },
     Logout,
     Quit,
 
@@ -3211,7 +3217,8 @@ impl Hud {
         ) {
             let stance = stances.get(entity);
             let context = AbilityContext::from(stance, Some(inventory), combo);
-            match Skillbar::new(
+
+            let skillbar_events = Skillbar::new(
                 client,
                 &info,
                 global_state,
@@ -3244,14 +3251,16 @@ impl Hud {
                 stance,
                 stats.get(entity),
             )
-            .set(self.ids.skillbar, ui_widgets)
-            {
-                Some(skillbar::Event::OpenDiary(skillgroup)) => {
-                    self.show.diary(true);
-                    self.show.open_skill_tree(skillgroup);
-                },
-                Some(skillbar::Event::OpenBag) => self.show.bag(!self.show.bag),
-                None => {},
+            .set(self.ids.skillbar, ui_widgets);
+
+            for event in skillbar_events {
+                match event {
+                    skillbar::Event::OpenDiary(skillgroup) => {
+                        self.show.diary(true);
+                        self.show.open_skill_tree(skillgroup);
+                    },
+                    skillbar::Event::OpenBag => self.show.bag(!self.show.bag),
+                }
             }
         }
         // Bag contents
@@ -4778,7 +4787,9 @@ impl Hud {
                             }
                         }
                     },
-                    hotbar::SlotContents::Ability(i) => events.push(Event::Ability(i, state)),
+                    hotbar::SlotContents::Ability(idx) => {
+                        events.push(Event::Ability { idx, state })
+                    },
                 });
             }
         }
@@ -5177,15 +5188,16 @@ impl Hud {
     pub fn handle_outcome(
         &mut self,
         outcome: &Outcome,
-        client: &Client,
+        scene_data: &SceneData,
         global_state: &GlobalState,
     ) {
+        let client = scene_data.client;
         let interface = &global_state.settings.interface;
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
                 let ecs = client.state().ecs();
                 let uids = ecs.read_storage::<Uid>();
-                let me = client.entity();
+                let me = scene_data.viewpoint_entity;
 
                 if uids.get(me).is_some_and(|me| *me == *uid) {
                     match self.floaters.exp_floaters.last_mut() {
@@ -5218,7 +5230,7 @@ impl Hud {
             } => {
                 let ecs = client.state().ecs();
                 let uids = ecs.read_storage::<Uid>();
-                let me = client.entity();
+                let me = scene_data.viewpoint_entity;
 
                 if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters.skill_point_displays.push(SkillPointGain {
@@ -5231,7 +5243,7 @@ impl Hud {
             Outcome::ComboChange { uid, combo } => {
                 let ecs = client.state().ecs();
                 let uids = ecs.read_storage::<Uid>();
-                let me = client.entity();
+                let me = scene_data.viewpoint_entity;
 
                 if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters.combo_floater = Some(ComboFloater {
@@ -5243,7 +5255,7 @@ impl Hud {
             Outcome::Block { uid, parry, .. } if *parry => {
                 let ecs = client.state().ecs();
                 let uids = ecs.read_storage::<Uid>();
-                let me = client.entity();
+                let me = scene_data.viewpoint_entity;
 
                 if uids.get(me).is_some_and(|me| *me == *uid) {
                     self.floaters
@@ -5255,7 +5267,7 @@ impl Hud {
                 let ecs = client.state().ecs();
                 let mut hp_floater_lists = ecs.write_storage::<HpFloaterList>();
                 let uids = ecs.read_storage::<Uid>();
-                let me = client.entity();
+                let me = scene_data.viewpoint_entity;
                 let my_uid = uids.get(me);
 
                 if let Some(entity) = ecs.entity_from_uid(info.target) {
