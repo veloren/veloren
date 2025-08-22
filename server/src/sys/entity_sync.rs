@@ -2,7 +2,10 @@ use super::sentinel::{DeletedEntities, TrackedStorages, UpdateTrackers};
 use crate::{EditableSettings, Tick, client::Client, presence::RegionSubscription};
 use common::{
     calendar::Calendar,
-    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel},
+    comp::{
+        Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel,
+        presence::SpectatingEntity,
+    },
     event::EventBus,
     link::Is,
     mounting::Rider,
@@ -35,21 +38,24 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TimeScale>,
         ReadExpect<'a, RegionMap>,
         ReadExpect<'a, UpdateTrackers>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Vel>,
-        ReadStorage<'a, Ori>,
-        ReadStorage<'a, RegionSubscription>,
-        ReadStorage<'a, Player>,
-        ReadStorage<'a, Presence>,
-        ReadStorage<'a, Client>,
-        WriteStorage<'a, Last<Pos>>,
-        WriteStorage<'a, Last<Vel>>,
-        WriteStorage<'a, Last<Ori>>,
-        WriteStorage<'a, ForceUpdate>,
-        WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
         Read<'a, EventBus<Outcome>>,
         ReadExpect<'a, EditableSettings>,
+        (
+            ReadStorage<'a, Pos>,
+            ReadStorage<'a, Vel>,
+            ReadStorage<'a, Ori>,
+            ReadStorage<'a, RegionSubscription>,
+            ReadStorage<'a, Player>,
+            ReadStorage<'a, Presence>,
+            ReadStorage<'a, SpectatingEntity>,
+            ReadStorage<'a, Client>,
+            WriteStorage<'a, Last<Pos>>,
+            WriteStorage<'a, Last<Vel>>,
+            WriteStorage<'a, Last<Ori>>,
+            WriteStorage<'a, ForceUpdate>,
+            WriteStorage<'a, InventoryUpdate>,
+        ),
     );
 
     const NAME: &'static str = "entity_sync";
@@ -69,21 +75,24 @@ impl<'a> System<'a> for Sys {
             time_scale,
             region_map,
             trackers,
-            positions,
-            velocities,
-            orientations,
-            subscriptions,
-            players,
-            presences,
-            clients,
-            mut last_pos,
-            mut last_vel,
-            mut last_ori,
-            mut force_updates,
-            mut inventory_updates,
             mut deleted_entities,
             outcomes,
             editable_settings,
+            (
+                positions,
+                velocities,
+                orientations,
+                subscriptions,
+                players,
+                presences,
+                spectating_entities,
+                clients,
+                mut last_pos,
+                mut last_vel,
+                mut last_ori,
+                mut force_updates,
+                mut inventory_updates,
+            ),
         ): Self::SystemData,
     ) {
         let tick = tick.0;
@@ -354,6 +363,29 @@ impl<'a> System<'a> for Sys {
                     vel,
                 );
             }
+
+            if !comp_sync_package.is_empty() {
+                client.send_fallible(ServerGeneral::CompSync(
+                    comp_sync_package,
+                    force_updates.get(entity).map_or(0, |f| f.counter()),
+                ));
+            }
+        }
+
+        for (entity, client, spectating_entity) in
+            (&entities, &clients, &spectating_entities).join()
+        {
+            // TODO: If the spectated entity is out of range while a change occurs it will
+            // cause the client to log errors, and those changes will be missed
+            // by the spectating entity.
+            //
+            // Additionally, when we stop spectating we don't delete the components that are
+            // synced for spectators. Leaving stale components on the client.
+            let comp_sync_package = trackers.create_sync_from_spectated_entity_package(
+                &tracked_storages,
+                entity,
+                spectating_entity.0,
+            );
 
             if !comp_sync_package.is_empty() {
                 client.send_fallible(ServerGeneral::CompSync(

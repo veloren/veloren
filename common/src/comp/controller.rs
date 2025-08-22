@@ -197,7 +197,9 @@ pub enum ControlAction {
         // Some inputs need a selected position, such as mining
         select_pos: Option<Vec3<f32>>,
     },
-    CancelInput(InputKind),
+    CancelInput {
+        input: InputKind,
+    },
 }
 
 impl ControlAction {
@@ -327,7 +329,7 @@ impl Controller {
     }
 
     pub fn push_cancel_input(&mut self, input: InputKind) {
-        self.push_action(ControlAction::CancelInput(input));
+        self.push_action(ControlAction::CancelInput { input });
     }
 }
 

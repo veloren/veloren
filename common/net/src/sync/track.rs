@@ -129,6 +129,7 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
         &self,
         storage: &ReadStorage<'_, C>,
         entity: Entity,
+        force_sync: bool,
     ) -> Option<CompUpdateKind<P>>
     where
         P: CompPacket,
@@ -142,7 +143,11 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
         // Generate update if one exists.
         //
         // Note: presence of the id in these bitsets should be mutually exclusive
-        if self.modified.contains(id) {
+        if force_sync {
+            storage
+                .get(entity)
+                .map(|comp| CompUpdateKind::Inserted(P::from(comp.clone())))
+        } else if self.modified.contains(id) {
             storage
                 .get(entity)
                 .map(|comp| CompUpdateKind::Modified(P::from(comp.clone())))

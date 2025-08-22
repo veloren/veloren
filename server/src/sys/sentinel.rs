@@ -1,6 +1,6 @@
 use common::{
     comp::{
-        Ori, Pos, Vel,
+        Ori, Pos, SpectatingEntity, Vel,
         item::{MaterialStatManifest, tool::AbilityMap},
     },
     uid::Uid,
@@ -40,6 +40,7 @@ macro_rules! trackers {
             // Uids are tracked to detect created entities that should be synced over the network.
             // Additionally we need access to the uids when generating packets to send to the clients.
             pub uid: ReadStorage<'a, Uid>,
+            pub spectating_entity: ReadStorage<'a, SpectatingEntity>,
             $(pub $component_name: ReadStorage<'a, $component_type>,)*
             // TODO: these may be used to duplicate items when we attempt to remove
             // cloning them.
@@ -140,6 +141,7 @@ macro_rules! trackers {
         /// This should be inserted into the ecs as a Resource
         pub struct UpdateTrackers {
             pub uid: UpdateTracker<Uid>,
+            spectating_entity: UpdateTracker<SpectatingEntity>,
             $($component_name: UpdateTracker<$component_type>,)*
         }
 
@@ -150,6 +152,7 @@ macro_rules! trackers {
             pub fn register(world: &mut specs::World) {
                 let trackers = UpdateTrackers {
                     uid: UpdateTracker::<Uid>::new(&world),
+                    spectating_entity: UpdateTracker::<SpectatingEntity>::new(&world),
                     $($component_name: UpdateTracker::<$component_type>::new(&world),)*
                 };
 
@@ -161,6 +164,7 @@ macro_rules! trackers {
             /// that can later be joined on.
             fn record_changes(&mut self, comps: &TrackedStorages) {
                 self.uid.record_changes(&comps.uid);
+                self.spectating_entity.record_changes(&comps.spectating_entity);
                 $(
                     self.$component_name.record_changes(&comps.$component_name);
                 )*
@@ -251,7 +255,7 @@ macro_rules! trackers {
 
                 $(
                     if match <$component_type as NetSync>::SYNC_FROM {
-                        SyncFrom::ClientEntity => true,
+                        SyncFrom::ClientEntity | SyncFrom::ClientSpectatorEntity => true,
                         SyncFrom::AnyEntity => include_all_comps,
                     } {
                         comp_sync_package.add_component_update(
@@ -259,6 +263,7 @@ macro_rules! trackers {
                             &comps.$component_name,
                             uid,
                             entity,
+                            false,
                         );
                     }
                 )*
@@ -266,6 +271,41 @@ macro_rules! trackers {
                 comp_sync_package
             }
 
+            pub fn create_sync_from_spectated_entity_package(
+                &self,
+                comps: &TrackedStorages,
+                for_entity: specs::Entity,
+                spectated_entity: specs::Entity,
+            ) -> CompSyncPackage<EcsCompPacket> {
+                let mut comp_sync_package = CompSyncPackage::new();
+
+                let force_sync = self.spectating_entity.modified().contains(for_entity.id())
+                || self.spectating_entity.inserted().contains(for_entity.id());
+
+                let uid = match comps.uid.get(spectated_entity) {
+                    Some(uid) => (*uid).into(),
+                    // Return empty package if we can't get uid for this entity
+                    None => return comp_sync_package,
+                };
+
+                $(
+                    if match <$component_type as NetSync>::SYNC_FROM {
+                        SyncFrom::ClientEntity | SyncFrom::AnyEntity => false,
+                        SyncFrom::ClientSpectatorEntity => true,
+                    } {
+                        comp_sync_package.add_component_update(
+                            &self.$component_name,
+                            &comps.$component_name,
+                            uid,
+                            spectated_entity,
+                            // Force sync if we have changed what entity we're spectating.
+                            force_sync,
+                        );
+                    }
+                )*
+
+                comp_sync_package
+            }
         }
     }
 }

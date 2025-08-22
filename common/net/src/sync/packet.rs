@@ -192,6 +192,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         storage: &ReadStorage<'_, C>,
         uid: u64,
         entity: Entity,
+        force_sync: bool,
     ) where
         P: From<C>,
         C: Component + Clone + Send + Sync + TryFrom<P>,
@@ -199,7 +200,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         P::Phantom: TryInto<PhantomData<C>>,
         C::Storage: specs::storage::Tracked,
     {
-        if let Some(comp_update) = tracker.get_update(storage, entity) {
+        if let Some(comp_update) = tracker.get_update(storage, entity, force_sync) {
             self.comp_updates.push((uid, comp_update))
         }
     }

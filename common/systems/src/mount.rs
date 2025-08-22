@@ -89,6 +89,7 @@ impl<'a> System<'a> for Sys {
                 continue;
             };
 
+            // Rider effects from mount.
             if let Some(rider_effects) = rider_effects
                 && let Some(target_buffs) = buffs.get(rider_entity)
             {
@@ -133,7 +134,7 @@ impl<'a> System<'a> for Sys {
                         .actions
                         .extract_if(.., |action| match action {
                             ControlAction::StartInput { input: i, .. }
-                            | ControlAction::CancelInput(i) => {
+                            | ControlAction::CancelInput { input: i } => {
                                 matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)
                             },
                             _ => false,
@@ -259,7 +260,7 @@ impl<'a> System<'a> for Sys {
                     .actions
                     .extract_if(.., |action| match action {
                         ControlAction::StartInput { input: i, .. }
-                        | ControlAction::CancelInput(i) => {
+                        | ControlAction::CancelInput { input: i } => {
                             matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll)
                         },
                         _ => false,

@@ -46,5 +46,6 @@ where
 /// client's own entity.
 pub enum SyncFrom {
     AnyEntity,
+    ClientSpectatorEntity,
     ClientEntity,
 }

@@ -122,7 +122,7 @@ pub trait CharacterBehavior {
                 target_entity,
                 select_pos,
             } => self.start_input(data, input, target_entity, select_pos, output_events),
-            ControlAction::CancelInput(input) => self.cancel_input(data, input),
+            ControlAction::CancelInput { input } => self.cancel_input(data, input),
         }
     }
 }

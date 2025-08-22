@@ -62,7 +62,7 @@ macro_rules! synced_components {
             inventory: Inventory,
             // TODO: this is used in combat rating calculation in voxygen but we can probably
             // remove it from that and then see if it's used for anything else and try to move
-            // to only being synced for the client's entity.
+            // to only being synced like `ActiveAbilities`.
             skill_set: SkillSet,
 
             // Synced to the client only for its own entity
@@ -287,11 +287,11 @@ impl NetSync for Admin {
 }
 
 impl NetSync for Combo {
-    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientSpectatorEntity;
 }
 
 impl NetSync for ActiveAbilities {
-    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientSpectatorEntity;
 }
 
 impl NetSync for CanBuild {
@@ -299,9 +299,9 @@ impl NetSync for CanBuild {
 }
 
 impl NetSync for IsInteractor {
-    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientSpectatorEntity;
 }
 
 impl NetSync for Interactors {
-    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientSpectatorEntity;
 }
