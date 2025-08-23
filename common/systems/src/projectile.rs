@@ -24,6 +24,7 @@ use common::{
 
 use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
+use itertools::Either;
 use rand::Rng;
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
@@ -167,6 +168,11 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
+                // Skip if projectile has already hit this entity
+                if projectile.hit_entities.iter().any(|u| other == *u) {
+                    continue;
+                }
+
                 let projectile = &mut *projectile;
 
                 let entity_of = |uid: Uid| read_data.id_maps.uid_entity(uid);
@@ -192,7 +198,15 @@ impl<'a> System<'a> for Sys {
                     }
                 }
 
-                for effect in projectile.hit_entity.drain(..) {
+                projectile.hit_entities.push(other);
+
+                let effects = if projectile.pierce_entities {
+                    Either::Left(projectile.hit_entity.clone().into_iter())
+                } else {
+                    Either::Right(projectile.hit_entity.drain(..))
+                };
+
+                for effect in effects {
                     let owner = projectile.owner.and_then(entity_of);
                     let projectile_info = ProjectileInfo {
                         entity,
@@ -384,6 +398,8 @@ impl<'a> System<'a> for Sys {
                                         is_point: true,
                                         owner: projectile.owner,
                                         homing: None,
+                                        pierce_entities: false,
+                                        hit_entities: Vec::new(),
                                     },
                                     speed,
                                     object: None,

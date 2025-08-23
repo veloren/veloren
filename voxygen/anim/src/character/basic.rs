@@ -1717,6 +1717,23 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(6.0, 3.0, 5.0) * move1;
                 next.control.orientation.rotate_y(move1 * -1.0);
             },
+            Some("common.abilities.bow.piercing_gale") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_y(move1 * -PI + move2 * -PI);
+            },
+            Some("common.abilities.bow.piercing_gale_shot") => {
+                bow_start(&mut next, s_a);
+
+                bow_draw(&mut next, move1base, d.look_dir.z);
+
+                let charge = chargebase.min(2.0);
+                let rate = 2.5;
+                next.control.orientation.rotate_x(charge * -rate * 0.3);
+                next.control.orientation.rotate_z(charge * rate * 0.3);
+                next.control.orientation.rotate_y(charge * -rate);
+                next.control.orientation.rotate_z(charge * rate * -0.3);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

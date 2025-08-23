@@ -1,0 +1,32 @@
+ChargedRanged(
+    energy_cost: 0,
+    energy_drain: 0,
+    idle_drain: 10,
+    projectile: (
+        kind: Penetrating,
+        attack: Some((
+            damage: 7,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 5,
+                strength: DamageFraction(0.5),
+                chance: 0.25,
+            )),
+        )),
+        scaled: Some((
+            damage: 28,
+            knockback: Some(25),
+        )),
+    ),
+    buildup_duration: 0.3,
+    charge_duration: 1.2,
+    recover_duration: 0.1,
+    projectile_body: Object(Arrow),
+    projectile_light: None,
+    initial_projectile_speed: 50.0,
+    scaled_projectile_speed: 200.0,
+    move_speed: 0.4,
+    meta: (
+        init_event: Some(EnterStance(None)),
+    ),
+)

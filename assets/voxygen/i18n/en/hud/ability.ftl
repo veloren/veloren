@@ -496,3 +496,7 @@ common-abilities-bow-lightning_broadhead = Lightning Broadhead
     .desc = Your arrow is charged with electricity, which arcs to nearby targets after striking an enemy.
 common-abilities-bow-ardent_hunt = Ardent Hunt
     .desc = Enter a fervor when focusing on a specific target, causing a rush of adrenaline and energy with every arrow that strikes true.
+common-abilities-bow-piercing_gale = Piercing Gale
+    .desc = Replace your broadhead arrow with a spinning arrow that is capable of piercing through targets.
+common-abilities-bow-piercing_gale_shot = Piercing Gale
+    .desc = Fire a spinning arrow capable of drilling through targets to reach beyond.

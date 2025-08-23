@@ -54,6 +54,12 @@ pub struct Projectile {
     /// Whether the projectile should home towards a target entity and at what
     /// rate (in deg/s)
     pub homing: Option<(Uid, f32)>,
+    /// Whether the projectile should hit and apply its effects to multiple
+    /// entities
+    pub pierce_entities: bool,
+    /// Entities that the projectile has hit (only relevant for projectiles that
+    /// can pierce entities)
+    pub hit_entities: Vec<Uid>,
 }
 
 impl Component for Projectile {
@@ -120,6 +126,7 @@ pub enum ProjectileConstructorKind {
     // I want a better name for 'Pointed' and 'Blunt'
     Pointed,
     Blunt,
+    Penetrating,
     Explosive {
         radius: f32,
         min_falloff: f32,
@@ -197,9 +204,9 @@ impl ProjectileConstructor {
             let buff = a.buff.map(CombatEffect::Buff);
 
             let damage_kind = match self.kind {
-                ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Hazard { .. } => {
-                    DamageKind::Piercing
-                },
+                ProjectileConstructorKind::Pointed
+                | ProjectileConstructorKind::Hazard { .. }
+                | ProjectileConstructorKind::Penetrating => DamageKind::Piercing,
                 ProjectileConstructorKind::Blunt => DamageKind::Crushing,
                 ProjectileConstructorKind::Explosive { .. }
                 | ProjectileConstructorKind::ExplosiveHazard { .. }
@@ -285,6 +292,30 @@ impl ProjectileConstructor {
                     is_sticky: true,
                     is_point: true,
                     homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                }
+            },
+            ProjectileConstructorKind::Penetrating => {
+                let mut hit_entity = Vec::new();
+
+                if let Some(attack) = attack {
+                    hit_entity.push(Effect::Attack(attack));
+                }
+
+                Projectile {
+                    hit_solid: vec![Effect::Stick, Effect::Bonk],
+                    hit_entity,
+                    timeout: Vec::new(),
+                    time_left: Duration::from_secs(15),
+                    init_time: Secs(15.0),
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
+                    pierce_entities: true,
+                    hit_entities: Vec::new(),
                 }
             },
             ProjectileConstructorKind::Hazard {
@@ -308,6 +339,8 @@ impl ProjectileConstructor {
                     is_sticky,
                     is_point: false,
                     homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
                 }
             },
             ProjectileConstructorKind::Explosive {
@@ -350,6 +383,8 @@ impl ProjectileConstructor {
                     is_sticky: true,
                     is_point: true,
                     homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
                 }
             },
             ProjectileConstructorKind::Arcing {
@@ -385,6 +420,8 @@ impl ProjectileConstructor {
                     is_sticky: true,
                     is_point: true,
                     homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
                 }
             },
             ProjectileConstructorKind::ExplosiveHazard {
@@ -429,6 +466,8 @@ impl ProjectileConstructor {
                     is_sticky,
                     is_point: false,
                     homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
                 }
             },
             ProjectileConstructorKind::Possess => Projectile {
@@ -442,6 +481,8 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: true,
                 homing,
+                pierce_entities: false,
+                hit_entities: Vec::new(),
             },
             ProjectileConstructorKind::Firework(reagent) => Projectile {
                 hit_solid: Vec::new(),
@@ -454,6 +495,8 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: true,
                 homing,
+                pierce_entities: false,
+                hit_entities: Vec::new(),
             },
             ProjectileConstructorKind::SurpriseEgg => Projectile {
                 hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
@@ -466,6 +509,8 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: true,
                 homing,
+                pierce_entities: false,
+                hit_entities: Vec::new(),
             },
             ProjectileConstructorKind::TrainingDummy => Projectile {
                 hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
@@ -478,6 +523,8 @@ impl ProjectileConstructor {
                 is_sticky: true,
                 is_point: false,
                 homing,
+                pierce_entities: false,
+                hit_entities: Vec::new(),
             },
         }
     }
@@ -548,6 +595,7 @@ impl ProjectileConstructor {
         match self.kind {
             ProjectileConstructorKind::Pointed
             | ProjectileConstructorKind::Blunt
+            | ProjectileConstructorKind::Penetrating
             | ProjectileConstructorKind::Possess
             | ProjectileConstructorKind::Hazard { .. }
             | ProjectileConstructorKind::Firework(_)
@@ -598,6 +646,7 @@ impl ProjectileConstructor {
         match self.kind {
             ProjectileConstructorKind::Pointed
             | ProjectileConstructorKind::Blunt
+            | ProjectileConstructorKind::Penetrating
             | ProjectileConstructorKind::Possess
             | ProjectileConstructorKind::Hazard { .. }
             | ProjectileConstructorKind::Firework(_)

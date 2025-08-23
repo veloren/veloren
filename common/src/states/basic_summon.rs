@@ -214,6 +214,8 @@ impl CharacterBehavior for Data {
                                     is_sticky: false,
                                     is_point: false,
                                     homing: None,
+                                    pierce_entities: false,
+                                    hit_entities: Vec::new(),
                                 });
 
                                 let mut rng = rand::rng();
