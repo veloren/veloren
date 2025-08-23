@@ -263,6 +263,7 @@
                 ((stance: Bow(JoltArrow)), (Bow(JoltArrow), "common.abilities.bow.lightning_broadhead")),
                 ((stance: Bow(Barrage)), (Bow(Barrage), "common.abilities.bow.barrage_shot")),
                 ((stance: Bow(PiercingGale)), (Bow(PiercingGale), "common.abilities.bow.piercing_gale_shot")),
+                ((stance: Bow(Hawkstrike)), (Bow(Hawkstrike), "common.abilities.bow.hawkstrike_shot")),
                 ((), (None, "common.abilities.bow.broadhead")),
             ],
         ),

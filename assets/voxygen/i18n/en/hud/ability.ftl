@@ -500,3 +500,7 @@ common-abilities-bow-piercing_gale = Piercing Gale
     .desc = Replace your broadhead arrow with a spinning arrow that is capable of piercing through targets.
 common-abilities-bow-piercing_gale_shot = Piercing Gale
     .desc = Fire a spinning arrow capable of drilling through targets to reach beyond.
+common-abilities-bow-hawkstrike = Hawkstrike
+    .desc = Replace your broadhead arrow with a hawk arrow, capable of rending flesh deep enough to reach an artery.
+common-abilities-bow-hawkstrike_shot = Hawkstrike
+    .desc = Fire a hawk arrow, which rends flesh deeply enough to reach your target's arteries.

@@ -1734,6 +1734,21 @@ impl Animation for BasicAction {
                 next.control.orientation.rotate_y(charge * -rate);
                 next.control.orientation.rotate_z(charge * rate * -0.3);
             },
+            Some("common.abilities.bow.hawkstrike") => {
+                bow_start(&mut next, s_a);
+
+                bow_draw(&mut next, move1base * 2.0, d.look_dir.z);
+            },
+            Some("common.abilities.bow.hawkstrike_shot") => {
+                bow_start(&mut next, s_a);
+
+                let charge = chargebase.min(1.0);
+
+                bow_draw(&mut next, move1base, d.look_dir.z);
+
+                next.hand_l.position += Vec3::new(0.0, charge * -5.0, 0.0);
+                next.hand_l.orientation.rotate_y(charge * PI / 2.0);
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================
