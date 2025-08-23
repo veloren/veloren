@@ -41,6 +41,7 @@ hud-settings-values = Values
 hud-settings-percentages = Percentages
 hud-settings-chat = Chat
 hud-settings-background_opacity = Background Opacity
+hud-settings-lock_chat = Lock Chat Size/Position
 hud-settings-chat_character_name = Character Names in Chat
 hud-settings-loading_tips = Loading Screen Tips
 hud-settings-reset_interface = Reset to Defaults

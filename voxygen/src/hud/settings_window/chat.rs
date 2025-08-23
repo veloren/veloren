@@ -24,6 +24,8 @@ widget_ids! {
         transp_text,
         transp_slider,
         transp_value,
+        lock_chat_text,
+        lock_chat_button,
         char_name_text,
         char_name_button,
         reset_chat_button,
@@ -148,7 +150,7 @@ impl Widget for Chat<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.general_txt, ui);
 
-        // Chat Transp
+        // Chat Transparency
         Text::new(
             &self
                 .localized_strings
@@ -173,7 +175,7 @@ impl Widget for Chat<'_> {
         .pad_track((5.0, 5.0))
         .set(state.ids.transp_slider, ui)
         {
-            events.push(Event::ChatChange(Transp(new_val)));
+            events.push(Event::ChatChange(Transparency(new_val)));
         }
 
         Text::new(&format!("{:.2}", chat_settings.chat_opacity,))
@@ -184,13 +186,36 @@ impl Widget for Chat<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.transp_value, ui);
 
+        // Lock chat size/position toggle button
+        Text::new(&self.localized_strings.get_msg("hud-settings-lock_chat"))
+            .down_from(state.ids.transp_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.lock_chat_text, ui);
+
+        if chat_settings.lock_chat
+            != ToggleButton::new(
+                chat_settings.lock_chat,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.lock_chat_text, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.lock_chat_button, ui)
+        {
+            events.push(Event::ChatChange(LockChat(!chat_settings.lock_chat)));
+        }
+
         // "Show character names in chat" toggle button
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-chat_character_name"),
         )
-        .down_from(state.ids.transp_slider, 10.0)
+        .down_from(state.ids.lock_chat_text, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

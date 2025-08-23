@@ -39,7 +39,8 @@ pub enum Audio {
 }
 #[derive(Clone)]
 pub enum Chat {
-    Transp(f32),
+    Transparency(f32),
+    LockChat(bool),
     CharName(bool),
     ChangeChatTab(Option<usize>),
     ChatTabUpdate(usize, ChatTab),
@@ -336,8 +337,11 @@ impl SettingsChange {
             SettingsChange::Chat(chat_change) => {
                 let chat_tabs = &mut settings.chat.chat_tabs;
                 match chat_change {
-                    Chat::Transp(chat_opacity) => {
+                    Chat::Transparency(chat_opacity) => {
                         settings.chat.chat_opacity = chat_opacity;
+                    },
+                    Chat::LockChat(lock_chat) => {
+                        settings.chat.lock_chat = lock_chat;
                     },
                     Chat::CharName(chat_char_name) => {
                         settings.chat.chat_character_name = chat_char_name;
