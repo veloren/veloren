@@ -504,3 +504,7 @@ common-abilities-bow-hawkstrike = Hawkstrike
     .desc = Replace your broadhead arrow with a hawk arrow, capable of rending flesh deep enough to reach an artery.
 common-abilities-bow-hawkstrike_shot = Hawkstrike
     .desc = Fire a hawk arrow, which rends flesh deeply enough to reach your target's arteries.
+common-abilities-bow-fusillade = Fusillade
+    .desc = Replace your broadhead arrow with 5 smaller arrows, that can all be nocked at once.
+common-abilities-bow-fusillade_shot = Fusillade
+    .desc = Nock and draw 5 smaller arrows all at the same time, staggered so they release one slightly after the other.

@@ -26,6 +26,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Energy cost per projectile
     pub energy_cost: f32,
+    #[serde(default)]
     pub options: Options,
     /// Projectile options
     pub projectile: ProjectileConstructor,
@@ -38,11 +39,13 @@ pub struct StaticData {
     pub specifier: Option<FrontendSpecifier>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Options {
     pub speed_ramp: Option<RampOptions>,
     pub max_projectiles: Option<u32>,
     pub offset: Option<OffsetOptions>,
+    #[serde(default)]
+    pub fire_all: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -96,6 +99,9 @@ impl CharacterBehavior for Data {
                 }
             },
             StageSection::Action => {
+                // We want to ensure that we only "fire all" if there is a finite amount to fire
+                let fire_all = self.static_data.options.fire_all
+                    && self.static_data.options.max_projectiles.is_some();
                 if self.timer < self.static_data.shoot_duration {
                     // Draw projectile
                     if let CharacterState::RapidRanged(c) = &mut update.character {
@@ -104,7 +110,7 @@ impl CharacterBehavior for Data {
                             .checked_add(Duration::from_secs_f32(data.dt.0 * self.speed))
                             .unwrap_or_default();
                     }
-                } else if input_is_pressed(data, self.static_data.ability_info.input)
+                } else if (input_is_pressed(data, self.static_data.ability_info.input) || fire_all)
                     && update.energy.current() >= self.static_data.energy_cost
                     && self
                         .static_data

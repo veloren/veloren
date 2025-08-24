@@ -353,6 +353,7 @@ image_ids! {
         bow_ardent_hunt: "voxygen.element.skills.bow.ardent_hunt",
         bow_piercing_gale: "voxygen.element.skills.bow.piercing_gale",
         bow_hawkstrike: "voxygen.element.skills.bow.hawkstrike",
+        bow_fusillade: "voxygen.element.skills.bow.fusillade",
         // Skilltree Icons
         health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
         energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",

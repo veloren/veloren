@@ -1539,6 +1539,13 @@ impl Animation for MultiAction {
                     let movedraw = (move2base * 2.0).min(1.0);
                     next.hand_l.position += Vec3::new(0.0, movedraw * -5.0, 0.0);
                 },
+                Some("common.abilities.bow.fusillade_shot") => {
+                    bow_start(&mut next, s_a);
+                    bow_draw(&mut next, move1, d.look_dir.z);
+
+                    next.hand_l.position += Vec3::new(0.0, -7.0, 0.0) * move1;
+                    next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * move2;
+                },
                 // ==================================
                 //              SHIELD
                 // ==================================

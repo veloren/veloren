@@ -12,6 +12,7 @@ ChargedRanged(
                 strength: DamageFraction(3.0),
                 chance: 1.0,
             )),
+            without_combo: true,
         )),
         scaled: Some((
             damage: 8,

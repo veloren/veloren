@@ -815,6 +815,9 @@ pub enum CharacterAbility {
         meta: AbilityMeta,
     },
     RapidRanged {
+        #[serde(default)]
+        initial_energy: f32,
+        #[serde(default)]
         energy_cost: f32,
         buildup_duration: f32,
         shoot_duration: f32,
@@ -1360,9 +1363,14 @@ impl CharacterAbility {
                 | CharacterAbility::RegrowHead { energy_cost, .. } => {
                     update.energy.try_change_by(-*energy_cost).is_ok()
                 },
-                // Consumes energy within state, so value only checked before entering state
-                CharacterAbility::RapidRanged { energy_cost, .. } => {
-                    update.energy.current() >= *energy_cost
+                // Also can consume energy within state, so value checked before entering state too
+                CharacterAbility::RapidRanged {
+                    initial_energy,
+                    energy_cost,
+                    ..
+                } => {
+                    update.energy.current() >= *energy_cost + *initial_energy
+                        && update.energy.try_change_by(-*initial_energy).is_ok()
                 },
                 CharacterAbility::LeapExplosionShockwave { energy_cost, .. }
                 | CharacterAbility::LeapMelee { energy_cost, .. }
@@ -1522,6 +1530,7 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
             },
             RapidRanged {
+                ref mut initial_energy,
                 ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut shoot_duration,
@@ -1539,6 +1548,7 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *projectile = projectile.clone().adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
+                *initial_energy /= stats.energy_efficiency;
                 *energy_cost /= stats.energy_efficiency;
             },
             Boost {
@@ -2945,6 +2955,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 exhausted: false,
             }),
             CharacterAbility::RapidRanged {
+                initial_energy: _,
                 energy_cost,
                 buildup_duration,
                 shoot_duration,

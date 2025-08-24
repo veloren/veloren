@@ -1749,6 +1749,12 @@ impl Animation for BasicAction {
                 next.hand_l.position += Vec3::new(0.0, charge * -5.0, 0.0);
                 next.hand_l.orientation.rotate_y(charge * PI / 2.0);
             },
+            Some("common.abilities.bow.fusillade") => {
+                bow_start(&mut next, s_a);
+
+                let move_rep = ((move1 + move2) * 20.0).sin();
+                next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * move_rep;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================
