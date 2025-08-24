@@ -251,24 +251,25 @@ impl Renderer {
         }
 
         let adapter = match std::env::var("WGPU_ADAPTER").ok() {
-            Some(filter) if !filter.is_empty() => {
-                adapters.into_iter().enumerate().find_map(|(i, adapter)| {
+            Some(filter) if !filter.is_empty() => adapters
+                .into_iter()
+                .enumerate()
+                .find_map(|(i, adapter)| {
                     let info = adapter.get_info();
 
                     let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
 
                     full_name.contains(&filter).then_some(adapter)
                 })
-            },
-            Some(_) | None => runtime
-                .block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
+                .ok_or(RenderError::CouldNotFindAdapter)?,
+            Some(_) | None => {
+                runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                     power_preference: wgpu::PowerPreference::HighPerformance,
                     compatible_surface: Some(&surface),
                     force_fallback_adapter: false,
-                }))
-                .ok(),
-        }
-        .ok_or(RenderError::CouldNotFindAdapter)?;
+                }))?
+            },
+        };
 
         let info = adapter.get_info();
         info!(
