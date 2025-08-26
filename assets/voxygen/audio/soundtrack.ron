@@ -16,19 +16,32 @@
 
         // Overworld exploration tracks
 
-Individual((
-    title: "Desert Horizons",
-    path: "voxygen.audio.soundtrack.overworld.desert_horizons",
-    length: 121.0,
-    timing: Night,
-    weather: None,
-    biomes: [
-        (Desert, 1),
-    ],
-    sites: [Void],
-    music_state: Activity(Explore),
-    artist: ("Federico Orfanó", "https://soundcloud.com/federico-orfano-1336105")
-)),
+        Individual((
+            title: "The Summit Awaits",
+            path: "voxygen.audio.soundtrack.overworld.the_summit_awaits",
+            length: 206.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Snowland, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("unii", "https://www.youtube.com/@uniior"),
+        )),
+        Individual((
+            title: "Desert Horizons",
+            path: "voxygen.audio.soundtrack.overworld.desert_horizons",
+            length: 121.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Desert, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("Federico Orfanó", "https://soundcloud.com/federico-orfano-1336105")
+        )),
         Individual((
             title: "Lost Among Vast",
             path: "voxygen.audio.soundtrack.overworld.lost_among_vast",
