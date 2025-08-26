@@ -43,7 +43,7 @@ use rand_chacha::ChaChaRng;
 use std::ops::Range;
 use vek::*;
 
-/// Seed a new RNG from an old RNG, thereby making the old RNG indepedent of
+/// Seed a new RNG from an old RNG, thereby making the old RNG independent of
 /// changing use of the new RNG. The practical effect of this is to reduce the
 /// extent to which changes to child generation algorithm produce a 'butterfly
 /// effect' on their parent generators, meaning that generators will be less
@@ -1544,7 +1544,7 @@ impl Site {
                     }
                 },
                 8 => {
-                    Self::generate_barn(false, &mut rng, &mut site, land);
+                    Self::generate_barn(false, &mut rng, &mut site, land, index);
                 },
                 _ => {},
             }
@@ -2038,7 +2038,7 @@ impl Site {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 5 => {
-                    Self::generate_barn(false, &mut rng, &mut site, land);
+                    Self::generate_barn(false, &mut rng, &mut site, land, index);
                 },
                 _ => {},
             }
@@ -2197,7 +2197,7 @@ impl Site {
                     Self::generate_farm(false, &mut rng, &mut site, land);
                 },
                 5 => {
-                    Self::generate_barn(false, &mut rng, &mut site, land);
+                    Self::generate_barn(false, &mut rng, &mut site, land, index);
                 },
                 _ => {},
             }
@@ -2399,7 +2399,7 @@ impl Site {
                 // desert barn - disabled for now (0.0 spawn chance)
                 // need desert-variant sprite
                 5 => {
-                    Self::generate_barn(true, &mut rng, &mut site, land);
+                    Self::generate_barn(true, &mut rng, &mut site, land, index);
                 },
                 _ => {},
             }
@@ -2450,34 +2450,49 @@ impl Site {
         mut rng: &mut impl Rng,
         site: &mut Site,
         land: &Land,
+        index: IndexRef,
     ) -> bool {
-        let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+        let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
         if let Some((aabr, door_tile, door_dir, _alt)) = attempt(32, || {
-            site.find_rural_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
+            site.find_rural_aabr(&mut rng, 7..(size + 1).pow(2), Extent2::broadcast(size))
         }) {
-            let barn = plot::Barn::generate(
-                land,
-                &mut reseed(&mut rng),
-                site,
-                door_tile,
-                door_dir,
-                aabr,
-                is_desert,
-            );
-            let barn_alt = barn.alt;
-            let plot = site.create_plot(Plot {
-                kind: PlotKind::Barn(barn),
-                root_tile: aabr.center(),
-                tiles: aabr_tiles(aabr).collect(),
-            });
+            let bounds = Aabr {
+                min: site.tile_wpos(aabr.min),
+                max: site.tile_wpos(aabr.max),
+            };
 
-            site.blit_aabr(aabr, Tile {
-                kind: TileKind::Building,
-                plot: Some(plot),
-                hard_alt: Some(barn_alt),
-            });
+            // Barns don't place very well in hilly sections of land due to
+            // their size. They need a relatively flat area.
+            let gradient_avg = get_gradient_average(bounds, land);
 
-            true
+            if gradient_avg > 0.05 {
+                false
+            } else {
+                let barn = plot::Barn::generate(
+                    land,
+                    index,
+                    &mut reseed(&mut rng),
+                    site,
+                    door_tile,
+                    door_dir,
+                    aabr,
+                    is_desert,
+                );
+                let barn_alt = barn.alt;
+                let plot = site.create_plot(Plot {
+                    kind: PlotKind::Barn(barn),
+                    root_tile: aabr.center(),
+                    tiles: aabr_tiles(aabr).collect(),
+                });
+
+                site.blit_aabr(aabr, Tile {
+                    kind: TileKind::Building,
+                    plot: Some(plot),
+                    hard_alt: Some(barn_alt),
+                });
+
+                true
+            }
         } else {
             false
         }
@@ -3252,4 +3267,30 @@ fn temp_at_wpos(land: &Land, wpos: Vec2<i32>) -> f32 {
 pub fn aabr_tiles(aabr: Aabr<i32>) -> impl Iterator<Item = Vec2<i32>> {
     (0..aabr.size().h)
         .flat_map(move |y| (0..aabr.size().w).map(move |x| aabr.min + Vec2::new(x, y)))
+}
+
+/// Returns the average gradient of the chunks neighboring the center of the
+/// given `aabr`, as well as the gradient of the chunk at the center of the
+/// `aabr` itself.
+fn get_gradient_average(aabr: Aabr<i32>, land: &Land) -> f32 {
+    let chunk_size = TerrainChunkSize::RECT_SIZE.reduce_max() as i32;
+
+    let mut gradient_sum = 0.0;
+    let mut gradient_sample_count = 0;
+
+    let aabr_center = aabr.center();
+    let range_x_min = aabr_center.x - chunk_size;
+    let range_x_max = aabr_center.x + chunk_size;
+    let range_y_min = aabr_center.y - chunk_size;
+    let range_y_max = aabr_center.y + chunk_size;
+
+    for x_pos in (range_x_min..=range_x_max).step_by(chunk_size as usize) {
+        for y_pos in (range_y_min..=range_y_max).step_by(chunk_size as usize) {
+            let gradient_at_pos = land.get_gradient_approx(Vec2::new(x_pos, y_pos));
+            gradient_sum += gradient_at_pos;
+            gradient_sample_count += 1;
+        }
+    }
+
+    gradient_sum / (gradient_sample_count as f32)
 }
