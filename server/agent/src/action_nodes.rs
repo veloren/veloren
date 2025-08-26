@@ -904,6 +904,8 @@ impl AgentData<'_> {
         // If we already have a healing buff active, don't start another one.
         if self.buffs.is_some_and(|buffs| {
             buffs.iter_active().flatten().any(|buff| {
+                // We don't care about seeing the optional combat requirements that can be
+                // tacked onto buff effects, so we'll just pass in None to this
                 buff.kind.effects(&buff.data, None).iter().any(|effect| {
                     if let comp::BuffEffect::HealthChangeOverTime { rate, .. } = effect
                         && *rate > 0.0
