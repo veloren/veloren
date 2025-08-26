@@ -2,8 +2,13 @@
 
 [
     (
-        specifier: "world.structure.plots.barn_final",
-        center: (22, 11, 0),
-        custom_indices: {},
+        specifier: "world.structure.plots.barn",
+        center: (18, 13, 0),
+        custom_indices: {
+            1: Sprite(LanternAirshipWallBrownS(0)),
+            2: Sprite(LanternAirshipWallBrownS(4)),
+            3: Sprite(LanternAirshipWallBrownS(6)),
+            4: Sprite(LanternAirshipWallBrownS(2)),
+        },
     ),
 ]
