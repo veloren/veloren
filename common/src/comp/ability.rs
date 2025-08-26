@@ -3731,7 +3731,7 @@ impl Stance {
             Stance::Bow(BowStance::PiercingGale) => "common.abilities.bow.piercing_gale",
             Stance::Bow(BowStance::Hawkstrike) => "common.abilities.bow.hawkstrike",
             Stance::Bow(BowStance::Fusillade) => "common.abilities.bow.fusillade",
-            Stance::Bow(BowStance::DeathValley) => "common.abilities.bow.death_Valley",
+            Stance::Bow(BowStance::DeathVolley) => "common.abilities.bow.death_volley",
             Stance::None => "veloren.core.pseudo_abilities.no_stance",
         }
     }
@@ -3757,7 +3757,7 @@ pub enum BowStance {
     PiercingGale,
     Hawkstrike,
     Fusillade,
-    DeathValley,
+    DeathVolley,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

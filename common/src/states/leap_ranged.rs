@@ -131,6 +131,7 @@ impl CharacterBehavior for Data {
                         let pos = Pos(data.pos.0 + body_offsets);
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
+                            source_vel: Some(*data.vel),
                             pos,
                             dir: data.inputs.look_dir,
                             body: self.static_data.projectile_body,

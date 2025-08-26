@@ -158,6 +158,7 @@ impl CharacterBehavior for Data {
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
+                            source_vel: Some(*data.vel),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,

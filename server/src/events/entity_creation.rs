@@ -420,10 +420,7 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
 
     let pos = ev.pos.0;
 
-    let vel = *ev.dir * ev.speed
-        + ev.entity
-            .and_then(|entity| state.ecs().read_storage::<Vel>().get(entity).map(|v| v.0))
-            .unwrap_or(Vec3::zero());
+    let vel = *ev.dir * ev.speed + ev.source_vel.map_or(Vec3::zero(), |v| v.0);
 
     // Add an outcome
     state

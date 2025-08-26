@@ -1755,6 +1755,22 @@ impl Animation for BasicAction {
                 let move_rep = ((move1 + move2) * 20.0).sin();
                 next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * move_rep;
             },
+            Some("common.abilities.bow.death_volley") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(0.0, 8.0, 0.0) * (-move1 + move2);
+                next.hold.scale *= 1.0 + move1;
+            },
+            Some("common.abilities.bow.death_volley_shot") => {
+                bow_start(&mut next, s_a);
+                bow_draw(&mut next, move1base, d.look_dir.z);
+
+                next.hold.scale *= 1.5;
+                next.torso.position += Vec3::new(0.0, 0.0, -3.0) * move1;
+                next.foot_l.orientation.rotate_x(-1.7 * move1);
+                next.foot_l.position += Vec3::new(0.0, -8.0, 3.0) * move1;
+                next.foot_r.position += Vec3::new(0.0, 6.0, 3.0) * move1;
+            },
             // ==================================
             //             FIRE STAFF
             // ==================================

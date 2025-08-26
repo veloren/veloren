@@ -30,7 +30,10 @@ use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
     shred,
 };
-use std::time::Duration;
+use std::{
+    f32::consts::{PI, TAU},
+    time::Duration,
+};
 use vek::*;
 
 use common::terrain::TerrainGrid;
@@ -169,7 +172,7 @@ impl<'a> System<'a> for Sys {
                 }
 
                 // Skip if projectile has already hit this entity
-                if projectile.hit_entities.iter().any(|u| other == *u) {
+                if projectile.hit_entities.contains(&other) {
                     continue;
                 }
 
@@ -336,94 +339,158 @@ impl<'a> System<'a> for Sys {
             if projectile.time_left == Duration::ZERO {
                 emitters.emit(DeleteEvent(entity));
 
-                for effect in projectile.timeout.drain(..) {
-                    if let projectile::Effect::Firework(reagent) = effect {
-                        const ENABLE_RECURSIVE_FIREWORKS: bool = true;
-                        if ENABLE_RECURSIVE_FIREWORKS {
-                            use common::{comp::LightEmitter, event::ShootEvent};
-                            use std::f32::consts::PI;
-                            // Note that if the expected fireworks per firework is > 1, this
-                            // will eventually cause
-                            // enough server lag that more players can't log in.
-                            let thresholds: &[(f32, usize)] = &[(0.25, 2), (0.7, 1)];
-                            let expected = {
-                                let mut total = 0.0;
-                                let mut cumulative_probability = 0.0;
-                                for (p, n) in thresholds {
-                                    total += (p - cumulative_probability) * *n as f32;
-                                    cumulative_probability += p;
-                                }
-                                total
-                            };
-                            assert!(expected < 1.0);
-                            let num_fireworks = (|| {
-                                let x = rng.random_range(0.0..1.0);
-                                for (p, n) in thresholds {
-                                    if x < *p {
-                                        return *n;
+                // Check this to avoid needless cloning as we need to clone projectile in some
+                // timeout events
+                if !projectile.timeout.is_empty() {
+                    let init_projectile = projectile.clone();
+                    for effect in projectile.timeout.drain(..) {
+                        match effect {
+                            projectile::Effect::Firework(reagent) => {
+                                const ENABLE_RECURSIVE_FIREWORKS: bool = true;
+                                if ENABLE_RECURSIVE_FIREWORKS {
+                                    use common::{comp::LightEmitter, event::ShootEvent};
+                                    use std::f32::consts::PI;
+                                    // Note that if the expected fireworks per firework is > 1, this
+                                    // will eventually cause
+                                    // enough server lag that more players can't log in.
+                                    let thresholds: &[(f32, usize)] = &[(0.25, 2), (0.7, 1)];
+                                    let expected = {
+                                        let mut total = 0.0;
+                                        let mut cumulative_probability = 0.0;
+                                        for (p, n) in thresholds {
+                                            total += (p - cumulative_probability) * *n as f32;
+                                            cumulative_probability += p;
+                                        }
+                                        total
+                                    };
+                                    assert!(expected < 1.0);
+                                    let num_fireworks = (|| {
+                                        let x = rng.random_range(0.0..1.0);
+                                        for (p, n) in thresholds {
+                                            if x < *p {
+                                                return *n;
+                                            }
+                                        }
+                                        0
+                                    })();
+                                    for _ in 0..num_fireworks {
+                                        let speed: f32 = rng.random_range(40.0..80.0);
+                                        let theta: f32 = rng.random_range(0.0..2.0 * PI);
+                                        let phi: f32 = rng.random_range(0.25 * PI..0.5 * PI);
+                                        let dir = Dir::from_unnormalized(Vec3::new(
+                                            theta.cos(),
+                                            theta.sin(),
+                                            phi.sin(),
+                                        ))
+                                        .expect("nonzero vector should normalize");
+                                        emitters.emit(ShootEvent {
+                                            entity: Some(entity),
+                                            source_vel: velocities.get(entity).copied(),
+                                            pos: *pos,
+                                            dir,
+                                            body: *body,
+                                            light: Some(LightEmitter {
+                                                animated: true,
+                                                flicker: 2.0,
+                                                strength: 2.0,
+                                                col: Rgb::new(1.0, 1.0, 0.0),
+                                                dir: None,
+                                            }),
+                                            projectile: Projectile {
+                                                hit_solid: Vec::new(),
+                                                hit_entity: Vec::new(),
+                                                timeout: vec![projectile::Effect::Firework(
+                                                    reagent,
+                                                )],
+                                                time_left: Duration::from_secs(1),
+                                                init_time: Secs(1.0),
+                                                ignore_group: true,
+                                                is_sticky: true,
+                                                is_point: true,
+                                                owner: projectile.owner,
+                                                homing: None,
+                                                pierce_entities: false,
+                                                hit_entities: Vec::new(),
+                                            },
+                                            speed,
+                                            object: None,
+                                        });
                                     }
                                 }
-                                0
-                            })();
-                            for _ in 0..num_fireworks {
-                                let speed: f32 = rng.random_range(40.0..80.0);
-                                let theta: f32 = rng.random_range(0.0..2.0 * PI);
-                                let phi: f32 = rng.random_range(0.25 * PI..0.5 * PI);
-                                let dir = Dir::from_unnormalized(Vec3::new(
-                                    theta.cos(),
-                                    theta.sin(),
-                                    phi.sin(),
-                                ))
-                                .expect("nonzero vector should normalize");
-                                emitters.emit(ShootEvent {
-                                    entity: Some(entity),
-                                    pos: *pos,
-                                    dir,
-                                    body: *body,
-                                    light: Some(LightEmitter {
-                                        animated: true,
-                                        flicker: 2.0,
-                                        strength: 2.0,
-                                        col: Rgb::new(1.0, 1.0, 0.0),
-                                        dir: None,
-                                    }),
-                                    projectile: Projectile {
-                                        hit_solid: Vec::new(),
-                                        hit_entity: Vec::new(),
-                                        timeout: vec![projectile::Effect::Firework(reagent)],
-                                        time_left: Duration::from_secs(1),
-                                        init_time: Secs(1.0),
-                                        ignore_group: true,
-                                        is_sticky: true,
-                                        is_point: true,
-                                        owner: projectile.owner,
-                                        homing: None,
-                                        pierce_entities: false,
-                                        hit_entities: Vec::new(),
+                                emitters.emit(ExplosionEvent {
+                                    pos: pos.0,
+                                    explosion: Explosion {
+                                        effects: vec![
+                                            RadiusEffect::Entity(effect::Effect::Damage(Damage {
+                                                kind: DamageKind::Energy,
+                                                value: 5.0,
+                                            })),
+                                            RadiusEffect::Entity(effect::Effect::Poise(-40.0)),
+                                            RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
+                                        ],
+                                        radius: 12.0,
+                                        reagent: Some(reagent),
+                                        min_falloff: 0.0,
                                     },
-                                    speed,
-                                    object: None,
+                                    owner: projectile.owner,
                                 });
-                            }
-                        }
-                        emitters.emit(DeleteEvent(entity));
-                        emitters.emit(ExplosionEvent {
-                            pos: pos.0,
-                            explosion: Explosion {
-                                effects: vec![
-                                    RadiusEffect::Entity(effect::Effect::Damage(Damage {
-                                        kind: DamageKind::Energy,
-                                        value: 5.0,
-                                    })),
-                                    RadiusEffect::Entity(effect::Effect::Poise(-40.0)),
-                                    RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
-                                ],
-                                radius: 12.0,
-                                reagent: Some(reagent),
-                                min_falloff: 0.0,
                             },
-                            owner: projectile.owner,
-                        });
+                            projectile::Effect::Split(split) => {
+                                if physics.on_surface().is_some() {
+                                    // We do not want to split if projectile is already on a surface
+                                    continue;
+                                }
+                                let split_projectile = {
+                                    let mut projectile = init_projectile.clone();
+                                    // Remove split from effects here to avoid projectile infinitely
+                                    // splitting
+                                    projectile
+                                        .timeout
+                                        .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+                                    projectile.time_left =
+                                        Duration::from_secs_f64(split.new_lifetime.0);
+                                    projectile.init_time = split.new_lifetime;
+                                    projectile
+                                };
+
+                                let init_dir = velocities
+                                    .get(entity)
+                                    .and_then(|v| Dir::from_unnormalized(v.0))
+                                    .unwrap_or_default();
+
+                                for _ in 0..split.amount {
+                                    let dir = {
+                                        let theta = rng.random_range(0.0..TAU);
+                                        let phi = rng.random_range(0.0..PI);
+                                        let offset = {
+                                            let x = theta.sin() * phi.sin();
+                                            let y = theta.cos() * phi.sin();
+                                            let z = phi.cos();
+                                            Vec3::new(x, y, z) * split.spread
+                                        };
+                                        Dir::from_unnormalized(*init_dir + offset)
+                                            .unwrap_or_default()
+                                    };
+
+                                    emitters.emit(ShootEvent {
+                                        entity: projectile_owner,
+                                        // source_vel: velocities.get(entity).copied(),
+                                        source_vel: None,
+                                        pos: *pos,
+                                        dir,
+                                        body: *body,
+                                        light: None,
+                                        projectile: split_projectile.clone(),
+                                        // speed: 0.0, // Only inherit the source projectile's speed
+                                        speed: velocities
+                                            .get(entity)
+                                            .map_or(0.0, |v| v.0.magnitude()),
+                                        object: None,
+                                    })
+                                }
+                            },
+                            _ => {},
+                        }
                     }
                 }
             }
@@ -706,5 +773,6 @@ fn dispatch_hit(
                 Alignment::Npc,
             ),
         }),
+        projectile::Effect::Split(_) => {},
     }
 }

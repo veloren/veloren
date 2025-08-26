@@ -508,3 +508,7 @@ common-abilities-bow-fusillade = Fusillade
     .desc = Replace your broadhead arrow with 5 smaller arrows, that can all be nocked at once.
 common-abilities-bow-fusillade_shot = Fusillade
     .desc = Nock and draw 5 smaller arrows all at the same time, staggered so they release one slightly after the other.
+common-abilities-bow-death_volley = Death Volley
+    .desc = Replace your broadhead arrow with a bundle of arrows that are loosely tied together, rigged to untie a few seconds after firing.
+common-abilities-bow-death_volley_shot = Death Volley
+    .desc = Fire a bundle of arrows into the air that will split apart into a rain of death.

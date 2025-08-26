@@ -2272,6 +2272,7 @@ impl ServerEvent for BonkEvent {
                             if matches!(block.get_sprite(), Some(SpriteKind::Bomb)) {
                                 shoot_emitter.emit(ShootEvent {
                                     entity: None,
+                                    source_vel: None,
                                     pos,
                                     dir: Dir::from_unnormalized(vel.0).unwrap_or_default(),
                                     body: Body::Object(body),
@@ -2297,6 +2298,8 @@ impl ServerEvent for BonkEvent {
                                         }),
                                         scaled: None,
                                         homing_rate: None,
+                                        split: None,
+                                        lifetime_override: None,
                                     }
                                     .create_projectile(
                                         None,

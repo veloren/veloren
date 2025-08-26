@@ -30,6 +30,7 @@ pub enum Effect {
     SurpriseEgg,
     TrainingDummy,
     Arc(ArcProperties),
+    Split(SplitOptions),
 }
 
 #[derive(Clone, Debug)]
@@ -88,6 +89,16 @@ pub struct ProjectileConstructor {
     pub scaled: Option<Scaled>,
     /// In degrees per second
     pub homing_rate: Option<f32>,
+    pub split: Option<SplitOptions>,
+    pub lifetime_override: Option<Secs>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SplitOptions {
+    pub amount: u32,
+    pub spread: f32,
+    pub new_lifetime: Secs,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -273,6 +284,12 @@ impl ProjectileConstructor {
             .and_then(|i| i.target_entity)
             .zip(self.homing_rate);
 
+        let mut timeout = Vec::new();
+
+        if let Some(split) = self.split {
+            timeout.push(Effect::Split(split));
+        }
+
         match self.kind {
             ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Blunt => {
                 let mut hit_entity = vec![Effect::Vanish];
@@ -281,12 +298,14 @@ impl ProjectileConstructor {
                     hit_entity.push(Effect::Attack(attack));
                 }
 
+                let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
+
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity,
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs(15),
-                    init_time: Secs(15.0),
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky: true,
@@ -303,12 +322,14 @@ impl ProjectileConstructor {
                     hit_entity.push(Effect::Attack(attack));
                 }
 
+                let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
+
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity,
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs(15),
-                    init_time: Secs(15.0),
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky: true,
@@ -328,12 +349,14 @@ impl ProjectileConstructor {
                     hit_entity.push(Effect::Attack(attack));
                 }
 
+                let lifetime = self.lifetime_override.unwrap_or(duration);
+
                 Projectile {
                     hit_solid: vec![Effect::Stick, Effect::Bonk],
                     hit_entity,
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs_f64(duration.0),
-                    init_time: duration,
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky,
@@ -372,12 +395,14 @@ impl ProjectileConstructor {
                     min_falloff,
                 };
 
+                let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
+
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs(10),
-                    init_time: Secs(10.0),
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky: true,
@@ -409,12 +434,14 @@ impl ProjectileConstructor {
                     hit_entity.push(Effect::Arc(arc));
                 }
 
+                let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
+
                 Projectile {
                     hit_solid: Vec::new(),
                     hit_entity,
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs(10),
-                    init_time: Secs(10.0),
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky: true,
@@ -455,12 +482,14 @@ impl ProjectileConstructor {
                     min_falloff,
                 };
 
+                let lifetime = self.lifetime_override.unwrap_or(duration);
+
                 Projectile {
                     hit_solid: Vec::new(),
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
-                    timeout: Vec::new(),
-                    time_left: Duration::from_secs_f64(duration.0),
-                    init_time: duration,
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
                     owner,
                     ignore_group: true,
                     is_sticky,
@@ -470,61 +499,81 @@ impl ProjectileConstructor {
                     hit_entities: Vec::new(),
                 }
             },
-            ProjectileConstructorKind::Possess => Projectile {
-                hit_solid: vec![Effect::Stick],
-                hit_entity: vec![Effect::Stick, Effect::Possess],
-                timeout: Vec::new(),
-                time_left: Duration::from_secs(10),
-                init_time: Secs(10.0),
-                owner,
-                ignore_group: false,
-                is_sticky: true,
-                is_point: true,
-                homing,
-                pierce_entities: false,
-                hit_entities: Vec::new(),
+            ProjectileConstructorKind::Possess => {
+                let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
+
+                Projectile {
+                    hit_solid: vec![Effect::Stick],
+                    hit_entity: vec![Effect::Stick, Effect::Possess],
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
+                    owner,
+                    ignore_group: false,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                }
             },
-            ProjectileConstructorKind::Firework(reagent) => Projectile {
-                hit_solid: Vec::new(),
-                hit_entity: Vec::new(),
-                timeout: vec![Effect::Firework(reagent)],
-                time_left: Duration::from_secs(3),
-                init_time: Secs(3.0),
-                owner,
-                ignore_group: true,
-                is_sticky: true,
-                is_point: true,
-                homing,
-                pierce_entities: false,
-                hit_entities: Vec::new(),
+            ProjectileConstructorKind::Firework(reagent) => {
+                timeout.push(Effect::Firework(reagent));
+
+                let lifetime = self.lifetime_override.unwrap_or(Secs(3.0));
+
+                Projectile {
+                    hit_solid: Vec::new(),
+                    hit_entity: Vec::new(),
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                }
             },
-            ProjectileConstructorKind::SurpriseEgg => Projectile {
-                hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
-                hit_entity: vec![Effect::SurpriseEgg, Effect::Vanish],
-                timeout: Vec::new(),
-                time_left: Duration::from_secs(15),
-                init_time: Secs(15.0),
-                owner,
-                ignore_group: true,
-                is_sticky: true,
-                is_point: true,
-                homing,
-                pierce_entities: false,
-                hit_entities: Vec::new(),
+            ProjectileConstructorKind::SurpriseEgg => {
+                let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
+
+                Projectile {
+                    hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
+                    hit_entity: vec![Effect::SurpriseEgg, Effect::Vanish],
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                }
             },
-            ProjectileConstructorKind::TrainingDummy => Projectile {
-                hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
-                hit_entity: vec![Effect::TrainingDummy, Effect::Vanish],
-                timeout: vec![Effect::TrainingDummy],
-                time_left: Duration::from_secs(15),
-                init_time: Secs(15.0),
-                owner,
-                ignore_group: true,
-                is_sticky: true,
-                is_point: false,
-                homing,
-                pierce_entities: false,
-                hit_entities: Vec::new(),
+            ProjectileConstructorKind::TrainingDummy => {
+                timeout.push(Effect::TrainingDummy);
+
+                let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
+
+                Projectile {
+                    hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
+                    hit_entity: vec![Effect::TrainingDummy, Effect::Vanish],
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: false,
+                    homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                }
             },
         }
     }
@@ -611,6 +660,11 @@ impl ProjectileConstructor {
                 *distance *= stats.range;
             },
         }
+
+        self.split = self.split.map(|mut s| {
+            s.amount = (s.amount as f32 * stats.effect_power).ceil().max(0.0) as u32;
+            s
+        });
 
         self
     }

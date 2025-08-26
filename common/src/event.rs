@@ -375,7 +375,9 @@ pub struct GroupManipEvent(pub EcsEntity, pub comp::GroupManip);
 pub struct RespawnEvent(pub EcsEntity);
 
 pub struct ShootEvent {
+    // This should be the owner entity
     pub entity: Option<EcsEntity>,
+    pub source_vel: Option<Vel>,
     pub pos: Pos,
     pub dir: Dir,
     pub body: comp::Body,

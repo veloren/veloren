@@ -2450,7 +2450,7 @@ impl Diary<'_> {
             },
             SkillIcon::Ability {
                 skill: Skill::Bow(BowSkill::DeathVolley),
-                ability_id: "common.abilities.bow.death_volly",
+                ability_id: "common.abilities.bow.death_volley",
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 694.0),
             },
         ];

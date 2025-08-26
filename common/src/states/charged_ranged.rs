@@ -131,6 +131,7 @@ impl CharacterBehavior for Data {
                     for dir in dirs {
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
+                            source_vel: Some(*data.vel),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,

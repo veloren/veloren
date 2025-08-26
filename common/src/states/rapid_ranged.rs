@@ -151,6 +151,7 @@ impl CharacterBehavior for Data {
                     );
                     output_events.emit_server(ShootEvent {
                         entity: Some(data.entity),
+                        source_vel: Some(*data.vel),
                         pos,
                         dir: direction,
                         body: self.static_data.projectile_body,
