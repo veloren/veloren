@@ -227,6 +227,7 @@ impl Renderer {
             // TODO: Look into what we want here.
             flags: wgpu::InstanceFlags::from_build_config().with_env(),
             backend_options: wgpu::BackendOptions::default(),
+            memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
         });
 
         let dims = window.inner_size();
@@ -250,24 +251,25 @@ impl Renderer {
         }
 
         let adapter = match std::env::var("WGPU_ADAPTER").ok() {
-            Some(filter) if !filter.is_empty() => {
-                adapters.into_iter().enumerate().find_map(|(i, adapter)| {
+            Some(filter) if !filter.is_empty() => adapters
+                .into_iter()
+                .enumerate()
+                .find_map(|(i, adapter)| {
                     let info = adapter.get_info();
 
                     let full_name = format!("#{} {} {:?}", i, info.name, info.device_type,);
 
                     full_name.contains(&filter).then_some(adapter)
                 })
-            },
+                .ok_or(RenderError::CouldNotFindAdapter)?,
             Some(_) | None => {
                 runtime.block_on(instance.request_adapter(&wgpu::RequestAdapterOptionsBase {
                     power_preference: wgpu::PowerPreference::HighPerformance,
                     compatible_surface: Some(&surface),
                     force_fallback_adapter: false,
-                }))
+                }))?
             },
-        }
-        .ok_or(RenderError::CouldNotFindAdapter)?;
+        };
 
         let info = adapter.get_info();
         info!(
@@ -285,9 +287,9 @@ impl Renderer {
             ..Default::default()
         };
 
-        let trace_env = std::env::var_os("WGPU_TRACE_DIR");
-        let trace_path = trace_env.as_ref().map(|v| {
-            let path = std::path::Path::new(v);
+        #[cfg(any())] // Add this back when tracing is added back to `wgpu`
+        let trace = if let Some(v) = std::env::var_os("WGPU_TRACE_DIR") {
+            let path = std::path::Path::new(&v);
             // We don't want to continue if we can't actually collect the api trace
             assert!(
                 path.exists(),
@@ -308,11 +310,13 @@ impl Renderer {
                 path.display()
             );
 
-            path
-        });
+            wgpu::Trace::Directory(path)
+        } else {
+            wgpu::Trace::Off
+        };
 
-        let (device, queue) = runtime.block_on(adapter.request_device(
-            &wgpu::DeviceDescriptor {
+        let (device, queue) =
+            runtime.block_on(adapter.request_device(&wgpu::DeviceDescriptor {
                 // TODO
                 label: None,
                 required_features: wgpu::Features::DEPTH_CLIP_CONTROL
@@ -321,9 +325,8 @@ impl Renderer {
                     | (adapter.features() & wgpu_profiler::GpuProfiler::ALL_WGPU_TIMER_FEATURES),
                 required_limits,
                 memory_hints: wgpu::MemoryHints::Performance,
-            },
-            trace_path,
-        ))?;
+                trace: wgpu::Trace::Off,
+            }))?;
 
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in
@@ -873,7 +876,7 @@ impl Renderer {
             self.queue.submit(std::iter::empty());
         }
 
-        self.device.poll(wgpu::Maintain::Poll);
+        let _ = self.device.poll(wgpu::PollType::Poll);
     }
 
     /// Create render target views

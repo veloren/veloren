@@ -325,6 +325,7 @@ impl<'frame> Drawer<'frame> {
                     color_attachments: &[
                         Some(wgpu::RenderPassColorAttachment {
                             view: &self.borrow.views.tgt_color,
+                            depth_slice: None,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -333,6 +334,7 @@ impl<'frame> Drawer<'frame> {
                         }),
                         Some(wgpu::RenderPassColorAttachment {
                             view: &self.borrow.views.tgt_mat,
+                            depth_slice: None,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -374,6 +376,7 @@ impl<'frame> Drawer<'frame> {
                     label: Some("volumetric pass (clouds)"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         view: &self.borrow.views.tgt_color_pp,
+                        depth_slice: None,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -406,6 +409,7 @@ impl<'frame> Drawer<'frame> {
                     label: Some("transparent pass (trails)"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         view: &self.borrow.views.tgt_color_pp,
+                        depth_slice: None,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Load,
@@ -461,6 +465,7 @@ impl<'frame> Drawer<'frame> {
             let mut render_pass = encoder.scoped_render_pass(&label, wgpu::RenderPassDescriptor {
                 label: Some(&pass_label),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    depth_slice: None,
                     resolve_target: None,
                     view,
                     ops: wgpu::Operations {
@@ -549,6 +554,7 @@ impl<'frame> Drawer<'frame> {
                         label: Some(&label),
                         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                             view: &target_texture.view,
+                            depth_slice: None,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Load,
@@ -588,6 +594,7 @@ impl<'frame> Drawer<'frame> {
                             .taking_screenshot
                             .as_ref()
                             .map_or(&self.surface_view, |s| s.texture_view()),
+                        depth_slice: None,
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
@@ -817,6 +824,7 @@ impl Drop for Drawer<'_> {
                         label: Some("Blit screenshot pass"),
                         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                             view: &self.surface_view,
+                            depth_slice: None,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),

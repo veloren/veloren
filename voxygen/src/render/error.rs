@@ -6,6 +6,7 @@ pub enum RenderError {
     SurfaceError(wgpu::SurfaceError),
     CustomError(String),
     CouldNotFindAdapter,
+    RequestAdapterError(wgpu::RequestAdapterError),
     ErrorInitializingCompiler,
     ShaderError(String, shaderc::Error),
 }
@@ -25,6 +26,11 @@ impl fmt::Debug for RenderError {
                 .finish(),
             Self::CustomError(err) => f.debug_tuple("CustomError").field(err).finish(),
             Self::CouldNotFindAdapter => f.debug_tuple("CouldNotFindAdapter").finish(),
+            Self::RequestAdapterError(err) => f
+                .debug_tuple("RequestAdapterError")
+                // Use Display formatting for this error since they have nice descriptions
+                .field(&err.to_string())
+                .finish(),
             Self::ErrorInitializingCompiler => f.debug_tuple("ErrorInitializingCompiler").finish(),
             Self::ShaderError(shader_name, err) => write!(
                 f,
@@ -44,6 +50,10 @@ impl From<wgpu::BufferAsyncError> for RenderError {
 
 impl From<wgpu::SurfaceError> for RenderError {
     fn from(err: wgpu::SurfaceError) -> Self { Self::SurfaceError(err) }
+}
+
+impl From<wgpu::RequestAdapterError> for RenderError {
+    fn from(err: wgpu::RequestAdapterError) -> Self { Self::RequestAdapterError(err) }
 }
 
 impl From<(&str, shaderc::Error)> for RenderError {
