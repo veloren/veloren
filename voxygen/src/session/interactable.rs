@@ -90,11 +90,6 @@ impl BlockInteraction {
         let block = volume_pos.get_block(terrain, id_maps, colliders)?;
         let block_interaction = match interaction {
             Interaction::Collect => {
-                // TODO: this check may no longer be necessary?!
-                // Check if the block is not collectable
-                if !block.is_directly_collectible() {
-                    return None;
-                };
                 // Check if this is an unlockable sprite.
                 let unlock = match volume_pos.kind {
                     Volume::Terrain => block.get_sprite().and_then(|sprite| {
