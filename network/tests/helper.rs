@@ -101,7 +101,7 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
 
     trace!("generating self-signed certificate");
     let cert = rcgen::generate_simple_self_signed(vec![LOCALHOST.into()]).unwrap();
-    let key = cert.key_pair.serialize_der();
+    let key = cert.signing_key.serialize_der();
     let cert = cert.cert.der();
 
     let key = PrivateKeyDer::from(PrivatePkcs8KeyDer::from(key));
