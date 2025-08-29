@@ -30,11 +30,8 @@ impl Tui {
                 .max_history_size(1000)
                 .unwrap()
                 .build();
-            let mut readline = rustyline::Editor::<(), _>::with_history(
-                config,
-                rustyline::history::MemHistory::with_config(config),
-            )
-            .unwrap();
+            let history = rustyline::history::MemHistory::with_config(&config);
+            let mut readline = rustyline::Editor::<(), _>::with_history(config, history).unwrap();
             while let Ok(cmd) = readline.readline("\n\nbotclient> ") {
                 let keep_going = Self::process_command(&cmd, &mut commands_s);
                 readline.add_history_entry(cmd).unwrap();
