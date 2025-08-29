@@ -211,13 +211,15 @@ pub fn block_from_structure<'a>(
     structure_pos: Vec2<i32>,
     structure_seed: u32,
     sample: &ColumnSample,
-    mut with_sprite: impl FnMut(SpriteKind) -> Block,
+    try_with_sprite: impl Fn(SpriteKind) -> Result<Block, Block>,
     calendar: Option<&Calendar>,
     units: &Vec2<Vec2<i32>>,
 ) -> Option<(Block, Option<SpriteCfg>, Option<&'a str>)> {
     let field = RandomField::new(structure_seed);
 
     let lerp = field.get_f32(Vec3::from(structure_pos)) * 0.8 + field.get_f32(pos) * 0.2;
+
+    let with_sprite = |sprite| try_with_sprite(sprite).unwrap_or_else(|b| b);
 
     match sblock {
         StructureBlock::None => None,
@@ -232,12 +234,18 @@ pub fn block_from_structure<'a>(
         )),
         StructureBlock::Normal(color) => Some((Block::new(BlockKind::Misc, *color), None, None)),
         StructureBlock::Filled(kind, color) => Some((Block::new(*kind, *color), None, None)),
-        StructureBlock::Sprite(sprite) => Some((sprite.get_block(with_sprite), None, None)),
-        StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => Some((
-            sprite.get_block(with_sprite),
-            Some(sprite_cfg.clone()),
+        StructureBlock::Sprite(sprite) => Some((
+            sprite.get_block(try_with_sprite).unwrap_or_else(|b| b),
+            None,
             None,
         )),
+        StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
+            let (block, sprite_cfg) = match sprite.get_block(try_with_sprite) {
+                Ok(b) => (b, Some(sprite_cfg.clone())),
+                Err(b) => (b, None),
+            };
+            Some((block, sprite_cfg, None))
+        },
         StructureBlock::EntitySpawner(entity_path, spawn_chance) => {
             let mut rng = rand::rng();
             if rng.random::<f32>() < *spawn_chance {
@@ -486,7 +494,7 @@ pub fn block_from_structure<'a>(
                     structure_pos,
                     structure_seed,
                     sample,
-                    with_sprite,
+                    try_with_sprite,
                     calendar,
                     units,
                 )

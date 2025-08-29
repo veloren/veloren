@@ -264,8 +264,12 @@ pub mod figuredata {
         fn to_block(&self, color: Rgb<u8>) -> Block {
             match *self {
                 DeBlock::Block(block) => Block::new(block, color),
-                DeBlock::Air(sprite) => sprite.get_block(Block::air),
-                DeBlock::Water(sprite) => sprite.get_block(Block::water),
+                DeBlock::Air(sprite) => sprite
+                    .get_block(|s| Ok(Block::air(s)))
+                    .unwrap_or_else(|b| b),
+                DeBlock::Water(sprite) => sprite
+                    .get_block(|s| Ok(Block::water(s)))
+                    .unwrap_or_else(|b| b),
             }
         }
     }

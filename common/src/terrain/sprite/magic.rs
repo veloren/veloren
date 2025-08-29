@@ -206,22 +206,15 @@ macro_rules! sprites {
         impl StructureSpriteKind {
             /// Assigns this structure sprite to a block.
             ///
-            /// For this to work `with_sprite` has to return a block that has the passed `SpriteKind`. If it
-            /// returns a block that doesn't have a sprite, that block will be returned. If it returns a block
-            /// with another sprite than what was passed it might apply sprite attributes to that block.
-            fn get_block(self, with_sprite: impl FnOnce(SpriteKind) -> Block) -> Block {
+            /// Returns error if `try_with_sprite` fails.
+            fn get_block(self, try_with_sprite: impl FnOnce(SpriteKind) -> Result<Block, Block>) -> Result<Block, Block> {
                 match self {
-                    $($(Self::$sprite_name(c) => {
-                        let mut block = with_sprite(SpriteKind::$sprite_name);
-                        // NOTE: We ignore this error because:
-                        // * If we returned the error it would be inconsistent behaviour between sprites that
-                        //   have attributes and ones that don't.
-                        // * We don't want to panic, because some uses of some usages of this function passes
-                        //   `Block::with_sprite` as `with_sprite`, which also doesn't do anything if the block
-                        //   can't have a sprite.
-                        _ = c.apply_to_block(&mut block);
-                        block
-                    },)*)*
+                    $($(Self::$sprite_name(c) => try_with_sprite(SpriteKind::$sprite_name)
+                        .map(|mut block| {
+                            c.apply_to_block(&mut block).expect("We just added sprite to block");
+                            block
+                        }),
+                    )*)*
                 }
             }
         }
