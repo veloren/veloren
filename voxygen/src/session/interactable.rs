@@ -206,6 +206,7 @@ pub(super) fn get_interactables(
     let items = ecs.read_storage::<comp::PickupItem>();
     let alignments = ecs.read_storage::<comp::Alignment>();
     let is_volume_rider = ecs.read_storage::<Is<VolumeRider>>();
+    let volume_riders = ecs.read_storage::<common::mounting::VolumeRiders>();
 
     let player_chunk = player_pos.xy().map2(TerrainChunk::RECT_SIZE, |e, sz| {
         (e.floor() as i32).div_euclid(sz as i32)
@@ -417,12 +418,21 @@ pub(super) fn get_interactables(
             // Additional checks for `BlockInteraction::Mount` after filtering by distance.
             if let BlockInteraction::Mount = interaction {
                 !is_volume_rider.contains(player_entity)
-                    // TODO: why does this check `is_entity`?
-                    // TODO: Use shared volume riders component here
-                    && (volume_pos.is_entity()
-                        || !is_volume_rider
+                    // Only check all entities when mounting terrain block, otherwise we can check
+                    // if spot is present in VolumeRiders component.
+                    && match volume_pos.kind {
+                        Volume::Terrain => !is_volume_rider
                             .join()
-                            .any(|is_volume_rider| is_volume_rider.pos == *volume_pos))
+                            .any(|is_volume_rider| is_volume_rider.pos == *volume_pos),
+                        Volume::Entity(volume_uid) => {
+                            id_maps.uid_entity(volume_uid).is_some_and(|volume_entity| {
+                                // Component may not be present if there are no riders.
+                                volume_riders
+                                    .get(volume_entity)
+                                    .is_none_or(|riders| !riders.spot_taken(volume_pos.pos))
+                            })
+                        },
+                    }
             } else {
                 true
             }
