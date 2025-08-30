@@ -1,3 +1,7 @@
+use bincode::{
+    config::legacy,
+    serde::{decode_from_slice, encode_to_vec},
+};
 use common::{
     terrain::{Block, BlockKind, chonk::Chonk},
     vol::{BaseVol, ReadVol, RectVolSize, WriteVol},
@@ -27,7 +31,7 @@ pub struct CompressedData<T> {
 impl<T: Serialize> CompressedData<T> {
     pub fn compress(t: &T, level: u32) -> Self {
         use flate2::{Compression, write::DeflateEncoder};
-        let uncompressed = bincode::serialize(t)
+        let uncompressed = encode_to_vec(t, legacy())
             .expect("bincode serialization can only fail if a byte limit is set");
 
         if uncompressed.len() >= 32 {
@@ -60,9 +64,11 @@ impl<T: for<'a> Deserialize<'a>> CompressedData<T> {
             flate2::read::DeflateDecoder::new(&*self.data)
                 .read_to_end(&mut uncompressed)
                 .ok()?;
-            bincode::deserialize(&uncompressed).ok()
+            decode_from_slice(&uncompressed, legacy())
+                .ok()
+                .map(|(t, _)| t)
         } else {
-            bincode::deserialize(&self.data).ok()
+            decode_from_slice(&self.data, legacy()).ok().map(|(t, _)| t)
         }
     }
 }

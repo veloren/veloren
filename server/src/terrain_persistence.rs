@@ -1,4 +1,9 @@
 use atomicwrites::{AtomicFile, OverwriteBehavior};
+use bincode::{
+    config::legacy,
+    error::DecodeError,
+    serde::{decode_from_std_read, encode_to_vec},
+};
 use common::{
     terrain::{Block, TerrainChunk},
     vol::{RectRasterableVol, WriteVol},
@@ -175,13 +180,14 @@ impl TerrainPersistence {
                     }
                 }
             } else {
-                let bytes = match bincode::serialize::<version::Current>(&chunk.prepare_raw()) {
-                    Err(err) => {
-                        error!("Failed to serialize chunk data: {:?}", err);
-                        return;
-                    },
-                    Ok(bytes) => bytes,
-                };
+                let bytes =
+                    match encode_to_vec::<version::Current, _>(chunk.prepare_raw(), legacy()) {
+                        Err(err) => {
+                            error!("Failed to serialize chunk data: {:?}", err);
+                            return;
+                        },
+                        Ok(bytes) => bytes,
+                    };
 
                 let atomic_file =
                     AtomicFile::new(self.path_for(key), OverwriteBehavior::AllowOverwrite);
@@ -354,7 +360,7 @@ mod version {
     // Step [3]
     pub type Current = V3;
 
-    type LoadChunkFn<R> = fn(R) -> Result<Chunk, (&'static str, bincode::Error)>;
+    type LoadChunkFn<R> = fn(R) -> Result<Chunk, (&'static str, Box<DecodeError>)>;
     fn loaders<'a, R: io::Read + Clone>() -> &'a [LoadChunkFn<R>] {
         // Step [4]
         &[load_raw::<V3, _>, load_raw::<V2, _>, load_raw::<V1, _>]
@@ -448,11 +454,11 @@ mod version {
     }
 
     fn load_raw<RawChunk: Any + Into<Chunk> + DeserializeOwned, R: io::Read + Clone>(
-        reader: R,
-    ) -> Result<Chunk, (&'static str, bincode::Error)> {
-        bincode::deserialize_from::<_, RawChunk>(reader)
+        mut reader: R,
+    ) -> Result<Chunk, (&'static str, Box<DecodeError>)> {
+        decode_from_std_read::<RawChunk, _, _>(&mut reader, legacy())
             .map(Into::into)
-            .map_err(|e| (type_name::<RawChunk>(), e))
+            .map_err(|e| (type_name::<RawChunk>(), Box::new(e)))
     }
 
     pub fn try_load<R: io::Read + Clone>(reader: R) -> Option<Chunk> {
