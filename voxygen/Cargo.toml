@@ -111,7 +111,7 @@ clap = { workspace = true }
 assets_manager = { version = "0.12", features = ["ab_glyph"] }
 backtrace = "0.3.40"
 chrono = { workspace = true }
-chumsky = "0.9"
+chumsky = "0.10"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 directories-next = "2.0"
