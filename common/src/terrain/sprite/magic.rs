@@ -206,10 +206,10 @@ macro_rules! sprites {
         impl StructureSpriteKind {
             /// Assigns this structure sprite to a block.
             ///
-            /// Returns error if `try_with_sprite` fails.
-            fn get_block(self, try_with_sprite: impl FnOnce(SpriteKind) -> Result<Block, Block>) -> Result<Block, Block> {
+            /// Returns error if [`Block::try_with_sprite`] fails.
+            fn apply_to_block(self, block: Block) -> Result<Block, Block> {
                 match self {
-                    $($(Self::$sprite_name(c) => try_with_sprite(SpriteKind::$sprite_name)
+                    $($(Self::$sprite_name(c) => block.try_with_sprite(SpriteKind::$sprite_name)
                         .map(|mut block| {
                             c.apply_to_block(&mut block).expect("We just added sprite to block");
                             block

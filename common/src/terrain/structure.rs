@@ -262,7 +262,7 @@ mod tests {
 
     pub fn validate_sprite_and_cfg(sprite: StructureSprite, sprite_cfg: &SpriteCfg) {
         let sprite = sprite
-            .get_block(|sprite| Ok(Block::air(sprite)))
+            .apply_to_block(Block::empty())
             .unwrap()
             .get_sprite()
             .expect("This should have the sprite");

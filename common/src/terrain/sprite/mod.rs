@@ -93,16 +93,9 @@ pub struct StructureSprite(StructureSpriteKind);
 impl StructureSprite {
     /// Assigns this structure sprite to a block.
     ///
-    /// Returns error if `try_with_sprite` fails.
-    ///
-    /// # Panics
-    ///
-    /// Can panic if `try_with_sprite` returns `Ok` without applying the sprite.
-    pub fn get_block(
-        self,
-        try_with_sprite: impl FnOnce(SpriteKind) -> Result<Block, Block>,
-    ) -> Result<Block, Block> {
-        self.0.get_block(try_with_sprite)
+    /// Returns error if [`Block::try_with_sprite`] fails.
+    pub fn apply_to_block(self, block: Block) -> Result<Block, Block> {
+        self.0.apply_to_block(block)
     }
 }
 

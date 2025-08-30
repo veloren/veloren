@@ -211,7 +211,7 @@ pub fn block_from_structure<'a>(
     structure_pos: Vec2<i32>,
     structure_seed: u32,
     sample: &ColumnSample,
-    try_with_sprite: impl Fn(SpriteKind) -> Result<Block, Block>,
+    block_for_sprite: impl Fn() -> Block,
     calendar: Option<&Calendar>,
     units: &Vec2<Vec2<i32>>,
 ) -> Option<(Block, Option<SpriteCfg>, Option<&'a str>)> {
@@ -219,7 +219,7 @@ pub fn block_from_structure<'a>(
 
     let lerp = field.get_f32(Vec3::from(structure_pos)) * 0.8 + field.get_f32(pos) * 0.2;
 
-    let with_sprite = |sprite| try_with_sprite(sprite).unwrap_or_else(|b| b);
+    let with_sprite = |sprite| block_for_sprite().with_sprite(sprite);
 
     match sblock {
         StructureBlock::None => None,
@@ -235,12 +235,14 @@ pub fn block_from_structure<'a>(
         StructureBlock::Normal(color) => Some((Block::new(BlockKind::Misc, *color), None, None)),
         StructureBlock::Filled(kind, color) => Some((Block::new(*kind, *color), None, None)),
         StructureBlock::Sprite(sprite) => Some((
-            sprite.get_block(try_with_sprite).unwrap_or_else(|b| b),
+            sprite
+                .apply_to_block(block_for_sprite())
+                .unwrap_or_else(|b| b),
             None,
             None,
         )),
         StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
-            let (block, sprite_cfg) = match sprite.get_block(try_with_sprite) {
+            let (block, sprite_cfg) = match sprite.apply_to_block(block_for_sprite()) {
                 Ok(b) => (b, Some(sprite_cfg.clone())),
                 Err(b) => (b, None),
             };
@@ -494,7 +496,7 @@ pub fn block_from_structure<'a>(
                     structure_pos,
                     structure_seed,
                     sample,
-                    try_with_sprite,
+                    block_for_sprite,
                     calendar,
                     units,
                 )

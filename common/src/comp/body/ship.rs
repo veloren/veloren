@@ -236,11 +236,7 @@ pub mod figuredata {
     use crate::{
         assets::{Asset, AssetCache, AssetExt, AssetHandle, BoxedError, DotVox, Ron, SharedString},
         figure::TerrainSegment,
-        terrain::{
-            StructureSprite,
-            block::{Block, BlockKind},
-            structure::load_base_structure,
-        },
+        terrain::{Block, BlockKind, SpriteKind, StructureSprite, structure::load_base_structure},
     };
     use hashbrown::HashMap;
     use lazy_static::lazy_static;
@@ -265,10 +261,10 @@ pub mod figuredata {
             match *self {
                 DeBlock::Block(block) => Block::new(block, color),
                 DeBlock::Air(sprite) => sprite
-                    .get_block(|s| Ok(Block::air(s)))
+                    .apply_to_block(Block::air(SpriteKind::Empty))
                     .unwrap_or_else(|b| b),
                 DeBlock::Water(sprite) => sprite
-                    .get_block(|s| Ok(Block::water(s)))
+                    .apply_to_block(Block::water(SpriteKind::Empty))
                     .unwrap_or_else(|b| b),
             }
         }
