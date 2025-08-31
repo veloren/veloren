@@ -98,7 +98,7 @@
         output: ("common.items.utility.collar", 1),
         inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 5, false),
-            (Item("common.items.mineral.ingot.iron"), 1, false),
+            (Item("common.items.mineral.ingot.tin"), 2, false),
         ],
         craft_sprite: None,
     ),
@@ -2350,7 +2350,7 @@
             ],
             craft_sprite: Some(CraftingBench),
             is_recycling: false,
-        ), 
+        ),
     "crux": (
             output: ("common.items.lantern.crux", 1),
             inputs: [
@@ -2361,7 +2361,7 @@
             ],
             craft_sprite: Some(CraftingBench),
             is_recycling: false,
-        ),                
+        ),
 /// MODULAR WEAPONS/SWORDS/SECONDARY COMPONENTS
     "short_hilt": (
         output: ("common.items.modular.weapon.secondary.sword.short", 1),
@@ -2604,7 +2604,7 @@
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
-    ),    
+    ),
     "melodica": (
         output: ("common.items.tool.instruments.melodica", 1),
         inputs: [
