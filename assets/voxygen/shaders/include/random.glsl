@@ -164,8 +164,14 @@ bool dither(vec2 frag_coord, float a, uint id) {
         return false;
     }
 
+    // Use the id to try to discard different pixels from different objects, causing
+    // them to be visible behind eachother.
     float r0 = floor(hash_one(id) * 16.0);
     vec2 r1 = vec2(floor(r0 * 0.25), mod(r0, 4.0));
+
+    // We sample the bayer multiple times to have a smoother gradient of dithering.
+    // This could be achieved by having a larger bayer matrix, but would then have
+    // to define a larger one and not sure it would be much more efficient.
     uvec2 pos0 = uvec2(frag_coord + r1) % 4;
     uvec2 pos1 = uvec2(frag_coord / 4.0 + r1) % 4;
     uvec2 pos2 = uvec2(frag_coord / 16.0 + r1) % 4;
