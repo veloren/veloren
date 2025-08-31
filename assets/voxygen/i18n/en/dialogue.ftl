@@ -11,7 +11,6 @@ dialogue-question-hire =
 dialogue-question-sentiment =
     .a0 = How do you feel about...
     .a1 = What do you think about...
-dialogue-question-directions = Can you give me directions?
 dialogue-cancel_hire = I want to stop hiring you.
 dialogue-me = Me
 dialogue-buy_hire_days =
@@ -23,10 +22,38 @@ dialogue-buy_hire_days =
     }
 dialogue-cancel_interaction = I've changed my mind.
 
+dialogue-question-directions = Can you give me directions?
 dialogue-direction-tavern = The local tavern
 dialogue-direction-plaza = The nearest town square
 dialogue-direction-workshop = A workshop
 dialogue-direction-airship_dock = The airship dock
+
+dialogue-question-quest_req =
+    .a0 = Do you have work for me?
+    .a1 = Are there any jobs going?
+dialogue-quest-nothing =
+    .a0 = Nothing right now, sorry.
+    .a1 = Not right now.
+    .a2 = Maybe later!
+dialogue-quest-rejected =
+    .a0 = Whatever! You do you.
+    .a1 = No skin off my nose.
+    .a2 = Beggars can't be choosers. Stop wasting my time!
+
+dialogue-quest-escort-ask =
+    .a0 = Could you lead me to { $dst }?
+    .a1 = I want to go to { $dst }. Could you take me?
+dialogue-quest-escort-start =
+    .a0 = Lead on then!
+    .a1 = Excellent. You first, I'll follow along.
+dialogue-question-quest-escort-where = Where are we going?
+dialogue-quest-escort-where =
+    .a0 = We're heading to { $dst }.
+    .a1 = I'm trying to get to { $dst }.
+    .a2 = We're going to { $dst }, right?
+dialogue-quest-escort-complete =
+    .a0 = We've arrived. Thank you!
+    .a1 = Thank you for leading me here. See you later!
 
 dialogue-play_game = Play a game
 dialogue-game-what_game =

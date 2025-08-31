@@ -1,6 +1,6 @@
 use crate::{
     ai::Action,
-    data::{Reports, Sentiments},
+    data::{Reports, Sentiments, quest::Quest},
     generate::name,
 };
 pub use common::rtsim::{NpcId, Profession};
@@ -11,7 +11,7 @@ use common::{
     resources::Time,
     rtsim::{
         Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
-        NpcActivity, NpcInput, Personality, ReportId, Response, Role, SiteId,
+        NpcActivity, NpcInput, Personality, QuestId, ReportId, Response, Role, SiteId,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -62,15 +62,17 @@ pub struct Controller {
     pub activity: Option<NpcActivity>,
     pub new_home: Option<Option<SiteId>>,
     pub look_dir: Option<Dir>,
-    pub hiring: Option<Option<(Actor, Time)>>,
+    pub job: Option<Job>,
+    pub created_quests: Vec<(QuestId, Quest)>,
 }
 
 impl Controller {
     /// Reset the controller to a neutral state before the start of the next
     /// brain tick.
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, npc: &Npc) {
         self.activity = None;
         self.look_dir = None;
+        self.job = npc.job.clone();
     }
 
     pub fn do_idle(&mut self) { self.activity = None; }
@@ -142,10 +144,20 @@ impl Controller {
     }
 
     pub fn set_newly_hired(&mut self, actor: Actor, expires: Time) {
-        self.hiring = Some(Some((actor, expires)));
+        self.job = Some(Job::Hired(actor, expires));
     }
 
-    pub fn end_hiring(&mut self) { self.hiring = Some(None); }
+    pub fn end_hiring(&mut self) {
+        if matches!(self.job, Some(Job::Hired(..))) {
+            self.job = None;
+        }
+    }
+
+    pub fn end_quest(&mut self) {
+        if matches!(self.job, Some(Job::Quest(..))) {
+            self.job = None;
+        }
+    }
 
     /// Start a new dialogue.
     pub fn dialogue_start(&mut self, target: impl Into<Actor>) -> DialogueSession {
@@ -272,10 +284,8 @@ pub struct Npc {
     #[serde(default)]
     pub sentiments: Sentiments,
 
-    /// An NPC can temporarily become a hired hand (`(hiring_actor,
-    /// termination_time)`).
     #[serde(default)]
-    pub hiring: Option<(Actor, Time)>,
+    pub job: Option<Job>,
 
     // Unpersisted state
     #[serde(skip)]
@@ -302,6 +312,18 @@ pub struct Npc {
     pub npc_dialogue: VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
 }
 
+/// A job is a long-running, persistent, non-stackable occupation that an NPC
+/// must persistently attend to, but may be temporarily interrupted from. NPCs
+/// will recurrently attempt to perform tasks that relate to their job.
+#[derive(Clone, Serialize, Deserialize)]
+pub enum Job {
+    /// An NPC can temporarily become a hired hand (`(hiring_actor,
+    /// termination_time)`).
+    Hired(Actor, Time),
+    /// NPC is helping to perform a quest
+    Quest(QuestId),
+}
+
 impl Clone for Npc {
     fn clone(&self) -> Self {
         Self {
@@ -317,7 +339,7 @@ impl Clone for Npc {
             body: self.body,
             personality: self.personality,
             sentiments: self.sentiments.clone(),
-            hiring: self.hiring,
+            job: self.job.clone(),
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -344,7 +366,7 @@ impl Npc {
             body,
             personality: Default::default(),
             sentiments: Default::default(),
-            hiring: None,
+            job: None,
             role,
             home: None,
             faction: None,
@@ -402,6 +424,14 @@ impl Npc {
         match &self.role {
             Role::Civilised(profession) => *profession,
             Role::Monster | Role::Wild | Role::Vehicle => None,
+        }
+    }
+
+    pub fn hired(&self) -> Option<(Actor, Time)> {
+        if let Some(Job::Hired(actor, time)) = self.job {
+            Some((actor, time))
+        } else {
+            None
         }
     }
 

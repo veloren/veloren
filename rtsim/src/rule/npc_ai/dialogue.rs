@@ -2,11 +2,56 @@ use super::*;
 
 pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
-        let is_hired_by_tgt = ctx.npc.hiring.is_some_and(|(a, _)| a == tgt);
+        let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)))
+            && ctx.npc.job.is_none();
+        let is_hired_by_tgt = ctx.npc.hired().is_some_and(|(a, _)| a == tgt);
 
         let mut responses = Vec::new();
 
+        // Job-dependent responses
+        match &ctx.npc.job {
+            Some(Job::Hired(by, _)) if *by == tgt => {
+                responses.push((
+                    Response::from(Content::localized("dialogue-cancel_hire")),
+                    session
+                        .say_statement(Content::localized("npc-dialogue-hire_cancelled"))
+                        .then(just(move |ctx, _| ctx.controller.end_hiring()))
+                        .boxed(),
+                ));
+            },
+            Some(Job::Quest(quest_id)) => match ctx.state.data().quests.get(*quest_id) {
+                Some(Quest::Escort { escorter, to, .. }) if *escorter == tgt => {
+                    let to_name = util::site_name(ctx, *to).unwrap_or_default();
+                    responses.push((
+                        Response::from(Content::localized("dialogue-question-quest-escort-where")),
+                        session
+                            .say_statement(Content::localized_with_args(
+                                "dialogue-quest-escort-where",
+                                [("dst", to_name)],
+                            ))
+                            .boxed(),
+                    ));
+                },
+                _ => {},
+            },
+            None => {
+                responses.push((
+                    Response::from(Content::localized("dialogue-question-quest_req")),
+                    dialogue::quest_req(session).boxed(),
+                ));
+
+                let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
+                if can_be_hired {
+                    responses.push((
+                        Response::from(Content::localized("dialogue-question-hire")),
+                        dialogue::hire(tgt, session).boxed(),
+                    ));
+                }
+            },
+            _ => {},
+        }
+
+        // General informational questions
         responses.push((
             Response::from(Content::localized("dialogue-question-site")),
             dialogue::about_site(session).boxed(),
@@ -19,28 +64,17 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             Response::from(Content::localized("dialogue-question-sentiment")),
             dialogue::sentiments(tgt, session).boxed(),
         ));
-        if is_hired_by_tgt {
-            responses.push((
-                Response::from(Content::localized("dialogue-cancel_hire")),
-                session
-                    .say_statement(Content::localized("npc-dialogue-hire_cancelled"))
-                    .then(just(move |ctx, _| ctx.controller.end_hiring()))
-                    .boxed(),
-            ));
-        } else if can_be_hired {
-            responses.push((
-                Response::from(Content::localized("dialogue-question-hire")),
-                dialogue::hire(tgt, session).boxed(),
-            ));
-        }
         responses.push((
             Response::from(Content::localized("dialogue-question-directions")),
             dialogue::directions(session).boxed(),
         ));
+
+        // Local activities
         responses.push((
             Response::from(Content::localized("dialogue-play_game")),
             dialogue::games(session).boxed(),
         ));
+        // TODO: Include trading here!
 
         session.ask_question(Content::localized("npc-question-general"), responses)
     })
@@ -139,7 +173,7 @@ fn sentiments<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> 
 
 fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).random_bool(0.5) {
+        if ctx.npc.job.is_none() && ctx.npc.rng(38792).random_bool(0.5) {
             let hire_level = match ctx.npc.profession() {
                 Some(Profession::Adventurer(l)) => l,
                 _ => 0,
@@ -258,6 +292,81 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
         }
 
         session.ask_question(Content::localized("npc-question-directions"), responses)
+    })
+}
+
+fn quest_req<S: State>(session: DialogueSession) -> impl Action<S> {
+    now(move |ctx, _| {
+        let mut quests = Vec::new();
+
+        // Escort quest
+        if ctx.npc.job.is_none()
+            && let Some(current_site) = ctx.npc.current_site
+            && let Some(current_site) = ctx.state.data().sites.get(current_site)
+            && let Some((tgt_site, _)) = ctx
+                .state
+                .data()
+                .sites
+                .iter()
+                // Don't try to be escorted to the site we're currently in
+                .filter(|(site_id, _)| Some(*site_id) != ctx.npc.current_site)
+                .sorted_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+                // Chose one of the 3 closest sites at random
+                .take(3)
+                .choose(&mut ctx.rng)
+            && let Some(tgt_site_name) = util::site_name(ctx, tgt_site)
+        {
+            let quest = Quest::Escort {
+                escortee: ctx.npc_id.into(),
+                escorter: session.target,
+                to: tgt_site,
+            };
+
+            quests.push(
+                session
+                    .ask_yes_no_question(Content::localized_with_args(
+                        "dialogue-quest-escort-ask",
+                        [("dst", tgt_site_name)],
+                    ))
+                    .and_then(move |yes| {
+                        if yes {
+                            create_quest(quest.clone())
+                                .and_then(|quest_id| {
+                                    just(move |ctx, _| {
+                                        ctx.controller.job = Some(Job::Quest(quest_id))
+                                    })
+                                })
+                                .then(session.say_statement(Content::localized(
+                                    "dialogue-quest-escort-start",
+                                )))
+                                .boxed()
+                        } else {
+                            session
+                                .say_statement(Content::localized("dialogue-quest-rejected"))
+                                .boxed()
+                        }
+                    })
+                    .boxed(),
+            );
+        }
+
+        if quests.is_empty() {
+            session
+                .say_statement(Content::localized("dialogue-quest-nothing"))
+                .boxed()
+        } else {
+            quests.remove(ctx.rng.random_range(0..quests.len()))
+        }
+    })
+}
+
+fn create_quest<S: State>(quest: Quest) -> impl Action<S, QuestId> {
+    just(move |ctx, _| {
+        let quest_id = ctx.state.data().quests.register();
+        ctx.controller
+            .created_quests
+            .push((quest_id, quest.clone()));
+        quest_id
     })
 }
 

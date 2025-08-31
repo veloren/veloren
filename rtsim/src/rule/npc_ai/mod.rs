@@ -28,6 +28,7 @@ mod airship_ai;
 mod airship_logger;
 pub mod dialogue;
 pub mod movement;
+pub mod quest;
 pub mod util;
 
 use std::{collections::VecDeque, hash::BuildHasherDefault, sync::Arc};
@@ -41,7 +42,8 @@ use crate::{
     },
     data::{
         ReportKind, Sentiment, Sites,
-        npc::{Brain, DialogueSession, PathData, SimulationMode},
+        npc::{Brain, DialogueSession, Job, PathData, SimulationMode},
+        quest::Quest,
     },
     event::OnTick,
 };
@@ -56,8 +58,8 @@ use common::{
     match_some,
     path::Path,
     rtsim::{
-        Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, Response, Role,
-        SiteId,
+        Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, QuestId,
+        Response, Role, SiteId,
     },
     spiral::Spiral2d,
     store::Id,
@@ -156,7 +158,7 @@ impl Rule for NpcAi {
                     .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, gizmos)| {
                         let npc = &data.npcs[*npc_id];
 
-                        controller.reset();
+                        controller.reset(npc);
 
                         #[allow(unused)] // TODO: check if correct
                         brain.action.tick(&mut NpcCtx {
@@ -399,7 +401,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                         !npc.is_dead()
                             && npc.current_site == Some(home)
                             && npc.faction == Some(faction)
-                            && npc.hiring.is_none()
+                            && npc.hired().is_none()
                             && matches!(npc.role, Role::Civilised(Some(Profession::Pirate(false))))
                     })
                 })
@@ -418,7 +420,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                     !npc.is_dead()
                                         && npc.current_site == Some(home)
                                         && npc.faction == Some(faction)
-                                        && npc.hiring.is_none()
+                                        && npc.hired().is_none()
                                         && matches!(
                                             npc.role,
                                             Role::Civilised(Some(Profession::Pirate(false)))
@@ -451,10 +453,10 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                                 target,
                                                 Content::localized("npc-response-accept_hire"),
                                             );
-                                            ctx.controller.hiring = Some(Some((
+                                            ctx.controller.set_newly_hired(
                                                 target,
                                                 common::resources::Time(f64::INFINITY),
-                                            )));
+                                            );
                                         },
                                     )),
                                 );
@@ -476,7 +478,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                 data.npcs.get(**npc_id).is_some_and(|npc| {
                                     !npc.is_dead()
                                         && npc
-                                            .hiring
+                                            .hired()
                                             .is_some_and(|(a, _)| a == Actor::Npc(ctx.npc_id))
                                 })
                             })
@@ -490,7 +492,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                     !npc.is_dead()
                                         && npc.current_site == Some(home)
                                         && npc.faction == Some(faction)
-                                        && npc.hiring.is_none()
+                                        && npc.hired().is_none()
                                         && matches!(
                                             npc.role,
                                             Role::Civilised(Some(Profession::Pirate(false)))
@@ -531,7 +533,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                         for &npc_id in site.population.iter() {
                             if let Some(npc) = data.npcs.get(npc_id)
                                 && npc
-                                    .hiring
+                                    .hired()
                                     .is_some_and(|(actor, _)| actor == Actor::Npc(ctx.npc_id))
                             {
                                 ctx.controller
@@ -542,11 +544,13 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                 }))
                 .map(|_, _| ()),
             )
-        } else if let Some((leader, _)) = ctx.npc.hiring {
+        } else if let Some((leader, _)) = ctx.npc.hired() {
             important(
                 follow_actor(leader, 5.0)
                     .stop_if(move |ctx: &mut NpcCtx| {
-                        ctx.npc.hiring.is_none_or(move |(actor, _)| actor != leader)
+                        ctx.npc
+                            .hired()
+                            .is_none_or(move |(actor, _)| actor != leader)
                     })
                     .map(|_, _| ()),
             )
@@ -647,11 +651,11 @@ fn adventure() -> impl Action<DefaultState> {
 fn hired(tgt: Actor) -> impl Action<DefaultState> {
     follow_actor(tgt, 5.0)
         // Stop following if we're no longer hired
-        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hiring.is_none_or(|(a, _)| a != tgt))
+        .stop_if(move |ctx: &mut NpcCtx| ctx.npc.hired().is_none_or(|(a, _)| a != tgt))
         .debug(move|| format!("hired by {tgt:?}"))
         .interrupt_with(move |ctx, _| {
             // End hiring for various reasons
-            if let Some((tgt, expires)) = ctx.npc.hiring {
+            if let Some((tgt, expires)) = ctx.npc.hired() {
                 // Hiring period has expired
                 if ctx.time > expires {
                     ctx.controller.end_hiring();
@@ -701,7 +705,7 @@ fn hired(tgt: Actor) -> impl Action<DefaultState> {
                     })
                     .then(
                         go_to_tavern(visiting, pid).stop_if(move |ctx: &mut NpcCtx<'_, '_>| {
-                            ctx.npc.hiring.is_none_or(|(tgt, _)| {
+                            ctx.npc.hired().is_none_or(|(tgt, _)| {
                                 util::locate_actor(ctx, tgt).is_none_or(|pos|
                                     ctx.world.sim()
                                         .get_wpos(pos.xy().as_())
@@ -1533,10 +1537,32 @@ fn humanoid() -> impl Action<DefaultState> {
                     socialize().map_state(|state: &mut DefaultState| &mut state.socialize_timer),
                 )
             }
-        } else if let Some((tgt, _)) = ctx.npc.hiring
-            && util::actor_exists(ctx, tgt)
-        {
-            important(hired(tgt).interrupt_with(react_to_events))
+        } else if let Some(job) = &ctx.npc.job {
+            // NPCs should try to perform their jobs
+            important(
+                match job {
+                    Job::Hired(tgt, _) => {
+                        if util::actor_exists(ctx, *tgt) {
+                            hired(*tgt).boxed()
+                        } else {
+                            just(|ctx, _| ctx.controller.end_hiring()).boxed()
+                        }
+                    },
+                    Job::Quest(quest_id) => match ctx.state.data().quests.get(*quest_id) {
+                        // TODO: Support escort quests in which we are the escorter
+                        Some(Quest::Escort {
+                            escortee,
+                            escorter,
+                            to,
+                        }) if *escortee == Actor::Npc(ctx.npc_id) => {
+                            quest::escorted(*escorter, *to).boxed()
+                        },
+                        // A quest job that can't be acted upon gets ended
+                        _ => just(|ctx, _| ctx.controller.end_quest()).boxed(),
+                    },
+                }
+                .interrupt_with(react_to_events),
+            )
         } else {
             let action = match ctx.npc.profession() {
                 Some(Profession::Adventurer(_) | Profession::Merchant) => adventure().l().l(),

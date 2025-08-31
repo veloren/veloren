@@ -3,6 +3,7 @@ pub mod architect;
 pub mod faction;
 pub mod nature;
 pub mod npc;
+pub mod quest;
 pub mod report;
 pub mod sentiment;
 pub mod site;
@@ -11,6 +12,7 @@ pub use self::{
     faction::{Faction, FactionId, Factions},
     nature::Nature,
     npc::{Npc, NpcId, Npcs},
+    quest::Quests,
     report::{Report, ReportId, ReportKind, Reports},
     sentiment::{Sentiment, Sentiments},
     site::{Site, SiteId, Sites},
@@ -51,6 +53,8 @@ pub struct Data {
     pub reports: Reports,
     #[serde(default)]
     pub architect: Architect,
+    #[serde(default)]
+    pub quests: Quests,
 
     #[serde(default)]
     pub tick: u64,

@@ -288,9 +288,12 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
             npc.home = new_home;
         }
 
-        // Set hired status if required (I'm a poet and I didn't know it)
-        if let Some(hiring) = npc.controller.hiring.take() {
-            npc.hiring = hiring;
+        // Create registered quests
+        for (id, quest) in core::mem::take(&mut npc.controller.created_quests) {
+            data.quests.create(id, quest);
         }
+
+        // Set job status
+        npc.job = npc.controller.job.clone();
     }
 }

@@ -133,6 +133,14 @@ impl DialogueSession {
             })
     }
 
+    pub fn ask_yes_no_question<S: State>(self, question: Content) -> impl Action<S, bool> {
+        let answer = |is_yes| just(move |_, _| is_yes);
+        self.ask_question(question, [
+            (Content::localized("common-yes"), answer(true)),
+            (Content::localized("common-no"), answer(false)),
+        ])
+    }
+
     pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {
         now(move |ctx, _| {
             ctx.controller.dialogue_statement(self, stmt.clone());
