@@ -74,10 +74,6 @@ float depth_at(vec2 uv) {
     }
 }
 
-void run() {
-    
-}
-
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
