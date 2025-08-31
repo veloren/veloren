@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All hide lienage armor sets now have helmets.
 - Increased gem spawn rates in caves; each gem node has a specific biome in which they generate more frequently.
 - Cliff town airship docks now have extra space around the dock to preclude taller cliff buildings from interferring.
+- Collars now require 2 tin ingots instead of an iron ingot, and their quality attribute has been changed to common instead of moderate.
 
 ### Removed
 
