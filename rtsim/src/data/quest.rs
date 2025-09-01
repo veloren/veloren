@@ -11,12 +11,17 @@ use std::sync::{
     atomic::{AtomicU8, AtomicU64, Ordering},
 };
 
-/// The easiest way to think about quests is as a virtual Jira board.
+/// The easiest way to think about quests is as a virtual Jira board (or,
+/// perhaps, a community jobs noticeboard).
 ///
 /// This type represents the board. In effect, it is a big database of active
 /// and resolved quests. Quests are not, by themselves, 'active' participants in
 /// the world. They are informal contracts, and it is up to the NPCs and players
 /// that interact with them to drive them forward.
+///
+/// Quests that are resolved or that have been active for some time without
+/// activity may be garbage-collected, although the exact mechanism for this has
+/// not yet been defined.
 #[derive(Default, Serialize, Deserialize)]
 pub struct Quests {
     /// Because quests can be created in a multi-threaded context, we use an
@@ -61,8 +66,11 @@ pub struct Quest {
     ///
     /// Quests can only be resolved by their designated arbiter. The arbiter is
     /// defined when the quest is created, and the arbiter receives the
-    /// quest deposit (see [`Quests::resolve`]). In the future, this can be
-    /// extended to include factions or multiple actors.
+    /// quest deposit (see [`Quests::resolve`]).
+    ///
+    /// In the future, this can be extended to include factions, multiple
+    /// actors, or even some system in the world (such as a noticeboard
+    /// system, so that players can assign one-another quests).
     arbiter: Actor,
 
     /// A machine-intelligible description of the quest and its completion
@@ -137,9 +145,13 @@ impl Clone for QuestRes {
 /// - etc.
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct QuestOutcome {
-    /// An item held in deposit. When the quest is resolved, it is returned to
-    /// the arbiter (usually to then be passed to the quest completer,
-    /// although not always).
+    /// An item held in deposit.
+    ///
+    /// When the quest is resolved, it is returned to the arbiter (usually to
+    /// then be passed to the quest completer, although not always).
+    ///
+    /// Deposits exist to avoid NPCs (or players) constantly needing to track
+    /// 'earmarked' items in their inventories that correspond to payments.
     pub deposit: Option<(Arc<ItemDef>, u32)>,
 }
 
@@ -153,6 +165,10 @@ pub enum QuestKind {
 }
 
 impl Quest {
+    /// Create a new escort quest that requires an escoter to travel with an
+    /// escortee to a destination.
+    ///
+    /// The escortee is considered to be the quest arbiter.
     pub fn escort(escortee: Actor, escorter: Actor, to: SiteId) -> Self {
         Self {
             arbiter: escortee,
@@ -166,6 +182,12 @@ impl Quest {
         }
     }
 
+    /// Deposit an item (usually for payment to whoever completes the quest) in
+    /// the quest for safekeeping.
+    ///
+    /// Deposits are paid out to the arbiter when a quest is resolved. The
+    /// arbiter usually passes the deposit on to the character that
+    /// completed the quest, but this is not the concern of the quest system.
     pub fn with_deposit(mut self, item: Arc<ItemDef>, amount: u32) -> Self {
         self.outcome.deposit = Some((item, amount));
         self
