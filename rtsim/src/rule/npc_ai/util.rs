@@ -60,6 +60,8 @@ pub fn do_dialogue<S: State, T: Default + Clone + Send + Sync + 'static, A: Acti
                 ctx.controller.dialogue_end(session);
                 x.clone().unwrap_or_default()
             }))
+            // Handle early cancellation elegantly
+            .when_cancelled(move |ctx: &mut NpcCtx| ctx.controller.dialogue_end(session))
     })
 }
 

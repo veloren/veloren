@@ -45,7 +45,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                 .get(npc_entity)
                 .is_some_and(|inv| inv.item_count(&ESCORT_REWARD_ITEM.to_equivalent_item_def()) >= escort_reward_amount as u64)
         {
-            let time_limit = 1 + dist / 200;
+            let time_limit = 1 + dist / 300;
             quests.push(
                 session
                     .ask_yes_no_question(Content::localized("dialogue-quest-escort-ask")
@@ -152,12 +152,20 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                 finish().boxed()
             }
         }))
+        // Handle quest timeouts
         .stop_if(move |ctx: &mut NpcCtx| {
-            if let Some(timeout) = ctx.state.data().quests.get(quest_id).and_then(|q| q.timeout) {
+            let is_timeout = if let Some(timeout) = ctx.state.data().quests.get(quest_id).and_then(|q| q.timeout) {
                 ctx.time > timeout
             } else {
                 false
+            };
+
+            if is_timeout {
+                ctx.state.data().quests.get(quest_id).and_then(|q| q.resolve(ctx.npc_id, false));
+                ctx.controller.end_quest();
             }
+
+            is_timeout
         })
         .and_then(move |r: Option<()>| if r.is_none() {
             goto_actor(escorter, 2.0)
