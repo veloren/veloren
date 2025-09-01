@@ -42,10 +42,13 @@ dialogue-quest-rejected =
 dialogue-quest-reward =
     .a0 = Here's your reward.
     .a1 = Here's the payment for your efforts.
+dialogue-quest-timeout =
+    .a0 = You've run out of time, our deal is off!
+    .a1 = Time's up, no money for you!
 
 dialogue-quest-escort-ask =
-    .a0 = Could you lead me to { $dst }? I'll pay you { $coins } coins!
-    .a1 = I want to go to { $dst }. Could you take me for { $coins } coins?
+    .a0 = Could you lead me to { $dst }? I'll pay you { $coins } coins! I need to get there in { $mins } minutes!
+    .a1 = I want to go to { $dst } in the next { $mins } minutes. Could you take me there for { $coins } coins?
 dialogue-quest-escort-start =
     .a0 = Lead on then!
     .a1 = Excellent. You first, I'll follow along.

@@ -19,36 +19,39 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         let mut quests = Vec::new();
 
+        // Escort quest.
         const ESCORT_REWARD_ITEM: ItemResource = ItemResource::Coin;
-        const ESCORT_REWARD_AMOUNT: u32 = 50;
-
-        // Escort quest
+        // Escortable NPCs must have no existing job
         if ctx.npc.job.is_none()
-            && let Some(current_site) = ctx.npc.current_site
-            && let Some(current_site) = ctx.state.data().sites.get(current_site)
-            && let Some((dst_site, _)) = ctx
+            // They must be a merchant
+            && matches!(ctx.npc.profession(), Some(Profession::Merchant))
+            // Choose an appropriate target site
+            && let Some((dst_site, dist)) = ctx
                 .state
                 .data()
                 .sites
                 .iter()
-                // Don't try to be escorted to the site we're currently in
-                .filter(|(site_id, _)| Some(*site_id) != ctx.npc.current_site)
-                // Chose one of the 3 closest sites at random
-                .sorted_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
-                .take(3)
+                // Find the distance to the site
+                .map(|(site_id, site)| (site_id, site.wpos.as_().distance(ctx.npc.wpos.xy()) as u32))
+                // Don't try to be escorted to the site we're currently in, and ensure it's a reasonable distance away
+                .filter(|(site_id, dist)| Some(*site_id) != ctx.npc.current_site && (1000..5_000).contains(dist))
                 .choose(&mut ctx.rng)
+            // Escort reward amount is proportional to distance
+            && let escort_reward_amount = dist / 25
             && let Some(dst_site_name) = util::site_name(ctx, dst_site)
             // Ensure the NPC has the reward in their inventory
             && let Some(npc_entity) = ctx.system_data.id_maps.rtsim_entity(ctx.npc_id)
             && ctx.system_data.inventories.lock().unwrap()
                 .get(npc_entity)
-                .is_some_and(|inv| inv.item_count(&ESCORT_REWARD_ITEM.to_equivalent_item_def()) >= ESCORT_REWARD_AMOUNT as u64)
+                .is_some_and(|inv| inv.item_count(&ESCORT_REWARD_ITEM.to_equivalent_item_def()) >= escort_reward_amount as u64)
         {
+            let time_limit = 1 + dist / 200;
             quests.push(
                 session
                     .ask_yes_no_question(Content::localized("dialogue-quest-escort-ask")
                         .with_arg("dst", dst_site_name)
-                        .with_arg("coins", ESCORT_REWARD_AMOUNT as u64))
+                        .with_arg("coins", escort_reward_amount as u64)
+                        .with_arg("mins", time_limit as u64))
                     .and_then(move |yes| now(move |ctx, _| {
                         if yes
                             // Remove the reward from the NPC's inventory
@@ -56,13 +59,14 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                             && let Some(deposit) = ctx.system_data.inventories.lock().unwrap().get_mut(npc_entity)
                                 .and_then(|mut inv| inv.remove_item_amount(
                                     &ESCORT_REWARD_ITEM.to_equivalent_item_def(),
-                                    ESCORT_REWARD_AMOUNT,
+                                    escort_reward_amount,
                                     &ctx.system_data.ability_map,
                                     &ctx.system_data.msm,
                                 ))
                         {
                             let quest = Quest::escort(ctx.npc_id.into(), session.target, dst_site)
-                                .with_deposit(ItemResource::Coin, ESCORT_REWARD_AMOUNT as f32);
+                                .with_deposit(ItemResource::Coin, escort_reward_amount as f32)
+                                .with_timeout(ctx.time.add_minutes(time_limit as f64));
                             create_quest(quest.clone())
                                 .and_then(|quest_id| {
                                     just(move |ctx, _| {
@@ -148,4 +152,18 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                 finish().boxed()
             }
         }))
+        .stop_if(move |ctx: &mut NpcCtx| {
+            if let Some(timeout) = ctx.state.data().quests.get(quest_id).and_then(|q| q.timeout) {
+                ctx.time > timeout
+            } else {
+                false
+            }
+        })
+        .and_then(move |r: Option<()>| if r.is_none() {
+            goto_actor(escorter, 2.0)
+                .then(do_dialogue(escorter, move |session| session.say_statement(Content::localized("dialogue-quest-timeout"))))
+                .boxed()
+        } else {
+            finish().boxed()
+        })
 }

@@ -76,6 +76,10 @@ pub struct Quest {
     /// We try to avoid being prescriptive about what form quests can take
     pub kind: QuestKind,
 
+    /// The time before which the quest should be completed to be considered
+    /// successful.
+    pub timeout: Option<Time>,
+
     outcome: QuestOutcome,
 
     /// The only aspect of the quest that mutates over time. Resolving quests is
@@ -174,6 +178,7 @@ impl Quest {
                 escorter,
                 to,
             },
+            timeout: None,
             outcome: QuestOutcome::default(),
             res: QuestRes(AtomicU8::new(0)),
         }
@@ -187,6 +192,13 @@ impl Quest {
     /// completed the quest, but this is not the concern of the quest system.
     pub fn with_deposit(mut self, item: ItemResource, amount: f32) -> Self {
         self.outcome.deposit = Some((item, amount));
+        self
+    }
+
+    /// Add a timeout to the quest, beyond which the quest is considered to be
+    /// failed.
+    pub fn with_timeout(mut self, time: Time) -> Self {
+        self.timeout = Some(time);
         self
     }
 }

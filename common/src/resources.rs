@@ -39,6 +39,8 @@ pub struct Time(pub f64);
 impl Time {
     pub fn add_seconds(self, seconds: f64) -> Self { Self(self.0 + seconds) }
 
+    pub fn add_minutes(self, minutes: f64) -> Self { Self(self.0 + minutes * 60.0) }
+
     // Note that this applies in 'game time' and does not respect either real time
     // or in-game time of day.
     pub fn add_days(self, days: f64, server_constants: &ServerConstants) -> Self {

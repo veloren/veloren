@@ -198,7 +198,8 @@ impl ServerEvent for DialogueEvent {
                                 break;
                             } else {
                                 inventory_updates
-                                    .insert(target, comp::InventoryUpdate::new(item_event));
+                                    .insert(target, comp::InventoryUpdate::new(item_event))
+                                    .expect("The entity must exist because we have its inventory");
                             }
                         }
                     } else {
