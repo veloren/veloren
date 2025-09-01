@@ -238,7 +238,8 @@ vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency
 vec3 blown_by_wind(float after_lifetime) {
     float from = lifetime - after_lifetime;
     float factor = clamp(from * 0.1, 0.0, 1.0);
-    return vec3(inst_start_wind_vel, 0.0) * max(from, 0.0) * factor + sin(sin(inst_start_wind_vel.yxx * lifetime) * 0.2) * 5.0 * factor;
+    float rand = hash(vec4(inst_entropy + 47)) * 100.0;
+    return vec3(inst_start_wind_vel, 0.0) * max(from, 0.0) * factor + sin(sin(inst_start_wind_vel.yxx * lifetime) * 0.2 + rand) * 5.0 * factor;
 }
 
 void main() {
@@ -1194,7 +1195,7 @@ void main() {
             attr = Attr(
                 linear_motion(
                     vec3(0),
-                    vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
+                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
                 ) + blown_by_wind(0.0) * 0.5,
                 vec3(1.0 - slow_start(0.01)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
