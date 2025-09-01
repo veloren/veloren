@@ -21,8 +21,8 @@ use common::{
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
-use specs::{Read, ReadExpect, ReadStorage, SystemData, WriteExpect, shred};
-use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
+use specs::{Read, ReadExpect, ReadStorage, SystemData, WriteExpect, WriteStorage, shred};
+use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow, sync::Mutex};
 use world::{IndexRef, World};
 
 pub trait State: Clone + Send + Sync + 'static {}
@@ -121,6 +121,9 @@ pub struct NpcSystemData<'a> {
     pub server_constants: ReadExpect<'a, ServerConstants>,
     pub weather_grid: ReadExpect<'a, WeatherGrid>,
     pub rtsim_gizmos: WriteExpect<'a, RtsimGizmos>,
+    pub ability_map: ReadExpect<'a, comp::tool::AbilityMap>,
+    pub msm: ReadExpect<'a, comp::item::MaterialStatManifest>,
+    pub inventories: Mutex<WriteStorage<'a, comp::Inventory>>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

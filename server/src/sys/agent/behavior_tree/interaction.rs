@@ -84,7 +84,7 @@ pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
             .presences
             .get(sender_entity)
             .and_then(|p| p.kind.character_id().map(Actor::Character))
-            .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(sender_entity)?.0)))
+            .or_else(|| Some(Actor::Npc(*read_data.rtsim_entities.get(sender_entity)?)))
     {
         rtsim_outbox.push_back(NpcInput::Dialogue(sender_actor, dialogue));
         return false;
@@ -111,7 +111,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                 .presences
                 .get(by_entity)
                 .and_then(|p| p.kind.character_id().map(Actor::Character))
-                .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
+                .or_else(|| Some(Actor::Npc(*read_data.rtsim_entities.get(by_entity)?)))
         {
             rtsim_outbox.push_back(NpcInput::Interaction(actor));
             return false;

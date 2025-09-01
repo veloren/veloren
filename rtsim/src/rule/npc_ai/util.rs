@@ -141,9 +141,14 @@ impl DialogueSession {
         ])
     }
 
-    pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {
+    pub fn say_statement_with_gift<S: State>(
+        self,
+        stmt: Content,
+        item: Option<(Arc<ItemDef>, u32)>,
+    ) -> impl Action<S> {
         now(move |ctx, _| {
-            ctx.controller.dialogue_statement(self, stmt.clone());
+            ctx.controller
+                .dialogue_statement(self, stmt.clone(), item.clone());
             idle()
         })
         .then(talk(self.target)
@@ -151,5 +156,9 @@ impl DialogueSession {
             // Wait for a while before making the statement to allow other dialogue to be read
             .stop_if(timeout(2.5)))
         .map(|_, _| ())
+    }
+
+    pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {
+        self.say_statement_with_gift(stmt, None)
     }
 }

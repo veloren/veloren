@@ -19,20 +19,24 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                         .boxed(),
                 ));
             },
-            Some(Job::Quest(quest_id)) => match ctx.state.data().quests.get(*quest_id) {
-                Some(Quest::Escort { escorter, to, .. }) if *escorter == tgt => {
-                    let to_name = util::site_name(ctx, *to).unwrap_or_default();
-                    responses.push((
-                        Response::from(Content::localized("dialogue-question-quest-escort-where")),
-                        session
-                            .say_statement(Content::localized_with_args(
-                                "dialogue-quest-escort-where",
-                                [("dst", to_name)],
-                            ))
-                            .boxed(),
-                    ));
-                },
-                _ => {},
+            Some(Job::Quest(quest_id)) => {
+                match ctx.state.data().quests.get(*quest_id).map(|q| &q.kind) {
+                    Some(QuestKind::Escort { escorter, to, .. }) if *escorter == tgt => {
+                        let to_name = util::site_name(ctx, *to).unwrap_or_default();
+                        responses.push((
+                            Response::from(Content::localized(
+                                "dialogue-question-quest-escort-where",
+                            )),
+                            session
+                                .say_statement(Content::localized_with_args(
+                                    "dialogue-quest-escort-where",
+                                    [("dst", to_name)],
+                                ))
+                                .boxed(),
+                        ));
+                    },
+                    _ => {},
+                }
             },
             None => {
                 responses.push((
@@ -299,6 +303,8 @@ fn quest_req<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         let mut quests = Vec::new();
 
+        const ESCORT_REWARD: u32 = 50;
+
         // Escort quest
         if ctx.npc.job.is_none()
             && let Some(current_site) = ctx.npc.current_site
@@ -310,26 +316,36 @@ fn quest_req<S: State>(session: DialogueSession) -> impl Action<S> {
                 .iter()
                 // Don't try to be escorted to the site we're currently in
                 .filter(|(site_id, _)| Some(*site_id) != ctx.npc.current_site)
-                .sorted_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
                 // Chose one of the 3 closest sites at random
+                .sorted_by_key(|(_, site)| site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
                 .take(3)
                 .choose(&mut ctx.rng)
             && let Some(tgt_site_name) = util::site_name(ctx, tgt_site)
+            // Ensure the NPC has the reward in their inventory
+            && let Some(npc_entity) = ctx.system_data.id_maps.rtsim_entity(ctx.npc_id)
+            && ctx.system_data.inventories.lock().unwrap()
+                .get(npc_entity)
+                .is_some_and(|inv| inv.item_count(&Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap()) >= ESCORT_REWARD as u64)
         {
-            let quest = Quest::Escort {
-                escortee: ctx.npc_id.into(),
-                escorter: session.target,
-                to: tgt_site,
-            };
-
             quests.push(
                 session
-                    .ask_yes_no_question(Content::localized_with_args(
-                        "dialogue-quest-escort-ask",
-                        [("dst", tgt_site_name)],
-                    ))
-                    .and_then(move |yes| {
-                        if yes {
+                    .ask_yes_no_question(Content::localized("dialogue-quest-escort-ask")
+                        .with_arg("dst", tgt_site_name)
+                        .with_arg("coins", ESCORT_REWARD as u64))
+                    .and_then(move |yes| now(move |ctx, _| {
+                        if yes
+                            // Remove the reward from the NPC's inventory
+                            && let Some(npc_entity) = ctx.system_data.id_maps.rtsim_entity(ctx.npc_id)
+                            && let Some(deposit) = ctx.system_data.inventories.lock().unwrap().get_mut(npc_entity)
+                                .and_then(|mut inv| inv.remove_item_amount(
+                                    &Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap(),
+                                    ESCORT_REWARD,
+                                    &ctx.system_data.ability_map,
+                                    &ctx.system_data.msm,
+                                ))
+                        {
+                            let quest = Quest::escort(ctx.npc_id.into(), session.target, tgt_site)
+                                .with_deposit(Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap(), ESCORT_REWARD);
                             create_quest(quest.clone())
                                 .and_then(|quest_id| {
                                     just(move |ctx, _| {
@@ -345,7 +361,7 @@ fn quest_req<S: State>(session: DialogueSession) -> impl Action<S> {
                                 .say_statement(Content::localized("dialogue-quest-rejected"))
                                 .boxed()
                         }
-                    })
+                    }))
                     .boxed(),
             );
         }

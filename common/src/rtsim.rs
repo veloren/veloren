@@ -27,8 +27,7 @@ slotmap::new_key_type! { pub struct ReportId; }
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QuestId(pub u64);
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct RtSimEntity(pub NpcId);
+pub type RtSimEntity = NpcId; // TODO: Remove this, alias is needed for historical reasons
 
 impl Component for RtSimEntity {
     type Storage = specs::VecStorage<Self>;
@@ -293,7 +292,7 @@ impl<const IS_VALIDATED: bool> Dialogue<IS_VALIDATED> {
     pub fn message(&self) -> Option<&Content> {
         match &self.kind {
             DialogueKind::Start | DialogueKind::End | DialogueKind::Marker { .. } => None,
-            DialogueKind::Statement(msg) | DialogueKind::Question { msg, .. } => Some(msg),
+            DialogueKind::Statement { msg, .. } | DialogueKind::Question { msg, .. } => Some(msg),
             DialogueKind::Response { response, .. } => Some(&response.msg),
         }
     }
@@ -307,7 +306,10 @@ impl Dialogue<false> {
 pub enum DialogueKind {
     Start,
     End,
-    Statement(Content),
+    Statement {
+        msg: Content,
+        given_item: Option<(Arc<ItemDef>, u32)>,
+    },
     Question {
         // Used to uniquely track each question/response
         tag: u32,

@@ -1149,7 +1149,7 @@ impl StateExt for State {
             .get(entity)
             .copied()
         {
-            Some(Actor::Npc(rtsim_entity.0))
+            Some(Actor::Npc(rtsim_entity))
         } else if let Some(PresenceKind::Character(character)) = self
             .ecs()
             .read_storage::<Presence>()

@@ -246,7 +246,7 @@ impl RtSim {
     pub fn hook_rtsim_entity_unload(&mut self, entity: RtSimEntity) {
         let data = self.state.get_data_mut();
 
-        if let Some(npc) = data.npcs.get_mut(entity.0) {
+        if let Some(npc) = data.npcs.get_mut(entity) {
             if matches!(npc.mode, SimulationMode::Simulated) {
                 error!("Unloaded already unloaded entity");
             }

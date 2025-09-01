@@ -43,7 +43,7 @@ use crate::{
     data::{
         ReportKind, Sentiment, Sites,
         npc::{Brain, DialogueSession, Job, PathData, SimulationMode},
-        quest::Quest,
+        quest::{Quest, QuestKind},
     },
     event::OnTick,
 };
@@ -51,7 +51,7 @@ use common::{
     assets::AssetExt,
     astar::{Astar, PathResult},
     comp::{
-        self, Content, bird_large,
+        self, Content, LocalizationArg, bird_large,
         compass::{Direction, Distance},
         item::ItemDef,
     },
@@ -1548,17 +1548,19 @@ fn humanoid() -> impl Action<DefaultState> {
                             just(|ctx, _| ctx.controller.end_hiring()).boxed()
                         }
                     },
-                    Job::Quest(quest_id) => match ctx.state.data().quests.get(*quest_id) {
-                        // TODO: Support escort quests in which we are the escorter
-                        Some(Quest::Escort {
-                            escortee,
-                            escorter,
-                            to,
-                        }) if *escortee == Actor::Npc(ctx.npc_id) => {
-                            quest::escorted(*escorter, *to).boxed()
-                        },
-                        // A quest job that can't be acted upon gets ended
-                        _ => just(|ctx, _| ctx.controller.end_quest()).boxed(),
+                    Job::Quest(quest_id) => {
+                        match ctx.state.data().quests.get(*quest_id).map(|q| &q.kind) {
+                            // TODO: Support escort quests in which we are the escorter
+                            Some(QuestKind::Escort {
+                                escortee,
+                                escorter,
+                                to,
+                            }) if *escortee == Actor::Npc(ctx.npc_id) => {
+                                quest::escorted(*quest_id, *escorter, *to).boxed()
+                            },
+                            // A quest job that can't be acted upon gets ended
+                            _ => just(|ctx, _| ctx.controller.end_quest()).boxed(),
+                        }
                     },
                 }
                 .interrupt_with(react_to_events),

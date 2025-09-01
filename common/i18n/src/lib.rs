@@ -106,6 +106,13 @@ impl Content {
         Self::Attr(key.to_string(), attr.to_string())
     }
 
+    pub fn with_arg(mut self, key: &str, arg: impl Into<LocalizationArg>) -> Self {
+        if let Self::Localized { args, .. } = &mut self {
+            args.insert(key.to_string(), arg.into());
+        }
+        self
+    }
+
     pub fn localized_with_args<'a, A: Into<LocalizationArg>>(
         key: impl ToString,
         args: impl IntoIterator<Item = (&'a str, A)>,

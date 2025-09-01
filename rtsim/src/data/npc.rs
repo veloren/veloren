@@ -6,7 +6,7 @@ use crate::{
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     character::CharacterId,
-    comp::{self, agent::FlightMode},
+    comp::{self, agent::FlightMode, item::ItemDef},
     grid::Grid,
     resources::Time,
     rtsim::{
@@ -24,6 +24,7 @@ use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
+    sync::Arc,
 };
 use tracing::error;
 use vek::*;
@@ -226,11 +227,16 @@ impl Controller {
     }
 
     /// Provide a statement as part of a dialogue.
-    pub fn dialogue_statement(&mut self, session: DialogueSession, msg: comp::Content) {
+    pub fn dialogue_statement(
+        &mut self,
+        session: DialogueSession,
+        msg: comp::Content,
+        given_item: Option<(Arc<ItemDef>, u32)>,
+    ) {
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
-                kind: DialogueKind::Statement(msg),
+                kind: DialogueKind::Statement { msg, given_item },
             }));
     }
 

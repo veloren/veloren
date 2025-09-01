@@ -80,7 +80,7 @@ impl IdMaps {
     pub fn actor_entity(&self, actor: Actor) -> Option<Entity> {
         match actor {
             Actor::Character(character_id) => self.character_entity(character_id),
-            Actor::Npc(npc_id) => self.rtsim_entity(RtSimEntity(npc_id)),
+            Actor::Npc(npc_id) => self.rtsim_entity(npc_id),
         }
     }
 

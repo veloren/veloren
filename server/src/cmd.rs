@@ -1957,12 +1957,11 @@ fn handle_rtsim_info(
                 Err(e) => return Some(Err(e)),
             };
 
-            let npc_id = server
+            let npc_id = *server
                 .state
                 .ecs()
                 .read_storage::<common::rtsim::RtSimEntity>()
-                .get(entity)?
-                .0;
+                .get(entity)?;
 
             Some(Ok(rtsim.state().data().npcs.get(npc_id)?.uid))
         })
@@ -3111,7 +3110,7 @@ fn handle_kill_npcs(
                     rtsim.hook_rtsim_actor_death(
                         &ecs.read_resource::<Arc<world::World>>(),
                         ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                        Actor::Npc(rtsim_entity.0),
+                        Actor::Npc(rtsim_entity),
                         Some(pos.0),
                         None,
                     );
@@ -4834,7 +4833,7 @@ fn get_entity_target(entity_target: EntityTarget, server: &Server) -> CmdResult<
                 .state()
                 .ecs()
                 .read_resource::<common::uid::IdMaps>()
-                .rtsim_entity(common::rtsim::RtSimEntity(npc_id))
+                .rtsim_entity(npc_id)
                 .ok_or(Content::Plain(format!("Npc with id {id} isn't loaded.")))
         },
         EntityTarget::Uid(uid) => server

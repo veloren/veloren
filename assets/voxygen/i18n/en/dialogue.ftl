@@ -39,10 +39,13 @@ dialogue-quest-rejected =
     .a0 = Whatever! You do you.
     .a1 = No skin off my nose.
     .a2 = Beggars can't be choosers. Stop wasting my time!
+dialogue-quest-reward =
+    .a0 = Here's your reward.
+    .a1 = Here's the payment for your efforts.
 
 dialogue-quest-escort-ask =
-    .a0 = Could you lead me to { $dst }?
-    .a1 = I want to go to { $dst }. Could you take me?
+    .a0 = Could you lead me to { $dst }? I'll pay you { $coins } coins!
+    .a1 = I want to go to { $dst }. Could you take me for { $coins } coins?
 dialogue-quest-escort-start =
     .a0 = Lead on then!
     .a1 = Excellent. You first, I'll follow along.
