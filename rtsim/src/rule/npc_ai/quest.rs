@@ -6,10 +6,16 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, tgt_site: SiteId) 
         .stop_if(move |ctx: &mut NpcCtx| ctx.npc.current_site == Some(tgt_site))
         .then(now(move |ctx, _| {
             ctx.controller.end_quest();
-            // Now that the quest has ended...
-            if let Ok(deposit) = ctx.state.data().quests.resolve(quest_id, true) {
+            // Now that the quest has ended, resolve it...
+            if let Some(outcome) = ctx
+                .state
+                .data()
+                .quests
+                .get(quest_id)
+                .and_then(|q| q.resolve(ctx.npc_id, true))
+            {
                 // ...take the deposit back into our own inventory...
-                if let Some((item_def, amount)) = &deposit
+                if let Some((item_def, amount)) = &outcome.deposit
                     && let Some(npc_entity) = ctx.system_data.id_maps.rtsim_entity(ctx.npc_id)
                     && let Some(mut inv) = ctx
                         .system_data
@@ -35,7 +41,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, tgt_site: SiteId) 
                             .say_statement(Content::localized("dialogue-quest-escort-complete"))
                             .then(session.say_statement_with_gift(
                                 Content::localized("dialogue-quest-reward"),
-                                deposit.clone(),
+                                outcome.deposit.clone(),
                             ))
                     }))
                     .boxed()
