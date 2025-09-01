@@ -41,7 +41,7 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             None => {
                 responses.push((
                     Response::from(Content::localized("dialogue-question-quest_req")),
-                    dialogue::quest_req(session).boxed(),
+                    quest::quest_request(session).boxed(),
                 ));
 
                 let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));

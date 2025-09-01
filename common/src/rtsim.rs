@@ -1,9 +1,20 @@
-// We'd like to not have this file in `common`, but sadly there are
-// things in `common` that require it (currently, `ServerEvent` and
-// `Agent`). When possible, this should be moved to the `rtsim`
-// module in `server`.
+//! Type definitions used for interfacing between rtsim and the rest of the
+//! game.
+//!
+//! See the `veloren_rtsim` crate for an in-depth explanation as to what rtsim
+//! and how it works.
+//!
+//! The types in this module generally come in a few flavours:
+//!
+//! - IDs like [`NpcId`] and [`SiteId`], used to address objects that are shared
+//!   between both domains
+//! - Messages like [`Dialogue`] and [`NpcAction`] which facilitate
+//!   communication between both domains
+//! - 'Resource duals' like [`TerrainResource`] that allow physical items or
+//!   resources to be translated between domains (often lossily)
 
 use crate::{
+    assets::AssetExt,
     character::CharacterId,
     comp::{agent::FlightMode, inventory::item::ItemDef},
     util::Dir,
@@ -253,7 +264,7 @@ pub enum NpcActivity {
     /// (travel_to, speed_factor, height above terrain, direction_override,
     /// flight_mode)
     GotoFlying(Vec3<f32>, f32, Option<f32>, Option<Dir>, FlightMode),
-    Gather(&'static [ChunkResource]),
+    Gather(&'static [TerrainResource]),
     // TODO: Generalise to other entities? What kinds of animals?
     HuntAnimals,
     Dance(Option<Dir>),
@@ -352,10 +363,35 @@ pub enum NpcInput {
     Dialogue(Actor, Dialogue<true>),
 }
 
+/// Abstractly represents categories of resources that might naturally appear in
+/// the world as a product of world generation.
+///
+/// Representing resources abstractly in this way allows us to decouple rtsim
+/// from the rest of the game so that we don't have to include things like
+/// [`common::terrain::BlockKind`] or [`common::terrain::SpriteKind`] in rtsim's
+/// persistence data model (which would require non-trivial migration work if
+/// those enums and their attributes change over time).
+///
+/// Terrain resources are usually tracked per-chunk, but this is not always
+/// true. For example, a site might contain farm fields, and those fields might
+/// track their resources independently of the chunks they appear in at some
+/// future stage of development.
+///
+/// You can determine the rtsim resource represented by a block with
+/// [`common::terrain::Block::get_rtsim_resource`].
+///
+/// Going in the other direction is necessarily a stochastic endeavour. For
+/// example, both `SpriteKind::Diamond` and `SpriteKind::Amethyst` currently map
+/// to `TerrainResource::Gem`, which is a lossy conversion: to go back the other
+/// way, we have to pick one or the other with some probability. It might be
+/// desirable to weight this probability according to the commonly accepted
+/// scarcity/value of the item to avoid balancing issues.
+///
+/// If you want to track inventory items with rtsim, see [`ItemResource`].
 // Note: the `serde(name = "...")` is to minimise the length of field
 // identifiers for the sake of rtsim persistence
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, enum_map::Enum)]
-pub enum ChunkResource {
+pub enum TerrainResource {
     #[serde(rename = "0")]
     Grass,
     #[serde(rename = "1")]
@@ -378,6 +414,34 @@ pub enum ChunkResource {
     Gem, // Amethyst, diamond, etc.
     #[serde(rename = "a")]
     Ore, // Iron, copper, etc.
+}
+
+/// Like [`TerrainResource`], but for tracking inventory items in rtsim for the
+/// sake of questing, trade, etc.
+///
+/// This type is a conceptual dual of [`TerrainResource`], so most of the same
+/// ideas apply. It is to [`common::comp::Item`] what [`TerrainResource`] is to
+/// [`common::terrain::BlockKind`] or [`common::terrain::SpriteKind`].
+///
+/// | In-game types             | Rtsim representation |
+/// |---------------------------|----------------------|
+/// | `Item`                    | `ItemResource`       |
+/// | `SpriteKind`, `BlockKind` | `TerrainResource`    |
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ItemResource {
+    #[serde(rename = "0")]
+    Coin,
+}
+
+impl ItemResource {
+    /// Attempt to translate this resource into an equivalent [`ItemDef`].
+    // TODO: Return (Arc<ItemDef>, f32) to allow for an exchange rate
+    // TODO: Have this function take an `impl Rng` so that it can be stochastic
+    pub fn to_equivalent_item_def(&self) -> Arc<ItemDef> {
+        match self {
+            Self::Coin => Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap(),
+        }
+    }
 }
 
 // Note: the `serde(name = "...")` is to minimise the length of field

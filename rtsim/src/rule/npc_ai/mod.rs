@@ -58,8 +58,8 @@ use common::{
     match_some,
     path::Path,
     rtsim::{
-        Actor, ChunkResource, DialogueKind, NpcInput, PersonalityTrait, Profession, QuestId,
-        Response, Role, SiteId,
+        Actor, DialogueKind, ItemResource, NpcInput, PersonalityTrait, Profession, QuestId,
+        Response, Role, SiteId, TerrainResource,
     },
     spiral::Spiral2d,
     store::Id,
@@ -730,9 +730,9 @@ fn gather_ingredients<S: State>() -> impl Action<S> {
     just(|ctx, _| {
         ctx.controller.do_gather(
             &[
-                ChunkResource::Fruit,
-                ChunkResource::Mushroom,
-                ChunkResource::Plant,
+                TerrainResource::Fruit,
+                TerrainResource::Mushroom,
+                TerrainResource::Plant,
             ][..],
         )
     })

@@ -6,7 +6,7 @@ use atomicwrites::{AtomicFile, OverwriteBehavior};
 use common::{
     grid::Grid,
     mounting::VolumePos,
-    rtsim::{Actor, ChunkResource, NpcId, RtSimEntity, WorldSettings},
+    rtsim::{Actor, NpcId, RtSimEntity, TerrainResource, WorldSettings},
     terrain::{CoordinateConversions, SpriteKind},
 };
 use common_ecs::{System, dispatch};
@@ -190,7 +190,7 @@ impl RtSim {
     pub fn hook_load_chunk(
         &mut self,
         key: Vec2<i32>,
-        max_res: EnumMap<ChunkResource, usize>,
+        max_res: EnumMap<TerrainResource, usize>,
         world: &World,
     ) {
         if let Some(chunk_state) = self.state.get_resource_mut::<ChunkStates>().0.get_mut(key) {
@@ -340,7 +340,7 @@ impl RtSim {
     }
 
     // TODO: Clean up this API a bit
-    pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<ChunkResource, f32> {
+    pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<TerrainResource, f32> {
         self.state.data().nature.get_chunk_resources(key)
     }
 
@@ -370,7 +370,7 @@ pub struct ChunkStates(pub Grid<Option<LoadedChunkState>>);
 
 pub struct LoadedChunkState {
     // The maximum possible number of each resource in this chunk
-    pub max_res: EnumMap<ChunkResource, usize>,
+    pub max_res: EnumMap<TerrainResource, usize>,
 }
 
 pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {

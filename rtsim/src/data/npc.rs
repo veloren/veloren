@@ -10,8 +10,8 @@ use common::{
     grid::Grid,
     resources::Time,
     rtsim::{
-        Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
-        NpcActivity, NpcInput, Personality, QuestId, ReportId, Response, Role, SiteId,
+        Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
+        Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -64,7 +64,7 @@ pub struct Controller {
     pub new_home: Option<Option<SiteId>>,
     pub look_dir: Option<Dir>,
     pub job: Option<Job>,
-    pub created_quests: Vec<(QuestId, Quest)>,
+    pub quests_to_create: Vec<(QuestId, Quest)>,
 }
 
 impl Controller {
@@ -102,7 +102,7 @@ impl Controller {
         ));
     }
 
-    pub fn do_gather(&mut self, resources: &'static [ChunkResource]) {
+    pub fn do_gather(&mut self, resources: &'static [TerrainResource]) {
         self.activity = Some(NpcActivity::Gather(resources));
     }
 

@@ -233,7 +233,7 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
     ///
     /// ```ignore
     /// // Endlessly collect flax from the environment
-    /// find_and_collect(ChunkResource::Flax).repeat()
+    /// find_and_collect(TerrainResource::Flax).repeat()
     /// ```
     #[must_use]
     fn repeat(self) -> Repeat<Self, R>

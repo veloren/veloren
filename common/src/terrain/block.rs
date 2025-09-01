@@ -297,17 +297,19 @@ impl Block {
     /// Returns the rtsim resource, if any, that this block corresponds to. If
     /// you want the scarcity of a block to change with rtsim's resource
     /// depletion tracking, you can do so by editing this function.
+    // TODO: Return type should be `Option<&'static [(rtsim::TerrainResource, f32)]>` to allow
+    // fractional quantities and multiple resources per sprite
     #[inline]
-    pub fn get_rtsim_resource(&self) -> Option<rtsim::ChunkResource> {
+    pub fn get_rtsim_resource(&self) -> Option<rtsim::TerrainResource> {
         match self.get_sprite()? {
-            SpriteKind::Stones => Some(rtsim::ChunkResource::Stone),
+            SpriteKind::Stones => Some(rtsim::TerrainResource::Stone),
             SpriteKind::Twigs
                 | SpriteKind::Wood
                 | SpriteKind::Bamboo
                 | SpriteKind::Hardwood
                 | SpriteKind::Ironwood
                 | SpriteKind::Frostwood
-                | SpriteKind::Eldwood => Some(rtsim::ChunkResource::Wood),
+                | SpriteKind::Eldwood => Some(rtsim::TerrainResource::Wood),
             SpriteKind::Amethyst
                 | SpriteKind::Ruby
                 | SpriteKind::Sapphire
@@ -315,7 +317,7 @@ impl Block {
                 | SpriteKind::Topaz
                 | SpriteKind::Diamond
                 | SpriteKind::CrystalHigh
-                | SpriteKind::CrystalLow => Some(rtsim::ChunkResource::Gem),
+                | SpriteKind::CrystalLow => Some(rtsim::TerrainResource::Gem),
             SpriteKind::Bloodstone
                 | SpriteKind::Coal
                 | SpriteKind::Cobalt
@@ -323,7 +325,7 @@ impl Block {
                 | SpriteKind::Iron
                 | SpriteKind::Tin
                 | SpriteKind::Silver
-                | SpriteKind::Gold => Some(rtsim::ChunkResource::Ore),
+                | SpriteKind::Gold => Some(rtsim::TerrainResource::Ore),
 
             SpriteKind::LongGrass
                 | SpriteKind::MediumGrass
@@ -334,7 +336,7 @@ impl Block {
                 | SpriteKind::TallSavannaGrass
                 | SpriteKind::RedSavannaGrass
                 | SpriteKind::JungleRedGrass
-                | SpriteKind::Fern => Some(rtsim::ChunkResource::Grass),
+                | SpriteKind::Fern => Some(rtsim::TerrainResource::Grass),
             SpriteKind::BlueFlower
                 | SpriteKind::PinkFlower
                 | SpriteKind::PurpleFlower
@@ -343,29 +345,29 @@ impl Block {
                 | SpriteKind::YellowFlower
                 | SpriteKind::Sunflower
                 | SpriteKind::Moonbell
-                | SpriteKind::Pyrebloom => Some(rtsim::ChunkResource::Flower),
+                | SpriteKind::Pyrebloom => Some(rtsim::TerrainResource::Flower),
             SpriteKind::Reed
                 | SpriteKind::Flax
                 | SpriteKind::WildFlax
                 | SpriteKind::Cotton
                 | SpriteKind::Corn
                 | SpriteKind::WheatYellow
-                | SpriteKind::WheatGreen => Some(rtsim::ChunkResource::Plant),
+                | SpriteKind::WheatGreen => Some(rtsim::TerrainResource::Plant),
             SpriteKind::Apple
                 | SpriteKind::Pumpkin
                 | SpriteKind::Beehive // TODO: Not a fruit, but kind of acts like one
-                | SpriteKind::Coconut => Some(rtsim::ChunkResource::Fruit),
+                | SpriteKind::Coconut => Some(rtsim::TerrainResource::Fruit),
             SpriteKind::Lettuce
                 | SpriteKind::Carrot
                 | SpriteKind::Tomato
                 | SpriteKind::Radish
-                | SpriteKind::Turnip => Some(rtsim::ChunkResource::Vegetable),
+                | SpriteKind::Turnip => Some(rtsim::TerrainResource::Vegetable),
             SpriteKind::Mushroom
                 | SpriteKind::CaveMushroom
                 | SpriteKind::CeilingMushroom
                 | SpriteKind::RockyMushroom
                 | SpriteKind::LushMushroom
-                | SpriteKind::GlowMushroom => Some(rtsim::ChunkResource::Mushroom),
+                | SpriteKind::GlowMushroom => Some(rtsim::TerrainResource::Mushroom),
 
             SpriteKind::Chest
                 | SpriteKind::ChestBuried
@@ -381,7 +383,7 @@ impl Block {
                 | SpriteKind::TerracottaChest
                 | SpriteKind::SahaginChest
                 | SpriteKind::Crate
-                | SpriteKind::CommonLockedChest => Some(rtsim::ChunkResource::Loot),
+                | SpriteKind::CommonLockedChest => Some(rtsim::TerrainResource::Loot),
             _ => None,
         }
         // Don't count collected sprites.

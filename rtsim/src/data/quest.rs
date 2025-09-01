@@ -1,15 +1,12 @@
 use common::{
     comp::{Item, item::ItemDef},
     resources::Time,
-    rtsim::{Actor, QuestId, SiteId},
+    rtsim::{Actor, ItemResource, QuestId, SiteId},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use slotmap::HopSlotMap;
-use std::sync::{
-    Arc,
-    atomic::{AtomicU8, AtomicU64, Ordering},
-};
+use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
 
 /// The easiest way to think about quests is as a virtual Jira board (or,
 /// perhaps, a community jobs noticeboard).
@@ -152,7 +149,7 @@ pub struct QuestOutcome {
     ///
     /// Deposits exist to avoid NPCs (or players) constantly needing to track
     /// 'earmarked' items in their inventories that correspond to payments.
-    pub deposit: Option<(Arc<ItemDef>, u32)>,
+    pub deposit: Option<(ItemResource, f32)>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -188,7 +185,7 @@ impl Quest {
     /// Deposits are paid out to the arbiter when a quest is resolved. The
     /// arbiter usually passes the deposit on to the character that
     /// completed the quest, but this is not the concern of the quest system.
-    pub fn with_deposit(mut self, item: Arc<ItemDef>, amount: u32) -> Self {
+    pub fn with_deposit(mut self, item: ItemResource, amount: f32) -> Self {
         self.outcome.deposit = Some((item, amount));
         self
     }

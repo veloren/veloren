@@ -289,7 +289,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         }
 
         // Create registered quests
-        for (id, quest) in core::mem::take(&mut npc.controller.created_quests) {
+        for (id, quest) in core::mem::take(&mut npc.controller.quests_to_create) {
             data.quests.create(id, quest);
         }
 

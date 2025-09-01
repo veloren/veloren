@@ -1202,7 +1202,7 @@ impl Painter {
 
     /// Places a sprite at the provided location with the provided orientation
     /// which will be tracked by rtsim nature if the sprite has an associated
-    /// [`veloren_common::rtsim::ChunkResource`].
+    /// [`veloren_common::rtsim::TerrainResource`].
     pub fn resource_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
         self.aabb(Aabb {
             min: pos,
@@ -1213,7 +1213,7 @@ impl Painter {
 
     /// Places a sprite at the provided location with the provided orientation
     /// which will be tracked by rtsim nature if the sprite has an associated
-    /// [`veloren_common::rtsim::ChunkResource`].
+    /// [`veloren_common::rtsim::TerrainResource`].
     pub fn owned_resource_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
         self.aabb(Aabb {
             min: pos,

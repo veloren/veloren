@@ -9,7 +9,7 @@ use vek::*;
 use common::{
     assets::{AssetCombined, AssetHandle, Ron},
     comp::{
-        self,
+        self, InventoryUpdateEvent,
         agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
         item::{MaterialStatManifest, flatten_counted_items},
@@ -139,13 +139,21 @@ impl ServerEvent for DialogueEvent {
         WriteStorage<'a, comp::Inventory>,
         ReadExpect<'a, AbilityMap>,
         ReadExpect<'a, MaterialStatManifest>,
+        WriteStorage<'a, comp::InventoryUpdate>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (uids, positions, clients, mut agents, mut inventories, ability_map, msm): Self::SystemData<
-            '_,
-        >,
+        (
+            uids,
+            positions,
+            clients,
+            mut agents,
+            mut inventories,
+            ability_map,
+            msm,
+            mut inventory_updates,
+        ): Self::SystemData<'_>,
     ) {
         for DialogueEvent(sender, target, dialogue) in events {
             let within_range = positions
@@ -178,6 +186,9 @@ impl ServerEvent for DialogueEvent {
                         && let Some(mut target_inv) = inventories.get_mut(target)
                     {
                         for item in items {
+                            let item_event = InventoryUpdateEvent::Collected(
+                                item.frontend_item(&ability_map, &msm),
+                            );
                             // Push the items to the target's inventory
                             if target_inv.push(item).is_err() {
                                 error!(
@@ -185,6 +196,9 @@ impl ServerEvent for DialogueEvent {
                                      inventory claiming to have space, dropping remaining items..."
                                 );
                                 break;
+                            } else {
+                                inventory_updates
+                                    .insert(target, comp::InventoryUpdate::new(item_event));
                             }
                         }
                     } else {

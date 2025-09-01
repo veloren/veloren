@@ -593,7 +593,7 @@ impl EntityInfo {
 #[derive(Default)]
 pub struct ChunkSupplement {
     pub entities: Vec<EntityInfo>,
-    pub rtsim_max_resources: EnumMap<rtsim::ChunkResource, usize>,
+    pub rtsim_max_resources: EnumMap<rtsim::TerrainResource, usize>,
 }
 
 impl ChunkSupplement {

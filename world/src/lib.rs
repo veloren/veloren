@@ -52,7 +52,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     lod,
     resources::TimeOfDay,
-    rtsim::ChunkResource,
+    rtsim::TerrainResource,
     spiral::Spiral2d,
     spot::Spot,
     terrain::{
@@ -346,7 +346,7 @@ impl World {
         &self,
         index: IndexRef,
         chunk_pos: Vec2<i32>,
-        rtsim_resources: Option<EnumMap<ChunkResource, f32>>,
+        rtsim_resources: Option<EnumMap<TerrainResource, f32>>,
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
         time: Option<(TimeOfDay, Calendar)>,

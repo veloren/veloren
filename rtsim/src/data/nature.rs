@@ -1,4 +1,4 @@
-use common::{grid::Grid, rtsim::ChunkResource};
+use common::{grid::Grid, rtsim::TerrainResource};
 use enum_map::EnumMap;
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -25,11 +25,11 @@ impl Nature {
     }
 
     // TODO: Clean up this API a bit
-    pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<ChunkResource, f32> {
+    pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<TerrainResource, f32> {
         self.chunks.get(key).map(|c| c.res).unwrap_or_default()
     }
 
-    pub fn set_chunk_resources(&mut self, key: Vec2<i32>, res: EnumMap<ChunkResource, f32>) {
+    pub fn set_chunk_resources(&mut self, key: Vec2<i32>, res: EnumMap<TerrainResource, f32>) {
         if let Some(chunk) = self.chunks.get_mut(key) {
             chunk.res = res;
         }
@@ -60,5 +60,5 @@ pub struct Chunk {
     #[serde(rename = "r")]
     #[serde(serialize_with = "crate::data::rugged_ser_enum_map::<_, _, _, 1>")]
     #[serde(deserialize_with = "crate::data::rugged_de_enum_map::<_, _, _, 1>")]
-    res: EnumMap<ChunkResource, f32>,
+    res: EnumMap<TerrainResource, f32>,
 }
