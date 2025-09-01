@@ -94,10 +94,9 @@ void main() {
 
     uint f_mat = MAT_BLOCK;
 
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);
+#else
 
     //float f_light = (uint(texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).r * 255.0) & 0x1Fu) / 31.0;
     // vec2 texSize = textureSize(t_col_light, 0);
@@ -238,9 +237,6 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
-    // Toggle to see rain_occlusion
-    // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
-    // return;
     #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
         float f_alpha = 1.0;
     #else
@@ -573,4 +569,7 @@ void main() {
     tgt_color = vec4(surf_color, f_alpha);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), f_mat);
     //tgt_color = vec4(f_norm, f_alpha);
+    // Toggle to see rain_occlusion
+    // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
+#endif
 }

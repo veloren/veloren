@@ -139,7 +139,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
     moon_access *= not_underground;
     float vapor_density = (mist + cloud) * not_underground;
 
-    if (emission_strength <= 0.0) {
+    if (emission_strength() <= 0.0) {
         emission = vec3(0);
     } else {
         float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.y * 8.0, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
@@ -152,7 +152,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
                 + textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.0005 + nz * 0.5, 0).x * 0.3
                 - 0.5) * 2)
             * max(0, 1.0 - abs(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00001, 0).x - 0.5) * 4)
-            , 2) * emission_strength;
+            , 2) * emission_strength();
         float t = clamp((pos.z - emission_alt) / emission_height, 0, 1);
         t = pow(t - 0.5, 2) * sign(t - 0.5) + 0.5;
         float top = pow(t, 2);
@@ -160,7 +160,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
         const vec3 cyan = vec3(0, 0.5, 1);
         const vec3 red = vec3(1, 0, 0);
         const vec3 green = vec3(0, 8, 0);
-        emission = 10 * emission_factor * nz * (cyan * top * max(0, 1 - emission_br) + red * max(emission_br, 0) + green * bot);
+        emission = 10 * emission_factor * nz * (cyan * top * max(0, 1 - emission_br()) + red * max(emission_br(), 0) + green * bot);
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air

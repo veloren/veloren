@@ -6,7 +6,7 @@ vec4 aa_apply(
     vec2 fragCoord,
     vec2 resolution
 ) {
-    ivec2 dirs[] = { ivec2(-1, 0), ivec2(1, 0), ivec2(0, -1), ivec2(0, 1) };
+    ivec2 dirs[4] = { ivec2(-1, 0), ivec2(1, 0), ivec2(0, -1), ivec2(0, 1) };
 
     vec2 sz = textureSize(sampler2D(tex, smplr), 0).xy;
 

@@ -11,9 +11,6 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
 
     vec3 difference = light_pos - nearest;
     float distance_2 = dot(difference, difference);
-    //if (distance_2 > 100000.0) {
-    //    return;
-    //}
 
     #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
         vec3 _unused;
@@ -55,16 +52,16 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
 
             apply_point_glow_light(L, wpos, dir, max_dist, color);
         }
-    #endif
 
-    #ifdef FLASHING_LIGHTS_ENABLED
-        float time_since_lightning = time_since(last_lightning.w);
-        if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
-            // Apply lightning
-            apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
-        }
+        #ifdef FLASHING_LIGHTS_ENABLED
+            float time_since_lightning = time_since(last_lightning.w);
+            if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
+                // Apply lightning
+                apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
+            }
+        #endif
+        return color;
     #endif
-    return color;
 }
 
 #endif

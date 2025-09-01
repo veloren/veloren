@@ -207,7 +207,6 @@ layout (triangle_strip, max_vertices = /*MAX_LAYER_VERTICES_PER_FACE*//*96*/18) 
 // const vec3 normals[6] = vec3[](vec3(-1,0,0), vec3(1,0,0), vec3(0,-1,0), vec3(0,1,0), vec3(0,0,-1), vec3(0,0,1));
 
 void main() {
-    // return;
     // NOTE: Assuming that light_shadow_count.x < MAX_POINT_LIGHTS.  We could min
     // it, but that might make this less optimized, and I'd like to keep this loop as
     // optimized as is reasonably possible.
@@ -230,9 +229,6 @@ void main() {
     } */
 
     // Part 2: emit point lights.
-    /* if (light_shadow_count.x == 1) {
-        return;
-    } */
 #if (SHADOW_MODE == SHADOW_MODE_MAP)
     for (uint layer = 1u; layer <= min(light_shadow_count.x, 1u); ++layer)
     {

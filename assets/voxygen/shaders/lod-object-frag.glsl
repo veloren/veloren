@@ -45,10 +45,9 @@ float lod_voxel_noise(vec3 f_pos) {
 }
 
 void main() {
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col.rgb, 1.0), 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, f_col.rgb, 1.0), 1);
+#else
 
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
@@ -146,4 +145,5 @@ void main() {
 
     tgt_color = vec4(surf_color, 1.0);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_LOD);
+#endif
 }

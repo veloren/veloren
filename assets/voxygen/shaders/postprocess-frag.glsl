@@ -200,10 +200,9 @@ vec3 aa_sample_grad(vec2 uv, vec2 off) {
 #endif
 
 void main() {
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(texture(sampler2D(t_src_color, s_src_color), uv).rgb, 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(texture(sampler2D(t_src_color, s_src_color), uv).rgb, 1);
+#else
 
     /* if (medium.x == 1u) {
         uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
@@ -384,4 +383,5 @@ void main() {
     #endif
 
     tgt_color = vec4(final_color.rgb, 1);
+#endif
 }

@@ -140,27 +140,38 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
     #endif
 }
 
-float magnetosphere = sin(time_of_day.y);
-#if (CLOUD_MODE <= CLOUD_MODE_LOW)
-    const vec3 magnetosphere_tint = vec3(1);
-#else
-    float _magnetosphere2 = pow(magnetosphere, 2) * 2 - 1;
-    float _magnetosphere3 = pow(_magnetosphere2, 2) * 2 - 1;
-    vec3 _magnetosphere_change = vec3(1.0) + vec3(
-        (magnetosphere + 1.0) * 2.0,
-        (-_magnetosphere2 + 1.0) * 2.0,
-        (-_magnetosphere3 + 1.0) * 1.0
-    ) * 0.4;
-    vec3 magnetosphere_tint = _magnetosphere_change / length(_magnetosphere_change);
-#endif
-#if (CLOUD_MODE > CLOUD_MODE_NONE)
-    float emission_strength = clamp((magnetosphere - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
-    #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
-        float emission_br = abs(pow(fract(time_of_day.y * 0.5) * 2 - 1, 2));
+float magnetosphere() { return sin(time_of_day.y); }
+
+vec3 magnetosphere_tint() {
+    #if (CLOUD_MODE <= CLOUD_MODE_LOW)
+        return vec3(1);
     #else
-        float emission_br = 0.5;
+        float magnetosphere = magnetosphere();
+        float magnetosphere2 = pow(magnetosphere, 2) * 2 - 1;
+        float magnetosphere3 = pow(magnetosphere2, 2) * 2 - 1;
+        vec3 magnetosphere_change = vec3(1.0) + vec3(
+            (magnetosphere + 1.0) * 2.0,
+            (-magnetosphere2 + 1.0) * 2.0,
+            (-magnetosphere3 + 1.0) * 1.0
+        ) * 0.4;
+        return normalize(magnetosphere_change);
     #endif
+ }
+
+#if (CLOUD_MODE > CLOUD_MODE_NONE)
+float emission_strength() {
+    return clamp((magnetosphere() - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
+}
+
+float emission_br() {
+    #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+        return abs(pow(fract(time_of_day.y * 0.5) * 2 - 1, 2));
+    #else
+        return 0.5;
+    #endif
+}
 #endif
+
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
     return max(-sun_dir.z + 0.5, 0.0);
@@ -175,7 +186,7 @@ vec3 get_sun_color(/*vec3 sun_dir*/) {
 
     return mix(
         mix(
-            light * magnetosphere_tint,
+            light * magnetosphere_tint(),
             NIGHT_LIGHT,
             max(sun_dir.z, 0)
         ),
@@ -188,7 +199,7 @@ vec3 get_sun_color(/*vec3 sun_dir*/) {
 vec3 get_sky_color(/*vec3 sun_dir*/) {
     return mix(
         mix(
-            (SKY_DUSK_TOP + SKY_DUSK_MID) / 2 * magnetosphere_tint,
+            (SKY_DUSK_TOP + SKY_DUSK_MID) / 2 * magnetosphere_tint(),
             (SKY_NIGHT_TOP + SKY_NIGHT_MID) / 2,
             max(sun_dir.z, 0)
         ),
@@ -466,8 +477,8 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
 
     vec3 emission = vec3(0);
     #if (CLOUD_MODE > CLOUD_MODE_NONE)
-        if (emission_strength > 0.0) {
-            emission = mix(vec3(0, 0.5, 1), vec3(1, 0, 0), emission_br) * emission_strength * 0.025;
+        if (emission_strength() > 0.0) {
+            emission = mix(vec3(0, 0.5, 1), vec3(1, 0, 0), emission_br()) * emission_strength() * 0.025;
         }
     #endif
 
@@ -545,7 +556,7 @@ vec3 get_sky_light(vec3 dir, bool with_stars) {
 
     vec3 sky_top = mix(
         mix(
-            sky_twilight_top * magnetosphere_tint,
+            sky_twilight_top * magnetosphere_tint(),
             SKY_NIGHT_TOP,
             pow(max(sun_dir.z, 0.0), 0.2)
         ) + star,
@@ -555,7 +566,7 @@ vec3 get_sky_light(vec3 dir, bool with_stars) {
 
     vec3 sky_mid = mix(
         mix(
-            sky_twilight_mid * magnetosphere_tint,
+            sky_twilight_mid * magnetosphere_tint(),
             SKY_NIGHT_MID,
             pow(max(sun_dir.z, 0.0), 0.1)
         ),
@@ -565,7 +576,7 @@ vec3 get_sky_light(vec3 dir, bool with_stars) {
 
     vec3 sky_bot = mix(
         mix(
-            sky_twilight_bot * magnetosphere_tint,
+            sky_twilight_bot * magnetosphere_tint(),
             SKY_NIGHT_BOT,
             pow(max(sun_dir.z, 0.0), 0.2)
         ),
@@ -583,7 +594,7 @@ vec3 get_sky_light(vec3 dir, bool with_stars) {
         max(dir.z, 0)
     );
 
-    return sky_color * magnetosphere_tint;
+    return sky_color * magnetosphere_tint();
 }
 
 vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex, bool fake_clouds, float sun_shade_frac) {
@@ -596,7 +607,7 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
     const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 10.0;
 
     vec3 sun_halo_color = mix(
-        (sun_dir.x > 0 ? SUN_HALO_DUSK : SUN_HALO_DAWN)* magnetosphere_tint,
+        (sun_dir.x > 0 ? SUN_HALO_DUSK : SUN_HALO_DAWN)* magnetosphere_tint(),
         SUN_HALO_DAY,
         pow(max(-sun_dir.z, 0.0), 0.5)
     );

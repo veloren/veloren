@@ -45,10 +45,9 @@ void main() {
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
 
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
-        return;
-    #endif
+#ifdef EXPERIMENTAL_BAREMINIMUM
+    tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
+#else
 
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
@@ -139,4 +138,5 @@ void main() {
     tgt_color = vec4(surf_color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1));
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
     //tgt_color = vec4(-f_norm, 1.0);
+#endif
 }
