@@ -127,7 +127,7 @@ pub struct Scene {
     ambience_mgr: AmbienceMgr,
 
     integrated_rain_vel: f32,
-    wind_vel: Vec2<f32>,
+    pub wind_vel: Vec2<f32>,
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
     local_time: f64,
@@ -156,6 +156,7 @@ pub struct SceneData<'a> {
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
     pub interpolated_time_of_day: Option<f64>,
+    pub wind_vel: Vec2<f32>,
 }
 
 impl SceneData<'_> {

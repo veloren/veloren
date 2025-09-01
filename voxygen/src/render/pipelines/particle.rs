@@ -165,6 +165,8 @@ pub struct Instance {
     // - a quad mesh, and 6 or more instances.
     // - a cube mesh, and 36 or more instances.
     inst_pos: [f32; 3],
+
+    inst_start_wind_vel: [f32; 2],
 }
 
 impl Instance {
@@ -173,6 +175,7 @@ impl Instance {
         lifespan: f32,
         inst_mode: ParticleMode,
         inst_pos: Vec3<f32>,
+        inst_start_wind_vel: Vec2<f32>,
     ) -> Self {
         use rand::Rng;
         Self {
@@ -181,6 +184,7 @@ impl Instance {
             inst_entropy: rand::rng().random(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
+            inst_start_wind_vel: inst_start_wind_vel.into_array(),
             inst_dir: [0.0, 0.0, 0.0],
         }
     }
@@ -191,6 +195,7 @@ impl Instance {
         inst_mode: ParticleMode,
         inst_pos: Vec3<f32>,
         inst_pos2: Vec3<f32>,
+        inst_start_wind_vel: Vec2<f32>,
     ) -> Self {
         use rand::Rng;
         Self {
@@ -199,12 +204,13 @@ impl Instance {
             inst_entropy: rand::rng().random(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
+            inst_start_wind_vel: inst_start_wind_vel.into_array(),
             inst_dir: (inst_pos2 - inst_pos).into_array(),
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3, 8 => Float32x2];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
@@ -214,7 +220,15 @@ impl Instance {
 }
 
 impl Default for Instance {
-    fn default() -> Self { Self::new(0.0, 0.0, ParticleMode::CampfireSmoke, Vec3::zero()) }
+    fn default() -> Self {
+        Self::new(
+            0.0,
+            0.0,
+            ParticleMode::CampfireSmoke,
+            Vec3::zero(),
+            Vec2::zero(),
+        )
+    }
 }
 
 pub struct ParticlePipeline {
