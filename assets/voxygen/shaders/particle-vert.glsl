@@ -235,11 +235,12 @@ vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency
         radius * cos(frequency * time_function - offset) * axis2.z + radius * sin(frequency * time_function - offset) * axis3.z);
 }
 
-vec3 blown_by_wind(float after_lifetime) {
+vec3 blown_by_wind(float after_lifetime, float drift_factor) {
     float from = lifetime - after_lifetime;
-    float factor = clamp(from * 0.1, 0.0, 1.0);
-    float rand = hash(vec4(inst_entropy + 47)) * 100.0;
-    return vec3(inst_start_wind_vel, 0.0) * max(from, 0.0) * factor + sin(sin(inst_start_wind_vel.yxx * lifetime) * 0.2 + rand) * 5.0 * factor;
+    float factor = clamp(from * 0.3, 0.0, 1.0) * drift_factor;
+    float rand = hash(vec4(inst_entropy + 47));
+    return vec3(inst_start_wind_vel, 0.0) * max(from, 0.0) * factor
+        + sin(inst_start_wind_vel.xyx * lifetime * 0.05 * (1.0 + rand * 10.0)) * length(inst_start_wind_vel.xy) * 0.2 * factor;
 }
 
 void main() {
@@ -264,8 +265,8 @@ void main() {
             attr = Attr(
                 linear_motion(
                     vec3(0),
-                    vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
-                ) + blown_by_wind(1.0) * 0.25,
+                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
+                ) + blown_by_wind(1.0, 0.25),
                 vec3(linear_scale(0.5)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
@@ -276,7 +277,7 @@ void main() {
                 linear_motion(
                     vec3(0),
                     vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
-                ) + blown_by_wind(20.0) * 0.25,
+                ) + blown_by_wind(20.0, 0.25),
                 vec3(linear_scale(0.5)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
@@ -419,7 +420,7 @@ void main() {
                     vec3(0, 0, -2)
                 )
                     + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0
-                    + blown_by_wind(0.0),
+                    + blown_by_wind(0.0, 1.0),
                 vec3(4),
                 vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.25 + rand6 * 0.5) * 0.3, 0) * (0.75 + rand1 * 0.5), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
@@ -505,7 +506,7 @@ void main() {
         case FLAMETHROWER:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             attr = Attr(
-                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1 + blown_by_wind(0.0, 1.0) * 2.5,
                 vec3((2.5 * (1 - slow_start(0.2)))),
                 vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
@@ -1104,7 +1105,7 @@ void main() {
         case ENGINE_JET:
             f_reflect = 0.0;
             attr = Attr(
-                linear_motion(vec3(0), vec3(rand6 - 0.5, rand7 - 0.5, 3 + rand8 * 0.8)),
+                linear_motion(vec3(0), vec3(rand6 - 0.5, rand7 - 0.5, 3 + rand8 * 0.8)) + blown_by_wind(0.0, 1.0),
                 vec3((2.5 * (1 - slow_start(0.05)))) + percent(),
                 mix(
                     mix(vec4(15, 8, 4, 1), vec4(12, 4, 0.0, 1), percent()),
@@ -1196,7 +1197,7 @@ void main() {
                 linear_motion(
                     vec3(0),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
-                ) + blown_by_wind(0.0) * 0.5,
+                ) + blown_by_wind(0.0, 0.5),
                 vec3(1.0 - slow_start(0.01)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
@@ -1204,7 +1205,7 @@ void main() {
             break;
         case TRAIN_SMOKE:
             attr = Attr(
-                blown_by_wind(0.0) + vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime, 0.5),
+                blown_by_wind(0.0, 1.0) + vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime, 0.5),
                 vec3(mix(15, 20, lifetime)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
