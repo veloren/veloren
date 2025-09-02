@@ -182,14 +182,14 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 let end_time = SystemTime::now();
                 // TODO: The KiddoRgb wrapper type is necessary to satisfy trait bounds.
                 // We store the colors twice currently, once as coordinates and another time
-                // as Content. Kiddo version 5.x is supposed to add the ability to have
+                // as Content. Kiddo version 6.x is supposed to add the ability to have
                 // Content be (), which would be useful here. Once that's added, do that.
                 // TODO: dist_sq is the same type as the coordinates, and since squared
                 // euclidean distances between colors go way higher than 255,
                 // we're using a U32F0 here instead of the optimal U8F0 (A U16F0
                 // works too, but it could theoretically still overflow so U32F0
-                // is used to be safe). If this ever changes, replace U32F0 with
-                // U8F0.
+                // is used to be safe). Kiddo version 6.x will change this — once that
+                // releases, replace U32F0 with U8F0.
                 let mut block_colors: KdTree<U32F0, KiddoRgb, 3, 32, u32> = KdTree::new();
                 let mut block_counts = HashMap::new();
                 let mut sprite_counts = HashMap::new();

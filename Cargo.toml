@@ -171,6 +171,7 @@ hex = "0.4.3"
 inline_tweak = { version = "1.0.8" }
 image = { version = "0.25", default-features = false, features = ["png"] }
 itertools = { version = "0.14" }
+# TODO: Fix LTO on linux with newer kiddo versions
 kiddo = "=4.2.0"
 lazy_static = "1.4.0"
 noise = { version = "0.9", default-features = false }

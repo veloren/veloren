@@ -762,8 +762,7 @@ where
         .powi(2)
         >= total_dist_sqrd
     {
-        let mut path = Vec::new();
-        path.push(endf.map(|e| e.floor() as i32));
+        let path = vec![endf.map(|e| e.floor() as i32)];
         let connect = true;
         (Some(path.into_iter().collect()), connect)
     // Else use RRTs
@@ -961,7 +960,7 @@ where
             if current_node_index1 == 0
                 || nodes1[current_node_index1].distance_squared(startf) < 4.0
             {
-                if let Some(index) = parents1.values().into_iter().choose_mut(&mut rng()) {
+                if let Some(index) = parents1.values().choose(&mut rng()) {
                     current_node_index1 = *index;
                 } else {
                     break;
