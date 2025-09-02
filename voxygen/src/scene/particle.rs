@@ -23,7 +23,7 @@ use common::{
     resources::{DeltaTime, Time},
     spiral::Spiral2d,
     states::{self, utils::StageSection},
-    terrain::{Block, SpriteKind, TerrainChunk, TerrainGrid},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
@@ -718,6 +718,7 @@ impl ParticleMgr {
             self.maintain_shockwave_particles(scene_data);
             self.maintain_aura_particles(scene_data);
             self.maintain_buff_particles(scene_data);
+            self.maintain_fluid_particles(scene_data);
 
             self.upload_particles(renderer);
         } else {
@@ -821,6 +822,47 @@ impl ParticleMgr {
                         scene_data,
                     )
                 });
+            }
+        }
+    }
+
+    fn maintain_fluid_particles(&mut self, scene_data: &SceneData) {
+        prof_span!("ParticleMgr::maintain_body_particles");
+        let ecs = scene_data.state.ecs();
+        for (pos, vel, collider) in (
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Vel>(),
+            &ecs.read_storage::<comp::Collider>(),
+        )
+            .join()
+        {
+            // Point particles (like arrows) travelling at high velocity in water create
+            // cavitation bubbles
+            const CAVITATION_SPEED: f32 = 20.0;
+            if matches!(collider, comp::Collider::Point)
+                && let speed = vel.0.magnitude()
+                && speed > CAVITATION_SPEED
+                && scene_data
+                    .state
+                    .terrain()
+                    .get(pos.0.as_())
+                    .map_or(false, |b| b.kind() == BlockKind::Water)
+            {
+                let mut rng = rand::thread_rng();
+                let time = scene_data.state.get_time();
+                let dt = scene_data.state.get_delta_time();
+                for _ in 0..self
+                    .scheduler
+                    .heartbeats(Duration::from_millis(1000 / speed.min(500.0) as u64))
+                {
+                    self.particles.push(Particle::new(
+                        Duration::from_secs(1),
+                        time,
+                        ParticleMode::Bubble,
+                        pos.0.map(|e| e + rng.gen_range(-0.1..0.1)) - vel.0 * dt * rng.gen::<f32>(),
+                        scene_data,
+                    ));
+                }
             }
         }
     }

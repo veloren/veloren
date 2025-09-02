@@ -1503,12 +1503,12 @@ impl Scene {
             // Render tethers.
             self.tether_mgr.render(&mut first_pass);
 
-            // Draws translucent
-            self.terrain.render_translucent(&mut first_pass, focus_pos);
-
             // Render particle effects.
             self.particle_mgr
                 .render(&mut first_pass.draw_particles(), scene_data);
+
+            // Draws translucent
+            self.terrain.render_translucent(&mut first_pass, focus_pos);
 
             // Render debug shapes
             self.debug.render(&mut first_pass.draw_debug());

@@ -114,6 +114,7 @@ const int FIRE_PILLAR = 72;
 const int FIRE_LOW_SHOCKWAVE = 73;
 const int PIPE_SMOKE = 74;
 const int TRAIN_SMOKE = 75;
+const int BUBBLE = 76;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -238,9 +239,10 @@ vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency
 vec3 blown_by_wind(float after_lifetime, float drift_factor) {
     float from = lifetime - after_lifetime;
     float factor = clamp(from * 0.3, 0.0, 1.0) * drift_factor;
-    float rand = hash(vec4(inst_entropy + 47));
+    float rand = hash(vec4(inst_entropy + 5));
     return vec3(inst_start_wind_vel, 0.0) * max(from, 0.0) * factor
-        + sin(inst_start_wind_vel.xyx * lifetime * 0.05 * (1.0 + rand * 10.0)) * length(inst_start_wind_vel.xy) * 0.2 * factor;
+        + sin(vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * 0.5 * factor) + tick.x * 0.25) * 0.5 * length(inst_start_wind_vel.xy) * factor
+        ;//+ sin((inst_start_wind_vel.yxx + rand * 10.0 * lifetime) * lifetime * 0.05) * length(inst_start_wind_vel.xy) * 0.2 * factor;
 }
 
 void main() {
@@ -1098,7 +1100,7 @@ void main() {
             attr = Attr(
                 inst_dir * pow(percent(), 0.5) * 0.5 + percent() * percent() * vec3(0, 0, -50),
                 vec3((1.5 * (1 - slow_start(0.2)))),
-                vec4(1.0, 1.0, 1.0, 1),
+                vec4(0.5, 0.75, 1.0, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
@@ -1209,6 +1211,18 @@ void main() {
                 vec3(mix(15, 20, lifetime)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+            );
+            break;
+        case BUBBLE:
+            f_reflect = 0.0;
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
+                ),
+                vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime * 20.0) * 0.2 + rand2 * 0.3),
+                vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
             break;
         default:
