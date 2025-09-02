@@ -1,8 +1,11 @@
 use client::{Client, EcsEntity};
 use common::{comp::ItemKey, rtsim};
 use conrod_core::{
-    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
-    widget::{self, Button, Image, Rectangle, Text},
+    Borderable, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
+    widget::{
+        self, Button, Image, Rectangle, RoundedRectangle, Scrollbar, Text,
+        primitive::{line, shape},
+    },
     widget_ids,
 };
 use i18n::Localization;
@@ -131,10 +134,10 @@ impl<'a> Quest<'a> {
             .collect();
 
         Text::new(&display_text)
-            .top_left_with_margins_on(state.ids.text_align, 8.0, 8.0)
-            .w(500.0)
+            .top_left_with_margins_on(state.ids.text_align, 16.0, 16.0)
+            .w(397.0)
             .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(20))
+            .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)
             .set(state.ids.desc_txt_0, ui);
     }
@@ -167,16 +170,14 @@ impl Widget for Quest<'_> {
         let mut event = None;
 
         // Window BG
-        Image::new(self.imgs.dialogue_bg)
+        Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
             .mid_bottom_with_margin_on(ui.window, 80.0)
-            .color(Some(UI_MAIN))
             .w_h(720.0, 234.0)
             .set(state.ids.bg, ui);
         // Window frame
-        Image::new(self.imgs.dialogue_frame)
+        Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
             .middle_of(state.ids.bg)
-            .color(Some(UI_HIGHLIGHT_0))
-            .w_h(720.0, 234.0)
+            .w_h(720.0, tweak!(234.0))
             .set(state.ids.frame, ui);
 
         // // X-Button
@@ -191,17 +192,24 @@ impl Widget for Quest<'_> {
         //     event = Some(Event::Close);
         // }
 
+        const BACKGROUND: Color = Color::Rgba(0.0, 0.0, 0.0, 0.85);
+
         // Content Alignment
         // Text Left
-        Rectangle::fill_with([tweak!(529.0), tweak!(230.0)], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(2.0))
+        Rectangle::fill_with([tweak!(429.0), tweak!(200.0)], BACKGROUND)
+            .top_left_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(0.0))
             .scroll_kids_vertically()
             .set(state.ids.text_align, ui);
         // Topics Right
-        Rectangle::fill_with([tweak!(186.0), tweak!(230.0)], color::TRANSPARENT)
+        Rectangle::fill_with([tweak!(286.0), tweak!(200.0)], BACKGROUND)
             .top_right_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(2.0))
             .scroll_kids_vertically()
             .set(state.ids.topics_align, ui);
+        Scrollbar::y_axis(state.ids.topics_align)
+            .thickness(5.0)
+            .auto_hide(true)
+            .rgba(1.0, 1.0, 1.0, 0.2)
+            .set(state.ids.scrollbar, ui);
 
         // Define type of quest to change introduction text
         let msg_text = self
@@ -253,25 +261,20 @@ impl Widget for Quest<'_> {
             };
 
             for (i, (response_id, response)) in responses.iter().enumerate() {
-                let frame = Button::image(self.imgs.nothing).w_h(186.0, 30.0);
+                let frame = Button::new()
+                    .border_color(color::TRANSPARENT)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 0.0))
+                    .hover_color(Color::Rgba(1.0, 1.0, 1.0, 0.05))
+                    .press_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
+                    .parent(state.ids.topics_align)
+                    .w_h(286.0, 30.0);
                 let frame = if i == 0 {
-                    frame.top_left_with_margins_on(
-                        state.ids.topics_align,
-                        tweak!(20.0),
-                        tweak!(2.0),
-                    )
+                    frame.top_left_with_margins_on(state.ids.topics_align, tweak!(0.0), tweak!(0.0))
                 } else {
                     frame.down_from(state.ids.quest_responses_frames[i - 1], 0.0)
                 };
-                frame.set(state.ids.quest_responses_frames[i], ui);
-
-                // Slot BG
-                if Button::image(self.imgs.nothing)
-                    .w_h(120.0, 40.0)
-                    .hover_image(self.imgs.nothing)
-                    .press_image(self.imgs.nothing)
-                    .middle_of(state.ids.quest_responses_frames[i])
-                    .set(state.ids.quest_responses_btn[i], ui)
+                if frame
+                    .set(state.ids.quest_responses_frames[i], ui)
                     .was_clicked()
                 {
                     event = Some(Event::Dialogue(self.sender, rtsim::Dialogue {
@@ -284,6 +287,21 @@ impl Widget for Quest<'_> {
                     }));
                 }
 
+                // Slot BG
+                // Button::new()
+                //     .w_h(120.0, 40.0)
+                //     .hover_color(Color::Rgba(1.0, 1.0, 1.0, 0.25))
+                //     .middle_of(state.ids.quest_responses_frames[i])
+                //     .set(state.ids.quest_responses_btn[i], ui);
+
+                Text::new(&self.localized_strings.get_content(&response.msg))
+                    .middle_of(state.ids.quest_responses_frames[i])
+                    .graphics_for(state.ids.quest_responses_frames[i])
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .font_size(self.fonts.cyri.scale(tweak!(14)))
+                    .set(state.ids.quest_rewards_txts[i], ui);
+
                 // Item image
                 if let Some((item, amount)) = &response.given_item {
                     Image::new(animate_by_pulse(
@@ -292,29 +310,19 @@ impl Widget for Quest<'_> {
                             .img_ids_or_not_found_img(ItemKey::from(&**item)),
                         self.pulse,
                     ))
-                    .middle_of(state.ids.quest_responses_btn[i])
+                    .mid_left_with_margin_on(state.ids.quest_responses_frames[i], 8.0)
                     .w_h(20.0, 20.0)
-                    .graphics_for(state.ids.quest_responses_btn[i])
+                    .graphics_for(state.ids.quest_responses_frames[i])
                     .set(state.ids.quest_responses_icons[i], ui);
 
-                    if *amount > 0 {
-                        Text::new(&format!("x{amount}"))
-                            .mid_bottom_with_margin_on(state.ids.quest_responses_frames[i], 3.0)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(self.fonts.cyri.scale(12))
-                            .color(TEXT_COLOR)
-                            .wrap_by_word()
-                            .set(state.ids.quest_responses_amounts[i], ui);
-                    }
+                    Text::new(&format!("x{amount}"))
+                        .mid_left_with_margin_on(state.ids.quest_responses_icons[i], tweak!(24.0))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(12))
+                        .color(TEXT_COLOR)
+                        .wrap_by_word()
+                        .set(state.ids.quest_responses_amounts[i], ui);
                 }
-
-                Text::new(&self.localized_strings.get_content(&response.msg))
-                    .middle_of(state.ids.quest_responses_btn[i])
-                    .graphics_for(state.ids.quest_responses_btn[i])
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                    .font_size(self.fonts.cyri.scale(tweak!(14)))
-                    .set(state.ids.quest_rewards_txts[i], ui);
             }
         }
 
