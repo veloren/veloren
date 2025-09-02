@@ -1198,14 +1198,14 @@ void main() {
                     vec3(0),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
                 ) + blown_by_wind(2.0, 0.1),
-                vec3(1.0 - slow_start(0.01)),
+                vec3(1.0 - slow_start(0.01)) * 0.5,
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
             );
             break;
         case TRAIN_SMOKE:
             attr = Attr(
-                blown_by_wind(0.0, 1.0) + vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime, 0.5),
+                vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime, 0.5) + blown_by_wind(1.0, 1.0),
                 vec3(mix(15, 20, lifetime)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
