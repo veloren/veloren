@@ -239,8 +239,11 @@ vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency
 vec3 blown_by_wind(float mass, float drift_factor) {
     float factor = pow(percent(), mass) * drift_factor;
     float rand = hash(vec4(inst_entropy + 45));
-    return vec3(inst_start_wind_vel, 0.0) * lifetime * factor
-        + sin(vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * 0.75 * factor) + tick.x * 0.25) * length(inst_start_wind_vel.xy) * factor;
+    return vec3(inst_start_wind_vel * lifetime * factor, 0.0)
+        + sin(vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * factor) + tick.x * 0.25)
+            * sin(tick.x * 0.9 * vec3(1.0, 1.1, 1.2))
+            * length(inst_start_wind_vel.xy)
+            * factor;
 }
 
 void main() {
@@ -269,7 +272,7 @@ void main() {
                 ) + blown_by_wind(1.0, 0.25),
                 vec3(linear_scale(0.5)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 2.5)
             );
             break;
         case BLACK_SMOKE:
