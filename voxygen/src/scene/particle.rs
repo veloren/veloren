@@ -845,8 +845,9 @@ impl ParticleMgr {
                 && scene_data
                     .state
                     .terrain()
-                    .get(pos.0.as_())
-                    .map_or(false, |b| b.kind() == BlockKind::Water)
+                    // Offset reduces bubbles appearing above the water
+                    .get((pos.0 + Vec3::unit_z()).as_())
+                    .is_ok_and(|b| b.kind() == BlockKind::Water)
             {
                 let mut rng = rand::thread_rng();
                 let time = scene_data.state.get_time();
