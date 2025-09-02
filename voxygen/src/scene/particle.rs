@@ -812,7 +812,7 @@ impl ParticleMgr {
 
             let mut rng = rand::thread_rng();
             let dt = scene_data.state.get_delta_time();
-            if rng.random_bool((0.16 * dt as f64).min(1.0)) {
+            if rng.random_bool((0.25 * dt as f64).min(1.0)) {
                 self.particles.resize_with(self.particles.len() + 10, || {
                     Particle::new(
                         Duration::from_millis(1500),
