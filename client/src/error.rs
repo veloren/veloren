@@ -2,6 +2,7 @@ use authc::AuthClientError;
 use common_net::msg::server::BanInfo;
 pub use network::{InitProtocolError, NetworkConnectError, NetworkError};
 use network::{ParticipantError, StreamError};
+use rustls::Error as RustlsError;
 use specs::error::Error as SpecsError;
 
 #[derive(Debug)]
@@ -25,10 +26,15 @@ pub enum Error {
     //TODO: InvalidAlias,
     Other(String),
     SpecsErr(SpecsError),
+    RustlsErr(RustlsError),
 }
 
 impl From<SpecsError> for Error {
     fn from(err: SpecsError) -> Self { Self::SpecsErr(err) }
+}
+
+impl From<RustlsError> for Error {
+    fn from(err: RustlsError) -> Self { Self::RustlsErr(err) }
 }
 
 impl From<NetworkError> for Error {
