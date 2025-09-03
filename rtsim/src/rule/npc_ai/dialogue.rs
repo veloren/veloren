@@ -2,10 +2,6 @@ use super::*;
 
 pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)))
-            && ctx.npc.job.is_none();
-        let is_hired_by_tgt = ctx.npc.hired().is_some_and(|(a, _)| a == tgt);
-
         let mut responses = Vec::new();
 
         // Job-dependent responses

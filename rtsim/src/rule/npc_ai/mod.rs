@@ -51,7 +51,7 @@ use common::{
     assets::AssetExt,
     astar::{Astar, PathResult},
     comp::{
-        self, Content, LocalizationArg, bird_large,
+        self, Content, bird_large,
         compass::{Direction, Distance},
         item::ItemDef,
     },

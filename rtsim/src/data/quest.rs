@@ -1,11 +1,9 @@
 use common::{
-    comp::{Item, item::ItemDef},
     resources::Time,
     rtsim::{Actor, ItemResource, QuestId, SiteId},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use slotmap::HopSlotMap;
 use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
 
 /// The easiest way to think about quests is as a virtual Jira board (or,

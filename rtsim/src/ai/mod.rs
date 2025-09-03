@@ -623,7 +623,7 @@ impl<S: State, R: Send + Sync + 'static, F: Fn(&mut NpcCtx, &mut S) -> R + Send 
 
     fn reset(&mut self) {}
 
-    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {}
+    fn on_cancel(&mut self, _ctx: &mut NpcCtx, _state: &mut S) {}
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         ControlFlow::Break((self.0)(ctx, state))
@@ -663,7 +663,7 @@ impl<S: State> Action<S, ()> for Finish {
 
     fn reset(&mut self) {}
 
-    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {}
+    fn on_cancel(&mut self, _ctx: &mut NpcCtx, _state: &mut S) {}
 
     fn tick(&mut self, _ctx: &mut NpcCtx, _state: &mut S) -> ControlFlow<()> {
         ControlFlow::Break(())
@@ -1272,7 +1272,7 @@ impl<S0: State, S: State, R, A: Action<S, R>> Action<S0, R> for WithState<A, S, 
         self.1.reset();
     }
 
-    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S0) {
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, _state: &mut S0) {
         self.0.on_cancel(ctx, &mut self.1.current);
     }
 

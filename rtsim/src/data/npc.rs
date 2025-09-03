@@ -424,7 +424,7 @@ impl Npc {
 
     // TODO: Don't make this depend on deterministic RNG, actually persist names
     // once we've decided that we want to
-    pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
+    pub fn get_name(&self) -> String { name::generate_npc(&mut self.rng(Self::PERM_NAME)) }
 
     pub fn profession(&self) -> Option<Profession> {
         match &self.role {

@@ -56,13 +56,14 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                         if yes
                             // Remove the reward from the NPC's inventory
                             && let Some(npc_entity) = ctx.system_data.id_maps.rtsim_entity(ctx.npc_id)
-                            && let Some(deposit) = ctx.system_data.inventories.lock().unwrap().get_mut(npc_entity)
+                            && ctx.system_data.inventories.lock().unwrap().get_mut(npc_entity)
                                 .and_then(|mut inv| inv.remove_item_amount(
                                     &ESCORT_REWARD_ITEM.to_equivalent_item_def(),
                                     escort_reward_amount,
                                     &ctx.system_data.ability_map,
                                     &ctx.system_data.msm,
                                 ))
+                                .is_some()
                         {
                             let quest = Quest::escort(ctx.npc_id.into(), session.target, dst_site)
                                 .with_deposit(ItemResource::Coin, escort_reward_amount as f32)
@@ -130,7 +131,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                         &ctx.system_data.msm,
                     );
                     // Rounding down, to avoid potential precision exploits
-                    item.set_amount(amount.floor() as u32);
+                    item.set_amount(amount.floor() as u32).expect("Coins can be stacked arbitrarily");
                     let _ = inv.push(item);
                 }
 
