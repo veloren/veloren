@@ -4119,6 +4119,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "petgraph 0.8.1",
+ "pp-rs",
  "rustc-hash 1.1.0",
  "spirv",
  "thiserror 2.0.12",
@@ -5274,6 +5275,15 @@ name = "powerfmt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
+
+[[package]]
+name = "pp-rs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb458bb7f6e250e6eb79d5026badc10a3ebb8f9a15d1fff0f13d17c71f4d6dee"
+dependencies = [
+ "unicode-xid 0.2.6",
+]
 
 [[package]]
 name = "ppv-lite86"
@@ -8093,6 +8103,7 @@ dependencies = [
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
+ "regex",
  "ron",
  "serde",
  "serde_with",

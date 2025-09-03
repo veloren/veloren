@@ -1,4 +1,5 @@
 mod binding;
+mod compiler;
 pub(super) mod drawer;
 // Consts and bind groups for post-process and clouds
 mod locals;
