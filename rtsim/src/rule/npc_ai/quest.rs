@@ -35,7 +35,9 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                 .map(|(site_id, site)| (site_id, site.wpos.as_().distance(ctx.npc.wpos.xy()) as u32))
                 // Don't try to be escorted to the site we're currently in, and ensure it's a reasonable distance away
                 .filter(|(site_id, dist)| Some(*site_id) != ctx.npc.current_site && (1000..5_000).contains(dist))
-                .choose(&mut ctx.rng)
+                // Temporarily, try to choose the same target site for 15 minutes to avoid players asking many times
+                // TODO: Don't do this
+                .choose(&mut ChaChaRng::from_seed([(ctx.time.0 / (60.0 * 15.0)) as u8; 32]))
             // Escort reward amount is proportional to distance
             && let escort_reward_amount = dist / 25
             && let Some(dst_site_name) = util::site_name(ctx, dst_site)
