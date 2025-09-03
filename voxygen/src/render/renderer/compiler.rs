@@ -103,16 +103,14 @@ impl Compiler for ShaderCCompiler {
         //     .expect("Couldn't write shader out");
 
         // let label = [file_name, "\n\n", source].concat();
+
+        let descriptor = wgpu::ShaderModuleDescriptor {
+            label: Some(file_name),
+            source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
+        };
+        let runtimechecks = wgpu::ShaderRuntimeChecks::unchecked();
         #[expect(unsafe_code)]
-        Ok(unsafe {
-            device.create_shader_module_trusted(
-                wgpu::ShaderModuleDescriptor {
-                    label: Some(file_name),
-                    source: wgpu::ShaderSource::SpirV(Cow::Borrowed(spv.as_binary())),
-                },
-                wgpu::ShaderRuntimeChecks::unchecked(),
-            )
-        })
+        Ok(unsafe { device.create_shader_module_trusted(descriptor, runtimechecks) })
     }
 }
 
@@ -147,16 +145,6 @@ impl Compiler for WgpuCompiler {
 
         let label = name;
 
-        fn block_on<F: std::future::Future>(f: F) -> F::Output {
-            let mut f = std::pin::pin!(f);
-            let mut cx = std::task::Context::from_waker(std::task::Waker::noop());
-            loop {
-                if let std::task::Poll::Ready(out) = f.as_mut().poll(&mut cx) {
-                    return out;
-                }
-            }
-        }
-
         device.push_error_scope(wgpu::ErrorFilter::Validation);
 
         // replace all `includes` recursivly
@@ -172,19 +160,24 @@ impl Compiler for WgpuCompiler {
             }
         };
 
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        let descriptor = wgpu::ShaderModuleDescriptor {
             label: Some(label),
             source: wgpu::ShaderSource::Glsl {
                 shader: Cow::Borrowed(source),
                 stage: stage.into(),
                 defines: &[],
             },
-        });
+        };
+        let runtimechecks = wgpu::ShaderRuntimeChecks::unchecked();
+        #[expect(unsafe_code)]
+        let shader = unsafe { device.create_shader_module_trusted(descriptor, runtimechecks) };
 
-        if let Some(error) = block_on(device.pop_error_scope()) {
-            return Err(RenderError::ShaderWgpuError(label.to_owned(), error));
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        if let Some(error) = rt.block_on(device.pop_error_scope()) {
+            Err(RenderError::ShaderWgpuError(label.to_owned(), error))
+        } else {
+            Ok(shader)
         }
-
-        Ok(shader)
     }
 }
