@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New LoD models for all five AirshipDock plots.
 - Structures now support a `Choice()` block to allow for randomized spawns.
 - Added `DiscardTransparency` experimental shader.
+- Simple quest system
+- Quest: Escort a merchant
+- Quest: Slay a monster
 
 ### Changed
 
