@@ -513,7 +513,7 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     let mut rng = thread_rng();
     if rng.gen_bool(0.1) {
         painter.spawn(
-            EntityInfo::at(c.with_z(bridge.center.z).as_()).with_asset_expect(
+            EntityInfo::at(c.with_z(vault_top - 2).as_()).with_asset_expect(
                 "common.entity.wild.aggressive.swamp_troll",
                 &mut rng,
                 None,
