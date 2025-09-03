@@ -1,13 +1,19 @@
 {
   description = "Flake providing Veloren, a multiplayer voxel RPG written in Rust.";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  inputs.d2n.url = "github:nix-community/dream2nix/git-fetcher-no-shallow";
-  inputs.d2n.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.nci.url = "github:yusdacra/nix-cargo-integration";
-  inputs.nci.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.nci.inputs.dream2nix.follows = "d2n";
-  inputs.parts.url = "github:hercules-ci/flake-parts";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    d2n = {
+      url = "github:nix-community/dream2nix/git-fetcher-no-shallow";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nci = {
+      url = "github:yusdacra/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.dream2nix.follows = "d2n";
+    };
+    parts.url = "github:hercules-ci/flake-parts";
+  };
 
   outputs = inp: let
     lib = inp.nci.inputs.nixpkgs.lib;
@@ -204,12 +210,9 @@
               depsDrvConfig.mkDerivation
               // {
                 src = filteredSource;
-                patches = [./nix/voxygen-null-sound.patch];
-                preConfigure = ''
-                  substituteInPlace voxygen/src/audio/soundcache.rs \
-                    --replace \
-                    "../../../assets/voxygen/audio/null.ogg" \
-                    "${./assets/voxygen/audio/null.ogg}"
+                prePatch = ''
+                                sed -i 's:"../../../assets/voxygen/audio/null.ogg":env!("VOXYGEN_NULL_SOUND_PATH"):' \
+                  voxygen/src/audio/soundcache.rs
                 '';
               };
           };
