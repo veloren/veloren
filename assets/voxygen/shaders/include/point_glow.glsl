@@ -1,7 +1,7 @@
 #ifndef POINT_GLOW_GLSL
 #define POINT_GLOW_GLSL
 
-#include "sky.glsl"
+#include <sky.glsl>
 
 void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout vec3 color) {
     vec3 light_pos = L.light_pos.xyz;

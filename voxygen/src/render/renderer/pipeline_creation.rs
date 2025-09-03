@@ -1,6 +1,6 @@
 use crate::render::{
     pipelines::rain_occlusion,
-    renderer::compiler::{ShaderCCompiler, ShaderCInfo, ShaderStage},
+    renderer::compiler::{ShaderCCompiler, ShaderStage, WgpuCompiler},
 };
 
 use super::{
@@ -193,7 +193,7 @@ impl ShaderModules {
 #define SHADOW_MODE {}
 
 "#,
-            &constants.0,
+            constants.0.as_str(),
             // TODO: Configurable vertex/fragment shader preference.
             "VOXYGEN_COMPUTATION_PREFERENCE_FRAGMENT",
             match pipeline_modes.fluid {
@@ -313,16 +313,21 @@ impl ShaderModules {
             })
         };
 
-        let mut compiler = ShaderCCompiler::new(shaderc_opts, fetch_include)?;
+        const SHADERC: bool = true;
 
-        let mut create_shader = |name, stage| {
-            use crate::render::renderer::compiler::Compiler;
+        let mut compiler: Box<dyn super::compiler::Compiler> = if SHADERC {
+            Box::new(ShaderCCompiler::new(shaderc_opts, fetch_include)?)
+        } else {
+            Box::new(WgpuCompiler::new(fetch_include)?)
+        };
+
+        let mut create_shader = move |name, stage| {
+            tracing::info!("Compiling {name}");
             let glsl = &shaders
                 .get(name)
                 .unwrap_or_else(|| panic!("Can't retrieve shader: {}", name))
                 .0;
-            let file_name = format!("{}.glsl", name);
-            compiler.create_shader_module(device, glsl, stage, ShaderCInfo { file_name })
+            compiler.create_shader_module(device, glsl, stage, name)
         };
 
         let selected_fluid_shader = ["fluid-frag.", match pipeline_modes.fluid {

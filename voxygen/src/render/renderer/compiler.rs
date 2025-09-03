@@ -27,25 +27,18 @@ impl From<ShaderStage> for shaderc::ShaderKind {
 }
 
 pub(super) trait Compiler {
-    type ShaderInfo;
-
     fn create_shader_module(
         &mut self,
         device: &wgpu::Device,
         source: &str,
         stage: ShaderStage,
-
-        info: Self::ShaderInfo,
+        name: &str,
     ) -> Result<wgpu::ShaderModule, RenderError>;
 }
 
 pub(super) struct ShaderCCompiler {
     compiler: shaderc::Compiler,
     options: shaderc::CompileOptions<'static>,
-}
-
-pub(super) struct ShaderCInfo {
-    pub file_name: String,
 }
 
 impl ShaderCCompiler {
@@ -78,19 +71,18 @@ impl ShaderCCompiler {
 }
 
 impl Compiler for ShaderCCompiler {
-    type ShaderInfo = ShaderCInfo;
-
     fn create_shader_module(
         &mut self,
         device: &wgpu::Device,
         source: &str,
         stage: ShaderStage,
-        info: Self::ShaderInfo,
+        name: &str,
     ) -> Result<wgpu::ShaderModule, RenderError> {
         prof_span!(_guard, "create_shader_modules");
         use std::borrow::Cow;
 
-        let file_name = info.file_name.as_str();
+        let file_name = format!("{}.glsl", name);
+        let file_name = file_name.as_str();
 
         let spv = self
             .compiler
@@ -121,5 +113,78 @@ impl Compiler for ShaderCCompiler {
                 wgpu::ShaderRuntimeChecks::unchecked(),
             )
         })
+    }
+}
+
+pub(super) struct WgpuCompiler {
+    reg: regex::Regex,
+    resolve_include: Box<dyn Fn(&str, &str) -> Result<String, String> + 'static>,
+}
+
+impl WgpuCompiler {
+    pub(super) fn new(
+        resolve_include: impl Fn(&str, &str) -> Result<String, String> + 'static,
+    ) -> Result<Self, RenderError> {
+        let reg = regex::Regex::new("(?mR)^#include +<(.+)>$").unwrap();
+        Ok(Self {
+            reg,
+            resolve_include: Box::new(resolve_include),
+        })
+    }
+}
+
+impl Compiler for WgpuCompiler {
+    fn create_shader_module(
+        &mut self,
+        device: &wgpu::Device,
+        source: &str,
+        stage: ShaderStage,
+        name: &str,
+    ) -> Result<wgpu::ShaderModule, RenderError> {
+        use std::borrow::Cow;
+
+        prof_span!(_guard, "create_shader_modules");
+
+        let label = name;
+
+        fn block_on<F: std::future::Future>(f: F) -> F::Output {
+            let mut f = std::pin::pin!(f);
+            let mut cx = std::task::Context::from_waker(std::task::Waker::noop());
+            loop {
+                if let std::task::Poll::Ready(out) = f.as_mut().poll(&mut cx) {
+                    return out;
+                }
+            }
+        }
+
+        device.push_error_scope(wgpu::ErrorFilter::Validation);
+
+        // replace all `includes` recursivly
+        let mut source = Cow::Borrowed(source);
+        let source = loop {
+            let resolve_includes = self.reg.replace_all(&source, |cap: &regex::Captures| {
+                (self.resolve_include)(cap.get(1).unwrap().as_str(), name).unwrap() //TODO unwrap! replace with https://docs.rs/regex/latest/regex/struct.Regex.html#fallibility
+            });
+
+            match resolve_includes {
+                Cow::Borrowed(source) => break source,
+                Cow::Owned(s) => source = Cow::Owned(s),
+            }
+        };
+
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some(label),
+            source: wgpu::ShaderSource::Glsl {
+                shader: Cow::Borrowed(source),
+                stage: stage.into(),
+                defines: &[],
+            },
+        });
+
+        if let Some(error) = block_on(device.pop_error_scope()) {
+            return Err(RenderError::ShaderWgpuError(label.to_owned(), error));
+        }
+
+        Ok(shader)
     }
 }
