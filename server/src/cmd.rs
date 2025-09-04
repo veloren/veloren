@@ -76,7 +76,7 @@ use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAr
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
-use rand::{Rng, rng, seq::IteratorRandom};
+use rand::{Rng, rng};
 use specs::{Builder, Entity as EcsEntity, Join, LendJoin, WorldExt, storage::StorageEntry};
 use std::{
     fmt::Write, net::SocketAddr, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc,
@@ -1392,6 +1392,7 @@ fn resolve_site(
     }
 
     if let Some(plot_name) = key.strip_prefix("plot:") {
+        use rand::seq::IteratorRandom;
         let plot_name = plot_name.to_lowercase();
         return server
             .index

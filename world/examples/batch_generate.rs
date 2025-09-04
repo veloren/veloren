@@ -341,7 +341,7 @@ fn do_batch_generate(
                     progress.set_prefix(format!("Map {}", map_i));
                 }
 
-                let seed = rng().gen::<u32>();
+                let seed = rand::rng().random::<u32>();
                 let span = info_span!("generate", map_i, thread_id);
                 let _guard = span.enter();
                 let gen_opts = config.gen_rand();

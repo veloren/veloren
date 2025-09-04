@@ -21,12 +21,12 @@ fn main() {
     let gen_name = || {
         let mut name = String::new();
 
-        name += start.choose_mut(&mut rng()).unwrap();
-        if rng().gen() {
-            name += vowel.choose_mut(&mut rng()).unwrap();
-            name += middle.choose_mut(&mut rng()).unwrap();
+        name += start.choose(&mut rand::rng()).unwrap();
+        if rand::rng().random() {
+            name += vowel.choose(&mut rand::rng()).unwrap();
+            name += middle.choose(&mut rand::rng()).unwrap();
         }
-        name += end.choose_mut(&mut rng()).unwrap();
+        name += end.choose(&mut rand::rng()).unwrap();
 
         name
     };

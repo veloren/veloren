@@ -2411,7 +2411,7 @@ mod tests {
     #[test]
     fn test_creating_entities() {
         let pos = Vec3::zero();
-        let mut rng = rng();
+        let mut rng = rand::rng();
 
         adlet_hunter(pos, &mut rng);
         adlet_icepicker(pos, &mut rng);

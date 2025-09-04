@@ -700,7 +700,7 @@ mod tests {
                     println!("{}:", entry);
                     let (_, (_, _, asset)) = group;
                     let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
-                    let mut dummy_rng = rng();
+                    let mut dummy_rng = rand::rng();
                     let entity =
                         EntityInfo::at(dummy_pos).with_asset_expect(asset, &mut dummy_rng, None);
                     drop(entity);
@@ -717,7 +717,7 @@ mod tests {
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
             for pack in rules {
                 let Pack { groups, .. } = pack;
-                let dynamic_rng = &mut rng();
+                let dynamic_rng = &mut rand::rng();
                 let _ = groups
                     .choose_weighted(dynamic_rng, |(p, _group)| *p)
                     .unwrap_or_else(|err| {

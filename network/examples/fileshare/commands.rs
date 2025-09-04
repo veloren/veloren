@@ -51,7 +51,7 @@ impl FileInfo {
         };
         let size = mt.len();
         Some(Self {
-            id: rand::rng().gen(),
+            id: rand::rng().random(),
             path: path.as_os_str().to_os_string().into_string().unwrap(),
             size,
             hash: "<none>".to_owned(),

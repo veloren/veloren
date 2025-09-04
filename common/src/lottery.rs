@@ -445,7 +445,7 @@ pub mod tests {
 
     #[cfg(test)]
     pub fn validate_loot_spec(item: &LootSpec<String>) {
-        let mut rng = rng();
+        let mut rng = rand::rng();
         match item {
             LootSpec::Item(item) => {
                 Item::new_from_asset_expect(item);
@@ -528,7 +528,7 @@ pub mod tests {
 
     #[test]
     fn test_distribute_many() {
-        let mut rng = rng();
+        let mut rng = rand::rng();
 
         // Known successful case
         for _ in 0..10 {

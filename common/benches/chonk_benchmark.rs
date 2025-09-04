@@ -127,7 +127,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("for_each_in", |b| {
         use rand::prelude::*;
-        let mut rng = rand_chacha::ChaChaRng::seed_from_u64(rng().gen());
+        let mut rng = rand_chacha::ChaChaRng::seed_from_u64(rand::rng().random());
         b.iter(|| {
             let pos = Vec3::new(
                 rng.random_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),

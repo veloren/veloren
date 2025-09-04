@@ -101,7 +101,7 @@ pub fn get_transform(state: &State, entity: Entity) -> Result<(Pos, Vel, Ori), B
 
 pub fn create_player(state: &mut State) -> Entity {
     let body = common::comp::Body::Humanoid(common::comp::humanoid::Body::random_with(
-        &mut rng(),
+        &mut rand::rng(),
         &common::comp::humanoid::Species::Human,
     ));
     let (p0, p1, radius) = body.sausage();
