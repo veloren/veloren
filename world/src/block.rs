@@ -12,7 +12,7 @@ use common::{
     },
 };
 use core::ops::{Div, Mul, Range};
-use rand::{Rng, seq::SliceRandom, thread_rng};
+use rand::{Rng, prelude::IndexedRandom};
 use serde::Deserialize;
 use vek::*;
 
@@ -239,8 +239,8 @@ pub fn block_from_structure<'a>(
             None,
         )),
         StructureBlock::EntitySpawner(entity_path, spawn_chance) => {
-            let mut rng = thread_rng();
-            if rng.gen::<f32>() < *spawn_chance {
+            let mut rng = rand::rng();
+            if rng.random::<f32>() < *spawn_chance {
                 // TODO: Use BlockKind::Hollow instead of BlockKind::Air
                 Some((
                     Block::new(BlockKind::Air, Rgb::new(255, 255, 255)),
@@ -474,7 +474,7 @@ pub fn block_from_structure<'a>(
             }
         },
         StructureBlock::Choice(block_table) => block_table
-            .choose_weighted(&mut rand::thread_rng(), |(w, _)| *w)
+            .choose_weighted(&mut rand::rng(), |(w, _)| *w)
             .map(|(_, item)| {
                 block_from_structure(
                     index,

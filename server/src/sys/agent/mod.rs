@@ -16,7 +16,7 @@ use common::{
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use rand::thread_rng;
+use rand::rng;
 use rayon::iter::ParallelIterator;
 use specs::{LendJoin, ParJoin, WriteStorage};
 
@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
                     (_, is_rider, is_volume_rider),
                 )| {
                     let mut emitters = events.get_emitters();
-                    let mut rng = thread_rng();
+                    let mut rng = rng();
 
                     // The entity that is moving, if riding it's the mount, otherwise it's itself
                     let moving_entity = is_rider

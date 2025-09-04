@@ -612,7 +612,7 @@ impl AudioFrontend {
                     .expect("Failed to determine sound file for this trigger item."),
                 _ => {
                     // If more than one file is listed, choose one at random
-                    let rand_step = rand::random::<usize>() % item.files.len();
+                    let rand_step = (rand::random::<u64>() as usize) % item.files.len();
                     &item.files[rand_step]
                 },
             };

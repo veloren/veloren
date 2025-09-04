@@ -1544,10 +1544,10 @@ impl Server {
         // NOTE: origin is in the corner of the map
         // TODO: extend this function to have picking a random position or specifying a
         // position as options
-        //let mut rng = rand::thread_rng();
+        //let mut rng = rand::rng();
         // // Pick a random position but not to close to the edge
         // let rand_pos = world_dims_blocks.map(|e| e as i32).map(|e| e / 2 +
-        // rng.gen_range(-e/2..e/2 + 1));
+        // rng.random_range(-e/2..e/2 + 1));
         let pos = comp::Pos(Vec3::from(world_dims_blocks.map(|e| e as f32 / 2.0)));
         self.state
             .create_persister(pos, view_distance, &self.world, &self.index)

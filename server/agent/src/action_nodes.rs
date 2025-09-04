@@ -41,7 +41,7 @@ use common::{
     vol::ReadVol,
 };
 use itertools::Itertools;
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use specs::Entity as EcsEntity;
 use vek::*;
 
@@ -222,7 +222,7 @@ impl AgentData<'_> {
         let lantern_turned_on = self.light_emitter.is_some();
         let day_period = DayPeriod::from(read_data.time_of_day.0);
         // Only emit event for agents that have a lantern equipped
-        if lantern_equipped && rng.gen_bool(0.001) {
+        if lantern_equipped && rng.random_bool(0.001) {
             if day_period.is_dark() && !lantern_turned_on {
                 // Agents with turned off lanterns turn them on randomly once it's
                 // nighttime and keep them on.
@@ -370,7 +370,7 @@ impl AgentData<'_> {
                     }
 
                     // Put away weapon
-                    if rng.gen_bool(0.1)
+                    if rng.random_bool(0.1)
                         && matches!(
                             read_data.char_states.get(*self.entity),
                             Some(CharacterState::Wielding(_))
@@ -597,7 +597,7 @@ impl AgentData<'_> {
                     break 'activity; // Don't fall through to idle wandering
                 },
                 Some(NpcActivity::HuntAnimals) => {
-                    if rng.gen::<f32>() < 0.1 {
+                    if rng.random::<f32>() < 0.1 {
                         self.choose_target(
                             agent,
                             controller,
@@ -638,7 +638,7 @@ impl AgentData<'_> {
 
             // Idle NPCs should try to jump on the shoulders of their owner, sometimes.
             if read_data.is_riders.contains(*self.entity) {
-                if rng.gen_bool(0.0001) {
+                if rng.random_bool(0.0001) {
                     self.dismount_uncontrollable(controller, read_data);
                 } else {
                     break 'activity;
@@ -646,7 +646,7 @@ impl AgentData<'_> {
             } else if let Some(owner_uid) = owner_uid
                 && is_in_range
                 && !is_being_pet
-                && rng.gen_bool(0.01)
+                && rng.random_bool(0.01)
             {
                 controller.push_event(ControlEvent::Mount(*owner_uid));
                 break 'activity;
@@ -697,7 +697,7 @@ impl AgentData<'_> {
                 }
             }
 
-            let diff = Vec2::new(rng.gen::<f32>() - 0.5, rng.gen::<f32>() - 0.5);
+            let diff = Vec2::new(rng.random::<f32>() - 0.5, rng.random::<f32>() - 0.5);
             agent.bearing += (diff * 0.1 - agent.bearing * 0.01)
                 * agent.psyche.idle_wander_factor.max(0.0).sqrt()
                 * agent.psyche.aggro_range_multiplier.max(0.0).sqrt();
@@ -765,7 +765,7 @@ impl AgentData<'_> {
             }
 
             // Put away weapon
-            if rng.gen_bool(0.1)
+            if rng.random_bool(0.1)
                 && matches!(
                     read_data.char_states.get(*self.entity),
                     Some(CharacterState::Wielding(_))
@@ -774,12 +774,12 @@ impl AgentData<'_> {
                 controller.push_action(ControlAction::Unwield);
             }
 
-            if rng.gen::<f32>() < 0.0015 {
+            if rng.random::<f32>() < 0.0015 {
                 controller.push_utterance(UtteranceKind::Calm);
             }
 
             // Sit
-            if rng.gen::<f32>() < 0.0035 {
+            if rng.random::<f32>() < 0.0035 {
                 controller.push_action(ControlAction::Sit);
             }
         }
@@ -1222,7 +1222,7 @@ impl AgentData<'_> {
         #[cfg(not(feature = "be-dyn-lib"))] rng: &mut impl Rng,
     ) {
         #[cfg(feature = "be-dyn-lib")]
-        let rng = &mut thread_rng();
+        let rng = &mut rng();
 
         self.dismount_uncontrollable(controller, read_data);
 
@@ -2320,7 +2320,7 @@ impl AgentData<'_> {
     }
 
     pub fn can_sense_directly_near(&self, e_pos: &Pos) -> bool {
-        let chance = thread_rng().gen_bool(0.3);
+        let chance = rng().random_bool(0.3);
         e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2) && chance
     }
 
@@ -2337,7 +2337,7 @@ impl AgentData<'_> {
         let max_move = 0.5;
         let move_dir = controller.inputs.move_dir;
         let move_dir_mag = move_dir.magnitude();
-        let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
+        let small_chance = rng.random::<f32>() < read_data.dt.0 * 0.25;
         let mut chat = |content: Content| {
             self.chat_npc_if_allowed_to_speak(content, agent, emitters);
         };

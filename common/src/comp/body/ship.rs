@@ -3,7 +3,7 @@ use crate::{
     consts::{AIR_DENSITY, WATER_DENSITY},
     terrain::{Block, BlockKind, SpriteKind},
 };
-use rand::prelude::SliceRandom;
+use rand::prelude::IndexedRandom;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use strum::EnumIter;
@@ -54,7 +54,7 @@ impl From<Body> for super::Body {
 
 impl Body {
     pub fn random() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         Self::random_with(&mut rng)
     }
 
@@ -177,7 +177,7 @@ impl Body {
                 use rand::prelude::*;
                 let sz = Vec3::broadcast(11);
                 Collider::Volume(Arc::new(figuredata::VoxelCollider::from_fn(sz, |_pos| {
-                    if thread_rng().gen_bool(0.25) {
+                    if rand::rng().random_bool(0.25) {
                         Block::new(BlockKind::Rock, Rgb::new(255, 0, 0))
                     } else {
                         Block::air(SpriteKind::Empty)

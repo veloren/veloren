@@ -24,19 +24,21 @@ struct HeightenedViaduct {
 
 impl HeightenedViaduct {
     fn random(rng: &mut impl Rng, height: i32) -> Self {
-        let vault_spacing = *[3, 4, 5, 6].choose(rng).unwrap();
+        let vault_spacing = *[3, 4, 5, 6].choose_mut(rng).unwrap();
         Self {
-            slope_inv: rng.gen_range(6..=8),
-            bridge_start_offset: rng.gen_range({
+            slope_inv: rng.random_range(6..=8),
+            bridge_start_offset: rng.random_range({
                 let min = (5 - height / 3).max(0);
                 min..=(12 - height).max(min)
             }),
             vault_spacing,
             vault_size: *[(3, 16), (1, 4), (1, 4), (1, 4), (5, 32), (5, 32)]
-                .choose(rng)
+                .choose_mut(rng)
                 .unwrap(),
-            side_vault_size: *[(4, 5), (7, 10), (7, 10), (13, 20)].choose(rng).unwrap(),
-            holes: vault_spacing >= 4 && vault_spacing % 2 == 0 && rng.gen_bool(0.8),
+            side_vault_size: *[(4, 5), (7, 10), (7, 10), (13, 20)]
+                .choose_mut(rng)
+                .unwrap(),
+            holes: vault_spacing >= 4 && vault_spacing % 2 == 0 && rng.random_bool(0.8),
         }
     }
 }
@@ -63,7 +65,7 @@ impl BridgeKind {
         let down = start.z - water_alt;
         (0..=4)
             .filter_map(|bridge| match bridge {
-                0 if height >= 16 => Some(BridgeKind::Tower(match rng.gen_range(0..=2) {
+                0 if height >= 16 => Some(BridgeKind::Tower(match rng.random_range(0..=2) {
                     0 => RoofKind::Crenelated,
                     _ => RoofKind::Hipped,
                 })),
@@ -510,8 +512,8 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
     */
 
     // Small chance to spawn a troll.
-    let mut rng = thread_rng();
-    if rng.gen_bool(0.1) {
+    let mut rng = rand::rng();
+    if rng.random_bool(0.1) {
         painter.spawn(
             EntityInfo::at(c.with_z(vault_top - 2).as_()).with_asset_expect(
                 "common.entity.wild.aggressive.swamp_troll",

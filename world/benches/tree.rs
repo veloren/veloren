@@ -8,8 +8,8 @@ fn tree(c: &mut Criterion) {
         b.iter(|| {
             i += 1;
             black_box(ProceduralTree::generate(
-                TreeConfig::oak(&mut thread_rng(), 1.0, 1.0),
-                &mut thread_rng(),
+                TreeConfig::oak(&mut rng(), 1.0, 1.0),
+                &mut rng(),
             ));
         });
     });
@@ -19,10 +19,7 @@ fn tree(c: &mut Criterion) {
         b.iter_batched(
             || {
                 i += 1;
-                ProceduralTree::generate(
-                    TreeConfig::oak(&mut thread_rng(), 1.0, 1.0),
-                    &mut thread_rng(),
-                )
+                ProceduralTree::generate(TreeConfig::oak(&mut rng(), 1.0, 1.0), &mut rng())
             },
             |tree| {
                 let bounds = tree.get_bounds();

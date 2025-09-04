@@ -53,7 +53,7 @@ impl Structure for SeaChapel {
         let center = self.center;
         let diameter = 54;
         let variant = center.with_z(base);
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         // Fills
         let (top, washed) = match (RandomField::new(0).get(variant)) % 2 {
             0 => {

@@ -19,7 +19,7 @@ impl Dir {
     pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
 
     pub fn choose(rng: &mut impl Rng) -> Dir {
-        match rng.gen_range(0..4) {
+        match rng.random_range(0..4) {
             0 => Dir::X,
             1 => Dir::Y,
             2 => Dir::NegX,
@@ -333,7 +333,7 @@ impl Dir3 {
     pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
 
     pub fn choose(rng: &mut impl Rng) -> Dir3 {
-        match rng.gen_range(0..6) {
+        match rng.random_range(0..6) {
             0 => Dir3::X,
             1 => Dir3::Y,
             2 => Dir3::Z,

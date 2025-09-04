@@ -14,7 +14,7 @@ use crate::{
     resources::{Time, TimeOfDay},
     trade::SiteInformation,
 };
-use rand::{self, Rng, distributions::WeightedError, seq::SliceRandom};
+use rand::{self, Rng, prelude::IndexedRandom, seq::WeightError};
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 use tracing::warn;
@@ -25,8 +25,8 @@ type Weight = u8;
 pub enum SpecError {
     LoadoutAssetError(assets::Error),
     ItemAssetError(assets::Error),
-    ItemChoiceError(WeightedError),
-    BaseChoiceError(WeightedError),
+    ItemChoiceError(WeightError),
+    BaseChoiceError(WeightError),
     ModularWeaponCreationError(item::modular::ModularWeaponCreationError),
 }
 
@@ -103,7 +103,7 @@ impl ItemSpec {
     // Check if ItemSpec is valid and can be turned into Item
     #[cfg(test)]
     fn validate(&self) -> Result<(), ValidationError> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         match self {
             ItemSpec::Item(item_asset) => Item::new_from_asset(item_asset)
                 .map(drop)
@@ -1143,7 +1143,7 @@ impl LoadoutBuilder {
 
     #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_preset(mut self, preset: Preset) -> Self {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         match preset {
             Preset::HuskSummon => {
                 self = self.with_asset_expect("common.loadout.dungeon.cultist.husk", rng, None);
@@ -1336,7 +1336,7 @@ impl LoadoutBuilder {
     /// updates, but should be safe defaults for a new character.
     #[must_use = "Method consumes builder and returns updated builder."]
     pub fn defaults(self) -> Self {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         self.with_asset_expect("common.loadout.default", rng, None)
     }
 

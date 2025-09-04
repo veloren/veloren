@@ -41,7 +41,7 @@ impl Structure for JungleRuin {
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let center = self.bounds.center();
         let plot_base = land.get_alt_approx(center) as i32;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let stone = Fill::Sampling(stone_color(BlockKind::Rock));
         let weak_stone = Fill::Sampling(stone_color(BlockKind::WeakRock));
         let stone_broken = Fill::Sampling(Arc::new(|center| {
@@ -244,7 +244,7 @@ impl Structure for JungleRuin {
                 0 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
                         "common.entity.spot.dwarf_grave_robber",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 ),
@@ -252,7 +252,7 @@ impl Structure for JungleRuin {
                 1 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
                         "common.entity.spot.saurok",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 ),
@@ -260,7 +260,7 @@ impl Structure for JungleRuin {
                 2 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(plot_base + 5).as_()).with_asset_expect(
                         "common.entity.spot.grim_salvager",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 ),

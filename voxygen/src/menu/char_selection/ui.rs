@@ -32,7 +32,7 @@ use common::{
 };
 use common_net::msg::world_msg::{Marker, SiteId};
 use i18n::{Localization, LocalizationHandle};
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 //use std::time::Duration;
@@ -1473,7 +1473,7 @@ impl Controls {
                         vec![map]
                     } else {
                         let selected = start_site_idx.get_or_insert_with(|| {
-                            thread_rng().gen_range(0..self.possible_starting_sites.len())
+                            rng().random_range(0..self.possible_starting_sites.len())
                         });
 
                         let site_slider = starter_slider(
@@ -1938,14 +1938,14 @@ impl Controls {
                 if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     let body_type = body.body_type;
                     let species = body.species;
-                    let mut rng = rand::thread_rng();
-                    body.hair_style = rng.gen_range(0..species.num_hair_styles(body_type));
-                    body.beard = rng.gen_range(0..species.num_beards(body_type));
-                    body.accessory = rng.gen_range(0..species.num_accessories(body_type));
-                    body.hair_color = rng.gen_range(0..species.num_hair_colors());
-                    body.skin = rng.gen_range(0..species.num_skin_colors());
-                    body.eye_color = rng.gen_range(0..species.num_eye_colors());
-                    body.eyes = rng.gen_range(0..species.num_eyes(body_type));
+                    let mut rng = rand::rng();
+                    body.hair_style = rng.random_range(0..species.num_hair_styles(body_type));
+                    body.beard = rng.random_range(0..species.num_beards(body_type));
+                    body.accessory = rng.random_range(0..species.num_accessories(body_type));
+                    body.hair_color = rng.random_range(0..species.num_hair_colors());
+                    body.skin = rng.random_range(0..species.num_skin_colors());
+                    body.eye_color = rng.random_range(0..species.num_eye_colors());
+                    body.eyes = rng.random_range(0..species.num_eyes(body_type));
                 }
             },
             Message::HardcoreEnabled(checked) => {

@@ -38,7 +38,7 @@ use common::{
 use common_net::msg::world_msg;
 use hashbrown::DefaultHashBuilder;
 use namegen::NameGen;
-use rand::prelude::*;
+use rand::{SeedableRng, prelude::*, seq::IndexedRandom};
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
 use vek::*;
@@ -50,7 +50,9 @@ use vek::*;
 /// likely to produce entirely different outcomes if some detail of a generation
 /// algorithm changes slightly. This is generally good and makes worldgen code
 /// easier to maintain and less liable to breaking changes.
-fn reseed<R: Rng>(rng: &mut R) -> impl Rng + use<R> { ChaChaRng::from_seed(rng.gen::<[u8; 32]>()) }
+fn reseed<R: Rng>(rng: &mut R) -> impl Rng + use<R> {
+    ChaChaRng::from_seed(rng.random::<[u8; 32]>())
+}
 
 pub struct SpawnRules {
     pub trees: bool,
@@ -437,9 +439,9 @@ impl Site {
         min_dims: Extent2<u32>,
     ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>, Option<i32>)> {
         let dir = Vec2::<f32>::zero()
-            .map(|_| rng.gen_range(-1.0..1.0))
+            .map(|_| rng.random_range(-1.0..1.0))
             .normalized();
-        let search_pos = if rng.gen() {
+        let search_pos = if rng.random() {
             let plaza = self.plot(*self.plazas.choose(rng)?);
             let sz = plaza.find_bounds().size();
             plaza.root_tile + dir.map(|e: f32| e.round() as i32) * (sz + 1)
@@ -469,7 +471,7 @@ impl Site {
 
         // Search in a random direction from the plaza
         let dir = Vec2::<f32>::zero()
-            .map(|_| rng.gen_range(-1.0..1.0))
+            .map(|_| rng.random_range(-1.0..1.0))
             .normalized();
         let search_offset = dir.map2(min_dims.into(), |e: f32, sz: u32| {
             (e * sz as f32 * 0.75 + 10.0).round() as i32
@@ -505,7 +507,7 @@ impl Site {
 
         let mut already_pathed = vec![];
         // One major, one minor road
-        for _ in (0..rng.gen_range(1.25..2.25) as u16).rev() {
+        for _ in (0..rng.random_range(1.25..2.25) as u16).rev() {
             if let Some(&p) = self
                 .plazas
                 .iter()
@@ -552,14 +554,14 @@ impl Site {
         road_kind: plot::RoadKind,
     ) -> Option<Id<Plot>> {
         generator_stats.attempt(site_name, GenStatPlotKind::Plaza);
-        let plaza_radius = rng.gen_range(1..4);
+        let plaza_radius = rng.random_range(1..4);
         let plaza_dist = 6.5 + plaza_radius as f32 * 3.0;
         let aabr = attempt(32, || {
             self.plazas
                 .choose(rng)
                 .map(|&p| {
                     self.plot(p).root_tile
-                        + (Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0))
+                        + (Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0))
                             .normalized()
                             * plaza_dist)
                             .map(|e| e as i32)
@@ -570,7 +572,7 @@ impl Site {
                     max: center_tile + Vec2::broadcast(plaza_radius + 1),
                 })
                 .filter(|&aabr| {
-                    rng.gen_range(0..48) > aabr.center().map(|e| e.abs()).reduce_max()
+                    rng.random_range(0..48) > aabr.center().map(|e| e.abs()).reduce_max()
                         && aabr_tiles(aabr).all(|tile| !self.tiles.get(tile).is_obstacle())
                 })
                 .filter(|&aabr| {
@@ -732,7 +734,7 @@ impl Site {
         road_kind: plot::RoadKind,
     ) -> Option<Id<Plot>> {
         // The plaza radius can be 1, 2, or 3.
-        let plaza_radius = rng.gen_range(1..4);
+        let plaza_radius = rng.random_range(1..4);
         // look for plaza locations within a ring with an outer dimension
         // of 24 tiles and an inner dimension that will offset the plaza from the town
         // center.
@@ -902,7 +904,7 @@ impl Site {
         ]
         .choose(&mut rng)
         .unwrap();
-        let name = match rng.gen_range(0..2) {
+        let name = match rng.random_range(0..2) {
             0 => format!("{} {}", gen_name, suffix),
             _ => format!("{} of {}", suffix, gen_name),
         };
@@ -960,11 +962,11 @@ impl Site {
         }
         let build_chance = Lottery::from(vec![(12.0, 1), (4.0, 2)]);
         for _ in 0..16 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 1 => {
                     // TerracottaHouse
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, _, _, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1001,7 +1003,7 @@ impl Site {
                 2 => {
                     // TerracottaYard
                     generator_stats.attempt(&site.name, GenStatPlotKind::Yard);
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, _, _, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1050,7 +1052,7 @@ impl Site {
         let mut rng = reseed(rng);
         let gen_name = NameGen::location(&mut rng).generate_danari();
         let suffix = ["City", "Metropolis"].choose(&mut rng).unwrap();
-        let name = match rng.gen_range(0..2) {
+        let name = match rng.random_range(0..2) {
             0 => format!("{} {}", gen_name, suffix),
             _ => format!("{} of {}", suffix, gen_name),
         };
@@ -1111,7 +1113,7 @@ impl Site {
         for _ in 0..30 {
             // MyrmidonHouse
             generator_stats.attempt(&site.name, GenStatPlotKind::House);
-            let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+            let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
             if let Some((aabr, _, _, alt)) = attempt(32, || {
                 site.find_roadside_aabr(&mut rng, 9..(size + 1).pow(2), Extent2::broadcast(size))
             }) {
@@ -1213,11 +1215,11 @@ impl Site {
         let mut airship_docks = 0;
 
         for _ in 0..(size * 200.0) as i32 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 // Workshop
                 n if (n == 5 && workshops < (size * 5.0) as i32) || workshops == 0 => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
-                    let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (3.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1254,7 +1256,7 @@ impl Site {
                 },
                 // House
                 1 => {
-                    let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    let size = (1.5 + rng.random::<f32>().powf(5.0) * 1.0).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -1324,7 +1326,7 @@ impl Site {
                     if let Some((aabr, _entrance_tile, _door_dir, _alt)) = attempt(64, || {
                         site.find_rural_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
-                        let offset = rng.gen_range(5..(aabr.size().w.min(aabr.size().h) - 4));
+                        let offset = rng.random_range(5..(aabr.size().w.min(aabr.size().h) - 4));
                         let gate_aabr = Aabr {
                             min: Vec2::new(aabr.min.x + offset - 1, aabr.min.y),
                             max: Vec2::new(aabr.min.x + offset + 2, aabr.min.y + 1),
@@ -1506,7 +1508,7 @@ impl Site {
                 },
                 7 if (size > 0.125 && taverns < 2) => {
                     generator_stats.attempt(&site.name, GenStatPlotKind::Tavern);
-                    let size = (4.5 + rng.gen::<f32>().powf(5.0) * 2.0).round() as u32;
+                    let size = (4.5 + rng.random::<f32>().powf(5.0) * 2.0).round() as u32;
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -1808,10 +1810,10 @@ impl Site {
         let build_chance = Lottery::from(vec![(30.0, 1), (50.0, 2)]);
         let mut airship_docks = 0;
         for _ in 0..80 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 1 => {
                     // CliffTower
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+                    let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.0).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     let campfire = campfires < 4;
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
@@ -1922,10 +1924,10 @@ impl Site {
         let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4), (5.0, 5)]);
 
         for _ in 0..50 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 n if (n == 2 && workshops < 3) || workshops == 0 => {
                     // SavannahWorkshop
-                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (4.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -1964,7 +1966,7 @@ impl Site {
                 1 => {
                     // SavannahHut
 
-                    let size = (4.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (4.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -2075,10 +2077,10 @@ impl Site {
         let build_chance = Lottery::from(vec![(38.0, 1), (5.0, 2), (15.0, 3), (15.0, 4), (5.0, 5)]);
         let mut airship_docks = 0;
         for _ in 0..55 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 n if (n == 2 && workshops < 3) || workshops == 0 => {
                     // CoastalWorkshop
-                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (7.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Workshop);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -2117,7 +2119,7 @@ impl Site {
                 1 => {
                     // CoastalHouse
 
-                    let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (7.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::House);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -2276,10 +2278,10 @@ impl Site {
         let mut campfires = 0;
 
         for _ in 0..35 {
-            match *build_chance.choose_seeded(rng.gen()) {
+            match *build_chance.choose_seeded(rng.random()) {
                 // DesertCityMultiplot
                 1 => {
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::MultiPlot);
                     let campfire = campfires < 4;
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
@@ -2319,7 +2321,7 @@ impl Site {
                 },
                 // DesertCityTemple
                 2 if temples < 1 => {
-                    let size = (9.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (9.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
                     generator_stats.attempt(&site.name, GenStatPlotKind::Temple);
                     if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
                         site.find_roadside_aabr(
@@ -2413,7 +2415,7 @@ impl Site {
         site: &mut Site,
         land: &Land,
     ) -> bool {
-        let size = (3.0 + rng.gen::<f32>().powf(5.0) * 6.0).round() as u32;
+        let size = (3.0 + rng.random::<f32>().powf(5.0) * 6.0).round() as u32;
         if let Some((aabr, door_tile, door_dir, _alt)) = attempt(32, || {
             site.find_rural_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
         }) {
@@ -2452,7 +2454,7 @@ impl Site {
         land: &Land,
         index: IndexRef,
     ) -> bool {
-        let size = (7.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+        let size = (7.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
         if let Some((aabr, door_tile, door_dir, _alt)) = attempt(32, || {
             site.find_rural_aabr(&mut rng, 7..(size + 1).pow(2), Extent2::broadcast(size))
         }) {
@@ -2744,7 +2746,7 @@ impl Site {
             origin,
             name: {
                 let name = NameGen::location(&mut rng).generate();
-                match rng.gen_range(0..5) {
+                match rng.random_range(0..5) {
                     0 => format!("{} Dungeon", name),
                     1 => format!("{} Lair", name),
                     2 => format!("{} Crib", name),
@@ -2789,7 +2791,7 @@ impl Site {
             origin,
             name: {
                 let name = NameGen::location(&mut rng).generate();
-                match rng.gen_range(0..5) {
+                match rng.random_range(0..5) {
                     0 => format!("{} Isle", name),
                     1 => format!("{} Islet", name),
                     2 => format!("{} Key", name),
@@ -2829,7 +2831,7 @@ impl Site {
             origin,
             name: {
                 let name = NameGen::location(&mut rng).generate_vampire();
-                match rng.gen_range(0..4) {
+                match rng.random_range(0..4) {
                     0 => format!("{} Keep", name),
                     1 => format!("{} Chateau", name),
                     2 => format!("{} Manor", name),
@@ -3183,7 +3185,7 @@ impl Site {
 
                                     if let Some(spec) = entity_path {
                                         let entity = EntityInfo::at(pos.as_());
-                                        let mut loadout_rng = rand::thread_rng();
+                                        let mut loadout_rng = rand::rng();
                                         entities_from_structure_blocks.push(
                                             entity.with_asset_expect(&spec, &mut loadout_rng, None),
                                         );
@@ -3252,7 +3254,7 @@ pub fn test_site() -> Site {
     Site::generate_city(
         &Land::empty(),
         index_ref,
-        &mut thread_rng(),
+        &mut rand::rng(),
         Vec2::zero(),
         0.5,
         None,

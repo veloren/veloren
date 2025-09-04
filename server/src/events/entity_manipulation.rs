@@ -225,7 +225,7 @@ impl ServerEvent for HealthChangeEvent {
 
     fn handle(events: impl ExactSizeIterator<Item = Self>, mut data: Self::SystemData<'_>) {
         let mut emitters = data.events.get_emitters();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         for ev in events {
             if let Some((mut health, pos, uid, heads)) = (
                 &mut data.healths,
@@ -722,7 +722,7 @@ impl ServerEvent for DestroyEvent {
                                     .with_entity_config(
                                         entity_config.read().clone(),
                                         Some(entity_spec),
-                                        &mut rand::thread_rng(),
+                                        &mut rand::rng(),
                                         None,
                                     )
                                 },
@@ -1004,7 +1004,7 @@ impl ServerEvent for DestroyEvent {
                         let mut item_offset_spiral =
                             Spiral2d::new().map(|offset| offset.as_::<f32>() * 0.5);
 
-                        let mut rng = rand::thread_rng();
+                        let mut rng = rand::rng();
                         let mut spawn_item = |item, loot_owner| {
                             let offset = item_offset_spiral.next().unwrap_or_default();
                             create_item_drop.emit(CreateItemDropEvent {
@@ -1032,7 +1032,7 @@ impl ServerEvent for DestroyEvent {
                                 spawn_item(item, None)
                             }
                         } else {
-                            let mut rng = rand::thread_rng();
+                            let mut rng = rand::rng();
                             distribute_many(
                                 item_receivers
                                     .iter()
@@ -1322,7 +1322,7 @@ impl ServerEvent for ExplosionEvent {
         let mut outcome_emitter = data.outcomes.emitter();
 
         // TODO: Faster RNG?
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         for ev in events {
             let owner_entity = ev.owner.and_then(|uid| data.id_maps.uid_entity(uid));
@@ -1422,16 +1422,16 @@ impl ServerEvent for ExplosionEvent {
                         let color_range = power * 2.7;
                         for _ in 0..RAYS {
                             let dir = Vec3::new(
-                                rng.gen::<f32>() - 0.5,
-                                rng.gen::<f32>() - 0.5,
-                                rng.gen::<f32>() - 0.5,
+                                rng.random::<f32>() - 0.5,
+                                rng.random::<f32>() - 0.5,
+                                rng.random::<f32>() - 0.5,
                             )
                             .normalized();
 
                             let _ = data
                                 .terrain
                                 .ray(ev.pos, ev.pos + dir * color_range)
-                                .until(|_| rng.gen::<f32>() < 0.05)
+                                .until(|_| rng.random::<f32>() < 0.05)
                                 .for_each(|_: &Block, pos| touched_blocks.push(pos))
                                 .cast();
                         }
@@ -1485,9 +1485,9 @@ impl ServerEvent for ExplosionEvent {
                         // Destroy terrain
                         for _ in 0..RAYS {
                             let dir = Vec3::new(
-                                rng.gen::<f32>() - 0.5,
-                                rng.gen::<f32>() - 0.5,
-                                rng.gen::<f32>() - 0.15,
+                                rng.random::<f32>() - 0.5,
+                                rng.random::<f32>() - 0.5,
+                                rng.random::<f32>() - 0.15,
                             )
                             .normalized();
 
@@ -1500,7 +1500,7 @@ impl ServerEvent for ExplosionEvent {
                                 .ray(from, to)
                                 .while_(|block: &Block| {
                                     ray_energy -= block.explode_power().unwrap_or(0.0)
-                                        + rng.gen::<f32>() * 0.1;
+                                        + rng.random::<f32>() * 0.1;
 
                                     // Stop if:
                                     // 1) Block is liquid
@@ -1564,8 +1564,8 @@ impl ServerEvent for ExplosionEvent {
                             .0;
                         let max_phi = (height / radius).atan();
                         for _ in 0..(RAY_DENSITY * radius.powi(2)) as usize {
-                            let phi = rng.gen_range(-PI / 2.0..-max_phi);
-                            let theta = rng.gen_range(0.0..2.0 * PI);
+                            let phi = rng.random_range(-PI / 2.0..-max_phi);
+                            let theta = rng.random_range(0.0..2.0 * PI);
                             let ray = Vec3::new(
                                 RAY_LENGTH * phi.cos() * theta.cos(),
                                 RAY_LENGTH * phi.cos() * theta.sin(),
@@ -1600,10 +1600,11 @@ impl ServerEvent for ExplosionEvent {
                                                 Block::new(BlockKind::Lava, Rgb::new(255, 65, 0)),
                                             );
 
-                                            if rng.gen_bool(timeout_chance as f64) {
+                                            if rng.random_bool(timeout_chance as f64) {
                                                 let current_time: f64 = data.time.0;
                                                 let replace_time = current_time
-                                                    + (timeout + rng.gen_range(0.0..timeout_offset))
+                                                    + (timeout
+                                                        + rng.random_range(0.0..timeout_offset))
                                                         as f64;
                                                 data.scheduled_block_change.set(
                                                     block_pos,

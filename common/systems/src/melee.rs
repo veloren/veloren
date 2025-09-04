@@ -86,7 +86,7 @@ impl<'a> System<'a> for Sys {
     fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, outcomes): Self::SystemData) {
         let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body, scale) in (

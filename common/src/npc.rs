@@ -4,7 +4,7 @@ use crate::{
 };
 use common_i18n::Content;
 use lazy_static::lazy_static;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -108,22 +108,16 @@ pub fn get_npc_name(npc_type: NpcKind, body_type: Option<BodyType>) -> String {
 
     // If no pretty name is found, fall back to the keyword.
     match body_type {
-        Some(BodyType::Male) => names_0
-            .choose(&mut rand::thread_rng())
-            .unwrap_or(keyword)
-            .clone(),
+        Some(BodyType::Male) => names_0.choose(&mut rand::rng()).unwrap_or(keyword).clone(),
         Some(BodyType::Female) if names_1.is_some() => {
             names_1
                 .as_ref()
                 .unwrap() // Unwrap safe since is_some is true
-                .choose(&mut rand::thread_rng())
+                .choose(&mut rand::rng())
                 .unwrap_or(keyword)
                 .clone()
         },
-        _ => names_0
-            .choose(&mut rand::thread_rng())
-            .unwrap_or(keyword)
-            .clone(),
+        _ => names_0.choose(&mut rand::rng()).unwrap_or(keyword).clone(),
     }
 }
 
@@ -202,7 +196,7 @@ impl NpcBody {
                 .map(|species| {
                     NpcBody(
                         npc_kind,
-                        Box::new(move || conv_func(&mut rand::thread_rng(), &species).into()),
+                        Box::new(move || conv_func(&mut rand::rng(), &species).into()),
                     )
                 })
         }

@@ -381,7 +381,7 @@ mod tests {
                     ron::de::from_reader(ron_file).expect("economy_testinput2.ron parse error");
                 names = Some(HashMap::new());
                 let land = crate::Land::from_sim(&sim);
-                let mut meta = crate::site::SitesGenMeta::new(rng.gen());
+                let mut meta = crate::site::SitesGenMeta::new(rng.random());
                 for i in econ_testinput.iter() {
                     let wpos = Vec2 {
                         x: i.position.0,
@@ -460,7 +460,7 @@ mod tests {
             resources: &[(Good, f32)],
         ) -> Id<crate::site::Site> {
             let wpos = Vec2 { x: 42, y: 42 };
-            let mut meta = crate::site::SitesGenMeta::new(env.rng.gen());
+            let mut meta = crate::site::SitesGenMeta::new(env.rng.random());
             let mut settlement = crate::site::Site::generate_city(
                 &crate::Land::from_sim(&env.sim),
                 crate::IndexRef {

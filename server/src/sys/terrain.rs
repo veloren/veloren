@@ -125,7 +125,7 @@ impl<'a> System<'a> for Sys {
             )
         });
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         let mut new_chunks = Vec::new();

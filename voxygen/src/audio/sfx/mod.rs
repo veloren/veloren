@@ -774,7 +774,7 @@ impl SfxMgr {
                 | beam::FrontendSpecifier::Lightning
                 | beam::FrontendSpecifier::Frost
                 | beam::FrontendSpecifier::Bubbles => {
-                    if thread_rng().gen_bool(0.5) {
+                    if rand::rng().random_bool(0.5) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::SceptreBeam);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
                     };
@@ -784,13 +784,13 @@ impl SfxMgr {
                 | beam::FrontendSpecifier::PhoenixLaser
                 | beam::FrontendSpecifier::FireGigasOverheat
                 | beam::FrontendSpecifier::FirePillar => {
-                    if thread_rng().gen_bool(0.5) {
+                    if rand::rng().random_bool(0.5) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
                     }
                 },
                 beam::FrontendSpecifier::FlameWallPillar => {
-                    if thread_rng().gen_bool(0.02) {
+                    if rand::rng().random_bool(0.02) {
                         let sfx_trigger_item = triggers.get_key_value(&SfxEvent::FlameThrower);
                         audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
                     }

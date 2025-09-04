@@ -70,9 +70,9 @@ impl DesertCityMultiPlot {
             max: site.tile_wpos(tile_aabr.max),
         };
         let diameter = 10 + (bounds.max.x - bounds.min.x).min(bounds.max.y - bounds.min.y);
-        let plot_kind = match rng.gen_range(0..5) {
+        let plot_kind = match rng.random_range(0..5) {
             0 => {
-                let floors = rng.gen_range(2..5);
+                let floors = rng.random_range(2..5);
                 let towers = {
                     let center = bounds.center();
                     let room_length = diameter / 4;
@@ -84,7 +84,7 @@ impl DesertCityMultiPlot {
                                     room_length + tower_length + 1,
                                     room_length + 2 * tower_length,
                                 ));
-                        let height = rng.gen_range(25..35);
+                        let height = rng.random_range(25..35);
                         (
                             WatchTower {
                                 length: tower_length,
@@ -98,15 +98,15 @@ impl DesertCityMultiPlot {
                 PlotKind::MarketHall { floors, towers }
             },
             _ => {
-                let mut subplot_kind = || match rng.gen_range(0..15) {
+                let mut subplot_kind = || match rng.random_range(0..15) {
                     0..=5 => SubPlotKind::WorkshopHouse {
-                        floors: rng.gen_range(1..4),
+                        floors: rng.random_range(1..4),
                     },
                     6..=7 => SubPlotKind::Library,
                     8..=9 => SubPlotKind::AnimalShed,
                     10..=11 => SubPlotKind::WatchTower(WatchTower {
                         length: diameter / 14,
-                        height: rng.gen_range(25..35),
+                        height: rng.random_range(25..35),
                     }),
                     _ => SubPlotKind::PalmTree,
                 };

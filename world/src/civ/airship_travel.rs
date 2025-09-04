@@ -11,7 +11,7 @@ use common::{
 };
 use delaunator::{Point, Triangulation, triangulate};
 use itertools::Itertools;
-use rand::prelude::*;
+use rand::{SeedableRng, prelude::*};
 use rand_chacha::ChaChaRng;
 use tracing::{error, warn};
 use vek::*;
@@ -1061,7 +1061,7 @@ impl Airships {
     ) -> (Vec3<f32>, Dir) {
         // choose a random side for docking if not specified
         let dock_side = docking_side.unwrap_or_else(|| {
-            if thread_rng().gen::<bool>() {
+            if rand::rng().random::<bool>() {
                 AirshipDockingSide::Starboard
             } else {
                 AirshipDockingSide::Port

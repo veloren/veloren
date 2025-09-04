@@ -14,7 +14,7 @@ use common::{
     vol::RectVolSize,
 };
 use noise::NoiseFn;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use serde::Deserialize;
 use std::ops::{Add, Div, Mul, Sub};
 use tracing::error;

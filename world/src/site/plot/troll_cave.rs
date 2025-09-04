@@ -47,20 +47,20 @@ impl Structure for TrollCave {
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let center = self.bounds.center();
         let base = land.get_alt_approx(center) as i32;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let model_pos = center.with_z(base);
         // model
         lazy_static! {
             pub static ref MODEL: AssetHandle<StructuresGroup> =
                 PrefabStructure::load_group("site_structures.troll_cave.troll_cave");
         }
-        let rng = RandomField::new(0).get(model_pos) % 10;
+        let rng_val = RandomField::new(0).get(model_pos) % 10;
         let model = MODEL.read();
-        let model = model[rng as usize % model.len()].clone();
+        let model = model[rng_val as usize % model.len()].clone();
         painter
             .prim(Primitive::Prefab(Box::new(model.clone())))
             .translate(model_pos)
-            .fill(Fill::Prefab(Box::new(model), model_pos, rng));
+            .fill(Fill::Prefab(Box::new(model), model_pos, rng_val));
         let temp = self.temp;
         // npcs
         let troll = if temp >= CONFIG.tropical_temp {
@@ -73,17 +73,13 @@ impl Structure for TrollCave {
 
         // troll
         painter.spawn(
-            EntityInfo::at(center.with_z(base - 15).as_()).with_asset_expect(
-                troll,
-                &mut thread_rng,
-                None,
-            ),
+            EntityInfo::at(center.with_z(base - 15).as_()).with_asset_expect(troll, &mut rng, None),
         );
         // bat
         painter.spawn(
             EntityInfo::at((center - 2).with_z(base + 5).as_()).with_asset_expect(
                 "common.entity.wild.peaceful.bat",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ),
         )

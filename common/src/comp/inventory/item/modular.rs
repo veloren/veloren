@@ -10,7 +10,7 @@ use crate::{
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use rand::{Rng, prelude::SliceRandom};
+use rand::{Rng, prelude::IndexedRandom};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};
 

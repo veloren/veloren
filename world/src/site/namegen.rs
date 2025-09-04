@@ -1,4 +1,4 @@
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 
 pub struct NameGen<'a, R: Rng> {
     // 2..
@@ -11,8 +11,8 @@ pub struct NameGen<'a, R: Rng> {
 impl<'a, R: Rng> NameGen<'a, R> {
     pub fn location(rng: &'a mut R) -> Self {
         Self {
-            approx_syllables: rng.gen_range(1..4),
-            approx_syllables_long: rng.gen_range(2..4),
+            approx_syllables: rng.random_range(1..4),
+            approx_syllables_long: rng.random_range(2..4),
 
             rng,
         }
@@ -919,7 +919,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "Oni",
             "Monster",
         ];
-        let kind = self.rng.gen_range(0..10);
+        let kind = self.rng.random_range(0..10);
         let mut choose = |slice: &[&'static str]| *slice.choose(self.rng).unwrap();
         match kind {
             0 => format!("The {} {}", choose(&adjectives), choose(&tavern_synonyms)),

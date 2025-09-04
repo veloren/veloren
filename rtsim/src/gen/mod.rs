@@ -111,7 +111,7 @@ impl Data {
                     .sim()
                     .get_size()
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz| {
-                        rng.gen_range(0..(e * sz) as i32)
+                        rng.random_range(0..(e * sz) as i32)
                     });
                 (wpos, this.factions.create(faction))
             })
@@ -178,7 +178,7 @@ impl Data {
         let npc_wpos3d = spawning_location.pos.with_z(spawning_location.height);
 
         let vehicle_id = self.npcs.create_npc(Npc::new(
-            rng.gen(),
+            rng.random(),
             npc_wpos3d,
             Body::Ship(comp::body::ship::Body::DefaultAirship),
             Role::Vehicle,
@@ -187,7 +187,7 @@ impl Data {
         let species = comp::humanoid::ALL_SPECIES.choose(&mut *rng).unwrap();
         let npc_id = self.npcs.create_npc(
             Npc::new(
-                rng.gen(),
+                rng.random(),
                 npc_wpos3d,
                 Body::Humanoid(comp::humanoid::Body::random_with(rng, species)),
                 Role::Civilised(Some(Profession::Captain)),

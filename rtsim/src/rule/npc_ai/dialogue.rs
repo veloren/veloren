@@ -60,7 +60,7 @@ fn about_site<S: State>(session: DialogueSession) -> impl Action<S> {
                 && let Some(current_site) = ctx.state.data().sites.get(current_site)
             {
                 for mention_site in &current_site.nearby_sites_by_size {
-                    if ctx.rng.gen_bool(0.5)
+                    if ctx.rng.random_bool(0.5)
                         && let Some(content) = tell_site_content(ctx, *mention_site)
                     {
                         action = action.then(session.say_statement(content)).boxed();
@@ -139,7 +139,7 @@ fn sentiments<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> 
 
 fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).gen_bool(0.5) {
+        if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).random_bool(0.5) {
             let hire_level = match ctx.npc.profession() {
                 Some(Profession::Adventurer(l)) => l,
                 _ => 0,

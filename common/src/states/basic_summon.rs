@@ -159,8 +159,8 @@ impl CharacterBehavior for Data {
                                 // Ray cast to check where summon should happen
                                 let summon_frac = self.summon_count as f32 / summon_amount as f32;
 
-                                let length = rand::thread_rng()
-                                    .gen_range(summon_distance.0..=summon_distance.1);
+                                let length =
+                                    rand::rng().random_range(summon_distance.0..=summon_distance.1);
                                 let extra_height = if body == Body::Object(FieryTornado) {
                                     15.0
                                 } else {
@@ -216,7 +216,7 @@ impl CharacterBehavior for Data {
                                     is_point: false,
                                 });
 
-                                let mut rng = rand::thread_rng();
+                                let mut rng = rand::rng();
                                 // Send server event to create npc
                                 output_events.emit_server(CreateNpcEvent {
                                     pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),

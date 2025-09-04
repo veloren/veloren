@@ -36,7 +36,6 @@ use common_net::{
     sync::WorldSyncExt,
 };
 use common_state::State;
-use rand::prelude::*;
 use specs::{
     Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt, WriteStorage,
     storage::{GenericReadStorage, GenericWriteStorage},
@@ -300,7 +299,7 @@ impl StateExt for State {
                 .with(pos)
                 .with(ori)
                 .with(vel)
-                .with(item_body.orientation(&mut thread_rng()))
+                .with(item_body.orientation(&mut rand::rng()))
                 .with(item_body.mass())
                 .with(item_body.density())
                 .with(body.collider())
@@ -679,7 +678,7 @@ impl StateExt for State {
                     pets.len(),
                     player_pos
                 );
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
 
                 for (pet, body, stats) in pets {
                     let ori = comp::Ori::from(Dir::random_2d(&mut rng));

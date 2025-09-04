@@ -127,12 +127,12 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("for_each_in", |b| {
         use rand::prelude::*;
-        let mut rng = rand_chacha::ChaChaRng::seed_from_u64(thread_rng().gen());
+        let mut rng = rand_chacha::ChaChaRng::seed_from_u64(rng().gen());
         b.iter(|| {
             let pos = Vec3::new(
-                rng.gen_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
-                rng.gen_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
-                rng.gen_range(MIN_Z..MAX_Z - 6),
+                rng.random_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
+                rng.random_range(0..TerrainChunk::RECT_SIZE.x as i32 - 3),
+                rng.random_range(MIN_Z..MAX_Z - 6),
             );
             chunk.for_each_in(
                 Aabb {

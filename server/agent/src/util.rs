@@ -319,9 +319,9 @@ pub fn handle_attack_aggression(
                 agent.combat_state.conditions[condition_guarded_defend_index] ^= true;
                 agent.combat_state.counters[fcounter_guarded_timer_index] =
                     if agent.combat_state.conditions[condition_guarded_defend_index] {
-                        rng.gen_range(3.0..6.0)
+                        rng.random_range(3.0..6.0)
                     } else {
-                        rng.gen_range(6.0..10.0)
+                        rng.random_range(6.0..10.0)
                     };
             }
             if let Some(pos) = agent.combat_state.positions[position_guarded_cover_index] {
@@ -355,13 +355,13 @@ pub fn handle_attack_aggression(
                                     .try_normalized()
                                     .unwrap_or(Vec3::unit_x())
                                     .xy();
-                                if rng.gen_bool(0.5) {
-                                    dir.rotated_z(PI / 2.0 + rng.gen_range(-0.75..0.0))
+                                if rng.random_bool(0.5) {
+                                    dir.rotated_z(PI / 2.0 + rng.random_range(-0.75..0.0))
                                 } else {
-                                    dir.rotated_z(-PI / 2.0 + rng.gen_range(-0.0..0.75))
+                                    dir.rotated_z(-PI / 2.0 + rng.random_range(-0.0..0.75))
                                 }
                             };
-                            let attempted_dist = rng.gen_range(6.0..16.0);
+                            let attempted_dist = rng.random_range(6.0..16.0);
                             let actual_dist = read_data
                                 .terrain
                                 .ray(
@@ -462,9 +462,9 @@ pub fn handle_attack_aggression(
                             .try_normalized()
                             .unwrap_or(Vec3::unit_x())
                             .xy();
-                        dir.rotated_z(rng.gen_range(-0.75..0.75))
+                        dir.rotated_z(rng.random_range(-0.75..0.75))
                     };
-                    let attempted_dist = rng.gen_range(16.0..26.0);
+                    let attempted_dist = rng.random_range(16.0..26.0);
                     let actual_dist = read_data
                         .terrain
                         .ray(

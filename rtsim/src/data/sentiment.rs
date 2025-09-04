@@ -195,7 +195,7 @@ impl Sentiment {
 
             // For some reason, RNG doesn't work with small chances (possibly due to impl
             // limits), so use two bools
-            if rng.gen_bool(chance.sqrt()) && rng.gen_bool(chance.sqrt()) {
+            if rng.random_bool(chance.sqrt()) && rng.random_bool(chance.sqrt()) {
                 self.positivity -= self.positivity.signum();
             }
         }

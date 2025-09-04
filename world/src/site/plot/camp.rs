@@ -51,7 +51,7 @@ impl Structure for Camp {
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let center = self.bounds.center();
         let base = land.get_alt_approx(center) as i32;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let model_pos = center.with_z(base);
         let temp = self.temp;
         let camp_type = if temp >= CONFIG.tropical_temp {
@@ -83,14 +83,14 @@ impl Structure for Camp {
             .fill(Fill::Prefab(Box::new(prefab_structure), model_pos, 0));
 
         // npcs
-        let npc_rng = thread_rng.gen_range(1..=5);
+        let npc_rng = rng.random_range(1..=5);
         match camp_type {
             CampType::Pirate => {
                 for p in 0..npc_rng {
                     painter.spawn(
                         EntityInfo::at((center + p).with_z(base + 2).as_()).with_asset_expect(
                             "common.entity.spot.pirate",
-                            &mut thread_rng,
+                            &mut rng,
                             None,
                         ),
                     )
@@ -101,11 +101,8 @@ impl Structure for Camp {
                     "common.entity.wild.peaceful.rat"
                 };
                 painter.spawn(
-                    EntityInfo::at(center.with_z(base + 2).as_()).with_asset_expect(
-                        pet,
-                        &mut thread_rng,
-                        None,
-                    ),
+                    EntityInfo::at(center.with_z(base + 2).as_())
+                        .with_asset_expect(pet, &mut rng, None),
                 )
             },
             _ => {
@@ -113,7 +110,7 @@ impl Structure for Camp {
                     painter.spawn(
                         EntityInfo::at((center - 1).with_z(base + 2).as_()).with_asset_expect(
                             "common.entity.village.bowman",
-                            &mut thread_rng,
+                            &mut rng,
                             None,
                         ),
                     );
@@ -122,7 +119,7 @@ impl Structure for Camp {
                     painter.spawn(
                         EntityInfo::at((center + 1).with_z(base + 2).as_()).with_asset_expect(
                             "common.entity.village.skinner",
-                            &mut thread_rng,
+                            &mut rng,
                             None,
                         ),
                     )

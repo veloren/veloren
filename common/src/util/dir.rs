@@ -84,7 +84,7 @@ impl Dir {
 
     /// Generates a random direction that has a z component of 0
     pub fn random_2d(rng: &mut impl Rng) -> Self {
-        let a = rng.gen_range(0.0..std::f32::consts::TAU);
+        let a = rng.random_range(0.0..std::f32::consts::TAU);
         // This will always be normalized.
         Self::new(Vec3::new(a.cos(), a.sin(), 0.0))
     }

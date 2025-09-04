@@ -178,7 +178,7 @@ impl Instance {
         Self {
             inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,
-            inst_entropy: rand::thread_rng().gen(),
+            inst_entropy: rand::rng().random(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_dir: [0.0, 0.0, 0.0],
@@ -196,7 +196,7 @@ impl Instance {
         Self {
             inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,
-            inst_entropy: rand::thread_rng().gen(),
+            inst_entropy: rand::rng().random(),
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_dir: (inst_pos2 - inst_pos).into_array(),

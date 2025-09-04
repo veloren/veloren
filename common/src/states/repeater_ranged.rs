@@ -11,7 +11,7 @@ use crate::{
     },
     util::Dir,
 };
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::TAU, time::Duration};
 
@@ -120,9 +120,9 @@ impl CharacterBehavior for Data {
                         |aoe_data| {
                             // Position calculated from aoe_data
                             let rand_pos = {
-                                let mut rng = thread_rng();
-                                let theta = rng.gen::<f32>() * TAU;
-                                let radius = aoe_data.radius * rng.gen::<f32>().sqrt();
+                                let mut rng = rng();
+                                let theta = rng.random::<f32>() * TAU;
+                                let radius = aoe_data.radius * rng.random::<f32>().sqrt();
                                 let x = radius * theta.sin();
                                 let y = radius * theta.cos();
                                 vek::Vec2::new(x, y)

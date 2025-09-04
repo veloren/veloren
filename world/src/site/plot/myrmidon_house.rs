@@ -56,7 +56,7 @@ impl Structure for MyrmidonHouse {
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.alt + 3;
         let center = self.bounds.center();
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let sandstone_unbroken = Fill::Sampling(Arc::new(|center| {
             Some(match (RandomField::new(0).get(center)) % 37 {
                 0..=8 => Block::new(BlockKind::Rock, Rgb::new(245, 212, 129)),
@@ -357,11 +357,7 @@ impl Structure for MyrmidonHouse {
             ];
             let npc_pos = (center + n).with_z(base);
             let npc = entities[(RandomField::new(0).get(npc_pos) % entities.len() as u32) as usize];
-            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
-                npc,
-                &mut thread_rng,
-                None,
-            ));
+            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(npc, &mut rng, None));
         }
         if amount < 1 {
             if bldg_var > 0 {
@@ -430,7 +426,7 @@ impl Structure for MyrmidonHouse {
 
             painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.myrmidon.cyclops",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ));
         }

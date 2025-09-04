@@ -35,7 +35,7 @@ pub fn process_inbox_sound_and_hurt(bdata: &mut BehaviorData) -> bool {
                 },
                 Some(AgentEvent::Hurt) => {
                     // Hurt utterances at random upon receiving damage
-                    if bdata.rng.gen::<f32>() < 0.4 {
+                    if bdata.rng.random::<f32>() < 0.4 {
                         bdata.controller.push_utterance(UtteranceKind::Hurt);
                     }
                 },

@@ -780,47 +780,47 @@ impl WorldSim {
 
         // NOTE: Changing order will significantly change WorldGen, so try not to!
         let gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new(rng.gen()),
-            turb_y_nz: SuperSimplex::new(rng.gen()),
-            chaos_nz: RidgedMulti::new(rng.gen()).set_octaves(7).set_frequency(
+            turb_x_nz: SuperSimplex::new(rng.random()),
+            turb_y_nz: SuperSimplex::new(rng.random()),
+            chaos_nz: RidgedMulti::new(rng.random()).set_octaves(7).set_frequency(
                 RidgedMulti::<Perlin>::DEFAULT_FREQUENCY * (5_000.0 / continent_scale),
             ),
-            hill_nz: SuperSimplex::new(rng.gen()),
-            alt_nz: util::HybridMulti::new(rng.gen())
+            hill_nz: SuperSimplex::new(rng.random()),
+            alt_nz: util::HybridMulti::new(rng.random())
                 .set_octaves(8)
                 .set_frequency(10_000.0 / continent_scale)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
                 .set_lacunarity(util::HybridMulti::<Perlin>::DEFAULT_LACUNARITY)
                 .set_persistence(util::HybridMulti::<Perlin>::DEFAULT_LACUNARITY.powi(-1))
                 .set_offset(0.0),
-            temp_nz: Fbm::new(rng.gen())
+            temp_nz: Fbm::new(rng.random())
                 .set_octaves(6)
                 .set_persistence(0.5)
                 .set_frequency(1.0 / (((1 << 6) * 64) as f64))
                 .set_lacunarity(2.0),
 
-            small_nz: BasicMulti::new(rng.gen()).set_octaves(2),
-            rock_nz: HybridMulti::new(rng.gen()).set_persistence(0.3),
-            tree_nz: BasicMulti::new(rng.gen())
+            small_nz: BasicMulti::new(rng.random()).set_octaves(2),
+            rock_nz: HybridMulti::new(rng.random()).set_persistence(0.3),
+            tree_nz: BasicMulti::new(rng.random())
                 .set_octaves(12)
                 .set_persistence(0.75),
-            _cave_0_nz: SuperSimplex::new(rng.gen()),
-            _cave_1_nz: SuperSimplex::new(rng.gen()),
+            _cave_0_nz: SuperSimplex::new(rng.random()),
+            _cave_1_nz: SuperSimplex::new(rng.random()),
 
-            structure_gen: StructureGen2d::new(rng.gen(), 24, 10),
-            _big_structure_gen: StructureGen2d::new(rng.gen(), 768, 512),
-            _region_gen: StructureGen2d::new(rng.gen(), 400, 96),
-            humid_nz: Billow::new(rng.gen())
+            structure_gen: StructureGen2d::new(rng.random(), 24, 10),
+            _big_structure_gen: StructureGen2d::new(rng.random(), 768, 512),
+            _region_gen: StructureGen2d::new(rng.random(), 400, 96),
+            humid_nz: Billow::new(rng.random())
                 .set_octaves(9)
                 .set_persistence(0.4)
                 .set_frequency(0.2),
 
-            _fast_turb_x_nz: FastNoise::new(rng.gen()),
-            _fast_turb_y_nz: FastNoise::new(rng.gen()),
+            _fast_turb_x_nz: FastNoise::new(rng.random()),
+            _fast_turb_y_nz: FastNoise::new(rng.random()),
 
-            _town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
-            river_seed: RandomField::new(rng.gen()),
-            rock_strength_nz: Fbm::new(rng.gen())
+            _town_gen: StructureGen2d::new(rng.random(), 2048, 1024),
+            river_seed: RandomField::new(rng.random()),
+            rock_strength_nz: Fbm::new(rng.random())
                 .set_octaves(10)
                 .set_lacunarity(rock_lacunarity)
                 // persistence = lacunarity^(-(1.0 - fractal increment))
@@ -830,7 +830,7 @@ impl WorldSim {
                     1.0 * (5_000.0 / continent_scale)
                         / (2.0 * TerrainChunkSize::RECT_SIZE.x as f64 * 2.0.powi(10 - 1)),
                 ),
-            uplift_nz: util::Worley::new(rng.gen())
+            uplift_nz: util::Worley::new(rng.random())
                 .set_frequency(1.0 / (TerrainChunkSize::RECT_SIZE.x as f64 * uplift_scale))
                 .set_distance_function(distance_functions::euclidean),
         };
@@ -1862,7 +1862,7 @@ impl WorldSim {
         let mut rng = self.rng.clone();
 
         for _ in 0..self.get_size().product() / 10 {
-            let mut pos = self.get_size().map(|e| rng.gen_range(0..e) as i32);
+            let mut pos = self.get_size().map(|e| rng.random_range(0..e) as i32);
 
             let mut cliffs = DHashSet::default();
             let mut cliff_path = Vec::new();
@@ -1918,8 +1918,8 @@ impl WorldSim {
         // Seed the world with some locations
         (0..loc_count).for_each(|_| {
             let cell_pos = Vec2::new(
-                self.rng.gen::<usize>() % grid_size.x,
-                self.rng.gen::<usize>() % grid_size.y,
+                (self.rng.random::<u64>() as usize) % grid_size.x,
+                (self.rng.random::<u64>() as usize) % grid_size.y,
             );
             let wpos = (cell_pos * cell_size + cell_size / 2)
                 .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
@@ -1956,7 +1956,7 @@ impl WorldSim {
                 (0..grid_size.x).for_each(|i| {
                     if loc_grid[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
-                        let idx = self.rng.gen::<usize>() % 4;
+                        let idx = (self.rng.random::<u64>() % 4) as usize;
                         let new_i = i as i32 + R_COORDS[idx];
                         let new_j = j as i32 + R_COORDS[idx + 1];
                         if new_i >= 0 && new_j >= 0 {

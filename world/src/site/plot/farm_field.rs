@@ -4,7 +4,7 @@ use common::terrain::{
     Block, BlockKind, SpriteKind,
     sprite::{Owned, RelativeNeighborPosition},
 };
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
@@ -138,7 +138,7 @@ impl FarmField {
             max: site.tile_wpos(tile_aabr.max),
         };
 
-        let ori = rng.gen_range(0.0..std::f32::consts::TAU);
+        let ori = rng.random_range(0.0..std::f32::consts::TAU);
 
         let crop = if is_desert {
             Crop::Cactus
@@ -259,7 +259,7 @@ impl Structure for FarmField {
 
                     Some(new)
                 })
-        } else if z_off == 1 && rng.gen_bool(0.001) {
+        } else if z_off == 1 && rng.random_bool(0.001) {
             Some(old.into_vacant().with_sprite(SpriteKind::Scarecrow))
         } else {
             None

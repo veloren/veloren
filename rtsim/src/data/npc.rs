@@ -153,7 +153,7 @@ impl Controller {
 
         let session = DialogueSession {
             target,
-            id: DialogueId(thread_rng().gen()),
+            id: DialogueId(rand::rng().random()),
         };
 
         self.actions.push(NpcAction::Dialogue(target, Dialogue {
@@ -198,7 +198,7 @@ impl Controller {
         msg: comp::Content,
         responses: impl IntoIterator<Item = (u16, Response)>,
     ) -> u32 {
-        let tag = thread_rng().gen();
+        let tag = rand::rng().random();
 
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {

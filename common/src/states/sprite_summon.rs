@@ -10,7 +10,7 @@ use crate::{
     terrain::{Block, SpriteKind},
     vol::ReadVol,
 };
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;
@@ -238,7 +238,7 @@ pub fn create_sprites(
                 .angle_between(point.as_())
                 .to_degrees()
                 <= (angle / 2.0)
-                && !thread_rng().gen_bool(sparseness)
+                && !rng().random_bool(sparseness)
             {
                 // The coordinates of where the sprite is created
                 let sprite_pos = Vec3::new(

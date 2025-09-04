@@ -394,7 +394,7 @@ impl Structure for DwarvenMine {
     }
 }
 fn spawn_entity(pos: Vec3<f32>, painter: &Painter, entity_path: &str) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     painter.spawn(
         EntityInfo::at(pos)
             .with_asset_expect(entity_path, &mut rng, None)
@@ -410,14 +410,14 @@ fn spawn_entities(
     max_distance: f32,
     entity_distance: f32,
 ) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let num_paths = entity_paths.len();
 
     let side_length = (num_entities as f32).sqrt().ceil() as u32;
     let spacing = entity_distance;
 
     for i in 0..num_entities {
-        let path_index = rng.gen_range(0..num_paths);
+        let path_index = rng.random_range(0..num_paths);
         let entity_path = entity_paths[path_index];
 
         let row = i / side_length;
@@ -433,7 +433,7 @@ fn spawn_entities(
 }
 
 fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter, rot: u8) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
 
     let entities = [
         "common.entity.dungeon.dwarven_quarry.miner",
@@ -448,15 +448,15 @@ fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter, rot: u8) {
         SpriteKind::DungeonChest5,
     ];
 
-    let random_number = rng.gen_range(0..=10);
+    let random_number = rng.random_range(0..=10);
 
     if random_number <= 3 {
         let pos_f32 = pos.map(|coord| coord as f32);
-        let random_entity_index = rng.gen_range(0..entities.len());
+        let random_entity_index = rng.random_range(0..entities.len());
         let random_entity = entities[random_entity_index];
         spawn_entity(pos_f32, painter, random_entity);
     } else if random_number <= 9 {
-        let random_sprite_index = rng.gen_range(0..sprites.len());
+        let random_sprite_index = rng.random_range(0..sprites.len());
         let random_sprite = sprites[random_sprite_index];
         painter.rotated_sprite(pos, random_sprite, rot);
     } else {

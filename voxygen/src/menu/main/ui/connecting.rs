@@ -77,7 +77,7 @@ impl Screen {
             add_button: Default::default(),
             tip_number: rand::random(),
             loading_animation: LoadingAnimation::new(
-                &animations[rand::random::<usize>() % animations.len()],
+                &animations[(rand::random::<u64>() as usize) % animations.len()],
                 ui,
             ),
         }

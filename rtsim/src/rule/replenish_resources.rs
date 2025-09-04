@@ -27,7 +27,7 @@ impl Rule for ReplenishResources {
                 * ctx.event.dt
                 * (1.0 / REPLENISH_TIME / REPLENISH_PER_TICK as f32);
             for _ in 0..REPLENISH_PER_TICK {
-                let key = world_size.map(|e| thread_rng().gen_range(0..e as i32));
+                let key = world_size.map(|e| rand::rng().random_range(0..e as i32));
 
                 let mut res = data.nature.get_chunk_resources(key);
                 for (_, res) in &mut res {

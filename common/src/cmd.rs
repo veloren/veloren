@@ -1620,7 +1620,7 @@ mod tests {
     #[test]
     fn test_load_kits() {
         let kits = KitManifest::load_expect_combined_static(KIT_MANIFEST_PATH).read();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         for kit in kits.0.values() {
             for (item_id, _) in kit.iter() {
                 match item_id {

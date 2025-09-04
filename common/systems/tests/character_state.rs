@@ -14,7 +14,7 @@ mod tests {
     };
     use common_ecs::dispatch;
     use common_state::State;
-    use rand::thread_rng;
+    use rand::rng;
     use specs::{Builder, Entity, WorldExt};
     use std::{sync::Arc, time::Duration};
     use vek::{Vec2, Vec3, approx::AbsDiffEq};
@@ -50,7 +50,7 @@ mod tests {
 
     fn create_entity(state: &mut State, ori: Ori) -> Entity {
         let body = common::comp::Body::Humanoid(common::comp::humanoid::Body::random_with(
-            &mut thread_rng(),
+            &mut rng(),
             &common::comp::humanoid::Species::Human,
         ));
         let skill_set = SkillSetBuilder::default().build();

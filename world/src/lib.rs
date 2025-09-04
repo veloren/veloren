@@ -461,7 +461,7 @@ impl World {
         };
 
         // Only use for rng affecting dynamic elements like chests and entities!
-        let mut dynamic_rng = ChaCha8Rng::from_seed(thread_rng().gen());
+        let mut dynamic_rng = ChaCha8Rng::from_seed(rand::rng().random());
 
         // Apply layers (paths, caves, etc.)
         let mut canvas = Canvas {
@@ -525,7 +525,7 @@ impl World {
 
         let gen_entity_pos = |dynamic_rng: &mut ChaCha8Rng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
-                .map(|sz| dynamic_rng.gen::<u32>().rem_euclid(sz) as i32);
+                .map(|sz| dynamic_rng.random::<u32>().rem_euclid(sz) as i32);
             let mut lpos = Vec3::new(
                 lpos2d.x,
                 lpos2d.y,
@@ -600,7 +600,7 @@ impl World {
 
                         // Throw a dice to determine whether this resource should actually spawn
                         // TODO: Don't throw a dice, try to generate the *exact* correct number
-                        if dynamic_rng.gen_bool(rtsim_resources[res].clamp(0.0, 1.0) as f64) {
+                        if dynamic_rng.random_bool(rtsim_resources[res].clamp(0.0, 1.0) as f64) {
                             block
                         } else {
                             block.into_vacant()

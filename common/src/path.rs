@@ -9,7 +9,7 @@ use fxhash::FxBuildHasher;
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
 use kiddo::{SquaredEuclidean, float::kdtree::KdTree, nearest_neighbour::NearestNeighbour}; /* For RRT paths (disabled for now) */
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 #[cfg(feature = "rrt_pathfinding")]
 use rand::{
     distributions::{Distribution, Uniform},
@@ -411,7 +411,7 @@ impl Chaser {
                 self.astar = None;
                 None
             } else if vel.magnitude_squared() < 0.2f32.powi(2)
-                && thread_rng().gen::<f32>() < 0.0025
+                && rng().random::<f32>() < 0.0025
                 && complete
             {
                 self.route = None;
@@ -961,7 +961,7 @@ where
             if current_node_index1 == 0
                 || nodes1[current_node_index1].distance_squared(startf) < 4.0
             {
-                if let Some(index) = parents1.values().into_iter().choose(&mut thread_rng()) {
+                if let Some(index) = parents1.values().into_iter().choose_mut(&mut rng()) {
                     current_node_index1 = *index;
                 } else {
                     break;
@@ -1031,7 +1031,7 @@ pub fn point_on_prolate_spheroid(
     focus2: Vec3<f32>,
     search_parameter: f32,
 ) -> Vec3<f32> {
-    let mut rng = thread_rng();
+    let mut rng = rng();
     // Uniform distribution
     let range = Uniform::from(0.0..1.0);
 

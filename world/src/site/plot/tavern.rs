@@ -11,7 +11,7 @@ use enumset::EnumSet;
 use hashbrown::HashSet;
 use rand::{
     Rng,
-    seq::{IteratorRandom, SliceRandom},
+    seq::{IndexedRandom, IteratorRandom},
 };
 use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
@@ -312,7 +312,7 @@ impl Tavern {
         let door_wpos = door_wpos.with_z(door_alt);
 
         fn gen_range_snap(rng: &mut impl Rng, range: RangeInclusive<i32>, snap_max: i32) -> i32 {
-            let res = rng.gen_range(range.clone());
+            let res = rng.random_range(range.clone());
             if snap_max <= *range.end() && snap_max - res <= 2 {
                 snap_max
             } else {
@@ -349,7 +349,7 @@ impl Tavern {
             let size_y = gen_range_snap(rng, min..=max, snap_max);
 
             // calculate a valid aabr
-            let half_size_y = size_y / 2 + (size_y % 2) * rng.gen_range(0..=1);
+            let half_size_y = size_y / 2 + (size_y % 2) * rng.random_range(0..=1);
             let min = in_pos + in_dir.to_vec2() + in_dir.rotated_cw().to_vec2() * half_size_y;
             let min = max_bounds.projected_point(min);
             let max = min + in_dir.to_vec2() * size_x + in_dir.rotated_ccw().to_vec2() * size_y;
@@ -421,8 +421,8 @@ impl Tavern {
         {
             let entrance_rooms = RoomKind::entrance_room_lottery(temperature);
 
-            let entrance_room = *entrance_rooms.choose_seeded(rng.gen());
-            let entrance_room_hgt = rng.gen_range(3..=4);
+            let entrance_room = *entrance_rooms.choose_seeded(rng.random());
+            let entrance_room_hgt = rng.random_range(3..=4);
             let entrance_room_aabr =
                 place_side_room(entrance_room, ibounds, -door_dir, door_wpos.xy(), rng)
                     .expect("Not enough room in plot for a tavern");
@@ -482,7 +482,7 @@ impl Tavern {
         }
         while !room_metas.is_empty() {
             // Continue extending from a random existing room
-            let mut room_meta = room_metas.swap_remove(rng.gen_range(0..room_metas.len()));
+            let mut room_meta = room_metas.swap_remove(rng.random_range(0..room_metas.len()));
             let from_id = room_meta.id;
             let from_room = &rooms[from_id];
 
@@ -559,7 +559,7 @@ impl Tavern {
                     }
                     .made_valid();
                     // Pick a  height of the new room
-                    let room_hgt = rng.gen_range(3..=5);
+                    let room_hgt = rng.random_range(3..=5);
 
                     let wanted_alt = land.get_alt_approx(max_bounds.center()) as i32 + 1;
                     let max_stair_length =
@@ -610,7 +610,7 @@ impl Tavern {
                         break 'room_gen;
                     };
 
-                    let room_kind = *room_lottery.choose_seeded(rng.gen());
+                    let room_kind = *room_lottery.choose_seeded(rng.random());
 
                     // Select a door position
                     let mut min = left
@@ -625,7 +625,7 @@ impl Tavern {
                     if min + 2 > max {
                         break 'room_gen;
                     }
-                    let in_pos = rng.gen_range(min + 1..=max - 1);
+                    let in_pos = rng.random_range(min + 1..=max - 1);
                     let in_pos = in_dir.select_aabr_with(from_bounds, Vec2::broadcast(in_pos))
                         + in_dir.to_vec2();
 
@@ -660,7 +660,7 @@ impl Tavern {
                         + right.to_vec2();
 
                     let door_center = right.select(in_pos - start);
-                    let b = rng.gen_bool(0.5);
+                    let b = rng.random_bool(0.5);
                     let door_min = door_center - b as i32;
                     let door_max = door_center - (!b) as i32;
                     let wall_id = walls.insert(Wall {
@@ -688,7 +688,7 @@ impl Tavern {
                     let max_bounds = ibounds;
 
                     // Pick a  height of the new room
-                    let room_hgt = rng.gen_range(3..=5);
+                    let room_hgt = rng.random_range(3..=5);
                     let max_z = from_room.bounds.min.z - 2;
                     let min_z = max_z - room_hgt;
 
@@ -713,7 +713,7 @@ impl Tavern {
                         break 'room_gen;
                     };
 
-                    let room_kind = *room_lottery.choose_seeded(rng.gen());
+                    let room_kind = *room_lottery.choose_seeded(rng.random());
 
                     // Place the room in the given max bounds
                     let Some(bounds) = place_down_room(room_kind, max_bounds, from_bounds, rng)
@@ -840,9 +840,9 @@ impl Tavern {
                     let door = if max - min > 2
                         && max_z - min_z > 3
                         && (rooms[from_id].bounds.min.z - rooms[to_id].bounds.min.z).abs() < 4
-                        && rng.gen_bool(0.8)
+                        && rng.random_bool(0.8)
                     {
-                        let door_center = rng.gen_range(1..=max - min - 2);
+                        let door_center = rng.random_range(1..=max - min - 2);
                         Some((door_center, door_center + 1))
                     } else {
                         None
@@ -903,7 +903,7 @@ impl Tavern {
             let mut under_rooms = vec![];
             // Extend roof over adjecent rooms.
             while !dirs.is_empty() {
-                let dir = dirs.swap_remove(rng.gen_range(0..dirs.len()));
+                let dir = dirs.swap_remove(rng.random_range(0..dirs.len()));
                 let orth = dir.orthogonal();
                 // Check for room intersections in this direction.
                 for (room_id, room) in rooms.iter() {
@@ -1105,7 +1105,7 @@ impl Tavern {
                 bounds: roof_bounds,
                 min_z: roof_min_z,
                 stairs,
-                style: *style_lottery.choose_seeded(rng.gen()),
+                style: *style_lottery.choose_seeded(rng.random()),
             });
 
             for room_id in over_rooms {
@@ -1205,7 +1205,7 @@ impl Tavern {
             };
             match room.kind {
                 RoomKind::Garden | RoomKind::Seating => room.detail_areas.retain(|&aabr| {
-                    if aabr.size().reduce_max() > 1 && rng.gen_bool(0.7) {
+                    if aabr.size().reduce_max() > 1 && rng.random_bool(0.7) {
                         room.details.push(table(aabr.center(), aabr));
                         false
                     } else {
@@ -1230,7 +1230,7 @@ impl Tavern {
                         room.details.push(Detail::Stage { aabr })
                     }
                     room.detail_areas.retain(|&aabr| {
-                        if aabr.size().reduce_max() > 1 && rng.gen_bool(0.8) {
+                        if aabr.size().reduce_max() > 1 && rng.random_bool(0.8) {
                             room.details.push(table(aabr.center(), aabr));
                             false
                         } else {
@@ -1255,7 +1255,7 @@ impl Tavern {
                         room.details.push(Detail::Bar { aabr })
                     }
                     room.detail_areas.retain(|&aabr| {
-                        if aabr.size().reduce_max() > 1 && rng.gen_bool(0.1) {
+                        if aabr.size().reduce_max() > 1 && rng.random_bool(0.1) {
                             room.details.push(table(aabr.center(), aabr));
                             false
                         } else {

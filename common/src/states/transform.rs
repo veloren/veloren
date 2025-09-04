@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use common_assets::AssetExt;
-use rand::thread_rng;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
@@ -76,7 +76,7 @@ impl CharacterBehavior for Data {
                     let entity_info = EntityInfo::at(data.pos.0).with_entity_config(
                         entity_config.read().clone(),
                         Some(&self.static_data.target),
-                        &mut thread_rng(),
+                        &mut rng(),
                         None,
                     );
 

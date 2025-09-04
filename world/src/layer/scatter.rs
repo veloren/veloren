@@ -1204,7 +1204,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                     .unwrap_or(density);
                 if density > 0.0
                     // Now deterministic, chunk resources are tracked by rtsim
-                    && /*rng.gen::<f32>() < density*/ RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
+                    && /*rng.random::<f32>() < density*/ RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
                     && matches!(&water_mode, Underwater | Floating) == underwater
                 {
                     Some((*kind, snow_covered, water_mode))

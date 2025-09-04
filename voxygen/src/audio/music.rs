@@ -54,7 +54,7 @@ use common::{
 use common_state::State;
 use hashbrown::HashMap;
 use kira::clock::ClockTime;
-use rand::{Rng, prelude::SliceRandom, rngs::ThreadRng, thread_rng};
+use rand::{Rng, prelude::IndexedRandom, rng, rngs::ThreadRng};
 use serde::Deserialize;
 use tracing::{debug, trace, warn};
 
@@ -248,7 +248,7 @@ impl MusicMgr {
         let healths = ecs.read_component::<Health>();
         let groups = ecs.read_component::<Group>();
         let mtm = audio.mtm.read();
-        let mut rng = thread_rng();
+        let mut rng = rng();
 
         if audio.combat_music_enabled {
             if let Some(player_pos) = positions.get(player) {
@@ -582,7 +582,7 @@ impl MusicMgr {
                         )
                 ) && matches!(client.current_site(), SiteKindMeta::Settlement(_))
                 {
-                    rng.gen_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
+                    rng.random_range(120.0 * spacing_multiplier..180.0 * spacing_multiplier)
                 } else if matches!(
                     music_state,
                     MusicState::Activity(MusicActivity::Explore)
@@ -592,7 +592,7 @@ impl MusicMgr {
                         )
                 ) && matches!(client.current_site(), SiteKindMeta::Dungeon(_))
                 {
-                    rng.gen_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
+                    rng.random_range(10.0 * spacing_multiplier..20.0 * spacing_multiplier)
                 } else if matches!(
                     music_state,
                     MusicState::Activity(MusicActivity::Explore)
@@ -602,7 +602,7 @@ impl MusicMgr {
                         )
                 ) && matches!(client.current_site(), SiteKindMeta::Cave)
                 {
-                    rng.gen_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
+                    rng.random_range(20.0 * spacing_multiplier..40.0 * spacing_multiplier)
                 } else if matches!(
                     music_state,
                     MusicState::Activity(MusicActivity::Explore)
@@ -611,14 +611,14 @@ impl MusicMgr {
                             MusicActivity::Combat(CombatIntensity::High)
                         )
                 ) {
-                    rng.gen_range(120.0 * spacing_multiplier..240.0 * spacing_multiplier)
+                    rng.random_range(120.0 * spacing_multiplier..240.0 * spacing_multiplier)
                 } else if matches!(
                     music_state,
                     MusicState::Activity(MusicActivity::Combat(_)) | MusicState::Transition(_, _)
                 ) {
                     0.0
                 } else {
-                    rng.gen_range(30.0 * spacing_multiplier..60.0 * spacing_multiplier)
+                    rng.random_range(30.0 * spacing_multiplier..60.0 * spacing_multiplier)
                 };
         }
         silence_between_tracks_seconds

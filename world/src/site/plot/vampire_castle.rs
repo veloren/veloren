@@ -106,7 +106,7 @@ impl Structure for VampireCastle {
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_vampire_castle"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let brick = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24);
         let roof_color = Fill::Block(Block::new(BlockKind::GlowingRock, Rgb::new(30, 37, 55)));
         let wood = Fill::Brick(BlockKind::Rock, Rgb::new(71, 33, 11), 12);
@@ -2179,7 +2179,7 @@ impl Structure for VampireCastle {
         let boss_pos = center.with_z(castle_base + (castle_height / 2) + 2);
         painter.spawn(EntityInfo::at(boss_pos.as_()).with_asset_expect(
             "common.entity.dungeon.vampire.bloodmoon_bat",
-            &mut thread_rng,
+            &mut rng,
             None,
         ));
         // bats
@@ -2187,7 +2187,7 @@ impl Structure for VampireCastle {
             for _ in 0..2 {
                 painter.spawn(EntityInfo::at(bat_pos.as_()).with_asset_expect(
                     "common.entity.dungeon.vampire.vampire_bat",
-                    &mut thread_rng,
+                    &mut rng,
                     None,
                 ))
             }
@@ -2196,7 +2196,7 @@ impl Structure for VampireCastle {
         for harlequin_pos in harlequin_positions {
             painter.spawn(EntityInfo::at(harlequin_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.vampire.harlequin",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ))
         }
@@ -2207,13 +2207,13 @@ impl Structure for VampireCastle {
 }
 
 pub fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter) {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let entities = [
         "common.entity.dungeon.vampire.strigoi",
         "common.entity.dungeon.vampire.executioner",
         "common.entity.dungeon.vampire.bloodservant",
     ];
-    let random_entity_index = rng.gen_range(0..entities.len());
+    let random_entity_index = rng.random_range(0..entities.len());
     let random_entity = entities[random_entity_index];
     painter.spawn(EntityInfo::at(pos.as_()).with_asset_expect(random_entity, &mut rng, None));
 }

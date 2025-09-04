@@ -89,9 +89,4 @@ impl RngCore for RandomPerm {
         dest.iter_mut()
             .for_each(|b| *b = (self.next_u32() & 0xFF) as u8);
     }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
-        self.fill_bytes(dest);
-        Ok(())
-    }
 }

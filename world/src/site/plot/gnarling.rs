@@ -66,13 +66,13 @@ impl GnarlingFortification {
         let rpos_height = |rpos| land.get_alt_approx(rpos + wpos) as i32;
 
         let name = NameGen::location(rng).generate_gnarling();
-        let seed = rng.gen();
+        let seed = rng.random();
         let origin = wpos;
 
         let wall_radius = {
-            let unit_size = rng.gen_range(10..20);
-            let num_units = rng.gen_range(5..10);
-            let variation = rng.gen_range(0..50);
+            let unit_size = rng.random_range(10..20);
+            let num_units = rng.random_range(5..10);
+            let variation = rng.random_range(0..50);
             unit_size * num_units + variation
         };
 
@@ -81,8 +81,8 @@ impl GnarlingFortification {
         // Tunnels
         let alt = land.get_alt_approx(wpos) as i32;
         let start = wpos.with_z(alt);
-        let boss_room_shift = rng.gen_range(60..110);
-        let end_xy = match rng.gen_range(0..4) {
+        let boss_room_shift = rng.random_range(60..110);
+        let end_xy = match rng.random_range(0..4) {
             0 => Vec2::new(start.x + boss_room_shift, start.y + boss_room_shift),
             1 => Vec2::new(start.x - boss_room_shift, start.y + boss_room_shift),
             2 => Vec2::new(start.x - boss_room_shift, start.y - boss_room_shift),
@@ -119,17 +119,17 @@ impl GnarlingFortification {
             .map(|point| {
                 point.map(|a| {
                     let variation = wall_radius / 5;
-                    a + rng.gen_range(-variation..=variation)
+                    a + rng.random_range(-variation..=variation)
                 })
             })
             .collect::<Vec<_>>();
 
-        let gate_index = rng.gen_range(0..outer_wall_corners.len());
+        let gate_index = rng.random_range(0..outer_wall_corners.len());
 
         let chieftain_indices = {
             // Will not be adjacent to gate and needs two sections, so subtract 4 (3 to get
             // rid of gate and adjacent, 1 to account for taking 2 sections)
-            let chosen = rng.gen_range(0..(outer_wall_corners.len() - 4));
+            let chosen = rng.random_range(0..(outer_wall_corners.len() - 4));
             let index = if gate_index < 2 {
                 chosen + gate_index + 2
             } else if chosen < (gate_index - 2) {
@@ -172,7 +172,7 @@ impl GnarlingFortification {
         for _ in 0..desired_structures {
             if let Some((hut_loc, kind)) = attempt(50, || {
                 // Choose structure kind
-                let structure_kind = match rng.gen_range(0..10) {
+                let structure_kind = match rng.random_range(0..10) {
                     0 => GnarlingStructure::Totem,
                     1..=3 => GnarlingStructure::VeloriteHut,
                     4..=5 => GnarlingStructure::Banner,
@@ -180,7 +180,7 @@ impl GnarlingFortification {
                 };
 
                 // Choose triangle
-                let corner_1_index = rng.gen_range(0..outer_wall_corners.len());
+                let corner_1_index = rng.random_range(0..outer_wall_corners.len());
 
                 if forbidden_indices.contains(&corner_1_index) {
                     return None;
@@ -195,7 +195,7 @@ impl GnarlingFortification {
                         (outer_wall_corners[0], 0)
                     };
 
-                let center_weight: f32 = rng.gen_range(0.15..0.7);
+                let center_weight: f32 = rng.random_range(0.15..0.7);
 
                 // Forbidden and restricted indices are near walls, so don't spawn structures
                 // too close to avoid overlap with wall
@@ -210,7 +210,7 @@ impl GnarlingFortification {
                     0.0..(1.0 - center_weight)
                 };
 
-                let corner_1_weight = rng.gen_range(corner_1_weight_range);
+                let corner_1_weight = rng.random_range(corner_1_weight_range);
                 let corner_2_weight = 1.0 - center_weight - corner_1_weight;
 
                 let structure_center: Vec2<i32> = (center * center_weight
@@ -236,7 +236,7 @@ impl GnarlingFortification {
                 }
             }) {
                 let dir_to_center = Dir::from_vec2(hut_loc.xy()).opposite();
-                let door_rng: u32 = rng.gen_range(0..9);
+                let door_rng: u32 = rng.random_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
                     4..=5 => dir_to_center.rotated_cw(),
@@ -337,7 +337,7 @@ impl GnarlingFortification {
         // tunnel junctions
         for terminal in &self.tunnels.terminals {
             if area.contains_point(terminal.xy() - self.origin) {
-                let chance = dynamic_rng.gen_range(0..10);
+                let chance = dynamic_rng.random_range(0..10);
                 let entities = match chance {
                     0..=4 => vec![mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng)],
                     5 => vec![
@@ -380,7 +380,7 @@ impl GnarlingFortification {
                     GnarlingStructure::Hut => {
                         const NUM_HUT_GNARLINGS: [i32; 2] = [1, 2];
                         let num =
-                            dynamic_rng.gen_range(NUM_HUT_GNARLINGS[0]..=NUM_HUT_GNARLINGS[1]);
+                            dynamic_rng.random_range(NUM_HUT_GNARLINGS[0]..=NUM_HUT_GNARLINGS[1]);
                         for _ in 1..=num {
                             supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                         }
@@ -390,7 +390,7 @@ impl GnarlingFortification {
                         const GOLEM_SPAWN_THRESHOLD: i32 = 2;
                         const VELO_HEIGHT: i32 = 12;
                         const GROUND_HEIGHT: i32 = 8;
-                        let num = dynamic_rng.gen_range(1..=NUM_VELO_GNARLINGS);
+                        let num = dynamic_rng.random_range(1..=NUM_VELO_GNARLINGS);
                         for _ in 1..=num {
                             supplement.add_entity(random_gnarling(
                                 wpos.xy().with_z(wpos.z + VELO_HEIGHT),
@@ -498,7 +498,7 @@ impl GnarlingFortification {
             let wpos = *pos + self.origin;
             if area.contains_point(pos.xy()) {
                 let num =
-                    dynamic_rng.gen_range(NUM_WALLTOWER_STALKERS[0]..=NUM_WALLTOWER_STALKERS[1]);
+                    dynamic_rng.random_range(NUM_WALLTOWER_STALKERS[0]..=NUM_WALLTOWER_STALKERS[1]);
                 for _ in 1..=num {
                     supplement.add_entity(gnarling_stalker(
                         wpos.xy().with_z(wpos.z + FLOOR_HEIGHT),
@@ -1982,7 +1982,7 @@ fn gnarling_logger<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    match rng.gen_range(0..4) {
+    match rng.random_range(0..4) {
         0 => gnarling_stalker(pos, rng),
         1 => gnarling_mugger(pos, rng),
         _ => gnarling_logger(pos, rng),
@@ -1990,7 +1990,7 @@ fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn melee_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    match rng.gen_range(0..2) {
+    match rng.random_range(0..2) {
         0 => gnarling_mugger(pos, rng),
         _ => gnarling_logger(pos, rng),
     }
@@ -2093,15 +2093,15 @@ impl Tunnels {
         let mut connect = false;
 
         for _i in 0..MAX_POINTS {
-            let radius: f32 = rng.gen_range(radius_range.0..radius_range.1);
+            let radius: f32 = rng.random_range(radius_range.0..radius_range.1);
             let radius_sqrd = radius.powi(2);
             if connect {
                 break;
             }
             let sampled_point = Vec3::new(
-                rng.gen_range(min.x - 20.0..max.x + 20.0),
-                rng.gen_range(min.y - 20.0..max.y + 20.0),
-                rng.gen_range(min.z - 20.0..max.z - 7.0),
+                rng.random_range(min.x - 20.0..max.x + 20.0),
+                rng.random_range(min.y - 20.0..max.y + 20.0),
+                rng.random_range(min.z - 20.0..max.z - 7.0),
             );
             let nearest_index = kdtree
                 .nearest_one::<SquaredEuclidean>(&[
@@ -2184,7 +2184,7 @@ mod tests {
     #[test]
     fn test_creating_entities() {
         let pos = Vec3::zero();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         gnarling_mugger(pos, &mut rng);
         gnarling_stalker(pos, &mut rng);

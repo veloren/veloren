@@ -13,7 +13,7 @@ use common::{
     terrain::{Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
-use rand::prelude::*;
+use rand::SeedableRng;
 use rand_chacha::ChaChaRng;
 use std::{borrow::Cow, ops::Deref};
 use vek::*;

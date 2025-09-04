@@ -23,7 +23,7 @@ impl Rule for Migrate {
         rtstate.bind::<Self, OnSetup>(|ctx| {
             let data = &mut *ctx.state.data_mut();
 
-            let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
+            let mut rng = ChaChaRng::from_seed(rand::rng().random::<[u8; 32]>());
 
             // Delete rtsim sites that don't correspond to a world site
             data.sites.sites.retain(|site_id, site| {

@@ -24,7 +24,7 @@ impl Citadel {
         let alt = land.get_alt_approx(wpos) as i32;
 
         let name = NameGen::location(rng).generate_town();
-        let seed = rng.gen();
+        let seed = rng.random();
         let origin = wpos.with_z(alt);
 
         let radius = 150;

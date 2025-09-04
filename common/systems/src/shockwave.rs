@@ -89,7 +89,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let time = read_data.time.0;
         let dt = read_data.dt.0;
@@ -116,7 +116,7 @@ impl<'a> System<'a> for Sys {
                 .owner
                 .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
-            if rng.gen_bool(0.05) {
+            if rng.random_bool(0.05) {
                 emitters.emit(SoundEvent {
                     sound: Sound::new(SoundKind::Shockwave, pos.0, 40.0, time),
                 });
