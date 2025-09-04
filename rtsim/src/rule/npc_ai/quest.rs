@@ -320,15 +320,17 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                 .is_none_or(|site| site.wpos.as_().distance(ctx.npc.wpos.xy()) < 64.0)
         })
         .then(now(move |ctx, _| {
-            ctx.controller.end_quest();
             goto_actor(escorter, 2.0)
                 .then(do_dialogue(escorter, move |session| {
                     session
                         .say_statement(Content::localized("npc-response-quest-escort-complete"))
                         // Now that the quest has ended, resolve it and give the player the deposit
-                        .then(now(move |ctx, _| match resolve_take_deposit(ctx, quest_id, true) {
-                            Ok(deposit) => session.say_statement_with_gift(Content::localized("npc-response-quest-reward"), deposit).boxed(),
-                            Err(()) => finish().boxed(),
+                        .then(now(move |ctx, _| {
+                            ctx.controller.end_quest();
+                            match resolve_take_deposit(ctx, quest_id, true) {
+                                Ok(deposit) => session.say_statement_with_gift(Content::localized("npc-response-quest-reward"), deposit).boxed(),
+                                Err(()) => finish().boxed(),
+                            }
                         }))
                 }))
         }))
