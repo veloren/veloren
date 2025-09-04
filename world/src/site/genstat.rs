@@ -186,6 +186,7 @@ impl GenSite {
 
 /// World site generation statistics.
 /// The map is keyed by site name.
+// TODO: This is a bad idea
 pub struct SitesGenMeta {
     seed: u32,
     sites: DHashMap<String, GenSite>,
@@ -226,13 +227,15 @@ impl SitesGenMeta {
         }
     }
 
-    pub fn add(&mut self, site_name: &str, kind: GenStatSiteKind) {
+    pub fn add<'a>(&mut self, site_name: impl Into<Option<&'a str>>, kind: GenStatSiteKind) {
+        let site_name = site_name.into().unwrap_or("");
         self.sites
             .entry(site_name.to_owned())
             .or_insert_with(|| GenSite::new(kind, site_name));
     }
 
-    pub fn attempt(&mut self, site_name: &String, kind: GenStatPlotKind) {
+    pub fn attempt<'a>(&mut self, site_name: impl Into<Option<&'a str>>, kind: GenStatPlotKind) {
+        let site_name = site_name.into().unwrap_or("");
         if let Some(gensite) = self.sites.get_mut(site_name) {
             gensite.attempt(kind);
         } else {
@@ -240,7 +243,8 @@ impl SitesGenMeta {
         }
     }
 
-    pub fn success(&mut self, site_name: &String, kind: GenStatPlotKind) {
+    pub fn success<'a>(&mut self, site_name: impl Into<Option<&'a str>>, kind: GenStatPlotKind) {
+        let site_name = site_name.into().unwrap_or("");
         if let Some(gensite) = self.sites.get_mut(site_name) {
             gensite.success(kind);
         } else {

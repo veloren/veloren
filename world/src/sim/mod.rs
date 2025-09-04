@@ -2837,7 +2837,7 @@ impl SimChunk {
                     <= index_sites[**id].radius().powi(2)
             })
             .min_by_key(|id| index_sites[**id].origin.distance_squared(wpos2d))
-            .map(|id| index_sites[*id].name().to_string())
+            .and_then(|id| Some(index_sites[*id].name()?.to_string()))
             .or_else(|| self.poi.map(|poi| civs_pois[poi].name.clone()))
     }
 }

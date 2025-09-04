@@ -1419,7 +1419,7 @@ fn resolve_site(
         .index
         .sites
         .iter()
-        .find(|(_, site)| site.name() == key)
+        .find(|(_, site)| site.name() == Some(key))
         .map(|(id, _)| (id, None))
         .ok_or_else(|| Content::localized("command-site-not-found"))
 }

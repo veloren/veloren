@@ -1154,8 +1154,8 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                     #[cfg(debug_assertions)]
                     {
                         if route_context.did_hold || docking_time > Airships::docking_duration() {
-                            let docked_site_name = ctx.index.sites.get(current_approach.site_id).name().to_string();
-                            debug!("{}, Docked at {}, did_hold:{}, extra_hold_dock_time:{}, docking_time:{}", format!("{:?}", ctx.npc_id), docked_site_name, route_context.did_hold, route_context.extra_hold_dock_time, docking_time);
+                            let docked_site_name = ctx.index.sites.get(current_approach.site_id).name();
+                            debug!("{:?}, Docked at {:?}, did_hold:{}, extra_hold_dock_time:{}, docking_time:{}", ctx.npc_id, docked_site_name, route_context.did_hold, route_context.extra_hold_dock_time, docking_time);
                         }
                     }
                     route_context.did_hold = false;
@@ -1178,7 +1178,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                             // get the name of the site the airship is going to next.
                             // The route_context.current_approach_index has not been switched yet,
                             // so the index is the opposite of the current approach index.
-                            let next_site_name = ctx.index.sites.get(next_approach.site_id).name().to_string();
+                            let next_site_name = ctx.index.sites.get(next_approach.site_id).name();
                             ctx.controller.say(
                                 None,
                                 Content::localized_with_args("npc-speech-pilot-announce_next", [
@@ -1186,7 +1186,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                                     "dir",
                                     Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc(),
                                 ),
-                                ("dst", Content::Plain(next_site_name.to_string())),
+                                ("dst", Content::Plain(next_site_name.unwrap_or("unknown").to_string())),
                                 ]),
                             );
                         })
@@ -1200,8 +1200,8 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                     ctx.controller.say(
                     None,
                         Content::localized_with_args("npc-speech-pilot-takeoff", [
-                            ("src", Content::Plain(ctx.index.sites.get(current_approach.site_id).name().to_string())),
-                            ("dst", Content::Plain(ctx.index.sites.get(next_approach.site_id).name().to_string())),
+                            ("src", Content::Plain(ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown").to_string())),
+                            ("dst", Content::Plain(ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown").to_string())),
                         ]),
                     );
                     // This is when the airship target docking position changes to the next approach.

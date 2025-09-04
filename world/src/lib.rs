@@ -198,10 +198,9 @@ impl World {
                         )
                         .with_kind(marker)
                         .with_site_id(site.site_tmp.map(|i| i.id()))
-                        .with_label(
-                            site.site_tmp
-                                .map(|id| Content::Plain(index.sites[id].name().to_string())),
-                        )
+                        .with_label(site.site_tmp.map(|id| {
+                            Content::Plain(index.sites[id].name().unwrap_or("").to_string())
+                        }))
                     })
                     .chain(
                         layer::cave::surface_entrances(&Land::from_sim(self.sim()), index)

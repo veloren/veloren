@@ -54,6 +54,7 @@ pub fn create_deposit<S: State, T: Action<S, bool>>(
     }
 }
 
+#[allow(clippy::result_unit_err)]
 pub fn resolve_take_deposit(
     ctx: &mut NpcCtx,
     quest_id: QuestId,
@@ -220,7 +221,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                                     monster_id.into(),
                                     session.target,
                                 )
-                                .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount as f32)
+                                .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount)
                                 .with_timeout(ctx.time.add_minutes(60.0));
                                 create_quest(quest.clone())
                                     .then(just(move |ctx, _| {
