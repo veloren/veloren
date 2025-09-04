@@ -1,10 +1,7 @@
 use crate::trade::SiteId;
 use common_i18n::Content;
 use serde::{Deserialize, Serialize};
-use std::{
-    any::Any,
-    hash::{BuildHasher, Hash, Hasher},
-};
+use std::{any::Any, hash::Hash};
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -33,9 +30,7 @@ impl Marker {
     /// IDs are used to correlate marker identities by frontends (i.e: to
     /// deduplicate them). They are not, in themselves, meaningful.
     pub fn with_id<T: Any + Hash>(mut self, id: T) -> Self {
-        let mut hasher = ahash::RandomState::with_seed(0).build_hasher();
-        (id.type_id(), id).hash(&mut hasher);
-        self.id = Some(hasher.finish());
+        self.id = Some(ahash::RandomState::with_seed(0).hash_one((id.type_id(), id)));
         self
     }
 
