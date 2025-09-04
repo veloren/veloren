@@ -14,11 +14,12 @@ use client::{self, Client, SiteMarker};
 use common::{
     comp,
     comp::group::Role,
+    map::{Marker, MarkerKind},
     terrain::{CoordinateConversions, TerrainChunkSize},
     trade::Good,
     vol::RectVolSize,
 };
-use common_net::msg::world_msg::{Marker, MarkerKind, PoiKind, SiteId};
+use common_net::msg::world_msg::{PoiKind, SiteId};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     input::MouseButton as ConrodMouseButton,
@@ -26,7 +27,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids,
 };
-use hashbrown::HashMap;
 use i18n::Localization;
 use specs::WorldExt;
 use std::borrow::Cow;
@@ -114,6 +114,11 @@ widget_ids! {
 
 const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we have an improved look
 
+pub struct ExtraMarker {
+    pub recv_pos: Vec2<f32>,
+    pub marker: Marker,
+}
+
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
     client: &'a Client,
@@ -129,7 +134,7 @@ pub struct Map<'a> {
     tooltip_manager: &'a mut TooltipManager,
     location_markers: &'a MapMarkers,
     map_drag: Vec2<f64>,
-    extra_markers: &'a HashMap<Vec2<i32>, Marker>,
+    extra_markers: &'a [ExtraMarker],
 }
 impl<'a> Map<'a> {
     pub fn new(
@@ -144,7 +149,7 @@ impl<'a> Map<'a> {
         tooltip_manager: &'a mut TooltipManager,
         location_markers: &'a MapMarkers,
         map_drag: Vec2<f64>,
-        extra_markers: &'a HashMap<Vec2<i32>, Marker>,
+        extra_markers: &'a [ExtraMarker],
     ) -> Self {
         Self {
             imgs,
@@ -202,7 +207,7 @@ fn get_site_economy(site: &SiteMarker) -> String {
             }
             result
         } else {
-            format!("\nloading economy for\n{:?}", site.marker.id)
+            format!("\nloading economy for\n{:?}", site.marker.site)
         }
     } else {
         "".into()
@@ -902,7 +907,7 @@ impl Widget for Map<'_> {
         let markers = self
             .client
             .markers()
-            .chain(self.extra_markers.values())
+            .chain(self.extra_markers.iter().map(|em| &em.marker))
             .collect::<Vec<_>>();
 
         if state.ids.mmap_site_icons.len() < markers.len() {
@@ -961,7 +966,7 @@ impl Widget for Map<'_> {
             };
 
             let title = marker
-                .name
+                .label
                 .as_ref()
                 .map(|name| i18n.get_content(name))
                 .map(Cow::Owned)
@@ -983,6 +988,7 @@ impl Widget for Map<'_> {
                     MarkerKind::Myrmidon => i18n.get_msg("hud-map-myrmidon"),
                     MarkerKind::DwarvenMine => i18n.get_msg("hud-map-df_mine"),
                     MarkerKind::VampireCastle => i18n.get_msg("hud-map-vampire_castle"),
+                    MarkerKind::Character => i18n.get_msg("hud-map-character"),
                 });
             let (difficulty, desc) = match &marker.kind {
                 MarkerKind::Unknown => (None, i18n.get_msg("hud-map-unknown")),
@@ -1002,8 +1008,9 @@ impl Widget for Map<'_> {
                 MarkerKind::Myrmidon => (Some(4), i18n.get_msg("hud-map-myrmidon")),
                 MarkerKind::DwarvenMine => (Some(5), i18n.get_msg("hud-map-df_mine")),
                 MarkerKind::VampireCastle => (Some(3), i18n.get_msg("hud-map-vampire_castle")),
+                MarkerKind::Character => (None, i18n.get_msg("hud-map-character")),
             };
-            let desc = if let Some(site_id) = marker.id
+            let desc = if let Some(site_id) = marker.site
                 && let Some(site) = self.client.sites().get(&site_id)
             {
                 desc.into_owned() + &get_site_economy(site)
@@ -1029,6 +1036,7 @@ impl Widget for Map<'_> {
 
                 MarkerKind::Bridge => self.imgs.mmap_site_bridge,
                 MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course,
+                MarkerKind::Character => self.imgs.mmap_character,
             })
             .x_y_position_relative_to(
                 state.ids.map_layers[0],
@@ -1054,6 +1062,7 @@ impl Widget for Map<'_> {
                 MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle_hover,
                 MarkerKind::Bridge => self.imgs.mmap_site_bridge_hover,
                 MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
+                MarkerKind::Character => self.imgs.mmap_character_hover,
             })
             .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
@@ -1110,13 +1119,14 @@ impl Widget for Map<'_> {
                 MarkerKind::Tree => show_trees,
                 MarkerKind::Bridge => show_bridges,
                 MarkerKind::GliderCourse => show_glider_courses,
+                MarkerKind::Character => true, // TODO: Toggle for quest markers?
             };
             if show_site {
                 let tooltip_visible = site_btn.set_ext(state.ids.mmap_site_icons[i], ui).1;
 
                 if SHOW_ECONOMY
                     && tooltip_visible
-                    && let Some(site_id) = marker.id
+                    && let Some(site_id) = marker.site
                     && let Some(site) = self.client.sites().get(&site_id)
                     && site.economy.is_none()
                 {
@@ -1162,7 +1172,9 @@ impl Widget for Map<'_> {
                     _ => TEXT_COLOR,
                 }));
                 match &marker.kind {
-                    MarkerKind::Unknown => dif_img.set(state.ids.site_difs[i], ui),
+                    MarkerKind::Unknown | MarkerKind::Character => {
+                        dif_img.set(state.ids.site_difs[i], ui)
+                    },
                     MarkerKind::Town => {
                         if show_towns {
                             dif_img.set(state.ids.site_difs[i], ui)

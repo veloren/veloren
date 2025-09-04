@@ -540,6 +540,8 @@ image_ids! {
         mmap_unknown: "voxygen.element.ui.map.buttons.unknown",
         mmap_unknown_hover: "voxygen.element.ui.map.buttons.unknown_hover",
         mmap_unknown_bg: "voxygen.element.ui.map.buttons.unknown_bg",
+        mmap_character: "voxygen.element.ui.map.buttons.character",
+        mmap_character_hover: "voxygen.element.ui.map.buttons.character_hover",
         mmap_site_town: "voxygen.element.ui.map.buttons.town",
         mmap_site_town_hover: "voxygen.element.ui.map.buttons.town_hover",
         mmap_site_town_bg: "voxygen.element.ui.map.buttons.town_bg",

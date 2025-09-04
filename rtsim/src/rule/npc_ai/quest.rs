@@ -90,6 +90,22 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             );
         }
 
+        // Kill monster quest
+        if let Some(monster) = ctx
+            .state
+            .data()
+            .npcs
+            .iter()
+            // Ensure the NPC is a monster
+            .filter(|(_, npc)| matches!(&npc.role, Role::Monster))
+            // Try to filter out NPCs that are tied up in another quest (imperfect: race conditions)
+            .filter(|(id, _)| ctx.state.data().quests.related_quests(*id).count() == 0)
+            // Find the closest
+            .min_by_key(|(_, npc)| npc.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+        {
+            // todo!();
+        }
+
         if quests.is_empty() {
             session
                 .say_statement(Content::localized("dialogue-quest-nothing"))
@@ -105,7 +121,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
         // Stop if we've reached the destination site
         .stop_if(move |ctx: &mut NpcCtx| ctx.state.data().sites
             .get(dst_site)
-            .map_or(true, |site| site.wpos.as_().distance(ctx.npc.wpos.xy()) < 64.0))
+            .is_none_or(|site| site.wpos.as_().distance(ctx.npc.wpos.xy()) < 64.0))
         .then(now(move |ctx, _| {
             ctx.controller.end_quest();
             // Now that the quest has ended, resolve it...

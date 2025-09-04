@@ -751,7 +751,9 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
                 prev
             },
             _ => {
-                self.prev.take().map(|mut p| p.0.on_cancel(ctx, state));
+                if let Some(mut prev) = self.prev.take() {
+                    prev.0.on_cancel(ctx, state);
+                }
                 self.prev.insert(new)
             },
         };

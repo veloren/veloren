@@ -123,10 +123,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
-use common_net::{
-    msg::world_msg::{Marker, MarkerKind, SiteId},
-    sync::WorldSyncExt,
-};
+use common_net::{msg::world_msg::SiteId, sync::WorldSyncExt};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     text::cursor::Index,
@@ -1325,7 +1322,7 @@ pub struct Hud {
     force_chat: bool,
     clear_chat: bool,
     current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
-    extra_markers: HashMap<Vec2<i32>, Marker>,
+    extra_markers: Vec<map::ExtraMarker>,
 }
 
 impl Hud {
@@ -1467,7 +1464,7 @@ impl Hud {
             force_chat: false,
             clear_chat: false,
             current_dialogue: None,
-            extra_markers: HashMap::default(),
+            extra_markers: Vec::new(),
         }
     }
 
@@ -4638,14 +4635,19 @@ impl Hud {
         self.new_loot_messages.push_back(item);
     }
 
-    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue<true>) {
-        match &dialogue.kind {
-            rtsim::DialogueKind::Marker { wpos, name } => {
-                self.extra_markers.insert(*wpos, Marker {
-                    id: None,
-                    wpos: *wpos,
-                    kind: MarkerKind::Unknown,
-                    name: Some(name.clone()),
+    pub fn dialogue(
+        &mut self,
+        sender: EcsEntity,
+        player_pos: Vec3<f32>,
+        dialogue: rtsim::Dialogue<true>,
+    ) {
+        match dialogue.kind {
+            rtsim::DialogueKind::Marker(marker) => {
+                // Remove any existing markers with the same ID
+                self.extra_markers.retain(|em| !em.marker.is_same(&marker));
+                self.extra_markers.push(map::ExtraMarker {
+                    recv_pos: player_pos.xy(),
+                    marker,
                 });
             },
             rtsim::DialogueKind::End => {
@@ -5026,6 +5028,16 @@ impl Hud {
         ),
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
+
+        // Remove extra map markers that we've wandered a long distance away from
+        if let Some(pos) = client.position() {
+            self.extra_markers.retain(|em| {
+                const EXTRA_DISTANCE: f32 = 100.0;
+                em.marker.wpos.distance(pos.xy())
+                    < em.recv_pos.distance(em.marker.wpos) + EXTRA_DISTANCE
+            });
+        }
+
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};

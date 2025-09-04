@@ -2,10 +2,7 @@ use client::{Client, EcsEntity};
 use common::{comp::ItemKey, rtsim};
 use conrod_core::{
     Borderable, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
-    widget::{
-        self, Button, Image, Rectangle, RoundedRectangle, Scrollbar, Text,
-        primitive::{line, shape},
-    },
+    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids,
 };
 use i18n::Localization;
@@ -15,7 +12,7 @@ use crate::ui::{TooltipManager, fonts::Fonts};
 use inline_tweak::*;
 
 use super::{
-    Show, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN, animate_by_pulse,
+    Show, TEXT_COLOR, animate_by_pulse,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
 };
@@ -170,6 +167,8 @@ impl Widget for Quest<'_> {
         let mut event = None;
 
         // Window BG
+        // TODO: It would be nice to use `RoundedRectangle` here, but unfortunately it
+        // seems to not propagate scroll events properly!
         Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
             .mid_bottom_with_margin_on(ui.window, 80.0)
             .w_h(720.0, 234.0)

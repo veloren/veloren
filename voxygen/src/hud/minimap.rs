@@ -14,13 +14,13 @@ use common::{
     comp,
     comp::group::Role,
     grid::Grid,
+    map::MarkerKind,
     slowjob::SlowJobPool,
     terrain::{
         Block, BlockKind, CoordinateConversions, TerrainChunk, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize},
 };
-use common_net::msg::world_msg::{Marker, MarkerKind};
 use common_state::TerrainChanges;
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color, position,
@@ -415,7 +415,7 @@ pub struct MiniMap<'a> {
     global_state: &'a GlobalState,
     location_markers: &'a MapMarkers,
     voxel_minimap: &'a VoxelMinimap,
-    extra_markers: &'a HashMap<Vec2<i32>, Marker>,
+    extra_markers: &'a [super::map::ExtraMarker],
 }
 
 impl<'a> MiniMap<'a> {
@@ -429,7 +429,7 @@ impl<'a> MiniMap<'a> {
         global_state: &'a GlobalState,
         location_markers: &'a MapMarkers,
         voxel_minimap: &'a VoxelMinimap,
-        extra_markers: &'a HashMap<Vec2<i32>, Marker>,
+        extra_markers: &'a [super::map::ExtraMarker],
     ) -> Self {
         Self {
             client,
@@ -676,7 +676,7 @@ impl Widget for MiniMap<'_> {
             let markers = self
                 .client
                 .markers()
-                .chain(self.extra_markers.values())
+                .chain(self.extra_markers.iter().map(|em| &em.marker))
                 .collect::<Vec<_>>();
 
             // Map icons
@@ -730,15 +730,9 @@ impl Widget for MiniMap<'_> {
                     None => continue,
                 };
                 let difficulty = match &marker.kind {
-                    MarkerKind::Unknown => None,
-                    MarkerKind::Town => None,
                     MarkerKind::ChapelSite => Some(4),
                     MarkerKind::Terracotta => Some(5),
-                    MarkerKind::Castle => None,
-                    MarkerKind::Cave => None,
-                    MarkerKind::Tree => None,
                     MarkerKind::Gnarling => Some(0),
-                    MarkerKind::Bridge | MarkerKind::GliderCourse => None,
                     MarkerKind::Adlet => Some(1),
                     MarkerKind::Sahagin => Some(2),
                     MarkerKind::Haniwa => Some(3),
@@ -746,6 +740,7 @@ impl Widget for MiniMap<'_> {
                     MarkerKind::Myrmidon => Some(4),
                     MarkerKind::DwarvenMine => Some(5),
                     MarkerKind::VampireCastle => Some(2),
+                    _ => None,
                 };
 
                 Image::new(match &marker.kind {
@@ -766,6 +761,7 @@ impl Widget for MiniMap<'_> {
                     MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon_bg,
                     MarkerKind::DwarvenMine => self.imgs.mmap_site_mine_bg,
                     MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle_bg,
+                    MarkerKind::Character => self.imgs.mmap_character,
                 })
                 .x_y_position_relative_to(
                     state.ids.map_layers[0],
@@ -801,6 +797,7 @@ impl Widget for MiniMap<'_> {
                     MarkerKind::Myrmidon => self.imgs.mmap_site_myrmidon,
                     MarkerKind::DwarvenMine => self.imgs.mmap_site_mine,
                     MarkerKind::VampireCastle => self.imgs.mmap_site_vampire_castle,
+                    MarkerKind::Character => self.imgs.mmap_character,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)

@@ -8,6 +8,7 @@ use common::{
     character::CharacterId,
     comp::{self, agent::FlightMode, item::ItemDef},
     grid::Grid,
+    map::Marker,
     resources::Time,
     rtsim::{
         Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
@@ -241,16 +242,11 @@ impl Controller {
     }
 
     /// Provide a location marker as part of a dialogue.
-    pub fn dialogue_marker(
-        &mut self,
-        session: DialogueSession,
-        wpos: Vec2<i32>,
-        name: comp::Content,
-    ) {
+    pub fn dialogue_marker(&mut self, session: DialogueSession, marker: Marker) {
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
-                kind: DialogueKind::Marker { wpos, name },
+                kind: DialogueKind::Marker(marker),
             }));
     }
 }

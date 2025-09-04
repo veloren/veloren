@@ -27,6 +27,7 @@ use common::{
     comp::Alignment,
     generation::EntityInfo,
     lottery::Lottery,
+    map::MarkerKind,
     spiral::Spiral2d,
     store::{Id, Store},
     terrain::{
@@ -35,7 +36,6 @@ use common::{
     },
     vol::RectVolSize,
 };
-use common_net::msg::world_msg;
 use hashbrown::DefaultHashBuilder;
 use namegen::NameGen;
 use rand::{SeedableRng, prelude::*, seq::IndexedRandom};
@@ -151,27 +151,27 @@ impl SiteKind {
         )
     }
 
-    pub fn marker(&self) -> Option<world_msg::MarkerKind> {
+    pub fn marker(&self) -> Option<MarkerKind> {
         match self {
             SiteKind::Refactor
             | SiteKind::CliffTown
             | SiteKind::SavannahTown
             | SiteKind::CoastalTown
-            | SiteKind::DesertCity => Some(world_msg::MarkerKind::Town),
-            SiteKind::Citadel => Some(world_msg::MarkerKind::Castle),
-            SiteKind::Bridge(_, _) => Some(world_msg::MarkerKind::Bridge),
-            SiteKind::GiantTree => Some(world_msg::MarkerKind::Tree),
-            SiteKind::Gnarling => Some(world_msg::MarkerKind::Gnarling),
-            SiteKind::DwarvenMine => Some(world_msg::MarkerKind::DwarvenMine),
-            SiteKind::ChapelSite => Some(world_msg::MarkerKind::ChapelSite),
-            SiteKind::Terracotta => Some(world_msg::MarkerKind::Terracotta),
-            SiteKind::GliderCourse => Some(world_msg::MarkerKind::GliderCourse),
-            SiteKind::Cultist => Some(world_msg::MarkerKind::Cultist),
-            SiteKind::Sahagin => Some(world_msg::MarkerKind::Sahagin),
-            SiteKind::Myrmidon => Some(world_msg::MarkerKind::Myrmidon),
-            SiteKind::Adlet => Some(world_msg::MarkerKind::Adlet),
-            SiteKind::Haniwa => Some(world_msg::MarkerKind::Haniwa),
-            SiteKind::VampireCastle => Some(world_msg::MarkerKind::VampireCastle),
+            | SiteKind::DesertCity => Some(MarkerKind::Town),
+            SiteKind::Citadel => Some(MarkerKind::Castle),
+            SiteKind::Bridge(_, _) => Some(MarkerKind::Bridge),
+            SiteKind::GiantTree => Some(MarkerKind::Tree),
+            SiteKind::Gnarling => Some(MarkerKind::Gnarling),
+            SiteKind::DwarvenMine => Some(MarkerKind::DwarvenMine),
+            SiteKind::ChapelSite => Some(MarkerKind::ChapelSite),
+            SiteKind::Terracotta => Some(MarkerKind::Terracotta),
+            SiteKind::GliderCourse => Some(MarkerKind::GliderCourse),
+            SiteKind::Cultist => Some(MarkerKind::Cultist),
+            SiteKind::Sahagin => Some(MarkerKind::Sahagin),
+            SiteKind::Myrmidon => Some(MarkerKind::Myrmidon),
+            SiteKind::Adlet => Some(MarkerKind::Adlet),
+            SiteKind::Haniwa => Some(MarkerKind::Haniwa),
+            SiteKind::VampireCastle => Some(MarkerKind::VampireCastle),
 
             SiteKind::PirateHideout
             | SiteKind::JungleRuin

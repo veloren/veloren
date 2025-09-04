@@ -401,7 +401,7 @@ impl SessionState {
                 },
                 client::Event::Dialogue(sender_uid, dialogue) => {
                     if let Some(sender) = client.state().ecs().entity_from_uid(sender_uid) {
-                        self.hud.dialogue(sender, dialogue);
+                        self.hud.dialogue(sender, pos, dialogue);
                     }
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),

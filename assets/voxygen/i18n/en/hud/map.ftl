@@ -24,6 +24,8 @@ hud-map-df_mine = Mine
 hud-map-plaza = Town square
 hud-map-workshop = Workshop
 hud-map-airship_dock = Airship dock
+hud-map-character = Character
+hud-map-character-label = { $name }'s last known location
 hud-map-difficulty_dungeon =
     Dungeon
 

@@ -111,6 +111,12 @@ impl Data {
     pub fn write_to<W: Write>(&self, mut writer: W) -> Result<(), WriteError> {
         rmp_serde::encode::write_named(&mut writer, self)
     }
+
+    /// Performm whatever initial preparation is required for rtsim data to be
+    /// ready for simulation.
+    ///
+    /// This might include populating caches, normalising data, etc.
+    pub fn prepare(&mut self) { self.quests.prepare(); }
 }
 
 fn rugged_ser_enum_map<

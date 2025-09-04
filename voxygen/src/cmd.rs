@@ -891,8 +891,9 @@ fn complete_site(mut part: &str, client: &Client, i18n: &Localization) -> Vec<St
         .sites()
         .values()
         .filter_map(|site| match site.marker.kind {
-            common_net::msg::world_msg::MarkerKind::Cave => None,
-            _ => Some(i18n.get_content(site.marker.name.as_ref()?)),
+            common::map::MarkerKind::Cave => None,
+            // TODO: A bit of a hack: no guarantee that label will be the site name!
+            _ => Some(i18n.get_content(site.marker.label.as_ref()?)),
         })
         .filter(|name| name.starts_with(part))
         .map(|name| {

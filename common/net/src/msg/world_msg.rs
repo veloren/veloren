@@ -1,4 +1,4 @@
-use common::{comp::Content, grid::Grid, terrain::TerrainChunk, trade::Good};
+use common::{grid::Grid, map::Marker, terrain::TerrainChunk, trade::Good};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 use vek::*;
@@ -130,36 +130,6 @@ pub struct WorldMapMsg {
 }
 
 pub type SiteId = common::trade::SiteId;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Marker {
-    pub id: Option<SiteId>,
-    pub kind: MarkerKind,
-    pub wpos: Vec2<i32>,
-    pub name: Option<Content>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[repr(u8)]
-pub enum MarkerKind {
-    Town,
-    Castle,
-    Cave,
-    Tree,
-    Gnarling,
-    GliderCourse,
-    ChapelSite,
-    Terracotta,
-    Bridge,
-    Adlet,
-    Haniwa,
-    DwarvenMine,
-    Cultist,
-    Sahagin,
-    VampireCastle,
-    Myrmidon,
-    Unknown,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EconomyInfo {

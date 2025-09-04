@@ -55,6 +55,7 @@ use common::{
         compass::{Direction, Distance},
         item::ItemDef,
     },
+    map::{Marker, MarkerKind},
     match_some,
     path::Path,
     rtsim::{

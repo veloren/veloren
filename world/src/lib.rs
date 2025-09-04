@@ -51,6 +51,7 @@ use common::{
     comp::Content,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
     lod,
+    map::{Marker, MarkerKind},
     resources::TimeOfDay,
     rtsim::TerrainResource,
     spiral::Spiral2d,
@@ -192,25 +193,19 @@ impl World {
                     .values()
                     .filter_map(|site| Some((site.kind.marker()?, site)))
                     .map(|(marker, site)| {
-                        world_msg::Marker {
-                            id: site.site_tmp.map(|i| i.id()),
-                            name: site
-                                .site_tmp
+                        Marker::at(
+                            (site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).as_(),
+                        )
+                        .with_kind(marker)
+                        .with_site_id(site.site_tmp.map(|i| i.id()))
+                        .with_label(
+                            site.site_tmp
                                 .map(|id| Content::Plain(index.sites[id].name().to_string())),
-                            // TODO: Probably unify these, at some point
-                            kind: marker,
-                            wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                        }
+                        )
                     })
                     .chain(
-                        layer::cave::surface_entrances(&Land::from_sim(self.sim()), index).map(
-                            |wpos| world_msg::Marker {
-                                id: None,
-                                name: None,
-                                kind: world_msg::MarkerKind::Cave,
-                                wpos,
-                            },
-                        ),
+                        layer::cave::surface_entrances(&Land::from_sim(self.sim()), index)
+                            .map(|wpos| Marker::at(wpos.as_()).with_kind(MarkerKind::Cave)),
                     )
                     .collect(),
                 possible_starting_sites: {

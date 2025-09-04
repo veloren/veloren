@@ -233,6 +233,38 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         let mut responses = Vec::new();
 
+        for actor in ctx
+            .state
+            .data()
+            .quests
+            .related_actors(session.target)
+            .filter(|actor| *actor != Actor::Npc(ctx.npc_id))
+            .take(32)
+        // Avoid mentioning too many actors
+        {
+            if let Some(pos) = util::locate_actor(ctx, actor)
+                && let Some(name) = util::actor_name(ctx, actor)
+            {
+                responses.push((
+                    Content::localized("dialogue-direction-actor").with_arg("name", name.clone()),
+                    now(move |ctx, _| {
+                        ctx.controller.dialogue_marker(
+                            session,
+                            Marker::at(pos.xy())
+                                .with_label(
+                                    Content::localized("hud-map-character-label")
+                                        .with_arg("name", name.clone()),
+                                )
+                                .with_kind(MarkerKind::Character)
+                                .with_id(actor),
+                        );
+                        session.say_statement(Content::localized("npc-response-directions"))
+                    })
+                    .boxed(),
+                ));
+            }
+        }
+
         if let Some(current_site) = ctx.npc.current_site
             && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
         {
@@ -247,8 +279,8 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
                         }) {
                             ctx.controller.dialogue_marker(
                                 session,
-                                ws.tile_center_wpos(p.root_tile()),
-                                plot_name(p),
+                                Marker::at(ws.tile_center_wpos(p.root_tile()).as_())
+                                    .with_label(plot_name(p)),
                             );
                             session.say_statement(Content::localized("npc-response-directions"))
                         } else {

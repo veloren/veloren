@@ -176,7 +176,9 @@ type EventHandlersOf<E> = Vec<
 >;
 
 impl RtState {
-    pub fn new(data: Data) -> Self {
+    pub fn new(mut data: Data) -> Self {
+        data.prepare();
+
         let mut this = Self {
             resources: SendSyncAnyMap::new(),
             rules: SendSyncAnyMap::new(),

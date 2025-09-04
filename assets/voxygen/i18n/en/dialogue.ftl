@@ -27,6 +27,7 @@ dialogue-direction-tavern = The local tavern
 dialogue-direction-plaza = The nearest town square
 dialogue-direction-workshop = A workshop
 dialogue-direction-airship_dock = The airship dock
+dialogue-direction-actor = Where is { $name }?
 
 dialogue-question-quest_req =
     .a0 = Do you have work for me?

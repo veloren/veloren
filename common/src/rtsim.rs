@@ -17,6 +17,7 @@ use crate::{
     assets::AssetExt,
     character::CharacterId,
     comp::{agent::FlightMode, inventory::item::ItemDef},
+    map::Marker,
     util::Dir,
 };
 use common_i18n::Content;
@@ -334,10 +335,7 @@ pub enum DialogueKind {
         response: Response,
         response_id: u16,
     },
-    Marker {
-        wpos: Vec2<i32>,
-        name: Content,
-    },
+    Marker(Marker),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -28,6 +28,14 @@ pub fn actor_exists(ctx: &NpcCtx, actor: Actor) -> bool {
     }
 }
 
+pub fn actor_name(ctx: &NpcCtx, actor: Actor) -> Option<String> {
+    match actor {
+        Actor::Npc(npc_id) => ctx.state.data().npcs.get(npc_id).map(|npc| npc.get_name()),
+        // TODO
+        Actor::Character(_) => None,
+    }
+}
+
 pub fn talk<S: State>(tgt: Actor) -> impl Action<S> + Clone {
     just(move |ctx, _| ctx.controller.do_talk(tgt)).debug(|| "talking")
 }

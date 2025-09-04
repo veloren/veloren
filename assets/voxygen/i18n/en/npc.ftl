@@ -470,7 +470,7 @@ npc-response-dislike_you =
 npc-question-directions =
     .a0 = Where do you want to go?
     .a1 = What are you looking for?
-npc-response-directions = I've marked it on your map. Good luck!
+npc-response-directions = I've marked your map. Good luck!
 npc-response-doesnt_exist = We don't have one around these parts.
 
 ## NPC reactions
