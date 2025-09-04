@@ -317,7 +317,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                 .data()
                 .sites
                 .get(dst_site)
-                .is_none_or(|site| site.wpos.as_().distance(ctx.npc.wpos.xy()) < 64.0)
+                .is_none_or(|site| site.wpos.as_().distance_squared(ctx.npc.wpos.xy()) < 150.0f32.powi(2))
         })
         .then(now(move |ctx, _| {
             goto_actor(escorter, 2.0)
