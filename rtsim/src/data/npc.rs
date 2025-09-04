@@ -317,7 +317,7 @@ pub struct Npc {
 /// A job is a long-running, persistent, non-stackable occupation that an NPC
 /// must persistently attend to, but may be temporarily interrupted from. NPCs
 /// will recurrently attempt to perform tasks that relate to their job.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
 pub enum Job {
     /// An NPC can temporarily become a hired hand (`(hiring_actor,
     /// termination_time)`).

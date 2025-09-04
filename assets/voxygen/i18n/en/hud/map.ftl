@@ -26,6 +26,7 @@ hud-map-workshop = Workshop
 hud-map-airship_dock = Airship dock
 hud-map-character = Character
 hud-map-character-label = { $name }'s last known location
+hud-map-creature-label = Last known location of { $body }
 hud-map-difficulty_dungeon =
     Dungeon
 

@@ -66,7 +66,7 @@ impl Quests {
 
     pub fn get(&self, id: QuestId) -> Option<&Quest> { self.quests.get(&id) }
 
-    pub fn related_quests(&self, actor: impl Into<Actor>) -> impl Iterator<Item = QuestId> + '_ {
+    pub fn related_to(&self, actor: impl Into<Actor>) -> impl Iterator<Item = QuestId> + '_ {
         match self.related_quests.get(&actor.into()) {
             Some(quests) => Either::Left(
                 quests.iter()
@@ -85,7 +85,7 @@ impl Quests {
     ) -> impl ExactSizeIterator<Item = Actor> + '_ {
         let actor = actor.into();
         let mut related = HashSet::new();
-        for quest_id in self.related_quests(actor) {
+        for quest_id in self.related_to(actor) {
             if let Some(quest) = self.quests.get(&quest_id)
                 // resolved quests aren't relevant
                 && quest.resolution().is_none()
@@ -124,7 +124,7 @@ pub struct Quest {
     /// In the future, this can be extended to include factions, multiple
     /// actors, or even some system in the world (such as a noticeboard
     /// system, so that players can assign one-another quests).
-    arbiter: Actor,
+    pub arbiter: Actor,
 
     /// A machine-intelligible description of the quest and its completion
     /// conditions.
@@ -145,6 +145,53 @@ pub struct Quest {
 }
 
 impl Quest {
+    /// Create a new escort quest that requires an escoter to travel with an
+    /// escortee to a destination.
+    ///
+    /// The escortee is considered to be the quest arbiter.
+    pub fn escort(escortee: Actor, escorter: Actor, to: SiteId) -> Self {
+        Self {
+            arbiter: escortee,
+            kind: QuestKind::Escort {
+                escortee,
+                escorter,
+                to,
+            },
+            timeout: None,
+            outcome: QuestOutcome::default(),
+            res: QuestRes(AtomicU8::new(0)),
+        }
+    }
+
+    /// Create a new slay quest that requires the slayer to kill a target.
+    pub fn slay(arbiter: Actor, target: Actor, slayer: Actor) -> Self {
+        Self {
+            arbiter,
+            kind: QuestKind::Slay { target, slayer },
+            timeout: None,
+            outcome: QuestOutcome::default(),
+            res: QuestRes(AtomicU8::new(0)),
+        }
+    }
+
+    /// Deposit an item (usually for payment to whoever completes the quest) in
+    /// the quest for safekeeping.
+    ///
+    /// Deposits are paid out to the arbiter when a quest is resolved. The
+    /// arbiter usually passes the deposit on to the character that
+    /// completed the quest, but this is not the concern of the quest system.
+    pub fn with_deposit(mut self, item: ItemResource, amount: f32) -> Self {
+        self.outcome.deposit = Some((item, amount));
+        self
+    }
+
+    /// Add a timeout to the quest, beyond which the quest is considered to be
+    /// failed.
+    pub fn with_timeout(mut self, time: Time) -> Self {
+        self.timeout = Some(time);
+        self
+    }
+
     /// Resolve a quest.
     ///
     /// Quest resolution is monotonic and so can only be done once: all future
@@ -198,6 +245,10 @@ impl Quest {
             } => {
                 f(*escortee);
                 f(*escorter);
+            },
+            QuestKind::Slay { target, slayer } => {
+                f(*target);
+                f(*slayer);
             },
         }
     }
@@ -253,42 +304,8 @@ pub enum QuestKind {
         escorter: Actor,
         to: SiteId,
     },
-}
-
-impl Quest {
-    /// Create a new escort quest that requires an escoter to travel with an
-    /// escortee to a destination.
-    ///
-    /// The escortee is considered to be the quest arbiter.
-    pub fn escort(escortee: Actor, escorter: Actor, to: SiteId) -> Self {
-        Self {
-            arbiter: escortee,
-            kind: QuestKind::Escort {
-                escortee,
-                escorter,
-                to,
-            },
-            timeout: None,
-            outcome: QuestOutcome::default(),
-            res: QuestRes(AtomicU8::new(0)),
-        }
-    }
-
-    /// Deposit an item (usually for payment to whoever completes the quest) in
-    /// the quest for safekeeping.
-    ///
-    /// Deposits are paid out to the arbiter when a quest is resolved. The
-    /// arbiter usually passes the deposit on to the character that
-    /// completed the quest, but this is not the concern of the quest system.
-    pub fn with_deposit(mut self, item: ItemResource, amount: f32) -> Self {
-        self.outcome.deposit = Some((item, amount));
-        self
-    }
-
-    /// Add a timeout to the quest, beyond which the quest is considered to be
-    /// failed.
-    pub fn with_timeout(mut self, time: Time) -> Self {
-        self.timeout = Some(time);
-        self
-    }
+    Slay {
+        target: Actor,
+        slayer: Actor,
+    },
 }

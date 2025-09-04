@@ -6,6 +6,7 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
 
         // Job-dependent responses
         match &ctx.npc.job {
+            // TODO: Implement hiring as a quest?
             Some(Job::Hired(by, _)) if *by == tgt => {
                 responses.push((
                     Response::from(Content::localized("dialogue-cancel_hire")),
@@ -15,25 +16,7 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                         .boxed(),
                 ));
             },
-            Some(Job::Quest(quest_id)) => {
-                match ctx.state.data().quests.get(*quest_id).map(|q| &q.kind) {
-                    Some(QuestKind::Escort { escorter, to, .. }) if *escorter == tgt => {
-                        let to_name = util::site_name(ctx, *to).unwrap_or_default();
-                        responses.push((
-                            Response::from(Content::localized(
-                                "dialogue-question-quest-escort-where",
-                            )),
-                            session
-                                .say_statement(Content::localized_with_args(
-                                    "dialogue-quest-escort-where",
-                                    [("dst", to_name)],
-                                ))
-                                .boxed(),
-                        ));
-                    },
-                    _ => {},
-                }
-            },
+            Some(_) => {},
             None => {
                 responses.push((
                     Response::from(Content::localized("dialogue-question-quest_req")),
@@ -48,7 +31,90 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                     ));
                 }
             },
-            _ => {},
+        }
+
+        for quest_id in ctx.state.data().quests.related_to(ctx.npc_id) {
+            let data = ctx.state.data();
+            let Some(quest) = data.quests.get(quest_id) else {
+                continue;
+            };
+            match &quest.kind {
+                QuestKind::Escort {
+                    escortee,
+                    escorter,
+                    to,
+                } if *escortee == Actor::Npc(ctx.npc_id) && *escorter == tgt => {
+                    let to_name = util::site_name(ctx, *to).unwrap_or_default();
+                    responses.push((
+                        Response::from(Content::localized("dialogue-question-quest-escort-where")),
+                        session
+                            .say_statement(Content::localized_with_args(
+                                "npc-response-quest-escort-where",
+                                [("dst", to_name)],
+                            ))
+                            .boxed(),
+                    ));
+                },
+                QuestKind::Slay { target, slayer }
+                    if quest.arbiter == Actor::Npc(ctx.npc_id) && *slayer == tgt =>
+                {
+                    // TODO: Work for non-NPCs?
+                    let Actor::Npc(target_npc_id) = target else {
+                        continue;
+                    };
+                    // Is the monster dead?
+                    if let Some(target_npc) = data.npcs.get(*target_npc_id) {
+                        let marker = Marker::at(target_npc.wpos.xy())
+                            .with_id(*target)
+                            .with_label(
+                                Content::localized("hud-map-creature-label")
+                                    .with_arg("body", target_npc.body.localize_npc()),
+                            );
+                        responses.push((
+                            Response::from(
+                                Content::localized("dialogue-question-quest-slay-where")
+                                    .with_arg("body", target_npc.body.localize_npc()),
+                            ),
+                            just(move |ctx, _| {
+                                ctx.controller.dialogue_marker(session, marker.clone())
+                            })
+                            .then(
+                                session.say_statement(
+                                    Content::localized("npc-response-quest-slay-where")
+                                        .with_arg("body", target_npc.body.localize_npc()),
+                                ),
+                            )
+                            .boxed(),
+                        ));
+                    } else {
+                        responses.push((
+                            Response::from(Content::localized(
+                                "dialogue-question-quest-slay-claim",
+                            )),
+                            now(move |ctx, _| {
+                                match quest::resolve_take_deposit(ctx, quest_id, true) {
+                                    Ok(deposit) => goto_actor(tgt, 2.0)
+                                        .then(do_dialogue(tgt, move |session| {
+                                            session
+                                                .say_statement(Content::localized(
+                                                    "npc-response-quest-slay-thanks",
+                                                ))
+                                                .then(session.say_statement_with_gift(
+                                                    Content::localized("npc-response-quest-reward"),
+                                                    deposit.clone(),
+                                                ))
+                                        }))
+                                        .boxed(),
+                                    // Following finished but quest was already resolved?!
+                                    Err(()) => finish().boxed(),
+                                }
+                            })
+                            .boxed(),
+                        ));
+                    }
+                },
+                _ => {},
+            }
         }
 
         // General informational questions

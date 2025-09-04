@@ -200,7 +200,9 @@ fn farmer_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Food | Good::Coin)
+    })
 }
 
 fn herbalist_loadout(
@@ -218,7 +220,9 @@ fn chef_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+    trader_loadout(loadout_builder, economy, |good| {
+        matches!(good, Good::Food | Good::Coin)
+    })
 }
 
 fn blacksmith_loadout(
@@ -227,7 +231,7 @@ fn blacksmith_loadout(
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Tools | Good::Armor)
+        matches!(good, Good::Tools | Good::Armor | Good::Coin)
     })
 }
 
@@ -237,7 +241,7 @@ fn alchemist_loadout(
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
     trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Potions)
+        matches!(good, Good::Potions | Good::Coin)
     })
 }
 

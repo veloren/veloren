@@ -1509,8 +1509,9 @@ fn check_for_enemies<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<
 
 fn react_to_events<S: State>(ctx: &mut NpcCtx, _: &mut S) -> Option<impl Action<S> + use<S>> {
     check_inbox::<S>(ctx)
-        .map(|action| action.boxed())
-        .or_else(|| check_for_enemies(ctx).map(|action| action.boxed()))
+        .map(Action::boxed)
+        .or_else(|| check_for_enemies(ctx).map(Action::boxed))
+        .or_else(|| quest::check_for_timeouts(ctx).map(Action::boxed))
 }
 
 fn humanoid() -> impl Action<DefaultState> {
@@ -1704,21 +1705,30 @@ fn bird_large() -> impl Action<DefaultState> {
 }
 
 fn monster() -> impl Action<DefaultState> {
-    now(|ctx, bearing: &mut Vec2<f32>| {
-        *bearing = bearing
-            .map(|e| e + ctx.rng.random_range(-0.1..0.1))
-            .try_normalized()
-            .unwrap_or_default();
-        let bearing_dist = 24.0;
-        let mut pos = ctx.npc.wpos.xy() + *bearing * bearing_dist;
-        let is_deep_water = ctx
-            .world
-            .sim()
-            .get(pos.as_().wpos_to_cpos())
-            .is_none_or(|c| {
-                c.alt - c.water_alt < -10.0 && (c.river.is_ocean() || c.river.is_lake())
-            });
-        if !is_deep_water {
+    now(
+        |ctx, (bearing, home_pos): &mut (Vec2<f32>, Option<Vec2<f32>>)| {
+            let home_pos = home_pos
+            // Move home locations every 10 minutes or so
+            .filter(|_| !ctx.rng.random_bool(ctx.dt as f64 / 600.0))
+            // Choose a new home location some distance away
+            .unwrap_or_else(|| ctx.npc.wpos.xy().map(|e| e + ctx.rng.random_range(-500.0..500.0)));
+
+            // Tend to want to move back towards the home location
+            *bearing += (home_pos - ctx.npc.wpos.xy()) * ctx.dt;
+            *bearing = bearing
+                .map(|e| e + ctx.rng.random_range(-1.0..1.0) * ctx.dt)
+                .try_normalized()
+                .unwrap_or_default();
+            let bearing_dist = 24.0;
+            let mut pos = ctx.npc.wpos.xy() + *bearing * bearing_dist;
+            let is_deep_water = ctx
+                .world
+                .sim()
+                .get(pos.as_().wpos_to_cpos())
+                .is_none_or(|c| {
+                    c.alt - c.water_alt < -10.0 && (c.river.is_ocean() || c.river.is_lake())
+                });
+            if !is_deep_water {
             goto_2d(pos, 0.7, 8.0)
         } else {
             *bearing *= -1.0;
@@ -1735,9 +1745,10 @@ fn monster() -> impl Action<DefaultState> {
             let bearing = *bearing;
             move || format!("Moving with a bearing of {:?}", bearing)
         })
-    })
+        },
+    )
     .repeat()
-    .with_state(Vec2::<f32>::zero())
+    .with_state((Vec2::<f32>::zero(), None))
     .map(|_, _| ())
 }
 

@@ -132,7 +132,7 @@ impl<'a> Quest<'a> {
 
         Text::new(&display_text)
             .top_left_with_margins_on(state.ids.text_align, 16.0, 16.0)
-            .w(397.0)
+            .w(429.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)

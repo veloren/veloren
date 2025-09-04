@@ -347,6 +347,10 @@ npc-speech-merchant_sell_directed =
     .a0 = You there! Are you in need of a new thingamabob?
     .a1 = Are you hungry? I'm sure I've got some cheese you can buy.
     .a2 = You look like you could do with some new armour!
+npc-speech-wait_for_me =
+    .a0 = Wait for me!
+    .a1 = You're moving too fast for me!
+    .a2 = Give me a chance to catch up!
 
 ## NPC site hints
 ## Available variables:
@@ -455,6 +459,47 @@ npc-dialogue-hire_expired =
 npc-dialogue-hire_cancelled_unhappy = I can't continue working for you in good conscience. Goodbye.
 npc-dialogue-hire_arrive_tavern = I'll hang out at { $tavern } for a bit, see you later!
 npc-response-no_problem = No problem! See you later.
+
+npc-response-quest-nothing =
+    .a0 = Nothing right now, sorry.
+    .a1 = Not right now.
+    .a2 = Maybe later!
+npc-response-quest-rejected =
+    .a0 = Whatever! You do you.
+    .a1 = No skin off my nose.
+    .a2 = Beggars can't be choosers. Stop wasting my time!
+npc-response-quest-reward =
+    .a0 = Here's your reward.
+    .a1 = Here's the payment for your efforts.
+npc-response-quest-timeout =
+    .a0 = You've run out of time, our deal is off!
+    .a1 = Time's up, no money for you!
+
+npc-response-quest-escort-ask =
+    .a0 = Could you lead me to { $dst }? I'll pay you { $coins } coins! I need to get there in { $mins } minutes!
+    .a1 = I want to go to { $dst } in the next { $mins } minutes. Could you take me there for { $coins } coins?
+npc-response-quest-escort-start =
+    .a0 = Lead on then!
+    .a1 = Excellent. You first, I'll follow along.
+npc-response-quest-escort-where =
+    .a0 = We're heading to { $dst }.
+    .a1 = I'm trying to get to { $dst }.
+    .a2 = We're going to { $dst }, right?
+npc-response-quest-escort-complete =
+    .a0 = We've arrived. Thank you!
+    .a1 = Thank you for leading me here. See you later!
+
+npc-response-quest-slay-ask =
+    .a0 = The people here are being terrorised by a { $body }! It must be slain! I'll pay you { $coins } coins for the job.
+    .a1 = A { $body } lurks not far from here. We can't live like this! { $coins } coins are on offer if you'll do the deed!
+npc-response-quest-slay-start =
+    .a0 = Return to me when the deed is done and you shall receive your payment. I've marked the beast's last known location on your map.
+    .a1 = I've marked your map so you know where to go. Godspeed! Your payment awaits you when you return!
+npc-response-quest-slay-where = I've updated the location of the { $body } on your map.
+npc-response-quest-slay-thanks =
+    .a0 = Thank you! The people here will be safe once more.
+    .a1 = You have my gratitude... and my money!
+    .a2 = You've done us a huge favour, many thanks.
 
 npc-response-like_you =
     .a0 = I like you!
