@@ -9,6 +9,59 @@
             2: Sprite(LanternAirshipWallBrownS(4)),
             3: Sprite(LanternAirshipWallBrownS(6)),
             4: Sprite(LanternAirshipWallBrownS(2)),
+            5: Choice([
+                (0.2, SpriteWithCfg(CommonLockedChest(), (
+                    loot_table: Some("common.loot_tables.sprite.chest_barn_locked"),
+                    unlock: Some(Consumes(Simple("common.items.utility.lockpick.lockpick_copper"))),
+                ))),
+                (0.4, SpriteWithCfg(Chest(), (
+                    loot_table: Some("common.loot_tables.sprite.chest_barn"),
+                ))),
+                (0.6, Choice([
+                    (0.2, Sprite(Bedroll())),
+                    (0.5, Sprite(BarrelWoodWater())),
+                    (0.5, Sprite(BucketWoodM())),
+                    (1.0, Sprite(Hay())),
+                ])),
+                (0.75, Choice([
+                    (1.0, Sprite(Lettuce())),
+                    (1.0, Sprite(Apple())),
+                ])),
+            ]),
+            // animals that can spawn on the lower floor
+            6: Choice([
+                (0.1, EntitySpawner("common.entity.wild.peaceful.kelpie", 1.0)),
+                (0.2, EntitySpawner("common.entity.wild.peaceful.antelope", 1.0)),
+                (0.2, EntitySpawner("common.entity.wild.peaceful.squirrel", 1.0)),
+                (0.2, EntitySpawner("common.entity.wild.peaceful.turtle", 1.0)),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.cat", 1.0)),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.chicken", 1.0)),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.dog", 1.0)),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.rat", 1.0)),
+                (0.5, EntitySpawner("common.entity.wild.peaceful.sheep", 1.0)),
+                (1.0, EntitySpawner("common.entity.wild.peaceful.rabbit", 1.0)),
+                (2.0, EntitySpawner("common.entity.wild.peaceful.pig", 1.0)),
+                (5.0, EntitySpawner("common.entity.wild.peaceful.cattle", 1.0)),
+                (5.0, EntitySpawner("common.entity.wild.peaceful.horse", 1.0)),
+            ]),
+            // small animals that can spawn on the upper floor
+            7: Choice([
+                (0.1, EntitySpawner("common.entity.wild.peaceful.rabbit", 1.0)),
+                (0.2, EntitySpawner("common.entity.wild.peaceful.squirrel", 1.0)),
+                (0.4, Hollow),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.chicken", 1.0)),
+                (0.4, EntitySpawner("common.entity.wild.peaceful.rat", 1.0)),
+                (0.5, EntitySpawner("common.entity.wild.peaceful.cat", 1.0)),
+                (1.0, EntitySpawner("common.entity.wild.peaceful.dog", 1.0)),
+            ]),
+            8: Choice([
+                (1.0, Hollow),
+                // TODO: This will spawn a non-rtsim NPC. It will not persist
+                // between reloading chunks, and it might not support typical
+                // interactions. Is this desirable?
+                (1.0, EntitySpawner("common.entity.village.hunter", 1.0)),
+                (3.0, EntitySpawner("common.entity.village.farmer", 1.0)),
+            ])
         },
     ),
 ]

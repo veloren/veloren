@@ -5470,6 +5470,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::DismantlingBench => "hud-crafting-salvaging_station",
         SpriteKind::ChestBuried
         | SpriteKind::Chest
+        | SpriteKind::CommonLockedChest
         | SpriteKind::CoralChest
         | SpriteKind::DungeonChest0
         | SpriteKind::DungeonChest1

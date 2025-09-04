@@ -287,7 +287,7 @@ pub fn apply_trees_to(
                     calendar,
                     &Vec2::new(tree.units.0, tree.units.1),
                 )
-                .map(|(block, sprite_cfg)| {
+                .map(|(block, sprite_cfg, _entity_path)| {
                     // Add lights to the tree
                     if tree.lights
                         && last_block.is_air()

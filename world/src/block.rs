@@ -12,6 +12,7 @@ use common::{
     },
 };
 use core::ops::{Div, Mul, Range};
+use rand::{Rng, seq::SliceRandom, thread_rng};
 use serde::Deserialize;
 use vek::*;
 
@@ -199,9 +200,13 @@ fn rotate_for_units(ori: u8, units: &Vec2<Vec2<i32>>) -> u8 {
     }
 }
 
-pub fn block_from_structure(
+/// Determines the kind of block to render based on the structure's definition.
+/// The third string return value is the name of an Entity to spawn, if the
+/// `StructureBlock` dictates one should be returned (such as an
+/// `EntitySpawner`).
+pub fn block_from_structure<'a>(
     index: IndexRef,
-    sblock: &StructureBlock,
+    sblock: &'a StructureBlock,
     pos: Vec3<i32>,
     structure_pos: Vec2<i32>,
     structure_seed: u32,
@@ -209,38 +214,59 @@ pub fn block_from_structure(
     mut with_sprite: impl FnMut(SpriteKind) -> Block,
     calendar: Option<&Calendar>,
     units: &Vec2<Vec2<i32>>,
-) -> Option<(Block, Option<SpriteCfg>)> {
+) -> Option<(Block, Option<SpriteCfg>, Option<&'a str>)> {
     let field = RandomField::new(structure_seed);
 
     let lerp = field.get_f32(Vec3::from(structure_pos)) * 0.8 + field.get_f32(pos) * 0.2;
 
-    let block = match sblock {
+    match sblock {
         StructureBlock::None => None,
-        StructureBlock::Hollow => Some(Block::air(SpriteKind::Empty)),
-        StructureBlock::Grass => Some(Block::new(
-            BlockKind::Grass,
-            sample.surface_color.map(|e| (e * 255.0) as u8),
+        StructureBlock::Hollow => Some((Block::air(SpriteKind::Empty), None, None)),
+        StructureBlock::Grass => Some((
+            Block::new(
+                BlockKind::Grass,
+                sample.surface_color.map(|e| (e * 255.0) as u8),
+            ),
+            None,
+            None,
         )),
-        StructureBlock::Normal(color) => Some(Block::new(BlockKind::Misc, *color)),
-        StructureBlock::Filled(kind, color) => Some(Block::new(*kind, *color)),
-        StructureBlock::Sprite(sprite) => Some(sprite.get_block(with_sprite)),
-        StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
-            return Some((sprite.get_block(with_sprite), Some(sprite_cfg.clone())));
+        StructureBlock::Normal(color) => Some((Block::new(BlockKind::Misc, *color), None, None)),
+        StructureBlock::Filled(kind, color) => Some((Block::new(*kind, *color), None, None)),
+        StructureBlock::Sprite(sprite) => Some((sprite.get_block(with_sprite), None, None)),
+        StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => Some((
+            sprite.get_block(with_sprite),
+            Some(sprite_cfg.clone()),
+            None,
+        )),
+        StructureBlock::EntitySpawner(entity_path, spawn_chance) => {
+            let mut rng = thread_rng();
+            if rng.gen::<f32>() < *spawn_chance {
+                // TODO: Use BlockKind::Hollow instead of BlockKind::Air
+                Some((
+                    Block::new(BlockKind::Air, Rgb::new(255, 255, 255)),
+                    None,
+                    Some(entity_path.as_str()),
+                ))
+            } else {
+                // TODO: Use BlockKind::Hollow instead of BlockKind::Air
+                Some((
+                    Block::new(BlockKind::Air, Rgb::new(255, 255, 255)),
+                    None,
+                    None,
+                ))
+            }
         },
-        StructureBlock::EntitySpawner(_entitykind, _spawn_chance) => {
-            Some(Block::new(BlockKind::Air, Rgb::new(255, 255, 255)))
-        },
-        StructureBlock::Water => Some(Block::water(SpriteKind::Empty)),
+        StructureBlock::Water => Some((Block::water(SpriteKind::Empty), None, None)),
         // TODO: If/when liquid supports other colors again, revisit this.
-        StructureBlock::GreenSludge => Some(Block::water(SpriteKind::Empty)),
+        StructureBlock::GreenSludge => Some((Block::water(SpriteKind::Empty), None, None)),
         // None of these BlockKinds has an orientation, so we just use zero for the other color
         // bits.
-        StructureBlock::Liana => Some(with_sprite(SpriteKind::Liana)),
+        StructureBlock::Liana => Some((with_sprite(SpriteKind::Liana), None, None)),
         StructureBlock::Fruit => {
             if field.get(pos + structure_pos) % 24 == 0 {
-                Some(with_sprite(SpriteKind::Beehive))
+                Some((with_sprite(SpriteKind::Beehive), None, None))
             } else if field.get(pos + structure_pos + 1) % 3 == 0 {
-                Some(with_sprite(SpriteKind::Apple))
+                Some((with_sprite(SpriteKind::Apple), None, None))
             } else {
                 None
             }
@@ -249,7 +275,7 @@ pub fn block_from_structure(
             if field.get(pos + structure_pos) % 3 > 0 {
                 None
             } else {
-                Some(with_sprite(SpriteKind::Coconut))
+                Some((with_sprite(SpriteKind::Coconut), None, None))
             }
         },
         StructureBlock::MaybeChest => {
@@ -260,12 +286,12 @@ pub fn block_from_structure(
                 Block::air(SpriteKind::Empty)
             };
             if field.chance(pos + structure_pos, 0.5) {
-                Some(block)
+                Some((block, None, None))
             } else {
-                Some(block.with_sprite(SpriteKind::Chest))
+                Some((block.with_sprite(SpriteKind::Chest), None, None))
             }
         },
-        StructureBlock::Log => Some(Block::new(BlockKind::Wood, Rgb::new(60, 30, 0))),
+        StructureBlock::Log => Some((Block::new(BlockKind::Wood, Rgb::new(60, 30, 0)), None, None)),
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
         | StructureBlock::PineLeaves
@@ -282,17 +308,21 @@ pub fn block_from_structure(
             if calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas))
                 && field.chance(pos + structure_pos, 0.025)
             {
-                Some(Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0)))
+                Some((
+                    Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0)),
+                    None,
+                    None,
+                ))
             } else if calendar.is_some_and(|c| c.is_event(CalendarEvent::Halloween))
                 && (*sblock == StructureBlock::TemperateLeaves
                     || *sblock == StructureBlock::Chestnut
                     || *sblock == StructureBlock::CherryLeaves)
             {
                 crate::all::leaf_color(index, structure_seed, lerp, &StructureBlock::AutumnLeaves)
-                    .map(|col| Block::new(BlockKind::Leaves, col))
+                    .map(|col| (Block::new(BlockKind::Leaves, col), None, None))
             } else {
                 crate::all::leaf_color(index, structure_seed, lerp, sblock)
-                    .map(|col| Block::new(BlockKind::Leaves, col))
+                    .map(|col| (Block::new(BlockKind::Leaves, col), None, None))
             }
         },
         StructureBlock::BirchWood => {
@@ -303,142 +333,161 @@ pub fn block_from_structure(
                 0.25,
             ) && wpos.z % 2 == 0
             {
-                Some(Block::new(BlockKind::Wood, Rgb::new(70, 35, 25)))
+                Some((
+                    Block::new(BlockKind::Wood, Rgb::new(70, 35, 25)),
+                    None,
+                    None,
+                ))
             } else {
-                Some(Block::new(BlockKind::Wood, Rgb::new(220, 170, 160)))
+                Some((
+                    Block::new(BlockKind::Wood, Rgb::new(220, 170, 160)),
+                    None,
+                    None,
+                ))
             }
         },
-        StructureBlock::Keyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::Keyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::Sign(content, ori) => {
-            return Some((
-                Block::air(SpriteKind::Sign)
-                    .with_ori(rotate_for_units(*ori, units))
-                    .expect("signs can always be rotated"),
-                Some(SpriteCfg {
-                    content: Some(content.clone()),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::BoneKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::BoneKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::HaniwaKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::HaniwaKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::KeyholeBars(consumes) => {
-            return Some((
-                Block::air(SpriteKind::KeyholeBars),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::GlassKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::GlassKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::TerracottaKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::TerracottaKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::SahaginKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::SahaginKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::VampireKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::VampireKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
+        StructureBlock::Keyhole(consumes) => Some((
+            Block::air(SpriteKind::Keyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::Sign(content, ori) => Some((
+            Block::air(SpriteKind::Sign)
+                .with_ori(rotate_for_units(*ori, units))
+                .expect("signs can always be rotated"),
+            Some(SpriteCfg {
+                content: Some(content.clone()),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::BoneKeyhole(consumes) => Some((
+            Block::air(SpriteKind::BoneKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::HaniwaKeyhole(consumes) => Some((
+            Block::air(SpriteKind::HaniwaKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::KeyholeBars(consumes) => Some((
+            Block::air(SpriteKind::KeyholeBars),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::GlassKeyhole(consumes) => Some((
+            Block::air(SpriteKind::GlassKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::TerracottaKeyhole(consumes) => Some((
+            Block::air(SpriteKind::TerracottaKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::SahaginKeyhole(consumes) => Some((
+            Block::air(SpriteKind::SahaginKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::VampireKeyhole(consumes) => Some((
+            Block::air(SpriteKind::VampireKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
 
-        StructureBlock::MyrmidonKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::MyrmidonKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
-        StructureBlock::MinotaurKeyhole(consumes) => {
-            return Some((
-                Block::air(SpriteKind::MinotaurKeyhole),
-                Some(SpriteCfg {
-                    unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
-                        consumes.clone(),
-                    ))),
-                    ..SpriteCfg::default()
-                }),
-            ));
-        },
+        StructureBlock::MyrmidonKeyhole(consumes) => Some((
+            Block::air(SpriteKind::MyrmidonKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
+        StructureBlock::MinotaurKeyhole(consumes) => Some((
+            Block::air(SpriteKind::MinotaurKeyhole),
+            Some(SpriteCfg {
+                unlock: Some(UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
+                    consumes.clone(),
+                ))),
+                ..SpriteCfg::default()
+            }),
+            None,
+        )),
         StructureBlock::RedwoodWood => {
             let wpos = pos + structure_pos;
             if (wpos.x / 2 + wpos.y) % 5 > 1 && ((wpos.x + 1) / 2 + wpos.y + 2) % 5 > 1 {
-                Some(Block::new(BlockKind::Wood, Rgb::new(80, 40, 10)))
+                Some((
+                    Block::new(BlockKind::Wood, Rgb::new(80, 40, 10)),
+                    None,
+                    None,
+                ))
             } else {
-                Some(Block::new(BlockKind::Wood, Rgb::new(110, 55, 10)))
+                Some((
+                    Block::new(BlockKind::Wood, Rgb::new(110, 55, 10)),
+                    None,
+                    None,
+                ))
             }
         },
-    };
-
-    Some((block?, None))
+        StructureBlock::Choice(block_table) => block_table
+            .choose_weighted(&mut rand::thread_rng(), |(w, _)| *w)
+            .map(|(_, item)| {
+                block_from_structure(
+                    index,
+                    item,
+                    pos,
+                    structure_pos,
+                    structure_seed,
+                    sample,
+                    with_sprite,
+                    calendar,
+                    units,
+                )
+            })
+            .unwrap_or(None),
+    }
 }

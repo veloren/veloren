@@ -10,10 +10,7 @@ use common::{
     calendar::Calendar,
     generation::EntityInfo,
     spot::Spot,
-    terrain::{
-        Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize,
-        structure::StructureBlock,
-    },
+    terrain::{Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use rand::prelude::*;
@@ -268,7 +265,7 @@ impl<'a> Canvas<'a> {
                     let mut new_sprite_cfg = None;
                     let wpos = wpos2d.with_z(origin.z + z);
                     canvas.map(wpos, |block| {
-                        if let Some((new_block, sprite_cfg)) = block_from_structure(
+                        if let Some((new_block, sprite_cfg, entity_path)) = block_from_structure(
                             info.index,
                             sblock,
                             wpos2d.with_z(origin.z + z),
@@ -279,6 +276,14 @@ impl<'a> Canvas<'a> {
                             info.calendar,
                             &units,
                         ) {
+                            if let Some(spec) = entity_path {
+                                // Spawn NPCs at the pos of this block
+                                entities.push((
+                                    wpos2d.with_z(origin.z + z).map(|e| e as f32)
+                                        + Vec3::new(0.5, 0.5, 0.0),
+                                    spec.to_string(),
+                                ));
+                            }
                             new_sprite_cfg = sprite_cfg;
                             if !new_block.is_air() {
                                 if with_snow && col.snow_cover && above {
@@ -295,17 +300,6 @@ impl<'a> Canvas<'a> {
                     // Add sprite configuration for those that need it
                     if let Some(sprite_cfg) = new_sprite_cfg {
                         canvas.set_sprite_cfg(wpos, sprite_cfg);
-                    }
-
-                    // Spawn NPCs at the pos of this block
-                    if let StructureBlock::EntitySpawner(spec, spawn_chance) = sblock {
-                        if rng.gen::<f32>() < *spawn_chance {
-                            entities.push((
-                                wpos2d.with_z(origin.z + z).map(|e| e as f32)
-                                    + Vec3::new(0.5, 0.5, 0.0),
-                                spec.clone(),
-                            ));
-                        }
                     }
 
                     if add_snow {

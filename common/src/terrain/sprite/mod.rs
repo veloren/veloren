@@ -252,6 +252,7 @@ sprites! {
         PitchforkWoodWoodlandGreen = 0xCA,
         RakeWoodWoodland = 0xCB,
         FenceWoodGateWoodland = 0xCC,
+        Hay = 0xCD,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered, Collectable {
@@ -872,6 +873,7 @@ impl SpriteKind {
             SpriteKind::HandCartWoodTail => 1.091,
             SpriteKind::HandrailWoodWoodlandBase | SpriteKind::HandrailWoodWoodlandMiddle => 1.727,
             SpriteKind::HandrailWoodWoodlandTop => 1.181,
+            SpriteKind::Hay => 1.09,
             _ => return None,
         })
     }
