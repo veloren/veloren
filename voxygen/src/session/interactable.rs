@@ -94,6 +94,9 @@ impl BlockInteraction {
                     let sprite_cfg = chunk.meta().sprite_cfg_at(sprite_chunk_pos);
                     !block.is_collectible(sprite_cfg)
                 }) {
+                    if let Some(mine_tool) = block.mine_tool() {
+                        return Some((block, BlockInteraction::Mine(mine_tool)));
+                    }
                     return None;
                 };
                 // Check if this is an unlockable sprite
@@ -122,8 +125,6 @@ impl BlockInteraction {
                         kind: unlock,
                         steal: block.is_owned(),
                     }))
-                } else if let Some(mine_tool) = block.mine_tool() {
-                    Some((block, BlockInteraction::Mine(mine_tool)))
                 } else {
                     Some((block, BlockInteraction::Collect {
                         steal: block.is_owned(),
