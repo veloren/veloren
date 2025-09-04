@@ -320,21 +320,16 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
         })
         .then(now(move |ctx, _| {
             ctx.controller.end_quest();
-            // Now that the quest has ended, resolve it and give the player the deposit
-            match resolve_take_deposit(ctx, quest_id, true) {
-                Ok(deposit) => goto_actor(escorter, 2.0)
-                    .then(do_dialogue(escorter, move |session| {
-                        session
-                            .say_statement(Content::localized("npc-response-quest-escort-complete"))
-                            .then(session.say_statement_with_gift(
-                                Content::localized("npc-response-quest-reward"),
-                                deposit.clone(),
-                            ))
-                    }))
-                    .boxed(),
-                // Following finished but quest was already resolved?!
-                Err(()) => finish().boxed(),
-            }
+            goto_actor(escorter, 2.0)
+                .then(do_dialogue(escorter, move |session| {
+                    session
+                        .say_statement(Content::localized("npc-response-quest-escort-complete"))
+                        // Now that the quest has ended, resolve it and give the player the deposit
+                        .then(now(move |ctx, _| match resolve_take_deposit(ctx, quest_id, true) {
+                            Ok(deposit) => session.say_statement_with_gift(Content::localized("npc-response-quest-reward"), deposit).boxed(),
+                            Err(()) => finish().boxed(),
+                        }))
+                }))
         }))
         .stop_if(move |ctx: &mut NpcCtx| {
             // Cancel performing the quest if it's been resolved

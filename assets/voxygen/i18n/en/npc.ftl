@@ -490,12 +490,12 @@ npc-response-quest-escort-complete =
     .a1 = Thank you for leading me here. See you later!
 
 npc-response-quest-slay-ask =
-    .a0 = The people here are being terrorised by a { $body }! It must be slain! I'll pay you { $coins } coins for the job.
-    .a1 = A { $body } lurks not far from here. We can't live like this! { $coins } coins are on offer if you'll do the deed!
+    .a0 = The people here are being terrorised by { $body }! It must be slain! I'll pay you { $coins } coins for the job.
+    .a1 = Not far from here, { $body } lurks. We can't live like this! { $coins } coins are on offer if you'll do the deed!
 npc-response-quest-slay-start =
     .a0 = Return to me when the deed is done and you shall receive your payment. I've marked the beast's last known location on your map.
     .a1 = I've marked your map so you know where to go. Godspeed! Your payment awaits you when you return!
-npc-response-quest-slay-where = I've updated the location of the { $body } on your map.
+npc-response-quest-slay-where = I've updated the location of the monster on your map.
 npc-response-quest-slay-thanks =
     .a0 = Thank you! The people here will be safe once more.
     .a1 = You have my gratitude... and my money!

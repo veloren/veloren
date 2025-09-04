@@ -91,25 +91,23 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                             Response::from(Content::localized(
                                 "dialogue-question-quest-slay-claim",
                             )),
-                            now(move |ctx, _| {
-                                match quest::resolve_take_deposit(ctx, quest_id, true) {
-                                    Ok(deposit) => goto_actor(tgt, 2.0)
-                                        .then(do_dialogue(tgt, move |session| {
-                                            session
-                                                .say_statement(Content::localized(
-                                                    "npc-response-quest-slay-thanks",
-                                                ))
-                                                .then(session.say_statement_with_gift(
-                                                    Content::localized("npc-response-quest-reward"),
-                                                    deposit.clone(),
-                                                ))
-                                        }))
-                                        .boxed(),
-                                    // Following finished but quest was already resolved?!
-                                    Err(()) => finish().boxed(),
-                                }
-                            })
-                            .boxed(),
+                            session
+                                .say_statement(Content::localized("npc-response-quest-slay-thanks"))
+                                .then(now(move |ctx, _| {
+                                    if let Ok(deposit) =
+                                        quest::resolve_take_deposit(ctx, quest_id, true)
+                                    {
+                                        session
+                                            .say_statement_with_gift(
+                                                Content::localized("npc-response-quest-reward"),
+                                                deposit,
+                                            )
+                                            .boxed()
+                                    } else {
+                                        finish().boxed()
+                                    }
+                                }))
+                                .boxed(),
                         ));
                     }
                 },
