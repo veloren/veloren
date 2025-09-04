@@ -140,7 +140,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             // Escort reward amount is proportional to distance
             && let escort_reward_amount = dist / 25.0
             && let Some(dst_site_name) = util::site_name(ctx, dst_site)
-            && let time_limit = 1.0 + dist as f64 / 250.0
+            && let time_limit = 1.0 + dist as f64 / 80.0
             && let Some(accept_quest) = create_deposit(ctx, ESCORT_REWARD_ITEM, escort_reward_amount, session
                     .ask_yes_no_question(Content::localized("npc-response-quest-escort-ask")
                         .with_arg("dst", dst_site_name)
