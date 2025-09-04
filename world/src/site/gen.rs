@@ -509,6 +509,10 @@ impl Fill {
         }
     }
 
+    /// Returns the expected block at the given position. For prefabricated
+    /// structures, the `StructureBlock` is returned, and if there is an
+    /// `EntitySpawner`, the entity path to load will be the returned as the
+    /// third String value.
     pub fn sample_at(
         &self,
         tree: &Store<Primitive>,
@@ -518,66 +522,105 @@ impl Fill {
         old_block: Block,
         sprite_cfg: &mut Option<SpriteCfg>,
         col: &ColInfo,
-    ) -> Option<Block> {
+    ) -> (Option<Block>, Option<StructureBlock>, Option<String>) {
         if Self::contains_at(tree, prim, pos, col) {
             match self {
-                Fill::Sprite(sprite) | Fill::ResourceSprite(sprite) => {
+                Fill::Sprite(sprite) | Fill::ResourceSprite(sprite) => (
                     Some(if old_block.is_filled() {
                         *sprite
                     } else {
                         old_block.with_data_of(*sprite)
-                    })
-                },
+                    }),
+                    None,
+                    None,
+                ),
                 Fill::CfgSprite(sprite, cfg) => {
                     *sprite_cfg = Some(cfg.clone());
-                    Some(if old_block.is_filled() {
-                        *sprite
-                    } else {
-                        old_block.with_data_of(*sprite)
-                    })
+                    (
+                        Some(if old_block.is_filled() {
+                            *sprite
+                        } else {
+                            old_block.with_data_of(*sprite)
+                        }),
+                        None,
+                        None,
+                    )
                 },
-                Fill::Block(block) => Some(*block),
+                Fill::Block(block) => (Some(*block), None, None),
                 Fill::Brick(bk, col, range) => {
                     let pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
+                    (
+                        Some(Block::new(
+                            *bk,
+                            *col + ((((pos.x ^ pos.y ^ pos.z) as u8).reverse_bits() as u16
+                                * *range as u16)
+                                >> 8) as u8,
+                            // *col + (RandomField::new(13)
+                            //     .get(pos)
+                            //     % *range as u32) as u8,
+                        )),
+                        None,
+                        None,
+                    )
+                },
+                Fill::PlankWall(bk, col, range) => (
                     Some(Block::new(
                         *bk,
-                        *col + ((((pos.x ^ pos.y ^ pos.z) as u8).reverse_bits() as u16
-                            * *range as u16)
-                            >> 8) as u8,
-                        // *col + (RandomField::new(13)
-                        //     .get(pos)
-                        //     % *range as u32) as u8,
-                    ))
-                },
-                Fill::PlankWall(bk, col, range) => Some(Block::new(
-                    *bk,
-                    *col + (RandomField::new(13)
-                        .get((pos + Vec3::new(pos.z, pos.z, 0) * 8) / Vec3::new(16, 16, 1))
-                        % *range as u32) as u8,
-                )),
-                Fill::Gradient(gradient, bk) => Some(Block::new(*bk, gradient.sample(pos.as_()))),
-                Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {
-                    let col_sample = canvas_info.col(canvas_info.wpos)?;
-                    block_from_structure(
+                        *col + (RandomField::new(13)
+                            .get((pos + Vec3::new(pos.z, pos.z, 0) * 8) / Vec3::new(16, 16, 1))
+                            % *range as u32) as u8,
+                    )),
+                    None,
+                    None,
+                ),
+                Fill::Gradient(gradient, bk) => (
+                    Some(Block::new(*bk, gradient.sample(pos.as_()))),
+                    None,
+                    None,
+                ),
+                Fill::Prefab(p, tr, seed) => {
+                    let sb_result = p.get(pos - tr);
+                    if sb_result.is_err() {
+                        return (None, None, None);
+                    }
+
+                    let sb = sb_result.unwrap();
+
+                    let col_sample = canvas_info.col(canvas_info.wpos);
+                    if col_sample.is_none() {
+                        return (None, None, None);
+                    }
+
+                    match block_from_structure(
                         canvas_info.index,
                         sb,
                         pos - tr,
                         p.get_bounds().center().xy(),
                         *seed,
-                        col_sample,
+                        col_sample.unwrap(),
                         Block::air,
                         canvas_info.calendar(),
                         &Vec2::new(Vec2::new(1, 0), Vec2::new(0, 1)),
-                    )
-                    .map(|(block, cfg)| {
-                        *sprite_cfg = cfg;
-                        block
-                    })
-                }),
-                Fill::Sampling(f) => f(pos),
+                    ) {
+                        Some((block, cfg, entity_path)) => {
+                            *sprite_cfg = cfg;
+                            if let Some(entity_path_str) = entity_path {
+                                (
+                                    Some(block),
+                                    Some(sb.clone()),
+                                    Some(entity_path_str.to_string()),
+                                )
+                            } else {
+                                (Some(block), Some(sb.clone()), None)
+                            }
+                        },
+                        _ => (None, None, None),
+                    }
+                },
+                Fill::Sampling(f) => (f(pos), None, None),
             }
         } else {
-            None
+            (None, None, None)
         }
     }
 

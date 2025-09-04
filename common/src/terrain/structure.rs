@@ -61,6 +61,7 @@ make_case_elim!(
         AutumnLeaves = 38,
         RedwoodWood = 39,
         SpriteWithCfg(kind: StructureSprite, sprite_cfg: SpriteCfg) = 40,
+        Choice(block_table: Vec<(f32, StructureBlock)>) = 41,
     }
 );
 
@@ -346,6 +347,10 @@ Sprite in question: {sprite:?}
         }
     }
 
+    pub fn validate_choice_block(_chosen_block: &[(f32, StructureBlock)]) {
+        // TODO
+    }
+
     fn validate_structure_block(sb: &StructureBlock, id: &str) {
         match sb {
             StructureBlock::SpriteWithCfg(sprite, sprite_cfg) => {
@@ -359,6 +364,13 @@ Sprite in question: {sprite:?}
                 std::panic::catch_unwind(|| validate_entity_config(config)).unwrap_or_else(|_| {
                     panic!("failed to load structure_block in: {id}\n{sb:?}");
                 })
+            },
+            StructureBlock::Choice(choice_block) => {
+                std::panic::catch_unwind(|| validate_choice_block(choice_block)).unwrap_or_else(
+                    |_| {
+                        panic!("failed to load structure_block in: {id}\n{sb:?}");
+                    },
+                )
             },
             // These probably can't fail
             StructureBlock::None

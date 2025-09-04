@@ -4,12 +4,8 @@ use crate::{
     site::{r#gen::PrimitiveTransform, util::gradient::WrapMode},
     util::{RandomField, Sampler},
 };
-use common::{
-    generation::EntityInfo,
-    terrain::{
-        Block, BlockKind, SpriteKind, Structure as PrefabStructure,
-        sprite::RelativeNeighborPosition,
-    },
+use common::terrain::{
+    Block, BlockKind, SpriteKind, Structure as PrefabStructure, sprite::RelativeNeighborPosition,
 };
 use rand::prelude::*;
 use vek::*;
@@ -152,36 +148,6 @@ impl Structure for Barn {
                 barn_site_pos,
                 0,
             ));
-
-        // barn animals
-        let mut thread_rng = thread_rng();
-
-        let barn_animals = [
-            "common.entity.wild.peaceful.cattle",
-            "common.entity.wild.peaceful.horse",
-        ];
-
-        let desert_barn_animals = [
-            "common.entity.wild.peaceful.antelope",
-            "common.entity.wild.peaceful.zebra",
-            "common.entity.wild.peaceful.camel",
-        ];
-
-        for _ in 1..=5 {
-            let npc_rng = thread_rng.gen_range(0..=1);
-            let desert_npc_rng = thread_rng.gen_range(0..=2);
-
-            let spec = if self.is_desert {
-                desert_barn_animals[desert_npc_rng]
-            } else {
-                barn_animals[npc_rng]
-            };
-
-            painter.spawn(
-                EntityInfo::at(Vec3::new(plot_center.x, plot_center.y, self.alt).as_())
-                    .with_asset_expect(spec, &mut thread_rng, None),
-            );
-        }
     }
 
     fn terrain_surface_at<R: Rng>(

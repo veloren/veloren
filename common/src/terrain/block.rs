@@ -380,7 +380,8 @@ impl Block {
                 | SpriteKind::HaniwaUrn
                 | SpriteKind::TerracottaChest
                 | SpriteKind::SahaginChest
-                | SpriteKind::Crate => Some(rtsim::ChunkResource::Loot),
+                | SpriteKind::Crate
+                | SpriteKind::CommonLockedChest => Some(rtsim::ChunkResource::Loot),
             _ => None,
         }
     }
@@ -553,6 +554,7 @@ impl Block {
                 | SpriteKind::HaniwaTrap
                 | SpriteKind::HaniwaTrapTriggered
                 | SpriteKind::ChestBuried
+                | SpriteKind::CommonLockedChest
                 | SpriteKind::TerracottaChest
                 | SpriteKind::SahaginChest
                 | SpriteKind::SeaDecorBlock

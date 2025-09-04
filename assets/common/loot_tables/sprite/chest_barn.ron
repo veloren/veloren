@@ -1,0 +1,6 @@
+[
+    (1.0, Item("common.items.utility.collar")),
+    (0.3, Item("common.items.armor.misc.head.bamboo_twig")),
+    (0.3, Item("common.items.armor.misc.head.straw")),
+    (1.0, Item("common.items.crafting_ing.hide.animal_hide")),
+]

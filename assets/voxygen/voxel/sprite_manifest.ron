@@ -7433,5 +7433,14 @@ Bell: [(
     ],
     wind_sway: 0.0,
 )],
-
+Hay: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.hay.hay",
+            offset: (-5.5, -11, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 }

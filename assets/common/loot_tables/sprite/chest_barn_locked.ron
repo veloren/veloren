@@ -1,0 +1,5 @@
+[
+    (1.0, MultiDrop(Item("common.items.utility.collar"), 2, 5)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.animal_hide"), 2, 5)),
+    (1.0, MultiDrop(Item("common.items.crafting_ing.hide.tough_hide"), 1, 2)),
+]

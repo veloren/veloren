@@ -3137,6 +3137,8 @@ impl Site {
                 }
             };
 
+            let mut entities_from_structure_blocks = Vec::<EntityInfo>::new();
+
             for (prim, fill) in fills {
                 for mut aabb in Fill::get_bounds_disjoint(&prim_tree, prim) {
                     aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
@@ -3169,7 +3171,7 @@ impl Site {
                                 let mut sprite_cfg = None;
 
                                 let map = |block| {
-                                    let current_block = fill.sample_at(
+                                    let (current_block, _sb, entity_path) = fill.sample_at(
                                         &prim_tree,
                                         prim,
                                         pos,
@@ -3178,6 +3180,15 @@ impl Site {
                                         &mut sprite_cfg,
                                         &col,
                                     );
+
+                                    if let Some(spec) = entity_path {
+                                        let entity = EntityInfo::at(pos.as_());
+                                        let mut loadout_rng = rand::thread_rng();
+                                        entities_from_structure_blocks.push(
+                                            entity.with_asset_expect(&spec, &mut loadout_rng, None),
+                                        );
+                                    };
+
                                     if let (Some(last_block), None) = (last_block, current_block) {
                                         spawn(pos, last_block);
                                     }
@@ -3205,6 +3216,10 @@ impl Site {
             }
 
             for entity in entities {
+                canvas.spawn(entity);
+            }
+
+            for entity in entities_from_structure_blocks {
                 canvas.spawn(entity);
             }
         }
