@@ -6,7 +6,12 @@
         - "**/*.{glsl,png,rs,ron,ftl,toml,vox,yml,wav,sh}"
         - "rust-toolchain"
         - "Cargo.lock"
+        - ".gitlab/CI/*.yml"
+        - ".gitlab/scripts/*.sh"
         - ".gitlab-ci.yml"
+        - ".cargo/config.toml"
+        - ".rustfmt.toml"
+        - "clippy.toml"
 
 # Template to only run if pushes to master, schedule or a version tag.
 .release:
