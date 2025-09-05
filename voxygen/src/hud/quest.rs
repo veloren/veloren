@@ -130,9 +130,11 @@ impl<'a> Quest<'a> {
             .take(state.text_position.min(msg_text.chars().count()))
             .collect();
 
+        const MARGIN: f64 = 16.0;
         Text::new(&display_text)
-            .top_left_with_margins_on(state.ids.text_align, 16.0, 16.0)
-            .w(429.0)
+            .top_left_with_margins_on(state.ids.text_align, MARGIN, MARGIN)
+            .w(429.0 - MARGIN * 2)
+            .h(200.0 - MARGIN * 2)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)
