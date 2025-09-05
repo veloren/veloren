@@ -55,6 +55,7 @@ use lazy_static::lazy_static;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::Cow,
     convert::{Infallible, TryFrom},
     fmt,
 };
@@ -142,6 +143,9 @@ sprites! {
         Loom             = 0x27,
         DismantlingBench = 0x28,
         RepairBench      = 0x29,
+        // Uncollectable containers
+        Barrel            = 0x30,
+        CrateBlock        = 0x31,
         // Wall
         HangingBasket     = 0x50,
         HangingSign       = 0x51,
@@ -501,6 +505,10 @@ sprites! {
         LanternAirshipGroundChestnutS = 0x10,
         LanternAirshipGroundRedS = 0x11,
     },
+    // These are all expected to return `Some` for `collectible_info`
+    //
+    // NOTE: Collectable attr currently unused, plan is to add collected models for at least some
+    // of these.
     Container = 9 has Ori, Owned, Collectable {
         Chest             = 0x00,
         DungeonChest0     = 0x01,
@@ -516,8 +524,8 @@ sprites! {
         CommonLockedChest = 0x0B,
         ChestBuried       = 0x0C,
         Crate             = 0x0D,
-        Barrel            = 0x0E,
-        CrateBlock        = 0x0F,
+        // SLOT           = 0x0E,
+        // SLOT           = 0x0F,
         WitchChest        = 0x10,
         PirateChest       = 0x11,
     },
@@ -927,9 +935,9 @@ impl SpriteKind {
     /// NOTE: `Item::try_reclaim_from_block` is what you probably looking for
     /// instead.
     ///
-    /// None = block cannot be collected
-    /// Some(None) = block can be collected, but does not give back an item
-    /// Some(Some(_)) = block can be collected and gives back an item
+    /// `None` = block cannot be collected.
+    /// `Some(None)` = block can be collected, but does not give back an item.
+    /// `Some(Some(_))` = block can be collected and gives back an item.
     #[inline]
     pub fn default_loot_spec(&self) -> Option<Option<LootSpec<&'static str>>> {
         let item = LootSpec::Item;
@@ -980,30 +988,31 @@ impl SpriteKind {
             SpriteKind::ShortFlatCactus => item("common.items.crafting_ing.cactus"),
             SpriteKind::MedFlatCactus => item("common.items.crafting_ing.cactus"),
             SpriteKind::Bomb => item("common.items.utility.bomb"),
+            SpriteKind::Chest => table("common.loot_tables.sprite.chest"),
             SpriteKind::DungeonChest0 => table("common.loot_tables.dungeon.gnarling.chest"),
             SpriteKind::DungeonChest1 => table("common.loot_tables.dungeon.adlet.chest"),
             SpriteKind::DungeonChest2 => table("common.loot_tables.dungeon.sahagin.chest"),
             SpriteKind::DungeonChest3 => table("common.loot_tables.dungeon.haniwa.chest"),
             SpriteKind::DungeonChest4 => table("common.loot_tables.dungeon.myrmidon.chest"),
             SpriteKind::DungeonChest5 => table("common.loot_tables.dungeon.cultist.chest"),
-            SpriteKind::Chest => table("common.loot_tables.sprite.chest"),
-            SpriteKind::CommonLockedChest => table("common.loot_tables.dungeon.sahagin.chest"),
-            SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
             SpriteKind::CoralChest => table("common.loot_tables.dungeon.sea_chapel.chest_coral"),
             SpriteKind::HaniwaUrn => table("common.loot_tables.dungeon.haniwa.key"),
             SpriteKind::TerracottaChest => {
                 table("common.loot_tables.dungeon.terracotta.chest_terracotta")
             },
             SpriteKind::SahaginChest => table("common.loot_tables.dungeon.sahagin.key_chest"),
+            SpriteKind::CommonLockedChest => table("common.loot_tables.dungeon.sahagin.chest"),
+            SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
+            SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
             SpriteKind::Grave => table("common.loot_tables.sprite.mud"),
-            SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
             SpriteKind::Wood => item("common.items.log.wood"),
             SpriteKind::Bamboo => item("common.items.log.bamboo"),
             SpriteKind::Hardwood => item("common.items.log.hardwood"),
             SpriteKind::Ironwood => item("common.items.log.ironwood"),
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
+            // TODO: why does this have a loot table?
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
             SpriteKind::WitchChest => table("common.loot_tables.spot.witch"),
             SpriteKind::PirateChest => table("common.loot_tables.spot.buccaneer"),
@@ -1025,29 +1034,46 @@ impl SpriteKind {
 
     /// Is this sprite *expected* to be picked up?
     ///
-    /// None means sprite can't be collected
-    /// Some(None) means sprite can be collected without any mine tool
-    /// Some(Some(_)) means sprite can be collected but requires a tool
+    /// Note, this will `Some(_)` even when the `Collectable` attr is `false`.
+    ///
+    /// * `None` means sprite can't be collected.
+    /// * `Some(None)` means sprite can be collected without any mine tool.
+    /// * `Some(Some(_))` means sprite can be collected but requires a tool.
     #[inline]
-    pub fn default_tool(&self) -> Option<Option<ToolKind>> {
+    pub fn collectible_info(&self) -> Option<Option<ToolKind>> {
         self.default_loot_spec().map(|_| self.mine_tool())
     }
 
-    /// Is the sprite should behave like a container? Whatever that means.
+    /// Should the sprite behave like a container?
+    ///
+    /// That means:
+    /// * The sprite is collectible (checked by test).
+    /// * The sprite is not explodable.
+    /// * `SpriteInteractKind::Chest` is used in the interaction character state
+    ///   when collecting.
+    /// * `should_drop_mystery` returns `true`.
+    /// * Structure tests allows SpriteCfg.loot_table to be set for this sprite.
     ///
     /// If you just asking where you can collect this sprite without any tool,
-    /// use `SpriteKind::is_collectible`.
-    ///
-    /// Use `SpriteKind::default_tool` if you can afford potential
-    /// false positives, it doesn't require SpriteCfg.
+    /// use [`Block::is_directly_collectible`].
     ///
     /// Implicit invariant of this method is that only sprites listed here
-    /// can use SpriteCfg.loot_table.
+    /// are expected to use SpriteCfg.loot_table because that needs
+    /// [`SpriteKind::should_drop_mystery`] to be `true` to avoid displaying the
+    /// `default_loot_spec` items.
     #[inline]
     pub fn is_defined_as_container(&self) -> bool { self.category() == Category::Container }
 
+    /// Does this drop random items or potentially have a a custom loot_table in
+    /// the SpriteCfg.
+    ///
+    /// This acts as a hint to avoid displaying the items from
+    /// `Item::try_reclaim_from_block`.
+    ///
+    /// Some items may drop random items, yet aren't containers. So
+    /// [`SpriteKind::is_defined_as_container()`] alone is insufficient for
+    /// this.
     #[inline]
-    /// Some items may drop random items, yet aren't containers.
     pub fn should_drop_mystery(&self) -> bool {
         self.is_defined_as_container()
             || matches!(
@@ -1211,9 +1237,11 @@ impl SpriteKind {
     // are that mine tool requires item to be an equippable tool, be equipped, and
     // does not consume item while required_item requires that the item be in the
     // inventory and will consume the item on collecting the sprite.
-    pub fn unlock_condition(&self, cfg: Option<SpriteCfg>) -> UnlockKind {
-        cfg.and_then(|cfg| cfg.unlock)
-            .unwrap_or_else(|| match self {
+    pub fn unlock_condition(self, cfg: Option<&SpriteCfg>) -> Option<Cow<'_, UnlockKind>> {
+        let kind = if let Some(unlock) = cfg.and_then(|cfg| cfg.unlock.as_ref()) {
+            Cow::Borrowed(unlock)
+        } else {
+            Cow::Owned(match self {
                 SpriteKind::CommonLockedChest => {
                     UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(String::from(
                         "common.items.utility.lockpick.lockpick_copper",
@@ -1260,8 +1288,10 @@ impl SpriteKind {
                 SpriteKind::PirateChest => UnlockKind::Consumes(ItemDefinitionIdOwned::Simple(
                     String::from("common.items.utility.lockpick.lockpick_iron"),
                 )),
-                _ => UnlockKind::Free,
+                _ => return None,
             })
+        };
+        Some(kind)
     }
 
     /// Get the [`Content`] that this sprite is labelled with.
@@ -1292,7 +1322,8 @@ impl<'a> TryFrom<&'a str> for SpriteKind {
     fn try_from(s: &'a str) -> Result<Self, Self::Error> { SPRITE_KINDS.get(s).copied().ok_or(()) }
 }
 
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
+// TODO: Free and Requires are currently unused.
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UnlockKind {
     /// The sprite can be freely unlocked without any conditions
     Free,
@@ -1304,7 +1335,7 @@ pub enum UnlockKind {
     Consumes(ItemDefinitionIdOwned),
 }
 
-#[derive(Default, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct SpriteCfg {
     /// Signifies that this sprite needs an item to be unlocked.
     pub unlock: Option<UnlockKind>,
@@ -1317,11 +1348,18 @@ pub struct SpriteCfg {
     /// to the loot table asset identifier.
     ///
     /// Chests are an example of sprite that can use this. For simple sprites
-    /// like flowers using default_loot_spec() method is recommended instead.
+    /// like flowers using [`SpriteKind::default_loot_spec`] method is
+    /// recommended instead.
     ///
     /// If you place a custom loot table on a sprite, make sure it's listed in
-    /// SpriteKind::is_defined_as_container() to avoid minor bugs, which should
-    /// be enforced in tests, in possible.
+    /// [`SpriteKind::is_defined_as_container`], which should be enforced in
+    /// tests, if possible.
+    ///
+    ///`collectible_info` must be `Some` for a sprite to be collectible.
+    /// Adding a loot table to other sprites will not enable collecting
+    /// them. `is_defined_as_container` is necessary to avoid displaying
+    /// items from the default loot table (and all containers are included in
+    /// `collectible_info`).
     ///
     /// NOTE: this is sent to the clients, we may potentionally strip this info
     /// on sending.
@@ -1329,8 +1367,17 @@ pub struct SpriteCfg {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use super::*;
+
+    #[test]
+    fn sprite_containers_are_collectible() {
+        for sprite in SpriteKind::all() {
+            if sprite.is_defined_as_container() {
+                assert!(sprite.collectible_info().is_some());
+            }
+        }
+    }
 
     #[test]
     fn sprite_conv_kind() {

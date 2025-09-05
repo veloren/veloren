@@ -1049,7 +1049,7 @@ fn can_reach_block(
 ) -> bool {
     let block_pos_f32 = block_pos.map(|x| x as f32 + 0.5);
     // Closure to check if distance between a point and the block is less than
-    // MAX_PICKUP_RANGE and the radius of the body
+    // range and the radius of the body
     let block_range_check = |pos: Vec3<f32>| {
         (block_pos_f32 - pos).magnitude_squared() < (range + body.max_radius()).powi(2)
     };
@@ -1166,11 +1166,6 @@ pub fn handle_manipulate_loadout(
             let sprite_interact =
                 sprite_at_pos.and_then(Option::<interact::SpriteInteractKind>::from);
             if let Some(sprite_interact) = sprite_interact {
-                let sprite_chunk_pos = TerrainGrid::chunk_offs(sprite_pos);
-                let sprite_cfg = data
-                    .terrain
-                    .pos_chunk(sprite_pos)
-                    .and_then(|chunk| chunk.meta().sprite_cfg_at(sprite_chunk_pos));
                 if can_reach_block(
                     data.pos.0,
                     sprite_pos,
@@ -1178,12 +1173,16 @@ pub fn handle_manipulate_loadout(
                     data.body,
                     data.terrain,
                 ) {
-                    let required_item =
-                        sprite_at_pos.and_then(|s| match s.unlock_condition(sprite_cfg.cloned()) {
-                            UnlockKind::Free => None,
-                            UnlockKind::Requires(item) => Some((item, false)),
-                            UnlockKind::Consumes(item) => Some((item, true)),
-                        });
+                    let sprite_cfg = data.terrain.sprite_cfg_at(sprite_pos);
+                    let required_item = sprite_at_pos.and_then(|s| {
+                        s.unlock_condition(sprite_cfg).and_then(|unlock| {
+                            match unlock.into_owned() {
+                                UnlockKind::Free => None,
+                                UnlockKind::Requires(item) => Some((item, false)),
+                                UnlockKind::Consumes(item) => Some((item, true)),
+                            }
+                        })
+                    });
                     // None: An required items exist but no available
                     // Some(None): No required items
                     // Some(Some(_)): Required items satisfied, contains info about them

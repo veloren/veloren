@@ -1,4 +1,4 @@
-use super::{BlockKind, StructureSprite};
+use super::{BlockKind, SpriteCfg, StructureSprite};
 use crate::{
     assets::{self, AssetCache, AssetExt, AssetHandle, BoxedError, DotVox, Ron, SharedString},
     make_case_elim,
@@ -12,11 +12,9 @@ use serde::Deserialize;
 use std::{num::NonZeroU8, sync::Arc};
 use vek::*;
 
-use crate::terrain::SpriteCfg;
-
 make_case_elim!(
     structure_block,
-    #[derive(Clone, PartialEq, Debug, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     #[repr(u8)]
     pub enum StructureBlock {
         None = 0,
@@ -45,6 +43,7 @@ make_case_elim!(
         // NOTE: When adding set it equal to `23`.
         // = 23,
         EntitySpawner(entitykind: String, spawn_chance: f32) = 24,
+        // TODO: It seems like only Keyhole and KeyholeBars are used out of the keyhole variants?
         Keyhole(consumes: String) = 25,
         BoneKeyhole(consumes: String) = 26,
         GlassKeyhole(consumes: String) = 27,
@@ -60,7 +59,7 @@ make_case_elim!(
         CherryLeaves = 37,
         AutumnLeaves = 38,
         RedwoodWood = 39,
-        SpriteWithCfg(kind: StructureSprite, sprite_cfg: SpriteCfg) = 40,
+        SpriteWithCfg(sprite: StructureSprite, sprite_cfg: SpriteCfg) = 40,
         Choice(block_table: Vec<(f32, StructureBlock)>) = 41,
     }
 );
@@ -251,56 +250,6 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
         .collect()
 }
 
-#[test]
-fn test_load_structures() {
-    use crate::assets;
-    let errors = assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.site_structures")
-        .expect("This should be able to load")
-        .read()
-        .ids()
-        .chain(
-            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.spots")
-                .expect("This should be able to load")
-                .read()
-                .ids(),
-        )
-        .chain(
-            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.spots_general")
-                .expect("This should be able to load")
-                .read()
-                .ids(),
-        )
-        .chain(
-            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.trees")
-                .expect("This should be able to load")
-                .read()
-                .ids(),
-        )
-        .chain(
-            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.shrubs")
-                .expect("This should be able to load")
-                .read()
-                .ids(),
-        )
-        .filter_map(|id| {
-            Ron::<Vec<StructureSpec>>::load(id)
-                .err()
-                .map(|err| (id, err))
-        })
-        .fold(None::<String>, |mut acc, (id, err)| {
-            use std::fmt::Write;
-
-            let s = acc.get_or_insert_default();
-            _ = writeln!(s, "{id}: {err}");
-
-            acc
-        });
-
-    if let Some(errors) = errors {
-        panic!("Failed to load the following structures:\n{errors}")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -310,9 +259,13 @@ mod tests {
         lottery::{LootSpec, tests::validate_loot_spec},
         terrain::Block,
     };
-    use std::ops::Deref;
 
     pub fn validate_sprite_and_cfg(sprite: StructureSprite, sprite_cfg: &SpriteCfg) {
+        let sprite = sprite
+            .get_block(|sprite| Block::empty().with_sprite(sprite))
+            .get_sprite()
+            .expect("This should have the sprite");
+
         let SpriteCfg {
             // TODO: write validation for UnlockKind?
             unlock: _,
@@ -320,11 +273,6 @@ mod tests {
             content: _,
             loot_table,
         } = sprite_cfg;
-
-        let sprite = sprite
-            .get_block(Block::air)
-            .get_sprite()
-            .expect("This should have the sprite");
 
         if let Some(loot_table) = loot_table.clone() {
             if !sprite.is_defined_as_container() {
@@ -419,21 +367,17 @@ Sprite in question: {sprite:?}
         for id in specs.read().ids() {
             // Ignore manifest file
             if id != "world.manifests.spots" {
-                let group: Vec<StructureSpec> = Ron::load(id)
-                    .unwrap_or_else(|e| {
-                        panic!("failed to load: {id}\n{e:?}");
-                    })
-                    .read()
-                    .deref()
-                    .clone()
-                    .into_inner();
+                let group = Ron::<Vec<StructureSpec>>::load(id).unwrap_or_else(|e| {
+                    panic!("failed to load: {id}\n{e:?}");
+                });
+                let group = group.read();
                 for StructureSpec {
                     specifier,
                     center: _center,
                     custom_indices,
-                } in group
+                } in &group.0
                 {
-                    BaseStructure::<StructureBlock>::load(&specifier).unwrap_or_else(|e| {
+                    BaseStructure::<StructureBlock>::load(specifier).unwrap_or_else(|e| {
                         panic!("failed to load specifier for: {id}\n{e:?}");
                     });
 
