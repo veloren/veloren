@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     IndexRef, Land,
     assets::AssetHandle,
-    site::{gen::PrimitiveTransform, util::Dir},
+    site::{generation::PrimitiveTransform, util::Dir},
     util::{
         FastNoise, NEIGHBORS, NEIGHBORS3, RandomField, attempt, sampler::Sampler, within_distance,
     },

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::{PrimitiveTransform, place_circular},
+    site::generation::{PrimitiveTransform, place_circular},
     util::{CARDINALS, RandomField, Sampler, within_distance},
 };
 use common::{

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::{gen::wall_staircase, util::sprites::PainterSpriteExt},
+    site::{generation::wall_staircase, util::sprites::PainterSpriteExt},
     util::{CARDINALS, NEIGHBORS, RandomField, Sampler},
 };
 use common::terrain::{BlockKind, SpriteKind};

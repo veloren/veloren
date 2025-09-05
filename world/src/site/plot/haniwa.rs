@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     assets::AssetHandle,
-    site::gen::{PrimitiveTransform, place_circular, place_circular_as_vec},
+    site::generation::{PrimitiveTransform, place_circular, place_circular_as_vec},
     util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{

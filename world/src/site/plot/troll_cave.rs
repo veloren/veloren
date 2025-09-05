@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     assets::AssetHandle,
-    site::gen::PrimitiveTransform,
+    site::generation::PrimitiveTransform,
     util::{RandomField, sampler::Sampler},
 };
 use common::{

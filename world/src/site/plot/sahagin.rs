@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     site::{
-        gen::{place_circular, place_circular_as_vec, spiral_staircase},
+        generation::{place_circular, place_circular_as_vec, spiral_staircase},
         util::gradient::WrapMode,
     },
     util::{RandomField, sampler::Sampler, within_distance},

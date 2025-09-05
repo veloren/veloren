@@ -18,7 +18,7 @@ use vek::*;
 
 use crate::{
     IndexRef, Land,
-    site::{Dir, Fill, Site, Structure, gen::PrimitiveTransform, namegen, util::Dir3},
+    site::{Dir, Fill, Site, Structure, generation::PrimitiveTransform, namegen, util::Dir3},
     util::RandomField,
 };
 
