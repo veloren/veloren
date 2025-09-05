@@ -2072,7 +2072,12 @@ fn handle_rtsim_npc(
 
         let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
         for npc in npcs.iter().take(count.unwrap_or(!0) as usize) {
-            let _ = write!(&mut info, "{} ({}), ", npc.get_name(), npc.uid);
+            let _ = write!(
+                &mut info,
+                "{} ({}), ",
+                npc.get_name().as_deref().unwrap_or("<unknown>"),
+                npc.uid
+            );
         }
         let _ = writeln!(&mut info);
         let _ = writeln!(

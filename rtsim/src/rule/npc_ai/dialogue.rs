@@ -177,10 +177,8 @@ fn about_site<S: State>(session: DialogueSession) -> impl Action<S> {
 
 fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        let name = Content::localized_with_args("npc-info-self_name", [(
-            "name",
-            Content::Plain(ctx.npc.get_name()),
-        )]);
+        let name = Content::localized("npc-info-self_name")
+            .with_arg("name", ctx.npc.get_name().as_deref().unwrap_or("unknown"));
 
         let job = ctx
             .npc

@@ -154,10 +154,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                             if yes {
                                 let quest =
                                     Quest::escort(ctx.npc_id.into(), session.target, dst_site)
-                                        .with_deposit(
-                                            ESCORT_REWARD_ITEM,
-                                            escort_reward_amount as f32,
-                                        )
+                                        .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount)
                                         .with_timeout(ctx.time.add_minutes(time_limit));
                                 create_quest(quest.clone())
                                     .and_then(|quest_id| {
@@ -319,19 +316,17 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                 .get(dst_site)
                 .is_none_or(|site| site.wpos.as_().distance_squared(ctx.npc.wpos.xy()) < 150.0f32.powi(2))
         })
-        .then(now(move |ctx, _| {
-            goto_actor(escorter, 2.0)
-                .then(do_dialogue(escorter, move |session| {
-                    session
-                        .say_statement(Content::localized("npc-response-quest-escort-complete"))
-                        // Now that the quest has ended, resolve it and give the player the deposit
-                        .then(now(move |ctx, _| {
-                            ctx.controller.end_quest();
-                            match resolve_take_deposit(ctx, quest_id, true) {
-                                Ok(deposit) => session.say_statement_with_gift(Content::localized("npc-response-quest-reward"), deposit).boxed(),
-                                Err(()) => finish().boxed(),
-                            }
-                        }))
+        .then(goto_actor(escorter, 2.0))
+        .then(do_dialogue(escorter, move |session| {
+            session
+                .say_statement(Content::localized("npc-response-quest-escort-complete"))
+                // Now that the quest has ended, resolve it and give the player the deposit
+                .then(now(move |ctx, _| {
+                    ctx.controller.end_quest();
+                    match resolve_take_deposit(ctx, quest_id, true) {
+                        Ok(deposit) => session.say_statement_with_gift(Content::localized("npc-response-quest-reward"), deposit).boxed(),
+                        Err(()) => finish().boxed(),
+                    }
                 }))
         }))
         .stop_if(move |ctx: &mut NpcCtx| {

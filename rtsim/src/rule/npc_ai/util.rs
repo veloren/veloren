@@ -30,7 +30,12 @@ pub fn actor_exists(ctx: &NpcCtx, actor: Actor) -> bool {
 
 pub fn actor_name(ctx: &NpcCtx, actor: Actor) -> Option<String> {
     match actor {
-        Actor::Npc(npc_id) => ctx.state.data().npcs.get(npc_id).map(|npc| npc.get_name()),
+        Actor::Npc(npc_id) => ctx
+            .state
+            .data()
+            .npcs
+            .get(npc_id)
+            .and_then(|npc| npc.get_name()),
         // TODO
         Actor::Character(_) => None,
     }
