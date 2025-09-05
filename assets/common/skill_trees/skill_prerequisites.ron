@@ -1,4 +1,4 @@
-({
+{
     Sword(HeavySweep): Any({Sword(CrescentSlash): 1, Sword(Cascade): 1}),
     Sword(HeavyPommelStrike): Any({Sword(CrescentSlash): 1, Sword(Cascade): 1}),
     Sword(HeavyFortitude): All({Sword(HeavySweep): 1}),
@@ -67,4 +67,4 @@
     Sceptre(ADuration): All({Sceptre(UnlockAura): 1}),
     Sceptre(ARange): All({Sceptre(UnlockAura): 1}),
     Sceptre(ACost): All({Sceptre(UnlockAura): 1}),
-})
+}

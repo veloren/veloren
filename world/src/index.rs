@@ -4,7 +4,7 @@ use crate::{
     site::{Site, economy::TradeInformation},
 };
 use common::{
-    assets::{AssetExt, AssetHandle},
+    assets::{AssetExt, AssetHandle, Ron},
     store::Store,
     trade::{SiteId, SitePrices},
 };
@@ -21,7 +21,7 @@ pub struct Index {
     pub noise: Noise,
     pub sites: Store<Site>,
     pub trade: TradeInformation,
-    pub wildlife_spawns: Vec<(AssetHandle<SpawnEntry>, DensityFn)>,
+    pub wildlife_spawns: Vec<(AssetHandle<Ron<SpawnEntry>>, DensityFn)>,
     colors: AssetHandle<Arc<Colors>>,
     features: AssetHandle<Arc<Features>>,
 }
@@ -67,7 +67,7 @@ impl Index {
         let features = Arc::<Features>::load_expect(WORLD_FEATURES_MANIFEST);
         let wildlife_spawns = wildlife::spawn_manifest()
             .into_iter()
-            .map(|(e, f)| (SpawnEntry::load_expect(e), f))
+            .map(|(e, f)| (Ron::<SpawnEntry>::load_expect(e), f))
             .collect();
 
         Self {

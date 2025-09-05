@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Sceptre)),
 
     // Beam
@@ -8,5 +8,4 @@
     // Heal
     Skill((Sceptre(HHeal), 1)),
     Skill((Sceptre(HDuration), 1)),
-
-])
+]

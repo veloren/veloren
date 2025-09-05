@@ -9,7 +9,7 @@ use crate::{
     scene::terrain::FireplaceType,
 };
 use common::{
-    assets::{AssetExt, DotVoxAsset},
+    assets::{AssetExt, DotVox},
     comp::{
         self, Beam, Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState,
         Pos, Scale, Shockwave, Vel,
@@ -3572,7 +3572,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
-        let vox = DotVoxAsset::load_expect(DEFAULT_MODEL_KEY);
+        let vox = DotVox::load_expect(DEFAULT_MODEL_KEY);
 
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.

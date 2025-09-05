@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, AssetCombined, Concatenate},
+    assets::{AssetCombined, Ron},
     combat::GroupTarget,
     comp::{
         self, AdminRole as Role, Skill, aura::AuraKindVariant, buff::BuffKind,
@@ -56,27 +56,10 @@ pub enum KitSpec {
         hands: Option<comp::item::tool::Hands>,
     },
 }
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
-pub struct KitManifest(pub HashMap<String, Vec<(KitSpec, u32)>>);
-impl assets::Asset for KitManifest {
-    type Loader = assets::RonLoader;
 
-    const EXTENSION: &'static str = "ron";
-}
-impl Concatenate for KitManifest {
-    fn concatenate(self, b: Self) -> Self { KitManifest(self.0.concatenate(b.0)) }
-}
+pub type KitManifest = Ron<HashMap<String, Vec<(KitSpec, u32)>>>;
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
-pub struct SkillPresetManifest(pub HashMap<String, Vec<(Skill, u8)>>);
-impl assets::Asset for SkillPresetManifest {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-impl Concatenate for SkillPresetManifest {
-    fn concatenate(self, b: Self) -> Self { SkillPresetManifest(self.0.concatenate(b.0)) }
-}
+pub type SkillPresetManifest = Ron<HashMap<String, Vec<(Skill, u8)>>>;
 
 pub const KIT_MANIFEST_PATH: &str = "server.manifests.kits";
 pub const PRESET_MANIFEST_PATH: &str = "server.manifests.presets";
@@ -101,7 +84,7 @@ lazy_static! {
         .collect();
     /// TODO: Make this use hot-reloading
     pub static ref ENTITIES: Vec<String> = {
-        let npc_names = &*npc::NPC_NAMES.read();
+        let npc_names = &npc::NPC_NAMES.read();
 
         // HashSets for deduplication of male, female, etc
         let mut categories = HashSet::new();

@@ -313,17 +313,17 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.12.5"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "017916aa0241c9944e5e7483d74e9d053edea690a77a36f3bf342c75ad23f7cb"
+checksum = "88efd382e54d403ac4bdf5841d8028f85ef207c8492a19f8427b72be6c3cfc94"
 dependencies = [
  "ab_glyph",
- "ahash 0.8.12",
- "bincode",
+ "bincode 2.0.1",
  "crossbeam-channel",
+ "foldhash 0.2.0",
  "hashbrown 0.15.3",
  "log",
- "notify 6.1.1",
+ "notify",
  "ron",
  "serde",
  "serde_json",
@@ -513,6 +513,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "bincode"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36eaf5d7b090263e8150820482d5d93cd964a81e4019913c972f4edcc6edb740"
+dependencies = [
+ "bincode_derive",
+ "serde",
+ "unty",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+dependencies = [
+ "virtue",
 ]
 
 [[package]]
@@ -1535,7 +1555,7 @@ checksum = "829d955a0bb380ef178a640b91779e3987da38c9aea133b20614cfed8cdea9c6"
 dependencies = [
  "bitflags 2.9.0",
  "crossterm_winapi",
- "mio 1.0.3",
+ "mio",
  "parking_lot",
  "rustix 0.38.44",
  "signal-hook",
@@ -1553,7 +1573,7 @@ dependencies = [
  "crossterm_winapi",
  "derive_more",
  "document-features",
- "mio 1.0.3",
+ "mio",
  "parking_lot",
  "rustix 1.0.7",
  "signal-hook",
@@ -2363,6 +2383,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
+name = "foldhash"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
+
+[[package]]
 name = "foreign-types"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2646,7 +2672,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6d95ae10ce5aa99543a28cf74e41c11f3b9e3c14f0452bbde46024753cd683e"
 dependencies = [
  "core-foundation 0.10.0",
- "inotify 0.11.0",
+ "inotify",
  "io-kit-sys",
  "js-sys",
  "libc",
@@ -2876,7 +2902,7 @@ checksum = "84b26c544d002229e640969970a2e74021aadf6e2f96372b9c58eff97de08eb3"
 dependencies = [
  "allocator-api2",
  "equivalent",
- "foldhash",
+ "foldhash 0.1.5",
  "rayon",
  "serde",
 ]
@@ -3388,17 +3414,6 @@ dependencies = [
  "proc-macro2 1.0.95",
  "quote 1.0.40",
  "syn 2.0.101",
-]
-
-[[package]]
-name = "inotify"
-version = "0.9.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8069d3ec154eb856955c1c0fbffefbf5f3c40a104ec912d4797314c1801abff"
-dependencies = [
- "bitflags 1.3.2",
- "inotify-sys",
- "libc",
 ]
 
 [[package]]
@@ -4075,18 +4090,6 @@ checksum = "e53debba6bda7a793e5f99b8dacf19e626084f525f7829104ba9898f367d85ff"
 
 [[package]]
 name = "mio"
-version = "0.8.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
-dependencies = [
- "libc",
- "log",
- "wasi 0.11.0+wasi-snapshot-preview1",
- "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "mio"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
@@ -4314,25 +4317,6 @@ dependencies = [
 
 [[package]]
 name = "notify"
-version = "6.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6205bd8bb1e454ad2e27422015fb5e4f2bcc7e08fa8f27058670d208324a4d2d"
-dependencies = [
- "bitflags 2.9.0",
- "crossbeam-channel",
- "filetime",
- "fsevent-sys",
- "inotify 0.9.6",
- "kqueue",
- "libc",
- "log",
- "mio 0.8.11",
- "walkdir",
- "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "notify"
 version = "8.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fee8403b3d66ac7b26aee6e40a897d85dc5ce26f44da36b8b73e987cc52e943"
@@ -4340,11 +4324,11 @@ dependencies = [
  "bitflags 2.9.0",
  "filetime",
  "fsevent-sys",
- "inotify 0.11.0",
+ "inotify",
  "kqueue",
  "libc",
  "log",
- "mio 1.0.3",
+ "mio",
  "notify-types",
  "walkdir",
  "windows-sys 0.59.0",
@@ -5919,14 +5903,15 @@ checksum = "e5864e7ef1a6b7bcf1d6ca3f655e65e724ed3b52546a0d0a663c991522f552ea"
 
 [[package]]
 name = "ron"
-version = "0.8.1"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b91f7eff05f748767f183df4320a63d6936e9c6107d97c9e6bdd9784f4289c94"
+checksum = "db09040cc89e461f1a265139777a2bde7f8d8c67c4936f700c63ce3e2904d468"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitflags 2.9.0",
  "serde",
  "serde_derive",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -6567,7 +6552,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34db1a06d485c9142248b7a054f034b349b212551f3dfd19c94d45a754a217cd"
 dependencies = [
  "libc",
- "mio 1.0.3",
+ "mio",
  "signal-hook",
 ]
 
@@ -6984,9 +6969,9 @@ dependencies = [
 
 [[package]]
 name = "sync_file"
-version = "0.2.9"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cfc24238213e42ffb35314aad7a7f5d46649c5fbba3ea95ef24f7debb95874e"
+checksum = "985235628eb5c98253791147f5babfb3fa022eedba0641e1cc930ce4f8581e34"
 dependencies = [
  "wasi 0.11.0+wasi-snapshot-preview1",
 ]
@@ -7241,7 +7226,7 @@ dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio 1.0.3",
+ "mio",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2 0.5.9",
@@ -7681,6 +7666,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
+name = "unty"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+
+[[package]]
 name = "url"
 version = "2.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7894,7 +7885,7 @@ version = "0.1.0"
 dependencies = [
  "find_folder",
  "libloading",
- "notify 8.0.0",
+ "notify",
  "tracing",
 ]
 
@@ -7933,7 +7924,7 @@ dependencies = [
 name = "veloren-common-net"
 version = "0.10.0"
 dependencies = [
- "bincode",
+ "bincode 1.3.3",
  "flate2",
  "hashbrown 0.15.3",
  "image",
@@ -7952,7 +7943,7 @@ version = "0.10.0"
 dependencies = [
  "async-trait",
  "atomic_refcell",
- "bincode",
+ "bincode 1.3.3",
  "bytes",
  "futures",
  "hashbrown 0.15.3",
@@ -8001,7 +7992,7 @@ version = "0.3.0"
 dependencies = [
  "async-channel",
  "async-trait",
- "bincode",
+ "bincode 1.3.3",
  "bytes",
  "clap",
  "criterion",
@@ -8086,7 +8077,7 @@ version = "0.17.0"
 dependencies = [
  "atomicwrites",
  "authc",
- "bincode",
+ "bincode 1.3.3",
  "censor",
  "chrono",
  "chrono-tz",
@@ -8307,7 +8298,7 @@ name = "veloren-world"
 version = "0.10.0"
 dependencies = [
  "arr_macro",
- "bincode",
+ "bincode 1.3.3",
  "bitvec",
  "clap",
  "criterion",
@@ -8374,6 +8365,12 @@ dependencies = [
  "itertools 0.14.0",
  "nom 8.0.0",
 ]
+
+[[package]]
+name = "virtue"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "051eb1abcf10076295e815102942cc58f9d5e3b4560e46e53c21e8ff6f3af7b1"
 
 [[package]]
 name = "walkdir"

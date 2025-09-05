@@ -1,8 +1,12 @@
 use crate::{
     Fonts, LanguageMetadata,
-    assets::{StringLoader, loader},
+    assets::{
+        Asset, AssetCache, BoxedError, DirLoadable, FileAsset, Ron, SharedString, Source,
+        source::DirEntry,
+    },
 };
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 /// Localization metadata from manifest file
 /// See `Language` for more info on each attributes
@@ -12,10 +16,34 @@ pub(crate) struct Manifest {
     pub(crate) metadata: LanguageMetadata,
 }
 
-impl crate::assets::Asset for Manifest {
-    type Loader = crate::assets::RonLoader;
+impl Asset for Manifest {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
+        Ok(cache
+            .load::<Ron<Self>>(specifier)
+            .map(|v| v.read().clone().into_inner())?)
+    }
+}
 
-    const EXTENSION: &'static str = "ron";
+impl DirLoadable for Manifest {
+    fn select_ids(
+        cache: &AssetCache,
+        specifier: &SharedString,
+    ) -> std::io::Result<Vec<SharedString>> {
+        let mut specifiers = Vec::new();
+
+        let source = cache.source();
+        source.read_dir(specifier, &mut |entry| {
+            if let DirEntry::Directory(spec) = entry {
+                let manifest_spec = [spec, ".", "_manifest"].concat();
+
+                if source.exists(DirEntry::File(&manifest_spec, "ron")) {
+                    specifiers.push(manifest_spec.into());
+                }
+            }
+        })?;
+
+        Ok(specifiers)
+    }
 }
 
 // Newtype wrapper representing fluent resource.
@@ -37,12 +65,12 @@ pub(crate) struct Resource {
     pub(crate) src: String,
 }
 
-impl From<String> for Resource {
-    fn from(src: String) -> Self { Self { src } }
-}
-
-impl crate::assets::Asset for Resource {
-    type Loader = loader::LoadFrom<String, StringLoader>;
-
+impl FileAsset for Resource {
     const EXTENSION: &'static str = "ftl";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        Ok(Self {
+            src: String::from_utf8(bytes.into())?,
+        })
+    }
 }

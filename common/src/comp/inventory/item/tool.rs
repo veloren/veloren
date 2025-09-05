@@ -2,7 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    assets::{self, Asset, AssetExt, AssetHandle},
+    assets::{Asset, AssetCache, AssetExt, AssetHandle, BoxedError, Ron, SharedString},
     comp::{
         CharacterAbility, Combo, SkillSet,
         ability::Stance,
@@ -193,12 +193,6 @@ impl Stats {
             buff_strength: self.buff_strength * dur_mult.0,
         }
     }
-}
-
-impl Asset for Stats {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 impl Add<Stats> for Stats {
@@ -574,21 +568,13 @@ impl<T> AbilityMap<T> {
     pub fn get_ability_set(&self, key: &AbilitySpec) -> Option<&AbilitySet<T>> { self.0.get(key) }
 }
 
-impl Asset for AbilityMap<String> {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-impl assets::Compound for AbilityMap {
-    fn load(
-        cache: assets::AnyCache,
-        specifier: &assets::SharedString,
-    ) -> Result<Self, assets::BoxedError> {
-        let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();
+impl Asset for AbilityMap {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
+        let manifest = cache.load::<Ron<AbilityMap<String>>>(specifier)?.read();
 
         Ok(AbilityMap(
             manifest
+                .0
                 .0
                 .iter()
                 .map(|(kind, set)| {
@@ -598,7 +584,10 @@ impl assets::Compound for AbilityMap {
                         // provides a default value in case of failure
                         set.map_ref(|s| AbilityItem {
                             id: s.clone(),
-                            ability: cache.load_expect(s).cloned(),
+                            ability: cache
+                                .load_expect::<Ron<CharacterAbility>>(s)
+                                .cloned()
+                                .into_inner(),
                         }),
                     )
                 })

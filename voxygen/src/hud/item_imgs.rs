@@ -3,7 +3,7 @@ use crate::{
     ui::{Graphic, SampleStrat, Transform, Ui},
 };
 use common::{
-    assets::{self, AssetCombined, AssetExt, AssetHandle, Concatenate, DotVoxAsset, ReloadWatcher},
+    assets::{AssetCombined, AssetExt, AssetHandle, DotVox, Image, ReloadWatcher, Ron},
     comp::item::item_key::ItemKey,
     figure::Segment,
 };
@@ -76,16 +76,7 @@ impl ImageSpec {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct ItemImagesSpec(pub HashMap<ItemKey, ImageSpec>);
-impl assets::Asset for ItemImagesSpec {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-impl Concatenate for ItemImagesSpec {
-    fn concatenate(self, b: Self) -> Self { ItemImagesSpec(self.0.concatenate(b.0)) }
-}
+pub type ItemImagesSpec = Ron<HashMap<ItemKey, ImageSpec>>;
 
 // TODO: when there are more images don't load them all into memory
 pub struct ItemImgs {
@@ -167,23 +158,23 @@ impl ItemImgs {
 
 // Copied from figure/load.rs
 // TODO: remove code dup?
-fn graceful_load_vox(specifier: &str) -> AssetHandle<DotVoxAsset> {
+fn graceful_load_vox(specifier: &str) -> AssetHandle<DotVox> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    match DotVoxAsset::load(full_specifier.as_str()) {
+    match DotVox::load(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for item images",);
-            DotVoxAsset::load_expect("voxygen.voxel.not_found")
+            DotVox::load_expect("voxygen.voxel.not_found")
         },
     }
 }
 fn graceful_load_img(specifier: &str) -> Arc<DynamicImage> {
     let full_specifier: String = ["voxygen.", specifier].concat();
-    let handle = match assets::Image::load(&full_specifier) {
+    let handle = match Image::load(&full_specifier) {
         Ok(img) => img,
         Err(_) => {
             error!(?full_specifier, "Could not load image file for item images");
-            assets::Image::load_expect("voxygen.element.not_found")
+            Image::load_expect("voxygen.element.not_found")
         },
     };
     handle.read().to_image()

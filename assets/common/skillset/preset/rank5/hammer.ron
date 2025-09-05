@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Hammer)),
 
     Skill((Hammer(ScornfulSwipe), 1)),
@@ -24,4 +24,4 @@
     Skill((Hammer(SeismicShock), 1)),
     Skill((Hammer(Judgement), 1)),
     Skill((Hammer(Earthshaker), 1)),
-])
+]

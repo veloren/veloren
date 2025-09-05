@@ -46,7 +46,7 @@
 use crate::audio::{AudioFrontend, MusicChannelTag};
 use client::Client;
 use common::{
-    assets::{self, AssetExt, AssetHandle},
+    assets::{Asset, AssetCache, AssetExt, AssetHandle, BoxedError, Ron, SharedString},
     calendar::{Calendar, CalendarEvent},
     terrain::{BiomeKind, SiteKindMeta},
     weather::WeatherKind,
@@ -200,12 +200,6 @@ impl Default for MusicTransitionManifest {
     }
 }
 
-impl assets::Asset for MusicTransitionManifest {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 fn time_f64(clock_time: ClockTime) -> f64 { clock_time.ticks as f64 + clock_time.fraction }
 
 impl MusicMgr {
@@ -261,18 +255,18 @@ impl MusicMgr {
                         if entity != player
                             && group == &ENEMY
                             && (player_pos.0 - pos.0).magnitude_squared()
-                                < mtm.combat_nearby_radius.powf(2.0)
+                                < mtm.0.combat_nearby_radius.powf(2.0)
                         {
-                            (health.maximum() / mtm.combat_health_factor).ceil() as u32
+                            (health.maximum() / mtm.0.combat_health_factor).ceil() as u32
                         } else {
                             0
                         }
                     })
                     .sum();
 
-                if num_nearby_entities >= mtm.combat_nearby_high_thresh {
+                if num_nearby_entities >= mtm.0.combat_nearby_high_thresh {
                     activity_state = MusicActivity::Combat(CombatIntensity::High);
-                } else if num_nearby_entities >= mtm.combat_nearby_low_thresh {
+                } else if num_nearby_entities >= mtm.0.combat_nearby_low_thresh {
                     activity_state = MusicActivity::Combat(CombatIntensity::Low);
                 }
             }
@@ -310,7 +304,7 @@ impl MusicMgr {
         // combat might end, providing a proper "buffer".
         // interrupt_delay dictates the time between attempted interrupts
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
-            && time_f64(now) - time_f64(last_interrupt_attempt) > mtm.interrupt_delay as f64;
+            && time_f64(now) - time_f64(last_interrupt_attempt) > mtm.0.interrupt_delay as f64;
 
         // Hack to end combat music since there is currently nothing that detects
         // transitions away
@@ -714,17 +708,12 @@ impl MusicMgr {
         }
     }
 }
-impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
-    fn load(_: assets::AnyCache, id: &assets::SharedString) -> Result<Self, assets::BoxedError> {
-        let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> = AssetExt::load(id)?;
+impl Asset for SoundtrackCollection<SoundtrackItem> {
+    fn load(_: &AssetCache, id: &SharedString) -> Result<Self, BoxedError> {
+        let manifest: AssetHandle<Ron<SoundtrackCollection<RawSoundtrackItem>>> =
+            AssetExt::load(id)?;
         let mut soundtrack = SoundtrackCollection::default();
-        for item in manifest.read().tracks.iter().cloned() {
+        for item in manifest.read().0.tracks.iter().cloned() {
             match item {
                 RawSoundtrackItem::Individual(track) => soundtrack.tracks.push(track),
                 RawSoundtrackItem::Segmented {
@@ -767,7 +756,7 @@ mod tests {
     #[test]
     fn test_load_soundtracks() {
         let _: AssetHandle<SoundtrackCollection<SoundtrackItem>> =
-            SoundtrackCollection::load_expect("voxygen.audio.soundtrack");
+            AssetExt::load_expect("voxygen.audio.soundtrack");
         for event in CalendarEvent::iter() {
             match event {
                 CalendarEvent::Halloween => {

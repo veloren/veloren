@@ -8,7 +8,7 @@ pub use modular::{MaterialStatManifest, ModularBase, ModularComponent};
 pub use tool::{AbilityMap, AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
 
 use crate::{
-    assets::{self, AssetExt, BoxedError, Error},
+    assets::{self, Asset, AssetCache, AssetExt, BoxedError, Error, Ron, SharedString},
     comp::inventory::InvSlot,
     effect::Effect,
     lottery::LootSpec,
@@ -553,17 +553,12 @@ pub struct ItemI18n {
     map: HashMap<ItemKey, I18nId>,
 }
 
-impl assets::Asset for ItemI18n {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 impl ItemI18n {
     pub fn new_expect() -> Self {
-        ItemI18n::load_expect("common.item_i18n_manifest")
+        Ron::load_expect("common.item_i18n_manifest")
             .read()
             .clone()
+            .into_inner()
     }
 
     /// Returns (name, description) in Content form.
@@ -907,8 +902,8 @@ impl PartialEq for Item {
     }
 }
 
-impl assets::Compound for ItemDef {
-    fn load(cache: assets::AnyCache, specifier: &assets::SharedString) -> Result<Self, BoxedError> {
+impl Asset for ItemDef {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
         if specifier.starts_with("veloren.core.") {
             return Err(format!(
                 "Attempted to load an asset from a specifier reserved for core veloren functions. \
@@ -926,7 +921,7 @@ impl assets::Compound for ItemDef {
             tags,
             slots,
             ability_spec,
-        } = cache.load::<RawItemDef>(specifier)?.cloned();
+        } = cache.load::<Ron<_>>(specifier)?.cloned().into_inner();
 
         // Some commands like /give_item provide the asset specifier separated with \
         // instead of .
@@ -959,12 +954,6 @@ struct RawItemDef {
     #[serde(default)]
     slots: u16,
     ability_spec: Option<AbilitySpec>,
-}
-
-impl assets::Asset for RawItemDef {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 #[derive(Debug)]
@@ -1050,7 +1039,7 @@ impl Item {
     /// asset glob pattern
     pub fn new_from_asset_glob(asset_glob: &str) -> Result<Vec<Self>, Error> {
         let specifier = asset_glob.strip_suffix(".*").unwrap_or(asset_glob);
-        let defs = assets::load_rec_dir::<RawItemDef>(specifier)?;
+        let defs = assets::load_rec_dir::<Ron<RawItemDef>>(specifier)?;
         defs.read()
             .ids()
             .map(|id| Item::new_from_asset(id))
@@ -1332,8 +1321,8 @@ impl Item {
             ItemBase::Simple(item_def) => Cow::Borrowed(&item_def.kind),
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
-                let msm = MaterialStatManifest::load().read();
-                mod_base.kind(self.components(), &msm, self.stats_durability_multiplier())
+                let msm = &MaterialStatManifest::load().read();
+                mod_base.kind(self.components(), msm, self.stats_durability_multiplier())
             },
         }
     }
@@ -2000,14 +1989,14 @@ pub fn all_item_defs_expect() -> Vec<String> {
 
 /// Returns all item asset specifiers
 pub fn try_all_item_defs() -> Result<Vec<String>, Error> {
-    let defs = assets::load_rec_dir::<RawItemDef>("common.items")?;
+    let defs = assets::load_rec_dir::<Ron<RawItemDef>>("common.items")?;
     Ok(defs.read().ids().map(|id| id.to_string()).collect())
 }
 
 /// Designed to return all possible items, including modulars.
 /// And some impossible too, like ItemKind::TagExamples.
 pub fn all_items_expect() -> Vec<Item> {
-    let defs = assets::load_rec_dir::<RawItemDef>("common.items")
+    let defs = assets::load_rec_dir::<Ron<RawItemDef>>("common.items")
         .expect("failed to load item asset directory");
 
     // Grab all items from assets

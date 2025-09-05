@@ -1,10 +1,8 @@
 use std::{path::PathBuf, sync::RwLock};
 
-use crate::Concatenate;
-
-use super::{ASSETS_PATH, fs::FileSystem};
+use super::{ASSETS_PATH, Concatenate, fs::FileSystem};
 use assets_manager::{
-    AnyCache, AssetCache, BoxedError, Compound, Storable,
+    Asset, AssetCache, BoxedError, Storable,
     asset::DirLoadable,
     hot_reloading::EventSender,
     source::{FileContent, Source, Tar},
@@ -12,7 +10,7 @@ use assets_manager::{
 
 struct PluginEntry {
     path: PathBuf,
-    cache: AssetCache<Tar>,
+    cache: AssetCache,
 }
 
 /// The location of this asset
@@ -28,7 +26,7 @@ struct SourceAndContents<'a>(AssetSource, FileContent<'a>);
 ///
 /// A load will search through all sources and warn about unhandled duplicates.
 pub struct CombinedSource {
-    fs: AssetCache<FileSystem>,
+    fs: AssetCache,
     plugin_list: RwLock<Vec<PluginEntry>>,
 }
 
@@ -45,11 +43,16 @@ impl CombinedSource {
     /// Look for an asset in all known sources
     fn read_multiple(&self, id: &str, ext: &str) -> Vec<SourceAndContents<'_>> {
         let mut result = Vec::new();
-        if let Ok(file_entry) = self.fs.raw_source().read(id, ext) {
+        if let Ok(file_entry) = self
+            .fs
+            .downcast_raw_source::<FileSystem>()
+            .unwrap()
+            .read(id, ext)
+        {
             result.push(SourceAndContents(AssetSource::FileSystem, file_entry));
         }
         for (n, p) in self.plugin_list.read().unwrap().iter().enumerate() {
-            if let Ok(entry) = p.cache.raw_source().read(id, ext) {
+            if let Ok(entry) = p.cache.source().read(id, ext) {
                 // the data is behind an RwLockReadGuard, so own it for returning
                 result.push(SourceAndContents(
                     AssetSource::Plugin { index: n },
@@ -103,29 +106,27 @@ impl Source for CombinedSource {
         f: &mut dyn FnMut(assets_manager::source::DirEntry),
     ) -> std::io::Result<()> {
         // TODO: We should combine the sources, but this isn't used in veloren
-        self.fs.raw_source().read_dir(id, f)
+        self.fs.source().read_dir(id, f)
     }
 
     fn exists(&self, entry: assets_manager::source::DirEntry) -> bool {
-        self.fs.raw_source().exists(entry)
+        self.fs.source().exists(entry)
             || self
                 .plugin_list
                 .read()
                 .unwrap()
                 .iter()
-                .any(|plugin| plugin.cache.raw_source().exists(entry))
+                .any(|plugin| plugin.cache.source().exists(entry))
     }
 
     // TODO: Enable hot reloading for plugins
-    fn make_source(&self) -> Option<Box<dyn Source + Send>> { self.fs.raw_source().make_source() }
-
     fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
-        self.fs.raw_source().configure_hot_reloading(events)
+        self.fs.source().configure_hot_reloading(events)
     }
 }
 
 /// A cache combining filesystem and plugin assets
-pub struct CombinedCache(AssetCache<CombinedSource>);
+pub struct CombinedCache(AssetCache);
 
 impl CombinedCache {
     pub fn new() -> std::io::Result<Self> {
@@ -134,17 +135,17 @@ impl CombinedCache {
 
     #[doc(hidden)]
     // Provide a cache to the "combine_static" functions as they omit
-    // wrapping in a Compound (which enables hot-reload)
-    pub(crate) fn non_reloading_cache(&self) -> AnyCache<'_> {
-        self.0.raw_source().fs.as_any_cache()
+    // wrapping in an Asset (which enables hot-reload)
+    pub(crate) fn non_reloading_cache(&self) -> &AssetCache {
+        &self.0.downcast_raw_source::<CombinedSource>().unwrap().fs
     }
 
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
         // this cache registers with hot reloading
-        reloading_cache: AnyCache,
-        mut load_from: impl FnMut(AnyCache) -> Result<T, assets_manager::Error>,
+        reloading_cache: &AssetCache,
+        mut load_from: impl FnMut(&AssetCache) -> Result<T, assets_manager::Error>,
     ) -> Result<T, assets_manager::Error> {
         let mut result = load_from(reloading_cache);
         // Report a severe error from the filesystem asset even if later overwritten by
@@ -159,8 +160,16 @@ impl CombinedCache {
                 _ => tracing::error!("Filesystem asset load {fs_error:?}"),
             }
         }
-        for plugin in self.0.raw_source().plugin_list.read().unwrap().iter() {
-            match load_from(plugin.cache.as_any_cache()) {
+        for plugin in self
+            .0
+            .downcast_raw_source::<CombinedSource>()
+            .unwrap()
+            .plugin_list
+            .read()
+            .unwrap()
+            .iter()
+        {
+            match load_from(&plugin.cache) {
                 Ok(b) => {
                     result = if let Ok(a) = result {
                         Ok(a.concatenate(b))
@@ -193,7 +202,8 @@ impl CombinedCache {
         let tar_source = Tar::open(&path)?;
         let cache = AssetCache::with_source(tar_source);
         self.0
-            .raw_source()
+            .downcast_raw_source::<CombinedSource>()
+            .unwrap()
             .plugin_list
             .write()
             .unwrap()
@@ -203,11 +213,7 @@ impl CombinedCache {
 
     // Just forward these methods to the cache
     #[inline]
-    #[cfg(feature = "hot-reloading")]
-    pub fn enhance_hot_reloading(&'static self) { self.0.enhance_hot_reloading(); }
-
-    #[inline]
-    pub fn load_rec_dir<A: DirLoadable>(
+    pub fn load_rec_dir<A: DirLoadable + Asset>(
         &self,
         id: &str,
     ) -> Result<&assets_manager::Handle<assets_manager::RecursiveDirectory<A>>, assets_manager::Error>
@@ -216,7 +222,7 @@ impl CombinedCache {
     }
 
     #[inline]
-    pub fn load<A: Compound>(
+    pub fn load<A: Asset>(
         &self,
         id: &str,
     ) -> Result<&assets_manager::Handle<A>, assets_manager::Error> {
@@ -229,7 +235,7 @@ impl CombinedCache {
     }
 
     #[inline]
-    pub fn load_owned<A: Compound>(&self, id: &str) -> Result<A, assets_manager::Error> {
+    pub fn load_owned<A: Asset>(&self, id: &str) -> Result<A, assets_manager::Error> {
         self.0.load_owned(id)
     }
 }

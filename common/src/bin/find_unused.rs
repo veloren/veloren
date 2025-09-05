@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use common_assets::AssetExt;
+use common_assets::{AssetExt, Ron};
 use hashbrown::HashSet;
 use strum::IntoEnumIterator;
 use veloren_common::{
@@ -109,8 +109,8 @@ impl Used {
 
     fn use_loadout_asset(&mut self, asset: &str) {
         if self.loadouts.insert(asset.to_string()) {
-            let loadout = LoadoutSpec::load_expect(asset);
-            self.use_loadout_spec(&loadout.read());
+            let loadout = Ron::load_expect(asset);
+            self.use_loadout_spec(&loadout.read().0);
         }
     }
 
@@ -329,7 +329,7 @@ fn main() {
     }
 
     println!("Unused loadouts:");
-    for loadout in common_assets::load_rec_dir::<LoadoutSpec>("common.loadout")
+    for loadout in common_assets::load_rec_dir::<Ron<LoadoutSpec>>("common.loadout")
         .expect("Couldn't load loot tables")
         .read()
         .ids()

@@ -1,5 +1,8 @@
 use crate::{
-    assets::{self, AssetExt},
+    assets::{
+        Asset, AssetCache, AssetExt, AssetReadGuard, BoxedError, FileAsset, Ron, SharedString,
+        load_ron,
+    },
     comp::{
         inventory,
         item::{
@@ -12,11 +15,10 @@ use crate::{
     recipe::{RecipeInput, complete_recipe_book, default_component_recipe_book},
     trade::Good,
 };
-use assets::AssetReadGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use std::cmp::Ordering;
+use std::{borrow::Cow, cmp::Ordering};
 use tracing::{error, info, warn};
 
 use super::item::{Material, ToolKind};
@@ -260,10 +262,12 @@ pub struct ProbabilityFile {
     pub content: Vec<(f32, ItemDefinitionIdOwned, f32)>,
 }
 
-impl assets::Asset for ProbabilityFile {
-    type Loader = assets::LoadFrom<Vec<(f32, LootSpec<String>)>, assets::RonLoader>;
-
+impl FileAsset for ProbabilityFile {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        load_ron::<Vec<(f32, LootSpec<String>)>>(&bytes).map(Vec::into)
+    }
 }
 
 type ComponentPool =
@@ -469,12 +473,6 @@ struct TradingPriceFile {
     pub good_scaling: Vec<(Good, f32)>,
 }
 
-impl assets::Asset for TradingPriceFile {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 #[derive(Clone, Debug, Default)]
 struct EqualitySet {
     // which item should this item's occurrences be counted towards
@@ -493,11 +491,8 @@ impl EqualitySet {
     }
 }
 
-impl assets::Compound for EqualitySet {
-    fn load(
-        cache: assets::AnyCache,
-        id: &assets::SharedString,
-    ) -> Result<Self, assets::BoxedError> {
+impl Asset for EqualitySet {
+    fn load(cache: &AssetCache, id: &SharedString) -> Result<Self, BoxedError> {
         #[derive(Debug, Deserialize)]
         enum EqualitySpec {
             LootTable(String),
@@ -508,7 +503,7 @@ impl assets::Compound for EqualitySet {
             equivalence_class: HashMap::new(),
         };
 
-        let manifest = &cache.load::<assets::Ron<Vec<EqualitySpec>>>(id)?.read().0;
+        let manifest = &cache.load::<Ron<Vec<EqualitySpec>>>(id)?.read().0;
         for set in manifest {
             let items: Vec<ItemDefinitionIdOwned> = match set {
                 EqualitySpec::LootTable(table) => {
@@ -541,8 +536,9 @@ struct RememberedRecipe {
     input: Vec<(ItemDefinitionIdOwned, u32)>,
 }
 
-fn get_scaling(contents: &AssetReadGuard<TradingPriceFile>, good: Good) -> f32 {
+fn get_scaling(contents: &AssetReadGuard<Ron<TradingPriceFile>>, good: Good) -> f32 {
     contents
+        .0
         .good_scaling
         .iter()
         .find(|(good_kind, _)| *good_kind == good)
@@ -744,11 +740,11 @@ impl TradePricing {
         let mut result = Self::default();
         let mut freq = FreqEntries::default();
         let price_config =
-            TradingPriceFile::load_expect("common.trading.item_price_calculation").read();
+            Ron::<TradingPriceFile>::load_expect("common.trading.item_price_calculation").read();
         result.equality_set = EqualitySet::load_expect("common.trading.item_price_equality")
             .read()
             .clone();
-        for table in &price_config.loot_tables {
+        for table in &price_config.0.loot_tables {
             if PRICING_DEBUG {
                 info!(?table);
             }

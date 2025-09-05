@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use super::SPRITE_LOD_LEVELS;
 use common::{
-    assets,
+    assets::{BoxedError, FileAsset, load_ron},
     terrain::{
         Block, SpriteKind,
         sprite::{self, RelativeNeighborPosition},
@@ -10,6 +10,7 @@ use common::{
 };
 use hashbrown::HashMap;
 use serde::Deserialize;
+use std::borrow::Cow;
 use vek::*;
 
 #[derive(Deserialize, Debug)]
@@ -139,10 +140,10 @@ impl TryFrom<SpriteSpecRaw> for SpriteSpec {
     }
 }
 
-impl assets::Asset for SpriteSpec {
-    type Loader = assets::RonLoader;
-
+impl FileAsset for SpriteSpec {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
 }
 
 impl SpriteSpec {

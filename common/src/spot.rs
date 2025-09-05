@@ -1,4 +1,4 @@
-use common_assets::{Asset, AssetCombined, AssetHandle, Concatenate, RonLoader};
+use common_assets::{AssetCombined, AssetHandle, Ron};
 use lazy_static::lazy_static;
 
 use crate::terrain::BiomeKind;
@@ -83,24 +83,12 @@ pub struct SpotProperties {
     pub spawn: bool,
 }
 
-#[derive(serde::Deserialize, Clone, Debug)]
-#[serde(transparent)]
-pub struct RonSpots(pub Vec<SpotProperties>);
-
-impl Asset for RonSpots {
-    type Loader = RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-impl Concatenate for RonSpots {
-    fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
-}
+pub type RonSpots = Ron<Vec<SpotProperties>>;
 
 lazy_static! {
     pub static ref RON_SPOT_PROPERTIES: RonSpots = {
         let spots: AssetHandle<RonSpots> =
             RonSpots::load_expect_combined_static("world.manifests.spots");
-        RonSpots(spots.read().0.to_vec())
+        Ron(spots.read().0.to_vec())
     };
 }

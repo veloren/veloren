@@ -20,7 +20,7 @@ pub mod ship;
 pub mod theropod;
 
 use crate::{
-    assets::{self, Asset},
+    assets::{BoxedError, FileAsset, load_ron},
     consts::{HUMAN_DENSITY, WATER_DENSITY},
     npc::NpcKind,
 };
@@ -196,11 +196,11 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<&Body> for AllBodies<BodyMeta, Spec
 impl<
     BodyMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
     SpeciesMeta: Send + Sync + for<'de> serde::Deserialize<'de> + 'static,
-> Asset for AllBodies<BodyMeta, SpeciesMeta>
+> FileAsset for AllBodies<BodyMeta, SpeciesMeta>
 {
-    type Loader = assets::RonLoader;
-
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
 }
 
 /// Semantic gender aka body_type

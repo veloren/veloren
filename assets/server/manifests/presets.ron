@@ -1,6 +1,6 @@
 // NOTE: Order matters here
 // (you need to unlock skillgroup to be able to unlock skills in it
-({
+{
     "max": [
         // General skills
         (Climb(Cost), 2),
@@ -234,4 +234,4 @@
 
         (Sceptre(UnlockAura), 1),
     ],
-})
+}

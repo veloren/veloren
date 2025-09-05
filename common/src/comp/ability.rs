@@ -1,5 +1,4 @@
 use crate::{
-    assets::{self, Asset},
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         self, Body, CharacterState, LightEmitter, StateUpdate, aura, beam, buff,
@@ -1284,12 +1283,6 @@ impl Default for CharacterAbility {
             meta: Default::default(),
         }
     }
-}
-
-impl Asset for CharacterAbility {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 impl CharacterAbility {

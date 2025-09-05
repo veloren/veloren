@@ -1,4 +1,3 @@
-use common::assets;
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -61,20 +60,14 @@ pub struct Credits {
     // TODO: include credits for dependencies where the license requires attribution?
 }
 
-impl assets::Asset for Credits {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use common::assets::{self, AssetExt, Ron};
 
     #[test]
     fn all_art_asset_paths_exists() {
-        use assets::AssetExt;
-        let credits = Credits::load_expect_cloned("credits");
+        let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 
         credits
             .music

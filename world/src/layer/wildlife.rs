@@ -1,6 +1,6 @@
 use crate::{CONFIG, IndexRef, column::ColumnSample, sim::SimChunk, util::close};
 use common::{
-    assets::{self, AssetExt},
+    assets::{AssetExt, Ron},
     calendar::{Calendar, CalendarEvent},
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
@@ -26,14 +26,10 @@ pub struct SpawnEntry {
     pub rules: Vec<Pack>,
 }
 
-impl assets::Asset for SpawnEntry {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 impl SpawnEntry {
-    pub fn from(asset_specifier: &str) -> Self { Self::load_expect_cloned(asset_specifier) }
+    pub fn from(asset_specifier: &str) -> Self {
+        Ron::load_expect_cloned(asset_specifier).into_inner()
+    }
 
     pub fn request(
         &self,
@@ -593,6 +589,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         .then(|| {
                             entry
                                 .read()
+                                .0
                                 .request(current_day_period, calendar, is_underwater, is_ice)
                                 .and_then(|pack| {
                                     (dynamic_rng.random::<f32>() < density * col_sample.spawn_rate

@@ -1,4 +1,4 @@
-({
+{
     General: [
         UnlockGroup(Weapon(Sword)),
         UnlockGroup(Weapon(Axe)),
@@ -132,4 +132,4 @@
         Pick(OreGain),
         Pick(GemGain),
     ],
-})
+}

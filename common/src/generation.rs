@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    assets::{self, AssetExt, Error},
+    assets::{self, AssetExt, Error, Ron},
     calendar::Calendar,
     combat::{DeathEffect, DeathEffects, RiderEffects},
     comp::{
@@ -172,16 +172,11 @@ pub struct EntityConfig {
     pub meta: Vec<Meta>,
 }
 
-impl assets::Asset for EntityConfig {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 impl EntityConfig {
     pub fn from_asset_expect_owned(asset_specifier: &str) -> Self {
-        Self::load_owned(asset_specifier)
+        Ron::load_owned(asset_specifier)
             .unwrap_or_else(|e| panic!("Failed to load {}. Error: {:?}", asset_specifier, e))
+            .into_inner()
     }
 
     #[must_use]
@@ -194,7 +189,7 @@ impl EntityConfig {
 
 /// Return all entity config specifiers
 pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
-    let configs = assets::load_rec_dir::<EntityConfig>("common.entity")?;
+    let configs = assets::load_rec_dir::<Ron<EntityConfig>>("common.entity")?;
     Ok(configs.read().ids().map(|id| id.to_string()).collect())
 }
 
@@ -293,7 +288,7 @@ impl EntityInfo {
     where
         R: rand::Rng,
     {
-        let config = EntityConfig::load_expect_cloned(asset_specifier);
+        let config: EntityConfig = Ron::load_expect_cloned(asset_specifier).into_inner();
 
         self.with_entity_config(config, Some(asset_specifier), loadout_rng, time)
     }
@@ -364,7 +359,7 @@ impl EntityInfo {
 
         let mut pet_infos: Vec<EntityInfo> = Vec::new();
         for (pet_asset, amount) in pets {
-            let config = EntityConfig::load_expect(&pet_asset).read();
+            let config = Ron::<EntityConfig>::load_expect(&pet_asset).read();
             let (start, mut end) = amount.into_inner();
             if start > end {
                 error!("Invalid range for pet count start: {start}, end: {end}");
@@ -373,7 +368,7 @@ impl EntityInfo {
 
             pet_infos.extend((0..loadout_rng.random_range(start..=end)).map(|_| {
                 EntityInfo::at(self.pos).with_entity_config(
-                    config.clone(),
+                    config.clone().into_inner(),
                     config_asset,
                     loadout_rng,
                     time,
@@ -385,9 +380,9 @@ impl EntityInfo {
         self.pets = pet_infos;
 
         self.rider = rider.map(|rider| {
-            let config = EntityConfig::load_expect(&rider).read();
+            let config = Ron::<EntityConfig>::load_expect(&rider).read();
             Box::new(EntityInfo::at(self.pos).with_entity_config(
-                config.clone(),
+                config.clone().into_inner(),
                 config_asset,
                 loadout_rng,
                 time,
@@ -654,8 +649,9 @@ pub mod tests {
                 }
             },
             LoadoutKind::Asset(asset) => {
-                let loadout =
-                    LoadoutSpec::load_cloned(&asset).expect("failed to load loadout asset");
+                let loadout: LoadoutSpec = Ron::load_cloned(&asset)
+                    .expect("failed to load loadout asset")
+                    .into_inner();
                 loadout
                     .validate(vec![asset])
                     .unwrap_or_else(|e| panic!("Config {config_asset} is broken: {e:?}"));
@@ -734,9 +730,11 @@ pub mod tests {
     fn validate_pets(pets: Vec<(String, RangeInclusive<usize>)>, config_asset: &str) {
         for (pet, amount) in pets.into_iter().map(|(pet_asset, amount)| {
             (
-                EntityConfig::load_cloned(&pet_asset).unwrap_or_else(|_| {
-                    panic!("Pet asset path invalid: \"{pet_asset}\", in {config_asset}")
-                }),
+                Ron::<EntityConfig>::load_cloned(&pet_asset)
+                    .unwrap_or_else(|_| {
+                        panic!("Pet asset path invalid: \"{pet_asset}\", in {config_asset}")
+                    })
+                    .into_inner(),
                 amount,
             )
         }) {
@@ -766,7 +764,7 @@ pub mod tests {
                     entity_spec,
                     allow_players: _,
                 } => {
-                    if let Err(error) = EntityConfig::load(&entity_spec) {
+                    if let Err(error) = Ron::<EntityConfig>::load(&entity_spec) {
                         panic!(
                             "Error while loading transform entity spec ({entity_spec}) for entity \
                              {config_asset}: {error:?}"
@@ -779,7 +777,7 @@ pub mod tests {
 
     fn validate_rider(rider: Option<String>, config_asset: &str) {
         if let Some(rider) = rider {
-            EntityConfig::load_cloned(&rider).unwrap_or_else(|_| {
+            Ron::<EntityConfig>::load_cloned(&rider).unwrap_or_else(|_| {
                 panic!("Rider asset path invalid: \"{rider}\", in {config_asset}")
             });
         }

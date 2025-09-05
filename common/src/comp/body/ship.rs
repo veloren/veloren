@@ -234,7 +234,7 @@ pub const AIRSHIP_SCALE: f32 = 11.0;
 /// collider geometry
 pub mod figuredata {
     use crate::{
-        assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
+        assets::{Asset, AssetCache, AssetExt, AssetHandle, BoxedError, DotVox, Ron, SharedString},
         figure::TerrainSegment,
         terrain::{
             StructureSprite,
@@ -320,11 +320,8 @@ pub mod figuredata {
         pub fn volume(&self) -> &TerrainSegment { &self.dyna }
     }
 
-    impl assets::Compound for ShipSpec {
-        fn load(
-            cache: assets::AnyCache,
-            _: &assets::SharedString,
-        ) -> Result<Self, assets::BoxedError> {
+    impl Asset for ShipSpec {
+        fn load(cache: &AssetCache, _: &SharedString) -> Result<Self, BoxedError> {
             let manifest: AssetHandle<Ron<ShipCentralSpec>> =
                 AssetExt::load("common.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();
@@ -336,8 +333,7 @@ pub mod figuredata {
                     // TODO: Currently both client and server load models and manifests from
                     // "common.voxel.". In order to support CSG procedural airships, we probably
                     // need to load them in the server and sync them as an ECS resource.
-                    let vox =
-                        cache.load::<DotVoxAsset>(&["common.voxel.", &bone.central.0].concat())?;
+                    let vox = cache.load::<DotVox>(&["common.voxel.", &bone.central.0].concat())?;
 
                     let base_structure = load_base_structure(&vox.read().0, |col| col);
                     let dyna = base_structure.vol.map_into(|cell| {

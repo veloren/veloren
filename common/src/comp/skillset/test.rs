@@ -1,6 +1,4 @@
 use super::*;
-use crate::comp::{Skill, skillset::SkillPrerequisitesMap};
-use hashbrown::HashMap;
 
 // Unneeded cfg(test) here keeps rust-analyzer happy
 #[cfg(test)]
@@ -8,8 +6,8 @@ use petgraph::{algo::is_cyclic_directed, graph::DiGraph};
 
 #[test]
 fn check_cyclic_skill_deps() {
-    let skill_prereqs =
-        SkillPrerequisitesMap::load_expect_cloned("common.skill_trees.skill_prerequisites").0;
+    let skill_prereqs: HashMap<Skill, SkillPrerequisite> =
+        Ron::load_expect_cloned("common.skill_trees.skill_prerequisites").0;
     let mut graph = DiGraph::new();
     let mut nodes = HashMap::<Skill, _>::new();
     let mut add_node = |graph: &mut DiGraph<Skill, _>, node: Skill| {

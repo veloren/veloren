@@ -1,7 +1,5 @@
-#![enable(unwrap_newtypes)]
-
 (
-    // NOTE: You can't change the legnths of these arrays without updating num_hair_colors() in
+    // NOTE: You can't change the lengths of these arrays without updating num_hair_colors() in
     // common/src/comp/body/humanoid.rs.  That's because this is a hack; we should really use enum
     // variants for hair colors like we do all the other stuff.  Once we fix that, this will no
     // longer be something you need to worry about.

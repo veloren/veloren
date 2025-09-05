@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Hammer)),
 
     Skill((Hammer(ScornfulSwipe), 1)),
@@ -14,4 +14,4 @@
     Skill((Hammer(HelmCrusher), 1)),
     Skill((Hammer(LungPummel), 1)),
     Skill((Hammer(PileDriver), 1)),
-])
+]

@@ -1,17 +1,18 @@
-use common::assets::{self, AssetExt, AssetHandle};
+use common::assets::{
+    self, Asset, AssetCache, AssetExt, AssetHandle, BoxedError, FileAsset, SharedString,
+};
 use hashbrown::HashMap;
+use std::borrow::Cow;
 
 /// Load from a GLSL file.
 pub struct Glsl(pub String);
 
-impl From<String> for Glsl {
-    fn from(s: String) -> Glsl { Glsl(s) }
-}
-
-impl assets::Asset for Glsl {
-    type Loader = assets::LoadFrom<String, assets::StringLoader>;
-
+impl FileAsset for Glsl {
     const EXTENSION: &'static str = "glsl";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        Ok(String::from_utf8(bytes.into()).map(Self)?)
+    }
 }
 
 // Note: we use this clone to send the shaders to a background thread
@@ -21,10 +22,10 @@ pub struct Shaders {
     shaders: HashMap<String, AssetHandle<Glsl>>,
 }
 
-impl assets::Compound for Shaders {
+impl Asset for Shaders {
     // TODO: Taking the specifier argument as a base for shaders specifiers
     // would allow to use several shaders groups easily
-    fn load(_: assets::AnyCache, _: &assets::SharedString) -> Result<Shaders, assets::BoxedError> {
+    fn load(_: &AssetCache, _: &SharedString) -> Result<Self, BoxedError> {
         let shaders = [
             "include.constants",
             "include.globals",

@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Sword)),
     Skill((Sword(CrescentSlash), 1)),
     Skill((Sword(Cascade), 1)),
@@ -6,4 +6,4 @@
     Skill((Sword(Skewer), 1)),
     Skill((Sword(FellStrike), 1)),
     Skill((Sword(Finisher), 1)),
-])
+]

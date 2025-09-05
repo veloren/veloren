@@ -34,7 +34,7 @@ use strum::Display;
 use tracing::{debug, error, info, warn};
 
 use common::{
-    assets::{AssetExt, AssetHandle},
+    assets::{AssetExt, AssetHandle, Ron},
     comp::Ori,
 };
 use vek::*;
@@ -339,7 +339,7 @@ pub struct AudioFrontend {
     music_spacing: f32,
     pub combat_music_enabled: bool,
 
-    mtm: AssetHandle<MusicTransitionManifest>,
+    mtm: AssetHandle<Ron<MusicTransitionManifest>>,
 }
 
 impl AudioFrontend {
@@ -535,6 +535,7 @@ impl AudioFrontend {
 
             if let Some(current_channel) = inner.channels.music.iter_mut().find(|c| !c.is_done()) {
                 let (fade_out, _fade_in) = mtm
+                    .0
                     .fade_timings
                     .get(&(current_channel.get_tag(), channel_tag))
                     .unwrap_or(&(1.0, 1.0));
@@ -556,6 +557,7 @@ impl AudioFrontend {
             };
 
             let (fade_out, fade_in) = mtm
+                .0
                 .fade_timings
                 .get(&(channel.get_tag(), channel_tag))
                 .unwrap_or(&(1.0, 0.1));

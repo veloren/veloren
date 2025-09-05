@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Staff)),
 
     // Fireball
@@ -10,4 +10,4 @@
     Skill((Staff(FRange), 2)),
     Skill((Staff(FDamage), 2)),
 
-])
+]

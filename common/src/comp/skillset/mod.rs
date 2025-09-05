@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, Asset, AssetExt},
+    assets::{AssetExt, Ron},
     comp::{item::tool::ToolKind, skills::Skill},
 };
 use core::borrow::{Borrow, BorrowMut};
@@ -15,51 +15,9 @@ pub mod skills;
 
 #[cfg(test)] mod test;
 
-/// BTreeSet is used here to ensure that skills are ordered. This is important
-/// to ensure that the hash created from it is consistent so that we don't
-/// needlessly force a respec when loading skills from persistence.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillTreeMap(HashMap<SkillGroupKind, BTreeSet<Skill>>);
-
-impl Asset for SkillTreeMap {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 pub struct SkillGroupDef {
     pub skills: BTreeSet<Skill>,
     pub total_skill_point_cost: u16,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillLevelMap(HashMap<Skill, u16>);
-
-impl Asset for SkillLevelMap {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-/// Contains the prerequisite skills for each skill. It cannot currently detect
-/// cyclic dependencies, so if you modify the prerequisite map ensure that there
-/// are no cycles of prerequisites.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillPrerequisitesMap(HashMap<Skill, SkillPrerequisite>);
-
-impl Asset for SkillPrerequisitesMap {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillCostMap(HashMap<Skill, u16>);
-
-impl Asset for SkillCostMap {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
 }
 
 lazy_static! {
@@ -68,9 +26,12 @@ lazy_static! {
     // This data is used to determine which of a player's skill groups a
     // particular skill should be added to when a skill unlock is requested.
     pub static ref SKILL_GROUP_DEFS: HashMap<SkillGroupKind, SkillGroupDef> = {
-        let map = SkillTreeMap::load_expect_cloned(
+        // BTreeSet is used here to ensure that skills are ordered. This is important
+        // to ensure that the hash created from it is consistent so that we don't
+        // needlessly force a respec when loading skills from persistence.
+        let map: HashMap<SkillGroupKind, BTreeSet<Skill>> = Ron::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
-        ).0;
+        ).into_inner();
         map.iter().map(|(sgk, skills)|
             (*sgk, SkillGroupDef { skills: skills.clone(),
                 total_skill_point_cost: skills
@@ -88,27 +49,29 @@ lazy_static! {
     };
     // Creates a hashmap for the reverse lookup of skill groups from a skill
     pub static ref SKILL_GROUP_LOOKUP: HashMap<Skill, SkillGroupKind> = {
-        let map = SkillTreeMap::load_expect_cloned(
+        let map: HashMap<SkillGroupKind, BTreeSet<Skill>> = Ron::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
-        ).0;
+        ).into_inner();
         map.iter().flat_map(|(sgk, skills)| skills.iter().map(move |s| (*s, *sgk))).collect()
     };
     // Loads the maximum level that a skill can obtain
     pub static ref SKILL_MAX_LEVEL: HashMap<Skill, u16> = {
-        SkillLevelMap::load_expect_cloned(
+        Ron::load_expect_cloned(
             "common.skill_trees.skill_max_levels",
-        ).0
+        ).into_inner()
     };
-    // Loads the prerequisite skills for a particular skill
+    /// Loads the prerequisite skills for each skill. It cannot currently detect
+    /// cyclic dependencies, so if you modify the prerequisite map ensure that there
+    /// are no cycles of prerequisites.
     pub static ref SKILL_PREREQUISITES: HashMap<Skill, SkillPrerequisite> = {
-        SkillPrerequisitesMap::load_expect_cloned(
+        Ron::load_expect_cloned(
             "common.skill_trees.skill_prerequisites",
-        ).0
+        ).into_inner()
     };
     pub static ref SKILL_GROUP_HASHES: HashMap<SkillGroupKind, Vec<u8>> = {
-        let map = SkillTreeMap::load_expect_cloned(
+        let map: HashMap<SkillGroupKind, BTreeSet<Skill>> = Ron::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
-        ).0;
+        ).into_inner();
         let mut hashes = HashMap::new();
         for (skill_group_kind, skills) in map.iter() {
             let mut hasher = Sha256::new();

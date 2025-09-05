@@ -1,4 +1,4 @@
-ResourceExperienceManifest({
+{
     "common.items.mineral.gem.amethyst": 9,
     "common.items.mineral.gem.sapphire": 9,
     "common.items.mineral.gem.topaz": 9,
@@ -16,4 +16,4 @@ ResourceExperienceManifest({
     "common.items.mineral.ore.cobalt": 18,
     "common.items.mineral.ore.copper": 5,
     "common.items.mineral.ore.tin": 5,
-})
+}

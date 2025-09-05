@@ -26,10 +26,10 @@
 // Cheese drop rate = 3/X = 29.6%
 // Coconut drop rate = 1/X = 9.85%
 
-use std::hash::Hash;
+use std::{borrow::Cow, hash::Hash};
 
 use crate::{
-    assets::{self, AssetExt},
+    assets::{AssetExt, BoxedError, FileAsset, load_ron},
     comp::{Item, inventory::item},
 };
 use rand::prelude::*;
@@ -42,10 +42,12 @@ pub struct Lottery<T> {
     total: f32,
 }
 
-impl<T: DeserializeOwned + Send + Sync + 'static> assets::Asset for Lottery<T> {
-    type Loader = assets::LoadFrom<Vec<(f32, T)>, assets::RonLoader>;
-
+impl<T: DeserializeOwned + Send + Sync + 'static> FileAsset for Lottery<T> {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        load_ron::<Vec<(f32, T)>>(&bytes).map(Vec::into)
+    }
 }
 
 impl<T> From<Vec<(f32, T)>> for Lottery<T> {

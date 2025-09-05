@@ -52,7 +52,7 @@ fn write_world_meta(world: &SingleplayerWorld) {
 
     match fs::File::create(path.join("meta.ron")) {
         Ok(file) => {
-            if let Err(e) = ron::ser::to_writer_pretty(
+            if let Err(e) = ron::options::Options::default().to_io_writer_pretty(
                 file,
                 &version::Current::from_world(world),
                 ron::ser::PrettyConfig::new(),

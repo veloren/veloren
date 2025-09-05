@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Axe)),
 
     Skill((Axe(BrutalSwing), 1)),
@@ -10,4 +10,4 @@
     Skill((Axe(FierceRaze), 1)),
     Skill((Axe(Sunder), 1)),
     Skill((Axe(Plunder), 1)),
-])
+]

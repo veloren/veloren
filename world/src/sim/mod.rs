@@ -38,7 +38,7 @@ use crate::{
     },
 };
 use common::{
-    assets::{self, AssetExt},
+    assets::{AssetExt, BoxedError, FileAsset, load_bincode_legacy},
     calendar::Calendar,
     grid::Grid,
     lottery::Lottery,
@@ -64,6 +64,7 @@ use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::Cow,
     f32,
     fs::File,
     io::{BufReader, BufWriter},
@@ -545,10 +546,10 @@ pub enum WorldFile {
     Veloren0_7_0(WorldMap_0_7_0) = 1,
 }
 
-impl assets::Asset for WorldFile {
-    type Loader = assets::BincodeLoader;
-
+impl FileAsset for WorldFile {
     const EXTENSION: &'static str = "bin";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { load_bincode_legacy(&bytes) }
 }
 
 /// Data for the most recent map type.  Update this when you add a new map

@@ -103,7 +103,13 @@ pub trait EditableSetting: Clone + Default {
             match ron::de::from_reader(&mut file)
                 .map(|setting: Self::Setting| setting.try_into())
                 .or_else(|orig_err| {
-                    file.rewind()?;
+                    file.rewind().map_err(|e| ron::error::SpannedError {
+                        code: e.into(),
+                        span: ron::error::Span {
+                            start: ron::error::Position { line: 0, col: 0 },
+                            end: ron::error::Position { line: 0, col: 0 },
+                        },
+                    })?;
                     ron::de::from_reader(file)
                          .map(|legacy| Ok((Version::Old, Self::Legacy::into(legacy))))
                          // When both legacy and non-legacy have parse errors, prioritize the

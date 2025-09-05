@@ -1,6 +1,6 @@
 use super::{Graphic, SampleStrat, Transform};
 use common::{
-    assets::{self, AssetExt, DotVoxAsset, Error},
+    assets::{self, AssetExt, DotVox, Error},
     figure::Segment,
 };
 use std::sync::Arc;
@@ -36,7 +36,7 @@ pub enum VoxelSs9Graphic {}
 pub enum VoxelPixArtGraphic {}
 
 fn load_segment(specifier: &str) -> Result<Arc<Segment>, Error> {
-    let dot_vox = DotVoxAsset::load(specifier)?;
+    let dot_vox = DotVox::load(specifier)?;
     let seg = Segment::from_vox_model_index(&dot_vox.read().0, 0);
     Ok(Arc::new(seg))
 }
