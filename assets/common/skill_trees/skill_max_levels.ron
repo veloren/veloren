@@ -1,4 +1,4 @@
-({
+{
     Bow(ProjSpeed): 2,
     Bow(CDamage): 3,
     Bow(CRegen): 2,
@@ -41,4 +41,4 @@
     Pick(Speed): 3,
     Pick(OreGain): 3,
     Pick(GemGain): 3,
-})
+}

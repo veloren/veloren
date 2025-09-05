@@ -23,7 +23,7 @@ use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
-use common::assets::{self, AssetExt};
+use common::assets::{AssetExt, Image, Ron};
 use rand::{rng, seq::IndexedRandom};
 use std::time::Duration;
 use tracing::warn;
@@ -305,7 +305,7 @@ impl Controls {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
-        let credits = Credits::load_expect_cloned("credits");
+        let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 
         // Note: Keeping in case we re-add the disclaimer
         let screen = /* if settings.show_disclaimer {
@@ -723,7 +723,7 @@ impl MainMenuUi {
 
         let bg_img_spec = rand_bg_image_spec();
 
-        let bg_img = assets::Image::load_expect(bg_img_spec).read().to_image();
+        let bg_img = Image::load_expect(bg_img_spec).read().to_image();
         let controls = Controls::new(
             fonts,
             Imgs::load(&mut ui).expect("Failed to load images"),

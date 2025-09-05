@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Bow)),
 
     // Projectile Speed
@@ -10,5 +10,4 @@
 
     // Repeater
     Skill((Bow(RDamage), 1)),
-
-])
+]

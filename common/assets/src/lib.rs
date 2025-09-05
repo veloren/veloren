@@ -1,7 +1,6 @@
 //#![warn(clippy::pedantic)]
 //! Load assets (images or voxel data) from files
 
-use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
 use std::{
@@ -14,7 +13,7 @@ use std::{
 
 pub use assets_manager::{
     Asset, AssetCache, BoxedError, Error, FileAsset, SharedString,
-    asset::{DirLoadable, Ron, load_bincode_legacy as load_bincode, load_ron, load_text},
+    asset::{DirLoadable, Ron, load_bincode_legacy, load_ron},
     source::{self, Source},
 };
 
@@ -113,10 +112,20 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self>;
 }
 
+impl<T: Asset> AssetExt for T {
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
+
+    fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
+
+    fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
+        ASSETS.get_or_insert(specifier, default)
+    }
+}
+
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(
-        cache: &'static AssetCache,
+        reloading_cache: &'static AssetCache,
         specifier: &str,
     ) -> Result<AssetHandle<Self>, Error>;
 
@@ -124,7 +133,7 @@ pub trait AssetCombined: AssetExt {
     fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
         #[cfg(feature = "plugins")]
         {
-            ASSETS.no_record(|| Self::load_and_combine(ASSETS.as_cache(), specifier))
+            Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -133,9 +142,12 @@ pub trait AssetCombined: AssetExt {
     }
 
     #[track_caller]
-    fn load_expect_combined(cache: &'static AssetCache, specifier: &str) -> AssetHandle<Self> {
+    fn load_expect_combined(
+        reloading_cache: &'static AssetCache,
+        specifier: &str,
+    ) -> AssetHandle<Self> {
         // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-        match Self::load_and_combine(cache, specifier) {
+        match Self::load_and_combine(reloading_cache, specifier) {
             Ok(handle) => handle,
             Err(err) => {
                 panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
@@ -148,7 +160,7 @@ pub trait AssetCombined: AssetExt {
     fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
         #[cfg(feature = "plugins")]
         {
-            ASSETS.no_record(|| Self::load_expect_combined(ASSETS.as_cache(), specifier))
+            Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -157,57 +169,28 @@ pub trait AssetCombined: AssetExt {
     }
 }
 
-/// Extension to AnyCache to combine Ron files from filesystem and plugins
-pub trait CacheCombined<'a> {
-    fn load_and_combine<A: Asset + Concatenate>(
-        self,
-        id: &str,
-    ) -> Result<&'a assets_manager::Handle<A>, Error>;
-}
-
-/// Loads directory and all files in it
-///
-/// # Errors
-/// An error is returned if the given id does not match a valid readable
-/// directory.
-///
-/// When loading a directory recursively, directories that can't be read are
-/// ignored.
-pub fn load_rec_dir<T: DirLoadable + Asset>(specifier: &str) -> Result<AssetDirHandle<T>, Error> {
-    let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-    ASSETS.load_rec_dir(specifier)
-}
-
-/// Loads directory and all files in it
-///
-/// # Errors
-/// An error is returned if the given id does not match a valid readable
-/// directory.
-///
-/// When loading a directory recursively, directories that can't be read are
-/// ignored.
-pub fn load_rec_dir_raw<T: DirLoadable>(
-    specifier: &str,
-) -> Result<&'static assets_manager::Handle<assets_manager::RawRecursiveDirectory<T>>, Error> {
-    let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-    ASSETS.load::<assets_manager::RawRecursiveDirectory<T>>(specifier)
-}
-
-impl<T: Asset> AssetExt for T {
-    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
-
-    fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
-
-    fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
-        ASSETS.get_or_insert(specifier, default)
+impl<T: Asset + Concatenate> AssetCombined for T {
+    fn load_and_combine(
+        reloading_cache: &'static AssetCache,
+        specifier: &str,
+    ) -> Result<AssetHandle<Self>, Error> {
+        reloading_cache.load_and_combine(specifier)
     }
 }
 
-impl<'a> CacheCombined<'a> for &'a AssetCache {
+/// Extension to AssetCache to combine Ron files from filesystem and plugins
+pub trait CacheCombined {
     fn load_and_combine<A: Asset + Concatenate>(
-        self,
+        &self,
+        id: &str,
+    ) -> Result<&assets_manager::Handle<A>, Error>;
+}
+
+impl CacheCombined for AssetCache {
+    fn load_and_combine<A: Asset + Concatenate>(
+        &self,
         specifier: &str,
-    ) -> Result<&'a assets_manager::Handle<A>, Error> {
+    ) -> Result<&assets_manager::Handle<A>, Error> {
         #[cfg(feature = "plugins")]
         {
             tracing::info!("combine {specifier}");
@@ -221,13 +204,17 @@ impl<'a> CacheCombined<'a> for &'a AssetCache {
     }
 }
 
-impl<T: Asset + Concatenate> AssetCombined for T {
-    fn load_and_combine(
-        cache: &'static AssetCache,
-        specifier: &str,
-    ) -> Result<AssetHandle<Self>, Error> {
-        cache.load_and_combine(specifier)
-    }
+/// Loads directory and all files in it
+///
+/// # Errors
+/// An error is returned if the given id does not match a valid readable
+/// directory.
+///
+/// When loading a directory recursively, directories that can't be read are
+/// ignored.
+pub fn load_rec_dir<T: DirLoadable + Asset>(specifier: &str) -> Result<AssetDirHandle<T>, Error> {
+    let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
+    ASSETS.load_rec_dir(specifier)
 }
 
 pub struct Image(pub Arc<DynamicImage>);
@@ -245,25 +232,25 @@ impl FileAsset for Image {
     }
 }
 
-pub struct DotVoxAsset(pub DotVoxData);
+pub struct DotVox(pub dot_vox::DotVoxData);
 
-impl FileAsset for DotVoxAsset {
+impl FileAsset for DotVox {
     const EXTENSION: &'static str = "vox";
 
     fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
-        let data = dot_vox::load_bytes(&bytes)?;
-        Ok(DotVoxAsset(data))
+        let data = dot_vox::load_bytes(&bytes).map_err(|err| err.to_owned())?;
+        Ok(DotVox(data))
     }
 }
 
-pub struct ObjAsset(pub wavefront::Obj);
+pub struct Obj(pub wavefront::Obj);
 
-impl FileAsset for ObjAsset {
+impl FileAsset for Obj {
     const EXTENSION: &'static str = "obj";
 
     fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
         let data = wavefront::Obj::from_reader(&*bytes)?;
-        Ok(ObjAsset(data))
+        Ok(Obj(data))
     }
 }
 
@@ -293,7 +280,7 @@ impl<K: Eq + Hash, V, S: BuildHasher> Concatenate for hashbrown::HashMap<K, V, S
 }
 
 impl<T: Concatenate> Concatenate for Ron<T> {
-    fn concatenate(self, _b: Self) -> Self { todo!() }
+    fn concatenate(self, b: Self) -> Self { Self(self.into_inner().concatenate(b.into_inner())) }
 }
 
 /// This wrapper combines several RON files from multiple sources
@@ -460,9 +447,9 @@ pub mod asset_tweak {
     //!
     //! Will hot-reload (if corresponded feature is enabled).
     // TODO: don't use the same ASSETS_PATH as game uses?
-    use super::{ASSETS_PATH, AssetExt, FileAsset};
+    use super::{ASSETS_PATH, AssetExt, Ron};
     use ron::{options::Options, ser::PrettyConfig};
-    use serde::{Deserialize, Serialize, de::DeserializeOwned};
+    use serde::{Serialize, de::DeserializeOwned};
     use std::{fs, path::Path};
 
     /// Specifier to use with tweak functions in this module
@@ -474,20 +461,6 @@ pub mod asset_tweak {
     pub enum Specifier<'a> {
         Tweak(&'a str),
         Asset(&'a [&'a str]),
-    }
-
-    #[derive(Clone, Deserialize, Serialize)]
-    struct AssetTweakWrapper<T>(T);
-
-    impl<T> FileAsset for AssetTweakWrapper<T>
-    where
-        T: Clone + Sized + Send + Sync + 'static + DeserializeOwned,
-    {
-        const EXTENSION: &'static str = "ron";
-
-        fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets_manager::BoxedError> {
-            super::load_ron(&bytes)
-        }
     }
 
     /// Read value from file, will panic if file doesn't exist.
@@ -517,8 +490,8 @@ pub mod asset_tweak {
     ///
     /// // you need to create file first
     /// let tweak_path = ASSETS_PATH.join("tweak/year.ron");
-    /// // note parentheses
-    /// fs::write(&tweak_path, b"(10)");
+    /// // note lack of parentheses
+    /// fs::write(&tweak_path, b"10");
     ///
     /// let y: i32 = tweak_expect(Specifier::Tweak("year"));
     /// assert_eq!(y, 10);
@@ -539,8 +512,8 @@ pub mod asset_tweak {
             Specifier::Tweak(specifier) => format!("tweak.{}", specifier),
             Specifier::Asset(path) => path.join("."),
         };
-        let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(&asset_specifier);
-        let AssetTweakWrapper(value) = handle.cloned();
+        let handle = <Ron<T> as AssetExt>::load_expect(&asset_specifier);
+        let Ron(value) = handle.cloned();
 
         value
     }
@@ -557,7 +530,7 @@ pub mod asset_tweak {
         let f = fs::File::create(tweak_dir.join(filename)).unwrap_or_else(|error| {
             panic!("failed to create file {:?}. Error: {:?}", filename, error)
         });
-        let tweaker = AssetTweakWrapper(&value);
+        let tweaker = Ron(&value);
         if let Err(e) = Options::default().to_io_writer_pretty(f, &tweaker, PrettyConfig::new()) {
             panic!("failed to write to file {:?}. Error: {:?}", filename, e);
         }
@@ -580,10 +553,10 @@ pub mod asset_tweak {
     /// If file exists will read a value from such file
     /// using [tweak_expect].
     ///
-    /// File should look like that (note the parentheses).
+    /// File should look like that (note the lack of parentheses).
     /// ```text
     /// assets/tweak/x.ron
-    /// (5)
+    /// 5
     /// ```
     ///
     /// # Example:
@@ -641,8 +614,8 @@ pub mod asset_tweak {
     ///
     /// // you need to create file first
     /// let own_path = ASSETS_PATH.join("tweak/grizelda.ron");
-    /// // note parentheses
-    /// std::fs::write(&own_path, b"(10)");
+    /// // note lack of parentheses
+    /// std::fs::write(&own_path, b"10");
     ///
     /// let z: i32 = tweak!("grizelda");
     /// assert_eq!(z, 10);
@@ -724,6 +697,7 @@ pub mod asset_tweak {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use serde::Deserialize;
         use std::{
             convert::AsRef,
             fmt::Debug,
@@ -805,7 +779,7 @@ pub mod asset_tweak {
             let tweak_path = &["tweak_test_int", "tweak"];
 
             run_with_file(tweak_path, |file| {
-                file.write_all(b"(5)").expect("failed to write to the file");
+                file.write_all(b"5").expect("failed to write to the file");
                 let x: i32 = tweak_expect(Specifier::Asset(tweak_path));
                 assert_eq!(x, 5);
             });
@@ -816,7 +790,7 @@ pub mod asset_tweak {
             let tweak_path = &["tweak_test_string", "tweak"];
 
             run_with_file(tweak_path, |file| {
-                file.write_all(br#"("Hello Zest")"#)
+                file.write_all(br#""Hello Zest""#)
                     .expect("failed to write to the file");
 
                 let x: String = tweak_expect(Specifier::Asset(tweak_path));
@@ -833,10 +807,10 @@ pub mod asset_tweak {
             run_with_file(tweak_path, |file| {
                 file.write_all(
                     br#"
-                    ({
+                    {
                         "wow": 4,
                         "such": 5,
-                    })
+                    }
                     "#,
                 )
                 .expect("failed to write to the file");
@@ -864,10 +838,10 @@ pub mod asset_tweak {
             run_with_file(tweak_path, |file| {
                 file.write_all(
                     br"
-                    ((
+                    (
                         such: 5,
                         field: 35.752346,
-                    ))
+                    )
                     ",
                 )
                 .expect("failed to write to the file");
@@ -931,7 +905,7 @@ pub mod asset_tweak {
 
                 // Recheck it loads back
                 // with content as priority
-                fs::write(test_path, b"(10)").expect("failed to write to the file");
+                fs::write(test_path, b"10").expect("failed to write to the file");
                 let x = tweak_expect_or_create(Specifier::Asset(tweak_path), 5);
                 assert_eq!(x, 10);
             });

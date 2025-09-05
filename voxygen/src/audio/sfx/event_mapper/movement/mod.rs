@@ -101,10 +101,10 @@ impl EventMapper for MovementEventMapper {
                 };
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(internal_state, triggers.get_key_value(&mapped_event))
+                if Self::should_emit(internal_state, triggers.0.get_key_value(&mapped_event))
                     && let Some(player_pos) = state.read_component_copied::<Pos>(player_entity)
                 {
-                    let sfx_trigger_item = triggers.get_key_value(&mapped_event);
+                    let sfx_trigger_item = triggers.0.get_key_value(&mapped_event);
                     audio.emit_sfx(
                         sfx_trigger_item,
                         pos.0,

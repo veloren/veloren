@@ -26,7 +26,7 @@ use super::{
     math,
 };
 use common::{
-    assets::{AssetExt, DotVoxAsset},
+    assets::{AssetExt, DotVox},
     figure::Segment,
     spiral::Spiral2d,
     terrain::{Block, SpriteKind, TerrainChunk},
@@ -495,7 +495,7 @@ impl SpriteRenderContext {
                 let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
                 let offset = Vec3::from(*offset);
                 let lod_axes = Vec3::from(*lod_axes);
-                let model = DotVoxAsset::load_expect(model);
+                let model = DotVox::load_expect(model);
                 let zero = Vec3::zero();
                 let model = &model.read().0;
                 let model_size = if let Some(model) = model.models.first() {

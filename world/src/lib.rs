@@ -46,7 +46,7 @@ use crate::{
     util::{Grid, Sampler},
 };
 use common::{
-    assets,
+    assets::{self, BoxedError, FileAsset, load_ron},
     calendar::Calendar,
     comp::Content,
     generation::{ChunkSupplement, EntityInfo, SpecialEntity},
@@ -67,7 +67,7 @@ use enum_map::EnumMap;
 use rand::{Rng, prelude::*};
 use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
-use std::time::Duration;
+use std::{borrow::Cow, time::Duration};
 use vek::*;
 
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
@@ -111,12 +111,10 @@ pub struct Colors {
     pub layer: layer::Colors,
 }
 
-impl assets::FileAsset for Colors {
+impl FileAsset for Colors {
     const EXTENSION: &'static str = "ron";
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
 }
 
 impl World {

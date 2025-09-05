@@ -20,7 +20,7 @@ use crate::{
 use common::rtsim::{Actor, RtSimEntity};
 use common::{
     CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
-    assets::AssetExt,
+    assets::{AssetExt, Ron},
     combat::{
         self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, DamageContributor, DeathEffect,
         DeathEffects,
@@ -700,7 +700,7 @@ impl ServerEvent for DestroyEvent {
                             transform_emitter.emit(TransformEvent {
                                 target_entity: killed_uid,
                                 entity_info: {
-                                    let Ok(entity_config) = EntityConfig::load(entity_spec)
+                                    let Ok(entity_config) = Ron::<EntityConfig>::load(entity_spec)
                                         .inspect_err(|error| {
                                             error!(
                                                 ?entity_spec,
@@ -720,7 +720,7 @@ impl ServerEvent for DestroyEvent {
                                             .unwrap_or_default(),
                                     )
                                     .with_entity_config(
-                                        entity_config.read().clone(),
+                                        entity_config.read().clone().into_inner(),
                                         Some(entity_spec),
                                         &mut rand::rng(),
                                         None,

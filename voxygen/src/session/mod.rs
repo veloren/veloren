@@ -343,7 +343,7 @@ impl SessionState {
 
                     for inv_event in inv_events {
                         let sfx_trigger_item =
-                            sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
+                            sfx_triggers.0.get_key_value(&SfxEvent::from(&inv_event));
 
                         match inv_event {
                             InventoryUpdateEvent::Dropped
@@ -2173,6 +2173,7 @@ impl PlayState for SessionState {
                         };
                         if !has_repaired {
                             let sfx_trigger_item = sfx_triggers
+                                .0
                                 .get_key_value(&SfxEvent::from(&InventoryUpdateEvent::Craft));
                             global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
                             has_repaired = true

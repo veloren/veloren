@@ -228,12 +228,12 @@ impl EventMapper for BlockEventMapper {
 
                             if Self::should_emit(
                                 internal_state,
-                                triggers.get_key_value(&sounds.sfx),
+                                triggers.0.get_key_value(&sounds.sfx),
                                 temp,
                             ) {
                                 // If the camera is within SFX distance
                                 if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
-                                    let sfx_trigger_item = triggers.get_key_value(&sounds.sfx);
+                                    let sfx_trigger_item = triggers.0.get_key_value(&sounds.sfx);
                                     audio.emit_sfx(
                                         sfx_trigger_item,
                                         block_pos,

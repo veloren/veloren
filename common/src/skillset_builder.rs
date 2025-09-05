@@ -2,7 +2,7 @@
 //#![warn(clippy::nursery)]
 use crate::comp::skillset::{SkillGroupKind, SkillSet, skills::Skill};
 
-use crate::assets::{self, AssetExt};
+use crate::assets::{AssetExt, Ron};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
@@ -19,17 +19,6 @@ pub enum Preset {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-struct SkillSetTree(Vec<SkillNode>);
-
-impl assets::FileAsset for SkillSetTree {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
 enum SkillNode {
     Tree(String),
     Skill((Skill, u16)),
@@ -38,7 +27,7 @@ enum SkillNode {
 
 #[must_use]
 fn skills_from_asset_expect(asset_specifier: &str) -> Vec<(Skill, u16)> {
-    let nodes = SkillSetTree::load_expect(asset_specifier).read();
+    let nodes = Ron::<Vec<SkillNode>>::load_expect(asset_specifier).read();
 
     skills_from_nodes(&nodes.0)
 }
@@ -164,13 +153,14 @@ fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: u16) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::assets;
 
     #[test]
     fn test_all_skillset_assets() {
         let skillsets =
-            assets::load_rec_dir::<SkillSetTree>("common.skillset").expect("load skillsets");
+            assets::load_rec_dir::<Ron<Vec<SkillNode>>>("common.skillset").expect("load skillsets");
         for skillset in skillsets.read().ids() {
-            let skillset = SkillSetTree::load_expect(skillset).read();
+            let skillset = Ron::<Vec<SkillNode>>::load_expect(skillset).read();
 
             drop({
                 let mut skillset_builder = SkillSetBuilder::default();

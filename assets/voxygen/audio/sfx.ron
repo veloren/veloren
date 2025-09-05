@@ -1,2252 +1,2250 @@
 #![enable(implicit_some)]
-(
-    {
-        //
-        // Ambient
-        //
-        Campfire: (
-            files: [
-                "voxygen.audio.sfx.ambient.fire",
-            ],
-            threshold: 21.835,
-            subtitle: "subtitle-campfire",
-        ),
-        Birdcall: (
-            files: [
-                "voxygen.audio.sfx.ambient.birdcall_01",
-                "voxygen.audio.sfx.ambient.birdcall_02",
-                "voxygen.audio.sfx.ambient.birdcall_03",
-                "voxygen.audio.sfx.ambient.birdcall_04",
-                "voxygen.audio.sfx.ambient.birdcall_05",
-                "voxygen.audio.sfx.ambient.birdcall_06",
-                "voxygen.audio.sfx.ambient.birdcall_07",
-                "voxygen.audio.sfx.ambient.birdcall_08",
-                "voxygen.audio.sfx.ambient.birdcall_09",
-                "voxygen.audio.sfx.ambient.birdcall_10",
-            ],
-            threshold: 10.0,
-            subtitle: "subtitle-bird_call",
-        ),
-        Owl: (
-            files: [
-                "voxygen.audio.sfx.ambient.owl_1",
-            ],
-            threshold: 14.0,
-            subtitle: "subtitle-owl",
-        ),
-        //Crickets: -20dB
-        Cricket1: (
-            files: [
-                "voxygen.audio.sfx.ambient.crickets_1",
-            ],
-            threshold: 0.0,
-        ),
-        Cricket2: (
-            files: [
-                "voxygen.audio.sfx.ambient.crickets_2",
-            ],
-            threshold: 0.0,
-        ),
-        Cricket3: (
-            files: [
-                "voxygen.audio.sfx.ambient.crickets_3",
-            ],
-            threshold: 0.0,
-        ),
-        Frog: (
-            files: [
-                "voxygen.audio.sfx.ambient.frog_croak_1",
-            ],
-            threshold: 4.0,
-        ),
-        Bees: (
-            files: [
-                "voxygen.audio.sfx.ambient.bees_1",
-            ],
-            threshold: 15.0,
-            subtitle: "subtitle-bees",
-        ),
-        RunningWaterSlow: (
-            files: [
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-001",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-002",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-007",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-008",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-009",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-010",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-011",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-014",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-015",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-016",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-017",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-018",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-019",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-020",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-021",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-022",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-023",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-024",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-025",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-026",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-027",
-            ],
-            threshold: 7.0,
-            subtitle: "subtitle-running_water",
-        ),
-        RunningWaterFast: (
-            files: [
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-001",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-002",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-003",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-004",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-005",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-006",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-007",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-008",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-009",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-010",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-011",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-012",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-013",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-014",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-015",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-016",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-017",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-018",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-019",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-020",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-021",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-022",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-023",
-                "voxygen.audio.sfx.ambient.river_sounds.fast_water-024",
-            ],
-            threshold: 5.0,
-            subtitle: "subtitle-running_water",
-        ),
-        Lavapool: (
-            files: [
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
-                "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
-            ],
-            threshold: 7.0,
-            subtitle: "subtitle-lavapool",
-        ),
-        SplashSmall: (
-            files: [
-                "voxygen.audio.sfx.footsteps.splash_small",
-            ],
-            threshold: 0.0,
-            subtitle: "subtitle-splash"
-        ),
-        SplashMedium: (
-            files: [
-                "voxygen.audio.sfx.footsteps.splash_medium",
-            ],
-            threshold: 0.0,
-            subtitle: "subtitle-splash"
-        ),
-        SplashBig: (
-            files: [
-                "voxygen.audio.sfx.footsteps.splash_big",
-            ],
-            threshold: 0.0,
-            subtitle: "subtitle-splash"
-        ),
-        //
-        // Character States
-        //
-        Swim: (
-            files: [
-                "voxygen.audio.sfx.footsteps.water_splash_1",
-                "voxygen.audio.sfx.footsteps.water_splash_2",
-                "voxygen.audio.sfx.footsteps.water_splash_3",
-                "voxygen.audio.sfx.footsteps.water_splash_4",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-swim",
-        ),
-        Run(Earth): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stepdirt_1",
-                "voxygen.audio.sfx.footsteps.stepdirt_2",
-                "voxygen.audio.sfx.footsteps.stepdirt_3",
-                "voxygen.audio.sfx.footsteps.stepdirt_4",
-                "voxygen.audio.sfx.footsteps.stepdirt_5",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-footsteps_earth",
-        ),
-        QuadRun(Earth): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stepdirt_1",
-                "voxygen.audio.sfx.footsteps.stepdirt_2",
-                "voxygen.audio.sfx.footsteps.stepdirt_3",
-                "voxygen.audio.sfx.footsteps.stepdirt_4",
-                "voxygen.audio.sfx.footsteps.stepdirt_5",
-            ],
-            threshold: 0.25,
-            subtitle: "subtitle-footsteps_earth",
-        ),
-        Run(Grass): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stepgrass_1",
-                "voxygen.audio.sfx.footsteps.stepgrass_2",
-                "voxygen.audio.sfx.footsteps.stepgrass_3",
-                "voxygen.audio.sfx.footsteps.stepgrass_4",
-                "voxygen.audio.sfx.footsteps.stepgrass_5",
-                "voxygen.audio.sfx.footsteps.stepgrass_6",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-footsteps_grass",
-        ),
-        QuadRun(Grass): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stepgrass_1",
-                "voxygen.audio.sfx.footsteps.stepgrass_2",
-                "voxygen.audio.sfx.footsteps.stepgrass_3",
-                "voxygen.audio.sfx.footsteps.stepgrass_4",
-                "voxygen.audio.sfx.footsteps.stepgrass_5",
-                "voxygen.audio.sfx.footsteps.stepgrass_6",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-footsteps_grass",
-        ),
-        // For when sand 1) exists and 2) has unique sounds
-        // Run(Sand): (
-        //     files: [
-        //         "voxygen.audio.sfx.footsteps.stepdirt_1",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_2",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_3",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_4",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_5",
-        //     ],
-        //     threshold: 1.6,
-        // ),
-        // QuadRun(Sand): (
-        //     files: [
-        //         "voxygen.audio.sfx.footsteps.stepdirt_1",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_2",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_3",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_4",
-        //         "voxygen.audio.sfx.footsteps.stepdirt_5",
-        //     ],
-        //     threshold: 0.8,
-        // ),
-        Run(Snow): (
-            files: [
-                "voxygen.audio.sfx.footsteps.snow_step_1",
-                "voxygen.audio.sfx.footsteps.snow_step_2",
-                "voxygen.audio.sfx.footsteps.snow_step_3",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-footsteps_snow",
-        ),
-        QuadRun(Snow): (
-            files: [
-                "voxygen.audio.sfx.footsteps.snow_step_1",
-                "voxygen.audio.sfx.footsteps.snow_step_2",
-                "voxygen.audio.sfx.footsteps.snow_step_3",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-footsteps_snow",
-        ),
-        Run(Rock): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stone_step_1",
-                "voxygen.audio.sfx.footsteps.stone_step_2",
-                "voxygen.audio.sfx.footsteps.stone_step_3",
-                "voxygen.audio.sfx.footsteps.stone_step_4",
-                "voxygen.audio.sfx.footsteps.stone_step_5",
-                "voxygen.audio.sfx.footsteps.stone_step_6",
-                "voxygen.audio.sfx.footsteps.stone_step_7",
-                "voxygen.audio.sfx.footsteps.stone_step_8",
-                "voxygen.audio.sfx.footsteps.stone_step_9",
-                "voxygen.audio.sfx.footsteps.stone_step_10",
-                "voxygen.audio.sfx.footsteps.stone_step_11",
-                "voxygen.audio.sfx.footsteps.stone_step_12",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-footsteps_rock",
-        ),
-        QuadRun(Rock): (
-            files: [
-                "voxygen.audio.sfx.footsteps.stone_step_1",
-                "voxygen.audio.sfx.footsteps.stone_step_2",
-                "voxygen.audio.sfx.footsteps.stone_step_3",
-                "voxygen.audio.sfx.footsteps.stone_step_4",
-                "voxygen.audio.sfx.footsteps.stone_step_5",
-                "voxygen.audio.sfx.footsteps.stone_step_6",
-                "voxygen.audio.sfx.footsteps.stone_step_7",
-                "voxygen.audio.sfx.footsteps.stone_step_8",
-                "voxygen.audio.sfx.footsteps.stone_step_9",
-                "voxygen.audio.sfx.footsteps.stone_step_10",
-                "voxygen.audio.sfx.footsteps.stone_step_11",
-                "voxygen.audio.sfx.footsteps.stone_step_12",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-footsteps_rock",
-        ),
-        Roll: (
-            files: [
-                "voxygen.audio.sfx.character.dive_roll_1",
-                "voxygen.audio.sfx.character.dive_roll_2",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-roll",
-        ),
-        RollCancel: (
-            files: [
-                "voxygen.audio.sfx.character.dive_roll_cancel_1",
-                "voxygen.audio.sfx.character.dive_roll_cancel_2",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-roll_cancel",
-        ),
-        Climb: (
-           files: [
-                // TODO: sync with animation, make actual sfx
-                "voxygen.audio.sfx.footsteps.stepdirt_1",
-                "voxygen.audio.sfx.footsteps.stepdirt_2",
-                "voxygen.audio.sfx.footsteps.stepdirt_3",
-                "voxygen.audio.sfx.footsteps.stepdirt_4",
-                "voxygen.audio.sfx.footsteps.stepdirt_5",
-           ],
-           threshold: 1.2,
-            subtitle: "subtitle-climb",
-        ),
-        GliderOpen: (
-            files: [
-                "voxygen.audio.sfx.character.glider_open",
-            ],
-            threshold: 0.1,
-            subtitle: "subtitle-glider_open",
-        ),
-        GliderClose: (
-            files: [
-                "voxygen.audio.sfx.character.glider_close",
-            ],
-            threshold: 0.1,
-            subtitle: "subtitle-glider_close",
-        ),
-        Glide: (
-            files: [
-                "voxygen.audio.sfx.character.catch_air_1",
-                "voxygen.audio.sfx.character.catch_air_2",
-                "voxygen.audio.sfx.character.catch_air_3",
-                "voxygen.audio.sfx.character.catch_air_4",
-                "voxygen.audio.sfx.character.catch_air_5",
-                "voxygen.audio.sfx.character.catch_air_6",
-                "voxygen.audio.sfx.character.catch_air_7",
-                "voxygen.audio.sfx.character.catch_air_8",
-            ],
-            threshold: 0.85,
-            subtitle: "subtitle-glide",
-        ),
+{
+    //
+    // Ambient
+    //
+    Campfire: (
+        files: [
+            "voxygen.audio.sfx.ambient.fire",
+        ],
+        threshold: 21.835,
+        subtitle: "subtitle-campfire",
+    ),
+    Birdcall: (
+        files: [
+            "voxygen.audio.sfx.ambient.birdcall_01",
+            "voxygen.audio.sfx.ambient.birdcall_02",
+            "voxygen.audio.sfx.ambient.birdcall_03",
+            "voxygen.audio.sfx.ambient.birdcall_04",
+            "voxygen.audio.sfx.ambient.birdcall_05",
+            "voxygen.audio.sfx.ambient.birdcall_06",
+            "voxygen.audio.sfx.ambient.birdcall_07",
+            "voxygen.audio.sfx.ambient.birdcall_08",
+            "voxygen.audio.sfx.ambient.birdcall_09",
+            "voxygen.audio.sfx.ambient.birdcall_10",
+        ],
+        threshold: 10.0,
+        subtitle: "subtitle-bird_call",
+    ),
+    Owl: (
+        files: [
+            "voxygen.audio.sfx.ambient.owl_1",
+        ],
+        threshold: 14.0,
+        subtitle: "subtitle-owl",
+    ),
+    //Crickets: -20dB
+    Cricket1: (
+        files: [
+            "voxygen.audio.sfx.ambient.crickets_1",
+        ],
+        threshold: 0.0,
+    ),
+    Cricket2: (
+        files: [
+            "voxygen.audio.sfx.ambient.crickets_2",
+        ],
+        threshold: 0.0,
+    ),
+    Cricket3: (
+        files: [
+            "voxygen.audio.sfx.ambient.crickets_3",
+        ],
+        threshold: 0.0,
+    ),
+    Frog: (
+        files: [
+            "voxygen.audio.sfx.ambient.frog_croak_1",
+        ],
+        threshold: 4.0,
+    ),
+    Bees: (
+        files: [
+            "voxygen.audio.sfx.ambient.bees_1",
+        ],
+        threshold: 15.0,
+        subtitle: "subtitle-bees",
+    ),
+    RunningWaterSlow: (
+        files: [
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-001",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-002",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-007",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-008",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-009",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-010",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-011",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-014",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-015",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-016",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-017",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-018",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-019",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-020",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-021",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-022",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-023",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-024",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-025",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-026",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-027",
+        ],
+        threshold: 7.0,
+        subtitle: "subtitle-running_water",
+    ),
+    RunningWaterFast: (
+        files: [
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-001",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-002",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-003",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-004",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-005",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-006",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-007",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-008",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-009",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-010",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-011",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-012",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-013",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-014",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-015",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-016",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-017",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-018",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-019",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-020",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-021",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-022",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-023",
+            "voxygen.audio.sfx.ambient.river_sounds.fast_water-024",
+        ],
+        threshold: 5.0,
+        subtitle: "subtitle-running_water",
+    ),
+    Lavapool: (
+        files: [
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
+            "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
+        ],
+        threshold: 7.0,
+        subtitle: "subtitle-lavapool",
+    ),
+    SplashSmall: (
+        files: [
+            "voxygen.audio.sfx.footsteps.splash_small",
+        ],
+        threshold: 0.0,
+        subtitle: "subtitle-splash"
+    ),
+    SplashMedium: (
+        files: [
+            "voxygen.audio.sfx.footsteps.splash_medium",
+        ],
+        threshold: 0.0,
+        subtitle: "subtitle-splash"
+    ),
+    SplashBig: (
+        files: [
+            "voxygen.audio.sfx.footsteps.splash_big",
+        ],
+        threshold: 0.0,
+        subtitle: "subtitle-splash"
+    ),
+    //
+    // Character States
+    //
+    Swim: (
+        files: [
+            "voxygen.audio.sfx.footsteps.water_splash_1",
+            "voxygen.audio.sfx.footsteps.water_splash_2",
+            "voxygen.audio.sfx.footsteps.water_splash_3",
+            "voxygen.audio.sfx.footsteps.water_splash_4",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-swim",
+    ),
+    Run(Earth): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepdirt_1",
+            "voxygen.audio.sfx.footsteps.stepdirt_2",
+            "voxygen.audio.sfx.footsteps.stepdirt_3",
+            "voxygen.audio.sfx.footsteps.stepdirt_4",
+            "voxygen.audio.sfx.footsteps.stepdirt_5",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-footsteps_earth",
+    ),
+    QuadRun(Earth): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepdirt_1",
+            "voxygen.audio.sfx.footsteps.stepdirt_2",
+            "voxygen.audio.sfx.footsteps.stepdirt_3",
+            "voxygen.audio.sfx.footsteps.stepdirt_4",
+            "voxygen.audio.sfx.footsteps.stepdirt_5",
+        ],
+        threshold: 0.25,
+        subtitle: "subtitle-footsteps_earth",
+    ),
+    Run(Grass): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepgrass_1",
+            "voxygen.audio.sfx.footsteps.stepgrass_2",
+            "voxygen.audio.sfx.footsteps.stepgrass_3",
+            "voxygen.audio.sfx.footsteps.stepgrass_4",
+            "voxygen.audio.sfx.footsteps.stepgrass_5",
+            "voxygen.audio.sfx.footsteps.stepgrass_6",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-footsteps_grass",
+    ),
+    QuadRun(Grass): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepgrass_1",
+            "voxygen.audio.sfx.footsteps.stepgrass_2",
+            "voxygen.audio.sfx.footsteps.stepgrass_3",
+            "voxygen.audio.sfx.footsteps.stepgrass_4",
+            "voxygen.audio.sfx.footsteps.stepgrass_5",
+            "voxygen.audio.sfx.footsteps.stepgrass_6",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-footsteps_grass",
+    ),
+    // For when sand 1) exists and 2) has unique sounds
+    // Run(Sand): (
+    //     files: [
+    //         "voxygen.audio.sfx.footsteps.stepdirt_1",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_2",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_3",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_4",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_5",
+    //     ],
+    //     threshold: 1.6,
+    // ),
+    // QuadRun(Sand): (
+    //     files: [
+    //         "voxygen.audio.sfx.footsteps.stepdirt_1",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_2",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_3",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_4",
+    //         "voxygen.audio.sfx.footsteps.stepdirt_5",
+    //     ],
+    //     threshold: 0.8,
+    // ),
+    Run(Snow): (
+        files: [
+            "voxygen.audio.sfx.footsteps.snow_step_1",
+            "voxygen.audio.sfx.footsteps.snow_step_2",
+            "voxygen.audio.sfx.footsteps.snow_step_3",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-footsteps_snow",
+    ),
+    QuadRun(Snow): (
+        files: [
+            "voxygen.audio.sfx.footsteps.snow_step_1",
+            "voxygen.audio.sfx.footsteps.snow_step_2",
+            "voxygen.audio.sfx.footsteps.snow_step_3",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-footsteps_snow",
+    ),
+    Run(Rock): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stone_step_1",
+            "voxygen.audio.sfx.footsteps.stone_step_2",
+            "voxygen.audio.sfx.footsteps.stone_step_3",
+            "voxygen.audio.sfx.footsteps.stone_step_4",
+            "voxygen.audio.sfx.footsteps.stone_step_5",
+            "voxygen.audio.sfx.footsteps.stone_step_6",
+            "voxygen.audio.sfx.footsteps.stone_step_7",
+            "voxygen.audio.sfx.footsteps.stone_step_8",
+            "voxygen.audio.sfx.footsteps.stone_step_9",
+            "voxygen.audio.sfx.footsteps.stone_step_10",
+            "voxygen.audio.sfx.footsteps.stone_step_11",
+            "voxygen.audio.sfx.footsteps.stone_step_12",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-footsteps_rock",
+    ),
+    QuadRun(Rock): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stone_step_1",
+            "voxygen.audio.sfx.footsteps.stone_step_2",
+            "voxygen.audio.sfx.footsteps.stone_step_3",
+            "voxygen.audio.sfx.footsteps.stone_step_4",
+            "voxygen.audio.sfx.footsteps.stone_step_5",
+            "voxygen.audio.sfx.footsteps.stone_step_6",
+            "voxygen.audio.sfx.footsteps.stone_step_7",
+            "voxygen.audio.sfx.footsteps.stone_step_8",
+            "voxygen.audio.sfx.footsteps.stone_step_9",
+            "voxygen.audio.sfx.footsteps.stone_step_10",
+            "voxygen.audio.sfx.footsteps.stone_step_11",
+            "voxygen.audio.sfx.footsteps.stone_step_12",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-footsteps_rock",
+    ),
+    Roll: (
+        files: [
+            "voxygen.audio.sfx.character.dive_roll_1",
+            "voxygen.audio.sfx.character.dive_roll_2",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-roll",
+    ),
+    RollCancel: (
+        files: [
+            "voxygen.audio.sfx.character.dive_roll_cancel_1",
+            "voxygen.audio.sfx.character.dive_roll_cancel_2",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-roll_cancel",
+    ),
+    Climb: (
+       files: [
+            // TODO: sync with animation, make actual sfx
+            "voxygen.audio.sfx.footsteps.stepdirt_1",
+            "voxygen.audio.sfx.footsteps.stepdirt_2",
+            "voxygen.audio.sfx.footsteps.stepdirt_3",
+            "voxygen.audio.sfx.footsteps.stepdirt_4",
+            "voxygen.audio.sfx.footsteps.stepdirt_5",
+       ],
+       threshold: 1.2,
+        subtitle: "subtitle-climb",
+    ),
+    GliderOpen: (
+        files: [
+            "voxygen.audio.sfx.character.glider_open",
+        ],
+        threshold: 0.1,
+        subtitle: "subtitle-glider_open",
+    ),
+    GliderClose: (
+        files: [
+            "voxygen.audio.sfx.character.glider_close",
+        ],
+        threshold: 0.1,
+        subtitle: "subtitle-glider_close",
+    ),
+    Glide: (
+        files: [
+            "voxygen.audio.sfx.character.catch_air_1",
+            "voxygen.audio.sfx.character.catch_air_2",
+            "voxygen.audio.sfx.character.catch_air_3",
+            "voxygen.audio.sfx.character.catch_air_4",
+            "voxygen.audio.sfx.character.catch_air_5",
+            "voxygen.audio.sfx.character.catch_air_6",
+            "voxygen.audio.sfx.character.catch_air_7",
+            "voxygen.audio.sfx.character.catch_air_8",
+        ],
+        threshold: 0.85,
+        subtitle: "subtitle-glide",
+    ),
 
-        //
-        // Sword
-        //
-        Wield(Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.sword_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_sword",
-        ),
-        Unwield(Sword): (
-            files: [
-                "voxygen.audio.sfx.weapon.sword_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_sword",
-        ),
-        Attack(ComboMelee2(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(FinisherMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(DiveMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(RiposteMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(RapidMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(ChargedMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(DashMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.sword_dash",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Attack(BasicMelee(Action), Sword): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-sword_attack",
-        ),
-        Inventory(CollectedTool(Sword)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_sword",
-        ),
+    //
+    // Sword
+    //
+    Wield(Sword): (
+        files: [
+            "voxygen.audio.sfx.weapon.sword_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_sword",
+    ),
+    Unwield(Sword): (
+        files: [
+            "voxygen.audio.sfx.weapon.sword_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_sword",
+    ),
+    Attack(ComboMelee2(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(FinisherMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(DiveMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(RiposteMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(RapidMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(ChargedMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(DashMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.sword_dash",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Attack(BasicMelee(Action), Sword): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-sword_attack",
+    ),
+    Inventory(CollectedTool(Sword)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_sword",
+    ),
 
-        //
-        // Hammer
-        //
-        Wield(Hammer): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_hammer",
-        ),
-        Unwield(Hammer): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_hammer",
-        ),
-        Attack(ChargedMelee(Action), Hammer): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-hammer_attack",
-        ),
-        Attack(LeapMelee(Action), Hammer): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-hammer_attack",
-        ),
-        Attack(DashMelee(Action), Hammer): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.7,
-            subtitle: "subtitle-hammer-attack",
-        ),
-        Inventory(CollectedTool(Hammer)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_hammer",
-        ),
-
-        //
-        // Axe
-        //
-        Wield(Axe): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_axe",
-        ),
-        Unwield(Axe): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_axe",
-        ),
-        Attack(RapidMelee(Action), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-axe_attack",
-        ),
-        Attack(LeapMelee(Action), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-axe_attack",
-        ),
-        Attack(BasicMelee(Action), Axe): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-axe_attack",
-        ),
-        Inventory(CollectedTool(Axe)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_axe",
-        ),
-
-        //
-        // Fire Staff
-        //
-        Wield(Staff): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_staff",
-        ),
-        Unwield(Staff): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_staff",
-        ),
-        //Attack(BasicRanged, Staff): (
-        //    files: [
-        //        "voxygen.audio.sfx.abilities.staff_channeling",
-        //    ],
-        //    threshold: 0.8,
-        //),
-        Inventory(CollectedTool(Staff)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_staff",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_staff",
-        ),
-
-        //
-        // Bow
-        //
-        Wield(Bow): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_bow",
-        ),
-        Unwield(Bow): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_bow",
-        ),
-        //Attack(BasicRanged, Bow): (
-        //    files: [
-        //        // channeling sound.
-        //    ],
-        //    threshold: 0.8,
-        //),
-        Inventory(CollectedTool(Bow)): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_bow",
-        ),
-
-        //
-        // Sceptre
-        //
-        Wield(Sceptre): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_sceptre",
-        ),
-        Unwield(Sceptre): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_sceptre",
-        ),
-        Attack(BasicAura, Sceptre): (
-            files: [
-                "voxygen.audio.sfx.abilities.sceptre_aura",
-            ],
-            threshold: 2.5,
-            subtitle: "subtitle-sceptre_heal",
-        ),
-        Inventory(CollectedTool(Sceptre)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_staff",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_sceptre",
-        ),
-
-        //
-        // Instruments
-        // NPC Organ
-        Attack(BasicAura, Instrument): (
-            files: [
-                "voxygen.audio.sfx.abilities.barrel_organ",
-            ],
-            threshold: 34.75,
-            subtitle: "subtitle-instrument_organ",
-        ),
-        // Player Instruments
-        Wield(Instrument): (
-            files: [
+    //
+    // Hammer
+    //
+    Wield(Hammer): (
+        files: [
             "voxygen.audio.sfx.weapon.weapon_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_instrument",
-        ),
-        Unwield(Instrument): (
-            files: [
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_hammer",
+    ),
+    Unwield(Hammer): (
+        files: [
             "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_instrument",
-        ),
-        Music(Instrument, Custom("DoubleBass")): (
-            files: [
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_c",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_g",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_d",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_a",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_e",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_c1",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_ac1",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_ag",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_cec",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_de",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_e1c1",
-            "voxygen.audio.sfx.instrument.double_bass.double_bass_ge",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_double_bass",
-        ),
-        Music(Instrument, Custom("Flute")): (
-            files: [
-            "voxygen.audio.sfx.instrument.flute.flute_c",
-            "voxygen.audio.sfx.instrument.flute.flute_g",
-            "voxygen.audio.sfx.instrument.flute.flute_d",
-            "voxygen.audio.sfx.instrument.flute.flute_a",
-            "voxygen.audio.sfx.instrument.flute.flute_e",
-            "voxygen.audio.sfx.instrument.flute.flute_c1",
-            "voxygen.audio.sfx.instrument.flute.flute_c1a",
-            "voxygen.audio.sfx.instrument.flute.flute_c1ag",
-            "voxygen.audio.sfx.instrument.flute.flute_c1d1c1",
-            "voxygen.audio.sfx.instrument.flute.flute_ceg",
-            "voxygen.audio.sfx.instrument.flute.flute_dac1",
-            "voxygen.audio.sfx.instrument.flute.flute_eg",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_flute",
-        ),
-        Music(Instrument, Custom("GlassFlute")): (
-            files: [
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_g",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_d",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_a",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_e",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1a",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1ag",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1d1c1",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_ceg",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_dac1",
-            "voxygen.audio.sfx.instrument.glass_flute.glass_flute_eg",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_glass_flute",
-        ),
-        Music(Instrument, Custom("Lyre")): (
-            files: [
-            "voxygen.audio.sfx.instrument.lyre.lyre_c",
-            "voxygen.audio.sfx.instrument.lyre.lyre_g",
-            "voxygen.audio.sfx.instrument.lyre.lyre_d",
-            "voxygen.audio.sfx.instrument.lyre.lyre_a",
-            "voxygen.audio.sfx.instrument.lyre.lyre_e",
-            "voxygen.audio.sfx.instrument.lyre.lyre_c1",
-            "voxygen.audio.sfx.instrument.lyre.lyre_c1ag",
-            "voxygen.audio.sfx.instrument.lyre.lyre_cde",
-            "voxygen.audio.sfx.instrument.lyre.lyre_d1c1a",
-            "voxygen.audio.sfx.instrument.lyre.lyre_d1g",
-            "voxygen.audio.sfx.instrument.lyre.lyre_ec1",
-            "voxygen.audio.sfx.instrument.lyre.lyre_ega",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_lyre",
-        ),
-        Music(Instrument, Custom("IcyTalharpa")): (
-            files: [
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_g",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_a",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_e",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c1",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c1ag",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_cde",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d1c1a",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d1g",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_ec1",
-            "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_ega",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_icy_talharpa",
-        ),
-        Music(Instrument, Custom("Kalimba")): (
-            files: [
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_c",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_g",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_d",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_a",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_e",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_c1",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_c1a",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_c1d1c1",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_c1ge",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_cdc",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_ceg",
-            "voxygen.audio.sfx.instrument.kalimba.kalimba_da",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_kalimba",
-        ),
-        Music(Instrument, Custom("Melodica")): (
-            files: [
-            "voxygen.audio.sfx.instrument.melodica.melodica_c",
-            "voxygen.audio.sfx.instrument.melodica.melodica_g",
-            "voxygen.audio.sfx.instrument.melodica.melodica_d",
-            "voxygen.audio.sfx.instrument.melodica.melodica_a",
-            "voxygen.audio.sfx.instrument.melodica.melodica_e",
-            "voxygen.audio.sfx.instrument.melodica.melodica_c1",
-            "voxygen.audio.sfx.instrument.melodica.melodica_ad1c1",
-            "voxygen.audio.sfx.instrument.melodica.melodica_c1a",
-            "voxygen.audio.sfx.instrument.melodica.melodica_d1a",
-            "voxygen.audio.sfx.instrument.melodica.melodica_ec",
-            "voxygen.audio.sfx.instrument.melodica.melodica_ec1g",
-            "voxygen.audio.sfx.instrument.melodica.melodica_ge",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_melodica",
-        ),
-        Music(Instrument, Custom("Lute")): (
-            files: [
-            "voxygen.audio.sfx.instrument.lute.lute_c",
-            "voxygen.audio.sfx.instrument.lute.lute_g",
-            "voxygen.audio.sfx.instrument.lute.lute_d",
-            "voxygen.audio.sfx.instrument.lute.lute_a",
-            "voxygen.audio.sfx.instrument.lute.lute_e",
-            "voxygen.audio.sfx.instrument.lute.lute_c1",
-            "voxygen.audio.sfx.instrument.lute.lute_ac1",
-            "voxygen.audio.sfx.instrument.lute.lute_c1d1c1",
-            "voxygen.audio.sfx.instrument.lute.lute_cdc",
-            "voxygen.audio.sfx.instrument.lute.lute_ege",
-            "voxygen.audio.sfx.instrument.lute.lute_gag",
-            "voxygen.audio.sfx.instrument.lute.lute_ded",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_lute",
-        ),
-        Music(Instrument, Custom("Oud")): (
-            files: [
-            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
-            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
-            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
-            "voxygen.audio.sfx.instrument.oud.oud_cgc1",
-            "voxygen.audio.sfx.instrument.oud.oud_dad1",
-            "voxygen.audio.sfx.instrument.oud.oud_ege1",
-            "voxygen.audio.sfx.instrument.oud.oud_gd1g1",
-            "voxygen.audio.sfx.instrument.oud.oud_ac1a1",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_oud",
-        ),
-        Music(Instrument, Custom("Steeltonguedrum")): (
-            files: [
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_eg",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_e",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d1c1",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d1",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_ce",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1ag",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1ae",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_ac1",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_a",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1c1",
-            "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_g",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_steeltonguedrum",
-        ),
-        Music(Instrument, Custom("Shamisen")): (
-            files: [
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_a",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_aec1",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_c",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_c1",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_c1c1a",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_cc",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_cdc1",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_cea",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_ceg",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_cge",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_d",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_dac",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_e",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_ea",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_eac1c",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_g",
-            "voxygen.audio.sfx.instrument.shamisen.shamisen_gg",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_shamisen",
-        ),
-        Music(Instrument, Custom("ViolaPizzicato")): (
-            files: [
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_a",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ac1",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_c",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_c1",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_cde",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ce",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ceac1c1",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ceg",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_d",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_d1",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_dag",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_e",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_edc",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_eg",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_egc1",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_g",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_gd1a",
-            "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ggc1a",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-instrument_viola_pizzicato",
-        ),
-        Music(Instrument, Custom("StarlightConch")): (
-            files: [
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_a",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ac1",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c1",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_cd",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_cge",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_d",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_d1",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_e",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ec",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ec1g",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_g",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ga",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_gd1",
-            "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ge",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_starlight_conch",
-        ),
-        Music(Instrument, Custom("TimbrelOfChaos")): (
-            files: [
-            "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_0",
-            "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_1",
-            "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_2",
-            "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_3",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_timbrel_of_chaos",
-        ),
-        Music(Instrument, Custom("Rhythmo")): (
-            files: [
-            "voxygen.audio.sfx.instrument.rhythmo.rhythmo",
-            ],
-            threshold: 2.0,
-            subtitle: "subtitle-instrument_rhythmo",
-        ),
-        Music(Instrument, Custom("Sitar")): (
-            files: [
-            "voxygen.audio.sfx.instrument.sitar.sitar_c",
-            "voxygen.audio.sfx.instrument.sitar.sitar_g",
-            "voxygen.audio.sfx.instrument.sitar.sitar_d",
-            "voxygen.audio.sfx.instrument.sitar.sitar_a",
-            "voxygen.audio.sfx.instrument.sitar.sitar_e",
-            "voxygen.audio.sfx.instrument.sitar.sitar_c1",
-            "voxygen.audio.sfx.instrument.sitar.sitar_c1ae",
-            "voxygen.audio.sfx.instrument.sitar.sitar_ce",
-            "voxygen.audio.sfx.instrument.sitar.sitar_da",
-            "voxygen.audio.sfx.instrument.sitar.sitar_ec1",
-            "voxygen.audio.sfx.instrument.sitar.sitar_gd1",
-            "voxygen.audio.sfx.instrument.sitar.sitar_gec",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_sitar",
-        ),
-        Music(Instrument, Custom("Guitar")): (
-            files: [
-            "voxygen.audio.sfx.instrument.guitar.guitar_c",
-            "voxygen.audio.sfx.instrument.guitar.guitar_g",
-            "voxygen.audio.sfx.instrument.guitar.guitar_d",
-            "voxygen.audio.sfx.instrument.guitar.guitar_a",
-            "voxygen.audio.sfx.instrument.guitar.guitar_e",
-            "voxygen.audio.sfx.instrument.guitar.guitar_c1",
-            "voxygen.audio.sfx.instrument.guitar.guitar_ac1a",
-            "voxygen.audio.sfx.instrument.guitar.guitar_c1d1c1",
-            "voxygen.audio.sfx.instrument.guitar.guitar_cdc",
-            "voxygen.audio.sfx.instrument.guitar.guitar_ded",
-            "voxygen.audio.sfx.instrument.guitar.guitar_ege",
-            "voxygen.audio.sfx.instrument.guitar.guitar_gag",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_guitar",
-        ),
-        Music(Instrument, Custom("DarkGuitar")): (
-            files: [
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_a",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c1",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c1ae",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_cce",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_ceg",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d1c1a",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d1ge",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_dda",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_e",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_eeg",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_g",
-            "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_gec",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_dark_guitar",
-        ),
-        Music(Instrument, Custom("Washboard")): (
-            files: [
-            "voxygen.audio.sfx.instrument.washboard.washboard_c",
-            "voxygen.audio.sfx.instrument.washboard.washboard_g",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_dd",
-            "voxygen.audio.sfx.instrument.washboard.washboard_d_dd",
-            "voxygen.audio.sfx.instrument.washboard.washboard_dd_d",
-            "voxygen.audio.sfx.instrument.washboard.washboard_a",
-            "voxygen.audio.sfx.instrument.washboard.washboard_e",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_washboard",
-        ),
-        Music(Instrument, Custom("WildskinDrum")): (
-            files: [
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_d",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_e",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_f",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_g",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_a",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_b",
-            "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c1",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_wildskin_drum",
-        ),
-        Music(Instrument, Custom("Kora")): (
-            files: [
-            "voxygen.audio.sfx.instrument.kora.kora_c1e1c2",
-            "voxygen.audio.sfx.instrument.kora.kora_cega",
-            "voxygen.audio.sfx.instrument.kora.kora_deac1",
-            "voxygen.audio.sfx.instrument.kora.kora_eg",
-            "voxygen.audio.sfx.instrument.kora.kora_c1e1g1",
-            "voxygen.audio.sfx.instrument.kora.kora_ce",
-            "voxygen.audio.sfx.instrument.kora.kora_e1g1e2c2",
-            "voxygen.audio.sfx.instrument.kora.kora_cdeg",
-            "voxygen.audio.sfx.instrument.kora.kora_d1a1d2c2",
-            "voxygen.audio.sfx.instrument.kora.kora_egad1c1",
-            "voxygen.audio.sfx.instrument.kora.kora_cec1",
-            "voxygen.audio.sfx.instrument.kora.kora_dad1c1",
-            "voxygen.audio.sfx.instrument.kora.kora_ege1c1",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_kora",
-        ),
-        Music(Instrument, Custom("Banjo")): (
-            files: [
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1d1c1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_cecgce",
-            "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
-            "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
-            "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
-            "voxygen.audio.sfx.instrument.banjo.banjo_daece",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egga",
-            "voxygen.audio.sfx.instrument.banjo.banjo_gd1gd1ac1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
-            "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
-            "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
-            "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
-            "voxygen.audio.sfx.instrument.banjo.banjo_ceceac1ce",
-            "voxygen.audio.sfx.instrument.banjo.banjo_egegac1eg",
-	    "voxygen.audio.sfx.instrument.banjo.banjo_cecegd1ce",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-instrument_banjo",
-        ),
-        Inventory(CollectedTool(Instrument)): (
-            files: [
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_hammer",
+    ),
+    Attack(ChargedMelee(Action), Hammer): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-hammer_attack",
+    ),
+    Attack(LeapMelee(Action), Hammer): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-hammer_attack",
+    ),
+    Attack(DashMelee(Action), Hammer): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.7,
+        subtitle: "subtitle-hammer-attack",
+    ),
+    Inventory(CollectedTool(Hammer)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_hammer",
+    ),
+
+    //
+    // Axe
+    //
+    Wield(Axe): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_axe",
+    ),
+    Unwield(Axe): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_axe",
+    ),
+    Attack(RapidMelee(Action), Axe): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-axe_attack",
+    ),
+    Attack(LeapMelee(Action), Axe): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-axe_attack",
+    ),
+    Attack(BasicMelee(Action), Axe): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-axe_attack",
+    ),
+    Inventory(CollectedTool(Axe)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_axe",
+    ),
+
+    //
+    // Fire Staff
+    //
+    Wield(Staff): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_staff",
+    ),
+    Unwield(Staff): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_staff",
+    ),
+    //Attack(BasicRanged, Staff): (
+    //    files: [
+    //        "voxygen.audio.sfx.abilities.staff_channeling",
+    //    ],
+    //    threshold: 0.8,
+    //),
+    Inventory(CollectedTool(Staff)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_staff",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_staff",
+    ),
+
+    //
+    // Bow
+    //
+    Wield(Bow): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_bow",
+    ),
+    Unwield(Bow): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_bow",
+    ),
+    //Attack(BasicRanged, Bow): (
+    //    files: [
+    //        // channeling sound.
+    //    ],
+    //    threshold: 0.8,
+    //),
+    Inventory(CollectedTool(Bow)): (
+        files: [
             "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_instrument",
-        ),
-        //
-        // Spear
-        //
-        Wield(Spear): (
-            files: [
-                "voxygen.audio.sfx.weapon.dagger_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_spear",
-        ),
-        Unwield(Spear): (
-            files: [
-                "voxygen.audio.sfx.weapon.dagger_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_spear",
-        ),
-        Attack(BasicMelee(Action), Spear): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-spear_attack",
-        ),
-        Attack(DashMelee(Action), Spear): (
-            files: [
-                "voxygen.audio.sfx.abilities.sword_dash",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-spear_attack",
-        ),
-        Inventory(CollectedTool(Spear)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_spear",
-        ),
-        //
-        // Dagger
-        //
-        Wield(Dagger): (
-            files: [
-                "voxygen.audio.sfx.weapon.dagger_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_dagger",
-        ),
-        Unwield(Dagger): (
-            files: [
-                "voxygen.audio.sfx.weapon.dagger_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_dagger",
-        ),
-        Attack(BasicMelee(Action), Dagger): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing_sword",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-dagger_attack",
-        ),
-        Attack(DashMelee(Action), Dagger): (
-            files: [
-                "voxygen.audio.sfx.abilities.sword_dash",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-dagger_attack",
-        ),
-        Inventory(CollectedTool(Dagger)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_dagger",
-        ),
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_bow",
+    ),
 
-        //
-        // Shield
-        //
-        Wield(Shield): (
-            files: [
-                "voxygen.audio.sfx.weapon.shield_out",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-wield_shield",
-        ),
-        Unwield(Shield): (
-            files: [
-                "voxygen.audio.sfx.weapon.weapon_in",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-unwield_shield",
-        ),
-        Attack(ComboMelee2(Action), Shield): (
-            files: [
-                "voxygen.audio.sfx.abilities.swing",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-shield_attack",
-        ),
-        Inventory(CollectedTool(Shield)): (
-            files: [
-                "voxygen.audio.sfx.inventory.pickup_sword",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_shield",
-        ),
+    //
+    // Sceptre
+    //
+    Wield(Sceptre): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_sceptre",
+    ),
+    Unwield(Sceptre): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_sceptre",
+    ),
+    Attack(BasicAura, Sceptre): (
+        files: [
+            "voxygen.audio.sfx.abilities.sceptre_aura",
+        ],
+        threshold: 2.5,
+        subtitle: "subtitle-sceptre_heal",
+    ),
+    Inventory(CollectedTool(Sceptre)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_staff",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_sceptre",
+    ),
 
-        // PickAxe Tool
-        Inventory(CollectedTool(Pick)): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_pick",
-        ),
-        // Throwable tool
-        Inventory(CollectedTool(Throwable)): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_item",
-        ),
-        //
-        // Inventory
-        //
-        Inventory(Collected): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_item",
-        ),
-        Inventory(CollectedItem("Gemstone")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_gemstone",
-        ),
-        Inventory(CollectFailed): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_failed",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-pickup_failed",
-        ),
-        Inventory(Swapped): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Given): (
-            files: [
-                "voxygen.audio.sfx.inventory.add_item",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Dropped): (
-            files: [
-                "voxygen.audio.sfx.inventory.drop_item",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(Craft): (
-            files: [
-                "voxygen.audio.sfx.crafting.hammer",
-            ],
-            threshold: 0.05,
-        ),
+    //
+    // Instruments
+    // NPC Organ
+    Attack(BasicAura, Instrument): (
+        files: [
+            "voxygen.audio.sfx.abilities.barrel_organ",
+        ],
+        threshold: 34.75,
+        subtitle: "subtitle-instrument_organ",
+    ),
+    // Player Instruments
+    Wield(Instrument): (
+        files: [
+        "voxygen.audio.sfx.weapon.weapon_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_instrument",
+    ),
+    Unwield(Instrument): (
+        files: [
+        "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_instrument",
+    ),
+    Music(Instrument, Custom("DoubleBass")): (
+        files: [
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_c",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_g",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_d",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_a",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_e",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_c1",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_ac1",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_ag",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_cec",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_de",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_e1c1",
+        "voxygen.audio.sfx.instrument.double_bass.double_bass_ge",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_double_bass",
+    ),
+    Music(Instrument, Custom("Flute")): (
+        files: [
+        "voxygen.audio.sfx.instrument.flute.flute_c",
+        "voxygen.audio.sfx.instrument.flute.flute_g",
+        "voxygen.audio.sfx.instrument.flute.flute_d",
+        "voxygen.audio.sfx.instrument.flute.flute_a",
+        "voxygen.audio.sfx.instrument.flute.flute_e",
+        "voxygen.audio.sfx.instrument.flute.flute_c1",
+        "voxygen.audio.sfx.instrument.flute.flute_c1a",
+        "voxygen.audio.sfx.instrument.flute.flute_c1ag",
+        "voxygen.audio.sfx.instrument.flute.flute_c1d1c1",
+        "voxygen.audio.sfx.instrument.flute.flute_ceg",
+        "voxygen.audio.sfx.instrument.flute.flute_dac1",
+        "voxygen.audio.sfx.instrument.flute.flute_eg",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_flute",
+    ),
+    Music(Instrument, Custom("GlassFlute")): (
+        files: [
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_g",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_d",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_a",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_e",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1a",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1ag",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_c1d1c1",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_ceg",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_dac1",
+        "voxygen.audio.sfx.instrument.glass_flute.glass_flute_eg",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_glass_flute",
+    ),
+    Music(Instrument, Custom("Lyre")): (
+        files: [
+        "voxygen.audio.sfx.instrument.lyre.lyre_c",
+        "voxygen.audio.sfx.instrument.lyre.lyre_g",
+        "voxygen.audio.sfx.instrument.lyre.lyre_d",
+        "voxygen.audio.sfx.instrument.lyre.lyre_a",
+        "voxygen.audio.sfx.instrument.lyre.lyre_e",
+        "voxygen.audio.sfx.instrument.lyre.lyre_c1",
+        "voxygen.audio.sfx.instrument.lyre.lyre_c1ag",
+        "voxygen.audio.sfx.instrument.lyre.lyre_cde",
+        "voxygen.audio.sfx.instrument.lyre.lyre_d1c1a",
+        "voxygen.audio.sfx.instrument.lyre.lyre_d1g",
+        "voxygen.audio.sfx.instrument.lyre.lyre_ec1",
+        "voxygen.audio.sfx.instrument.lyre.lyre_ega",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_lyre",
+    ),
+    Music(Instrument, Custom("IcyTalharpa")): (
+        files: [
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_g",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_a",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_e",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c1",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_c1ag",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_cde",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d1c1a",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_d1g",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_ec1",
+        "voxygen.audio.sfx.instrument.icy_talharpa.icy_talharpa_ega",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_icy_talharpa",
+    ),
+    Music(Instrument, Custom("Kalimba")): (
+        files: [
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_c",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_g",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_d",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_a",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_e",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_c1",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_c1a",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_c1d1c1",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_c1ge",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_cdc",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_ceg",
+        "voxygen.audio.sfx.instrument.kalimba.kalimba_da",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_kalimba",
+    ),
+    Music(Instrument, Custom("Melodica")): (
+        files: [
+        "voxygen.audio.sfx.instrument.melodica.melodica_c",
+        "voxygen.audio.sfx.instrument.melodica.melodica_g",
+        "voxygen.audio.sfx.instrument.melodica.melodica_d",
+        "voxygen.audio.sfx.instrument.melodica.melodica_a",
+        "voxygen.audio.sfx.instrument.melodica.melodica_e",
+        "voxygen.audio.sfx.instrument.melodica.melodica_c1",
+        "voxygen.audio.sfx.instrument.melodica.melodica_ad1c1",
+        "voxygen.audio.sfx.instrument.melodica.melodica_c1a",
+        "voxygen.audio.sfx.instrument.melodica.melodica_d1a",
+        "voxygen.audio.sfx.instrument.melodica.melodica_ec",
+        "voxygen.audio.sfx.instrument.melodica.melodica_ec1g",
+        "voxygen.audio.sfx.instrument.melodica.melodica_ge",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_melodica",
+    ),
+    Music(Instrument, Custom("Lute")): (
+        files: [
+        "voxygen.audio.sfx.instrument.lute.lute_c",
+        "voxygen.audio.sfx.instrument.lute.lute_g",
+        "voxygen.audio.sfx.instrument.lute.lute_d",
+        "voxygen.audio.sfx.instrument.lute.lute_a",
+        "voxygen.audio.sfx.instrument.lute.lute_e",
+        "voxygen.audio.sfx.instrument.lute.lute_c1",
+        "voxygen.audio.sfx.instrument.lute.lute_ac1",
+        "voxygen.audio.sfx.instrument.lute.lute_c1d1c1",
+        "voxygen.audio.sfx.instrument.lute.lute_cdc",
+        "voxygen.audio.sfx.instrument.lute.lute_ege",
+        "voxygen.audio.sfx.instrument.lute.lute_gag",
+        "voxygen.audio.sfx.instrument.lute.lute_ded",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_lute",
+    ),
+    Music(Instrument, Custom("Oud")): (
+        files: [
+        "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+        "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+        "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+        "voxygen.audio.sfx.instrument.oud.oud_cgc1",
+        "voxygen.audio.sfx.instrument.oud.oud_dad1",
+        "voxygen.audio.sfx.instrument.oud.oud_ege1",
+        "voxygen.audio.sfx.instrument.oud.oud_gd1g1",
+        "voxygen.audio.sfx.instrument.oud.oud_ac1a1",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_oud",
+    ),
+    Music(Instrument, Custom("Steeltonguedrum")): (
+        files: [
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_eg",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_e",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d1c1",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d1",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_d",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_ce",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1ag",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1ae",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_ac1",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_a",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_c1c1",
+        "voxygen.audio.sfx.instrument.steeltonguedrum.steeltonguedrum_g",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_steeltonguedrum",
+    ),
+    Music(Instrument, Custom("Shamisen")): (
+        files: [
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_a",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_aec1",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_c",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_c1",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_c1c1a",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_cc",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_cdc1",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_cea",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_ceg",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_cge",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_d",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_dac",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_e",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_ea",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_eac1c",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_g",
+        "voxygen.audio.sfx.instrument.shamisen.shamisen_gg",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_shamisen",
+    ),
+    Music(Instrument, Custom("ViolaPizzicato")): (
+        files: [
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_a",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ac1",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_c",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_c1",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_cde",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ce",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ceac1c1",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ceg",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_d",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_d1",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_dag",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_e",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_edc",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_eg",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_egc1",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_g",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_gd1a",
+        "voxygen.audio.sfx.instrument.viola_pizzicato.viola_pizzicato_ggc1a",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-instrument_viola_pizzicato",
+    ),
+    Music(Instrument, Custom("StarlightConch")): (
+        files: [
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_a",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ac1",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_c1",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_cd",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_cge",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_d",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_d1",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_e",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ec",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ec1g",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_g",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ga",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_gd1",
+        "voxygen.audio.sfx.instrument.starlight_conch.starlight_conch_ge",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_starlight_conch",
+    ),
+    Music(Instrument, Custom("TimbrelOfChaos")): (
+        files: [
+        "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_0",
+        "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_1",
+        "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_2",
+        "voxygen.audio.sfx.instrument.timbrel_of_chaos.timbrel_of_chaos_3",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_timbrel_of_chaos",
+    ),
+    Music(Instrument, Custom("Rhythmo")): (
+        files: [
+        "voxygen.audio.sfx.instrument.rhythmo.rhythmo",
+        ],
+        threshold: 2.0,
+        subtitle: "subtitle-instrument_rhythmo",
+    ),
+    Music(Instrument, Custom("Sitar")): (
+        files: [
+        "voxygen.audio.sfx.instrument.sitar.sitar_c",
+        "voxygen.audio.sfx.instrument.sitar.sitar_g",
+        "voxygen.audio.sfx.instrument.sitar.sitar_d",
+        "voxygen.audio.sfx.instrument.sitar.sitar_a",
+        "voxygen.audio.sfx.instrument.sitar.sitar_e",
+        "voxygen.audio.sfx.instrument.sitar.sitar_c1",
+        "voxygen.audio.sfx.instrument.sitar.sitar_c1ae",
+        "voxygen.audio.sfx.instrument.sitar.sitar_ce",
+        "voxygen.audio.sfx.instrument.sitar.sitar_da",
+        "voxygen.audio.sfx.instrument.sitar.sitar_ec1",
+        "voxygen.audio.sfx.instrument.sitar.sitar_gd1",
+        "voxygen.audio.sfx.instrument.sitar.sitar_gec",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_sitar",
+    ),
+    Music(Instrument, Custom("Guitar")): (
+        files: [
+        "voxygen.audio.sfx.instrument.guitar.guitar_c",
+        "voxygen.audio.sfx.instrument.guitar.guitar_g",
+        "voxygen.audio.sfx.instrument.guitar.guitar_d",
+        "voxygen.audio.sfx.instrument.guitar.guitar_a",
+        "voxygen.audio.sfx.instrument.guitar.guitar_e",
+        "voxygen.audio.sfx.instrument.guitar.guitar_c1",
+        "voxygen.audio.sfx.instrument.guitar.guitar_ac1a",
+        "voxygen.audio.sfx.instrument.guitar.guitar_c1d1c1",
+        "voxygen.audio.sfx.instrument.guitar.guitar_cdc",
+        "voxygen.audio.sfx.instrument.guitar.guitar_ded",
+        "voxygen.audio.sfx.instrument.guitar.guitar_ege",
+        "voxygen.audio.sfx.instrument.guitar.guitar_gag",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_guitar",
+    ),
+    Music(Instrument, Custom("DarkGuitar")): (
+        files: [
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_a",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c1",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_c1ae",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_cce",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_ceg",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d1c1a",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_d1ge",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_dda",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_e",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_eeg",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_g",
+        "voxygen.audio.sfx.instrument.dark_guitar.dark_guitar_gec",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_dark_guitar",
+    ),
+    Music(Instrument, Custom("Washboard")): (
+        files: [
+        "voxygen.audio.sfx.instrument.washboard.washboard_c",
+        "voxygen.audio.sfx.instrument.washboard.washboard_g",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_dd",
+        "voxygen.audio.sfx.instrument.washboard.washboard_d_dd",
+        "voxygen.audio.sfx.instrument.washboard.washboard_dd_d",
+        "voxygen.audio.sfx.instrument.washboard.washboard_a",
+        "voxygen.audio.sfx.instrument.washboard.washboard_e",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_washboard",
+    ),
+    Music(Instrument, Custom("WildskinDrum")): (
+        files: [
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_d",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_e",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_f",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_g",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_a",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_b",
+        "voxygen.audio.sfx.instrument.wildskin_drum.wildskin_drum_c1",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_wildskin_drum",
+    ),
+    Music(Instrument, Custom("Kora")): (
+        files: [
+        "voxygen.audio.sfx.instrument.kora.kora_c1e1c2",
+        "voxygen.audio.sfx.instrument.kora.kora_cega",
+        "voxygen.audio.sfx.instrument.kora.kora_deac1",
+        "voxygen.audio.sfx.instrument.kora.kora_eg",
+        "voxygen.audio.sfx.instrument.kora.kora_c1e1g1",
+        "voxygen.audio.sfx.instrument.kora.kora_ce",
+        "voxygen.audio.sfx.instrument.kora.kora_e1g1e2c2",
+        "voxygen.audio.sfx.instrument.kora.kora_cdeg",
+        "voxygen.audio.sfx.instrument.kora.kora_d1a1d2c2",
+        "voxygen.audio.sfx.instrument.kora.kora_egad1c1",
+        "voxygen.audio.sfx.instrument.kora.kora_cec1",
+        "voxygen.audio.sfx.instrument.kora.kora_dad1c1",
+        "voxygen.audio.sfx.instrument.kora.kora_ege1c1",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_kora",
+    ),
+    Music(Instrument, Custom("Banjo")): (
+        files: [
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1e1d1c1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_cecgce",
+        "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
+        "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
+        "voxygen.audio.sfx.instrument.banjo.banjo_ceeg",
+        "voxygen.audio.sfx.instrument.banjo.banjo_daece",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egc1a",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egegc1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egga",
+        "voxygen.audio.sfx.instrument.banjo.banjo_gd1gd1ac1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1e1c1e1d1g1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_c1d1ae1e1",
+        "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
+        "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
+        "voxygen.audio.sfx.instrument.banjo.banjo_e1a1e1g12c2",
+        "voxygen.audio.sfx.instrument.banjo.banjo_ceceac1ce",
+        "voxygen.audio.sfx.instrument.banjo.banjo_egegac1eg",
+        "voxygen.audio.sfx.instrument.banjo.banjo_cecegd1ce",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-instrument_banjo",
+    ),
+    Inventory(CollectedTool(Instrument)): (
+        files: [
+        "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_instrument",
+    ),
+    //
+    // Spear
+    //
+    Wield(Spear): (
+        files: [
+            "voxygen.audio.sfx.weapon.dagger_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_spear",
+    ),
+    Unwield(Spear): (
+        files: [
+            "voxygen.audio.sfx.weapon.dagger_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_spear",
+    ),
+    Attack(BasicMelee(Action), Spear): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-spear_attack",
+    ),
+    Attack(DashMelee(Action), Spear): (
+        files: [
+            "voxygen.audio.sfx.abilities.sword_dash",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-spear_attack",
+    ),
+    Inventory(CollectedTool(Spear)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_spear",
+    ),
+    //
+    // Dagger
+    //
+    Wield(Dagger): (
+        files: [
+            "voxygen.audio.sfx.weapon.dagger_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_dagger",
+    ),
+    Unwield(Dagger): (
+        files: [
+            "voxygen.audio.sfx.weapon.dagger_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_dagger",
+    ),
+    Attack(BasicMelee(Action), Dagger): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing_sword",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-dagger_attack",
+    ),
+    Attack(DashMelee(Action), Dagger): (
+        files: [
+            "voxygen.audio.sfx.abilities.sword_dash",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-dagger_attack",
+    ),
+    Inventory(CollectedTool(Dagger)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_dagger",
+    ),
 
-        //
-        // Consumables
-        //
-        Inventory(Consumed(Simple("common.items.consumable.potion_minor"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_med"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_big"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_trans"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_curious"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_agility"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_combustion"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.consumable.potion_freezing"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_potion",
-        ),
-        Inventory(Consumed(Simple("common.items.food.apple"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.apple",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_apple",
-        ),
-        Inventory(Consumed(Simple("common.items.food.mushroom"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.cheese"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_cheese",
-        ),
-        Inventory(Consumed(Simple("common.items.food.sunflower_icetea"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_liquid",
-        ),
-        Inventory(Consumed(Simple("common.items.food.apple_mushroom_curry"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.apple_stick"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.coconut"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.mushroom_stick"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.tomato"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.carrot"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.lettuce"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.plainsalad"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.tomatosalad"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.cactus_colada"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_liquid",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.bird_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.bird_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.fish_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.fish_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.beast_large_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.beast_large_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.beast_small_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.beast_small_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.tough_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.tough_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.bird_large_raw"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.meat.bird_large_cooked"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.honeycorn"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_food",
-        ),
-        Inventory(Consumed(Simple("common.items.food.pumpkin_spice_brew"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.liquid",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_liquid",
-        ),
-        Inventory(Consumed(Simple("common.items.food.blue_cheese"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_cheese",
-        ),
-        Inventory(Consumed(Simple("common.items.debug.golden_cheese"))): (
-            files: [
-                "voxygen.audio.sfx.inventory.consumable.food",
-            ],
-            threshold: 0.3,
-            subtitle: "subtitle-consume_cheese",
-        ),
+    //
+    // Shield
+    //
+    Wield(Shield): (
+        files: [
+            "voxygen.audio.sfx.weapon.shield_out",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-wield_shield",
+    ),
+    Unwield(Shield): (
+        files: [
+            "voxygen.audio.sfx.weapon.weapon_in",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-unwield_shield",
+    ),
+    Attack(ComboMelee2(Action), Shield): (
+        files: [
+            "voxygen.audio.sfx.abilities.swing",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-shield_attack",
+    ),
+    Inventory(CollectedTool(Shield)): (
+        files: [
+            "voxygen.audio.sfx.inventory.pickup_sword",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_shield",
+    ),
 
-        //
-        //Combat
-        //
-        Explosion: (
-            files: [
-                "voxygen.audio.sfx.abilities.explosion",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-explosion",
-        ),
-        ArrowShot: (
-            files: [
-                "voxygen.audio.sfx.abilities.arrow_shot_1",
-                "voxygen.audio.sfx.abilities.arrow_shot_2",
-                "voxygen.audio.sfx.abilities.arrow_shot_3",
-                "voxygen.audio.sfx.abilities.arrow_shot_4",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-arrow_shot",
-        ),
-        Yeet: (
-                files: [
-            "voxygen.audio.sfx.abilities.yeet",
-                ],
-                threshold: 0.3,
-        ),
-        FireShot: (
-            files: [
-                "voxygen.audio.sfx.abilities.fire_shot_1",
-                "voxygen.audio.sfx.abilities.fire_shot_2",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-fire_shot",
-        ),
-        ArrowMiss: (
-            files: [
-                    "voxygen.audio.sfx.character.arrow_miss",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-arrow_miss",
-        ),
-        ArrowHit: (
-            files: [
-                "voxygen.audio.sfx.character.arrow_hit",
-            ],
-            threshold: 0.2,
-            subtitle: "subtitle-arrow_hit",
-        ),
-        Klonk: (
-            files: [
-                    "voxygen.audio.sfx.abilities.klonk",
-            ],
-            threshold: 0.4,
-        ),
-        SmashKlonk: (
-            files: [
-                    "voxygen.audio.sfx.abilities.smashklonk",
-            ],
-            threshold: 0.4,
-        ),
-        StrigoiHead: (
-            files: [
-                    "voxygen.audio.sfx.abilities.strigoi_head",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-attack-strigoi_head",
+    // PickAxe Tool
+    Inventory(CollectedTool(Pick)): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_pick",
+    ),
+    // Throwable tool
+    Inventory(CollectedTool(Throwable)): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_item",
+    ),
+    //
+    // Inventory
+    //
+    Inventory(Collected): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_item",
+    ),
+    Inventory(CollectedItem("Gemstone")): (
+        files: [
+            "voxygen.audio.sfx.inventory.collect_gemstone",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_gemstone",
+    ),
+    Inventory(CollectFailed): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_failed",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-pickup_failed",
+    ),
+    Inventory(Swapped): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+    ),
+    Inventory(Given): (
+        files: [
+            "voxygen.audio.sfx.inventory.add_item",
+        ],
+        threshold: 0.3,
+    ),
+    Inventory(Dropped): (
+        files: [
+            "voxygen.audio.sfx.inventory.drop_item",
+        ],
+        threshold: 0.3,
+    ),
+    Inventory(Craft): (
+        files: [
+            "voxygen.audio.sfx.crafting.hammer",
+        ],
+        threshold: 0.05,
+    ),
 
-        ),
-        Hiss: (
-            files: [
-                    "voxygen.audio.sfx.abilities.hiss",
-            ],
-            threshold: 0.2,
-        ),
-        LongHiss: (
-            files: [
-                    "voxygen.audio.sfx.abilities.long_hiss",
-            ],
-            threshold: 0.2,
-        ),
-        BloodmoonHeiressSummon: (
-            files: [
-                    "voxygen.audio.sfx.abilities.bloodmoon_heiress_summon",
-            ],
-            threshold: 0.5,
-            subtitle: "subtitle-attack-bloodmoon_heiress_summon",
+    //
+    // Consumables
+    //
+    Inventory(Consumed(Simple("common.items.consumable.potion_minor"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_med"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_big"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_trans"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_curious"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_agility"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_combustion"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.consumable.potion_freezing"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_potion",
+    ),
+    Inventory(Consumed(Simple("common.items.food.apple"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.apple",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_apple",
+    ),
+    Inventory(Consumed(Simple("common.items.food.mushroom"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.cheese"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_cheese",
+    ),
+    Inventory(Consumed(Simple("common.items.food.sunflower_icetea"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_liquid",
+    ),
+    Inventory(Consumed(Simple("common.items.food.apple_mushroom_curry"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.apple_stick"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.coconut"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.mushroom_stick"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.tomato"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.carrot"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.lettuce"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.plainsalad"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.tomatosalad"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.cactus_colada"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_liquid",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.bird_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.bird_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.fish_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.fish_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.beast_large_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.beast_large_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.beast_small_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.beast_small_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.tough_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.tough_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.bird_large_raw"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.meat.bird_large_cooked"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.honeycorn"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_food",
+    ),
+    Inventory(Consumed(Simple("common.items.food.pumpkin_spice_brew"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.liquid",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_liquid",
+    ),
+    Inventory(Consumed(Simple("common.items.food.blue_cheese"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_cheese",
+    ),
+    Inventory(Consumed(Simple("common.items.debug.golden_cheese"))): (
+        files: [
+            "voxygen.audio.sfx.inventory.consumable.food",
+        ],
+        threshold: 0.3,
+        subtitle: "subtitle-consume_cheese",
+    ),
 
-        ),
-        SkillPointGain: (
+    //
+    //Combat
+    //
+    Explosion: (
+        files: [
+            "voxygen.audio.sfx.abilities.explosion",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-explosion",
+    ),
+    ArrowShot: (
+        files: [
+            "voxygen.audio.sfx.abilities.arrow_shot_1",
+            "voxygen.audio.sfx.abilities.arrow_shot_2",
+            "voxygen.audio.sfx.abilities.arrow_shot_3",
+            "voxygen.audio.sfx.abilities.arrow_shot_4",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-arrow_shot",
+    ),
+    Yeet: (
             files: [
-                "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
+        "voxygen.audio.sfx.abilities.yeet",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-skill_point",
-        ),
-        SceptreBeam: (
-            files: [
-                    "voxygen.audio.sfx.abilities.sceptre_channeling",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-sceptre_beam",
-        ),
-        FlameThrower: (
-            files: [
-                    "voxygen.audio.sfx.abilities.flame_thrower",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-flame_thrower",
-        ),
-        BreakBlock: (
-            files: [
-                "voxygen.audio.sfx.footsteps.stone_step_1",
+            threshold: 0.3,
+    ),
+    FireShot: (
+        files: [
+            "voxygen.audio.sfx.abilities.fire_shot_1",
+            "voxygen.audio.sfx.abilities.fire_shot_2",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-fire_shot",
+    ),
+    ArrowMiss: (
+        files: [
+                "voxygen.audio.sfx.character.arrow_miss",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-arrow_miss",
+    ),
+    ArrowHit: (
+        files: [
+            "voxygen.audio.sfx.character.arrow_hit",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-arrow_hit",
+    ),
+    Klonk: (
+        files: [
+                "voxygen.audio.sfx.abilities.klonk",
+        ],
+        threshold: 0.4,
+    ),
+    SmashKlonk: (
+        files: [
+                "voxygen.audio.sfx.abilities.smashklonk",
+        ],
+        threshold: 0.4,
+    ),
+    StrigoiHead: (
+        files: [
+                "voxygen.audio.sfx.abilities.strigoi_head",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-attack-strigoi_head",
+
+    ),
+    Hiss: (
+        files: [
+                "voxygen.audio.sfx.abilities.hiss",
+        ],
+        threshold: 0.2,
+    ),
+    LongHiss: (
+        files: [
+                "voxygen.audio.sfx.abilities.long_hiss",
+        ],
+        threshold: 0.2,
+    ),
+    BloodmoonHeiressSummon: (
+        files: [
+                "voxygen.audio.sfx.abilities.bloodmoon_heiress_summon",
+        ],
+        threshold: 0.5,
+        subtitle: "subtitle-attack-bloodmoon_heiress_summon",
+
+    ),
+    SkillPointGain: (
+        files: [
+            "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-skill_point",
+    ),
+    SceptreBeam: (
+        files: [
+                "voxygen.audio.sfx.abilities.sceptre_channeling",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-break_block",
-        ),
-        PickaxeDamage: (
-            files: [
-                "voxygen.audio.sfx.abilities.pickaxe_damage",
+        threshold: 0.2,
+        subtitle: "subtitle-sceptre_beam",
+    ),
+    FlameThrower: (
+        files: [
+                "voxygen.audio.sfx.abilities.flame_thrower",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-damage_block",
-        ),
-        PickaxeDamageStrong: (
-            files: [
-                "voxygen.audio.sfx.abilities.pickaxe_damage_stronk",
+        threshold: 0.2,
+        subtitle: "subtitle-flame_thrower",
+    ),
+    BreakBlock: (
+        files: [
+            "voxygen.audio.sfx.footsteps.stone_step_1",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-break_block",
+    ),
+    PickaxeDamage: (
+        files: [
+            "voxygen.audio.sfx.abilities.pickaxe_damage",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-damage_block",
+    ),
+    PickaxeDamageStrong: (
+        files: [
+            "voxygen.audio.sfx.abilities.pickaxe_damage_stronk",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-damage_strong_block",
+    ),
+    PickaxeBreakBlock: (
+        files: [
+            "voxygen.audio.sfx.abilities.pickaxe_damage_broken",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-damage_strong_broken",
+    ),
+    Damage: (
+        files: [
+            "voxygen.audio.sfx.character.hit_1",
+            "voxygen.audio.sfx.character.hit_2",
+            "voxygen.audio.sfx.character.hit_3",
+            "voxygen.audio.sfx.character.hit_4",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-damage",
+    ),
+    Death: (
+        files: [
+                "voxygen.audio.sfx.character.death_1",
+                "voxygen.audio.sfx.character.death_2",
+                "voxygen.audio.sfx.character.death_3",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-damage_strong_block",
-        ),
-        PickaxeBreakBlock: (
-            files: [
-                "voxygen.audio.sfx.abilities.pickaxe_damage_broken",
+        threshold: 0.2,
+        subtitle: "subtitle-death",
+    ),
+    Block: (
+        files: [
+            "voxygen.audio.sfx.character.block_1",
+            "voxygen.audio.sfx.character.block_2",
+            "voxygen.audio.sfx.character.block_3",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-attack_blocked",
+    ),
+    Parry: (
+        files: [
+            "voxygen.audio.sfx.character.parry_1",
+            "voxygen.audio.sfx.character.parry_2",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-parry",
+    ),
+    PoiseChange(Interrupted): (
+        files: [
+            "voxygen.audio.sfx.character.interrupted_1",
+            "voxygen.audio.sfx.character.interrupted_2",
+            "voxygen.audio.sfx.character.interrupted_3",
+            "voxygen.audio.sfx.character.interrupted_4",
+        ],
+        threshold: 0.25,
+        subtitle: "subtitle-interrupted",
+    ),
+    PoiseChange(Stunned): (
+        files: [
+            "voxygen.audio.sfx.character.stunned_1",
+            "voxygen.audio.sfx.character.stunned_2",
+            "voxygen.audio.sfx.character.stunned_3",
+        ],
+        threshold: 0.6,
+        subtitle: "subtitle-stunned",
+    ),
+    PoiseChange(Dazed): (
+        files: [
+            "voxygen.audio.sfx.character.dazed_1",
+            "voxygen.audio.sfx.character.dazed_2",
+            "voxygen.audio.sfx.character.dazed_3",
+        ],
+        threshold: 0.85,
+        subtitle: "subtitle-dazed",
+    ),
+    PoiseChange(KnockedDown): (
+        files: [
+            "voxygen.audio.sfx.character.knockeddown_1",
+            "voxygen.audio.sfx.character.knockeddown_2",
+        ],
+        threshold: 1.25,
+        subtitle: "subtitle-knocked_down",
+    ),
+    GroundSlam: (
+        files: [
+            "voxygen.audio.sfx.abilities.minotaur_smash_1",
+            "voxygen.audio.sfx.abilities.minotaur_smash_2",
+        ],
+        threshold: 0.2,
+        subtitle: "subtitle-attack-ground_slam",
+    ),
+    SurpriseEgg: (
+        files: [
+            "voxygen.audio.sfx.abilities.surprise_egg_0",
+            "voxygen.audio.sfx.abilities.surprise_egg_1",
+            "voxygen.audio.sfx.abilities.surprise_egg_2",
+            "voxygen.audio.sfx.abilities.surprise_egg_3",
+        ],
+        threshold: 2.2,
+        subtitle: "subtitle-surprise_egg",
+    ),
+    Transformation: (
+        files: [
+            "voxygen.audio.sfx.abilities.surprise_egg_0",
+        ],
+        threshold: 2.2,
+        subtitle: "subtitle-transformation",
+    ),
+    LaserBeam: (
+        files: [
+                "voxygen.audio.sfx.abilities.laser_beam",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-damage_strong_broken",
-        ),
-        Damage: (
-            files: [
-                "voxygen.audio.sfx.character.hit_1",
-                "voxygen.audio.sfx.character.hit_2",
-                "voxygen.audio.sfx.character.hit_3",
-                "voxygen.audio.sfx.character.hit_4",
+        threshold: 1.25,
+        subtitle: "subtitle-attack-laser_beam",
+    ),
+    Whoosh: (
+        files: [
+                "voxygen.audio.sfx.abilities.whoosh",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-damage",
-        ),
-        Death: (
-            files: [
-                    "voxygen.audio.sfx.character.death_1",
-                    "voxygen.audio.sfx.character.death_2",
-                    "voxygen.audio.sfx.character.death_3",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-death",
-        ),
-        Block: (
-            files: [
-                "voxygen.audio.sfx.character.block_1",
-                "voxygen.audio.sfx.character.block_2",
-                "voxygen.audio.sfx.character.block_3",
+        threshold: 0.4,
+    ),
+    Swoosh: (
+        files: [
+                "voxygen.audio.sfx.abilities.swoosh",
+        ],
+        threshold: 1.3,
+    ),
+    CyclopsCharge: (
+        files: [
+                "voxygen.audio.sfx.abilities.cyclops_charge",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-attack_blocked",
-        ),
-        Parry: (
-            files: [
-                "voxygen.audio.sfx.character.parry_1",
-                "voxygen.audio.sfx.character.parry_2",
+        threshold: 0.3,
+        subtitle: "subtitle-attack-cyclops_charge",
+    ),
+    FuseCharge: (
+        files: [
+                "voxygen.audio.sfx.abilities.fuse",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-parry",
-        ),
-        PoiseChange(Interrupted): (
-            files: [
-                "voxygen.audio.sfx.character.interrupted_1",
-                "voxygen.audio.sfx.character.interrupted_2",
-                "voxygen.audio.sfx.character.interrupted_3",
-                "voxygen.audio.sfx.character.interrupted_4",
+        threshold: 0.2,
+        subtitle: "subtitle-attack-fuse_charge",
+    ),
+    GigaRoar: (
+        files: [
+                "voxygen.audio.sfx.abilities.gigas_frost_roar",
             ],
-            threshold: 0.25,
-            subtitle: "subtitle-interrupted",
-        ),
-        PoiseChange(Stunned): (
-            files: [
-                "voxygen.audio.sfx.character.stunned_1",
-                "voxygen.audio.sfx.character.stunned_2",
-                "voxygen.audio.sfx.character.stunned_3",
+        threshold: 1.3,
+        subtitle: "subtitle-giga_roar",
+    ),
+    DeepLaugh: (
+        files: [
+                "voxygen.audio.sfx.abilities.deep_laugh",
             ],
-            threshold: 0.6,
-            subtitle: "subtitle-stunned",
-        ),
-        PoiseChange(Dazed): (
-            files: [
-                "voxygen.audio.sfx.character.dazed_1",
-                "voxygen.audio.sfx.character.dazed_2",
-                "voxygen.audio.sfx.character.dazed_3",
+        threshold: 1.2,
+        subtitle: "subtitle-deep_laugh",
+    ),
+    Bleep: (
+        files: [
+                "voxygen.audio.sfx.abilities.bleep",
             ],
-            threshold: 0.85,
-            subtitle: "subtitle-dazed",
-        ),
-        PoiseChange(KnockedDown): (
-            files: [
-                "voxygen.audio.sfx.character.knockeddown_1",
-                "voxygen.audio.sfx.character.knockeddown_2",
-            ],
-            threshold: 1.25,
-            subtitle: "subtitle-knocked_down",
-        ),
-        GroundSlam: (
-            files: [
-                "voxygen.audio.sfx.abilities.minotaur_smash_1",
+        threshold: 1.8,
+        subtitle: "subtitle-bleep",
+    ),
+    FlashFreeze: (
+        files: [
                 "voxygen.audio.sfx.abilities.minotaur_smash_2",
             ],
-            threshold: 0.2,
-            subtitle: "subtitle-attack-ground_slam",
-        ),
-        SurpriseEgg: (
-            files: [
-                "voxygen.audio.sfx.abilities.surprise_egg_0",
-                "voxygen.audio.sfx.abilities.surprise_egg_1",
-                "voxygen.audio.sfx.abilities.surprise_egg_2",
-                "voxygen.audio.sfx.abilities.surprise_egg_3",
+        threshold: 0.2,
+        subtitle: "subtitle-attack-flash_freeze",
+    ),
+    IceSpikes: (
+        files: [
+                "voxygen.audio.sfx.abilities.minotaur_smash_2",
             ],
-            threshold: 2.2,
-            subtitle: "subtitle-surprise_egg",
-        ),
-        Transformation: (
-            files: [
-                "voxygen.audio.sfx.abilities.surprise_egg_0",
+        threshold: 0.2,
+        subtitle: "subtitle-attack-icy_spikes",
+    ),
+    IceCrack: (
+        files: [
+            "voxygen.audio.sfx.abilities.ice_crack",
+        ],
+        threshold: 0.9,
+        subtitle: "subtitle-attack-ice_crack",
+    ),
+    Steam: (
+        files: [
+                "voxygen.audio.sfx.abilities.steam",
             ],
-            threshold: 2.2,
-            subtitle: "subtitle-transformation",
-        ),
-        LaserBeam: (
-            files: [
-                    "voxygen.audio.sfx.abilities.laser_beam",
-                ],
-            threshold: 1.25,
-            subtitle: "subtitle-attack-laser_beam",
-        ),
-        Whoosh: (
-            files: [
-                    "voxygen.audio.sfx.abilities.whoosh",
-                ],
-            threshold: 0.4,
-        ),
-        Swoosh: (
-            files: [
-                    "voxygen.audio.sfx.abilities.swoosh",
-            ],
-            threshold: 1.3,
-        ),
-        CyclopsCharge: (
-            files: [
-                    "voxygen.audio.sfx.abilities.cyclops_charge",
-                ],
-            threshold: 0.3,
-            subtitle: "subtitle-attack-cyclops_charge",
-        ),
-        FuseCharge: (
-            files: [
-                    "voxygen.audio.sfx.abilities.fuse",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-attack-fuse_charge",
-        ),
-        GigaRoar: (
-            files: [
-                    "voxygen.audio.sfx.abilities.gigas_frost_roar",
-                ],
-            threshold: 1.3,
-            subtitle: "subtitle-giga_roar",
-        ),
-        DeepLaugh: (
-            files: [
-                    "voxygen.audio.sfx.abilities.deep_laugh",
-                ],
-            threshold: 1.2,
-            subtitle: "subtitle-deep_laugh",
-        ),
-        Bleep: (
-            files: [
-                    "voxygen.audio.sfx.abilities.bleep",
-                ],
-            threshold: 1.8,
-            subtitle: "subtitle-bleep",
-        ),
-        FlashFreeze: (
-            files: [
-                    "voxygen.audio.sfx.abilities.minotaur_smash_2",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-attack-flash_freeze",
-        ),
-        IceSpikes: (
-            files: [
-                    "voxygen.audio.sfx.abilities.minotaur_smash_2",
-                ],
-            threshold: 0.2,
-            subtitle: "subtitle-attack-icy_spikes",
-        ),
-        IceCrack: (
-            files: [
-                "voxygen.audio.sfx.abilities.ice_crack",
-            ],
-            threshold: 0.9,
-            subtitle: "subtitle-attack-ice_crack",
-        ),
-        Steam: (
-            files: [
-                    "voxygen.audio.sfx.abilities.steam",
-                ],
-            threshold: 0.9,
-            subtitle: "subtitle-attack-steam",
-        ),
-        GroundDig: (
-            files: [
-                "voxygen.audio.sfx.abilities.shovel",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-attack-shovel",
-        ),
-        PortalActivated: (
-            files: [
-                "voxygen.audio.sfx.ambient.portal_2",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-portal-activated",
-        ),
-        TeleportedByPortal: (
-            files: [
-                "voxygen.audio.sfx.ambient.portal_1",
-            ],
-            threshold: 0.8,
-            subtitle: "subtitle-portal-teleported",
-        ),
-        FromTheAshes: (
-            files: [
-                "voxygen.audio.sfx.abilities.heal",
-            ],
-            threshold: 1.8,
-            subtitle: "subtitle-attack-from-the-ashes",
-        ),
+        threshold: 0.9,
+        subtitle: "subtitle-attack-steam",
+    ),
+    GroundDig: (
+        files: [
+            "voxygen.audio.sfx.abilities.shovel",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-attack-shovel",
+    ),
+    PortalActivated: (
+        files: [
+            "voxygen.audio.sfx.ambient.portal_2",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-portal-activated",
+    ),
+    TeleportedByPortal: (
+        files: [
+            "voxygen.audio.sfx.ambient.portal_1",
+        ],
+        threshold: 0.8,
+        subtitle: "subtitle-portal-teleported",
+    ),
+    FromTheAshes: (
+        files: [
+            "voxygen.audio.sfx.abilities.heal",
+        ],
+        threshold: 1.8,
+        subtitle: "subtitle-attack-from-the-ashes",
+    ),
 
-        // Utterances (NPCs)
+    // Utterances (NPCs)
 
-        Utterance(Angry, Alligator): (
-            files: [
-                "voxygen.audio.sfx.utterance.alligator_angry1",
-                "voxygen.audio.sfx.utterance.alligator_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-alligator-angry",
-        ),
-        Utterance(Angry, Antelope): (
-            files: [
-                "voxygen.audio.sfx.utterance.antelope_angry1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-antelope-angry",
-        ),
-        Utterance(Angry, BipedLarge): (
-            files: [
-                "voxygen.audio.sfx.utterance.ogre_angry1",
-                "voxygen.audio.sfx.utterance.ogre_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-biped_large-angry",
-        ),
-        Utterance(Angry, Bird): (
-            files: [
-                "voxygen.audio.sfx.utterance.bird_angry1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-bird-angry",
-        ),
-        Utterance(Angry, Wyvern): (
-            files: [
-                "voxygen.audio.sfx.utterance.wyvern_angry",
-            ],
-            threshold: 1.3,
-            subtitle: "subtitle-utterance-wyvern-angry",
-        ),
-        Utterance(Angry, Phoenix): (
-            files: [
-                "voxygen.audio.sfx.utterance.phoenix_angry_0",
-                "voxygen.audio.sfx.utterance.phoenix_angry_1",
-            ],
-            threshold: 3.1,
-            subtitle: "subtitle-utterance-phoenix-angry",
-        ),
-        Utterance(Angry, VampireBat): (
-            files: [
-                "voxygen.audio.sfx.utterance.vampire_bat_angry",
-            ],
-            threshold: 1.3,
-            subtitle: "subtitle-utterance-vampire-bat-angry",
-        ),
-        Utterance(Angry, Adlet): (
-            files: [
-                "voxygen.audio.sfx.utterance.adlet_angry1",
-                "voxygen.audio.sfx.utterance.adlet_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-adlet-angry",
-        ),
-        Utterance(Angry, Pig): (
-            files: [
-                "voxygen.audio.sfx.utterance.pig_angry1",
-                "voxygen.audio.sfx.utterance.pig_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-pig-angry",
-        ),
-        Utterance(Angry, Reptile): (
-            files: [
-                "voxygen.audio.sfx.utterance.alligator_angry1",
-                "voxygen.audio.sfx.utterance.alligator_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-reptile-angry",
-        ),
-        Utterance(Angry, SeaCrocodile): (
-            files: [
-                "voxygen.audio.sfx.utterance.sea_crocodile_angry1",
-                "voxygen.audio.sfx.utterance.sea_crocodile_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-sea_crocodile-angry",
-        ),
-        Utterance(Angry, Saurok): (
-            files: [
-                "voxygen.audio.sfx.utterance.saurok_angry1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-saurok-angry",
-        ),
-        Utterance(Calm, Cat): (
-            files: [
-                "voxygen.audio.sfx.utterance.cat_calm1",
-                "voxygen.audio.sfx.utterance.cat_calm2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-cat-calm",
-        ),
-        Utterance(Calm, Cow): (
-            files: [
-                "voxygen.audio.sfx.utterance.cow_calm1",
-                "voxygen.audio.sfx.utterance.cow_calm2",
-                "voxygen.audio.sfx.utterance.cow_calm3",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-cow-calm",
-        ),
-        Utterance(Calm, Fungome): (
-            files: [
-                "voxygen.audio.sfx.utterance.fungome_calm1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-fungome-calm",
-        ),
-        Utterance(Calm, Goat): (
-            files: [
-                "voxygen.audio.sfx.utterance.goat_calm1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-goat-calm",
-        ),
-        Utterance(Calm, Pig): (
-            files: [
-                "voxygen.audio.sfx.utterance.pig_calm1",
-                "voxygen.audio.sfx.utterance.pig_calm2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-pig-calm",
-        ),
-        Utterance(Calm, Sheep): (
-            files: [
-                "voxygen.audio.sfx.utterance.sheep_calm1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-sheep-calm",
-        ),
-        Utterance(Calm, Truffler): (
-            files: [
-                "voxygen.audio.sfx.utterance.truffler_calm1",
-                "voxygen.audio.sfx.utterance.truffler_calm2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-truffler-calm",
-        ),
-        Utterance(Greeting, HumanMale): (
-            files: [
-                "voxygen.audio.sfx.utterance.humanmale_greeting1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-human-greeting",
-        ),
-        Utterance(Greeting, HumanFemale): (
-            files: [
-                "voxygen.audio.sfx.utterance.humanfemale_greeting1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-human-greeting",
-        ),
-        Utterance(Hurt, Adlet): (
-            files: [
-                "voxygen.audio.sfx.utterance.adlet_hurt1",
-                "voxygen.audio.sfx.utterance.adlet_hurt2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-adlet-hurt",
-        ),
-        Utterance(Hurt, Antelope): (
-            files: [
-                "voxygen.audio.sfx.utterance.antelope_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-antelope-hurt",
-        ),
-        Utterance(Hurt, BipedLarge): (
-            files: [
-                "voxygen.audio.sfx.utterance.ogre_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-biped_large-hurt",
-        ),
-        Utterance(Hurt, HumanMale): (
-            files: [
-                "voxygen.audio.sfx.utterance.humanmale_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-human-hurt",
-        ),
-        Utterance(Hurt, Lion): (
-            files: [
-                "voxygen.audio.sfx.utterance.lion_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-lion-hurt",
-        ),
-        Utterance(Hurt, Mandragora): (
-            files: [
-                "voxygen.audio.sfx.utterance.mandragora_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-mandroga-hurt",
-        ),
-        Utterance(Hurt, Maneater): (
-            files: [
-                "voxygen.audio.sfx.utterance.maneater_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-maneater-hurt",
-        ),
-        Utterance(Hurt, Marlin): (
-            files: [
-                "voxygen.audio.sfx.utterance.marlin_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-marlin-hurt",
-        ),
-        Utterance(Hurt, Mindflayer): (
-            files: [
-                "voxygen.audio.sfx.utterance.mindflayer_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-mindflayer-hurt",
-        ),
-        Utterance(Hurt, Dagon): (
-            files: [
-                "voxygen.audio.sfx.utterance.dagon_hurt1",
-                "voxygen.audio.sfx.utterance.dagon_hurt2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-dagon-hurt",
-        ),
-        Utterance(Angry, Asp): (
-            files: [
-                "voxygen.audio.sfx.utterance.asp_angry1",
-                "voxygen.audio.sfx.utterance.asp_angry2",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-asp-angry",
-        ),
-        Utterance(Calm, Asp): (
-            files: [
-                "voxygen.audio.sfx.utterance.asp_calm1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-asp-calm",
-        ),
-        Utterance(Hurt, Asp): (
-            files: [
-                "voxygen.audio.sfx.utterance.asp_hurt1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-asp-hurt",
-        ),
-        Utterance(Hurt, Wyvern): (
-            files: [
-                "voxygen.audio.sfx.utterance.wyvern_hurt",
-            ],
-            threshold: 1.2,
-            subtitle: "subtitle-utterance-wyvern-hurt",
-        ),
-        Utterance(Hurt, Phoenix): (
-            files: [
-                "voxygen.audio.sfx.utterance.phoenix_hurt_0",
-                "voxygen.audio.sfx.utterance.phoenix_hurt_1",
-            ],
-            threshold: 1.5,
-            subtitle: "subtitle-utterance-phoenix-hurt",
-        ),
-        Utterance(Hurt, VampireBat): (
-            files: [
-                "voxygen.audio.sfx.utterance.vampire_bat_hurt",
-            ],
-            threshold: 1.2,
-            subtitle: "subtitle-utterance-vampire-bat-hurt",
-        ),
-        Utterance(Angry, Wendigo): (
-            files: [
-                "voxygen.audio.sfx.utterance.wendigo_angry1",
-                "voxygen.audio.sfx.utterance.wendigo_angry2",
-                "voxygen.audio.sfx.utterance.wendigo_angry3",
-                "voxygen.audio.sfx.utterance.wendigo_angry4",
-                "voxygen.audio.sfx.utterance.wendigo_angry5",
-                "voxygen.audio.sfx.utterance.wendigo_angry6",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-wendigo-angry",
-        ),
-        Utterance(Calm, Wendigo): (
-            files: [
-                "voxygen.audio.sfx.utterance.wendigo_calm1",
-                "voxygen.audio.sfx.utterance.wendigo_calm2",
-                "voxygen.audio.sfx.utterance.wendigo_calm3",
-                "voxygen.audio.sfx.utterance.wendigo_calm4",
-                "voxygen.audio.sfx.utterance.wendigo_calm5",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-wendigo-calm",
-        ),
-        Utterance(Angry, Wolf): (
-            files: [
-                "voxygen.audio.sfx.utterance.wolf_angry1",
-                "voxygen.audio.sfx.utterance.wolf_angry2",
-                "voxygen.audio.sfx.utterance.wolf_angry3",
-                "voxygen.audio.sfx.utterance.wolf_angry4",
-                "voxygen.audio.sfx.utterance.wolf_angry5",
-                "voxygen.audio.sfx.utterance.wolf_angry6",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-wolf-angry",
-        ),
-        Utterance(Hurt, Wolf): (
-            files: [
-                "voxygen.audio.sfx.utterance.wolf_hurt1",
-                "voxygen.audio.sfx.utterance.wolf_hurt2",
-                "voxygen.audio.sfx.utterance.wolf_hurt3",
-                "voxygen.audio.sfx.utterance.wolf_hurt4",
-                "voxygen.audio.sfx.utterance.wolf_hurt5",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-utterance-wolf-hurt",
-        ),
-        Utterance(Calm, Legoom): (
-            files: [
-                "voxygen.audio.sfx.utterance.legoom_3",
-                "voxygen.audio.sfx.utterance.legoom_4",
-                "voxygen.audio.sfx.utterance.legoom_6",
-                "voxygen.audio.sfx.utterance.legoom_11",
-                "voxygen.audio.sfx.utterance.legoom_15",
-            ],
-            threshold: 1.0,
-            subtitle:"subtitle-utterance-legoom-calm",
-        ),
-        Utterance(Hurt, Legoom): (
-            files: [
-                "voxygen.audio.sfx.utterance.legoom_2",
-                "voxygen.audio.sfx.utterance.legoom_9",
-                "voxygen.audio.sfx.utterance.legoom_10",
-                "voxygen.audio.sfx.utterance.legoom_12",
-                "voxygen.audio.sfx.utterance.legoom_13",
-            ],
-            threshold: 1.0,
-            subtitle:"subtitle-utterance-legoom-hurt",
-        ),
-        Utterance(Angry, Legoom): (
-            files: [
-                "voxygen.audio.sfx.utterance.legoom_1",
-                "voxygen.audio.sfx.utterance.legoom_5",
-                "voxygen.audio.sfx.utterance.legoom_7",
-                "voxygen.audio.sfx.utterance.legoom_8",
-                "voxygen.audio.sfx.utterance.legoom_14",
-            ],
-            threshold: 1.0,
-            subtitle:"subtitle-utterance-legoom-angry",
-        ),
-        Lightning: (
-            files: [
-                "voxygen.audio.sfx.ambient.lightning_1",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-lightning",
-        ),
-        TrainChugg: (
-            files: [
-                "voxygen.audio.sfx.vehicle.train_chugg",
-            ],
-            threshold: 1.0,
-            subtitle: None,
-        ),
-        TrainChuggSteam: (
-            files: [
-                "voxygen.audio.sfx.vehicle.train_chugg_steam",
-            ],
-            threshold: 1.0,
-            subtitle: None,
-        ),
-        TrainAmbience: (
-            files: [
-                "voxygen.audio.sfx.vehicle.train_ambience",
-            ],
-            threshold: 1.0,
-            subtitle: None,
-        ),
-        TrainClack: (
-            files: [
-                "voxygen.audio.sfx.vehicle.train_tracks",
-            ],
-            threshold: 1.0,
-            subtitle: None,
-        ),
-        TrainSpeed: (
-            files: [
-                "voxygen.audio.sfx.vehicle.train_speed",
-            ],
-            threshold: 1.0,
-            subtitle: "subtitle-train-chugg",
-        ),
-    }
-)
+    Utterance(Angry, Alligator): (
+        files: [
+            "voxygen.audio.sfx.utterance.alligator_angry1",
+            "voxygen.audio.sfx.utterance.alligator_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-alligator-angry",
+    ),
+    Utterance(Angry, Antelope): (
+        files: [
+            "voxygen.audio.sfx.utterance.antelope_angry1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-antelope-angry",
+    ),
+    Utterance(Angry, BipedLarge): (
+        files: [
+            "voxygen.audio.sfx.utterance.ogre_angry1",
+            "voxygen.audio.sfx.utterance.ogre_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-biped_large-angry",
+    ),
+    Utterance(Angry, Bird): (
+        files: [
+            "voxygen.audio.sfx.utterance.bird_angry1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-bird-angry",
+    ),
+    Utterance(Angry, Wyvern): (
+        files: [
+            "voxygen.audio.sfx.utterance.wyvern_angry",
+        ],
+        threshold: 1.3,
+        subtitle: "subtitle-utterance-wyvern-angry",
+    ),
+    Utterance(Angry, Phoenix): (
+        files: [
+            "voxygen.audio.sfx.utterance.phoenix_angry_0",
+            "voxygen.audio.sfx.utterance.phoenix_angry_1",
+        ],
+        threshold: 3.1,
+        subtitle: "subtitle-utterance-phoenix-angry",
+    ),
+    Utterance(Angry, VampireBat): (
+        files: [
+            "voxygen.audio.sfx.utterance.vampire_bat_angry",
+        ],
+        threshold: 1.3,
+        subtitle: "subtitle-utterance-vampire-bat-angry",
+    ),
+    Utterance(Angry, Adlet): (
+        files: [
+            "voxygen.audio.sfx.utterance.adlet_angry1",
+            "voxygen.audio.sfx.utterance.adlet_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-adlet-angry",
+    ),
+    Utterance(Angry, Pig): (
+        files: [
+            "voxygen.audio.sfx.utterance.pig_angry1",
+            "voxygen.audio.sfx.utterance.pig_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-pig-angry",
+    ),
+    Utterance(Angry, Reptile): (
+        files: [
+            "voxygen.audio.sfx.utterance.alligator_angry1",
+            "voxygen.audio.sfx.utterance.alligator_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-reptile-angry",
+    ),
+    Utterance(Angry, SeaCrocodile): (
+        files: [
+            "voxygen.audio.sfx.utterance.sea_crocodile_angry1",
+            "voxygen.audio.sfx.utterance.sea_crocodile_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-sea_crocodile-angry",
+    ),
+    Utterance(Angry, Saurok): (
+        files: [
+            "voxygen.audio.sfx.utterance.saurok_angry1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-saurok-angry",
+    ),
+    Utterance(Calm, Cat): (
+        files: [
+            "voxygen.audio.sfx.utterance.cat_calm1",
+            "voxygen.audio.sfx.utterance.cat_calm2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-cat-calm",
+    ),
+    Utterance(Calm, Cow): (
+        files: [
+            "voxygen.audio.sfx.utterance.cow_calm1",
+            "voxygen.audio.sfx.utterance.cow_calm2",
+            "voxygen.audio.sfx.utterance.cow_calm3",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-cow-calm",
+    ),
+    Utterance(Calm, Fungome): (
+        files: [
+            "voxygen.audio.sfx.utterance.fungome_calm1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-fungome-calm",
+    ),
+    Utterance(Calm, Goat): (
+        files: [
+            "voxygen.audio.sfx.utterance.goat_calm1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-goat-calm",
+    ),
+    Utterance(Calm, Pig): (
+        files: [
+            "voxygen.audio.sfx.utterance.pig_calm1",
+            "voxygen.audio.sfx.utterance.pig_calm2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-pig-calm",
+    ),
+    Utterance(Calm, Sheep): (
+        files: [
+            "voxygen.audio.sfx.utterance.sheep_calm1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-sheep-calm",
+    ),
+    Utterance(Calm, Truffler): (
+        files: [
+            "voxygen.audio.sfx.utterance.truffler_calm1",
+            "voxygen.audio.sfx.utterance.truffler_calm2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-truffler-calm",
+    ),
+    Utterance(Greeting, HumanMale): (
+        files: [
+            "voxygen.audio.sfx.utterance.humanmale_greeting1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-human-greeting",
+    ),
+    Utterance(Greeting, HumanFemale): (
+        files: [
+            "voxygen.audio.sfx.utterance.humanfemale_greeting1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-human-greeting",
+    ),
+    Utterance(Hurt, Adlet): (
+        files: [
+            "voxygen.audio.sfx.utterance.adlet_hurt1",
+            "voxygen.audio.sfx.utterance.adlet_hurt2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-adlet-hurt",
+    ),
+    Utterance(Hurt, Antelope): (
+        files: [
+            "voxygen.audio.sfx.utterance.antelope_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-antelope-hurt",
+    ),
+    Utterance(Hurt, BipedLarge): (
+        files: [
+            "voxygen.audio.sfx.utterance.ogre_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-biped_large-hurt",
+    ),
+    Utterance(Hurt, HumanMale): (
+        files: [
+            "voxygen.audio.sfx.utterance.humanmale_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-human-hurt",
+    ),
+    Utterance(Hurt, Lion): (
+        files: [
+            "voxygen.audio.sfx.utterance.lion_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-lion-hurt",
+    ),
+    Utterance(Hurt, Mandragora): (
+        files: [
+            "voxygen.audio.sfx.utterance.mandragora_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-mandroga-hurt",
+    ),
+    Utterance(Hurt, Maneater): (
+        files: [
+            "voxygen.audio.sfx.utterance.maneater_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-maneater-hurt",
+    ),
+    Utterance(Hurt, Marlin): (
+        files: [
+            "voxygen.audio.sfx.utterance.marlin_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-marlin-hurt",
+    ),
+    Utterance(Hurt, Mindflayer): (
+        files: [
+            "voxygen.audio.sfx.utterance.mindflayer_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-mindflayer-hurt",
+    ),
+    Utterance(Hurt, Dagon): (
+        files: [
+            "voxygen.audio.sfx.utterance.dagon_hurt1",
+            "voxygen.audio.sfx.utterance.dagon_hurt2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-dagon-hurt",
+    ),
+    Utterance(Angry, Asp): (
+        files: [
+            "voxygen.audio.sfx.utterance.asp_angry1",
+            "voxygen.audio.sfx.utterance.asp_angry2",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-asp-angry",
+    ),
+    Utterance(Calm, Asp): (
+        files: [
+            "voxygen.audio.sfx.utterance.asp_calm1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-asp-calm",
+    ),
+    Utterance(Hurt, Asp): (
+        files: [
+            "voxygen.audio.sfx.utterance.asp_hurt1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-asp-hurt",
+    ),
+    Utterance(Hurt, Wyvern): (
+        files: [
+            "voxygen.audio.sfx.utterance.wyvern_hurt",
+        ],
+        threshold: 1.2,
+        subtitle: "subtitle-utterance-wyvern-hurt",
+    ),
+    Utterance(Hurt, Phoenix): (
+        files: [
+            "voxygen.audio.sfx.utterance.phoenix_hurt_0",
+            "voxygen.audio.sfx.utterance.phoenix_hurt_1",
+        ],
+        threshold: 1.5,
+        subtitle: "subtitle-utterance-phoenix-hurt",
+    ),
+    Utterance(Hurt, VampireBat): (
+        files: [
+            "voxygen.audio.sfx.utterance.vampire_bat_hurt",
+        ],
+        threshold: 1.2,
+        subtitle: "subtitle-utterance-vampire-bat-hurt",
+    ),
+    Utterance(Angry, Wendigo): (
+        files: [
+            "voxygen.audio.sfx.utterance.wendigo_angry1",
+            "voxygen.audio.sfx.utterance.wendigo_angry2",
+            "voxygen.audio.sfx.utterance.wendigo_angry3",
+            "voxygen.audio.sfx.utterance.wendigo_angry4",
+            "voxygen.audio.sfx.utterance.wendigo_angry5",
+            "voxygen.audio.sfx.utterance.wendigo_angry6",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-wendigo-angry",
+    ),
+    Utterance(Calm, Wendigo): (
+        files: [
+            "voxygen.audio.sfx.utterance.wendigo_calm1",
+            "voxygen.audio.sfx.utterance.wendigo_calm2",
+            "voxygen.audio.sfx.utterance.wendigo_calm3",
+            "voxygen.audio.sfx.utterance.wendigo_calm4",
+            "voxygen.audio.sfx.utterance.wendigo_calm5",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-wendigo-calm",
+    ),
+    Utterance(Angry, Wolf): (
+        files: [
+            "voxygen.audio.sfx.utterance.wolf_angry1",
+            "voxygen.audio.sfx.utterance.wolf_angry2",
+            "voxygen.audio.sfx.utterance.wolf_angry3",
+            "voxygen.audio.sfx.utterance.wolf_angry4",
+            "voxygen.audio.sfx.utterance.wolf_angry5",
+            "voxygen.audio.sfx.utterance.wolf_angry6",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-wolf-angry",
+    ),
+    Utterance(Hurt, Wolf): (
+        files: [
+            "voxygen.audio.sfx.utterance.wolf_hurt1",
+            "voxygen.audio.sfx.utterance.wolf_hurt2",
+            "voxygen.audio.sfx.utterance.wolf_hurt3",
+            "voxygen.audio.sfx.utterance.wolf_hurt4",
+            "voxygen.audio.sfx.utterance.wolf_hurt5",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-wolf-hurt",
+    ),
+    Utterance(Calm, Legoom): (
+        files: [
+            "voxygen.audio.sfx.utterance.legoom_3",
+            "voxygen.audio.sfx.utterance.legoom_4",
+            "voxygen.audio.sfx.utterance.legoom_6",
+            "voxygen.audio.sfx.utterance.legoom_11",
+            "voxygen.audio.sfx.utterance.legoom_15",
+        ],
+        threshold: 1.0,
+        subtitle:"subtitle-utterance-legoom-calm",
+    ),
+    Utterance(Hurt, Legoom): (
+        files: [
+            "voxygen.audio.sfx.utterance.legoom_2",
+            "voxygen.audio.sfx.utterance.legoom_9",
+            "voxygen.audio.sfx.utterance.legoom_10",
+            "voxygen.audio.sfx.utterance.legoom_12",
+            "voxygen.audio.sfx.utterance.legoom_13",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-legoom-hurt",
+    ),
+    Utterance(Angry, Legoom): (
+        files: [
+            "voxygen.audio.sfx.utterance.legoom_1",
+            "voxygen.audio.sfx.utterance.legoom_5",
+            "voxygen.audio.sfx.utterance.legoom_7",
+            "voxygen.audio.sfx.utterance.legoom_8",
+            "voxygen.audio.sfx.utterance.legoom_14",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-utterance-legoom-angry",
+    ),
+    Lightning: (
+        files: [
+            "voxygen.audio.sfx.ambient.lightning_1",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-lightning",
+    ),
+    TrainChugg: (
+        files: [
+            "voxygen.audio.sfx.vehicle.train_chugg",
+        ],
+        threshold: 1.0,
+        subtitle: None,
+    ),
+    TrainChuggSteam: (
+        files: [
+            "voxygen.audio.sfx.vehicle.train_chugg_steam",
+        ],
+        threshold: 1.0,
+        subtitle: None,
+    ),
+    TrainAmbience: (
+        files: [
+            "voxygen.audio.sfx.vehicle.train_ambience",
+        ],
+        threshold: 1.0,
+        subtitle: None,
+    ),
+    TrainClack: (
+        files: [
+            "voxygen.audio.sfx.vehicle.train_tracks",
+        ],
+        threshold: 1.0,
+        subtitle: None,
+    ),
+    TrainSpeed: (
+        files: [
+            "voxygen.audio.sfx.vehicle.train_speed",
+        ],
+        threshold: 1.0,
+        subtitle: "subtitle-train-chugg",
+    ),
+}

@@ -1,4 +1,4 @@
-([
+[
     Tree("common.skillset.preset.rank2.axe"),
     Tree("common.skillset.preset.rank2.bow"),
     Tree("common.skillset.preset.rank2.general"),
@@ -6,4 +6,4 @@
     Tree("common.skillset.preset.rank2.sceptre"),
     Tree("common.skillset.preset.rank2.staff"),
     Tree("common.skillset.preset.rank2.sword"),
-])
+]

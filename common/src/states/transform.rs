@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use common_assets::AssetExt;
+use common_assets::{AssetExt, Ron};
 use rand::rng;
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -67,14 +67,15 @@ impl CharacterBehavior for Data {
                     });
                 // Buildup finished, start transformation
                 } else {
-                    let Ok(entity_config) = EntityConfig::load(&self.static_data.target) else {
+                    let Ok(entity_config) = Ron::<EntityConfig>::load(&self.static_data.target)
+                    else {
                         error!(?self.static_data.target, "Failed to load entity configuration");
                         end_ability(data, &mut update);
                         return update;
                     };
 
                     let entity_info = EntityInfo::at(data.pos.0).with_entity_config(
-                        entity_config.read().clone(),
+                        entity_config.read().clone().into_inner(),
                         Some(&self.static_data.target),
                         &mut rng(),
                         None,

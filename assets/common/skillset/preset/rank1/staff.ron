@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Staff)),
 
     // Fireball
@@ -8,5 +8,4 @@
 
     // Flamethrower
     Skill((Staff(FRange), 1)),
-
-])
+]

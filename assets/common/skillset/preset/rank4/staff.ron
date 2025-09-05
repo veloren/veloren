@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Staff)),
 
     // Fireball
@@ -18,4 +18,4 @@
     Skill((Staff(SKnockback), 1)),
     Skill((Staff(SRange), 1)),
     Skill((Staff(SCost), 1)),
-])
+]

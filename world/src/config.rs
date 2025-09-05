@@ -1,5 +1,6 @@
-use common::assets;
+use common::assets::{BoxedError, FileAsset, load_ron};
 use serde::Deserialize;
+use std::borrow::Cow;
 use vek::*;
 
 pub struct Config {
@@ -94,10 +95,8 @@ pub struct Features {
     pub train_tracks: bool,
 }
 
-impl assets::FileAsset for Features {
+impl FileAsset for Features {
     const EXTENSION: &'static str = "ron";
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
 }

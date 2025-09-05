@@ -1,7 +1,7 @@
 //  Png(specifier),
 //  Vox(specifier),
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
-({
+{
     // Crafting Stations
     Simple("Anvil"): VoxTrans(
         "voxel.sprite.crafting_station.anvil",
@@ -5599,4 +5599,4 @@
         "voxel.item.utility.lockpick.lockpick_cobalt",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
-})
+}

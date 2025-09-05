@@ -89,7 +89,7 @@ impl FromStr for NpcKind {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, ()> {
-        let npc_names = &*NPC_NAMES.read();
+        let npc_names = &NPC_NAMES.read();
         ALL_NPCS
             .iter()
             .copied()

@@ -1,6 +1,6 @@
 use super::{BlockKind, StructureSprite};
 use crate::{
-    assets::{self, AssetExt, AssetHandle, BoxedError, DotVoxAsset},
+    assets::{self, AssetCache, AssetExt, AssetHandle, BoxedError, DotVox, Ron, SharedString},
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
@@ -98,11 +98,8 @@ impl std::ops::Deref for StructuresGroup {
 }
 
 impl assets::Asset for StructuresGroup {
-    fn load(
-        cache: &assets::AssetCache,
-        specifier: &assets::SharedString,
-    ) -> Result<Self, BoxedError> {
-        let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
+        let specs = cache.load::<Ron<Vec<StructureSpec>>>(specifier)?.read();
 
         Ok(StructuresGroup(
             specs
@@ -209,11 +206,8 @@ pub(crate) fn load_base_structure<B: Default>(
 }
 
 impl assets::Asset for BaseStructure<StructureBlock> {
-    fn load(
-        cache: &assets::AssetCache,
-        specifier: &assets::SharedString,
-    ) -> Result<Self, BoxedError> {
-        let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
+        let dot_vox_data = cache.load::<DotVox>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 
         Ok(load_base_structure(dot_vox_data, |col| {
@@ -257,57 +251,50 @@ fn default_custom_indices() -> HashMap<u8, StructureBlock> {
         .collect()
 }
 
-#[derive(Clone, Deserialize)]
-struct StructuresGroupSpec(Vec<StructureSpec>);
-
-impl assets::FileAsset for StructuresGroupSpec {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
-}
-
 #[test]
 fn test_load_structures() {
-    let errors =
-        common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.site_structures")
-            .expect("This should be able to load")
-            .read()
-            .ids()
-            .chain(
-                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.spots")
-                    .expect("This should be able to load")
-                    .read()
-                    .ids(),
-            )
-            .chain(
-                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.spots_general")
-                    .expect("This should be able to load")
-                    .read()
-                    .ids(),
-            )
-            .chain(
-                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.trees")
-                    .expect("This should be able to load")
-                    .read()
-                    .ids(),
-            )
-            .chain(
-                common_assets::load_rec_dir::<StructuresGroupSpec>("world.manifests.shrubs")
-                    .expect("This should be able to load")
-                    .read()
-                    .ids(),
-            )
-            .filter_map(|id| StructuresGroupSpec::load(id).err().map(|err| (id, err)))
-            .fold(None::<String>, |mut acc, (id, err)| {
-                use std::fmt::Write;
+    use crate::assets;
+    let errors = assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.site_structures")
+        .expect("This should be able to load")
+        .read()
+        .ids()
+        .chain(
+            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.spots")
+                .expect("This should be able to load")
+                .read()
+                .ids(),
+        )
+        .chain(
+            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.spots_general")
+                .expect("This should be able to load")
+                .read()
+                .ids(),
+        )
+        .chain(
+            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.trees")
+                .expect("This should be able to load")
+                .read()
+                .ids(),
+        )
+        .chain(
+            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>("world.manifests.shrubs")
+                .expect("This should be able to load")
+                .read()
+                .ids(),
+        )
+        .filter_map(|id| {
+            Ron::<Vec<StructureSpec>>::load(id)
+                .err()
+                .map(|err| (id, err))
+        })
+        .fold(None::<String>, |mut acc, (id, err)| {
+            use std::fmt::Write;
 
-                let s = acc.get_or_insert_default();
-                _ = writeln!(s, "{id}: {err}");
+            let s = acc.get_or_insert_default();
+            _ = writeln!(s, "{id}: {err}");
 
-                acc
-            });
+            acc
+        });
 
     if let Some(errors) = errors {
         panic!("Failed to load the following structures:\n{errors}")
@@ -318,6 +305,7 @@ fn test_load_structures() {
 mod tests {
     use super::*;
     use crate::{
+        assets,
         generation::tests::validate_entity_config,
         lottery::{LootSpec, tests::validate_loot_spec},
         terrain::Block,
@@ -426,14 +414,19 @@ Sprite in question: {sprite:?}
 
     #[test]
     fn test_structure_manifests() {
-        let specs = assets::load_rec_dir::<StructuresGroupSpec>(STRUCTURE_MANIFESTS_DIR).unwrap();
+        let specs =
+            assets::load_rec_dir::<Ron<Vec<StructureSpec>>>(STRUCTURE_MANIFESTS_DIR).unwrap();
         for id in specs.read().ids() {
             // Ignore manifest file
             if id != "world.manifests.spots" {
-                let group = StructuresGroupSpec::load(id).unwrap_or_else(|e| {
-                    panic!("failed to load: {id}\n{e:?}");
-                });
-                let StructuresGroupSpec(group) = group.read().deref().clone();
+                let group: Vec<StructureSpec> = Ron::load(id)
+                    .unwrap_or_else(|e| {
+                        panic!("failed to load: {id}\n{e:?}");
+                    })
+                    .read()
+                    .deref()
+                    .clone()
+                    .into_inner();
                 for StructureSpec {
                     specifier,
                     center: _center,

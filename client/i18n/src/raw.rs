@@ -1,5 +1,12 @@
-use crate::{Fonts, LanguageMetadata, assets};
+use crate::{
+    Fonts, LanguageMetadata,
+    assets::{
+        Asset, AssetCache, BoxedError, DirLoadable, FileAsset, Ron, SharedString, Source,
+        source::DirEntry,
+    },
+};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 /// Localization metadata from manifest file
 /// See `Language` for more info on each attributes
@@ -9,11 +16,33 @@ pub(crate) struct Manifest {
     pub(crate) metadata: LanguageMetadata,
 }
 
-impl assets::FileAsset for Manifest {
-    const EXTENSION: &'static str = "ron";
+impl Asset for Manifest {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
+        Ok(cache
+            .load::<Ron<Self>>(specifier)
+            .map(|v| v.read().clone().into_inner())?)
+    }
+}
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
+impl DirLoadable for Manifest {
+    fn select_ids(
+        cache: &AssetCache,
+        specifier: &SharedString,
+    ) -> std::io::Result<Vec<SharedString>> {
+        let mut specifiers = Vec::new();
+
+        let source = cache.source();
+        source.read_dir(specifier, &mut |entry| {
+            if let DirEntry::Directory(spec) = entry {
+                let manifest_spec = [spec, ".", "_manifest"].concat();
+
+                if source.exists(DirEntry::File(&manifest_spec, "ron")) {
+                    specifiers.push(manifest_spec.into());
+                }
+            }
+        })?;
+
+        Ok(specifiers)
     }
 }
 
@@ -36,12 +65,12 @@ pub(crate) struct Resource {
     pub(crate) src: String,
 }
 
-impl assets::FileAsset for Resource {
+impl FileAsset for Resource {
     const EXTENSION: &'static str = "ftl";
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        Ok(Resource {
-            src: String::from_bytes(bytes)?,
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        Ok(Self {
+            src: String::from_utf8(bytes.into())?,
         })
     }
 }

@@ -1,5 +1,5 @@
 #![enable(implicit_some)]
-({
+{
     "debug": [
         (Item("common.items.debug.admin_black_hole"),1),
         (Item("common.items.debug.admin_stick"),1),
@@ -1251,4 +1251,4 @@
     // cardinal
     // chef
     // savage
-})
+}

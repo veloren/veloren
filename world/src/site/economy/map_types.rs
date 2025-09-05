@@ -1,5 +1,5 @@
 use crate::{
-    assets::{self, AssetExt},
+    assets::{AssetExt, Ron},
     util::map_array::{GenericIndex, NotFound, enum_from_index, index_from_enum},
 };
 use common::{terrain::BiomeKind, trade::Good};
@@ -282,19 +282,8 @@ pub struct NaturalResources {
     pub average_yield_per_chunk: GoodMap<f32>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct RawProfessions(Vec<RawProfession>);
-
-impl assets::FileAsset for RawProfessions {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
-}
-
 pub fn default_professions() -> Vec<Profession> {
-    RawProfessions::load_expect("common.professions")
+    Ron::<Vec<RawProfession>>::load_expect("common.professions")
         .read()
         .0
         .iter()

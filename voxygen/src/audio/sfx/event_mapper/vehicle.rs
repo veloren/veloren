@@ -79,7 +79,7 @@ impl EventMapper for VehicleEventMapper {
                     let chugg_lerp = ((speed - 20.0) / 25.0).clamp(0.0, 1.0);
 
                     // Low-speed chugging
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainChugg)
+                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainChugg)
                         && internal_state.last_chugg.elapsed().as_secs_f32()
                             >= 7.5 / speed.min(50.0)
                         && chugg_lerp < 1.0
@@ -93,7 +93,8 @@ impl EventMapper for VehicleEventMapper {
                         internal_state.last_chugg = Instant::now();
                     }
                     // Steam release
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainChuggSteam)
+                    if let Some((event, item)) =
+                        triggers.0.get_key_value(&SfxEvent::TrainChuggSteam)
                         && internal_state.last_chugg_steam.elapsed().as_secs_f32()
                             >= 10.0 / speed.min(50.0)
                         && chugg_lerp < 1.0
@@ -107,7 +108,7 @@ impl EventMapper for VehicleEventMapper {
                         internal_state.last_chugg_steam = Instant::now();
                     }
                     // High-speed chugging
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainSpeed) {
+                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainSpeed) {
                         let volume = chugg_lerp * 8.0;
 
                         if internal_state.last_speed.0.elapsed().as_secs_f32() >= item.threshold
@@ -129,7 +130,8 @@ impl EventMapper for VehicleEventMapper {
                         }
                     }
                     // Train ambience
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainAmbience) {
+                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainAmbience)
+                    {
                         let volume = speed.clamp(20.0, 50.0) / 10.0;
 
                         if internal_state.last_ambience.0.elapsed().as_secs_f32() >= item.threshold
@@ -150,7 +152,7 @@ impl EventMapper for VehicleEventMapper {
                         }
                     }
                     // Train clack
-                    if let Some((event, item)) = triggers.get_key_value(&SfxEvent::TrainClack)
+                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainClack)
                         && internal_state.last_clack.elapsed().as_secs_f32() >= 48.0 / speed
                         && speed > 25.0
                     {

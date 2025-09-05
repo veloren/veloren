@@ -2,7 +2,10 @@ use super::cache::{
     FigureKey, FigureModelEntryFuture, ModelEntryFuture, TerrainModelEntryFuture, ToolKey,
 };
 use common::{
-    assets::{self, AssetExt, AssetHandle, Concatenate, DotVoxAsset, MultiRon, ReloadWatcher},
+    assets::{
+        self, AssetCache, AssetExt, AssetHandle, BoxedError, Concatenate, DotVox, MultiRon,
+        ReloadWatcher, SharedString,
+    },
     comp::{
         arthropod::{self, BodyType as ABodyType, Species as ASpecies},
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
@@ -45,20 +48,20 @@ const DEFAULT_INDEX: u32 = 0;
 fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     Segment::from_vox_model_index(
-        &DotVoxAsset::load_expect(&full_specifier).read().0,
+        &DotVox::load_expect(&full_specifier).read().0,
         DEFAULT_INDEX as usize,
     )
 }
-fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVoxAsset> {
+fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVox> {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     graceful_load_vox_fullspec(&full_specifier)
 }
-fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVoxAsset> {
-    match DotVoxAsset::load(full_specifier) {
+fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVox> {
+    match DotVox::load(full_specifier) {
         Ok(dot_vox) => dot_vox,
         Err(_) => {
             error!(?full_specifier, "Could not load vox file for figure");
-            DotVoxAsset::load_expect("voxygen.voxel.not_found")
+            DotVox::load_expect("voxygen.voxel.not_found")
         },
     }
 }
@@ -149,7 +152,7 @@ macro_rules! make_vox_spec {
         }
 
         impl assets::Asset for $Spec {
-            fn load(_: &assets::AssetCache, _: &assets::SharedString) -> Result<Self, assets::BoxedError> {
+            fn load(_: &AssetCache, _: &SharedString) -> Result<Self, BoxedError> {
                 Ok($Spec {
                     $( $field: AssetExt::load($asset_path)?, )*
                 })
@@ -6225,8 +6228,9 @@ impl BodySpec for ship::Body {
 
 #[cfg(feature = "plugins")]
 mod plugin {
-    use super::assets;
-    use common::assets::{AssetExt, AssetHandle, Concatenate, MultiRon};
+    use super::assets::{
+        self, AssetCache, AssetExt, AssetHandle, BoxedError, Concatenate, MultiRon, SharedString,
+    };
     use hashbrown::HashMap;
     use serde::Deserialize;
 
@@ -6251,10 +6255,7 @@ mod plugin {
     pub struct PluginBoneSpec(pub(super) HashMap<String, Vec<BoneMesh>>);
 
     impl assets::Asset for PluginBoneSpec {
-        fn load(
-            _cache: &assets::AssetCache,
-            _: &assets::SharedString,
-        ) -> Result<Self, assets::BoxedError> {
+        fn load(_cache: &AssetCache, _: &SharedString) -> Result<Self, BoxedError> {
             let data: AssetHandle<MultiRon<PluginBoneSpec>> =
                 AssetExt::load("voxygen.voxel.plugin_body_manifest")?;
             Ok(data.read().0.clone())

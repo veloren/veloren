@@ -6,7 +6,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    assets::{self, AssetExt, AssetHandle},
+    assets::{AssetExt, AssetHandle, Ron},
     terrain::site::SiteKindMeta,
     vol::ReadVol,
 };
@@ -31,7 +31,7 @@ pub struct AmbienceItem {
 }
 
 pub struct AmbienceMgr {
-    pub ambience: AssetHandle<AmbienceCollection>,
+    pub ambience: AssetHandle<Ron<AmbienceCollection>>,
 }
 
 impl AmbienceMgr {
@@ -72,7 +72,11 @@ impl AmbienceMgr {
                 && inner.channels.get_ambience_channel(tag).is_none()
             {
                 inner.new_ambience_channel(tag);
-                let track = ambience_sounds.tracks.iter().find(|track| track.tag == tag);
+                let track = ambience_sounds
+                    .0
+                    .tracks
+                    .iter()
+                    .find(|track| track.tag == tag);
                 if let Some(track) = track {
                     audio.play_ambience_looping(tag, &track.path, track.start, track.end);
                 }
@@ -243,20 +247,12 @@ fn get_target_volume(tag: AmbienceChannelTag, client: &Client, camera: &Camera) 
     }
 }
 
-pub fn load_ambience_items() -> AssetHandle<AmbienceCollection> {
-    AmbienceCollection::load_or_insert_with("voxygen.audio.ambience", |error| {
+pub fn load_ambience_items() -> AssetHandle<Ron<AmbienceCollection>> {
+    Ron::load_or_insert_with("voxygen.audio.ambience", |error| {
         warn!(
             "Error reading ambience config file, ambience will not be available: {:#?}",
             error
         );
-        AmbienceCollection::default()
+        Ron(AmbienceCollection::default())
     })
-}
-
-impl assets::FileAsset for AmbienceCollection {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
 }

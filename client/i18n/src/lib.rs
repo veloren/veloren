@@ -12,11 +12,10 @@ use unic_langid::LanguageIdentifier;
 
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, io};
+use std::borrow::Cow;
 
 use assets::{
-    AssetCache, AssetExt, AssetHandle, AssetReadGuard, ReloadWatcher, SharedString,
-    source::DirEntry,
+    AssetCache, AssetExt, AssetHandle, AssetReadGuard, BoxedError, ReloadWatcher, SharedString,
 };
 use common_assets as assets;
 use common_i18n::{Content, LocalizationArg};
@@ -153,7 +152,7 @@ impl Language {
     }
 }
 impl assets::Asset for Language {
-    fn load(cache: &AssetCache, path: &SharedString) -> Result<Self, assets::BoxedError> {
+    fn load(cache: &AssetCache, path: &SharedString) -> Result<Self, BoxedError> {
         let manifest = cache
             .load::<raw::Manifest>(&[path, ".", "_manifest"].concat())?
             .cloned();
@@ -582,36 +581,13 @@ impl LocalizationHandle {
     pub fn reloaded(&mut self) -> bool { self.watcher.reloaded() }
 }
 
-struct FindManifests;
-
-impl assets::DirLoadable for FindManifests {
-    fn select_ids(cache: &AssetCache, specifier: &SharedString) -> io::Result<Vec<SharedString>> {
-        use assets::Source;
-
-        let mut specifiers = Vec::new();
-
-        let source = cache.source();
-        source.read_dir(specifier, &mut |entry| {
-            if let DirEntry::Directory(spec) = entry {
-                let manifest_spec = [spec, ".", "_manifest"].concat();
-
-                if source.exists(DirEntry::File(&manifest_spec, "ron")) {
-                    specifiers.push(manifest_spec.into());
-                }
-            }
-        })?;
-
-        Ok(specifiers)
-    }
-}
-
 #[derive(Clone, Debug)]
 struct LocalizationList(Vec<LanguageMetadata>);
 
 impl assets::Asset for LocalizationList {
-    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, assets::BoxedError> {
+    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
         // List language directories
-        let languages = assets::load_rec_dir_raw::<FindManifests>(specifier)
+        let languages = assets::load_rec_dir::<raw::Manifest>(specifier)
             .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))
             .read()
             .ids()
@@ -657,9 +633,8 @@ mod tests {
     #[test]
     fn test_strict_all_localizations() {
         use analysis::{Language, ReferenceLanguage};
-        use assets::find_root;
 
-        let root = find_root().unwrap();
+        let root = assets::find_root().unwrap();
         let i18n_directory = root.join("assets/voxygen/i18n");
         let reference = ReferenceLanguage::at(&i18n_directory.join(REFERENCE_LANG));
 

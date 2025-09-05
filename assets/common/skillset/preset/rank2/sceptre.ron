@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Sceptre)),
 
     // Beam
@@ -12,5 +12,4 @@
     Skill((Sceptre(HDuration), 1)),
     Skill((Sceptre(HRange), 1)),
     Skill((Sceptre(HCost), 1)),
-
-])
+]

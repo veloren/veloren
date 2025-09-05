@@ -9,7 +9,7 @@ use std::{
 };
 
 use veloren_common::{
-    assets::{self, AssetExt},
+    assets::{self, AssetExt, Ron},
     comp::{
         self,
         item::{
@@ -324,10 +324,10 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
         wtr: &mut csv::Writer<W>,
         asset_path: &str,
     ) -> Result<(), Box<dyn Error>> {
-        let entity_config = EntityConfig::load_expect(asset_path).read();
+        let entity_config = Ron::<EntityConfig>::load_expect(asset_path).read();
 
         // Create initial entry in drop table
-        let entry: (f32, LootSpec<String>) = (1.0, entity_config.loot.clone());
+        let entry: (f32, LootSpec<String>) = (1.0, entity_config.0.loot.clone());
 
         let mut table = vec![entry];
 
@@ -478,7 +478,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
     }
 
     if entity_config.eq_ignore_ascii_case("all") {
-        let configs = assets::load_rec_dir::<EntityConfig>("common.entity")
+        let configs = assets::load_rec_dir::<Ron<EntityConfig>>("common.entity")
             .expect("Entity files moved somewhere else maybe?")
             .read();
         for config in configs.ids() {

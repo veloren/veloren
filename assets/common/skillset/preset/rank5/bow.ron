@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Bow)),
 
     // Projectile Speed
@@ -22,4 +22,4 @@
     Skill((Bow(SCost), 2)),
     Skill((Bow(SArrows), 2)),
     Skill((Bow(SSpread), 2)),
-])
+]

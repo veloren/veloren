@@ -3,9 +3,12 @@ use crate::{
     error::Error,
     render::{Renderer, Texture, UiTextureBindGroup},
 };
-use common::assets::{self, AssetExt};
+use common::assets::{AssetExt, BoxedError, FileAsset};
 use glyph_brush::GlyphBrushBuilder;
-use std::cell::{RefCell, RefMut};
+use std::{
+    borrow::Cow,
+    cell::{RefCell, RefMut},
+};
 use vek::*;
 
 // TODO: probably make cache fields where we have mut getters into just public
@@ -142,10 +145,8 @@ impl Cache {
 #[derive(Clone)]
 pub struct RawFont(pub Vec<u8>);
 
-impl assets::FileAsset for RawFont {
+impl FileAsset for RawFont {
     const EXTENSION: &'static str = "ttf";
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        Ok(Self(bytes.into_owned()))
-    }
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { Ok(Self(bytes.into())) }
 }

@@ -21,7 +21,7 @@ use crate::{
 #[cfg(feature = "worldgen")]
 use common::{cmd::SPOT_PARSER, spot::Spot};
 
-use assets::AssetExt;
+use assets::{AssetExt, Ron};
 use authc::Uuid;
 use chrono::{DateTime, NaiveTime, Timelike, Utc};
 use common::{
@@ -861,7 +861,7 @@ fn handle_into_npc(
         return Err(action.help_content());
     };
 
-    let config = match EntityConfig::load(&entity_config) {
+    let config = match Ron::<EntityConfig>::load(&entity_config) {
         Ok(asset) => asset.read(),
         Err(_err) => {
             return Err(Content::localized_with_args(
@@ -879,7 +879,12 @@ fn handle_into_npc(
             .map(|p| p.0)
             .unwrap_or_default(),
     )
-    .with_entity_config(config.clone(), Some(&entity_config), &mut loadout_rng, None);
+    .with_entity_config(
+        config.clone().into_inner(),
+        Some(&entity_config),
+        &mut loadout_rng,
+        None,
+    );
 
     transform_entity(server, target, entity_info, true).map_err(|error| match error {
         TransformEntityError::EntityDead => {
@@ -922,7 +927,7 @@ fn handle_make_npc(
         None => 1,
     };
 
-    let config = match EntityConfig::load(&entity_config) {
+    let config = match Ron::<EntityConfig>::load(&entity_config) {
         Ok(asset) => asset.read(),
         Err(_err) => {
             return Err(Content::localized_with_args(
@@ -936,7 +941,7 @@ fn handle_make_npc(
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
         let entity_info = EntityInfo::at(pos).with_entity_config(
-            config.clone(),
+            config.clone().into_inner(),
             Some(&entity_config),
             &mut loadout_rng,
             None,
@@ -2007,7 +2012,7 @@ fn handle_rtsim_npc(
             .filter(|s| !s.is_empty())
             .map(|s| s.trim().to_lowercase())
             .collect::<Vec<_>>();
-        let npc_names = &*common::npc::NPC_NAMES.read();
+        let npc_names = &common::npc::NPC_NAMES.read();
         let rtsim = server.state.ecs().read_resource::<RtSim>();
         let data = rtsim.state().data();
         let mut npcs = data
@@ -4413,7 +4418,7 @@ fn handle_death_effect(
 
             // We don't actually use this loaded config for anything, this is just a check
             // to ensure loading succeeds later on.
-            if EntityConfig::load(&entity_config).is_err() {
+            if Ron::<EntityConfig>::load(&entity_config).is_err() {
                 return Err(Content::localized_with_args(
                     "command-entity-load-failed",
                     [("config", entity_config)],

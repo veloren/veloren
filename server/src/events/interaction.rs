@@ -7,7 +7,7 @@ use tracing::error;
 use vek::*;
 
 use common::{
-    assets::{self, Concatenate},
+    assets::{AssetCombined, AssetHandle, Ron},
     comp::{
         self,
         agent::{AgentEvent, Sound, SoundKind},
@@ -37,7 +37,6 @@ use crate::{Server, ServerGeneral, Time, client::Client};
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
 use lazy_static::lazy_static;
-use serde::Deserialize;
 
 use super::{ServerEvent, event_dispatch, mounting::within_mounting_range};
 
@@ -252,25 +251,9 @@ impl ServerEvent for SetPetStayEvent {
     }
 }
 
-#[derive(Deserialize)]
-struct ResourceExperienceManifest(HashMap<String, u32>);
-
-impl assets::FileAsset for ResourceExperienceManifest {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
-}
-impl Concatenate for ResourceExperienceManifest {
-    fn concatenate(self, b: Self) -> Self { Self(self.0.concatenate(b.0)) }
-}
-
 lazy_static! {
-    static ref RESOURCE_EXPERIENCE_MANIFEST: assets::AssetHandle<ResourceExperienceManifest> =
-        assets::AssetCombined::load_expect_combined_static(
-            "server.manifests.resource_experience_manifest"
-        );
+    static ref RESOURCE_EXPERIENCE_MANIFEST: AssetHandle<Ron<HashMap<String, u32>>> =
+        Ron::load_expect_combined_static("server.manifests.resource_experience_manifest");
 }
 
 impl ServerEvent for MineBlockEvent {

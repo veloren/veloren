@@ -1,4 +1,4 @@
-([
+[
     (8.0, [
         "voxygen.element.animation.loaders.cauldron1",
         "voxygen.element.animation.loaders.cauldron2",
@@ -47,4 +47,4 @@
         "voxygen.element.animation.loaders.boat3",
         "voxygen.element.animation.loaders.boat4",
     ]),
-])
+]

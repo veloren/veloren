@@ -1,6 +1,6 @@
 //! Handles caching and retrieval of decoded `.ogg` sfx sound data, eliminating
 //! the need to decode files on each playback
-use common::assets::{self, AssetExt, FileAsset};
+use common::assets::{AssetExt, BoxedError, FileAsset};
 use kira::{
     Decibels, StartTime, Tween, Value,
     sound::{
@@ -133,7 +133,7 @@ struct StreamedOggSound(Arc<[u8]>);
 impl FileAsset for OggSound {
     const EXTENSION: &'static str = "ogg";
 
-    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
         let source = StaticSoundData::from_cursor(io::Cursor::new(bytes.into_owned()))?;
         Ok(OggSound(source))
     }
@@ -142,9 +142,9 @@ impl FileAsset for OggSound {
 impl FileAsset for StreamedOggSound {
     const EXTENSION: &'static str = "ogg";
 
-    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, assets::BoxedError> {
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
         // Store the raw file contents to be streamed later
-        Ok(StreamedOggSound(Arc::from(&*bytes)))
+        Ok(StreamedOggSound(Arc::from(bytes)))
     }
 }
 

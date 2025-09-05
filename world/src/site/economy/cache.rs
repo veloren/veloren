@@ -3,7 +3,7 @@ use super::{
     map_types::{GoodIndex, GoodMap},
 };
 use crate::{
-    assets::{self, AssetExt},
+    assets::{AssetExt, Ron},
     util::DHashMap,
 };
 use common::{
@@ -26,18 +26,6 @@ struct RawGoodProperties {
     pub storable: bool,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(transparent)]
-pub struct RawGoodPropertiesList(DHashMap<Good, RawGoodProperties>);
-
-impl assets::FileAsset for RawGoodPropertiesList {
-    const EXTENSION: &'static str = "ron";
-
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Result<Self, assets::BoxedError> {
-        assets::load_ron(&bytes)
-    }
-}
-
 /// Contains caches used for economic simulation
 pub struct EconomyCache {
     pub(crate) transport_effort: GoodMap<f32>,
@@ -52,10 +40,11 @@ lazy_static! {
 pub fn cache() -> &'static EconomyCache { &CACHE }
 
 fn load_cache() -> EconomyCache {
-    let good_properties = RawGoodPropertiesList::load_expect("common.economy.trading_goods")
-        .read()
-        .0
-        .clone();
+    let good_properties =
+        Ron::<DHashMap<Good, RawGoodProperties>>::load_expect("common.economy.trading_goods")
+            .read()
+            .0
+            .clone();
     let mut decay_rate: GoodMap<f32> = GoodMap::from_default(0.0);
     let mut transport_effort: GoodMap<f32> = GoodMap::from_default(1.0);
     let mut direct_use_goods: Vec<GoodIndex> = Vec::new();

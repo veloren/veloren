@@ -1,4 +1,4 @@
-([
+[
     Group(Weapon(Sceptre)),
 
     // Beam
@@ -16,4 +16,4 @@
     Skill((Sceptre(UnlockAura), 1)),
     Skill((Sceptre(AStrength), 1)),
     Skill((Sceptre(ADuration), 1)),
-])
+]
