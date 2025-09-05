@@ -3,7 +3,7 @@ use crate::{
     Land,
     assets::AssetHandle,
     site::{
-        gen::{PrimitiveTransform, spiral_staircase},
+        generation::{PrimitiveTransform, spiral_staircase},
         util::sprites::PainterSpriteExt,
     },
     util::{DIAGONALS, NEIGHBORS, RandomField, Sampler},

@@ -233,7 +233,7 @@ pub struct LocalizationGuard {
 
 impl LocalizationGuard {
     /// Get a localized text from the given key in the fallback language.
-    pub fn try_fallback_msg(&self, key: &str) -> Option<Cow<str>> {
+    pub fn try_fallback_msg(&self, key: &str) -> Option<Cow<'_, str>> {
         self.fallback.as_ref().and_then(|fb| fb.try_msg(key, None))
     }
 
@@ -241,7 +241,7 @@ impl LocalizationGuard {
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
-    pub fn try_msg(&self, key: &str) -> Option<Cow<str>> {
+    pub fn try_msg(&self, key: &str) -> Option<Cow<'_, str>> {
         self.active
             .try_msg(key, None)
             .or_else(|| self.try_fallback_msg(key))
@@ -253,7 +253,7 @@ impl LocalizationGuard {
     /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key itself is returned.
-    pub fn get_msg(&self, key: &str) -> Cow<str> {
+    pub fn get_msg(&self, key: &str) -> Cow<'_, str> {
         // NOTE: we clone the key if translation was missing
         // We could use borrowed version, but it would mean that
         // `key`, `self`, and result should have the same lifetime.
@@ -300,7 +300,7 @@ impl LocalizationGuard {
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
     // Read more in the issue on get_variation at Gitlab
-    pub fn try_variation(&self, key: &str, seed: u16) -> Option<Cow<str>> {
+    pub fn try_variation(&self, key: &str, seed: u16) -> Option<Cow<'_, str>> {
         self.active.try_variation(key, seed, None).or_else(|| {
             self.fallback
                 .as_ref()
@@ -317,7 +317,7 @@ impl LocalizationGuard {
     /// If the key is not present in the localization object
     /// then the key itself is returned.
     // Read more in the issue on get_variation at Gitlab
-    pub fn get_variation(&self, key: &str, seed: u16) -> Cow<str> {
+    pub fn get_variation(&self, key: &str, seed: u16) -> Cow<'_, str> {
         self.try_variation(key, seed)
             .unwrap_or_else(|| Cow::Owned(key.to_owned()))
     }
@@ -477,7 +477,7 @@ impl LocalizationGuard {
     ///
     /// First lookup is done in the active language, second in
     /// the fallback (if present).
-    pub fn try_attr(&self, key: &str, attr: &str) -> Option<Cow<str>> {
+    pub fn try_attr(&self, key: &str, attr: &str) -> Option<Cow<'_, str>> {
         self.active.try_attr(key, attr, None).or_else(|| {
             self.fallback
                 .as_ref()
@@ -491,7 +491,7 @@ impl LocalizationGuard {
     /// the fallback (if present).
     /// If the key is not present in the localization object
     /// then the key itself is returned.
-    pub fn get_attr(&self, key: &str, attr: &str) -> Cow<str> {
+    pub fn get_attr(&self, key: &str, attr: &str) -> Cow<'_, str> {
         self.try_attr(key, attr)
             .unwrap_or_else(|| Cow::Owned(format!("{key}.{attr}")))
     }

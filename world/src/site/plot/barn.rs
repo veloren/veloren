@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     ColumnSample, Land,
-    site::{r#gen::PrimitiveTransform, util::gradient::WrapMode},
+    site::{generation::PrimitiveTransform, util::gradient::WrapMode},
     util::{RandomField, Sampler},
 };
 use common::terrain::{

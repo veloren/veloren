@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     CONFIG, Land,
-    site::gen::{PrimitiveTransform, spiral_staircase},
+    site::generation::{PrimitiveTransform, spiral_staircase},
     util::{DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{

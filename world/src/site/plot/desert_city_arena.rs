@@ -2,7 +2,7 @@ use std::{f32::consts::TAU, sync::Arc};
 
 use crate::{
     Land,
-    site::{Dir, Fill, Painter, Site, Structure, gen::spiral_staircase},
+    site::{Dir, Fill, Painter, Site, Structure, generation::spiral_staircase},
     util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{

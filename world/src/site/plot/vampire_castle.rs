@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::wall_staircase,
+    site::generation::wall_staircase,
     util::{CARDINALS, DIAGONALS, NEIGHBORS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{generation::EntityInfo, terrain::SpriteKind};

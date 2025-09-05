@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::place_circular,
+    site::generation::place_circular,
     util::{CARDINALS, NEIGHBORS, RandomField, Sampler, within_distance},
 };
 use common::generation::EntityInfo;

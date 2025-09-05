@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::{gen::PrimitiveTransform, util::gradient::WrapMode},
+    site::{generation::PrimitiveTransform, util::gradient::WrapMode},
     util::{DIAGONALS, LOCALITY, NEIGHBORS, RandomField, Sampler, within_distance},
 };
 use common::{

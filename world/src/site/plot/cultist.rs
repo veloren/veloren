@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::{inscribed_polystar, place_circular},
+    site::generation::{inscribed_polystar, place_circular},
     util::{DIAGONALS, RandomField, sampler::Sampler, within_distance},
 };
 use common::{

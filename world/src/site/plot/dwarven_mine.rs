@@ -1,6 +1,6 @@
 use super::*;
 use crate::{Land, util::within_distance};
-use gen::render_prefab;
+use generation::render_prefab;
 use rand::prelude::*;
 use vek::*;
 

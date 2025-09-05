@@ -9,12 +9,12 @@ use std::{
 #[derive(Deserialize, Serialize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Id<T> {
     idx: u32,
-    gen: u32,
+    generation: u32,
     phantom: PhantomData<T>,
 }
 
 impl<T> Id<T> {
-    pub fn id(&self) -> u64 { self.idx as u64 | ((self.gen as u64) << 32) }
+    pub fn id(&self) -> u64 { self.idx as u64 | ((self.generation as u64) << 32) }
 }
 
 impl<T> fmt::Debug for Id<T> {
@@ -24,13 +24,13 @@ impl<T> fmt::Debug for Id<T> {
             "Id<{}>({}, {})",
             std::any::type_name::<T>(),
             self.idx,
-            self.gen
+            self.generation
         )
     }
 }
 
 struct Entry<T> {
-    gen: u32,
+    generation: u32,
     item: Option<T>,
 }
 
@@ -58,13 +58,13 @@ impl<T> Depot<T> {
     pub fn contains(&self, id: Id<T>) -> bool {
         self.entries
             .get(id.idx as usize)
-            .map(|e| e.gen == id.gen && e.item.is_some())
+            .map(|e| e.generation == id.generation && e.item.is_some())
             .unwrap_or(false)
     }
 
     pub fn get(&self, id: Id<T>) -> Option<&T> {
         if let Some(entry) = self.entries.get(id.idx as usize) {
-            if entry.gen == id.gen {
+            if entry.generation == id.generation {
                 entry.item.as_ref()
             } else {
                 None
@@ -76,7 +76,7 @@ impl<T> Depot<T> {
 
     pub fn get_mut(&mut self, id: Id<T>) -> Option<&mut T> {
         if let Some(entry) = self.entries.get_mut(id.idx as usize) {
-            if entry.gen == id.gen {
+            if entry.generation == id.generation {
                 entry.item.as_mut()
             } else {
                 None
@@ -101,7 +101,7 @@ impl<T> Depot<T> {
             .filter_map(move |(idx, entry)| {
                 Some(Id {
                     idx: idx as u32,
-                    gen: entry.gen,
+                    generation: entry.generation,
                     phantom: PhantomData,
                 })
                 .zip(entry.item.as_ref())
@@ -115,7 +115,7 @@ impl<T> Depot<T> {
             .filter_map(move |(idx, entry)| {
                 Some(Id {
                     idx: idx as u32,
-                    gen: entry.gen,
+                    generation: entry.generation,
                     phantom: PhantomData,
                 })
                 .zip(entry.item.as_mut())
@@ -132,23 +132,23 @@ impl<T> Depot<T> {
                 .find(|(_, e)| e.item.is_none())
                 .unwrap();
             entry.item = Some(item);
-            assert!(entry.gen < u32::MAX);
-            entry.gen += 1;
+            assert!(entry.generation < u32::MAX);
+            entry.generation += 1;
             self.len += 1;
             Id {
                 idx: idx as u32,
-                gen: entry.gen,
+                generation: entry.generation,
                 phantom: PhantomData,
             }
         } else {
             assert!(self.entries.len() < (u32::MAX - 1) as usize);
             let id = Id {
                 idx: self.entries.len() as u32,
-                gen: 0,
+                generation: 0,
                 phantom: PhantomData,
             };
             self.entries.push(Entry {
-                gen: 0,
+                generation: 0,
                 item: Some(item),
             });
             self.len += 1;
@@ -157,11 +157,13 @@ impl<T> Depot<T> {
     }
 
     pub fn remove(&mut self, id: Id<T>) -> Option<T> {
-        if let Some(item) = self
-            .entries
-            .get_mut(id.idx as usize)
-            .and_then(|e| if e.gen == id.gen { e.item.take() } else { None })
-        {
+        if let Some(item) = self.entries.get_mut(id.idx as usize).and_then(|e| {
+            if e.generation == id.generation {
+                e.item.take()
+            } else {
+                None
+            }
+        }) {
             self.len -= 1;
             Some(item)
         } else {
@@ -175,10 +177,10 @@ impl<T> Depot<T> {
         } else {
             Some(Id {
                 idx: i as u32,
-                gen: self
+                generation: self
                     .entries
                     .get(i as usize)
-                    .map(|e| e.gen)
+                    .map(|e| e.generation)
                     .unwrap_or_default(),
                 phantom: PhantomData,
             })

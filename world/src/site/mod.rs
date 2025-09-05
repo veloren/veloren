@@ -1,5 +1,5 @@
 pub mod economy;
-mod gen;
+mod generation;
 pub mod genstat;
 pub mod namegen;
 pub mod plot;
@@ -9,7 +9,7 @@ pub mod util;
 use self::tile::{HazardKind, KeepKind, RoofKind, TILE_SIZE, Tile, TileGrid};
 pub use self::{
     economy::Economy,
-    gen::{Fill, Painter, Primitive, PrimitiveRef, Structure, aabr_with_z},
+    generation::{Fill, Painter, Primitive, PrimitiveRef, Structure, aabr_with_z},
     genstat::{GenStatPlotKind, GenStatSiteKind, SitesGenMeta},
     plot::{Plot, PlotKind, foreach_plot},
     tile::TileKind,

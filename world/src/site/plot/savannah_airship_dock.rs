@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     Land,
-    site::gen::{place_circular_as_vec, spiral_staircase},
+    site::generation::{place_circular_as_vec, spiral_staircase},
     util::{CARDINALS, DIAGONALS, RandomField, Sampler, within_distance},
 };
 use common::{

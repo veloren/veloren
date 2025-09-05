@@ -1,5 +1,5 @@
 use super::*;
-use crate::{Land, site::gen::PrimitiveTransform};
+use crate::{Land, site::generation::PrimitiveTransform};
 use common::{
     generation::EntityInfo,
     terrain::{BiomeKind, Block, BlockKind},
