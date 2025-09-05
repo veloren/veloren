@@ -65,7 +65,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
             if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
@@ -243,7 +243,7 @@ impl AgentData<'_> {
 
         // stay centered
         let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
-        self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+        self.path_toward_target(agent, controller, home, read_data, Path::AtTarget, None);
         // teleport home if straying too far
         if (home - self.pos.0).xy().magnitude_squared() > (10.0_f32).powi(2) {
             controller.push_action(ControlAction::StartInput {
@@ -325,7 +325,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             )
             .is_none()
@@ -358,7 +358,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 )
                 .is_some()
@@ -377,7 +377,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -454,7 +454,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -492,7 +492,7 @@ impl AgentData<'_> {
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < RETREAT_DIST.powi(2) {
             // Attempt to move quickly away from target if too close
-            if let Some((bearing, _)) = agent.chaser.chase(
+            if let Some((bearing, _, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -501,6 +501,7 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
                 let flee_dir = -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
                 let pos = self.pos.0.xy().with_z(self.pos.0.z + 1.5);
@@ -515,6 +516,7 @@ impl AgentData<'_> {
                     // If able to flee, flee
                     controller.inputs.move_dir = flee_dir;
                     if !self.char_state.is_attack() {
+                        self.unstuck_if(stuck, controller);
                         controller.inputs.look_dir = -controller.inputs.look_dir;
                     }
                 } else {
@@ -524,7 +526,7 @@ impl AgentData<'_> {
             }
         } else if attack_data.dist_sqrd < PREF_DIST.powi(2) {
             // Attempt to move away from target if too close, while still attacking
-            if let Some((bearing, _)) = agent.chaser.chase(
+            if let Some((bearing, _, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -533,10 +535,12 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
                 if line_of_sight_with_target() {
                     controller.push_basic_input(InputKind::Primary);
                 }
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
             }
@@ -546,7 +550,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -935,7 +939,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -1742,7 +1746,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -2058,7 +2062,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -2141,7 +2145,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 );
                 if attack_data.angle < 15.0 {
@@ -2162,7 +2166,7 @@ impl AgentData<'_> {
         // work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2171,13 +2175,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2186,7 +2192,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if line_of_sight_with_target() && attack_data.angle < 45.0 {
                     controller.inputs.move_dir = bearing
                         .xy()
@@ -2216,7 +2224,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2310,7 +2318,7 @@ impl AgentData<'_> {
         // work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2319,13 +2327,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2334,7 +2344,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if entities_have_line_of_sight(
                     self.pos,
                     self.body,
@@ -2374,7 +2386,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2460,7 +2472,7 @@ impl AgentData<'_> {
         // so duplicated work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2469,13 +2481,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2484,7 +2498,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if line_of_sight_with_target() && attack_data.angle < 45.0 {
                     controller.inputs.move_dir = bearing
                         .xy()
@@ -2515,7 +2531,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2547,7 +2563,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 )
                 .is_some()
@@ -2580,7 +2596,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2610,7 +2626,7 @@ impl AgentData<'_> {
             };
         // stay centered
         if (home - self.pos.0).xy().magnitude_squared() > (3.0_f32).powi(2) {
-            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+            self.path_toward_target(agent, controller, home, read_data, Path::AtTarget, None);
         // shoot at targets above
         } else if tgt_data.pos.0.z > home.z + 5.0 {
             controller.push_basic_input(InputKind::Ability(0))
@@ -2749,9 +2765,9 @@ impl AgentData<'_> {
         } else {
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
                 // if too far away from target, move towards them
-                Path::Separate
+                Path::Seperate
             } else {
-                Path::Partial
+                Path::AtTarget
             };
             self.path_toward_target(agent, controller, tgt_data.pos.0, read_data, path, None);
         }
@@ -2783,7 +2799,7 @@ impl AgentData<'_> {
 
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -2792,7 +2808,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if attack_data.angle < 15.0
                     && entities_have_line_of_sight(
                         self.pos,
@@ -2852,7 +2870,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2896,7 +2914,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -2905,7 +2923,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2940,7 +2958,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -2949,7 +2967,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -2985,9 +3003,9 @@ impl AgentData<'_> {
             }
         } else {
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-                Path::Separate
+                Path::Seperate
             } else {
-                Path::Partial
+                Path::AtTarget
             };
             self.path_toward_target(agent, controller, tgt_data.pos.0, read_data, path, None);
         }
@@ -3017,7 +3035,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 )
                 .is_some()
@@ -3040,7 +3058,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -3078,7 +3096,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -3087,7 +3105,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -3116,7 +3134,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -3176,7 +3194,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -3185,7 +3203,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -3239,7 +3257,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -3248,7 +3266,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -3450,7 +3468,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
 
@@ -3571,7 +3589,7 @@ impl AgentData<'_> {
             }
             agent.combat_state.timers[Timers::AttackRand as usize] += read_data.dt.0;
         }
-        self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+        self.path_toward_target(agent, controller, home, read_data, Path::AtTarget, None);
     }
 
     pub fn handle_flamekeeper_attack(
@@ -3655,7 +3673,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
             agent.combat_state.timers[Timers::AttackRand as usize] += read_data.dt.0;
@@ -3850,7 +3868,7 @@ impl AgentData<'_> {
             {
                 controller.push_basic_input(InputKind::Primary);
             }
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -3859,7 +3877,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                 if (self.pos.0.z - tgt_data.pos.0.z) < 35.0 {
@@ -3894,7 +3914,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else if attack_data.angle < 15.0 {
@@ -3913,7 +3933,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 Some(0.5),
             );
             agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
@@ -3933,7 +3953,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -3969,7 +3989,7 @@ impl AgentData<'_> {
             {
                 controller.push_basic_input(InputKind::Primary);
             }
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -3978,7 +3998,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                 if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
@@ -4025,7 +4047,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else if self.energy.current() > 60.0
@@ -4040,7 +4062,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 Some(0.5),
             );
             agent.combat_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] +=
@@ -4062,7 +4084,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -4124,7 +4146,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Separate,
+            Path::Seperate,
             None,
         );
     }
@@ -4167,7 +4189,7 @@ impl AgentData<'_> {
                 * if attack_data.in_min_range() { 0.3 } else { 1.0 };
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -4176,7 +4198,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if attack_data.angle < 15.0
                     && entities_have_line_of_sight(
                         self.pos,
@@ -4233,7 +4257,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -4283,7 +4307,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -4322,7 +4346,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -4439,7 +4463,7 @@ impl AgentData<'_> {
                     controller,
                     goto,
                     read_data,
-                    Path::Partial,
+                    Path::AtTarget,
                     (attack_data.dist_sqrd
                         < (attack_data.min_attack_dist + MINOTAUR_ATTACK_RANGE / 3.0).powi(2))
                     .then_some(0.1),
@@ -4486,7 +4510,7 @@ impl AgentData<'_> {
         }
         // Chase target, when target is above, retreat to chamber
         if cheesed_from_above {
-            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+            self.path_toward_target(agent, controller, home, read_data, Path::AtTarget, None);
         // delay chasing to counter wall cheese
         } else if agent.combat_state.timers[Timers::CanSeeTarget as usize] > 2.0
         // always chase when in hallway to boss chamber
@@ -4497,7 +4521,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 (attack_data.dist_sqrd
                     < (attack_data.min_attack_dist + MINOTAUR_ATTACK_RANGE / 3.0).powi(2))
                 .then_some(0.1),
@@ -4577,7 +4601,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             (attack_data.dist_sqrd
                 < (attack_data.min_attack_dist + CYCLOPS_MELEE_RANGE / 2.0).powi(2))
             .then_some(0.1),
@@ -4655,7 +4679,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Full,
+            Path::AtTarget,
             (attack_data.dist_sqrd < (attack_data.min_attack_dist + MELEE_RANGE / 2.0).powi(2))
                 .then_some(0.1),
         );
@@ -4749,7 +4773,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Separate,
+            Path::Seperate,
             (attack_data.dist_sqrd
                 < (attack_data.min_attack_dist + GOLEM_MELEE_RANGE / 1.5).powi(2))
             .then_some(0.1),
@@ -4845,7 +4869,7 @@ impl AgentData<'_> {
         };
         // attempt to path towards target, move away from exiit  if target is cheesing
         // from below
-        self.path_toward_target(agent, controller, path, read_data, Path::Partial, None);
+        self.path_toward_target(agent, controller, path, read_data, Path::AtTarget, None);
     }
 
     pub fn handle_yeti_attack(
@@ -4905,7 +4929,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             attack_data.in_min_range().then_some(0.1),
         );
     }
@@ -4973,7 +4997,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             None,
         );
     }
@@ -5028,7 +5052,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             None,
         );
     }
@@ -5293,7 +5317,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -5505,7 +5529,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             attack_data.in_min_range().then_some(0.1),
         );
     }
@@ -5554,7 +5578,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
 
@@ -5634,7 +5658,7 @@ impl AgentData<'_> {
         if has_energy(50.0) {
             if attack_data.dist_sqrd < (10.0 * attack_data.min_attack_dist).powi(2) {
                 // Attempt to circle the target if neither too close nor too far
-                if let Some((bearing, speed)) = agent.chaser.chase(
+                if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                     &*read_data.terrain,
                     self.pos.0,
                     self.vel.0,
@@ -5643,7 +5667,9 @@ impl AgentData<'_> {
                         min_tgt_dist: 1.25,
                         ..self.traversal_config
                     },
+                    &read_data.time,
                 ) {
+                    self.unstuck_if(stuck, controller);
                     if line_of_sight_with_target() && attack_data.angle < 45.0 {
                         controller.inputs.move_dir = bearing
                             .xy()
@@ -5667,7 +5693,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Partial,
+                    Path::AtTarget,
                     None,
                 );
             }
@@ -5678,7 +5704,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -5953,7 +5979,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
+            Path::AtTarget,
             attack_data.in_min_range().then_some(0.1),
         );
 
@@ -6052,7 +6078,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Full,
+            Path::AtTarget,
             None,
         );
     }
@@ -6132,7 +6158,7 @@ impl AgentData<'_> {
 
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6141,13 +6167,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6156,7 +6184,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if entities_have_line_of_sight(
                     self.pos,
                     self.body,
@@ -6188,7 +6218,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6303,7 +6333,7 @@ impl AgentData<'_> {
         // so duplicated work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6312,13 +6342,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6327,7 +6359,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if entities_have_line_of_sight(
                     self.pos,
                     self.body,
@@ -6367,7 +6401,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6413,7 +6447,7 @@ impl AgentData<'_> {
         // so duplicated work is less necessary.
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6422,13 +6456,15 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 controller.inputs.move_dir =
                     -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed)) = agent.chaser.chase(
+            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
                 &*read_data.terrain,
                 self.pos.0,
                 self.vel.0,
@@ -6437,7 +6473,9 @@ impl AgentData<'_> {
                     min_tgt_dist: 1.25,
                     ..self.traversal_config
                 },
+                &read_data.time,
             ) {
+                self.unstuck_if(stuck, controller);
                 if line_of_sight_with_target() && attack_data.angle < 45.0 {
                     controller.inputs.move_dir = bearing
                         .xy()
@@ -6460,7 +6498,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6528,7 +6566,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6561,7 +6599,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6629,14 +6667,14 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Full,
+                    Path::AtTarget,
                     None,
                 );
             } else {
                 controller.push_basic_input(InputKind::Ability(0));
             }
         } else {
-            self.path_toward_target(agent, controller, dest, read_data, Path::Full, None);
+            self.path_toward_target(agent, controller, dest, read_data, Path::AtTarget, None);
         }
     }
 
@@ -6679,7 +6717,7 @@ impl AgentData<'_> {
             } else {
                 station_1
             };
-            self.path_toward_target(agent, controller, station, read_data, Path::Full, None);
+            self.path_toward_target(agent, controller, station, read_data, Path::AtTarget, None);
         }
         // if target gets very close, shoot dagon bombs and lay out sea urchins
         else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
@@ -6719,9 +6757,9 @@ impl AgentData<'_> {
         }
         // chase
         let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            Path::Separate
+            Path::Seperate
         } else {
-            Path::Partial
+            Path::AtTarget
         };
         self.path_toward_target(agent, controller, tgt_data.pos.0, read_data, path, None);
     }
@@ -6812,7 +6850,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -6876,7 +6914,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Partial,
+                    Path::AtTarget,
                     None,
                 );
             } else {
@@ -7051,7 +7089,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -7274,7 +7312,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -7314,7 +7352,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 )
                 .is_some()
@@ -7338,7 +7376,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -7399,7 +7437,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -7408,7 +7446,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
             let dir = if agent.combat_state.conditions[ROTATE_DIR_CONDITION] {
@@ -7467,7 +7505,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -7515,7 +7553,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -7606,7 +7644,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -7711,7 +7749,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -7833,7 +7871,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     // Slow down if close to the target
                     (attack_data.dist_sqrd
                         < (2.5 + self.body.map_or(0.0, |b| b.front_radius())).powi(2))
@@ -7965,7 +8003,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -7994,7 +8032,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         } else {
@@ -8003,7 +8041,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Partial,
+                Path::AtTarget,
                 None,
             );
         }
@@ -8043,7 +8081,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Full,
+                Path::AtTarget,
                 None,
             );
         }
@@ -8089,14 +8127,14 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 );
             }
         } else {
             // if target is hiding, don't follow, guard the room
             if (home - self.pos.0).xy().magnitude_squared() > (3.0_f32).powi(2) {
-                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
+                self.path_toward_target(agent, controller, home, read_data, Path::Seperate, None);
             }
         }
     }
@@ -8146,16 +8184,16 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Partial,
+                    Path::AtTarget,
                     None,
                 );
             }
         } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 4.0 {
             if !is_home {
                 // if target is wall cheesing, reposition
-                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
+                self.path_toward_target(agent, controller, home, read_data, Path::Seperate, None);
             } else {
-                self.path_toward_target(agent, controller, spawn, read_data, Path::Separate, None);
+                self.path_toward_target(agent, controller, spawn, read_data, Path::Seperate, None);
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(
@@ -8163,7 +8201,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -8239,7 +8277,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -8349,7 +8387,7 @@ impl AgentData<'_> {
             true
         };
 
-        if let Some((bearing, speed)) = agent.chaser.chase(
+        if let Some((bearing, speed, stuck)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
             self.vel.0,
@@ -8358,7 +8396,9 @@ impl AgentData<'_> {
                 min_tgt_dist: 1.25,
                 ..self.traversal_config
             },
+            &read_data.time,
         ) {
+            self.unstuck_if(stuck, controller);
             if entities_have_line_of_sight(
                 self.pos,
                 self.body,
@@ -8467,7 +8507,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Separate,
+                Path::Seperate,
                 None,
             );
         }
@@ -8486,7 +8526,7 @@ impl AgentData<'_> {
         let home = agent.patrol_origin.unwrap_or(self.pos.0.round());
         // stay centered
         if (home - self.pos.0).xy().magnitude_squared() > (2.0_f32).powi(2) {
-            self.path_toward_target(agent, controller, home, read_data, Path::Full, None);
+            self.path_toward_target(agent, controller, home, read_data, Path::AtTarget, None);
         } else if !agent.combat_state.conditions[Conditions::AttackToggle as usize] {
             // always begin with sprite summon
             controller.push_basic_input(InputKind::Primary);
@@ -8533,7 +8573,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Full,
+            Path::AtTarget,
             None,
         );
     }

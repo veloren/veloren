@@ -8,10 +8,10 @@ use crate::{
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
+use enum_map::EnumMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
 use std::{collections::VecDeque, fmt};
-use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use super::{Group, Pos};
@@ -562,48 +562,32 @@ impl Target {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, EnumIter)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, enum_map::Enum)]
 pub enum TimerAction {
     Interact,
+    Warn,
 }
 
 /// A time used for managing agent-related timeouts. The timer is designed to
 /// keep track of the start of any number of previous actions. However,
 /// starting/progressing an action will end previous actions. Therefore, the
 /// timer should be used for actions that are mutually-exclusive.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Timer {
-    action_starts: Vec<Option<f64>>,
+    action_starts: EnumMap<TimerAction, Option<f64>>,
     last_action: Option<TimerAction>,
 }
 
-impl Default for Timer {
-    fn default() -> Self {
-        Self {
-            action_starts: TimerAction::iter().map(|_| None).collect(),
-            last_action: None,
-        }
-    }
-}
-
 impl Timer {
-    fn idx_for(action: TimerAction) -> usize {
-        TimerAction::iter()
-            .enumerate()
-            .find(|(_, a)| a == &action)
-            .unwrap()
-            .0 // Can't fail, EnumIter is exhaustive
-    }
-
     /// Reset the timer for the given action, returning true if the timer was
     /// not already reset.
     pub fn reset(&mut self, action: TimerAction) -> bool {
-        self.action_starts[Self::idx_for(action)].take().is_some()
+        self.action_starts[action].take().is_some()
     }
 
     /// Start the timer for the given action, even if it was already started.
     pub fn start(&mut self, time: f64, action: TimerAction) {
-        self.action_starts[Self::idx_for(action)] = Some(time);
+        self.action_starts[action] = Some(time);
         self.last_action = Some(action);
     }
 
@@ -616,9 +600,7 @@ impl Timer {
     }
 
     /// Return the time that the given action was last performed at.
-    pub fn time_of_last(&self, action: TimerAction) -> Option<f64> {
-        self.action_starts[Self::idx_for(action)]
-    }
+    pub fn time_of_last(&self, action: TimerAction) -> Option<f64> { self.action_starts[action] }
 
     /// Return `true` if the time since the action was last started exceeds the
     /// given timeout.

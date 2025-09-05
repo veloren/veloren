@@ -138,7 +138,7 @@ impl Rule for NpcAi {
                             })),
                         });
                         let npc_dialogue = std::mem::take(&mut npc.npc_dialogue);
-                        (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue)
+                        (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, ctx.system_data.rtsim_gizmos.tracked.remove(npc_id))
                     })
                     .collect::<Vec<_>>()
             };
@@ -153,7 +153,7 @@ impl Rule for NpcAi {
 
                 npc_data
                     .par_iter_mut()
-                    .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue)| {
+                    .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, gizmos)| {
                         let npc = &data.npcs[*npc_id];
 
                         controller.reset();
@@ -177,6 +177,7 @@ impl Rule for NpcAi {
                                 simulated_dt
                             },
                             rng: ChaChaRng::from_seed(rand::rng().random::<[u8; 32]>()),
+                            gizmos: gizmos.as_mut(),
                             system_data: &*ctx.system_data,
                         }, &mut ());
 
@@ -188,7 +189,7 @@ impl Rule for NpcAi {
             // Reinsert NPC brains
             let mut data = ctx.state.data_mut();
             let mut to_update = Vec::with_capacity(npc_data.len());
-            for (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue) in npc_data {
+            for (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, gizmos) in npc_data {
                 to_update.push(npc_id);
                 data.npcs[npc_id].controller = controller;
                 data.npcs[npc_id].brain = Some(brain);
@@ -196,6 +197,10 @@ impl Rule for NpcAi {
                 data.npcs[npc_id].sentiments = sentiments;
                 data.npcs[npc_id].known_reports = known_reports;
                 data.npcs[npc_id].npc_dialogue = npc_dialogue;
+
+                if let Some(gizmos) = gizmos {
+                    ctx.system_data.rtsim_gizmos.tracked.insert(npc_id, gizmos);
+                }
             }
 
             for npc_id in to_update {
@@ -372,7 +377,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
             && let Some(site) = data.sites.get(home)
             && let Some(faction) = ctx.npc.faction
             // Approx. once an hour.
-            && ctx.chance(1.0 / 3600.0)
+            && ctx.chance(1.0 / 1200.0)
             && let Some(site_to_raid) = site
                 .nearby_sites_by_size
                 .iter()
