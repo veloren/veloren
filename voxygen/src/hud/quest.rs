@@ -55,7 +55,7 @@ widget_ids! {
 pub struct Quest<'a> {
     _show: &'a Show,
     _client: &'a Client,
-    imgs: &'a Imgs,
+    _imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
     _rot_imgs: &'a ImgsRot,
@@ -73,7 +73,7 @@ impl<'a> Quest<'a> {
     pub fn new(
         _show: &'a Show,
         _client: &'a Client,
-        imgs: &'a Imgs,
+        _imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
         _rot_imgs: &'a ImgsRot,
@@ -86,7 +86,7 @@ impl<'a> Quest<'a> {
         Self {
             _show,
             _client,
-            imgs,
+            _imgs,
             _rot_imgs,
             fonts,
             localized_strings,
@@ -133,8 +133,8 @@ impl<'a> Quest<'a> {
         const MARGIN: f64 = 16.0;
         Text::new(&display_text)
             .top_left_with_margins_on(state.ids.text_align, MARGIN, MARGIN)
-            .w(429.0 - MARGIN * 2)
-            .h(200.0 - MARGIN * 2)
+            .w(429.0 - MARGIN * 2.0)
+            .h(200.0 - MARGIN * 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR)

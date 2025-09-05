@@ -284,9 +284,11 @@ mod tests {
         names: &Option<HashMap<Id<crate::site::Site>, String>>,
     ) {
         for (id, site) in sites.iter() {
-            let name = names.as_ref().map_or(site.name().into(), |map| {
-                map.get(&id).cloned().unwrap_or_else(|| site.name().into())
-            });
+            let name = names
+                .as_ref()
+                .and_then(|map| Some(map.get(&id)?.as_str()))
+                .or(site.name())
+                .unwrap_or("");
             println!("Site id {:?} name {}", id.id(), name);
             if let Some(econ) = site.economy.as_ref() {
                 econ.print_details();
@@ -361,7 +363,7 @@ mod tests {
                         .collect();
                     let neighbors = econ.neighbors.iter().map(|j| j.id.id()).collect();
                     let val = EconomySetup {
-                        name: i.name().into(),
+                        name: i.name().unwrap_or("").into(),
                         position: (i.origin.x, i.origin.y),
                         resources,
                         neighbors,
