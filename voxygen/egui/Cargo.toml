@@ -1,8 +1,8 @@
 [package]
-authors = ["Ben Wallis <atomyc@gmail.com>"]
 name = "veloren-voxygen-egui"
-edition = "2024"
 version = "0.9.0"
+edition.workspace = true
+authors = ["Ben Wallis <atomyc@gmail.com>"]
 
 [lints]
 workspace = true

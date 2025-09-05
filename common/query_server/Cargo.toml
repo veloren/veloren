@@ -1,10 +1,10 @@
 [package]
 name = "veloren-query-server"
+version = "0.1.2"
 description = "Query Server crate for veloren (client and server)"
 license = "GPL-3.0-or-later"
-version = "0.1.2"
+edition.workspace = true
 authors = ["crabman <vlrncrabman+veloren@gmail.com>", "XVar <atomyc@gmail.com>"]
-edition = "2024"
 
 [lints]
 workspace = true

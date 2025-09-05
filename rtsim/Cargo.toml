@@ -1,7 +1,7 @@
 [package]
 name = "veloren-rtsim"
 version = "0.10.0"
-edition = "2024"
+edition.workspace = true
 
 [lints]
 workspace = true

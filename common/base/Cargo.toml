@@ -1,9 +1,9 @@
 [package]
-authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2024"
 name = "veloren-common-base"
-description = "minimal dependency for crates to now depend on whole common"
 version = "0.10.0"
+description = "minimal dependency for crates to now depend on whole common"
+edition.workspace = true
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 
 [lints]
 workspace = true
