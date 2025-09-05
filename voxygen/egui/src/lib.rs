@@ -472,7 +472,7 @@ pub fn maintain_egui_inner(
             });
         if let Some(selected_entity_info) = &mut egui_state.selected_entity_info {
             let selected_entity = ecs.entities().entity(selected_entity_info.entity_id);
-            if !selected_entity.gen().is_alive() {
+            if !selected_entity.r#gen().is_alive() {
                 previous_selected_entity = mem::take(&mut egui_state.selected_entity_info);
             } else {
                 selected_entity_window(platform, ecs, selected_entity_info, &mut egui_actions);

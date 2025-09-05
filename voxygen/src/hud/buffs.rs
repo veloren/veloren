@@ -181,28 +181,33 @@ impl Widget for BuffsBar<'_> {
             let buff_count = buff_count.min(12);
             let debuff_count = debuff_count.min(12);
 
-            let gen = &mut ui.widget_id_generator();
+            let generator = &mut ui.widget_id_generator();
             if state.ids.buffs.len() < buff_count {
-                state.update(|state| state.ids.buffs.resize(buff_count, gen));
+                state.update(|state| state.ids.buffs.resize(buff_count, generator));
             };
             if state.ids.debuffs.len() < debuff_count {
-                state.update(|state| state.ids.debuffs.resize(debuff_count, gen));
+                state.update(|state| state.ids.debuffs.resize(debuff_count, generator));
             };
             if state.ids.buff_timers.len() < buff_count {
-                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_timers.resize(buff_count, generator));
             };
             if state.ids.debuff_timers.len() < debuff_count {
-                state.update(|state| state.ids.debuff_timers.resize(debuff_count, gen));
+                state.update(|state| state.ids.debuff_timers.resize(debuff_count, generator));
             };
             if state.ids.buff_multiplicities.len() < 2 * buff_count {
-                state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
+                state.update(|state| {
+                    state
+                        .ids
+                        .buff_multiplicities
+                        .resize(2 * buff_count, generator)
+                });
             };
             if state.ids.debuff_multiplicities.len() < 2 * debuff_count {
                 state.update(|state| {
                     state
                         .ids
                         .debuff_multiplicities
-                        .resize(2 * debuff_count, gen)
+                        .resize(2 * debuff_count, generator)
                 });
             };
 
@@ -373,18 +378,23 @@ impl Widget for BuffsBar<'_> {
             // Limit displayed buffs
             let buff_count = buff_count.min(20);
 
-            let gen = &mut ui.widget_id_generator();
+            let generator = &mut ui.widget_id_generator();
             if state.ids.buffs.len() < buff_count {
-                state.update(|state| state.ids.buffs.resize(buff_count, gen));
+                state.update(|state| state.ids.buffs.resize(buff_count, generator));
             };
             if state.ids.buff_timers.len() < buff_count {
-                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_timers.resize(buff_count, generator));
             };
             if state.ids.buff_txts.len() < buff_count {
-                state.update(|state| state.ids.buff_txts.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_txts.resize(buff_count, generator));
             };
             if state.ids.buff_multiplicities.len() < 2 * buff_count {
-                state.update(|state| state.ids.buff_multiplicities.resize(2 * buff_count, gen));
+                state.update(|state| {
+                    state
+                        .ids
+                        .buff_multiplicities
+                        .resize(2 * buff_count, generator)
+                });
             };
 
             // Create Buff Widgets

@@ -2,7 +2,7 @@
 name = "veloren-world"
 version = "0.10.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [lints]
 workspace = true

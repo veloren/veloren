@@ -141,7 +141,7 @@
 pub mod ai;
 pub mod data;
 pub mod event;
-pub mod gen;
+pub mod generate;
 pub mod rule;
 
 pub use self::{

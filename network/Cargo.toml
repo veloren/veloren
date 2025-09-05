@@ -2,7 +2,7 @@
 name = "veloren-network"
 version = "0.3.0"
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2021"
+edition = "2024"
 
 [lints]
 workspace = true

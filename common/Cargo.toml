@@ -6,7 +6,7 @@ authors = [
     "Luna Ćwięka <luna@lunareclipse.zone>",
     "Imbris <imbrisf@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 
 [lints]
 workspace = true
