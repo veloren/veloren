@@ -108,7 +108,6 @@ server = { package = "veloren-server", path = "../server", optional = true, defa
 clap = { workspace = true }
 
 # Utility
-assets_manager = { version = "0.12", features = ["ab_glyph"] }
 backtrace = "0.3.40"
 chrono = { workspace = true }
 chumsky = "0.10"
@@ -170,10 +169,7 @@ libmimalloc-sys = "=0.1.39"
 mumble-link = "0.2.0"
 
 [dev-dependencies]
-criterion = { version = "0.5.1", default-features = false, features = [
-    "rayon",
-    "cargo_bench_support",
-] }
+criterion = { workspace = true }
 world = { package = "veloren-world", path = "../world" }
 rayon = { workspace = true }
 

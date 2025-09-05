@@ -17,7 +17,6 @@ hot-reloading = ["common-assets/hot-reloading"]
 simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "clap"]
 bin_graphviz = ["petgraph", "clap"]
-bin_recipe_gen = ["ron"]
 bin_asset_migrate = ["ron"]
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
@@ -94,10 +93,7 @@ specs = { workspace = true, features = [
 
 [dev-dependencies]
 #bench
-criterion = { version = "0.5.1", default-features = false, features = [
-    "rayon",
-    "cargo_bench_support",
-] }
+criterion = { workspace = true }
 rand_chacha = { workspace = true }
 
 #test

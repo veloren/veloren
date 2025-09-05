@@ -22,7 +22,7 @@ network-protocol = { package = "veloren-network-protocol", path = "protocol" }
 bincode = { workspace = true }
 serde = { workspace = true }
 #ipv4/ipv6 behavior
-socket2 = "0.5.2"
+socket2 = "0.6"
 #sending
 crossbeam-channel = { workspace = true }
 tokio = { workspace = true, features = ["io-util", "macros", "net", "time"] }
@@ -67,13 +67,9 @@ clap = { workspace = true }
 shellexpand = "3.1.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = { workspace = true }
-criterion = { version = "0.5.1", default-features = false, features = [
-    "rayon",
-    "cargo_bench_support",
-    "async_tokio",
-] }
+criterion = { workspace = true, features = ["async_tokio"] }
 #quic
-rcgen = { version = "0.13.1" }
+rcgen = { version = "0.14" }
 
 [[bench]]
 name = "speed"

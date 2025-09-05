@@ -1,5 +1,6 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rand::rng;
+use std::hint::black_box;
 use veloren_common::lottery::distribute_many;
 
 fn criterion_benchmark(c: &mut Criterion) {

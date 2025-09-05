@@ -1,6 +1,7 @@
 use common::{spiral::Spiral2d, terrain::CoordinateConversions};
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rayon::ThreadPoolBuilder;
+use std::hint::black_box;
 use veloren_world::{
     CanvasInfo, Land, World, layer,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},

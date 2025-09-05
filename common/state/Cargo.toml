@@ -35,7 +35,7 @@ specs = { workspace = true, features = ["serde", "storage-event-control", "deriv
 atomic_refcell = { workspace = true, optional = true }
 scopeguard = "1.1.0"
 serde = { workspace = true, optional = true }
-toml = { version = "0.8", optional = true }
+toml = { version = "0.9", optional = true }
 tar = { version = "0.4.37", optional = true }
 bincode = { workspace = true, optional = true }
 timer-queue = "0.1.0"

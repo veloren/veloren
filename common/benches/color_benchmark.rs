@@ -1,4 +1,5 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use criterion::{Criterion, criterion_group, criterion_main};
+use std::hint::black_box;
 
 use vek::*;
 use veloren_common::util::{linear_to_srgb, srgb_to_linear_fast};

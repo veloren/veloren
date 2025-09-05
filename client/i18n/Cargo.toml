@@ -16,14 +16,14 @@ serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}
 intl-memoizer = "0.5"
-fluent = "0.16"
-fluent-bundle = "0.15"
+fluent = "0.17"
+fluent-bundle = "0.16"
 # Utility
 hashbrown = { workspace = true }
 tracing = { workspace = true }
 # Bin
 clap = { workspace = true, optional = true }
-fluent-syntax = "0.11"
+fluent-syntax = "0.12"
 
 [[bin]]
 name = "i18n_check"

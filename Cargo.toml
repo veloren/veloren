@@ -150,6 +150,10 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
+criterion = { version = "0.7", default-features = false, features = [
+    "rayon",
+    "cargo_bench_support",
+] }
 crossbeam-channel = { version = "0.5.15" }
 crossbeam-utils = { version = "0.8.7" }
 enum-map = { version = "2.4" }
@@ -167,12 +171,13 @@ hex = "0.4.3"
 inline_tweak = { version = "1.0.8" }
 image = { version = "0.25", default-features = false, features = ["png"] }
 itertools = { version = "0.14" }
+# TODO: Fix LTO on linux with newer kiddo versions
 kiddo = "=4.2.0"
 lazy_static = "1.4.0"
 noise = { version = "0.9", default-features = false }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
-ordered-float = { version = "4.2", default-features = true }
+ordered-float = { version = "5", default-features = true }
 prometheus = { version = "0.14", default-features = false }
 prometheus-hyper = "0.2.1"
 regex = { version = "1.11" }
@@ -192,7 +197,7 @@ serde_json = { version = "1.0.50" }
 sha2 = "0.10"
 slab = { version = "0.4.2" }
 specs = { version = "0.20", features = ["nightly"] }
-strum = { version = "0.26.3", features = ["derive"] }
+strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1.44", default-features = false, features = ["rt"] }
 tracing = { version = "0.1" }
 vek = { version = "0.17.0", features = ["serde", "mint"] }
