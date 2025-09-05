@@ -11,7 +11,7 @@ use crate::{
     },
 };
 use common::{
-    comp,
+    comp::{self, gizmos::RtsimGizmos},
     resources::{Time, TimeOfDay},
     rtsim::NpcInput,
     shared_server_config::ServerConstants,
@@ -21,7 +21,7 @@ use common::{
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
-use specs::{Read, ReadExpect, ReadStorage, SystemData, shred};
+use specs::{Read, ReadExpect, ReadStorage, SystemData, WriteExpect, shred};
 use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
 use world::{IndexRef, World};
 
@@ -76,6 +76,7 @@ pub struct NpcCtx<'a, 'd> {
     pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,
+    pub gizmos: Option<&'a mut Vec<comp::gizmos::Gizmos>>,
 
     /// The delta time since this npcs ai was last ran.
     pub dt: f32,
@@ -105,6 +106,12 @@ impl NpcCtx<'_, '_> {
         let p = discrete_chance(self.dt as f64, chance);
         self.rng.random_bool(p)
     }
+
+    pub fn gizmos(&mut self, gizmos: comp::gizmos::Gizmos) {
+        if let Some(gizmos_buffer) = self.gizmos.as_mut() {
+            gizmos_buffer.push(gizmos);
+        }
+    }
 }
 
 #[derive(SystemData)]
@@ -113,6 +120,7 @@ pub struct NpcSystemData<'a> {
     pub id_maps: Read<'a, IdMaps>,
     pub server_constants: ReadExpect<'a, ServerConstants>,
     pub weather_grid: ReadExpect<'a, WeatherGrid>,
+    pub rtsim_gizmos: WriteExpect<'a, RtsimGizmos>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim

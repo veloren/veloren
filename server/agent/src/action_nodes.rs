@@ -1,7 +1,7 @@
 use crate::{
     consts::{
         AVG_FOLLOW_DIST, DEFAULT_ATTACK_RANGE, IDLE_HEALING_ITEM_THRESHOLD, MAX_PATROL_DIST,
-        PARTIAL_PATH_DIST, SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
+        SEPARATION_BIAS, SEPARATION_DIST, STD_AWARENESS_DECAY_RATE,
     },
     data::{AgentData, AgentEmitters, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
@@ -102,13 +102,9 @@ impl AgentData<'_> {
     ) -> Option<Vec3<f32>> {
         self.dismount_uncontrollable(controller, read_data);
 
-        let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
-            self.pos.0
-                + PARTIAL_PATH_DIST * pos_difference.try_normalized().unwrap_or_else(Vec3::zero)
-        };
         let pos_difference = tgt_pos - self.pos.0;
         let pathing_pos = match path {
-            Path::Separate => {
+            Path::Seperate => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
 
                 for entity in read_data
@@ -136,12 +132,10 @@ impl AgentData<'_> {
                         }
                     }
                 }
-                partial_path_tgt_pos(
-                    sep_vec * SEPARATION_BIAS + pos_difference * (1.0 - SEPARATION_BIAS),
-                )
+
+                sep_vec * SEPARATION_BIAS + pos_difference * (1.0 - SEPARATION_BIAS)
             },
-            Path::Full => tgt_pos,
-            Path::Partial => partial_path_tgt_pos(pos_difference),
+            Path::AtTarget => tgt_pos,
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
 
@@ -157,7 +151,7 @@ impl AgentData<'_> {
         // then reroute if needed.
         let is_target_loaded = in_loaded_chunk(pathing_pos);
 
-        if let Some((bearing, speed)) = agent.chaser.chase(
+        if let Some((bearing, speed, stuck)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
             self.vel.0,
@@ -167,7 +161,9 @@ impl AgentData<'_> {
                 is_target_loaded,
                 ..self.traversal_config
             },
+            &read_data.time,
         ) {
+            self.unstuck_if(stuck, controller);
             self.traverse(controller, bearing, speed * speed_multiplier);
             Some(bearing)
         } else {
@@ -188,10 +184,27 @@ impl AgentData<'_> {
         controller.inputs.move_z = bearing.z;
     }
 
+    pub fn unstuck_if(&self, condition: bool, controller: &mut Controller) {
+        if condition && rng().random_bool(0.05) {
+            if matches!(self.char_state, CharacterState::Climb(_)) || rng().random_bool(0.5) {
+                controller.push_basic_input(InputKind::Jump);
+            } else {
+                controller.push_basic_input(InputKind::Roll);
+            }
+        } else {
+            if controller.queued_inputs.contains_key(&InputKind::Jump) {
+                controller.push_cancel_input(InputKind::Jump);
+            }
+            if controller.queued_inputs.contains_key(&InputKind::Roll) {
+                controller.push_cancel_input(InputKind::Roll);
+            }
+        }
+    }
+
     pub fn jump_if(&self, condition: bool, controller: &mut Controller) {
         if condition {
             controller.push_basic_input(InputKind::Jump);
-        } else {
+        } else if controller.queued_inputs.contains_key(&InputKind::Jump) {
             controller.push_cancel_input(InputKind::Jump)
         }
     }
@@ -281,7 +294,7 @@ impl AgentData<'_> {
                         controller,
                         travel_to,
                         read_data,
-                        Path::Full,
+                        Path::AtTarget,
                         Some(speed_factor),
                     ) {
                         let height_offset = bearing.z
@@ -794,7 +807,7 @@ impl AgentData<'_> {
     ) {
         self.dismount_uncontrollable(controller, read_data);
 
-        if let Some((bearing, speed)) = agent.chaser.chase(
+        if let Some((bearing, speed, stuck)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
             self.vel.0,
@@ -803,7 +816,9 @@ impl AgentData<'_> {
                 min_tgt_dist: AVG_FOLLOW_DIST,
                 ..self.traversal_config
             },
+            &read_data.time,
         ) {
+            self.unstuck_if(stuck, controller);
             let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
             self.traverse(
                 controller,
@@ -856,7 +871,7 @@ impl AgentData<'_> {
             }
         }
 
-        if let Some((bearing, speed)) = agent.chaser.chase(
+        if let Some((bearing, speed, stuck)) = agent.chaser.chase(
             &*read_data.terrain,
             self.pos.0,
             self.vel.0,
@@ -870,7 +885,9 @@ impl AgentData<'_> {
                 min_tgt_dist: 1.25,
                 ..self.traversal_config
             },
+            &read_data.time,
         ) {
+            self.unstuck_if(stuck, controller);
             self.traverse(controller, bearing, speed.min(MAX_FLEE_SPEED));
         }
     }
@@ -2329,30 +2346,34 @@ impl AgentData<'_> {
         agent: &mut Agent,
         controller: &mut Controller,
         target: EcsEntity,
+        tgt_data: &TargetData,
         read_data: &ReadData,
         emitters: &mut AgentEmitters,
-        rng: &mut impl Rng,
         remembers_fight_with_target: bool,
     ) {
         let max_move = 0.5;
         let move_dir = controller.inputs.move_dir;
         let move_dir_mag = move_dir.magnitude();
-        let small_chance = rng.random::<f32>() < read_data.dt.0 * 0.25;
-        let mut chat = |content: Content| {
+        let mut chat = |agent: &mut Agent, content: Content| {
             self.chat_npc_if_allowed_to_speak(content, agent, emitters);
         };
-        let mut chat_villager_remembers_fighting = || {
+        let mut chat_villager_remembers_fighting = |agent: &mut Agent| {
             let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
             // TODO: Localise
             // Is this thing even used??
             if let Some(tgt_name) = tgt_name.as_ref().and_then(|name| name.as_plain()) {
-                chat(Content::localized_with_args(
-                    "npc-speech-remembers-fight",
-                    [("name", tgt_name)],
-                ))
+                chat(
+                    agent,
+                    Content::localized_with_args("npc-speech-remembers-fight", [(
+                        "name", tgt_name,
+                    )]),
+                )
             } else {
-                chat(Content::localized("npc-speech-remembers-fight-no-name"));
+                chat(
+                    agent,
+                    Content::localized("npc-speech-remembers-fight-no-name"),
+                );
             }
         };
 
@@ -2363,23 +2384,47 @@ impl AgentData<'_> {
             controller.inputs.move_dir = max_move * move_dir / move_dir_mag;
         }
 
-        if small_chance {
-            controller.push_utterance(UtteranceKind::Angry);
-            if is_villager(self.alignment) {
-                if remembers_fight_with_target {
-                    chat_villager_remembers_fighting();
-                } else if is_dressed_as_cultist(target, read_data) {
-                    chat(Content::localized("npc-speech-villager_cultist_alarm"));
-                } else if is_dressed_as_witch(target, read_data) {
-                    chat(Content::localized("npc-speech-villager_witch_alarm"));
-                } else if is_dressed_as_pirate(target, read_data) {
-                    chat(Content::localized("npc-speech-villager_pirate_alarm"));
+        match agent
+            .timer
+            .timeout_elapsed(read_data.time.0, comp::agent::TimerAction::Warn, 5.0)
+        {
+            Some(true) | None => {
+                self.path_toward_target(
+                    agent,
+                    controller,
+                    tgt_data.pos.0,
+                    read_data,
+                    Path::AtTarget,
+                    Some(0.4),
+                );
+            },
+            Some(false) => {
+                agent
+                    .timer
+                    .start(read_data.time.0, comp::agent::TimerAction::Warn);
+                controller.push_utterance(UtteranceKind::Angry);
+                if is_villager(self.alignment) {
+                    if remembers_fight_with_target {
+                        chat_villager_remembers_fighting(agent);
+                    } else if is_dressed_as_cultist(target, read_data) {
+                        chat(
+                            agent,
+                            Content::localized("npc-speech-villager_cultist_alarm"),
+                        );
+                    } else if is_dressed_as_witch(target, read_data) {
+                        chat(agent, Content::localized("npc-speech-villager_witch_alarm"));
+                    } else if is_dressed_as_pirate(target, read_data) {
+                        chat(
+                            agent,
+                            Content::localized("npc-speech-villager_pirate_alarm"),
+                        );
+                    } else {
+                        chat(agent, Content::localized("npc-speech-menacing"));
+                    }
                 } else {
-                    chat(Content::localized("npc-speech-menacing"));
+                    chat(agent, Content::localized("npc-speech-menacing"));
                 }
-            } else {
-                chat(Content::localized("npc-speech-menacing"));
-            }
+            },
         }
     }
 

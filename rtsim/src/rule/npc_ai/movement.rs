@@ -2,7 +2,12 @@ use super::*;
 
 fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site::Site) -> PathResult<Vec2<i32>> {
     let heuristic = |tile: &Vec2<i32>| tile.as_::<f32>().distance(end.as_());
-    let mut astar = Astar::new(1_000, start, BuildHasherDefault::<FxHasher64>::default());
+    const ASTAR_ITERS: usize = 1000;
+    let mut astar = Astar::new(
+        ASTAR_ITERS,
+        start,
+        BuildHasherDefault::<FxHasher64>::default(),
+    );
 
     let transition = |a: Vec2<i32>, b: Vec2<i32>| {
         let distance = a.as_::<f32>().distance(b.as_());
@@ -68,9 +73,7 @@ fn path_in_site(start: Vec2<i32>, end: Vec2<i32>, site: &site::Site) -> PathResu
         })
     };
 
-    astar.poll(1000, heuristic, neighbors, |tile| {
-        *tile == end || site.tiles.get_known(*tile).is_none()
-    })
+    astar.poll(ASTAR_ITERS, heuristic, neighbors, |tile| *tile == end)
 }
 
 fn path_between_sites(
@@ -347,7 +350,7 @@ where
         let wpos_site = |wpos: Vec2<f32>| {
             ctx.world
                 .sim()
-                .get(wpos.as_().wpos_to_cpos())
+                .get_wpos(wpos.as_())
                 .and_then(|chunk| chunk.sites.first().copied())
         };
 
@@ -362,20 +365,24 @@ where
         let npc_wpos = ctx.npc.wpos;
 
         // If we're traversing within a site, do intra-site pathfinding
-        if let Some(site) = wpos_site(wpos) {
+        if let Some(site) = wpos_site(npc_wpos.xy()) {
             let mut site_exit = wpos;
             while let Some(next) = next_point(ctx).filter(|next| wpos_sites_contain(*next, site)) {
                 site_exit = next;
             }
 
             // Navigate through the site to the site exit
-            if let Some(path) = path_site(wpos, site_exit, site, ctx.index) {
+            if let Some(path) = path_site(npc_wpos.xy(), site_exit, site, ctx.index) {
+                let path_len = path.len();
                 ControlFlow::Continue(Either::Left(
-                    seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0))).then(goto_2d(
-                        site_exit,
-                        speed_factor,
-                        8.0,
-                    )),
+                    seq(path.into_iter().map(move |wpos| goto_2d(wpos, 1.0, 8.0)))
+                        .then(goto_2d(site_exit, speed_factor, 8.0))
+                        .debug(move || {
+                            format!(
+                                "in site from ({}, {}) to ({}, {}), path length: {path_len}",
+                                npc_wpos.x, npc_wpos.y, site_exit.x, site_exit.y,
+                            )
+                        }),
                 ))
             } else {
                 // No intra-site path found, just attempt to move towards the exit node

@@ -151,6 +151,8 @@ impl<S: Clone + Eq + Hash, H: BuildHasher + Clone> Astar<S, H> {
         self
     }
 
+    pub fn set_max_iters(&mut self, max_iters: usize) { self.max_iters = max_iters; }
+
     /// To guarantee an optimal path the heuristic function needs to be
     /// [admissible](https://en.wikipedia.org/wiki/A*_search_algorithm#Admissibility).
     pub fn poll<I>(

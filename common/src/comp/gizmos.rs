@@ -71,6 +71,7 @@ impl Gizmos {
 )]
 pub enum GizmoSubscription {
     PathFinding,
+    Rtsim,
 }
 
 #[derive(Default, Clone)]
@@ -87,6 +88,12 @@ pub struct GizmoSubscriber {
     pub gizmos: EnumMap<GizmoSubscription, GizmoContext>,
     /// The range of the debug drawing, in world space.
     pub range: f32,
+}
+
+/// A resource storing rtsim-gizmos.
+#[derive(Default)]
+pub struct RtsimGizmos {
+    pub tracked: slotmap::SecondaryMap<crate::rtsim::NpcId, Vec<Gizmos>>,
 }
 
 impl Default for GizmoSubscriber {

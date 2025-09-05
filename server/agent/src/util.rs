@@ -345,7 +345,7 @@ pub fn handle_attack_aggression(
                             controller,
                             pos,
                             read_data,
-                            Path::Separate,
+                            Path::Seperate,
                             None,
                         );
                     } else {
@@ -384,7 +384,7 @@ pub fn handle_attack_aggression(
                         controller,
                         pos,
                         read_data,
-                        Path::Separate,
+                        Path::Seperate,
                         None,
                     );
                     if agent.combat_state.conditions[condition_rolling_breakthrough_index] {
@@ -452,7 +452,7 @@ pub fn handle_attack_aggression(
                     controller,
                     pos,
                     read_data,
-                    Path::Separate,
+                    Path::Seperate,
                     None,
                 );
             } else {

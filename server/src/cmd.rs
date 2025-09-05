@@ -1947,8 +1947,28 @@ fn handle_rtsim_info(
     action: &ServerChatCommand,
 ) -> CmdResult<()> {
     use crate::rtsim::RtSim;
-    if let Some(id) = parse_cmd_args!(args, u64) {
-        let rtsim = server.state.ecs().read_resource::<RtSim>();
+    let rtsim = server.state.ecs().read_resource::<RtSim>();
+    let id = parse_cmd_args!(args.clone(), u64)
+        .map(Ok)
+        .or_else(|| {
+            let entity = parse_cmd_args!(args, EntityTarget)?;
+            let entity = match get_entity_target(entity, server) {
+                Ok(e) => e,
+                Err(e) => return Some(Err(e)),
+            };
+
+            let npc_id = server
+                .state
+                .ecs()
+                .read_storage::<common::rtsim::RtSimEntity>()
+                .get(entity)?
+                .0;
+
+            Some(Ok(rtsim.state().data().npcs.get(npc_id)?.uid))
+        })
+        .transpose()?;
+
+    if let Some(id) = id {
         let data = rtsim.state().data();
         let (id, npc) = data
             .npcs

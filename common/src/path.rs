@@ -1,5 +1,6 @@
 use crate::{
     astar::{Astar, PathResult},
+    resources::Time,
     terrain::Block,
     vol::{BaseVol, ReadVol},
 };
@@ -17,7 +18,7 @@ use rand::{
 };
 #[cfg(feature = "rrt_pathfinding")]
 use std::f32::consts::PI;
-use std::iter::FromIterator;
+use std::{collections::VecDeque, iter::FromIterator};
 use vek::*;
 
 // Path
@@ -115,6 +116,12 @@ const DIAGONALS: [Vec2<i32>; 8] = [
     Vec2::new(1, -1),
 ];
 
+pub enum TraverseStop {
+    Done,
+    InvalidOutput,
+    InvalidPath,
+}
+
 impl Route {
     pub fn path(&self) -> &Path<Vec3<i32>> { &self.path }
 
@@ -124,24 +131,27 @@ impl Route {
 
     pub fn is_finished(&self) -> bool { self.next(0).is_none() }
 
+    /// Handles moving along a path.
     pub fn traverse<V>(
         &mut self,
         vol: &V,
         pos: Vec3<f32>,
         vel: Vec3<f32>,
         traversal_cfg: &TraversalConfig,
-    ) -> Option<(Vec3<f32>, f32)>
+    ) -> Result<(Vec3<f32>, f32), TraverseStop>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
         let (next0, next1, next_tgt, be_precise) = loop {
             // If we've reached the end of the path, stop
-            let next0 = self.next(0)?;
+            let next0 = self.next(0).ok_or(TraverseStop::Done)?;
             let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
-            if !walkable(vol, next0) || !walkable(vol, next1) {
-                return None;
+            if !walkable(vol, next0, traversal_cfg.is_target_loaded)
+                || !walkable(vol, next1, traversal_cfg.is_target_loaded)
+            {
+                return Err(TraverseStop::InvalidPath);
             }
 
             // If, in any direction, there is a column of open air of several blocks
@@ -160,8 +170,20 @@ impl Route {
                     .unwrap_or(true)
             });
 
-            // Unwalkable obstacles, such as walls or open space can affect path-finding
-            let be_precise = open_space_nearby || wall_nearby;
+            // Unwalkable obstacles, such as walls or open space or stepping up blocks can
+            // affect path-finding
+            let be_precise =
+                open_space_nearby || wall_nearby || (pos.z - next0.z as f32).abs() > 1.0;
+
+            // If we're not being precise and the next next target is closer, go towards
+            // that instead.
+            if !be_precise
+                && next0.as_::<f32>().distance_squared(pos)
+                    > next1.as_::<f32>().distance_squared(pos)
+            {
+                self.next_idx += 1;
+                continue;
+            }
 
             // Map position of node to middle of block
             let next_tgt = next0.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0);
@@ -181,7 +203,7 @@ impl Route {
                         1.0
                     })
                 .powi(2)
-                && ((pos.z - 0.75 - closest_tgt.z).abs() < 1.0
+                && ((-1.0..=2.25).contains(&(pos.z - closest_tgt.z))
                     || (traversal_cfg.in_liquid
                         && pos.z < closest_tgt.z + 0.8
                         && pos.z > closest_tgt.z))
@@ -214,6 +236,66 @@ impl Route {
 
                 Some(Vec2::new(x, y))
             }
+        }
+
+        let line_segments = [
+            LineSegment3 {
+                start: self
+                    .next_idx
+                    .checked_sub(2)
+                    .and_then(|i| self.path().nodes().get(i))
+                    .unwrap_or(&next0)
+                    .as_()
+                    + 0.5,
+                end: self
+                    .next_idx
+                    .checked_sub(1)
+                    .and_then(|i| self.path().nodes().get(i))
+                    .unwrap_or(&next0)
+                    .as_()
+                    + 0.5,
+            },
+            LineSegment3 {
+                start: self
+                    .next_idx
+                    .checked_sub(1)
+                    .and_then(|i| self.path().nodes().get(i))
+                    .unwrap_or(&next0)
+                    .as_()
+                    + 0.5,
+                end: next0.as_() + 0.5,
+            },
+            LineSegment3 {
+                start: next0.as_() + 0.5,
+                end: next1.as_() + 0.5,
+            },
+        ];
+
+        if line_segments
+            .iter()
+            .map(|ls| {
+                if self.next_idx > 1 {
+                    ls.projected_point(pos).distance_squared(pos)
+                } else {
+                    LineSegment2 {
+                        start: ls.start.xy(),
+                        end: ls.end.xy(),
+                    }
+                    .projected_point(pos.xy())
+                    .distance_squared(pos.xy())
+                }
+            })
+            .reduce(|a, b| a.min(b))
+            .is_some_and(|d| {
+                d > if traversal_cfg.in_liquid {
+                    traversal_cfg.node_tolerance * 5.0
+                } else {
+                    traversal_cfg.node_tolerance * 2.0
+                }
+                .powi(2)
+            })
+        {
+            return Err(TraverseStop::InvalidPath);
         }
 
         // We don't always want to aim for the centre of block since this can create
@@ -346,7 +428,31 @@ impl Route {
             1.0 - (traversal_cfg.slow_factor * (1.0 - straight_factor)).min(0.9),
         ))
         .filter(|(bearing, _)| bearing.z < 2.1)
+        .ok_or(TraverseStop::InvalidOutput)
     }
+}
+
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+/// How long the path we're trying to compute should be.
+pub enum PathLength {
+    #[default]
+    Small,
+    Medium,
+    Long,
+    Longest,
+}
+
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PathState {
+    /// There is no path.
+    #[default]
+    None,
+    /// A non-complete path.
+    Exhausted,
+    /// In progress of computing a path.
+    Pending,
+    /// A complete path.
+    Path,
 }
 
 /// A self-contained system that attempts to chase a moving target, only
@@ -355,15 +461,132 @@ impl Route {
 pub struct Chaser {
     last_search_tgt: Option<Vec3<f32>>,
     /// `bool` indicates whether the Route is a complete route to the target
-    route: Option<(Route, bool)>,
+    ///
+    /// `Vec3` is the target end pos
+    route: Option<(Route, bool, Vec3<f32>)>,
     /// We use this hasher (FxHash) because:
     /// (1) we don't care about DDOS attacks (We can use FxHash);
     /// (2) we want this to be constant across compiles because of hot-reloading
     /// (Ruling out AAHash);
-    astar: Option<Astar<Node, FxBuildHasher>>,
+    ///
+    /// The Vec3 is the astar's start position.
+    astar: Option<(Astar<Node, FxBuildHasher>, Vec3<f32>)>,
+    flee_from: Option<Vec3<f32>>,
+    /// Whether to allow consideration of longer paths, npc will stand still
+    /// while doing this.
+    path_length: PathLength,
+
+    /// The current state of the path.
+    path_state: PathState,
+
+    /// The last time the `chase` method was called.
+    last_update_time: Option<Time>,
+
+    /// (position, requested walk dir)
+    recent_states: VecDeque<(Time, Vec3<f32>, Vec3<f32>)>,
 }
 
 impl Chaser {
+    fn stuck_check(
+        &mut self,
+        pos: Vec3<f32>,
+        bearing: Vec3<f32>,
+        speed: f32,
+        time: &Time,
+    ) -> (Vec3<f32>, f32, bool) {
+        /// The min amount of cached items.
+        const MIN_CACHED_STATES: usize = 3;
+        /// The max amount of cached items.
+        const MAX_CACHED_STATES: usize = 10;
+        /// Cache over 1 second.
+        const CACHED_TIME_SPAN: f64 = 1.0;
+        const TOLERANCE: f32 = 0.2;
+
+        // We pop the first until there is only one element which was over
+        // `CACHED_TIME_SPAN` seconds ago.
+        while self.recent_states.len() > MIN_CACHED_STATES
+            && self
+                .recent_states
+                .get(1)
+                .is_some_and(|(t, ..)| time.0 - t.0 > CACHED_TIME_SPAN)
+        {
+            self.recent_states.pop_front();
+        }
+
+        if self.recent_states.len() < MAX_CACHED_STATES {
+            self.recent_states.push_back((*time, pos, bearing * speed));
+
+            if self.recent_states.len() >= MIN_CACHED_STATES
+                && self
+                    .recent_states
+                    .front()
+                    .is_some_and(|(t, ..)| time.0 - t.0 > CACHED_TIME_SPAN)
+                && (bearing * speed).magnitude_squared() > 0.01
+            {
+                let average_pos = self
+                    .recent_states
+                    .iter()
+                    .map(|(_, pos, _)| *pos)
+                    .sum::<Vec3<f32>>()
+                    * (1.0 / self.recent_states.len() as f32);
+                let max_distance_sqr = self
+                    .recent_states
+                    .iter()
+                    .map(|(_, pos, _)| pos.distance_squared(average_pos))
+                    .reduce(|a, b| a.max(b));
+
+                let average_speed = self
+                    .recent_states
+                    .iter()
+                    .zip(self.recent_states.iter().skip(1).map(|(t, ..)| *t))
+                    .map(|((t0, _, bearing), t1)| {
+                        bearing.magnitude_squared() * (t1.0 - t0.0).powi(2) as f32
+                    })
+                    .sum::<f32>()
+                    * (1.0 / self.recent_states.len() as f32);
+
+                let is_stuck =
+                    max_distance_sqr.is_some_and(|d| d < (average_speed * TOLERANCE).powi(2));
+
+                let bearing = if is_stuck {
+                    match rng().random_range(0..100u32) {
+                        0..10 => -bearing,
+                        10..20 => Vec3::new(bearing.y, bearing.x, bearing.z),
+                        20..30 => Vec3::new(-bearing.y, bearing.x, bearing.z),
+                        30..50 => {
+                            if let Some((route, ..)) = &mut self.route {
+                                route.next_idx = route.next_idx.saturating_sub(1);
+                            }
+
+                            bearing
+                        },
+                        50..60 => {
+                            if let Some((route, ..)) = &mut self.route {
+                                route.next_idx = route.next_idx.saturating_sub(2);
+                            }
+
+                            bearing
+                        },
+                        _ => bearing,
+                    }
+                } else {
+                    bearing
+                };
+
+                return (bearing, speed, is_stuck);
+            }
+        }
+        (bearing, speed, false)
+    }
+
+    fn reset(&mut self) {
+        self.route = None;
+        self.astar = None;
+        self.last_search_tgt = None;
+        self.path_length = Default::default();
+        self.flee_from = None;
+    }
+
     /// Returns bearing and speed
     /// Bearing is a `Vec3<f32>` dictating the direction of movement
     /// Speed is an f32 between 0.0 and 1.0
@@ -374,159 +597,186 @@ impl Chaser {
         vel: Vec3<f32>,
         tgt: Vec3<f32>,
         traversal_cfg: TraversalConfig,
-    ) -> Option<(Vec3<f32>, f32)>
+        time: &Time,
+    ) -> Option<(Vec3<f32>, f32, bool)>
     where
         V: BaseVol<Vox = Block> + ReadVol,
     {
         span!(_guard, "chase", "Chaser::chase");
-        let pos_to_tgt = pos.distance(tgt);
-
+        self.last_update_time = Some(*time);
         // If we're already close to the target then there's nothing to do
-        let end = self
-            .route
-            .as_ref()
-            .and_then(|(r, _)| r.path.end().copied())
-            .map(|e| e.map(|e| e as f32 + 0.5))
-            .unwrap_or(tgt);
-        if ((pos - end) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
+        if ((pos - tgt) * Vec3::new(1.0, 1.0, 2.0)).magnitude_squared()
             < traversal_cfg.min_tgt_dist.powi(2)
         {
-            self.route = None;
+            self.reset();
             return None;
         }
 
-        let bearing = if let Some((end, complete)) = self
-            .route
-            .as_ref()
-            .and_then(|(r, complete)| Some((r.path().end().copied()?, *complete)))
+        let d = tgt.distance_squared(pos);
+
+        // Check if the current route is no longer valid.
+        if let Some(end) = self.route.as_ref().map(|(_, _, end)| *end)
+            && self.flee_from.is_none()
+            && self.path_length < PathLength::Longest
+            && d < tgt.distance_squared(end)
         {
-            let end_to_tgt = end.map(|e| e as f32).distance(tgt);
-            // If the target has moved significantly since the path was generated then it's
-            // time to search for a new path. Also, do this randomly from time
-            // to time to avoid any edge cases that cause us to get stuck. In
-            // theory this shouldn't happen, but in practice the world is full
-            // of unpredictable obstacles that are more than willing to mess up
-            // our day. TODO: Come up with a better heuristic for this
-            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete && traversal_cfg.is_target_loaded {
-                self.astar = None;
-                None
-            } else if vel.magnitude_squared() < 0.2f32.powi(2)
-                && rng().random::<f32>() < 0.0025
-                && complete
-            {
-                self.route = None;
-                None
-            } else {
-                self.route
-                    .as_mut()
-                    .and_then(|(r, _)| r.traverse(vol, pos, vel, &traversal_cfg))
-            }
-        } else {
-            // There is no route found yet
-            None
-        };
+            self.path_length = Default::default();
+            self.route = None;
+        }
 
-        // If a bearing has already been determined, use that
-        if let Some((bearing, speed)) = bearing {
-            Some((bearing, speed))
-        } else {
-            // Since no bearing has been determined yet, a new route will be
-            // calculated if the target has moved, pathfinding is not complete,
-            // or there is no route
-            let tgt_dir = (tgt - pos).xy().try_normalized().unwrap_or_default();
+        // If we're closer than the designated `flee_from` position, we ignore
+        // that.
+        if self.flee_from.is_some_and(|p| d < p.distance_squared(tgt)) {
+            self.route = None;
+            self.flee_from = None;
+            self.astar = None;
+            self.path_length = Default::default();
+        }
 
-            // Only search for a path if the target has moved from their last position. We
-            // don't want to be thrashing the pathfinding code for targets that
-            // we're unable to access!
+        // Find a route if we don't have one.
+        if self.route.is_none() {
+            // Reset astar if last tgt is too far from tgt.
             if self
                 .last_search_tgt
-                .map(|last_tgt| last_tgt.distance(tgt) > pos_to_tgt * 0.15 + 5.0)
-                .unwrap_or(true)
-                || self.astar.is_some()
-                || self.route.is_none()
-                || !traversal_cfg.is_target_loaded
+                .is_some_and(|last_tgt| tgt.distance_squared(last_tgt) > 2.0)
             {
-                self.last_search_tgt = Some(tgt);
-
-                // NOTE: Enable air paths when air braking has been figured out
-                let (path, complete) = /*if cfg!(feature = "rrt_pathfinding") && traversal_cfg.can_fly {
-                    find_air_path(vol, pos, tgt, &traversal_cfg)
-                } else */{
-                    find_path(&mut self.astar, vol, pos, tgt, &traversal_cfg)
-                };
-
-                self.route = path.map(|path| {
-                    let start_index = path
-                        .iter()
-                        .enumerate()
-                        .min_by_key(|(_, node)| {
-                            node.map(|e| e as f32).distance_squared(pos + tgt_dir) as i32
-                        })
-                        .map(|(idx, _)| idx);
-
-                    (
-                        Route {
-                            path,
-                            next_idx: start_index.unwrap_or(0),
-                        },
-                        complete,
-                    )
-                });
+                self.astar = None;
             }
-            // Start traversing the new route if it exists
-            if let Some(bearing) = self
-                .route
-                .as_mut()
-                .and_then(|(r, _)| r.traverse(vol, pos, vel, &traversal_cfg))
-            {
-                Some(bearing)
-            } else {
-                // At this point no route is available and no bearing
-                // has been determined, so we start sampling terrain.
-                // Check for falling off walls and try moving straight
-                // towards the target if falling is not a danger
-                let walking_towards_edge = (-8..2).all(|z| {
-                    vol.get(
-                        (pos + Vec3::<f32>::from(tgt_dir) * 2.5).map(|e| e as i32)
-                            + Vec3::unit_z() * z,
-                    )
-                    .map(|b| b.is_air())
-                    .unwrap_or(false)
-                });
+            match find_path(
+                &mut self.astar,
+                vol,
+                pos,
+                tgt,
+                &traversal_cfg,
+                self.path_length,
+                self.flee_from,
+            ) {
+                PathResult::Pending => {
+                    self.path_state = PathState::Pending;
+                },
+                PathResult::None(path) => {
+                    self.path_state = PathState::None;
+                    self.route = Some((Route { path, next_idx: 0 }, false, tgt));
+                },
+                PathResult::Exhausted(path) => {
+                    self.path_state = PathState::Exhausted;
+                    self.route = Some((Route { path, next_idx: 0 }, false, tgt));
+                },
+                PathResult::Path(path, _) => {
+                    self.flee_from = None;
+                    self.path_state = PathState::Path;
+                    self.path_length = Default::default();
+                    self.route = Some((Route { path, next_idx: 0 }, true, tgt));
+                },
+            }
 
-                // Enable when airbraking/flight is figured out
-                /*if traversal_cfg.can_fly {
-                    Some(((tgt - pos) , 1.0))
-                } else */
-                if traversal_cfg.can_fly {
-                    Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.5), 1.0))
-                } else if !walking_towards_edge {
-                    Some(((tgt - pos) * Vec3::new(1.0, 1.0, 0.0), 1.0))
-                } else {
-                    // This is unfortunately where an NPC will stare blankly
-                    // into space. No route has been found and no temporary
-                    // bearing would suffice. Hopefully a route will be found
-                    // in the coming ticks.
-                    None
+            self.last_search_tgt = Some(tgt);
+        }
+
+        if let Some((route, ..)) = &mut self.route {
+            let res = route.traverse(vol, pos, vel, &traversal_cfg);
+
+            // None either means we're done, or can't continue, either way we don't care
+            // about that route anymore.
+            if let Err(e) = &res {
+                self.route = None;
+                match e {
+                    TraverseStop::InvalidOutput => {
+                        return Some(self.stuck_check(
+                            pos,
+                            (tgt - pos).try_normalized().unwrap_or(Vec3::unit_x()),
+                            1.0,
+                            time,
+                        ));
+                    },
+                    TraverseStop::InvalidPath => {
+                        // If the path is invalid, blocks along the path have most likely changed,
+                        // so reset the astar.
+                        self.astar = None;
+                    },
+                    TraverseStop::Done => match self.path_state {
+                        PathState::None => {
+                            return Some(self.stuck_check(
+                                pos,
+                                (tgt - pos).try_normalized().unwrap_or_default(),
+                                1.0,
+                                time,
+                            ));
+                        },
+                        PathState::Exhausted => {
+                            // Upgrade path length if path is exhausted and we're at the same
+                            // position.
+                            if self.astar.as_ref().is_some_and(|(.., start)| {
+                                start.distance_squared(pos) < traversal_cfg.node_tolerance.powi(2)
+                            }) {
+                                match self.path_length {
+                                    PathLength::Small => {
+                                        self.path_length = PathLength::Medium;
+                                    },
+                                    PathLength::Medium => {
+                                        self.path_length = PathLength::Long;
+                                    },
+                                    PathLength::Long => {
+                                        self.path_length = PathLength::Longest;
+                                    },
+                                    PathLength::Longest => {
+                                        self.flee_from = Some(pos);
+                                        self.astar = None;
+                                    },
+                                }
+                            } else {
+                                self.astar = None;
+                            }
+                        },
+                        PathState::Pending | PathState::Path => {},
+                    },
                 }
             }
+
+            let (bearing, speed) = res.ok()?;
+
+            return Some(self.stuck_check(pos, bearing, speed, time));
         }
+
+        None
     }
 
-    pub fn get_route(&self) -> Option<&Route> { self.route.as_ref().map(|(r, _)| r) }
+    pub fn get_route(&self) -> Option<&Route> { self.route.as_ref().map(|(r, ..)| r) }
 
     pub fn last_target(&self) -> Option<Vec3<f32>> { self.last_search_tgt }
+
+    pub fn state(&self) -> (PathLength, PathState) { (self.path_length, self.path_state) }
+
+    pub fn last_update_time(&self) -> Time {
+        self.last_update_time.unwrap_or(Time(f64::NEG_INFINITY))
+    }
 }
 
-fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
+fn walkable<V>(vol: &V, pos: Vec3<i32>, is_target_loaded: bool) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    let below = vol
-        .get(pos - Vec3::unit_z())
-        .ok()
-        .copied()
-        .unwrap_or_else(Block::empty);
+    let mut below_z = 1;
+    // We loop downwards
+    let below = loop {
+        if let Some(block) = vol.get(pos - Vec3::unit_z() * below_z).ok().copied() {
+            if block.is_solid() || block.is_liquid() {
+                break block;
+            }
+
+            below_z += 1;
+
+            if below_z > Block::MAX_HEIGHT.ceil() as i32 {
+                break Block::empty();
+            }
+        } else if is_target_loaded {
+            break Block::empty();
+        } else {
+            // If not loaded assume we can walk there.
+            break Block::new(crate::terrain::BlockKind::Misc, Default::default());
+        }
+    };
+
     let a = vol.get(pos).ok().copied().unwrap_or_else(Block::empty);
     let b = vol
         .get(pos + Vec3::unit_z())
@@ -534,7 +784,12 @@ where
         .copied()
         .unwrap_or_else(Block::empty);
 
-    let on_ground = below.is_filled();
+    let on_ground = (below_z == 1 && below.is_filled())
+        || below.get_sprite().is_some_and(|sprite| {
+            sprite
+                .solid_height()
+                .is_some_and(|h| ((below_z - 1) as f32) < h && h <= below_z as f32)
+        });
     let in_liquid = a.is_liquid();
     (on_ground || in_liquid) && !a.is_solid() && !b.is_solid()
 }
@@ -548,17 +803,22 @@ pub struct Node {
 
 /// Attempt to search for a path to a target, returning the path (if one was
 /// found) and whether it is complete (reaches the target)
+///
+/// If `flee_from` is `Some` this will attempt to both walk away from that
+/// position and towards the target.
 fn find_path<V>(
-    astar: &mut Option<Astar<Node, FxBuildHasher>>,
+    astar: &mut Option<(Astar<Node, FxBuildHasher>, Vec3<f32>)>,
     vol: &V,
     startf: Vec3<f32>,
     endf: Vec3<f32>,
     traversal_cfg: &TraversalConfig,
-) -> (Option<Path<Vec3<i32>>>, bool)
+    path_length: PathLength,
+    flee_from: Option<Vec3<f32>>,
+) -> PathResult<Vec3<i32>>
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    let is_walkable = |pos: &Vec3<i32>| walkable(vol, *pos);
+    let is_walkable = |pos: &Vec3<i32>| walkable(vol, *pos, traversal_cfg.is_target_loaded);
     let get_walkable_z = |pos| {
         let mut z_incr = 0;
         for _ in 0..32 {
@@ -571,6 +831,7 @@ where
         None
     };
 
+    // Find walkable ground for start and end.
     let (start, end) = match (
         get_walkable_z(startf.map(|e| e.floor() as i32)),
         get_walkable_z(endf.map(|e| e.floor() as i32)),
@@ -582,10 +843,19 @@ where
             (start, endf.map(|e| e.floor() as i32))
         },
 
-        _ => return (None, false),
+        _ => return PathResult::None(Path::default()),
     };
 
-    let heuristic = |node: &Node| node.pos.as_().distance(end.as_());
+    let heuristic = |node: &Node| {
+        let diff = end.as_::<f32>() - node.pos.as_::<f32>();
+        let d = diff.magnitude();
+
+        d - flee_from.map_or(0.0, |p| {
+            let ndiff = p - node.pos.as_::<f32>() - 0.5;
+            let nd = ndiff.magnitude();
+            nd.sqrt() * ((diff / d).dot(ndiff / nd) + 0.1).max(0.0) * 10.0
+        })
+    };
     let transition = |a: Node, b: Node| {
         1.0
             // Discourage travelling in the same direction for too long: this encourages
@@ -593,29 +863,29 @@ where
             // line toward the target.
             + b.last_dir_count as f32 * 0.01
             // Penalise jumping
-            + (b.pos.z - a.pos.z).max(0) as f32 * 2.0
+            + (b.pos.z - a.pos.z + 1).max(0) as f32 * 2.0
     };
     let neighbors = |node: &Node| {
         let node = *node;
         let pos = node.pos;
-        const DIRS: [Vec3<i32>; 17] = [
-            Vec3::new(0, 1, 0),   // Forward
-            Vec3::new(0, 1, 1),   // Forward upward
-            Vec3::new(0, 1, -1),  // Forward downward
-            Vec3::new(0, 1, -2),  // Forward downwardx2
-            Vec3::new(1, 0, 0),   // Right
-            Vec3::new(1, 0, 1),   // Right upward
-            Vec3::new(1, 0, -1),  // Right downward
-            Vec3::new(1, 0, -2),  // Right downwardx2
-            Vec3::new(0, -1, 0),  // Backwards
-            Vec3::new(0, -1, 1),  // Backward Upward
-            Vec3::new(0, -1, -1), // Backward downward
-            Vec3::new(0, -1, -2), // Backward downwardx2
-            Vec3::new(-1, 0, 0),  // Left
-            Vec3::new(-1, 0, 1),  // Left upward
-            Vec3::new(-1, 0, -1), // Left downward
-            Vec3::new(-1, 0, -2), // Left downwardx2
-            Vec3::new(0, 0, -1),  // Downwards
+        const DIRS: [Vec3<i32>; 9] = [
+            Vec3::new(0, 1, 0), // Forward
+            Vec3::new(0, 1, 1), // Forward upward
+            // Vec3::new(0, 1, -1),  // Forward downward
+            // Vec3::new(0, 1, -2),  // Forward downwardx2
+            Vec3::new(1, 0, 0), // Right
+            Vec3::new(1, 0, 1), // Right upward
+            // Vec3::new(1, 0, -1),  // Right downward
+            // Vec3::new(1, 0, -2),  // Right downwardx2
+            Vec3::new(0, -1, 0), // Backwards
+            Vec3::new(0, -1, 1), // Backward Upward
+            // Vec3::new(0, -1, -1), // Backward downward
+            // Vec3::new(0, -1, -2), // Backward downwardx2
+            Vec3::new(-1, 0, 0), // Left
+            Vec3::new(-1, 0, 1), // Left upward
+            // Vec3::new(-1, 0, -1), // Left downward
+            // Vec3::new(-1, 0, -2), // Left downwardx2
+            Vec3::new(0, 0, -1), // Downwards
         ];
 
         const JUMPS: [Vec3<i32>; 4] = [
@@ -625,12 +895,28 @@ where
             Vec3::new(-1, 0, 2), // Left Upwardx2
         ];
 
-        // let walkable = [
-        //     is_walkable(&(pos + Vec3::new(1, 0, 0))),
-        //     is_walkable(&(pos + Vec3::new(-1, 0, 0))),
-        //     is_walkable(&(pos + Vec3::new(0, 1, 0))),
-        //     is_walkable(&(pos + Vec3::new(0, -1, 0))),
-        // ];
+        /// The cost of falling a block.
+        const FALL_COST: f32 = 1.5;
+
+        let walkable = [
+            (is_walkable(&(pos + Vec3::new(1, 0, 0))), Vec3::new(1, 0, 0)),
+            (
+                is_walkable(&(pos + Vec3::new(-1, 0, 0))),
+                Vec3::new(-1, 0, 0),
+            ),
+            (is_walkable(&(pos + Vec3::new(0, 1, 0))), Vec3::new(0, 1, 0)),
+            (
+                is_walkable(&(pos + Vec3::new(0, -1, 0))),
+                Vec3::new(0, -1, 0),
+            ),
+        ];
+
+        // Discourage walking alog walls/edges.
+        let edge_cost = if path_length < PathLength::Medium {
+            walkable.iter().any(|(w, _)| !*w) as i32 as f32
+        } else {
+            0.0
+        };
 
         // const DIAGONALS: [(Vec3<i32>, [usize; 2]); 8] = [
         //     (Vec3::new(1, 1, 0), [0, 2]),
@@ -686,8 +972,36 @@ where
                     },
                 };
 
-                (next_node, transition(node, next_node))
+                (
+                    next_node,
+                    transition(node, next_node) + if dir.z == 0 { edge_cost } else { 0.0 },
+                )
             })
+            // Falls
+            .chain(walkable.into_iter().filter_map(move |(w, dir)| {
+                let pos = pos + dir;
+                if w ||
+                    vol.get(pos).map(|b| b.is_solid()).unwrap_or(true) ||
+                    vol.get(pos + Vec3::unit_z()).map(|b| b.is_solid()).unwrap_or(true) {
+                    return None;
+                }
+
+                let down = (1..12).find(|i| is_walkable(&(pos - Vec3::unit_z() * *i)))?;
+
+                let next_node = Node {
+                    pos: pos - Vec3::unit_z() * down,
+                    last_dir: dir.xy(),
+                    last_dir_count: 0,
+                };
+
+                // Falling costs a lot.
+                Some((next_node, match down {
+                    1..=2 => {
+                        transition(node, next_node)
+                    }
+                    _ => FALL_COST * (down - 2) as f32,
+                }))
+            }))
         // .chain(
         //     DIAGONALS
         //         .iter()
@@ -700,46 +1014,50 @@ where
 
     let satisfied = |node: &Node| node.pos == end;
 
-    let mut new_astar = match astar.take() {
-        None => Astar::new(
-            if traversal_cfg.is_target_loaded {
-                // Normal mode
-                50_000
-            } else {
-                // Most of the times we would need to plot within current chunk,
-                // so half of intra-site limit should be enough in most cases
-                500
-            },
-            Node {
-                pos: start,
-                last_dir: Vec2::zero(),
-                last_dir_count: 0,
-            },
-            FxBuildHasher::default(),
-        ),
-        Some(astar) => astar,
+    if astar
+        .as_ref()
+        .is_some_and(|(_, start)| start.distance_squared(startf) > 4.0)
+    {
+        *astar = None;
+    }
+    let max_iters = match path_length {
+        PathLength::Small => 500,
+        PathLength::Medium => 5000,
+        PathLength::Long => 25_000,
+        PathLength::Longest => 75_000,
     };
 
-    let path_result = new_astar.poll(250, heuristic, neighbors, satisfied);
+    let (astar, _) = astar.get_or_insert_with(|| {
+        (
+            Astar::new(
+                max_iters,
+                Node {
+                    pos: start,
+                    last_dir: Vec2::zero(),
+                    last_dir_count: 0,
+                },
+                FxBuildHasher::default(),
+            ),
+            startf,
+        )
+    });
 
-    let (path, finished) = match path_result {
-        PathResult::Path(path, _cost) => (Some(path), true),
-        PathResult::None(path) => (Some(path), false),
-        PathResult::Exhausted(path) => (Some(path), false),
+    astar.set_max_iters(max_iters);
 
-        PathResult::Pending => {
-            // Keep astar for the next iteration
-            *astar = Some(new_astar);
-
-            (None, false)
+    let path_result = astar.poll(
+        match path_length {
+            PathLength::Small => 250,
+            PathLength::Medium => 400,
+            PathLength::Long => 500,
+            PathLength::Longest => 750,
         },
-    };
-    (
-        path.map(|path| path.nodes.into_iter().map(|n| n.pos).collect()),
-        finished,
-    )
-}
+        heuristic,
+        neighbors,
+        satisfied,
+    );
 
+    path_result.map(|path| path.nodes.into_iter().map(|n| n.pos).collect())
+}
 // Enable when airbraking/sensible flight is a thing
 #[cfg(feature = "rrt_pathfinding")]
 fn find_air_path<V>(

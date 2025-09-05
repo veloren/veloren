@@ -424,7 +424,7 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
                         .push_event(ControlEvent::InventoryEvent(InventoryEvent::Pickup(*uid)));
                 }
                 bdata.agent.target = None;
-            } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
+            } else if let Some((bearing, speed, stuck)) = bdata.agent.chaser.chase(
                 &*bdata.read_data.terrain,
                 bdata.agent_data.pos.0,
                 bdata.agent_data.vel.0,
@@ -433,7 +433,9 @@ fn do_pickup_loot(bdata: &mut BehaviorData) -> bool {
                     min_tgt_dist: NPC_PICKUP_RANGE - 1.0,
                     ..bdata.agent_data.traversal_config
                 },
+                &bdata.read_data.time,
             ) {
+                bdata.agent_data.unstuck_if(stuck, bdata.controller);
                 bdata.controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                         * speed.min(0.2 + (dist_sqrd - (NPC_PICKUP_RANGE - 1.5).powi(2)) / 8.0);
@@ -487,7 +489,7 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
                     kind: common::interaction::InteractionKind::HelpDowned,
                 });
                 bdata.agent.target = None;
-            } else if let Some((bearing, speed)) = bdata.agent.chaser.chase(
+            } else if let Some((bearing, speed, stuck)) = bdata.agent.chaser.chase(
                 &*bdata.read_data.terrain,
                 bdata.agent_data.pos.0,
                 bdata.agent_data.vel.0,
@@ -496,7 +498,9 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
                     min_tgt_dist: MAX_INTERACT_RANGE * 0.5,
                     ..bdata.agent_data.traversal_config
                 },
+                &bdata.read_data.time,
             ) {
+                bdata.agent_data.unstuck_if(stuck, bdata.controller);
                 bdata.controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                         * speed
@@ -968,8 +972,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     agent_data.choose_target(agent, controller, read_data, AgentData::is_enemy);
                 }
 
+                let target_data = TargetData::new(tgt_pos, target, read_data);
+
                 if aggro_on {
-                    let target_data = TargetData::new(tgt_pos, target, read_data);
                     // let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
 
                     // TODO: Reimplement in rtsim2
@@ -981,9 +986,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         agent,
                         controller,
                         target,
+                        &target_data,
                         read_data,
                         emitters,
-                        rng,
                         remembers_fight_with(agent_data.rtsim_entity, read_data, target),
                     );
                     // TODO: Reimplement in rtsim2
