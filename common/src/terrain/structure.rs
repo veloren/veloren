@@ -367,7 +367,7 @@ Sprite in question: {sprite:?}
         for id in specs.read().ids() {
             // Ignore manifest file
             if id != "world.manifests.spots" {
-                let group: Vec<StructureSpec> = Ron::load(id).unwrap_or_else(|e| {
+                let group = Ron::<Vec<StructureSpec>>::load(id).unwrap_or_else(|e| {
                     panic!("failed to load: {id}\n{e:?}");
                 });
                 let group = group.read();
