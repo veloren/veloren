@@ -229,7 +229,7 @@ impl MovementEventMapper {
             (_, CharacterState::Glide(glide))
                 if matches!(glide.booster, Some(states::glide::Boost::Forward(_))) =>
             {
-                if thread_rng().gen_bool(0.5) {
+                if rand::rng().random_bool(0.5) {
                     SfxEvent::FlameThrower
                 } else {
                     SfxEvent::Idle

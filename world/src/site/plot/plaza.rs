@@ -2,7 +2,7 @@ use super::*;
 use crate::{ColumnSample, Land, util::RandomField};
 use common::terrain::{Block, BlockKind};
 use enum_map::EnumMap;
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use strum::IntoEnumIterator;
 use vek::*;
 
@@ -144,8 +144,8 @@ impl Structure for Plaza {
             }
         }
 
-        let rng = &mut thread_rng();
-        if rng.gen_bool(0.05) {
+        let rng = &mut rand::rng();
+        if rng.random_bool(0.05) {
             let spec = [
                 "common.entity.wild.peaceful.cat",
                 "common.entity.wild.peaceful.dog",

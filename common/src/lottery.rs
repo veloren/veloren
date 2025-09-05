@@ -71,7 +71,7 @@ impl<T> Lottery<T> {
         .1
     }
 
-    pub fn choose(&self) -> &T { self.choose_seeded(thread_rng().gen()) }
+    pub fn choose(&self) -> &T { self.choose_seeded(rand::rng().random()) }
 
     pub fn iter(&self) -> impl Iterator<Item = &(f32, T)> { self.items.iter() }
 
@@ -148,7 +148,7 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
             // to keep things well distributed.
             let max_give = (amount / participants.len() as u32).clamp(1, amount - distributed);
             give = give.clamp(1, max_give);
-            let x = rng.gen_range(0.0..=current_total_weight);
+            let x = rng.random_range(0.0..=current_total_weight);
 
             let index = participants
                 .binary_search_by(|item| item.sorted_weight.partial_cmp(&x).unwrap())
@@ -404,7 +404,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                 }
             },
             Self::MultiDrop(loot_spec, lower, upper) => {
-                let sub_amount = rng.gen_range(*lower..=*upper);
+                let sub_amount = rng.random_range(*lower..=*upper);
                 // We saturate at 4 billion items, could use u64 instead if this isn't
                 // desirable.
                 loot_spec.to_items_inner(rng, sub_amount.saturating_mul(amount), items);
@@ -419,7 +419,7 @@ impl<T: AsRef<str>> LootSpec<T> {
 
     pub fn to_items(&self) -> Option<Vec<(u32, Item)>> {
         let mut items = Vec::new();
-        self.to_items_inner(&mut thread_rng(), 1, &mut items);
+        self.to_items_inner(&mut rand::rng(), 1, &mut items);
 
         if !items.is_empty() {
             items.sort_unstable_by_key(|(amount, _)| *amount);
@@ -445,7 +445,7 @@ pub mod tests {
 
     #[cfg(test)]
     pub fn validate_loot_spec(item: &LootSpec<String>) {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         match item {
             LootSpec::Item(item) => {
                 Item::new_from_asset_expect(item);
@@ -528,7 +528,7 @@ pub mod tests {
 
     #[test]
     fn test_distribute_many() {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // Known successful case
         for _ in 0..10 {

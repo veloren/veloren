@@ -108,7 +108,7 @@ pub enum Meta {
 /// // and fill it with template config
 /// let dummy_position = Vec3::new(0.0, 0.0, 0.0);
 /// // rng is required because some elements may be randomly generated
-/// let mut dummy_rng = rand::thread_rng();
+/// let mut dummy_rng = rand::rng();
 /// let entity = EntityInfo::at(dummy_position).with_asset_expect(
 ///     "common.entity.template",
 ///     &mut dummy_rng,
@@ -371,7 +371,7 @@ impl EntityInfo {
                 end = start;
             }
 
-            pet_infos.extend((0..loadout_rng.gen_range(start..=end)).map(|_| {
+            pet_infos.extend((0..loadout_rng.random_range(start..=end)).map(|_| {
                 EntityInfo::at(self.pos).with_entity_config(
                     config.clone(),
                     config_asset,

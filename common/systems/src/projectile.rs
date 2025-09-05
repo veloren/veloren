@@ -102,7 +102,7 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Attacks
         'projectile_loop: for (entity, pos, physics, vel, body, projectile) in (
@@ -119,7 +119,7 @@ impl<'a> System<'a> for Sys {
                 .owner
                 .and_then(|uid| read_data.id_maps.uid_entity(uid));
 
-            if physics.on_surface().is_none() && rng.gen_bool(0.05) {
+            if physics.on_surface().is_none() && rng.random_bool(0.05) {
                 emitters.emit(SoundEvent {
                     sound: Sound::new(SoundKind::Projectile, pos.0, 4.0, read_data.time.0),
                 });
@@ -317,7 +317,7 @@ impl<'a> System<'a> for Sys {
                             };
                             assert!(expected < 1.0);
                             let num_fireworks = (|| {
-                                let x = rng.gen_range(0.0..1.0);
+                                let x = rng.random_range(0.0..1.0);
                                 for (p, n) in thresholds {
                                     if x < *p {
                                         return *n;
@@ -326,9 +326,9 @@ impl<'a> System<'a> for Sys {
                                 0
                             })();
                             for _ in 0..num_fireworks {
-                                let speed: f32 = rng.gen_range(40.0..80.0);
-                                let theta: f32 = rng.gen_range(0.0..2.0 * PI);
-                                let phi: f32 = rng.gen_range(0.25 * PI..0.5 * PI);
+                                let speed: f32 = rng.random_range(40.0..80.0);
+                                let theta: f32 = rng.random_range(0.0..2.0 * PI);
+                                let phi: f32 = rng.random_range(0.25 * PI..0.5 * PI);
                                 let dir = Dir::from_unnormalized(Vec3::new(
                                     theta.cos(),
                                     theta.sin(),

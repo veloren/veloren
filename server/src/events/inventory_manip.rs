@@ -132,7 +132,7 @@ impl ServerEvent for InventoryManipEvent {
                 )
             })
         };
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let mut dropped_items = Vec::new();
 

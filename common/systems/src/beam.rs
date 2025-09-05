@@ -142,8 +142,8 @@ impl<'a> System<'a> for Sys {
                  (entity, pos, ori, uid, beam)| {
                     // Note: rayon makes it difficult to hold onto a thread-local RNG, if grabbing
                     // this becomes a bottleneck we can look into alternatives.
-                    let mut rng = rand::thread_rng();
-                    if rng.gen_bool(0.005) {
+                    let mut rng = rand::rng();
+                    if rng.random_bool(0.005) {
                         emitters.emit(event::SoundEvent {
                             sound: Sound::new(SoundKind::Beam, pos.0, 13.0, read_data.time.0),
                         });

@@ -101,7 +101,7 @@ pub fn get_transform(state: &State, entity: Entity) -> Result<(Pos, Vel, Ori), B
 
 pub fn create_player(state: &mut State) -> Entity {
     let body = common::comp::Body::Humanoid(common::comp::humanoid::Body::random_with(
-        &mut thread_rng(),
+        &mut rand::rng(),
         &common::comp::humanoid::Species::Human,
     ));
     let (p0, p1, radius) = body.sausage();
@@ -146,12 +146,12 @@ pub fn generate_chunk(state: &mut State, chunk_pos: Vec2<i32>) {
         y[3], x[0], x[1], x[2], x[3], y[0], y[1], y[2], y[3], x[0], x[1], x[2], x[3], y[0], y[1],
         y[2], y[3],
     ]);
-    let height = rng.gen::<i32>() % 8;
+    let height = rng.random::<i32>() % 8;
 
     state.ecs().write_resource::<TerrainGrid>().insert(
         chunk_pos,
         Arc::new(TerrainChunk::new(
-            256 + if rng.gen::<u8>() < 64 { height } else { 0 },
+            256 + if rng.random::<u8>() < 64 { height } else { 0 },
             Block::new(BlockKind::Grass, Rgb::new(11, 102, 35)),
             Block::air(SpriteKind::Empty),
             TerrainChunkMeta::void(),

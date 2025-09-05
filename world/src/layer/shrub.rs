@@ -9,7 +9,7 @@ use common::{
     terrain::structure::{Structure, StructuresGroup},
 };
 use lazy_static::lazy_static;
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use rand_chacha::ChaChaRng;
 use vek::*;
 
@@ -40,7 +40,7 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
             const BASE_SHRUB_DENSITY: f64 = 0.15;
-            if rng.gen_bool((BASE_SHRUB_DENSITY * col.tree_density as f64).clamped(0.0, 1.0))
+            if rng.random_bool((BASE_SHRUB_DENSITY * col.tree_density as f64).clamped(0.0, 1.0))
                 && col.water_dist.is_none_or(|d| d > 8.0)
                 && col.alt > col.water_level
                 && col.spawn_rate > 0.9
@@ -53,7 +53,7 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     .make_forest_lottery(wpos)
                     .choose_seeded(seed)
                     .as_ref()?;
-                if rng.gen_bool(kind.shrub_density_factor() as f64) {
+                if rng.random_bool(kind.shrub_density_factor() as f64) {
                     Some(Shrub {
                         wpos: wpos.with_z(col.alt as i32),
                         seed,

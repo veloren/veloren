@@ -14,7 +14,7 @@ use crate::{
     },
     util::Dir,
 };
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -150,7 +150,7 @@ impl CharacterBehavior for Data {
                             // spread, and spread increases linearly
                             // with number of projectiles created.
                             Dir::from_unnormalized(look_dir.map(|x| {
-                                let offset = (2.0 * thread_rng().gen::<f32>() - 1.0)
+                                let offset = (2.0 * rng().random::<f32>() - 1.0)
                                     * self.static_data.projectile_spread
                                     * i as f32;
                                 x + offset

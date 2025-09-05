@@ -19,7 +19,7 @@ use common::{
 };
 use image::{DynamicImage, GenericImage, ImageEncoder, codecs::png::PngEncoder};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use rayon::ThreadPool;
 use serde::{Deserialize, Serialize};
 use tracing::{Level, Span, debug, error, info, info_span};
@@ -77,9 +77,9 @@ impl BatchGenerateConfig {
         GenOpts {
             x_lg: self.size.0,
             y_lg: self.size.1,
-            scale: thread_rng().gen_range(self.scale.clone()),
+            scale: rng().random_range(self.scale.clone()),
             map_kind: self.kind,
-            erosion_quality: thread_rng().gen_range(self.erosion_quality.clone()),
+            erosion_quality: rng().random_range(self.erosion_quality.clone()),
         }
     }
 }
@@ -341,7 +341,7 @@ fn do_batch_generate(
                     progress.set_prefix(format!("Map {}", map_i));
                 }
 
-                let seed = thread_rng().gen::<u32>();
+                let seed = rand::rng().random::<u32>();
                 let span = info_span!("generate", map_i, thread_id);
                 let _guard = span.enter();
                 let gen_opts = config.gen_rand();

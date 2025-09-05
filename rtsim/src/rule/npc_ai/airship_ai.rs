@@ -832,7 +832,7 @@ fn fly_airship_inner(
                             ctx.controller
                                 .say(None, Content::localized("npc-speech-pilot-continue_hold"));
                         }
-                        airship_context.hold_timer = ctx.rng.gen_range(10.0..20.0);
+                        airship_context.hold_timer = ctx.rng.random_range(10.0..20.0);
                     }
                     // Hold position (same idea as holding station at the dock except allow
                     // oscillations)
@@ -1109,7 +1109,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(12.5..16.0) * (current_approach.height as f64 / Airships::CRUISE_HEIGHTS[0] as f64) * 1.3)))
+                .stop_if(timeout(ctx.rng.random_range(12.5..16.0) * (current_approach.height as f64 / Airships::CRUISE_HEIGHTS[0] as f64) * 1.3)))
             .then(
                 just(|ctx: &mut NpcCtx, _| {
                     log_airship_position(ctx, &AirshipFlightPhase::Transition);
@@ -1127,7 +1127,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                         );
                 })
                 .repeat()
-                .stop_if(timeout(ctx.rng.gen_range(6.5..8.0))))
+                .stop_if(timeout(ctx.rng.random_range(6.5..8.0))))
             // Announce arrival
             .then(just(|ctx: &mut NpcCtx, _| {
                 log_airship_position(ctx, &AirshipFlightPhase::Docked);
@@ -1174,7 +1174,7 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                         );
                     })
                     .repeat()
-                    .stop_if(timeout(ctx.rng.gen_range(10.0..16.0)))
+                    .stop_if(timeout(ctx.rng.random_range(10.0..16.0)))
                     // While waiting, every now and then announce where the airship is going next.
                     .then(
                         just(move |ctx, _| {

@@ -8,7 +8,7 @@ use std::{
 };
 
 use protocol::Parcel;
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use tokio::{net::UdpSocket, sync::watch};
 use tracing::{debug, error, trace};
 
@@ -63,8 +63,8 @@ impl QueryServer {
         let mut socket = UdpSocket::bind(self.addr).await?;
 
         let gen_secret = || {
-            let mut rng = thread_rng();
-            (rng.gen::<u64>(), rng.gen::<u64>())
+            let mut rng = rng();
+            (rng.random::<u64>(), rng.random::<u64>())
         };
         let mut secrets = gen_secret();
         let mut last_secret_refresh = Instant::now();

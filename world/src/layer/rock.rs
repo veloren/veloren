@@ -29,7 +29,7 @@ pub fn apply_rocks_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
             const BASE_ROCK_DENSITY: f64 = 0.15;
-            if rng.gen_bool((BASE_ROCK_DENSITY * col.rock_density as f64).clamped(0.0, 1.0))
+            if rng.random_bool((BASE_ROCK_DENSITY * col.rock_density as f64).clamped(0.0, 1.0))
                 && col.path.is_none_or(|(d, _, _, _)| d > 6.0)
             {
                 match (
@@ -38,17 +38,17 @@ pub fn apply_rocks_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     col.water_dist.map_or(i32::MAX, |d| d as i32),
                 ) {
                     (-3..=2, _, _) => {
-                        if rng.gen_bool(0.3) {
+                        if rng.random_bool(0.3) {
                             Some(RockKind::Rauk(Pillar::generate(&mut rng)))
                         } else {
                             Some(RockKind::Rock(VoronoiCell::generate(
-                                rng.gen_range(1.0..3.0),
+                                rng.random_range(1.0..3.0),
                                 &mut rng,
                             )))
                         }
                     },
                     (_, -15..=3, _) => Some(RockKind::Rock(VoronoiCell::generate(
-                        rng.gen_range(1.0..4.0),
+                        rng.random_range(1.0..4.0),
                         &mut rng,
                     ))),
                     (5..=i32::MAX, _, 0..=i32::MAX) => {
@@ -56,12 +56,12 @@ pub fn apply_rocks_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                             && col.humidity < CONFIG.desert_hum + 0.1
                         {
                             Some(RockKind::Sandstone(VoronoiCell::generate(
-                                rng.gen_range(2.0..20.0 - 10.0 * col.tree_density),
+                                rng.random_range(2.0..20.0 - 10.0 * col.tree_density),
                                 &mut rng,
                             )))
                         } else {
                             Some(RockKind::Rock(VoronoiCell::generate(
-                                rng.gen_range(2.0..20.0 - 10.0 * col.tree_density),
+                                rng.random_range(2.0..20.0 - 10.0 * col.tree_density),
                                 &mut rng,
                             )))
                         }
@@ -130,9 +130,9 @@ impl VoronoiCell {
         for (i, p) in NEIGHBORS3.iter().enumerate() {
             points[i] = p.as_() * size
                 + Vec3::new(
-                    rng.gen_range(-0.5..=0.5) * size,
-                    rng.gen_range(-0.5..=0.5) * size,
-                    rng.gen_range(-0.5..=0.5) * size,
+                    rng.random_range(-0.5..=0.5) * size,
+                    rng.random_range(-0.5..=0.5) * size,
+                    rng.random_range(-0.5..=0.5) * size,
                 );
         }
         Self { size, points }
@@ -161,12 +161,12 @@ struct Pillar {
 impl Pillar {
     fn generate(rng: &mut impl Rng) -> Self {
         let extents = [
-            Vec2::new(rng.gen_range(0.5..1.5), rng.gen_range(0.5..1.5)),
-            Vec2::new(rng.gen_range(0.8..2.8), rng.gen_range(0.8..2.8)),
-            Vec2::new(rng.gen_range(0.5..1.5), rng.gen_range(0.5..3.5)),
+            Vec2::new(rng.random_range(0.5..1.5), rng.random_range(0.5..1.5)),
+            Vec2::new(rng.random_range(0.8..2.8), rng.random_range(0.8..2.8)),
+            Vec2::new(rng.random_range(0.5..1.5), rng.random_range(0.5..3.5)),
         ];
         Self {
-            height: rng.gen_range(6.0..16.0),
+            height: rng.random_range(6.0..16.0),
             extents,
             max_extent: extents
                 .iter()

@@ -9,7 +9,7 @@ use common::{
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
 };
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use rand_chacha::ChaChaRng;
 use std::ops::Range;
 use vek::*;
@@ -350,7 +350,7 @@ impl SpotGenerate for Spot {
                 / 1000.0f32.powi(2))
             .ceil() as u64
         {
-            let pos = world_size.map(|e| (world.rng.gen_range(0..e) & !0b11) as i32);
+            let pos = world_size.map(|e| (world.rng.random_range(0..e) & !0b11) as i32);
             if let Some((_, chunk)) = world
                 .get_gradient_approx(pos)
                 .zip(world.get_mut(pos))
@@ -559,9 +559,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         // Spawn entities
         const PHI: f32 = 1.618;
         for (spawn_count, spec) in spot_config.entities {
-            let spawn_count = rng.gen_range(spawn_count.clone()).max(0);
+            let spawn_count = rng.random_range(spawn_count.clone()).max(0);
 
-            let dir_offset = rng.gen::<f32>();
+            let dir_offset = rng.random::<f32>();
             for i in 0..spawn_count {
                 let dir = Vec2::new(
                     ((dir_offset + i as f32 * PHI) * std::f32::consts::TAU).sin(),

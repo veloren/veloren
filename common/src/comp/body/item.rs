@@ -134,7 +134,7 @@ impl Body {
     pub fn dimensions(&self) -> Vec3<f32> { Vec3::new(0.0, 0.1, 0.0) }
 
     pub fn orientation(&self, rng: &mut impl Rng) -> Ori {
-        let random = rng.gen_range(-1.0..1.0f32);
+        let random = rng.random_range(-1.0..1.0f32);
         let default = Ori::default();
         match self {
             Body::Tool(_) | Body::Thrown(_) => default
@@ -143,8 +143,8 @@ impl Body {
                 .pitched_towards(
                     Dir::from_unnormalized(Vec3::new(
                         random,
-                        rng.gen_range(-1.0..1.0f32),
-                        rng.gen_range(-1.0..1.0f32),
+                        rng.random_range(-1.0..1.0f32),
+                        rng.random_range(-1.0..1.0f32),
                     ))
                     .unwrap_or_default(),
                 ),

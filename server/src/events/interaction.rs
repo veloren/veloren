@@ -303,7 +303,7 @@ impl ServerEvent for MineBlockEvent {
         ): Self::SystemData<'_>,
     ) {
         use rand::Rng;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut create_item_drop_emitter = create_item_drop_events.emitter();
         let mut sound_event_emitter = sound_events.emitter();
         let mut outcome_emitter = outcomes.emitter();
@@ -409,7 +409,7 @@ impl ServerEvent for MineBlockEvent {
                             // with a chance
                             if !is_broken {
                                 items.retain(|item| {
-                                    rng.gen_bool(
+                                    rng.random_bool(
                                         0.5 + item
                                             .item_definition_id()
                                             .itemdef_id()
@@ -435,9 +435,9 @@ impl ServerEvent for MineBlockEvent {
                                 pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
                                 vel: comp::Vel(
                                     Vec2::unit_x()
-                                        .rotated_z(rng.gen::<f32>() * PI * 2.0)
+                                        .rotated_z(rng.random::<f32>() * PI * 2.0)
                                         .mul(4.0)
-                                        .with_z(rng.gen_range(5.0..10.0)),
+                                        .with_z(rng.random_range(5.0..10.0)),
                                 ),
                                 ori: comp::Ori::from(Dir::random_2d(&mut rng)),
                                 item: comp::PickupItem::new(item, *program_time, false),
@@ -545,8 +545,8 @@ impl ServerEvent for CreateSpriteEvent {
                     // Remove sprite after del_timeout and offset if specified
                     if let Some((timeout, del_offset)) = ev.del_timeout {
                         use rand::Rng;
-                        let mut rng = rand::thread_rng();
-                        let offset = rng.gen_range(0.0..del_offset);
+                        let mut rng = rand::rng();
+                        let offset = rng.random_range(0.0..del_offset);
                         let current_time: f64 = time.0;
                         let replace_time = current_time + (timeout + offset) as f64;
                         if old_block != new_block {

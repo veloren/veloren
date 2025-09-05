@@ -76,7 +76,7 @@ use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAr
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
-use rand::{Rng, thread_rng};
+use rand::{Rng, rng};
 use specs::{Builder, Entity as EcsEntity, Join, LendJoin, WorldExt, storage::StorageEntry};
 use std::{
     fmt::Write, net::SocketAddr, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc,
@@ -584,18 +584,22 @@ fn handle_drop_all(
         items = inventory.drain().collect();
     }
 
-    let mut rng = thread_rng();
+    let mut rng = rng();
 
     let item_to_place = items
         .into_iter()
         .filter(|i| !matches!(i.quality(), Quality::Debug));
     for item in item_to_place {
-        let vel = Vec3::new(rng.gen_range(-0.1..0.1), rng.gen_range(-0.1..0.1), 0.5);
+        let vel = Vec3::new(
+            rng.random_range(-0.1..0.1),
+            rng.random_range(-0.1..0.1),
+            0.5,
+        );
 
         server.state.create_item_drop(
             comp::Pos(Vec3::new(
-                pos.0.x + rng.gen_range(5.0..10.0),
-                pos.0.y + rng.gen_range(5.0..10.0),
+                pos.0.x + rng.random_range(5.0..10.0),
+                pos.0.y + rng.random_range(5.0..10.0),
                 pos.0.z + 5.0,
             )),
             comp::Ori::default(),
@@ -867,7 +871,7 @@ fn handle_into_npc(
         },
     };
 
-    let mut loadout_rng = thread_rng();
+    let mut loadout_rng = rng();
     let entity_info = EntityInfo::at(
         server
             .state
@@ -928,7 +932,7 @@ fn handle_make_npc(
         },
     };
 
-    let mut loadout_rng = thread_rng();
+    let mut loadout_rng = rng();
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
         let entity_info = EntityInfo::at(pos).with_entity_config(
@@ -1310,12 +1314,12 @@ fn handle_goto_rand(
     args: Vec<String>,
     _action: &ServerChatCommand,
 ) -> CmdResult<()> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let map_size = server.world.sim().map_size_lg().vec();
     let chunk_side = 2_u32.pow(TERRAIN_CHUNK_BLOCKS_LG);
     let pos2d = Vec2::new(
-        rng.gen_range(0..(2_u32.pow(map_size.x) * chunk_side)) as f32,
-        rng.gen_range(0..(2_u32.pow(map_size.y) * chunk_side)) as f32,
+        rng.random_range(0..(2_u32.pow(map_size.x) * chunk_side)) as f32,
+        rng.random_range(0..(2_u32.pow(map_size.y) * chunk_side)) as f32,
     );
     let pos3d = pos2d.with_z(server.world.sim().get_surface_alt_approx(pos2d.as_()));
     server.state.position_mut(
@@ -1359,8 +1363,6 @@ fn resolve_site(
     common::store::Id<world::site::Site>,
     Option<common::store::Id<world::site::Plot>>,
 )> {
-    use rand::seq::IteratorRandom;
-
     if let Some(id) = key.strip_prefix("rtsim@") {
         let id = id
             .parse::<u64>()
@@ -1390,6 +1392,7 @@ fn resolve_site(
     }
 
     if let Some(plot_name) = key.strip_prefix("plot:") {
+        use rand::seq::IteratorRandom;
         let plot_name = plot_name.to_lowercase();
         return server
             .index
@@ -1401,7 +1404,7 @@ fn resolve_site(
                     .filter(|(_, plot)| plot.kind().to_string().to_lowercase().contains(&plot_name))
                     .map(move |(plot_id, _)| (id, Some(plot_id)))
             })
-            .choose(&mut thread_rng())
+            .choose(&mut rng())
             .ok_or_else(|| {
                 Content::Plain(format!("Couldn't find a plot with the key '{plot_name}'"))
             });
@@ -2210,8 +2213,8 @@ fn handle_spawn(
 
             for _ in 0..amount {
                 let vel = Vec3::new(
-                    thread_rng().gen_range(-2.0..3.0),
-                    thread_rng().gen_range(-2.0..3.0),
+                    rng().random_range(-2.0..3.0),
+                    rng().random_range(-2.0..3.0),
                     10.0,
                 );
 
@@ -2308,8 +2311,8 @@ fn handle_spawn_training_dummy(
 ) -> CmdResult<()> {
     let pos = position(server, target, "target")?;
     let vel = Vec3::new(
-        thread_rng().gen_range(-2.0..3.0),
-        thread_rng().gen_range(-2.0..3.0),
+        rng().random_range(-2.0..3.0),
+        rng().random_range(-2.0..3.0),
         10.0,
     );
 
@@ -2369,7 +2372,7 @@ fn handle_spawn_airship(
             .find(|body| format!("{body:?}") == body_name)
             .ok_or_else(|| Content::Plain(format!("No such airship '{body_name}'.")))?
     } else {
-        comp::ship::Body::random_airship_with(&mut thread_rng())
+        comp::ship::Body::random_airship_with(&mut rng())
     };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
@@ -2416,7 +2419,7 @@ fn handle_spawn_ship(
             .find(|body| format!("{body:?}") == body_name)
             .ok_or_else(|| Content::Plain(format!("No such airship '{body_name}'.")))?
     } else {
-        comp::ship::Body::random_airship_with(&mut thread_rng())
+        comp::ship::Body::random_airship_with(&mut rng())
     };
     let ori = comp::Ori::from(common::util::Dir::new(dir.unwrap_or(Vec3::unit_y())));
     let mut builder = server
@@ -3249,7 +3252,7 @@ fn push_item(
             material,
             hands,
         }) => {
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             vec![
                 comp::item::modular::random_weapon(tool, material, hands, &mut rng)
                     .map_err(|err| Content::Plain(format!("{:#?}", err)))?,
@@ -3470,7 +3473,7 @@ fn handle_outcome(
         };
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     let outcome = arg!("command-outcome-variant_expected")?;
 
@@ -3544,7 +3547,7 @@ fn handle_outcome(
                 target: uid_arg!().unwrap_or(target_uid),
                 by: uid_arg!().map(common::combat::DamageContributor::Solo).ok(),
                 cause: None,
-                instance: rng.gen(),
+                instance: rng.random(),
             },
         },
         "Death" => Outcome::Death { pos: pos_arg!() },

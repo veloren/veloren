@@ -110,7 +110,7 @@ pub fn main() {
                             let b = s.to_le_bytes();
                             std::array::from_fn(|i| b[i % b.len()])
                         })
-                        .unwrap_or(rand::thread_rng().gen()),
+                        .unwrap_or(rand::rng().random()),
                 );
                 // TODO: Could have args te specify calendar too.
                 let info =

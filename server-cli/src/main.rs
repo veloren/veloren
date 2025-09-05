@@ -33,6 +33,7 @@ use common::{
 };
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
+use rand::distr::SampleString;
 use server::{Event, Input, Server, persistence::DatabaseSettings, settings::Protocol};
 use std::{
     io,
@@ -227,8 +228,8 @@ fn main() -> io::Result<()> {
     let ui_api_secret = settings.ui_api_secret.clone().unwrap_or_else(|| {
         // when no secret is provided we generate one that we distribute via the /ui
         // endpoint
-        use rand::distributions::{Alphanumeric, DistString};
-        Alphanumeric.sample_string(&mut rand::thread_rng(), 32)
+        use rand::distr::Alphanumeric;
+        Alphanumeric.sample_string(&mut rand::rng(), 32)
     });
 
     let (web_ui_request_s, web_ui_request_r) = tokio::sync::mpsc::channel(1000);

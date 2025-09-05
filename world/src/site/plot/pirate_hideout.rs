@@ -41,20 +41,20 @@ impl Structure for PirateHideout {
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let center = self.bounds.center();
         let base = land.get_alt_approx(center) as i32;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let model_pos = center.with_z(base - 2);
         // model
         lazy_static! {
             pub static ref MODEL: AssetHandle<StructuresGroup> =
                 PrefabStructure::load_group("site_structures.pirate_hideout.pirate_hideout");
         }
-        let rng = RandomField::new(0).get(model_pos) % 10;
+        let rng_val = RandomField::new(0).get(model_pos) % 10;
         let model = MODEL.read();
-        let model = model[rng as usize % model.len()].clone();
+        let model = model[rng_val as usize % model.len()].clone();
         painter
             .prim(Primitive::Prefab(Box::new(model.clone())))
             .translate(model_pos)
-            .fill(Fill::Prefab(Box::new(model), model_pos, rng));
+            .fill(Fill::Prefab(Box::new(model), model_pos, rng_val));
 
         // npcs
         let npc_radius = 15;
@@ -70,7 +70,7 @@ impl Structure for PirateHideout {
                 0 => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(
                         "common.entity.wild.peaceful.rat",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 ),
@@ -78,7 +78,7 @@ impl Structure for PirateHideout {
                 _ => painter.spawn(
                     EntityInfo::at(npc_pos.with_z(base).as_()).with_asset_expect(
                         "common.entity.wild.peaceful.parrot",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 ),

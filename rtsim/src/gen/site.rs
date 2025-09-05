@@ -57,7 +57,7 @@ impl Site {
         Self {
             // This is assigned later
             uid: 0,
-            seed: rng.gen(),
+            seed: rng.random(),
             wpos,
             world_site: Some(world_site_id),
             faction: good_or_evil.and_then(|good_or_evil| {

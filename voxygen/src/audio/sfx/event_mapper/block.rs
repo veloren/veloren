@@ -11,7 +11,7 @@ use client::Client;
 use common::{comp::Pos, spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 use common_state::State;
 use hashbrown::HashMap;
-use rand::{Rng, prelude::*, seq::SliceRandom, thread_rng};
+use rand::{Rng, prelude::*, rng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 use vek::*;
@@ -27,7 +27,7 @@ impl Default for PreviousBlockState {
         Self {
             event: SfxEvent::Idle,
             time: Instant::now()
-                .checked_add(Duration::from_millis(thread_rng().gen_range(0..500)))
+                .checked_add(Duration::from_millis(rng().random_range(0..500)))
                 .unwrap_or_else(Instant::now),
         }
     }
@@ -48,7 +48,7 @@ impl EventMapper for BlockEventMapper {
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
     ) {
-        let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
+        let mut rng = ChaCha8Rng::from_seed(rand::rng().random());
 
         // Get the player position and chunk
         if let Some(player_pos) = state.read_component_copied::<Pos>(player_entity) {
@@ -169,9 +169,9 @@ impl EventMapper for BlockEventMapper {
                 // TODO Address bird hack properly. See TODO below
                 if !(sounds.cond)(state)
                     || (!(sounds.sfx == SfxEvent::Lavapool) && player_pos.0.z < (terrain_alt - 30.0))
-                    || (sounds.sfx == SfxEvent::Birdcall && (rng.gen_bool(0.9925) || client.weather_at_player().rain >= 0.07))
-                    || (sounds.sfx == SfxEvent::Owl && (rng.gen_bool(0.997) || client.weather_at_player().rain >= 0.14))
-                    || (sounds.sfx == SfxEvent::Frog && rng.gen_bool(0.95))
+                    || (sounds.sfx == SfxEvent::Birdcall && (rng.random_bool(0.9925) || client.weather_at_player().rain >= 0.07))
+                    || (sounds.sfx == SfxEvent::Owl && (rng.random_bool(0.997) || client.weather_at_player().rain >= 0.14))
+                    || (sounds.sfx == SfxEvent::Frog && rng.random_bool(0.95))
                     //Crickets will not chirp below 5 Celsius
                     || (sounds.sfx == SfxEvent::Cricket1 && ((temp < -0.33) || client.weather_at_player().rain >= 0.07))
                     || (sounds.sfx == SfxEvent::Cricket2 && ((temp < -0.33) || client.weather_at_player().rain >= 0.07))
@@ -211,10 +211,11 @@ impl EventMapper for BlockEventMapper {
                             // block of interest type which picks fewer leaf blocks
                             // Hack to reduce the number of bird, frog, and water sounds
                             if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
-                                && rng.gen_bool(0.9995))
-                                || (sounds.sfx == SfxEvent::Frog && rng.gen_bool(0.75))
-                                || (sounds.sfx == SfxEvent::RunningWaterSlow && rng.gen_bool(0.5))
-                                || (sounds.sfx == SfxEvent::Lavapool && rng.gen_bool(0.99))
+                                && rng.random_bool(0.9995))
+                                || (sounds.sfx == SfxEvent::Frog && rng.random_bool(0.75))
+                                || (sounds.sfx == SfxEvent::RunningWaterSlow
+                                    && rng.random_bool(0.5))
+                                || (sounds.sfx == SfxEvent::Lavapool && rng.random_bool(0.99))
                             {
                                 continue;
                             }
@@ -271,7 +272,7 @@ impl BlockEventMapper {
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         temp: f32,
     ) -> bool {
-        let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
+        let mut rng = ChaCha8Rng::from_seed(rand::rng().random());
 
         if let Some((event, item)) = sfx_trigger_item {
             //The interval between cricket chirps calculated by converting chunk
@@ -284,7 +285,7 @@ impl BlockEventMapper {
                 match event {
                     SfxEvent::Cricket1 => {
                         previous_state.time.elapsed().as_secs_f32()
-                            >= cricket_interval + rng.gen_range(-0.1..0.1)
+                            >= cricket_interval + rng.random_range(-0.1..0.1)
                     },
                     SfxEvent::Cricket2 => {
                         //the length and manner of this sound is quite different
@@ -292,16 +293,16 @@ impl BlockEventMapper {
                             previous_state.time.elapsed().as_secs_f32() >= 0.75
                         } else {
                             previous_state.time.elapsed().as_secs_f32()
-                                >= cricket_interval + rng.gen_range(-0.1..0.1)
+                                >= cricket_interval + rng.random_range(-0.1..0.1)
                         }
                     },
                     SfxEvent::Cricket3 => {
                         previous_state.time.elapsed().as_secs_f32()
-                            >= cricket_interval + rng.gen_range(-0.1..0.1)
+                            >= cricket_interval + rng.random_range(-0.1..0.1)
                     },
                     //Adds random factor to frogs (probably doesn't do anything most of the time)
                     SfxEvent::Frog => {
-                        previous_state.time.elapsed().as_secs_f32() >= rng.gen_range(-2.0..2.0)
+                        previous_state.time.elapsed().as_secs_f32() >= rng.random_range(-2.0..2.0)
                     },
                     _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold,
                 }

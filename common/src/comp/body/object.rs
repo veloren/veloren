@@ -3,7 +3,7 @@ use crate::{
     consts::{AIR_DENSITY, IRON_DENSITY, WATER_DENSITY},
 };
 use common_base::enum_iter;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{prelude::IndexedRandom, rng};
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
@@ -89,7 +89,7 @@ enum_iter! {
 
 impl Body {
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         *ALL_OBJECTS.choose(&mut rng).unwrap()
     }
 }

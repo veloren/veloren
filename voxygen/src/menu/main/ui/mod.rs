@@ -24,7 +24,7 @@ use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_inpu
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 use common::assets::{self, AssetExt};
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{rng, seq::IndexedRandom};
 use std::time::Duration;
 use tracing::warn;
 
@@ -839,4 +839,4 @@ impl MainMenuUi {
     pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) { self.ui.render(drawer); }
 }
 
-pub fn rand_bg_image_spec() -> &'static str { BG_IMGS.choose(&mut thread_rng()).unwrap() }
+pub fn rand_bg_image_spec() -> &'static str { BG_IMGS.choose(&mut rng()).unwrap() }

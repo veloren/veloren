@@ -5,9 +5,8 @@ use common::{
     terrain::CoordinateConversions,
 };
 use rand::{
-    Rng,
-    seq::{IteratorRandom, SliceRandom},
-    thread_rng,
+    Rng, rng,
+    seq::{IndexedRandom, IteratorRandom},
 };
 use world::{CONFIG, IndexRef, World, sim::SimChunk, site::SiteKind};
 
@@ -62,8 +61,8 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
 
     let data = &mut *ctx.state.data_mut();
 
-    let mut rng = thread_rng();
-    let mut count_to_spawn = rng.gen_range(1..20);
+    let mut rng = rng();
+    let mut count_to_spawn = rng.random_range(1..20);
 
     let pop = data.architect.population.clone();
     'outer: for (pop, count) in pop
@@ -76,7 +75,7 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
             let (body, role) = match pop {
                 TrackedPopulation::Adventurers => (
                     Body::Humanoid(comp::humanoid::Body::random()),
-                    Role::Civilised(Some(Profession::Adventurer(rng.gen_range(0..=3)))),
+                    Role::Civilised(Some(Profession::Adventurer(rng.random_range(0..=3)))),
                 ),
                 TrackedPopulation::Merchants => (
                     Body::Humanoid(comp::humanoid::Body::random()),
@@ -92,7 +91,7 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
                 ),
                 TrackedPopulation::OtherTownNpcs => (
                     Body::Humanoid(comp::humanoid::Body::random()),
-                    Role::Civilised(Some(match rng.gen_range(0..10) {
+                    Role::Civilised(Some(match rng.random_range(0..10) {
                         0 => Profession::Hunter,
                         1 => Profession::Blacksmith,
                         2 => Profession::Chef,
@@ -300,7 +299,7 @@ fn spawn_anywhere(
             .sim()
             .map_size_lg()
             .chunks()
-            .map(|s| rng.gen_range(0..s as i32));
+            .map(|s| rng.random_range(0..s as i32));
 
         // TODO: If we had access to `ChunkStates` here we could make sure
         // these aren't getting respawned in loaded chunks.
@@ -311,7 +310,8 @@ fn spawn_anywhere(
             let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos));
 
             data.spawn_npc(
-                Npc::new(rng.gen(), wpos, body, death.role.clone()).with_personality(personality),
+                Npc::new(rng.random(), wpos, body, death.role.clone())
+                    .with_personality(personality),
             );
             return true;
         }
@@ -356,7 +356,7 @@ fn spawn_at_plot(
         let wpos = wpos
             .as_()
             .with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
-        let mut npc = Npc::new(rng.gen(), wpos, body, death.role.clone())
+        let mut npc = Npc::new(rng.random(), wpos, body, death.role.clone())
             .with_personality(personality)
             .with_home(id);
         if let Some(faction) = data.sites[id].faction {
@@ -424,7 +424,7 @@ fn spawn_profession(
 }
 
 fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> bool {
-    let mut rng = thread_rng();
+    let mut rng = rng();
     let body = randomize_body(death.body, &mut rng);
     let personality = role_personality(&mut rng, &death.role);
     // First try and respawn in the same faction.
@@ -442,7 +442,7 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                 .as_()
                 .with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
             data.spawn_npc(
-                Npc::new(rng.gen(), wpos, body, death.role.clone())
+                Npc::new(rng.random(), wpos, body, death.role.clone())
                     .with_personality(personality)
                     .with_home(id)
                     .with_faction(faction_id),
@@ -510,7 +510,7 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                         .as_()
                         .with_z(world.sim().get_alt_approx(wpos).unwrap_or(0.0));
                     data.spawn_npc(
-                        Npc::new(rng.gen(), wpos, body, death.role.clone())
+                        Npc::new(rng.random(), wpos, body, death.role.clone())
                             .with_personality(personality)
                             .with_home(id),
                     );
@@ -560,7 +560,7 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                         .sim()
                         .map_size_lg()
                         .chunks()
-                        .map(|s| rng.gen_range(0..s as i32));
+                        .map(|s| rng.random_range(0..s as i32));
 
                     // TODO: If we had access to `ChunkStates` here we could make sure
                     // these aren't getting respawned in loaded chunks.
@@ -571,7 +571,7 @@ fn spawn_npc(data: &mut Data, world: &World, index: IndexRef, death: &Death) -> 
                         let wpos = wpos.as_().with_z(world.sim().get_surface_alt_approx(wpos));
 
                         data.spawn_npc(
-                            Npc::new(rng.gen(), wpos, body, death.role.clone())
+                            Npc::new(rng.random(), wpos, body, death.role.clone())
                                 .with_personality(personality),
                         );
                         return true;

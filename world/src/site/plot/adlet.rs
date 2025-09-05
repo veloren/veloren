@@ -88,9 +88,9 @@ impl AdletStronghold {
         let entrance = wpos;
 
         let surface_radius: i32 = {
-            let unit_size = rng.gen_range(10..12);
-            let num_units = rng.gen_range(4..8);
-            let variation = rng.gen_range(20..30);
+            let unit_size = rng.random_range(10..12);
+            let num_units = rng.random_range(4..8);
+            let variation = rng.random_range(20..30);
             unit_size * num_units + variation
         };
 
@@ -114,13 +114,13 @@ impl AdletStronghold {
             .unwrap_or(0.0);
 
         let cavern_radius: i32 = {
-            let unit_size = rng.gen_range(10..15);
-            let num_units = rng.gen_range(5..8);
-            let variation = rng.gen_range(20..40);
+            let unit_size = rng.random_range(10..15);
+            let num_units = rng.random_range(5..8);
+            let variation = rng.random_range(20..40);
             unit_size * num_units + variation
         };
 
-        let tunnel_length = rng.gen_range(35_i32..50);
+        let tunnel_length = rng.random_range(35_i32..50);
 
         let cavern_center = entrance
             + (Vec2::new(angle.cos(), angle.sin()) * (tunnel_length as f32 + cavern_radius as f32))
@@ -140,16 +140,16 @@ impl AdletStronghold {
                 let structure_kind = AdletStructure::Igloo;
                 /*
                 // Choose structure kind
-                let structure_kind = match rng.gen_range(0..10) {
+                let structure_kind = match rng.random_range(0..10) {
                     // TODO: Add more variants
                     _ => AdletStructure::Igloo,
                 };
                  */
                 // Choose relative position
                 let structure_center = {
-                    let theta = rng.gen::<f32>() * TAU;
+                    let theta = rng.random::<f32>() * TAU;
                     // 0.8 to keep structures not directly against wall
-                    let radius = surface_radius as f32 * rng.gen::<f32>().sqrt() * 0.8;
+                    let radius = surface_radius as f32 * rng.random::<f32>().sqrt() * 0.8;
                     let x = radius * theta.sin();
                     let y = radius * theta.cos();
                     Vec2::new(x, y).as_()
@@ -179,7 +179,7 @@ impl AdletStronghold {
                 }
             }) {
                 let dir_to_wall = Dir::from_vec2(rpos);
-                let door_rng: u32 = rng.gen_range(0..9);
+                let door_rng: u32 = rng.random_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_wall,
                     4..=5 => dir_to_wall.rotated_cw(),
@@ -208,9 +208,9 @@ impl AdletStronghold {
         for _ in 0..desired_speleothem_clusters {
             if let Some(mut rpos) = attempt(25, || {
                 let rpos = {
-                    let theta = rng.gen_range(0.0..TAU);
+                    let theta = rng.random_range(0.0..TAU);
                     // sqrt biases radius away from center, leading to even distribution in circle
-                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    let radius = rng.random::<f32>().sqrt() * cavern_radius as f32;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
                 valid_cavern_struct_pos(&cavern_structures, AdletStructure::SpeleothemCluster, rpos)
@@ -218,12 +218,12 @@ impl AdletStronghold {
             }) {
                 // Dir doesn't matter since these are directionless
                 cavern_structures.push((AdletStructure::SpeleothemCluster, rpos, Dir::X));
-                let desired_adjacent_clusters = rng.gen_range(1..5);
+                let desired_adjacent_clusters = rng.random_range(1..5);
                 for _ in 0..desired_adjacent_clusters {
                     // Choose a relative position adjacent to initial speleothem cluster
                     let adj_rpos = {
-                        let theta = rng.gen_range(0.0..TAU);
-                        let radius = rng.gen_range(1.0..5.0);
+                        let theta = rng.random_range(0.0..TAU);
+                        let radius = rng.random_range(1.0..5.0);
                         let rrpos = Vec2::new(theta.cos() * radius, theta.sin() * radius).as_();
                         rpos + rrpos
                     };
@@ -251,8 +251,8 @@ impl AdletStronghold {
         // Attempt to place central boss bone hut
         if let Some(rpos) = attempt(50, || {
             let rpos = {
-                let theta = rng.gen_range(0.0..TAU);
-                let radius = rng.gen::<f32>() * cavern_radius as f32 * 0.5;
+                let theta = rng.random_range(0.0..TAU);
+                let radius = rng.random::<f32>() * cavern_radius as f32 * 0.5;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
             valid_cavern_struct_pos(&cavern_structures, AdletStructure::BossBoneHut, rpos)
@@ -261,10 +261,10 @@ impl AdletStronghold {
         .or_else(|| {
             attempt(100, || {
                 let rpos = {
-                    let theta = rng.gen_range(0.0..TAU);
+                    let theta = rng.random_range(0.0..TAU);
                     // If selecting a spot near the center failed, find a spot anywhere in the
                     // cavern
-                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    let radius = rng.random::<f32>().sqrt() * cavern_radius as f32;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
                 valid_cavern_struct_pos(&cavern_structures, AdletStructure::BossBoneHut, rpos)
@@ -278,7 +278,7 @@ impl AdletStronghold {
         // Attempt to place yetipit near the cavern edge
         if let Some(rpos) = attempt(50, || {
             let rpos = {
-                let theta = rng.gen_range(0.0..TAU);
+                let theta = rng.random_range(0.0..TAU);
                 let radius = cavern_radius as f32;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
@@ -288,10 +288,10 @@ impl AdletStronghold {
         .or_else(|| {
             attempt(100, || {
                 let rpos = {
-                    let theta = rng.gen_range(0.0..TAU);
+                    let theta = rng.random_range(0.0..TAU);
                     // If selecting a spot near the cavern edge failed, find a spot anywhere in the
                     // cavern
-                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32;
+                    let radius = rng.random::<f32>().sqrt() * cavern_radius as f32;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
                 valid_cavern_struct_pos(&cavern_structures, AdletStructure::YetiPit, rpos)
@@ -305,8 +305,8 @@ impl AdletStronghold {
         // Attempt to place big bonfire
         if let Some(rpos) = attempt(50, || {
             let rpos = {
-                let theta = rng.gen_range(0.0..TAU);
-                let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.9;
+                let theta = rng.random_range(0.0..TAU);
+                let radius = rng.random::<f32>().sqrt() * cavern_radius as f32 * 0.9;
                 Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
             };
             valid_cavern_struct_pos(&cavern_structures, AdletStructure::Bonfire, rpos)
@@ -321,7 +321,7 @@ impl AdletStronghold {
         for _ in 0..desired_rock_huts {
             if let Some(rpos) = attempt(25, || {
                 let rpos = {
-                    let theta = rng.gen_range(0.0..TAU);
+                    let theta = rng.random_range(0.0..TAU);
                     let radius = cavern_radius as f32 - 1.0;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
@@ -338,12 +338,12 @@ impl AdletStronghold {
         for _ in 0..desired_structures {
             if let Some((structure, rpos)) = attempt(45, || {
                 let rpos = {
-                    let theta = rng.gen_range(0.0..TAU);
+                    let theta = rng.random_range(0.0..TAU);
                     // sqrt biases radius away from center, leading to even distribution in circle
-                    let radius = rng.gen::<f32>().sqrt() * cavern_radius as f32 * 0.9;
+                    let radius = rng.random::<f32>().sqrt() * cavern_radius as f32 * 0.9;
                     Vec2::new(theta.cos() * radius, theta.sin() * radius).as_()
                 };
-                let structure = match rng.gen_range(0..7) {
+                let structure = match rng.random_range(0..7) {
                     0..=2 => AdletStructure::BoneHut,
                     3..=4 => AdletStructure::CookFire,
                     5 => AdletStructure::Tannery,
@@ -491,7 +491,7 @@ impl Structure for AdletStronghold {
                 _ => Block::new(BlockKind::Air, Rgb::new(0, 0, 0)),
             })
         }));
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // Tunnel
         let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
@@ -2316,7 +2316,7 @@ fn adlet_tracker<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn random_adlet<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    match rng.gen_range(0..3) {
+    match rng.random_range(0..3) {
         0 => adlet_hunter(pos, rng),
         1 => adlet_icepicker(pos, rng),
         _ => adlet_tracker(pos, rng),
@@ -2388,7 +2388,7 @@ fn tursus<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn random_yetipit_mob<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    match rng.gen_range(0..4) {
+    match rng.random_range(0..4) {
         0 => frostfang(pos, rng),
         1 => roshwalr(pos, rng),
         2 => icedrake(pos, rng),
@@ -2411,7 +2411,7 @@ mod tests {
     #[test]
     fn test_creating_entities() {
         let pos = Vec3::zero();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         adlet_hunter(pos, &mut rng);
         adlet_icepicker(pos, &mut rng);

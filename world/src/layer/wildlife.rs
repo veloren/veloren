@@ -135,7 +135,7 @@ impl Pack {
             .choose_weighted(dynamic_rng, |(p, _group)| *p)
             .expect("Failed to choose group");
         let entity = EntityInfo::at(pos).with_asset_expect(entity_asset, dynamic_rng, None);
-        let group_size = dynamic_rng.gen_range(*from..=*to);
+        let group_size = dynamic_rng.random_range(*from..=*to);
 
         (entity, group_size)
     }
@@ -595,7 +595,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                                 .read()
                                 .request(current_day_period, calendar, is_underwater, is_ice)
                                 .and_then(|pack| {
-                                    (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
+                                    (dynamic_rng.random::<f32>() < density * col_sample.spawn_rate
                                         && col_sample.gradient < Some(1.3))
                                     .then_some(pack)
                                 })
@@ -603,19 +603,19 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         .flatten()
                 })
                 .collect::<Vec<_>>() // TODO: Don't allocate
-                .choose(dynamic_rng)
+                .choose_mut(dynamic_rng)
                 .cloned();
 
             if let Some(pack) = entity_group {
                 let desired_alt = match pack.spawn_mode {
                     SpawnMode::Land | SpawnMode::Underwater => col_sample.alt,
                     SpawnMode::Ice => col_sample.water_level + 1.0 + col_sample.ice_depth,
-                    SpawnMode::Water => dynamic_rng.gen_range(
+                    SpawnMode::Water => dynamic_rng.random_range(
                         col_sample.alt..col_sample.water_level.max(col_sample.alt + 0.1),
                     ),
                     SpawnMode::Air(height) => {
                         col_sample.alt.max(col_sample.water_level)
-                            + dynamic_rng.gen::<f32>() * height
+                            + dynamic_rng.random::<f32>() * height
                     },
                 };
 
@@ -628,7 +628,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     let offs_wpos2d = (Vec2::new(
                         (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).sin(),
                         (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).cos(),
-                    ) * (5.0 + dynamic_rng.gen::<f32>().powf(0.5) * 5.0))
+                    ) * (5.0 + dynamic_rng.random::<f32>().powf(0.5) * 5.0))
                         .map(|e| e as i32);
                     // Clamp position to chunk
                     let offs_wpos2d = (offs + offs_wpos2d)
@@ -700,7 +700,7 @@ mod tests {
                     println!("{}:", entry);
                     let (_, (_, _, asset)) = group;
                     let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
-                    let mut dummy_rng = thread_rng();
+                    let mut dummy_rng = rand::rng();
                     let entity =
                         EntityInfo::at(dummy_pos).with_asset_expect(asset, &mut dummy_rng, None);
                     drop(entity);
@@ -717,7 +717,7 @@ mod tests {
             let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
             for pack in rules {
                 let Pack { groups, .. } = pack;
-                let dynamic_rng = &mut thread_rng();
+                let dynamic_rng = &mut rand::rng();
                 let _ = groups
                     .choose_weighted(dynamic_rng, |(p, _group)| *p)
                     .unwrap_or_else(|err| {

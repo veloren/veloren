@@ -292,7 +292,7 @@ pub fn apply_trees_to(
                     if tree.lights
                         && last_block.is_air()
                         && block.kind() == BlockKind::Wood
-                        && dynamic_rng.gen_range(0..256) == 0
+                        && dynamic_rng.random_range(0..256) == 0
                     {
                         canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Lantern));
                         // Add a snow covering to the block above under certain
@@ -318,7 +318,7 @@ pub fn apply_trees_to(
                     // Hanging sprites
                     if last_block.is_filled() {
                         for (chance, sprite) in hanging_sprites {
-                            if dynamic_rng.gen_bool(*chance as f64) {
+                            if dynamic_rng.random_bool(*chance as f64) {
                                 canvas.map_resource(wpos, |block| block.with_sprite(*sprite));
                             }
                         }
@@ -381,7 +381,7 @@ pub struct TreeConfig {
 
 impl TreeConfig {
     pub fn oak(rng: &mut impl Rng, scale: f32, crowding: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -406,7 +406,7 @@ impl TreeConfig {
     }
 
     pub fn dead(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
 
         Self {
             trunk_len: 9.0 * scale,
@@ -430,7 +430,7 @@ impl TreeConfig {
     }
 
     pub fn apple(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -455,7 +455,7 @@ impl TreeConfig {
     }
 
     pub fn frostpine(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -480,7 +480,7 @@ impl TreeConfig {
     }
 
     pub fn jungle(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>() * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>() * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -506,7 +506,7 @@ impl TreeConfig {
     }
 
     pub fn baobab(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.5 + rng.gen::<f32>().powi(4) * 1.0);
+        let scale = scale * (0.5 + rng.random::<f32>().powi(4) * 1.0);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -531,7 +531,7 @@ impl TreeConfig {
     }
 
     pub fn cedar(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -556,7 +556,7 @@ impl TreeConfig {
     }
 
     pub fn birch(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -581,7 +581,7 @@ impl TreeConfig {
     }
 
     pub fn acacia(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.9 + rng.gen::<f32>().powi(4) * 0.75);
+        let scale = scale * (0.9 + rng.random::<f32>().powi(4) * 0.75);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -606,7 +606,7 @@ impl TreeConfig {
     }
 
     pub fn chestnut(rng: &mut impl Rng, scale: f32, crowding: f32) -> Self {
-        let scale = scale * (0.85 + rng.gen::<f32>().powi(4) * 0.3);
+        let scale = scale * (0.85 + rng.random::<f32>().powi(4) * 0.3);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -631,7 +631,7 @@ impl TreeConfig {
     }
 
     pub fn pine(rng: &mut impl Rng, scale: f32, calendar: Option<&Calendar>) -> Self {
-        let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
+        let scale = scale * (1.0 + rng.random::<f32>().powi(4) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -660,7 +660,7 @@ impl TreeConfig {
     }
 
     pub fn redwood(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
+        let scale = scale * (1.0 + rng.random::<f32>().powi(4) * 0.5);
 
         Self {
             trunk_len: 80.0 * scale,
@@ -708,7 +708,7 @@ impl TreeConfig {
     }
 
     pub fn cherry(rng: &mut impl Rng, scale: f32) -> Self {
-        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let scale = scale * (0.8 + rng.random::<f32>().powi(2) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
         Self {
@@ -762,7 +762,12 @@ impl ProceduralTree {
             // Our trunk starts at the origin...
             trunk_origin,
             // ...and has a roughly upward direction
-            Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 10.0).normalized(),
+            Vec3::new(
+                rng.random_range(-1.0..1.0),
+                rng.random_range(-1.0..1.0),
+                10.0,
+            )
+            .normalized(),
             config.trunk_len,
             config.trunk_radius,
             0,
@@ -775,8 +780,12 @@ impl ProceduralTree {
         // Add roots
         let mut root_aabb = Aabb::new_empty(Vec3::zero());
         for _ in 0..4 {
-            let dir =
-                Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), -1.0).normalized();
+            let dir = Vec3::new(
+                rng.random_range(-1.0..1.0),
+                rng.random_range(-1.0..1.0),
+                -1.0,
+            )
+            .normalized();
             let len = config.trunk_len * 0.75;
             let radius = config.trunk_radius;
             let mut aabb = Aabb {
@@ -823,7 +832,7 @@ impl ProceduralTree {
         let line = LineSegment3 { start, end };
         let wood_radius = branch_radius;
         let leaf_radius = if depth == config.max_depth {
-            rng.gen_range(config.leaf_radius.clone())
+            rng.random_range(config.leaf_radius.clone())
                 + config.leaf_radius_scaled
                     * Lerp::lerp(1.0, 1.0 - proportion, config.branch_len_bias.abs())
         } else {
@@ -847,15 +856,19 @@ impl ProceduralTree {
         // Don't add child branches if we're already enough layers into the tree
         if depth < config.max_depth {
             let x_axis = dir
-                .cross(Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)))
+                .cross(Vec3::<f32>::zero().map(|_| rng.random_range(-1.0..1.0)))
                 .normalized();
             let y_axis = dir.cross(x_axis).normalized();
-            let screw_shift = rng.gen_range(0.0..f32::consts::TAU);
+            let screw_shift = rng.random_range(0.0..f32::consts::TAU);
 
-            let splits = rng.gen_range(config.splits.clone()).round() as usize;
+            let splits = rng.random_range(config.splits.clone()).round() as usize;
             for i in 0..splits {
                 let proportion = i as f32 / (splits - 1) as f32;
-                let dist = Lerp::lerp(rng.gen_range(0.0..1.0), proportion, config.proportionality);
+                let dist = Lerp::lerp(
+                    rng.random_range(0.0..1.0),
+                    proportion,
+                    config.proportionality,
+                );
 
                 const PHI: f32 = 0.618;
                 const RAD_PER_BRANCH: f32 = f32::consts::TAU * PHI;
@@ -864,13 +877,13 @@ impl ProceduralTree {
 
                 // Choose a point close to the branch to act as the target direction for the
                 // branch to grow in let split_factor =
-                // rng.gen_range(config.split_range.start, config.split_range.end).clamped(0.0,
-                // 1.0);
+                // rng.random_range(config.split_range.start,
+                // config.split_range.end).clamped(0.0, 1.0);
                 let split_factor =
                     Lerp::lerp(config.split_range.start, config.split_range.end, dist);
                 let tgt = Lerp::lerp_unclamped(start, end, split_factor)
                     + Lerp::lerp(
-                        Vec3::<f32>::zero().map(|_| rng.gen_range(-1.0..1.0)),
+                        Vec3::<f32>::zero().map(|_| rng.random_range(-1.0..1.0)),
                         screw,
                         config.proportionality,
                     );

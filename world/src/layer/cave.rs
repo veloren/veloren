@@ -803,7 +803,7 @@ fn write_column<R: Rng>(
 
                 if biome.mushroom > 0.7
                     && vertical > 16.0
-                    && rng.gen_bool(
+                    && rng.random_bool(
                         0.5 * close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2) as f64
                             * close(biome.mushroom, 1.0, 0.7, 1) as f64,
                     )
@@ -811,26 +811,26 @@ fn write_column<R: Rng>(
                     if tunnel_intersection() {
                         return None;
                     }
-                    let purp = rng.gen_range(0..50);
+                    let purp = rng.random_range(0..50);
                     Some(CaveStructure::Mushroom(Mushroom {
                         pos,
                         stalk: 8.0
-                            + rng.gen::<f32>().powf(2.0)
+                            + rng.random::<f32>().powf(2.0)
                                 * (z_range.end - z_range.start - 8) as f32
                                 * 0.75,
                         head_color: Rgb::new(
                             40 + purp,
-                            rng.gen_range(60..120),
-                            rng.gen_range(80..200) + purp,
+                            rng.random_range(60..120),
+                            rng.random_range(80..200) + purp,
                         ),
                     }))
                 } else if biome.crystal > 0.5
-                    && rng.gen_bool(0.4 * close(biome.crystal, 1.0, 0.7, 2) as f64)
+                    && rng.random_bool(0.4 * close(biome.crystal, 1.0, 0.7, 2) as f64)
                 {
                     if tunnel_intersection() {
                         return None;
                     }
-                    let on_ground = rng.gen_bool(0.6);
+                    let on_ground = rng.random_bool(0.6);
                     let pos = wpos2d.with_z(if on_ground {
                         z_range.start
                     } else {
@@ -838,24 +838,24 @@ fn write_column<R: Rng>(
                     });
 
                     let max_length = (48.0 * close(vertical, MAX_RADIUS, MAX_RADIUS, 1)).max(12.0);
-                    let length = rng.gen_range(8.0..max_length);
+                    let length = rng.random_range(8.0..max_length);
                     let radius =
-                        Lerp::lerp(2.0, 4.5, length / max_length + rng.gen_range(-0.1..0.1));
+                        Lerp::lerp(2.0, 4.5, length / max_length + rng.random_range(-0.1..0.1));
                     let dir = Vec3::new(
-                        rng.gen_range(-3.0..3.0),
-                        rng.gen_range(-3.0..3.0),
-                        rng.gen_range(0.5..10.0) * if on_ground { 1.0 } else { -1.0 },
+                        rng.random_range(-3.0..3.0),
+                        rng.random_range(-3.0..3.0),
+                        rng.random_range(0.5..10.0) * if on_ground { 1.0 } else { -1.0 },
                     )
                     .normalized();
 
                     let mut gen_crystal = || Crystal {
                         dir: Vec3::new(
-                            rng.gen_range(-1.0..1.0),
-                            rng.gen_range(-1.0..1.0),
-                            (dir.z + rng.gen_range(-0.2..0.2)).clamped(0.0, 1.0),
+                            rng.random_range(-1.0..1.0),
+                            rng.random_range(-1.0..1.0),
+                            (dir.z + rng.random_range(-0.2..0.2)).clamped(0.0, 1.0),
                         ),
-                        length: length * rng.gen_range(0.3..0.8),
-                        radius: (radius * rng.gen_range(0.5..0.8)).max(1.0),
+                        length: length * rng.random_range(0.3..0.8),
+                        radius: (radius * rng.random_range(0.5..0.8)).max(1.0),
                     };
 
                     let crystals = [
@@ -870,21 +870,21 @@ fn write_column<R: Rng>(
                         gen_crystal(),
                     ];
 
-                    let purple = rng.gen_range(25..75);
-                    let blue = (rng.gen_range(45.0..75.0) * biome.icy) as u8;
+                    let purple = rng.random_range(25..75);
+                    let blue = (rng.random_range(45.0..75.0) * biome.icy) as u8;
                     Some(CaveStructure::Crystal(CrystalCluster {
                         pos,
                         crystals,
                         color: Rgb::new(
                             255 - blue * 2,
                             255 - blue - purple,
-                            200 + rng.gen_range(25..55),
+                            200 + rng.random_range(25..55),
                         ),
                     }))
                 } else if biome.leafy > 0.8
                     && vertical > 16.0
                     && horizontal > 16.0
-                    && rng.gen_bool(
+                    && rng.random_bool(
                         0.25 * (close(vertical, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
                             * close(horizontal, MAX_RADIUS, MAX_RADIUS - 16.0, 2)
                             * biome.leafy) as f64,
@@ -893,19 +893,19 @@ fn write_column<R: Rng>(
                     if tunnel_intersection() {
                         return None;
                     }
-                    let petal_radius = rng.gen_range(8.0..16.0);
+                    let petal_radius = rng.random_range(8.0..16.0);
                     Some(CaveStructure::Flower(Flower {
                         pos,
                         stalk: 6.0
-                            + rng.gen::<f32>().powf(2.0)
+                            + rng.random::<f32>().powf(2.0)
                                 * (z_range.end - z_range.start - 8) as f32
                                 * 0.75,
-                        petals: rng.gen_range(1..5) * 2 + 1,
-                        petal_height: 0.4 * petal_radius * (1.0 + rng.gen::<f32>().powf(2.0)),
+                        petals: rng.random_range(1..5) * 2 + 1,
+                        petal_height: 0.4 * petal_radius * (1.0 + rng.random::<f32>().powf(2.0)),
                         petal_radius,
                     }))
                 } else if (biome.leafy > 0.7 || giant_tree_dist > 0.0)
-                    && rng.gen_bool(
+                    && rng.random_bool(
                         (0.5 * close(biome.leafy, 1.0, 0.5, 1).max(1.0 + giant_tree_dist) as f64)
                             .clamped(0.0, 1.0),
                     )
@@ -915,7 +915,7 @@ fn write_column<R: Rng>(
                     }
                     Some(CaveStructure::GiantRoot {
                         pos,
-                        radius: rng.gen_range(
+                        radius: rng.random_range(
                             2.5..(3.5
                                 + close(vertical, MAX_RADIUS, MAX_RADIUS / 2.0, 2) * 3.0
                                 + close(horizontal, MAX_RADIUS, MAX_RADIUS / 2.0, 2) * 3.0),
@@ -983,7 +983,7 @@ fn write_column<R: Rng>(
                         {
                             if head_dist < 0.85 {
                                 let radial = (rpos.x.atan2(rpos.y) * 10.0).sin() * 0.5 + 0.5;
-                                let block_kind = if dynamic_rng.gen_bool(0.1) {
+                                let block_kind = if dynamic_rng.random_bool(0.1) {
                                     BlockKind::GlowingMushroom
                                 } else {
                                     BlockKind::Rock
@@ -1010,10 +1010,10 @@ fn write_column<R: Rng>(
                             return Some(Block::new(BlockKind::Wood, Rgb::new(25, 60, 90)));
                         } else if ((mushroom.stalk - 0.1)..(mushroom.stalk + 0.9)).contains(&rpos.z) // Hanging orbs
                     && dist > head_radius * 0.85
-                    && dynamic_rng.gen_bool(0.1)
+                    && dynamic_rng.random_bool(0.1)
                         {
                             use SpriteKind::*;
-                            let sprites = if dynamic_rng.gen_bool(0.1) {
+                            let sprites = if dynamic_rng.random_bool(0.1) {
                                 &[Beehive, Lantern] as &[_]
                             } else {
                                 &[MycelBlue, MycelBlue] as &[_]

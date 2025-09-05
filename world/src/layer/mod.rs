@@ -21,7 +21,7 @@ use crate::{
 use common::terrain::{Block, BlockKind, SpriteKind};
 use hashbrown::HashMap;
 use noise::NoiseFn;
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use serde::Deserialize;
 use std::{
     f32,
@@ -353,17 +353,17 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     let (cavern_bottom, cavern_top, _, _, floor, _, water_level) =
                         cavern_at(wpos2d);
                     let pos = wpos2d.with_z(cavern_bottom + floor);
-                    if rng.gen_bool(0.15)
+                    if rng.random_bool(0.15)
                         && cavern_top - cavern_bottom > 32
                         && pos.z > water_level - 2
                     {
                         Some(Mushroom {
                             pos,
-                            stalk: 12.0 + rng.gen::<f32>().powf(2.0) * 35.0,
+                            stalk: 12.0 + rng.random::<f32>().powf(2.0) * 35.0,
                             head_color: Rgb::new(
                                 50,
-                                rng.gen_range(70..110),
-                                rng.gen_range(100..200),
+                                rng.random_range(70..110),
+                                rng.random_range(100..200),
                             ),
                         })
                     } else {
@@ -428,10 +428,10 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     return Some(Block::new(BlockKind::Wood, Rgb::new(25, 60, 90)));
                 } else if ((mushroom.stalk - 0.1)..(mushroom.stalk + 0.9)).contains(&rpos.z) // Hanging orbs
                     && dist > head_radius * 0.85
-                    && dynamic_rng.gen_bool(0.1)
+                    && dynamic_rng.random_bool(0.1)
                 {
                     use SpriteKind::*;
-                    let sprites = if dynamic_rng.gen_bool(0.1) {
+                    let sprites = if dynamic_rng.random_bool(0.1) {
                         &[Beehive, Lantern] as &[_]
                     } else {
                         &[Orb, MycelBlue, MycelBlue] as &[_]
@@ -506,9 +506,9 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let vine_posf = (wpos + Vec2::new(0.0, (wpos.x / dims.x).floor() * 733.0)) / dims; // ~Random offset
             let vine_pos = vine_posf.map(|e| e.floor() as i32);
             let mut rng = RandomPerm::new(((vine_pos.x << 16) | vine_pos.y) as u32); // Rng for vine attributes
-            if rng.gen_bool(0.2) {
+            if rng.random_bool(0.2) {
                 let vine_height = (cavern_avg_top - cavern_avg_bottom).max(64) as f32;
-                let vine_base = cavern_avg_bottom as f32 + rng.gen_range(48.0..vine_height);
+                let vine_base = cavern_avg_bottom as f32 + rng.random_range(48.0..vine_height);
                 let vine_y = (vine_posf.y.fract() - 0.5).abs() * 2.0 * dims.y;
                 let vine_reach = (vine_y * 0.05).powf(2.0).min(1024.0);
                 let vine_z = vine_base + vine_reach;
@@ -516,7 +516,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     .magnitude_squared()
                     < 1.0f32
                 {
-                    let kind = if dynamic_rng.gen_bool(0.025) {
+                    let kind = if dynamic_rng.random_bool(0.025) {
                         BlockKind::GlowingRock
                     } else {
                         BlockKind::Leaves
@@ -545,7 +545,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let wposf = wpos.map(|e| e as f32);
 
             let block = if z < cavern_bottom {
-                if z > water_level + dynamic_rng.gen_range(4..16) {
+                if z > water_level + dynamic_rng.random_range(4..16) {
                     Block::new(BlockKind::Grass, Rgb::new(10, 75, 90))
                 } else {
                     Block::new(BlockKind::Rock, Rgb::new(50, 40, 10))
@@ -553,7 +553,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             } else if z < cavern_bottom + floor {
                 Block::new(BlockKind::WeakRock, Rgb::new(110, 120, 150))
             } else if z > cavern_top - stalactite_height {
-                if dynamic_rng.gen_bool(0.0035) {
+                if dynamic_rng.random_bool(0.0035) {
                     // Glowing rock in stalactites
                     Block::new(BlockKind::GlowingRock, Rgb::new(30, 150, 120))
                 } else {
@@ -563,7 +563,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 mushroom_block
             } else if z > cavern_top - moss as i32 {
                 let kind = if dynamic_rng
-                    .gen_bool(0.05 / (1.0 + ((cavern_top - z).max(0) as f64).mul(0.1)))
+                    .random_bool(0.05 / (1.0 + ((cavern_top - z).max(0) as f64).mul(0.1)))
                 {
                     BlockKind::GlowingMushroom
                 } else {
@@ -572,7 +572,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 Block::new(kind, Rgb::new(50, 120, 160))
             } else if z < water_level {
                 Block::water(Empty).with_sprite(
-                    if z == cavern_bottom + floor && dynamic_rng.gen_bool(0.01) {
+                    if z == cavern_bottom + floor && dynamic_rng.random_bool(0.01) {
                         *[Seagrass, SeaGrapes, SeaweedTemperate, StonyCoral]
                             .choose(dynamic_rng)
                             .unwrap()
@@ -581,19 +581,19 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     },
                 )
             } else if z == water_level
-                && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.05, plant_factor))
+                && dynamic_rng.random_bool(Lerp::lerp(0.0, 0.05, plant_factor))
                 && last_kind == BlockKind::Water
             {
                 Block::air(CavernLillypadBlue)
             } else if z == cavern_bottom + floor
-                && dynamic_rng.gen_bool(Lerp::lerp(0.0, 0.5, plant_factor))
+                && dynamic_rng.random_bool(Lerp::lerp(0.0, 0.5, plant_factor))
                 && last_kind == BlockKind::Grass
             {
                 Block::air(
-                    *if dynamic_rng.gen_bool(0.9) {
+                    *if dynamic_rng.random_bool(0.9) {
                         // High density
                         &[GrassBlueShort, GrassBlueMedium, GrassBlueLong] as &[_]
-                    } else if dynamic_rng.gen_bool(0.5) {
+                    } else if dynamic_rng.random_bool(0.5) {
                         // Medium density
                         &[CaveMushroom] as &[_]
                     } else {
@@ -603,7 +603,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     .choose(dynamic_rng)
                     .unwrap(),
                 )
-            } else if z == cavern_top - 1 && dynamic_rng.gen_bool(0.001) {
+            } else if z == cavern_top - 1 && dynamic_rng.random_bool(0.001) {
                 Block::air(
                     *[CrystalHigh, CeilingMushroom, Orb, MycelBlue]
                         .choose(dynamic_rng)
@@ -623,7 +623,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 Block::new(
                     block.kind(),
                     block.get_color().unwrap_or_default().map(|e| {
-                        (e as f32 * dynamic_rng.gen_range(0.95..1.05)).clamped(0.0, 255.0) as u8
+                        (e as f32 * dynamic_rng.random_range(0.95..1.05)).clamped(0.0, 255.0) as u8
                     }),
                 )
             } else {

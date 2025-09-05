@@ -155,7 +155,7 @@ impl TileGrid {
         open.push(center);
 
         while tiles.len() < area_range.end as usize && !open.is_empty() {
-            let tile = open.remove(rng.gen_range(0..open.len()));
+            let tile = open.remove(rng.random_range(0..open.len()));
 
             for &rpos in CARDINALS.iter() {
                 let neighbor = tile + rpos;

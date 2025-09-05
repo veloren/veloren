@@ -274,7 +274,7 @@ impl Screen {
                         i18n.get_msg("main-singleplayer-random_seed"),
                         FILL_FRAC_TWO,
                         button_style,
-                        Some(message(WorldChange::Seed(rand::thread_rng().gen()))),
+                        Some(message(WorldChange::Seed(rand::rng().random()))),
                     ))
                     .max_width(200)
                     .into(),

@@ -40,7 +40,7 @@ impl Heads {
             return None;
         }
 
-        let mut h = rng.gen_range(0..self.amount());
+        let mut h = rng.random_range(0..self.amount());
 
         self.heads.iter_mut().position(|head| {
             if matches!(head, HeadState::Attached) {

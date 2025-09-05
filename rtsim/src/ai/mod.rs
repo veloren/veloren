@@ -103,7 +103,7 @@ impl NpcCtx<'_, '_> {
     /// Chance for something to happen each second.
     pub fn chance(&mut self, chance: f64) -> bool {
         let p = discrete_chance(self.dt as f64, chance);
-        self.rng.gen_bool(p)
+        self.rng.random_bool(p)
     }
 }
 
@@ -716,7 +716,7 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
 /// # Example
 ///
 /// ```ignore
-/// choose(|ctx| {
+/// .choose_mut(|ctx| {
 ///     if ctx.npc.is_being_attacked() {
 ///         urgent(combat()) // If we're in danger, do something!
 ///     } else if ctx.npc.is_hungry() {

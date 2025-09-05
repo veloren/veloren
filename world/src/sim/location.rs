@@ -1,7 +1,7 @@
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
 use hashbrown::HashSet;
-use rand::{Rng, seq::SliceRandom};
+use rand::{Rng, seq::IndexedRandom};
 use vek::*;
 
 #[derive(Clone, Debug)]
@@ -55,7 +55,7 @@ fn generate_name(rng: &mut impl Rng) -> String {
     ];
 
     let mut name = String::new();
-    if rng.gen() {
+    if rng.random() {
         name += firstsyl.choose(rng).unwrap();
         name += mid.choose(rng).unwrap();
         name += tails.choose(rng).unwrap();

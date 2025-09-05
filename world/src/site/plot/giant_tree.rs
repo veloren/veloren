@@ -29,7 +29,7 @@ impl GiantTree {
                 let config = TreeConfig::giant(rng, 4.0, true);
                 ProceduralTree::generate(config, rng)
             },
-            seed: rng.gen(),
+            seed: rng.random(),
         }
     }
 
@@ -45,9 +45,9 @@ impl GiantTree {
         above_block: &Block,
         dynamic_rng: &mut impl Rng,
     ) -> Option<EntityInfo> {
-        if above_block.kind() == BlockKind::Leaves && dynamic_rng.gen_bool(0.000055) {
+        if above_block.kind() == BlockKind::Leaves && dynamic_rng.random_bool(0.000055) {
             let entity = EntityInfo::at(pos.as_());
-            match dynamic_rng.gen_range(0..=7) {
+            match dynamic_rng.random_range(0..=7) {
                 0 => Some(entity.with_asset_expect(
                     "common.entity.wild.aggressive.horn_beetle",
                     dynamic_rng,
@@ -100,7 +100,7 @@ impl Structure for GiantTree {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_gianttree"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let leaf_col = self.leaf_color();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         self.tree.walk(|branch, parent| {
             let aabr = Aabr {
                 min: self.wpos.xy() + branch.get_aabb().min.xy().as_(),
@@ -136,8 +136,8 @@ impl Structure for GiantTree {
                     let displacement =
                         (branch_direction * branch.get_leaf_radius()).map(|e| e.round() as i32);
                     let pos = self.wpos + branch_end.as_() + displacement;
-                    if rng.gen_bool(0.07) {
-                        let ori = rng.gen_range(0..=3) * 2;
+                    if rng.random_bool(0.07) {
+                        let ori = rng.random_range(0..=3) * 2;
                         painter.resource_sprite(pos, SpriteKind::Ironwood, ori);
                     }
                 }

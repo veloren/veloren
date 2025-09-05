@@ -530,7 +530,7 @@ mod tests {
         let mut no_names = HashSet::new();
         let mut no_i18n = HashSet::new();
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let localization = LocalizationHandle::load_expect("en").read();
 
         let entity_configs =

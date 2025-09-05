@@ -3,7 +3,7 @@ use crate::{
     comp::{ability::Dodgeable, item::Reagent},
     effect::Effect,
 };
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use vek::Rgb;
 
@@ -39,7 +39,7 @@ impl ColorPreset {
             Self::Black => Rgb::black(),
             Self::InkBomb => Rgb::new(4.0, 7.0, 32.0),
             Self::IceBomb => {
-                let variation = thread_rng().gen::<f32>();
+                let variation = rand::rng().random::<f32>();
                 Rgb::new(
                     83.0 - (20.0 * variation),
                     212.0 - (52.0 * variation),

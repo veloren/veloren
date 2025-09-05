@@ -1,6 +1,6 @@
 use common_base::{enum_iter, struct_iter};
 use common_i18n::Content;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{prelude::IndexedRandom, rng};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
@@ -14,7 +14,7 @@ struct_iter! {
 
 impl Body {
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let species = *ALL_SPECIES.choose(&mut rng).unwrap();
         Self::random_with(&mut rng, &species)
     }

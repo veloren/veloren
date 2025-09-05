@@ -1,5 +1,5 @@
 use crate::{make_case_elim, make_proj_elim};
-use rand::{Rng, seq::SliceRandom, thread_rng};
+use rand::{Rng, prelude::IndexedRandom, rng};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
@@ -46,7 +46,7 @@ impl Body {
     }
 
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let species = *ALL_SPECIES.choose(&mut rng).unwrap();
         Self::random_with(&mut rng, &species)
     }
@@ -57,14 +57,15 @@ impl Body {
         Self {
             species,
             body_type,
-            hair_style: rng.gen_range(0..species.num_hair_styles(body_type)),
-            beard: rng.gen_range(0..species.num_beards(body_type)),
-            accessory: rng.gen_range(0..species.num_accessories(body_type)),
-            hair_color: rng.gen_range(0..species.num_hair_colors()),
-            skin: rng.gen_range(0..species.num_skin_colors()),
-            eye_color: rng.gen_range(0..species.num_eye_colors()),
-            eyes: rng.gen_range(0..1), /* TODO Add a way to set specific head-segments for NPCs
-                                        * with the default being a random one */
+            hair_style: rng.random_range(0..species.num_hair_styles(body_type)),
+            beard: rng.random_range(0..species.num_beards(body_type)),
+            accessory: rng.random_range(0..species.num_accessories(body_type)),
+            hair_color: rng.random_range(0..species.num_hair_colors()),
+            skin: rng.random_range(0..species.num_skin_colors()),
+            eye_color: rng.random_range(0..species.num_eye_colors()),
+            eyes: rng.random_range(0..1), /* TODO Add a way to set specific head-segments for
+                                           * NPCs
+                                           * with the default being a random one */
         }
     }
 

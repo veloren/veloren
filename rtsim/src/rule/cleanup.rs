@@ -18,7 +18,7 @@ impl Rule for CleanUp {
     fn start(rtstate: &mut RtState) -> Result<Self, RuleError> {
         rtstate.bind::<Self, OnTick>(|ctx| {
             let data = &mut *ctx.state.data_mut();
-            let mut rng = ChaChaRng::from_seed(thread_rng().gen::<[u8; 32]>());
+            let mut rng = ChaChaRng::from_seed(rand::rng().random::<[u8; 32]>());
 
             // TODO: Use `.into_par_iter()` for these by implementing rayon traits in upstream slotmap.
 

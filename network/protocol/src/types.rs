@@ -82,7 +82,7 @@ impl Pid {
     /// ```
     pub fn new() -> Self {
         Self {
-            internal: rand::thread_rng().gen(),
+            internal: rand::rng().random(),
         }
     }
 

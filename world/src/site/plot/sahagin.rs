@@ -77,7 +77,7 @@ impl Structure for Sahagin {
         let center = self.center;
         let base = self.alt - room_size + 1;
         let rooms = &self.rooms;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let surface_color = self.surface_color.map(|e| (e * 255.0) as u8);
         let sub_surface_color = self.sub_surface_color.map(|e| (e * 255.0) as u8);
         let gradient_center = Vec3::new(center.x as f32, center.y as f32, (base + 1) as f32);
@@ -205,7 +205,7 @@ impl Structure for Sahagin {
         let boss_pos = center.with_z(shell_base + (3 * (shell_radius / 2)));
         painter.spawn(EntityInfo::at(boss_pos.as_()).with_asset_expect(
             "common.entity.dungeon.sahagin.karkatha",
-            &mut thread_rng,
+            &mut rng,
             None,
         ));
         // overground towers
@@ -436,7 +436,7 @@ impl Structure for Sahagin {
                 painter.spawn(
                     EntityInfo::at((mini_boss_pos + (1 * m)).as_()).with_asset_expect(
                         "common.entity.dungeon.sahagin.hakulaq",
-                        &mut thread_rng,
+                        &mut rng,
                         None,
                     ),
                 );
@@ -445,7 +445,7 @@ impl Structure for Sahagin {
                 let crab_pos = (room_center - c).with_z(ground_floor + (room_size / 3));
                 painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
                     "common.entity.dungeon.sahagin.soldier_crab",
-                    &mut thread_rng,
+                    &mut rng,
                     None,
                 ));
             }
@@ -718,14 +718,14 @@ impl Structure for Sahagin {
         painter.spawn(
             EntityInfo::at((npc_pos.with_z(base + (room_size / 4))).as_()).with_asset_expect(
                 "common.entity.dungeon.sahagin.tidalwarrior",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ),
         );
         painter.spawn(
             EntityInfo::at(((npc_pos - 2).with_z(base + (room_size / 4))).as_()).with_asset_expect(
                 "common.entity.dungeon.sahagin.hakulaq",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ),
         );
@@ -733,7 +733,7 @@ impl Structure for Sahagin {
             let crab_pos = (npc_pos + c).with_z(base + (room_size / 4));
             painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.sahagin.soldier_crab",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ));
         }
@@ -744,7 +744,7 @@ impl Structure for Sahagin {
             painter.spawn(
                 EntityInfo::at((mini_boss_pos + (1 * m)).as_()).with_asset_expect(
                     "common.entity.dungeon.sahagin.hakulaq",
-                    &mut thread_rng,
+                    &mut rng,
                     None,
                 ),
             );
@@ -754,7 +754,7 @@ impl Structure for Sahagin {
             let crab_pos = (center - c).with_z(base + room_size + 5);
             painter.spawn(EntityInfo::at(crab_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.sahagin.soldier_crab",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ));
         }
@@ -768,7 +768,7 @@ impl Structure for Sahagin {
                 "common.entity.dungeon.sahagin.spearman",
             ];
             let npc = entities[(RandomField::new(0).get(pos) % entities.len() as u32) as usize];
-            painter.spawn(EntityInfo::at(pos.as_()).with_asset_expect(npc, &mut thread_rng, None));
+            painter.spawn(EntityInfo::at(pos.as_()).with_asset_expect(npc, &mut rng, None));
         }
     }
 }

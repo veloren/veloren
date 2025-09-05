@@ -85,9 +85,9 @@ pub struct Personality {
 
 fn distributed(min: u8, max: u8, rng: &mut impl Rng) -> u8 {
     let l = max - min;
-    min + rng.gen_range(0..=l / 3)
-        + rng.gen_range(0..=l / 3 + l % 3 % 2)
-        + rng.gen_range(0..=l / 3 + l % 3 / 2)
+    min + rng.random_range(0..=l / 3)
+        + rng.random_range(0..=l / 3 + l % 3 % 2)
+        + rng.random_range(0..=l / 3 + l % 3 / 2)
 }
 
 impl Personality {

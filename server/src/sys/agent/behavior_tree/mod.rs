@@ -14,7 +14,7 @@ use common::{
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
-use rand::{Rng, prelude::ThreadRng, thread_rng};
+use rand::{Rng, prelude::ThreadRng};
 use server_agent::{data::AgentEmitters, util::is_steering};
 use specs::Entity as EcsEntity;
 use tracing::warn;
@@ -254,7 +254,7 @@ fn react_if_on_fire(bdata: &mut BehaviorData) -> bool {
         && bdata.agent_data.physics_state.on_ground.is_some()
         && bdata
             .rng
-            .gen_bool((2.0 * bdata.read_data.dt.0).clamp(0.0, 1.0) as f64)
+            .random_bool((2.0 * bdata.read_data.dt.0).clamp(0.0, 1.0) as f64)
     {
         bdata.controller.inputs.move_dir = bdata
             .agent_data
@@ -574,7 +574,7 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
 
 /// Set owner if no target
 fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
-    let small_chance = bdata.rng.gen_bool(0.1);
+    let small_chance = bdata.rng.random_bool(0.1);
 
     if bdata.agent.target.is_none() && small_chance {
         if let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment {
@@ -691,7 +691,7 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                 bdata.controller.push_action(ControlAction::Stand);
             }
 
-            if bdata.rng.gen::<f32>() < 0.1 {
+            if bdata.rng.random::<f32>() < 0.1 {
                 bdata.agent_data.choose_target(
                     bdata.agent,
                     bdata.controller,
@@ -774,7 +774,7 @@ fn heal_self_if_hurt(bdata: &mut BehaviorData) -> bool {
 /// Hurt utterances at random upon receiving damage
 fn hurt_utterance(bdata: &mut BehaviorData) -> bool {
     if matches!(bdata.agent.inbox.front(), Some(AgentEvent::Hurt)) {
-        if bdata.rng.gen::<f32>() < 0.4 {
+        if bdata.rng.random::<f32>() < 0.4 {
             bdata.controller.push_utterance(UtteranceKind::Hurt);
         }
         bdata.agent.inbox.pop_front();
@@ -920,7 +920,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                     agent.behavior_state.timers
                         [ActionStateBehaviorTreeTimers::TimerBehaviorTree as usize] = 0.01;
                     agent.flee_from_pos = {
-                        let random = || thread_rng().gen_range(-1.0..1.0);
+                        let random = || rand::rng().random_range(-1.0..1.0);
                         Some(Pos(
                             agent_data.pos.0 + Vec3::new(random(), random(), random())
                         ))

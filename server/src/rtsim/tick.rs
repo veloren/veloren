@@ -31,7 +31,7 @@ pub fn trader_loadout(
     economy: Option<&SiteInformation>,
     mut permitted: impl FnMut(Good) -> bool,
 ) -> LoadoutBuilder {
-    let rng = &mut rand::thread_rng();
+    let rng = &mut rand::rng();
     let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
     let mut bag1 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
     let mut bag2 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
@@ -72,7 +72,7 @@ pub fn trader_loadout(
     if permitted(Good::Coin) {
         stockmap
             .entry(Good::Coin)
-            .and_modify(|e| *e = e.min(rng.gen_range(1000.0..3000.0)));
+            .and_modify(|e| *e = e.min(rng.random_range(1000.0..3000.0)));
     }
     // assume roughly 10 merchants sharing a town's stock (other logic for coins)
     stockmap

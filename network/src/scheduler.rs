@@ -122,8 +122,8 @@ impl Scheduler {
             }
         }
 
-        let mut rng = rand::thread_rng();
-        let local_secret: u128 = rng.gen();
+        let mut rng = rand::rng();
+        let local_secret: u128 = rng.random();
 
         (
             Self {

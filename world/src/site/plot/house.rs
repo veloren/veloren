@@ -9,7 +9,7 @@ use common::{
     calendar::{Calendar, CalendarEvent},
     terrain::{Block, BlockKind, SpriteKind},
 };
-use rand::prelude::*;
+use rand::{prelude::*, seq::IndexedRandom};
 use strum::IntoEnumIterator;
 use vek::*;
 
@@ -66,7 +66,7 @@ impl House {
         calendar: Option<&Calendar>,
         alt: Option<i32>,
     ) -> Self {
-        let levels = rng.gen_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
+        let levels = rng.random_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
@@ -82,9 +82,9 @@ impl House {
         let christmas_decorations = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
 
         let door_wpos = site.tile_center_wpos(door_tile);
-        let upper_style = match land.make_forest_lottery(door_wpos).choose_seeded(rng.gen())
+        let upper_style = match land.make_forest_lottery(door_wpos).choose_seeded(rng.random())
             // Don't use wood for some houses, even in woody areas
-            .filter(|_| rng.gen_bool(0.75))
+            .filter(|_| rng.random_bool(0.75))
         {
             Some(
                 ForestKind::Cedar
@@ -101,7 +101,7 @@ impl House {
             Some(
                 ForestKind::Mapletree | ForestKind::Redwood | ForestKind::Pine | ForestKind::Cherry,
             ) => Style::Wooden(Rgb::new(117, 95, 46)),
-            _ if rng.gen_bool(0.5) => Style::Brick,
+            _ if rng.random_bool(0.5) => Style::Brick,
             _ => Style::Daub,
         };
         let lower_style = match upper_style {
@@ -109,8 +109,8 @@ impl House {
             Style::Stone => Style::Stone,
             Style::Brick => Style::Brick,
             // Stone may appear below anything else
-            _ if rng.gen_bool(0.3) => Style::Brick,
-            _ if rng.gen_bool(0.5) => Style::Stone,
+            _ if rng.random_bool(0.3) => Style::Brick,
+            _ if rng.random_bool(0.5) => Style::Stone,
             _ => upper_style,
         };
         let gable_style = match upper_style {

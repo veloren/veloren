@@ -584,7 +584,7 @@ mod test_utils {
         ) -> Result<(), ProtocolError<Self::CustomErr>> {
             use rand::Rng;
             if matches!(data.stream, QuicDataFormatStream::Unreliable)
-                && rand::thread_rng().gen::<f32>() < self.drop_ratio
+                && rand::rng().random::<f32>() < self.drop_ratio
             {
                 return Ok(());
             }

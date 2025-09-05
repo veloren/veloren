@@ -71,10 +71,10 @@ struct FireplaceClimate {
 }
 
 fn create_timing(rng: &mut ChaCha8Rng) -> FireplaceTiming {
-    let breakfast: f32 = SMOKE_BREAKFAST_START + rng.gen::<f32>() * SMOKE_BREAKFAST_RANGE;
-    let dinner: f32 = SMOKE_DINNER_START + rng.gen::<f32>() * SMOKE_DINNER_RANGE;
-    let daily_cycle: f32 =
-        SMOKE_DAILY_CYCLE_MIN + rng.gen::<f32>() * (SMOKE_DAILY_CYCLE_MAX - SMOKE_DAILY_CYCLE_MIN);
+    let breakfast: f32 = SMOKE_BREAKFAST_START + rng.random::<f32>() * SMOKE_BREAKFAST_RANGE;
+    let dinner: f32 = SMOKE_DINNER_START + rng.random::<f32>() * SMOKE_DINNER_RANGE;
+    let daily_cycle: f32 = SMOKE_DAILY_CYCLE_MIN
+        + rng.random::<f32>() * (SMOKE_DAILY_CYCLE_MAX - SMOKE_DAILY_CYCLE_MIN);
     FireplaceTiming {
         breakfast,
         dinner,

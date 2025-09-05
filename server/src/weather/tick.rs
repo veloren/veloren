@@ -8,7 +8,7 @@ use common::{
 };
 use common_ecs::{Origin, Phase, System};
 use common_net::msg::ServerGeneral;
-use rand::{Rng, seq::SliceRandom, thread_rng};
+use rand::{Rng, seq::IteratorRandom};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::{mem, sync::Arc};
 use vek::Vec2;
@@ -151,17 +151,18 @@ impl<'a> System<'a> for Sys {
         // Chance to emit lightning every frame from one or more of the cells that
         // currently has the correct weather conditions.
         let mut outcome_emitter = outcomes.emitter();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let num_cells = lightning_cells.cells.len() as f64 * 0.0015 * delta_time.0 as f64;
-        let num_cells = num_cells.floor() as u32 + rng.gen_bool(num_cells.fract()) as u32;
+        let num_cells = num_cells.floor() as u32 + rng.random_bool(num_cells.fract()) as u32;
 
         for _ in 0..num_cells {
-            let cell_pos = lightning_cells.cells.choose(&mut rng).expect(
+            let cell_pos = lightning_cells.cells.iter().choose(&mut rng).expect(
                 "This is non-empty, since we multiply with its len for the chance to do a \
                  lightning strike.",
             );
-            let wpos = cell_pos
-                .map(|e| (e as f32 + rng.gen_range(0.0..1.0)) * common::weather::CELL_SIZE as f32);
+            let wpos = cell_pos.map(|e| {
+                (e as f32 + rng.random_range(0.0..1.0)) * common::weather::CELL_SIZE as f32
+            });
             outcome_emitter.emit(Outcome::Lightning {
                 pos: wpos.with_z(world.sim().get_alt_approx(wpos.as_()).unwrap_or(0.0)),
             });

@@ -43,13 +43,13 @@ impl Predicate for EveryRange {
         if let Some(ref mut next) = self.next {
             *next -= ctx.dt;
             if *next <= 0.0 {
-                *next += ctx.rng.gen_range(self.sample.clone());
+                *next += ctx.rng.random_range(self.sample.clone());
                 true
             } else {
                 false
             }
         } else {
-            self.next = Some(ctx.rng.gen_range(self.sample.clone()));
+            self.next = Some(ctx.rng.random_range(self.sample.clone()));
             false
         }
     }
@@ -65,7 +65,7 @@ pub struct Chance<P> {
 
 impl<P: Predicate> Predicate for Chance<P> {
     fn should(&mut self, ctx: &mut NpcCtx) -> bool {
-        self.predicate.should(ctx) && ctx.rng.gen_bool(self.chance as f64)
+        self.predicate.should(ctx) && ctx.rng.random_bool(self.chance as f64)
     }
 
     fn time_hint(&self) -> Option<f32> { self.predicate.time_hint() }

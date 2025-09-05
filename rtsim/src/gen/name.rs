@@ -9,7 +9,7 @@ pub fn generate(rng: &mut impl Rng) -> String {
 
     name += starts.choose(rng).unwrap();
 
-    for _ in 0..rng.gen_range(1..=3) {
+    for _ in 0..rng.random_range(1..=3) {
         name += vowels.choose(rng).unwrap();
         name += cons.choose(rng).unwrap();
     }

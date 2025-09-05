@@ -71,7 +71,7 @@ impl Structure for MyrmidonArena {
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let base = self.arena_data.base + 1;
         let center = self.arena_data.center;
-        let mut thread_rng = thread_rng();
+        let mut rng = rand::rng();
         let sandstone_unbroken = Fill::Sampling(Arc::new(|center| {
             Some(match (RandomField::new(0).get(center)) % 37 {
                 0..=8 => Block::new(BlockKind::Rock, Rgb::new(245, 212, 129)),
@@ -502,11 +502,7 @@ impl Structure for MyrmidonArena {
             ];
             let npc_pos = npc_position.with_z(base + 2);
             let npc = entities[(RandomField::new(0).get(npc_pos) % entities.len() as u32) as usize];
-            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
-                npc,
-                &mut thread_rng,
-                None,
-            ));
+            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(npc, &mut rng, None));
         }
         let mob_positions_pit = place_circular(center, (radius / 3) as f32, 10);
         for npc_position in mob_positions_pit {
@@ -517,18 +513,14 @@ impl Structure for MyrmidonArena {
             ];
             let npc_pos = npc_position.with_z(base - 20);
             let npc = entities[(RandomField::new(0).get(npc_pos) % entities.len() as u32) as usize];
-            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
-                npc,
-                &mut thread_rng,
-                None,
-            ));
+            painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(npc, &mut rng, None));
         }
         let mob_positions_high = place_circular(center, radius as f32, 20);
         for npc_position in mob_positions_high {
             let npc_pos = npc_position.with_z(base + top_platform_height + 5);
             painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.myrmidon.marksman",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ));
         }
@@ -598,7 +590,7 @@ impl Structure for MyrmidonArena {
 
         painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
             "common.entity.dungeon.myrmidon.minotaur",
-            &mut thread_rng,
+            &mut rng,
             None,
         ));
         // solid floor
@@ -700,7 +692,7 @@ impl Structure for MyrmidonArena {
             .clear();
         painter.spawn(EntityInfo::at(cyclops_pos_high.as_()).with_asset_expect(
             "common.entity.dungeon.myrmidon.cyclops_key",
-            &mut thread_rng,
+            &mut rng,
             None,
         ));
         let cyclops_pos_low = Vec2::new(center.x, center.y + 14).with_z(base - 79);
@@ -715,7 +707,7 @@ impl Structure for MyrmidonArena {
             .clear();
         painter.spawn(EntityInfo::at(cyclops_pos_low.as_()).with_asset_expect(
             "common.entity.dungeon.myrmidon.cyclops",
-            &mut thread_rng,
+            &mut rng,
             None,
         ));
         let mob_positions_cellar = place_circular(center, 2.0, 3);
@@ -723,7 +715,7 @@ impl Structure for MyrmidonArena {
             let npc_pos = npc_position.with_z(base - 79);
             painter.spawn(EntityInfo::at(npc_pos.as_()).with_asset_expect(
                 "common.entity.dungeon.myrmidon.marksman",
-                &mut thread_rng,
+                &mut rng,
                 None,
             ));
         }

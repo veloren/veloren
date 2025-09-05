@@ -5216,7 +5216,7 @@ impl Hud {
                             exp_change: *exp,
                             timer: EXP_FLOATER_LIFETIME,
                             jump_timer: 0.0,
-                            rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+                            rand_offset: rand::rng().random::<(f32, f32)>(),
                             xp_pools: xp_pools.clone(),
                         }),
                     }
