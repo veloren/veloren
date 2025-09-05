@@ -1,3 +1,7 @@
+use bincode::{
+    config::legacy,
+    serde::{decode_from_slice, encode_to_vec},
+};
 use common::{
     spiral::Spiral2d,
     terrain::{Block, BlockKind, SpriteKind, chonk::Chonk},
@@ -48,7 +52,9 @@ fn unlz4_with_dictionary(data: &[u8], dictionary: &[u8]) -> Option<Vec<u8>> {
         r.into_read_with_dictionary(dictionary)
             .read_to_end(&mut uncompressed)
             .ok()?;
-        bincode::deserialize(&uncompressed).ok()
+        decode_from_slice(&uncompressed, legacy())
+            .ok()
+            .map(|(t, _)| t)
     })
 }
 
@@ -320,7 +326,7 @@ impl VoxelImageEncoding for MixedEncoding {
         f(&ws.1, 1)?;
         f(&ws.2, 2)?;
 
-        buf.write_all(&bincode::serialize(&CompressedData::compress(&ws.4, 1)).unwrap())
+        buf.write_all(&encode_to_vec(CompressedData::compress(&ws.4, 1), legacy()).unwrap())
             .unwrap();
         indices[3] = buf.len();
 
@@ -343,10 +349,13 @@ impl VoxelImageDecoding for MixedEncoding {
         let a = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[0].clone()])).ok()?)?;
         let b = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[1].clone()])).ok()?)?;
         let c = image_from_bytes(PngDecoder::new(Cursor::new(&quad[ranges[2].clone()])).ok()?)?;
-        let sprite_data =
-            bincode::deserialize::<CompressedData<Vec<[u8; 3]>>>(&quad[ranges[4].clone()])
-                .ok()?
-                .decompress()?;
+        let sprite_data = decode_from_slice::<CompressedData<Vec<[u8; 3]>>, _>(
+            &quad[ranges[4].clone()],
+            legacy(),
+        )
+        .ok()
+        .map(|(t, _)| t)?
+        .decompress()?;
         let d = image_from_bytes(JpegDecoder::new(Cursor::new(&quad[ranges[3].clone()])).ok()?)?;
         Some((a, b, c, d, sprite_data))
     }
@@ -802,7 +811,7 @@ fn main() {
         {
             let chunk = world.generate_chunk(index.as_index_ref(), spiralpos, None, || false, None);
             if let Ok((chunk, _)) = chunk {
-                let uncompressed = bincode::serialize(&chunk).unwrap();
+                let uncompressed = encode_to_vec(&chunk, legacy()).unwrap();
                 let n = uncompressed.len();
                 if HISTOGRAMS {
                     for w in uncompressed.windows(k) {
@@ -813,26 +822,28 @@ fn main() {
                     }
                 }
                 let lz4chonk_pre = Instant::now();
-                let lz4_chonk = lz4_with_dictionary(&bincode::serialize(&chunk).unwrap(), &[]);
+                let lz4_chonk = lz4_with_dictionary(&encode_to_vec(&chunk, legacy()).unwrap(), &[]);
                 let lz4chonk_post = Instant::now();
                 #[expect(clippy::reversed_empty_ranges)]
                 for _ in 0..ITERS {
                     let _deflate0_chonk =
-                        do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2_zero(&encode_to_vec(&chunk, legacy()).unwrap());
 
                     let _deflate1_chonk =
-                        do_deflate_flate2::<1>(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2::<1>(&encode_to_vec(&chunk, legacy()).unwrap());
                 }
                 let rlechonk_pre = Instant::now();
-                let rle_chonk = do_deflate_rle(&bincode::serialize(&chunk).unwrap());
+                let rle_chonk = do_deflate_rle(&encode_to_vec(&chunk, legacy()).unwrap());
                 let rlechonk_post = Instant::now();
 
                 let deflate0chonk_pre = Instant::now();
-                let deflate0_chonk = do_deflate_flate2_zero(&bincode::serialize(&chunk).unwrap());
+                let deflate0_chonk =
+                    do_deflate_flate2_zero(&encode_to_vec(&chunk, legacy()).unwrap());
                 let deflate0chonk_post = Instant::now();
 
                 let deflate1chonk_pre = Instant::now();
-                let deflate1_chonk = do_deflate_flate2::<1>(&bincode::serialize(&chunk).unwrap());
+                let deflate1_chonk =
+                    do_deflate_flate2::<1>(&encode_to_vec(&chunk, legacy()).unwrap());
                 let deflate1chonk_post = Instant::now();
                 let mut sizes = vec![
                     ("lz4_chonk", lz4_chonk.len() as f32 / n as f32),
@@ -887,22 +898,22 @@ fn main() {
                 if !SKIP_DEFLATE_2_5 {
                     let deflate2chonk_pre = Instant::now();
                     let deflate2_chonk =
-                        do_deflate_flate2::<2>(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2::<2>(&encode_to_vec(&chunk, legacy()).unwrap());
                     let deflate2chonk_post = Instant::now();
 
                     let deflate3chonk_pre = Instant::now();
                     let deflate3_chonk =
-                        do_deflate_flate2::<3>(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2::<3>(&encode_to_vec(&chunk, legacy()).unwrap());
                     let deflate3chonk_post = Instant::now();
 
                     let deflate4chonk_pre = Instant::now();
                     let deflate4_chonk =
-                        do_deflate_flate2::<4>(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2::<4>(&encode_to_vec(&chunk, legacy()).unwrap());
                     let deflate4chonk_post = Instant::now();
 
                     let deflate5chonk_pre = Instant::now();
                     let deflate5_chonk =
-                        do_deflate_flate2::<5>(&bincode::serialize(&chunk).unwrap());
+                        do_deflate_flate2::<5>(&encode_to_vec(&chunk, legacy()).unwrap());
                     let deflate5chonk_post = Instant::now();
                     sizes.extend_from_slice(&[
                         ("deflate2_chonk", deflate2_chonk.len() as f32 / n as f32),
@@ -957,7 +968,7 @@ fn main() {
 
                 if !SKIP_DYNA {
                     let dyna: Dyna<_, _, ColumnAccess> = chonk_to_dyna(&chunk, Block::empty());
-                    let ser_dyna = bincode::serialize(&dyna).unwrap();
+                    let ser_dyna = encode_to_vec(&dyna, legacy()).unwrap();
                     if HISTOGRAMS {
                         for w in ser_dyna.windows(k) {
                             *histogram2.entry(w.to_vec()).or_default() += 1;
@@ -969,7 +980,7 @@ fn main() {
                     let lz4_dyna = lz4_with_dictionary(&ser_dyna, &[]);
                     let deflate_dyna = do_deflate_flate2::<5>(&ser_dyna);
                     let deflate_channeled_dyna = do_deflate_flate2::<5>(
-                        &bincode::serialize(&channelize_dyna(&dyna)).unwrap(),
+                        &encode_to_vec(channelize_dyna(&dyna), legacy()).unwrap(),
                     );
 
                     sizes.extend_from_slice(&[

@@ -2,7 +2,7 @@ pub mod errors;
 pub mod memory_manager;
 pub mod module;
 
-use bincode::ErrorKind;
+use bincode::error::DecodeError;
 use common::{assets::ASSETS_PATH, event::PluginHash, uid::Uid};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -104,7 +104,7 @@ impl Plugin {
                     .get(Path::new("plugin.toml"))
                     .ok_or(PluginError::NoConfig)?,
             )
-            .map_err(|e| PluginError::Encoding(Box::new(ErrorKind::InvalidUtf8Encoding(e))))?,
+            .map_err(|inner| PluginError::Encoding(Box::new(DecodeError::Utf8 { inner })))?,
         )
         .map_err(PluginError::Toml)?;
 

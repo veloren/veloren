@@ -1,4 +1,9 @@
 use crate::api::{StreamError, StreamParams};
+use bincode::{
+    config::legacy,
+    error::DecodeError,
+    serde::{decode_from_slice, encode_to_vec},
+};
 use bytes::Bytes;
 #[cfg(feature = "compression")]
 use network_protocol::Promises;
@@ -38,7 +43,7 @@ impl Message {
     /// [`Streams`]: crate::api::Stream
     pub fn serialize<M: Serialize + ?Sized>(message: &M, stream_params: StreamParams) -> Self {
         //this will never fail: https://docs.rs/bincode/0.8.0/bincode/fn.serialize.html
-        let serialized_data = bincode::serialize(message).unwrap();
+        let serialized_data = encode_to_vec(message, legacy()).unwrap();
 
         #[cfg(feature = "compression")]
         let compressed = stream_params.promises.contains(Promises::COMPRESSED);
@@ -120,9 +125,9 @@ impl Message {
             self.data
         };
 
-        match bincode::deserialize(&uncompressed_data) {
-            Ok(m) => Ok(m),
-            Err(e) => Err(StreamError::Deserialize(e)),
+        match decode_from_slice(&uncompressed_data, legacy()) {
+            Ok((m, _)) => Ok(m),
+            Err(e) => Err(StreamError::Deserialize(Box::new(e))),
         }
     }
 
@@ -154,18 +159,74 @@ pub(crate) fn partial_eq_io_error(first: &io::Error, second: &io::Error) -> bool
     }
 }
 
-pub(crate) fn partial_eq_bincode(first: &bincode::ErrorKind, second: &bincode::ErrorKind) -> bool {
-    use bincode::ErrorKind::*;
+pub(crate) fn partial_eq_bincode(first: &DecodeError, second: &DecodeError) -> bool {
+    use bincode::{error::DecodeError::*, serde::DecodeError::*};
     match *first {
-        Io(ref f) => matches!(*second, Io(ref s) if partial_eq_io_error(f, s)),
-        InvalidUtf8Encoding(f) => matches!(*second, InvalidUtf8Encoding(s) if f == s),
-        InvalidBoolEncoding(f) => matches!(*second, InvalidBoolEncoding(s) if f == s),
-        InvalidCharEncoding => matches!(*second, InvalidCharEncoding),
-        InvalidTagEncoding(f) => matches!(*second, InvalidTagEncoding(s) if f == s),
-        DeserializeAnyNotSupported => matches!(*second, DeserializeAnyNotSupported),
-        SizeLimit => matches!(*second, SizeLimit),
-        SequenceMustHaveLength => matches!(*second, SequenceMustHaveLength),
-        Custom(ref f) => matches!(*second, Custom(ref s) if f == s),
+        UnexpectedEnd { additional: f } => {
+            matches!(*second, UnexpectedEnd { additional: s } if f == s)
+        },
+        LimitExceeded => matches!(*second, LimitExceeded),
+        InvalidIntegerType {
+            expected: ref fe,
+            found: ref ff,
+        } => {
+            matches!(*second, InvalidIntegerType { expected: ref se, found: ref sf } if fe == se && ff == sf)
+        },
+        NonZeroTypeIsZero {
+            non_zero_type: ref f,
+        } => matches!(*second, NonZeroTypeIsZero { non_zero_type: ref s } if f == s),
+        UnexpectedVariant {
+            type_name: ft,
+            allowed: fa,
+            found: ff,
+        } => {
+            matches!(*second, UnexpectedVariant { type_name: st, allowed: sa, found: sf } if ft == st && fa == sa && ff == sf)
+        },
+        Utf8 { inner: f } => matches!(*second, Utf8 { inner: s } if f == s),
+        InvalidCharEncoding(f) => matches!(*second, InvalidCharEncoding(s) if f == s),
+        InvalidBooleanValue(f) => matches!(*second, InvalidBooleanValue(s) if f == s),
+        ArrayLengthMismatch {
+            required: fr,
+            found: ff,
+        } => {
+            matches!(*second, ArrayLengthMismatch { required: sr, found: sf } if fr == sr && ff == sf)
+        },
+        OutsideUsizeRange(f) => matches!(*second, OutsideUsizeRange(s) if f == s),
+        EmptyEnum { type_name: f } => matches!(*second, EmptyEnum { type_name: s } if f == s),
+        InvalidDuration {
+            secs: fs,
+            nanos: fnn,
+        } => matches!(*second, InvalidDuration { secs: ss, nanos: sn } if fs == ss && fnn == sn),
+        InvalidSystemTime { duration: fd } => {
+            matches!(*second, InvalidSystemTime { duration: sd } if fd == sd)
+        },
+        CStringNulError { position: fp } => {
+            matches!(*second, CStringNulError { position: sp } if fp == sp)
+        },
+        Io {
+            inner: ref fi,
+            additional: fa,
+        } => {
+            matches!(*second, Io { inner: ref si, additional: sa } if partial_eq_io_error(fi, si) && fa == sa)
+        },
+        Other(f) => matches!(*second, Other(s) if f == s),
+        OtherString(ref f) => matches!(*second, OtherString(ref s) if f == s),
+        Serde(ref f) => match f {
+            AnyNotSupported => matches!(*second, Serde(ref s) if matches!(*s, AnyNotSupported)),
+            IdentifierNotSupported => {
+                matches!(*second, Serde(ref s) if matches!(*s, IdentifierNotSupported))
+            },
+            IgnoredAnyNotSupported => {
+                matches!(*second, Serde(ref s) if matches!(*s, IgnoredAnyNotSupported))
+            },
+            CannotBorrowOwnedData => {
+                matches!(*second, Serde(ref s) if matches!(*s, CannotBorrowOwnedData))
+            },
+            // non exhaustive enum
+            _ => false,
+        },
+        // non exhaustive enum
+        _ => false,
     }
 }
 

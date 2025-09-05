@@ -37,6 +37,10 @@ use crate::{
         StructureGen2d, seed_expan,
     },
 };
+use bincode::{
+    config::legacy,
+    serde::{decode_from_std_read, encode_into_std_write},
+};
 use common::{
     assets::{AssetExt, BoxedError, FileAsset, load_bincode_legacy},
     calendar::Calendar,
@@ -264,8 +268,8 @@ impl FileOpts {
                     },
                 };
 
-                let reader = BufReader::new(file);
-                let map: WorldFileLegacy = match bincode::deserialize_from(reader) {
+                let mut reader = BufReader::new(file);
+                let map: WorldFileLegacy = match decode_from_std_read(&mut reader, legacy()) {
                     Ok(map) => map,
                     Err(e) => {
                         warn!(
@@ -287,8 +291,8 @@ impl FileOpts {
                     },
                 };
 
-                let reader = BufReader::new(file);
-                let map: WorldFile = match bincode::deserialize_from(reader) {
+                let mut reader = BufReader::new(file);
+                let map: WorldFile = match decode_from_std_read(&mut reader, legacy()) {
                     Ok(map) => map,
                     Err(e) => {
                         warn!(
@@ -333,8 +337,8 @@ impl FileOpts {
                     },
                 };
 
-                let reader = BufReader::new(file);
-                let map: WorldFile = match bincode::deserialize_from(reader) {
+                let mut reader = BufReader::new(file);
+                let map: WorldFile = match decode_from_std_read(&mut reader, legacy()) {
                     Ok(map) => map,
                     Err(e) => {
                         warn!(
@@ -441,8 +445,8 @@ impl FileOpts {
             },
         };
 
-        let writer = BufWriter::new(file);
-        if let Err(e) = bincode::serialize_into(writer, map) {
+        let mut writer = BufWriter::new(file);
+        if let Err(e) = encode_into_std_write(map, &mut writer, legacy()) {
             warn!(?e, "Couldn't write map");
         }
         if let Ok(p) = std::fs::canonicalize(path) {

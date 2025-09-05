@@ -155,7 +155,7 @@ pub enum StreamError {
     StreamClosed,
     #[cfg(feature = "compression")]
     Compression(DecodeError),
-    Deserialize(bincode::Error),
+    Deserialize(Box<bincode::error::DecodeError>),
 }
 
 /// All Parameters of a Stream, can be used to generate RawMessages
@@ -1298,8 +1298,8 @@ impl From<io::Error> for NetworkError {
     fn from(_err: io::Error) -> Self { NetworkError::NetworkClosed }
 }
 
-impl From<Box<bincode::ErrorKind>> for StreamError {
-    fn from(err: Box<bincode::ErrorKind>) -> Self { StreamError::Deserialize(err) }
+impl From<Box<bincode::error::DecodeError>> for StreamError {
+    fn from(err: Box<bincode::error::DecodeError>) -> Self { StreamError::Deserialize(err) }
 }
 
 impl core::fmt::Display for StreamError {

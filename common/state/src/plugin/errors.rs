@@ -1,4 +1,4 @@
-use bincode::ErrorKind;
+use bincode::error::DecodeError;
 
 #[derive(Debug)]
 pub enum PluginError {
@@ -6,7 +6,7 @@ pub enum PluginError {
     Toml(toml::de::Error),
     NoConfig,
     NoSuchModule,
-    Encoding(Box<ErrorKind>),
+    Encoding(Box<DecodeError>),
     PluginModuleError(String, String, PluginModuleError),
     ProcessExit,
 }
