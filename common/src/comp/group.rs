@@ -118,7 +118,7 @@ pub fn members<'a>(
 ) -> impl Iterator<Item = (specs::Entity, Role)> + 'a {
     (entities, groups, alignments, uids)
         .join()
-        .filter(move |&(_e, g, _a, _u)| (*g == group))
+        .filter(move |&(_e, g, _a, _u)| *g == group)
         .map(|(e, _g, a, u)| {
             (
                 e,

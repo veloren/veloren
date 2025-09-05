@@ -43,7 +43,7 @@ impl FileSystem {
 }
 
 impl Source for FileSystem {
-    fn read(&self, id: &str, ext: &str) -> io::Result<FileContent> {
+    fn read(&self, id: &str, ext: &str) -> io::Result<FileContent<'_>> {
         if let Some(dir) = &self.override_dir {
             match dir.read(id, ext) {
                 Ok(content) => return Ok(content),
