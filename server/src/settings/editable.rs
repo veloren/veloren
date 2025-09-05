@@ -3,7 +3,7 @@ use core::{convert::TryInto, fmt};
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fs,
-    io::Write,
+    io::{Seek, Write},
     path::{Path, PathBuf},
 };
 use tracing::{error, info, warn};
@@ -99,78 +99,93 @@ pub trait EditableSetting: Clone + Default {
     fn load(data_dir: &Path) -> Self {
         let path = Self::get_path(data_dir);
 
-        let Ok(file) = fs::read(&path) else {
-            return create_and_save_default(&path);
-        };
-
-        let result: Result<_, Box<dyn fmt::Debug>> =
-            match ron::de::from_bytes::<Self::Setting>(&file) {
-                Ok(settings) => settings.try_into().map_err(|e| Box::new(e) as _),
-                Err(e) => match ron::de::from_bytes(&file) {
-                    Ok(legacy) => Ok((Version::Old, Self::Legacy::into(legacy))),
-                    // When both legacy and non-legacy have parse errors, prioritize the
-                    // non-legacy one, since we can't tell which one is "right" and legacy
-                    // formats are simple, early, and uncommon enough that we expect
-                    // few parse errors in those.
-                    Err(_) => Err(Box::new(e)),
-                },
-            };
-
-        match result {
-            Ok((version, mut settings)) => {
-                if matches!(version, Version::Old) {
-                    // Old version, which means we either performed a migration or there was
-                    // some needed update to the file.  If this is the case, we preemptively
-                    // overwrite the settings file (not strictly needed, but useful for
-                    // people who do manual editing).
-                    info!("Settings were changed on load, updating file...");
-                    // We don't care if we encountered an error on saving updates to a
-                    // settings file that we just loaded (it's already logged and migrated).
-                    // However, we should crash if it reported an integrity failure, since we
-                    // supposedly just validated it.
-                    if let Err(Error::Integrity(err)) = settings
-                        .edit(data_dir, |_| Some(()))
-                        .expect("Some always returns Some")
-                        .1
-                    {
-                        panic!(
-                            "The identity conversion from a validated settings file must always \
-                             be valid, but we found an integrity error: {err:?}",
-                        );
-                    }
-                }
-                settings
-            },
-            Err(e) => {
-                warn!(
-                    ?e,
-                    "Failed to parse setting file! Falling back to default and moving existing \
-                     file to a .invalid"
-                );
-
-                // Rename existing file to .invalid.ron
-                let mut new_path = path.with_extension("invalid.ron");
-
-                // If invalid path already exists append number
-                for i in 1.. {
-                    if !new_path.exists() {
-                        break;
-                    }
-
+        if let Ok(mut file) = fs::File::open(&path) {
+            match ron::de::from_reader(&mut file)
+                .map(|setting: Self::Setting| setting.try_into())
+                .or_else(|orig_err| {
+                    file.rewind().map_err(|e| ron::error::SpannedError {
+                        code: e.into(),
+                        span: ron::error::Span {
+                            start: ron::error::Position { line: 0, col: 0 },
+                            end: ron::error::Position { line: 0, col: 0 },
+                        },
+                    })?;
+                    ron::de::from_reader(file)
+                         .map(|legacy| Ok((Version::Old, Self::Legacy::into(legacy))))
+                         // When both legacy and non-legacy have parse errors, prioritize the
+                         // non-legacy one, since we can't tell which one is "right" and legacy
+                         // formats are simple, early, and uncommon enough that we expect
+                         // few parse errors in those.
+                         .or(Err(orig_err))
+                })
+                .map_err(|e| {
                     warn!(
-                        ?new_path,
-                        "Path to move invalid settings exists, appending number"
+                        ?e,
+                        "Failed to parse setting file! Falling back to default and moving \
+                         existing file to a .invalid"
                     );
-                    new_path = path.with_extension(format!("invalid{}.ron", i));
-                }
+                })
+                .and_then(|inner| {
+                    inner.map_err(|e| {
+                        warn!(
+                            ?e,
+                            "Failed to parse setting file! Falling back to default and moving \
+                             existing file to a .invalid"
+                        );
+                    })
+                }) {
+                Ok((version, mut settings)) => {
+                    if matches!(version, Version::Old) {
+                        // Old version, which means we either performed a migration or there was
+                        // some needed update to the file.  If this is the case, we preemptively
+                        // overwrite the settings file (not strictly needed, but useful for
+                        // people who do manual editing).
+                        info!("Settings were changed on load, updating file...");
+                        // We don't care if we encountered an error on saving updates to a
+                        // settings file that we just loaded (it's already logged and migrated).
+                        // However, we should crash if it reported an integrity failure, since we
+                        // supposedly just validated it.
+                        if let Err(Error::Integrity(err)) = settings
+                            .edit(data_dir, |_| Some(()))
+                            .expect("Some always returns Some")
+                            .1
+                        {
+                            panic!(
+                                "The identity conversion from a validated settings file must
+                                    always be valid, but we found an integrity error: {:?}",
+                                err
+                            );
+                        }
+                    }
+                    settings
+                },
+                Err(()) => {
+                    // Rename existing file to .invalid.ron
+                    let mut new_path = path.with_extension("invalid.ron");
 
-                warn!("Renaming invalid settings file to: {}", new_path.display());
-                if let Err(e) = fs::rename(&path, &new_path) {
-                    warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
-                }
+                    // If invalid path already exists append number
+                    for i in 1.. {
+                        if !new_path.exists() {
+                            break;
+                        }
 
-                create_and_save_default(&path)
-            },
+                        warn!(
+                            ?new_path,
+                            "Path to move invalid settings exists, appending number"
+                        );
+                        new_path = path.with_extension(format!("invalid{}.ron", i));
+                    }
+
+                    warn!("Renaming invalid settings file to: {}", new_path.display());
+                    if let Err(e) = fs::rename(&path, &new_path) {
+                        warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
+                    }
+
+                    create_and_save_default(&path)
+                },
+            }
+        } else {
+            create_and_save_default(&path)
         }
     }
 
