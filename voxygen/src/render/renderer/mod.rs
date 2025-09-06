@@ -1227,10 +1227,9 @@ impl Renderer {
         if matches!(&self.state, State::Complete {
             recreating: None,
             ..
-        }) {
-            if let Some(new_pipeline_modes) = self.recreation_pending.take() {
-                self.recreate_pipelines(new_pipeline_modes);
-            }
+        }) && let Some(new_pipeline_modes) = self.recreation_pending.take()
+        {
+            self.recreate_pipelines(new_pipeline_modes);
         }
 
         let texture = match self.surface.get_current_texture() {

@@ -589,14 +589,13 @@ impl Controls {
                 if let Screen::Connecting {
                     connection_state, ..
                 } = &mut self.screen
+                    && let ConnectionState::AuthTrustPrompt { auth_server, .. } = connection_state
                 {
-                    if let ConnectionState::AuthTrustPrompt { auth_server, .. } = connection_state {
-                        let auth_server = std::mem::take(auth_server);
-                        let added = matches!(msg, Message::TrustPromptAdd);
+                    let auth_server = std::mem::take(auth_server);
+                    let added = matches!(msg, Message::TrustPromptAdd);
 
-                        *connection_state = ConnectionState::InProgress;
-                        events.push(Event::AuthServerTrust(auth_server, added));
-                    }
+                    *connection_state = ConnectionState::InProgress;
+                    events.push(Event::AuthServerTrust(auth_server, added));
                 }
             },
             Message::CloseError => {

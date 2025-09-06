@@ -4112,12 +4112,12 @@ fn handle_faction(
         drop(factions);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
         let msg = args.join(" ");
-        if !msg.is_empty() {
-            if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server
-                    .state
-                    .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
-            }
+        if !msg.is_empty()
+            && let Some(uid) = server.state.ecs().read_storage().get(target)
+        {
+            server
+                .state
+                .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
@@ -4142,12 +4142,12 @@ fn handle_group(
         drop(groups);
         insert_or_replace_component(server, target, mode.clone(), "target")?;
         let msg = args.join(" ");
-        if !msg.is_empty() {
-            if let Some(uid) = server.state.ecs().read_storage().get(target) {
-                server
-                    .state
-                    .send_chat(mode.to_msg(*uid, Content::Plain(msg), Some(group))?, false);
-            }
+        if !msg.is_empty()
+            && let Some(uid) = server.state.ecs().read_storage().get(target)
+        {
+            server
+                .state
+                .send_chat(mode.to_msg(*uid, Content::Plain(msg), Some(group))?, false);
         }
         server.notify_client(target, ServerGeneral::ChatMode(mode));
         Ok(())
@@ -4293,12 +4293,12 @@ fn handle_region(
     let mode = comp::ChatMode::Region;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
     let msg = args.join(" ");
-    if !msg.is_empty() {
-        if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server
-                .state
-                .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
-        }
+    if !msg.is_empty()
+        && let Some(uid) = server.state.ecs().read_storage().get(target)
+    {
+        server
+            .state
+            .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
     Ok(())
@@ -4317,12 +4317,12 @@ fn handle_say(
     let mode = comp::ChatMode::Say;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
     let msg = args.join(" ");
-    if !msg.is_empty() {
-        if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server
-                .state
-                .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
-        }
+    if !msg.is_empty()
+        && let Some(uid) = server.state.ecs().read_storage().get(target)
+    {
+        server
+            .state
+            .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
     Ok(())
@@ -4341,12 +4341,12 @@ fn handle_world(
     let mode = comp::ChatMode::World;
     insert_or_replace_component(server, target, mode.clone(), "target")?;
     let msg = args.join(" ");
-    if !msg.is_empty() {
-        if let Some(uid) = server.state.ecs().read_storage().get(target) {
-            server
-                .state
-                .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
-        }
+    if !msg.is_empty()
+        && let Some(uid) = server.state.ecs().read_storage().get(target)
+    {
+        server
+            .state
+            .send_chat(mode.to_msg(*uid, Content::Plain(msg), None)?, false);
     }
     server.notify_client(target, ServerGeneral::ChatMode(mode));
     Ok(())
@@ -5453,9 +5453,11 @@ fn handle_ban_log(
                     ban.reason,
                     ban.end_date
                         .map_or_else(|| "permanent".to_string(), |end_date| end_date.to_rfc3339()),
-                    ban.upgrade_to_ip
-                        .then_some("\n  Will be upgraded to IP ban")
-                        .unwrap_or_default(),
+                    if ban.upgrade_to_ip {
+                        "\n  Will be upgraded to IP ban"
+                    } else {
+                        Default::default()
+                    },
                     ban.info
                         .as_ref()
                         .map(|info| format!("\n  {}", display_ban_info(info)))

@@ -1551,43 +1551,41 @@ impl Hud {
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
-            if self.show.prompt_dialog.is_none() {
-                if let Some(persistence_error) = info.persistence_load_error {
-                    let persistence_error = match persistence_error {
-                        SkillsPersistenceError::HashMismatch => {
-                            "hud-skill-persistence-hash_mismatch"
-                        },
-                        SkillsPersistenceError::DeserializationFailure => {
-                            "hud-skill-persistence-deserialization_failure"
-                        },
-                        SkillsPersistenceError::SpentExpMismatch => {
-                            "hud-skill-persistence-spent_experience_missing"
-                        },
-                        SkillsPersistenceError::SkillsUnlockFailed => {
-                            "hud-skill-persistence-skills_unlock_failed"
-                        },
-                    };
-                    let persistence_error = global_state
-                        .i18n
-                        .read()
-                        .get_content(&Content::localized(persistence_error));
+            if self.show.prompt_dialog.is_none()
+                && let Some(persistence_error) = info.persistence_load_error
+            {
+                let persistence_error = match persistence_error {
+                    SkillsPersistenceError::HashMismatch => "hud-skill-persistence-hash_mismatch",
+                    SkillsPersistenceError::DeserializationFailure => {
+                        "hud-skill-persistence-deserialization_failure"
+                    },
+                    SkillsPersistenceError::SpentExpMismatch => {
+                        "hud-skill-persistence-spent_experience_missing"
+                    },
+                    SkillsPersistenceError::SkillsUnlockFailed => {
+                        "hud-skill-persistence-skills_unlock_failed"
+                    },
+                };
+                let persistence_error = global_state
+                    .i18n
+                    .read()
+                    .get_content(&Content::localized(persistence_error));
 
-                    let common_message = global_state
-                        .i18n
-                        .read()
-                        .get_content(&Content::localized("hud-skill-persistence-common_message"));
+                let common_message = global_state
+                    .i18n
+                    .read()
+                    .get_content(&Content::localized("hud-skill-persistence-common_message"));
 
-                    warn!("{}\n{}", persistence_error, common_message);
-                    // TODO: Let the player see the more detailed message `persistence_error`?
-                    let prompt_dialog = PromptDialogSettings::new(
-                        format!("{}\n", common_message),
-                        Event::AcknowledgePersistenceLoadError,
-                        None,
-                    )
-                    .with_no_negative_option();
-                    // self.set_prompt_dialog(prompt_dialog);
-                    self.show.prompt_dialog = Some(prompt_dialog);
-                }
+                warn!("{}\n{}", persistence_error, common_message);
+                // TODO: Let the player see the more detailed message `persistence_error`?
+                let prompt_dialog = PromptDialogSettings::new(
+                    format!("{}\n", common_message),
+                    Event::AcknowledgePersistenceLoadError,
+                    None,
+                )
+                .with_no_negative_option();
+                // self.set_prompt_dialog(prompt_dialog);
+                self.show.prompt_dialog = Some(prompt_dialog);
             }
 
             if (client.pending_trade().is_some() && !self.show.trade)
@@ -1752,10 +1750,9 @@ impl Hud {
                                 + 300.0
                                 - ui_widgets.win_h * 0.5
                         } else {
-                            floater.timer as f64
+                            -(floater.timer as f64
                                 * number_speed
-                                * floater.info.amount.signum() as f64
-                                * -1.0
+                                * floater.info.amount.signum() as f64)
                                 + 300.0
                                 - ui_widgets.win_h * 0.5
                         };
@@ -2755,7 +2752,7 @@ impl Hud {
                     let dz = velocity.z;
                     // don't divide by zero
                     let glide_ratio_text = if dz.abs() > 0.0001 {
-                        format!("Glide Ratio: {:.1}", (-1.0) * (horizontal_velocity / dz))
+                        format!("Glide Ratio: {:.1}", -(horizontal_velocity / dz))
                     } else {
                         "Glide Ratio: Altitude is constant".to_owned()
                     };
@@ -3265,8 +3262,8 @@ impl Hud {
             }
         }
         // Bag contents
-        if self.show.bag {
-            if let (
+        if self.show.bag
+            && let (
                 Some(player_stats),
                 Some(skill_set),
                 Some(health),
@@ -3280,64 +3277,64 @@ impl Hud {
                 energies.get(entity),
                 bodies.get(entity),
                 poises.get(entity),
-            ) {
-                match Bag::new(
-                    client,
-                    &info,
-                    global_state,
-                    &self.imgs,
-                    &self.item_imgs,
-                    &self.fonts,
-                    &self.rot_imgs,
-                    tooltip_manager,
-                    item_tooltip_manager,
-                    &mut self.slot_manager,
-                    self.pulse,
-                    i18n,
-                    &self.item_i18n,
-                    player_stats,
-                    skill_set,
-                    health,
-                    energy,
-                    &self.show,
-                    body,
-                    &msm,
-                    &rbm,
-                    poise,
-                )
-                .set(self.ids.bag, ui_widgets)
-                {
-                    Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
-                    Some(bag::Event::SetDetailsMode(mode)) => self.show.bag_details = mode,
-                    Some(bag::Event::Close) => {
-                        self.show.stats = false;
-                        Self::show_bag(&mut self.slot_manager, &mut self.show, false);
-                        if !self.show.social {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                    },
-                    Some(bag::Event::ChangeInventorySortOrder(sort_order)) => {
-                        self.events
-                            .push(Event::SettingsChange(SettingsChange::Inventory(
-                                Inventory::ChangeSortOrder(sort_order),
-                            )));
-                    },
-                    Some(bag::Event::SortInventory(sort_order)) => {
-                        self.events.push(Event::SortInventory(sort_order))
-                    },
-                    Some(bag::Event::SwapEquippedWeapons) => {
-                        self.events.push(Event::SwapEquippedWeapons)
-                    },
-                    None => {},
-                }
+            )
+        {
+            match Bag::new(
+                client,
+                &info,
+                global_state,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                item_tooltip_manager,
+                &mut self.slot_manager,
+                self.pulse,
+                i18n,
+                &self.item_i18n,
+                player_stats,
+                skill_set,
+                health,
+                energy,
+                &self.show,
+                body,
+                &msm,
+                &rbm,
+                poise,
+            )
+            .set(self.ids.bag, ui_widgets)
+            {
+                Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
+                Some(bag::Event::SetDetailsMode(mode)) => self.show.bag_details = mode,
+                Some(bag::Event::Close) => {
+                    self.show.stats = false;
+                    Self::show_bag(&mut self.slot_manager, &mut self.show, false);
+                    if !self.show.social {
+                        self.show.want_grab = true;
+                        self.force_ungrab = false;
+                    } else {
+                        self.force_ungrab = true
+                    };
+                },
+                Some(bag::Event::ChangeInventorySortOrder(sort_order)) => {
+                    self.events
+                        .push(Event::SettingsChange(SettingsChange::Inventory(
+                            Inventory::ChangeSortOrder(sort_order),
+                        )));
+                },
+                Some(bag::Event::SortInventory(sort_order)) => {
+                    self.events.push(Event::SortInventory(sort_order))
+                },
+                Some(bag::Event::SwapEquippedWeapons) => {
+                    self.events.push(Event::SwapEquippedWeapons)
+                },
+                None => {},
             }
         }
         // Trade window
-        if self.show.trade {
-            if let Some(action) = Trade::new(
+        if self.show.trade
+            && let Some(action) = Trade::new(
                 client,
                 &info,
                 &self.imgs,
@@ -3355,40 +3352,39 @@ impl Hud {
                 &mut self.show,
             )
             .set(self.ids.trade, ui_widgets)
-            {
-                match action {
-                    trade::TradeEvent::HudUpdate(update) => match update {
-                        trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
-                        trade::HudUpdate::Submit => {
-                            let key = self.show.trade_amount_input_key.take();
-                            key.map(|k| {
-                                k.submit_action.map(|action| {
-                                    self.events.push(Event::TradeAction(action));
-                                });
+        {
+            match action {
+                trade::TradeEvent::HudUpdate(update) => match update {
+                    trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
+                    trade::HudUpdate::Submit => {
+                        let key = self.show.trade_amount_input_key.take();
+                        key.map(|k| {
+                            k.submit_action.map(|action| {
+                                self.events.push(Event::TradeAction(action));
                             });
-                        },
+                        });
                     },
-                    trade::TradeEvent::TradeAction(action) => {
-                        if let TradeAction::Decline = action {
-                            self.show.stats = false;
-                            self.show.trade(false);
-                            if !self.show.social {
-                                self.show.want_grab = true;
-                                self.force_ungrab = false;
-                            } else {
-                                self.force_ungrab = true
-                            };
-                            self.show.prompt_dialog = None;
-                        }
-                        events.push(Event::TradeAction(action));
-                    },
-                    trade::TradeEvent::SetDetailsMode(mode) => {
-                        self.show.trade_details = mode;
-                    },
-                    trade::TradeEvent::ShowPrompt(prompt) => {
-                        self.show.prompt_dialog = Some(prompt);
-                    },
-                }
+                },
+                trade::TradeEvent::TradeAction(action) => {
+                    if let TradeAction::Decline = action {
+                        self.show.stats = false;
+                        self.show.trade(false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                        self.show.prompt_dialog = None;
+                    }
+                    events.push(Event::TradeAction(action));
+                },
+                trade::TradeEvent::SetDetailsMode(mode) => {
+                    self.show.trade_details = mode;
+                },
+                trade::TradeEvent::ShowPrompt(prompt) => {
+                    self.show.prompt_dialog = Some(prompt);
+                },
             }
         }
 
@@ -3421,114 +3417,112 @@ impl Hud {
             }
         }
         // Crafting
-        if self.show.crafting {
-            if let Some(inventory) = inventories.get(entity) {
-                for event in Crafting::new(
-                    //&self.show,
-                    client,
-                    &info,
-                    &self.imgs,
-                    &self.fonts,
-                    i18n,
-                    &self.item_i18n,
-                    self.pulse,
-                    &self.rot_imgs,
-                    item_tooltip_manager,
-                    &mut self.slot_manager,
-                    &self.item_imgs,
-                    inventory,
-                    &rbm,
-                    &msm,
-                    tooltip_manager,
-                    &mut self.show,
-                    &global_state.settings,
-                )
-                .set(self.ids.crafting_window, ui_widgets)
-                {
-                    match event {
-                        crafting::Event::CraftRecipe {
+        if self.show.crafting
+            && let Some(inventory) = inventories.get(entity)
+        {
+            for event in Crafting::new(
+                //&self.show,
+                client,
+                &info,
+                &self.imgs,
+                &self.fonts,
+                i18n,
+                &self.item_i18n,
+                self.pulse,
+                &self.rot_imgs,
+                item_tooltip_manager,
+                &mut self.slot_manager,
+                &self.item_imgs,
+                inventory,
+                &rbm,
+                &msm,
+                tooltip_manager,
+                &mut self.show,
+                &global_state.settings,
+            )
+            .set(self.ids.crafting_window, ui_widgets)
+            {
+                match event {
+                    crafting::Event::CraftRecipe {
+                        recipe_name,
+                        amount,
+                    } => {
+                        events.push(Event::CraftRecipe {
                             recipe_name,
+                            craft_sprite: self.show.crafting_fields.craft_sprite,
                             amount,
-                        } => {
-                            events.push(Event::CraftRecipe {
-                                recipe_name,
-                                craft_sprite: self.show.crafting_fields.craft_sprite,
-                                amount,
-                            });
-                        },
-                        crafting::Event::CraftModularWeapon {
+                        });
+                    },
+                    crafting::Event::CraftModularWeapon {
+                        primary_slot,
+                        secondary_slot,
+                    } => {
+                        events.push(Event::CraftModularWeapon {
                             primary_slot,
                             secondary_slot,
-                        } => {
-                            events.push(Event::CraftModularWeapon {
-                                primary_slot,
-                                secondary_slot,
-                                craft_sprite: self
-                                    .show
-                                    .crafting_fields
-                                    .craft_sprite
-                                    .map(|(pos, _sprite)| pos),
-                            });
-                        },
-                        crafting::Event::CraftModularWeaponComponent {
-                            toolkind,
-                            material,
-                            modifier,
-                        } => {
-                            events.push(Event::CraftModularWeaponComponent {
-                                toolkind,
-                                material,
-                                modifier,
-                                craft_sprite: self
-                                    .show
-                                    .crafting_fields
-                                    .craft_sprite
-                                    .map(|(pos, _sprite)| pos),
-                            });
-                        },
-                        crafting::Event::Close => {
-                            self.show.stats = false;
-                            self.show.crafting(false);
-                            if !self.show.social {
-                                self.show.want_grab = true;
-                                self.force_ungrab = false;
-                            } else {
-                                self.force_ungrab = true
-                            };
-                        },
-                        crafting::Event::ChangeCraftingTab(sel_cat) => {
-                            self.show.open_crafting_tab(sel_cat, None);
-                        },
-                        crafting::Event::Focus(widget_id) => {
-                            self.to_focus = Some(Some(widget_id));
-                        },
-                        crafting::Event::SearchRecipe(search_key) => {
-                            self.show.search_crafting_recipe(search_key);
-                        },
-                        crafting::Event::ClearRecipeInputs => {
-                            self.show.crafting_fields.recipe_inputs.clear();
-                        },
-                        crafting::Event::RepairItem { slot } => {
-                            if let Some(sprite_pos) = self
+                            craft_sprite: self
                                 .show
                                 .crafting_fields
                                 .craft_sprite
-                                .map(|(pos, _sprite)| pos)
-                            {
-                                events.push(Event::RepairItem {
-                                    item: slot,
-                                    sprite_pos,
-                                });
-                            }
-                        },
-                        crafting::Event::ShowAllRecipes(show) => {
-                            events.push(Event::SettingsChange(SettingsChange::Gameplay(
-                                crate::session::settings_change::Gameplay::ChangeShowAllRecipes(
-                                    show,
-                                ),
-                            )));
-                        },
-                    }
+                                .map(|(pos, _sprite)| pos),
+                        });
+                    },
+                    crafting::Event::CraftModularWeaponComponent {
+                        toolkind,
+                        material,
+                        modifier,
+                    } => {
+                        events.push(Event::CraftModularWeaponComponent {
+                            toolkind,
+                            material,
+                            modifier,
+                            craft_sprite: self
+                                .show
+                                .crafting_fields
+                                .craft_sprite
+                                .map(|(pos, _sprite)| pos),
+                        });
+                    },
+                    crafting::Event::Close => {
+                        self.show.stats = false;
+                        self.show.crafting(false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    },
+                    crafting::Event::ChangeCraftingTab(sel_cat) => {
+                        self.show.open_crafting_tab(sel_cat, None);
+                    },
+                    crafting::Event::Focus(widget_id) => {
+                        self.to_focus = Some(Some(widget_id));
+                    },
+                    crafting::Event::SearchRecipe(search_key) => {
+                        self.show.search_crafting_recipe(search_key);
+                    },
+                    crafting::Event::ClearRecipeInputs => {
+                        self.show.crafting_fields.recipe_inputs.clear();
+                    },
+                    crafting::Event::RepairItem { slot } => {
+                        if let Some(sprite_pos) = self
+                            .show
+                            .crafting_fields
+                            .craft_sprite
+                            .map(|(pos, _sprite)| pos)
+                        {
+                            events.push(Event::RepairItem {
+                                item: slot,
+                                sprite_pos,
+                            });
+                        }
+                    },
+                    crafting::Event::ShowAllRecipes(show) => {
+                        events.push(Event::SettingsChange(SettingsChange::Gameplay(
+                            crate::session::settings_change::Gameplay::ChangeShowAllRecipes(show),
+                        )));
+                    },
                 }
             }
         }
@@ -3959,25 +3953,24 @@ impl Hud {
             .settings
             .controls
             .get_binding(GameInput::FreeLook)
+            && self.show.free_look
         {
-            if self.show.free_look {
-                let msg = i18n.get_msg_ctx("hud-free_look_indicator", &i18n::fluent_args! {
-                    "key" => freelook_key.display_string(),
-                });
-                Text::new(&msg)
-                    .color(TEXT_BG)
-                    .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .set(self.ids.free_look_bg, ui_widgets);
-                indicator_offset += 30.0;
-                Text::new(&msg)
-                    .color(KILL_COLOR)
-                    .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .set(self.ids.free_look_txt, ui_widgets);
-            }
+            let msg = i18n.get_msg_ctx("hud-free_look_indicator", &i18n::fluent_args! {
+                "key" => freelook_key.display_string(),
+            });
+            Text::new(&msg)
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.free_look_bg, ui_widgets);
+            indicator_offset += 30.0;
+            Text::new(&msg)
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.free_look_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.free_look_txt, ui_widgets);
         };
 
         // Auto walk indicator
@@ -4027,24 +4020,23 @@ impl Hud {
             .settings
             .controls
             .get_binding(GameInput::CameraClamp)
+            && self.show.camera_clamp
         {
-            if self.show.camera_clamp {
-                let msg = i18n.get_msg_ctx("hud-camera_clamp_indicator", &i18n::fluent_args! {
-                    "key" => cameraclamp_key.display_string(),
-                });
-                Text::new(&msg)
-                    .color(TEXT_BG)
-                    .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .set(self.ids.camera_clamp_bg, ui_widgets);
-                Text::new(&msg)
-                    .color(KILL_COLOR)
-                    .top_left_with_margins_on(self.ids.camera_clamp_bg, -1.0, -1.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .set(self.ids.camera_clamp_txt, ui_widgets);
-            }
+            let msg = i18n.get_msg_ctx("hud-camera_clamp_indicator", &i18n::fluent_args! {
+                "key" => cameraclamp_key.display_string(),
+            });
+            Text::new(&msg)
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.camera_clamp_bg, ui_widgets);
+            Text::new(&msg)
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.camera_clamp_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.camera_clamp_txt, ui_widgets);
         }
 
         // Maintain slot manager
@@ -4086,43 +4078,38 @@ impl Hud {
                         Hotbar(h),
                     ) = (a, b)
                     {
-                        if let Slot::Inventory(slot) = slot {
-                            if let Some(item) = inventories
+                        if let Slot::Inventory(slot) = slot
+                            && let Some(item) = inventories
                                 .get(info.viewpoint_entity)
                                 .and_then(|inv| inv.get(slot))
-                            {
-                                self.hotbar.add_inventory_link(h, item);
-                                events.push(Event::ChangeHotbarState(Box::new(
-                                    self.hotbar.to_owned(),
-                                )));
-                            }
+                        {
+                            self.hotbar.add_inventory_link(h, item);
+                            events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                         }
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Inventory(i), Trade(t)) = (a, b) {
-                        if i.ours == t.ours {
-                            if let (Some(inventory), Slot::Inventory(slot)) =
+                        if i.ours == t.ours
+                            && let (Some(inventory), Slot::Inventory(slot)) =
                                 (inventories.get(t.entity), i.slot)
-                            {
-                                events.push(Event::TradeAction(TradeAction::AddItem {
-                                    item: slot,
-                                    quantity: i.amount(inventory).unwrap_or(1),
-                                    ours: i.ours,
-                                }));
-                            }
+                        {
+                            events.push(Event::TradeAction(TradeAction::AddItem {
+                                item: slot,
+                                quantity: i.amount(inventory).unwrap_or(1),
+                                ours: i.ours,
+                            }));
                         }
                     } else if let (Trade(t), Inventory(i)) = (a, b) {
-                        if i.ours == t.ours {
-                            if let Some(inventory) = inventories.get(t.entity) {
-                                if let Some(invslot) = t.invslot {
-                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                        item: invslot,
-                                        quantity: t.amount(inventory).unwrap_or(1),
-                                        ours: t.ours,
-                                    }));
-                                }
-                            }
+                        if i.ours == t.ours
+                            && let Some(inventory) = inventories.get(t.entity)
+                            && let Some(invslot) = t.invslot
+                        {
+                            events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                item: invslot,
+                                quantity: t.amount(inventory).unwrap_or(1),
+                                ours: t.ours,
+                            }));
                         }
                     } else if let (Ability(a), Ability(b)) = (a, b) {
                         match (a, b) {
@@ -4184,12 +4171,11 @@ impl Hud {
                     } else if let (Crafting(c), Inventory(_)) = (a, b) {
                         // Remove item from crafting input
                         self.show.crafting_fields.recipe_inputs.remove(&c.index);
-                    } else if let (Ability(AbilitySlot::Ability(ability)), Hotbar(slot)) = (a, b) {
-                        if let Some(Some(HotbarSlotContents::Ability(index))) =
+                    } else if let (Ability(AbilitySlot::Ability(ability)), Hotbar(slot)) = (a, b)
+                        && let Some(Some(HotbarSlotContents::Ability(index))) =
                             self.hotbar.slots.get(slot as usize)
-                        {
-                            events.push(Event::ChangeAbility(*index, ability));
-                        }
+                    {
+                        events.push(Event::ChangeAbility(*index, ability));
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -4200,14 +4186,14 @@ impl Hud {
                         self.hotbar.clear_slot(h);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let Trade(t) = from {
-                        if let Some(inventory) = inventories.get(t.entity) {
-                            if let Some(invslot) = t.invslot {
-                                events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                    item: invslot,
-                                    quantity: t.amount(inventory).unwrap_or(1),
-                                    ours: t.ours,
-                                }));
-                            }
+                        if let Some(inventory) = inventories.get(t.entity)
+                            && let Some(invslot) = t.invslot
+                        {
+                            events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                item: invslot,
+                                quantity: t.amount(inventory).unwrap_or(1),
+                                ours: t.ours,
+                            }));
                         }
                     } else if let Ability(AbilitySlot::Slot(index)) = from {
                         events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
@@ -4236,43 +4222,38 @@ impl Hud {
                             bypass_dialog: false,
                         });
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
-                        if let Slot::Inventory(slot) = i.slot {
-                            if let Some(item) = inventories
+                        if let Slot::Inventory(slot) = i.slot
+                            && let Some(item) = inventories
                                 .get(info.viewpoint_entity)
                                 .and_then(|inv| inv.get(slot))
-                            {
-                                self.hotbar.add_inventory_link(h, item);
-                                events.push(Event::ChangeHotbarState(Box::new(
-                                    self.hotbar.to_owned(),
-                                )));
-                            }
+                        {
+                            self.hotbar.add_inventory_link(h, item);
+                            events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                         }
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
                     } else if let (Inventory(i), Trade(t)) = (a, b) {
-                        if i.ours == t.ours {
-                            if let (Some(inventory), Slot::Inventory(slot)) =
+                        if i.ours == t.ours
+                            && let (Some(inventory), Slot::Inventory(slot)) =
                                 (inventories.get(t.entity), i.slot)
-                            {
-                                events.push(Event::TradeAction(TradeAction::AddItem {
-                                    item: slot,
-                                    quantity: i.amount(inventory).unwrap_or(1) / 2,
-                                    ours: i.ours,
-                                }));
-                            }
+                        {
+                            events.push(Event::TradeAction(TradeAction::AddItem {
+                                item: slot,
+                                quantity: i.amount(inventory).unwrap_or(1) / 2,
+                                ours: i.ours,
+                            }));
                         }
                     } else if let (Trade(t), Inventory(i)) = (a, b) {
-                        if i.ours == t.ours {
-                            if let Some(inventory) = inventories.get(t.entity) {
-                                if let Some(invslot) = t.invslot {
-                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                        item: invslot,
-                                        quantity: t.amount(inventory).unwrap_or(1) / 2,
-                                        ours: t.ours,
-                                    }));
-                                }
-                            }
+                        if i.ours == t.ours
+                            && let Some(inventory) = inventories.get(t.entity)
+                            && let Some(invslot) = t.invslot
+                        {
+                            events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                item: invslot,
+                                quantity: t.amount(inventory).unwrap_or(1) / 2,
+                                ours: t.ours,
+                            }));
                         }
                     } else if let (Ability(a), Ability(b)) = (a, b) {
                         match (a, b) {
@@ -4390,8 +4371,8 @@ impl Hud {
                              ours,
                              remove,
                              quantity: &mut u32| {
-                                if let Some(prices) = prices {
-                                    if let Some((balance0, balance1)) = prices
+                                if let Some(prices) = prices
+                                    && let Some((balance0, balance1)) = prices
                                         .balance(&trade.offers, &r_inventories, who, true)
                                         .zip(prices.balance(
                                             &trade.offers,
@@ -4399,90 +4380,78 @@ impl Hud {
                                             1 - who,
                                             false,
                                         ))
-                                    {
-                                        if let Some(item) = inventory.get(slot) {
-                                            if let Some(materials) = TradePricing::get_materials(
-                                                &item.item_definition_id(),
-                                            ) {
-                                                let unit_price: f32 = materials
-                                                    .iter()
-                                                    .map(|e| {
-                                                        prices
-                                                            .values
-                                                            .get(&e.1)
-                                                            .cloned()
-                                                            .unwrap_or_default()
-                                                            * e.0
-                                                            * (if ours {
-                                                                e.1.trade_margin()
-                                                            } else {
-                                                                1.0
-                                                            })
-                                                    })
-                                                    .sum();
+                                    && let Some(item) = inventory.get(slot)
+                                    && let Some(materials) =
+                                        TradePricing::get_materials(&item.item_definition_id())
+                                {
+                                    let unit_price: f32 = materials
+                                        .iter()
+                                        .map(|e| {
+                                            prices.values.get(&e.1).cloned().unwrap_or_default()
+                                                * e.0
+                                                * (if ours { e.1.trade_margin() } else { 1.0 })
+                                        })
+                                        .sum();
 
-                                                let mut float_delta = if ours ^ remove {
-                                                    (balance1 - balance0) / unit_price
-                                                } else {
-                                                    (balance0 - balance1) / unit_price
-                                                };
-                                                if ours ^ remove {
-                                                    float_delta = float_delta.ceil();
-                                                } else {
-                                                    float_delta = float_delta.floor();
-                                                }
-                                                *quantity = float_delta.max(0.0) as u32;
-                                            }
-                                        }
+                                    let mut float_delta = if ours ^ remove {
+                                        (balance1 - balance0) / unit_price
+                                    } else {
+                                        (balance0 - balance1) / unit_price
+                                    };
+                                    if ours ^ remove {
+                                        float_delta = float_delta.ceil();
+                                    } else {
+                                        float_delta = float_delta.floor();
                                     }
+                                    *quantity = float_delta.max(0.0) as u32;
                                 }
                             };
                         match slot {
                             Inventory(i) => {
-                                if let Some(inventory) = inventories.get(i.entity) {
-                                    if let Slot::Inventory(slot) = i.slot {
-                                        let mut quantity = 1;
-                                        if auto_quantity {
-                                            do_auto_quantity(
-                                                inventory,
-                                                slot,
-                                                i.ours,
-                                                false,
-                                                &mut quantity,
-                                            );
-                                            let inv_quantity = i.amount(inventory).unwrap_or(1);
-                                            quantity = quantity.min(inv_quantity);
-                                        }
-
-                                        events.push(Event::TradeAction(TradeAction::AddItem {
-                                            item: slot,
-                                            quantity,
-                                            ours: i.ours,
-                                        }));
+                                if let Some(inventory) = inventories.get(i.entity)
+                                    && let Slot::Inventory(slot) = i.slot
+                                {
+                                    let mut quantity = 1;
+                                    if auto_quantity {
+                                        do_auto_quantity(
+                                            inventory,
+                                            slot,
+                                            i.ours,
+                                            false,
+                                            &mut quantity,
+                                        );
+                                        let inv_quantity = i.amount(inventory).unwrap_or(1);
+                                        quantity = quantity.min(inv_quantity);
                                     }
+
+                                    events.push(Event::TradeAction(TradeAction::AddItem {
+                                        item: slot,
+                                        quantity,
+                                        ours: i.ours,
+                                    }));
                                 }
                             },
                             Trade(t) => {
-                                if let Some(inventory) = inventories.get(t.entity) {
-                                    if let Some(invslot) = t.invslot {
-                                        let mut quantity = 1;
-                                        if auto_quantity {
-                                            do_auto_quantity(
-                                                inventory,
-                                                invslot,
-                                                t.ours,
-                                                true,
-                                                &mut quantity,
-                                            );
-                                            let inv_quantity = t.amount(inventory).unwrap_or(1);
-                                            quantity = quantity.min(inv_quantity);
-                                        }
-                                        events.push(Event::TradeAction(TradeAction::RemoveItem {
-                                            item: invslot,
-                                            quantity,
-                                            ours: t.ours,
-                                        }));
+                                if let Some(inventory) = inventories.get(t.entity)
+                                    && let Some(invslot) = t.invslot
+                                {
+                                    let mut quantity = 1;
+                                    if auto_quantity {
+                                        do_auto_quantity(
+                                            inventory,
+                                            invslot,
+                                            t.ours,
+                                            true,
+                                            &mut quantity,
+                                        );
+                                        let inv_quantity = t.amount(inventory).unwrap_or(1);
+                                        quantity = quantity.min(inv_quantity);
                                     }
+                                    events.push(Event::TradeAction(TradeAction::RemoveItem {
+                                        item: invslot,
+                                        quantity,
+                                        ours: t.ours,
+                                    }));
                                 }
                             },
                             _ => {},
@@ -4768,23 +4737,21 @@ impl Hud {
                 let just_pressed = hotbar.process_input(slot, state);
                 hotbar.get(slot).map(|s| match s {
                     hotbar::SlotContents::Inventory(i, _) => {
-                        if just_pressed {
-                            if let Some(inv) = client_inventory {
-                                // If the item in the inactive main hand is the same as the item
-                                // pressed in the hotbar, then swap active and inactive hands
-                                // instead of looking for the item
-                                // in the inventory
-                                if inv
-                                    .equipped(comp::slot::EquipSlot::InactiveMainhand)
-                                    .is_some_and(|item| item.item_hash() == i)
-                                {
-                                    events.push(Event::SwapEquippedWeapons);
-                                } else if let Some(slot) = inv.get_slot_from_hash(i) {
-                                    events.push(Event::UseSlot {
-                                        slot: comp::slot::Slot::Inventory(slot),
-                                        bypass_dialog: false,
-                                    });
-                                }
+                        if just_pressed && let Some(inv) = client_inventory {
+                            // If the item in the inactive main hand is the same as the item
+                            // pressed in the hotbar, then swap active and inactive hands
+                            // instead of looking for the item
+                            // in the inventory
+                            if inv
+                                .equipped(comp::slot::EquipSlot::InactiveMainhand)
+                                .is_some_and(|item| item.item_hash() == i)
+                            {
+                                events.push(Event::SwapEquippedWeapons);
+                            } else if let Some(slot) = inv.get_slot_from_hash(i) {
+                                events.push(Event::UseSlot {
+                                    slot: comp::slot::Slot::Inventory(slot),
+                                    bypass_dialog: false,
+                                });
                             }
                         }
                     },
@@ -5271,46 +5238,47 @@ impl Hud {
                 let me = scene_data.viewpoint_entity;
                 let my_uid = uids.get(me);
 
-                if let Some(entity) = ecs.entity_from_uid(info.target) {
-                    if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
-                        let hit_me = my_uid.is_some_and(|&uid| {
-                            (info.target == uid) && global_state.settings.interface.sct_inc_dmg
-                        });
-                        if match info.by {
-                            Some(by) => {
-                                let by_me = my_uid.is_some_and(|&uid| by.uid() == uid);
-                                // If the attack was by me also reset this timer
-                                if by_me {
-                                    floater_list.time_since_last_dmg_by_me = Some(0.0);
-                                }
-                                hit_me || by_me
-                            },
-                            None => hit_me,
-                        } {
-                            // Group up damage from the same tick and instance number
-                            for floater in floater_list.floaters.iter_mut().rev() {
-                                if floater.timer > 0.0 {
-                                    break;
-                                }
-                                if floater.info.instance == info.instance
+                if let Some(entity) = ecs.entity_from_uid(info.target)
+                    && let Some(floater_list) = hp_floater_lists.get_mut(entity)
+                {
+                    let hit_me = my_uid.is_some_and(|&uid| {
+                        (info.target == uid) && global_state.settings.interface.sct_inc_dmg
+                    });
+                    if match info.by {
+                        Some(by) => {
+                            let by_me = my_uid.is_some_and(|&uid| by.uid() == uid);
+                            // If the attack was by me also reset this timer
+                            if by_me {
+                                floater_list.time_since_last_dmg_by_me = Some(0.0);
+                            }
+                            hit_me || by_me
+                        },
+                        None => hit_me,
+                    } {
+                        // Group up damage from the same tick and instance number
+                        for floater in floater_list.floaters.iter_mut().rev() {
+                            if floater.timer > 0.0 {
+                                break;
+                            }
+                            if floater.info.instance == info.instance
                                     // Group up precision hits and regular attacks for incoming damage
                                     && (hit_me
                                         || floater.info.precise
                                             == info.precise)
-                                {
-                                    floater.info.amount += info.amount;
-                                    if info.precise {
-                                        floater.info.precise = info.precise
-                                    }
-                                    return;
+                            {
+                                floater.info.amount += info.amount;
+                                if info.precise {
+                                    floater.info.precise = info.precise
                                 }
+                                return;
                             }
+                        }
 
-                            // To separate healing and damage floaters alongside the precise and
-                            // non-precise ones
-                            let last_floater = if !info.precise || hit_me {
-                                floater_list.floaters.iter_mut().rev().find(|f| {
-                                    (if info.amount < 0.0 {
+                        // To separate healing and damage floaters alongside the precise and
+                        // non-precise ones
+                        let last_floater = if !info.precise || hit_me {
+                            floater_list.floaters.iter_mut().rev().find(|f| {
+                                (if info.amount < 0.0 {
                                         f.info.amount < 0.0
                                     } else {
                                         f.info.amount > 0.0
@@ -5322,26 +5290,25 @@ impl Hud {
                                         }
                                     // Ignore precise floaters, unless the damage is incoming
                                     && (hit_me || !f.info.precise)
-                                })
-                            } else {
-                                None
-                            };
+                            })
+                        } else {
+                            None
+                        };
 
-                            match last_floater {
-                                Some(f) => {
-                                    f.jump_timer = 0.0;
-                                    f.info.amount += info.amount;
-                                    f.info.precise = info.precise;
-                                },
-                                _ => {
-                                    floater_list.floaters.push(HpFloater {
-                                        timer: 0.0,
-                                        jump_timer: 0.0,
-                                        info: *info,
-                                        rand: rand::random(),
-                                    });
-                                },
-                            }
+                        match last_floater {
+                            Some(f) => {
+                                f.jump_timer = 0.0;
+                                f.info.amount += info.amount;
+                                f.info.precise = info.precise;
+                            },
+                            _ => {
+                                floater_list.floaters.push(HpFloater {
+                                    timer: 0.0,
+                                    jump_timer: 0.0,
+                                    info: *info,
+                                    rand: rand::random(),
+                                });
+                            },
                         }
                     }
                 }

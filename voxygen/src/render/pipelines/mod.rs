@@ -77,7 +77,7 @@ pub struct Globals {
     globals_dummy: [f32; 3],
 }
 /// Make sure Globals is 16-byte-aligned.
-const _: () = assert!(core::mem::size_of::<Globals>() % 16 == 0);
+const _: () = assert!(core::mem::size_of::<Globals>().is_multiple_of(16));
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]

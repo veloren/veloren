@@ -41,10 +41,7 @@ impl SpawnEntry {
         self.rules
             .iter()
             .find(|pack| {
-                let time_match = pack
-                    .day_period
-                    .iter()
-                    .any(|period| *period == requested_period);
+                let time_match = pack.day_period.contains(&requested_period);
                 let calendar_match = if let Some(calendar) = calendar {
                     pack.calendar_events
                         .as_ref()

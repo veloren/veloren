@@ -547,7 +547,7 @@ pub fn quadratic_nearest_point(
     let roots = find_roots_cubic(a_, b_, c_, d_);
     let roots = roots.as_ref();
 
-    let min_root = roots
+    roots
         .iter()
         .copied()
         .map(|root| {
@@ -570,6 +570,5 @@ pub fn quadratic_nearest_point(
             (a, !(0.0..=1.0).contains(&ap), ap)
                 .partial_cmp(&(b, !(0.0..=1.0).contains(&bp), bp))
                 .unwrap()
-        });
-    min_root
+        })
 }

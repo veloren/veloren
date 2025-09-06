@@ -147,8 +147,8 @@ impl ProximityRequirementsBuilder {
             })
             .map(|hint| hint.intersection(*world_dims))
             .unwrap_or_else(|| world_dims.to_owned());
-        let hint = self
-            .all_of
+
+        self.all_of
             .iter()
             .fold(any_of_hint, |acc, spec| match spec.max_distance {
                 None => acc,
@@ -157,8 +157,7 @@ impl ProximityRequirementsBuilder {
                         bounding_box_of_point(spec.location, max_distance);
                     acc.intersection(bounding_box_of_new_point)
                 },
-            });
-        hint
+            })
     }
 
     pub fn new() -> Self {
@@ -722,22 +721,21 @@ impl Civs {
         for (s1, val) in this.track_map.iter() {
             if let Some(index1) = this.sites.get(*s1).site_tmp {
                 for (s2, t) in val.iter() {
-                    if let Some(index2) = this.sites.get(*s2).site_tmp {
-                        if index.sites.get(index1).do_economic_simulation()
-                            && index.sites.get(index2).do_economic_simulation()
-                        {
-                            let cost = this.tracks.get(*t).path.len();
-                            index
-                                .sites
-                                .get_mut(index1)
-                                .economy_mut()
-                                .add_neighbor(index2, cost);
-                            index
-                                .sites
-                                .get_mut(index2)
-                                .economy_mut()
-                                .add_neighbor(index1, cost);
-                        }
+                    if let Some(index2) = this.sites.get(*s2).site_tmp
+                        && index.sites.get(index1).do_economic_simulation()
+                        && index.sites.get(index2).do_economic_simulation()
+                    {
+                        let cost = this.tracks.get(*t).path.len();
+                        index
+                            .sites
+                            .get_mut(index1)
+                            .economy_mut()
+                            .add_neighbor(index2, cost);
+                        index
+                            .sites
+                            .get_mut(index2)
+                            .economy_mut()
+                            .add_neighbor(index1, cost);
                     }
                 }
             }

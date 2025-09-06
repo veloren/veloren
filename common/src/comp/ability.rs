@@ -2270,15 +2270,14 @@ impl CharacterAbility {
             recover_duration,
             ..
         } = self
+            && let Ok(level) = skillset.skill_level(Skill::Pick(Speed))
         {
-            if let Ok(level) = skillset.skill_level(Skill::Pick(Speed)) {
-                let modifiers = SKILL_MODIFIERS.mining_tree;
+            let modifiers = SKILL_MODIFIERS.mining_tree;
 
-                let speed = modifiers.speed.powi(level.into());
-                *buildup_duration /= speed;
-                *swing_duration /= speed;
-                *recover_duration /= speed;
-            }
+            let speed = modifiers.speed.powi(level.into());
+            *buildup_duration /= speed;
+            *swing_duration /= speed;
+            *recover_duration /= speed;
         }
     }
 
@@ -3612,8 +3611,11 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord, Default,
+)]
 pub enum Stance {
+    #[default]
     None,
     Sword(SwordStance),
 }
@@ -3645,10 +3647,6 @@ pub enum AbilityInitEvent {
         strength: f32,
         duration: Option<Secs>,
     },
-}
-
-impl Default for Stance {
-    fn default() -> Self { Self::None }
 }
 
 impl Component for Stance {

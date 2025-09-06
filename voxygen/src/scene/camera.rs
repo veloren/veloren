@@ -16,15 +16,12 @@ const CLIPPING_MODE_RANGE: Range<f32> = 2.0..20.0;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
-#[derive(PartialEq, Debug, Clone, Copy, Eq, Hash)]
+#[derive(PartialEq, Debug, Clone, Copy, Eq, Hash, Default)]
 pub enum CameraMode {
     FirstPerson = 0,
+    #[default]
     ThirdPerson = 1,
     Freefly = 2,
-}
-
-impl Default for CameraMode {
-    fn default() -> Self { Self::ThirdPerson }
 }
 
 #[derive(Clone, Copy)]

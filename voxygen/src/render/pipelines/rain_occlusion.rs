@@ -19,7 +19,7 @@ pub struct Locals {
     occlusion_dummy: [f32; 2],
 }
 /// Make sure Locals is 16-byte-aligned.
-const _: () = assert!(core::mem::size_of::<Locals>() % 16 == 0);
+const _: () = assert!(core::mem::size_of::<Locals>().is_multiple_of(16));
 
 impl Locals {
     pub fn new(

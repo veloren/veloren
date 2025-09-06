@@ -366,10 +366,10 @@ impl Inventory {
     pub fn push_all_unique<I: Iterator<Item = Item>>(&mut self, mut items: I) -> Result<(), Error> {
         let mut leftovers = Vec::new();
         for item in &mut items {
-            if self.contains(&item).not() {
-                if let Err((overflow, _)) = self.push(item) {
-                    leftovers.push(overflow);
-                }
+            if self.contains(&item).not()
+                && let Err((overflow, _)) = self.push(item)
+            {
+                leftovers.push(overflow);
             } // else drop item if it was already in
         }
         if !leftovers.is_empty() {
@@ -383,7 +383,7 @@ impl Inventory {
     /// item or the same item again if that slot was not found.
     pub fn insert_at(&mut self, inv_slot_id: InvSlotId, item: Item) -> Result<Option<Item>, Item> {
         match self.slot_mut(inv_slot_id) {
-            Some(slot) => Ok(mem::replace(slot, Some(item))),
+            Some(slot) => Ok(slot.replace(item)),
             None => Err(item),
         }
     }
@@ -1315,8 +1315,9 @@ pub enum CollectFailedReason {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub enum InventoryUpdateEvent {
+    #[default]
     Init,
     Used,
     Consumed(ItemKey),
@@ -1336,10 +1337,6 @@ pub enum InventoryUpdateEvent {
     Possession,
     Debug,
     Craft,
-}
-
-impl Default for InventoryUpdateEvent {
-    fn default() -> Self { Self::Init }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

@@ -178,10 +178,10 @@ impl BlocksOfInterest {
                 BlockKind::Snow | BlockKind::Ice if rng.random_range(0..16) == 0 => snow.push(pos),
                 _ => {
                     if let Some(sprite) = block.get_sprite() {
-                        if sprite.category() == sprite::Category::Lamp {
-                            if let Ok(sprite::LightEnabled(enabled)) = block.get_attr() {
-                                interactables.push((pos, Interaction::LightToggle(!enabled)));
-                            }
+                        if sprite.category() == sprite::Category::Lamp
+                            && let Ok(sprite::LightEnabled(enabled)) = block.get_attr()
+                        {
+                            interactables.push((pos, Interaction::LightToggle(!enabled)));
                         }
 
                         if block.is_mountable() {

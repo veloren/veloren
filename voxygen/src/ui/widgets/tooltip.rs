@@ -80,13 +80,13 @@ impl TooltipManager {
         }
 
         // Handle fade timing
-        if let HoverState::Fading(start, _, maybe_hover) = self.state {
-            if start.elapsed() > self.fade_dur {
-                self.state = match maybe_hover {
-                    Some((start, hover)) => HoverState::Start(start, hover),
-                    None => HoverState::None,
-                };
-            }
+        if let HoverState::Fading(start, _, maybe_hover) = self.state
+            && start.elapsed() > self.fade_dur
+        {
+            self.state = match maybe_hover {
+                Some((start, hover)) => HoverState::Start(start, hover),
+                None => HoverState::None,
+            };
         }
     }
 

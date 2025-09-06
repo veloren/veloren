@@ -164,15 +164,13 @@ impl CharacterBehavior for Data {
                 if let Some(movement) = strike_data.movement.swing {
                     handle_forced_movement(data, &mut update, movement);
                 }
-                if input_is_pressed(data, self.static_data.ability_info.input)
-                    || self.static_data.auto_progress
+                if (input_is_pressed(data, self.static_data.ability_info.input)
+                    || self.static_data.auto_progress)
+                    && let CharacterState::ComboMelee2(c) = &mut update.character
                 {
-                    if let CharacterState::ComboMelee2(c) = &mut update.character {
-                        // Only have the next strike skip the recover period of this strike if not
-                        // every strike in the combo is complete yet
-                        c.start_next_strike =
-                            (c.completed_strikes + 1) < c.static_data.strikes.len();
-                    }
+                    // Only have the next strike skip the recover period of this strike if not
+                    // every strike in the combo is complete yet
+                    c.start_next_strike = (c.completed_strikes + 1) < c.static_data.strikes.len();
                 }
                 if self.timer.as_secs_f32()
                     > strike_data.hit_timing * strike_data.swing_duration.as_secs_f32()

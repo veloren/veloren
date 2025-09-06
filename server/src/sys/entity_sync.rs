@@ -280,17 +280,17 @@ impl<'a> System<'a> for Sys {
 
                             // More entities farther away so checks start there
                             if distance_sq > 500.0f32.powi(2) {
-                                id_staggered_tick % 32 == 0
+                                id_staggered_tick.is_multiple_of(32)
                             } else if distance_sq > 300.0f32.powi(2) {
-                                id_staggered_tick % 16 == 0
+                                id_staggered_tick.is_multiple_of(16)
                             } else if distance_sq > 200.0f32.powi(2) {
-                                id_staggered_tick % 8 == 0
+                                id_staggered_tick.is_multiple_of(8)
                             } else if distance_sq > 120.0f32.powi(2) {
-                                id_staggered_tick % 6 == 0
+                                id_staggered_tick.is_multiple_of(6)
                             } else if distance_sq > 64.0f32.powi(2) {
-                                id_staggered_tick % 3 == 0
+                                id_staggered_tick.is_multiple_of(3)
                             } else if distance_sq > 24.0f32.powi(2) {
-                                id_staggered_tick % 2 == 0
+                                id_staggered_tick.is_multiple_of(2)
                             } else {
                                 true
                             }

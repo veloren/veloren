@@ -117,14 +117,13 @@ impl ViewDistance {
     /// Applies deferred change based on the whether the time to apply it has
     /// been reached.
     pub fn update(&mut self, now: Instant) {
-        if let Some(target_val) = self.target {
-            if now.saturating_duration_since(self.last_direction_change_time)
+        if let Some(target_val) = self.target
+            && now.saturating_duration_since(self.last_direction_change_time)
                 > Self::TIME_PER_DIR_CHANGE
-            {
-                self.last_direction_change_time = now;
-                self.current = target_val;
-                self.target = None;
-            }
+        {
+            self.last_direction_change_time = now;
+            self.current = target_val;
+            self.target = None;
         }
     }
 

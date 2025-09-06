@@ -175,7 +175,7 @@ impl<'a> System<'a> for Sys {
                         });
                     target_iter.for_each(|(target, uid_b, pos_b, health_b, body_b)| {
                         // Check to see if entity has already been hit recently
-                        if beam.hit_entities.iter().any(|&e| e == target) {
+                        if beam.hit_entities.contains(&target) {
                             return;
                         }
 

@@ -189,8 +189,7 @@ impl StateExt for State {
         body: comp::Body,
         scale: comp::Scale,
     ) -> EcsEntityBuilder<'_> {
-        let npc = self
-            .ecs_mut()
+        self.ecs_mut()
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
@@ -220,9 +219,7 @@ impl StateExt for State {
             .with(comp::Auras::default())
             .with(comp::EnteredAuras::default())
             .with(comp::Stance::default())
-            .maybe_with(body.heads().map(comp::body::parts::Heads::new));
-
-        npc
+            .maybe_with(body.heads().map(comp::body::parts::Heads::new))
     }
 
     fn create_empty(&mut self, pos: comp::Pos) -> EcsEntityBuilder<'_> {
@@ -328,7 +325,8 @@ impl StateExt for State {
         make_collider: F,
     ) -> EcsEntityBuilder<'_> {
         let body = comp::Body::Ship(ship);
-        let builder = self
+
+        self
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -354,9 +352,7 @@ impl StateExt for State {
             }, body))
             .with(comp::SkillSet::default())
             .with(comp::ActiveAbilities::default())
-            .with(comp::Combo::default());
-
-        builder
+            .with(comp::Combo::default())
     }
 
     fn create_projectile(

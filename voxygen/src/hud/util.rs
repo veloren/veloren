@@ -374,7 +374,7 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
 
 // Armor
 fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
-    let kind = match armor.kind {
+    match armor.kind {
         ArmorKind::Shoulder => i18n.get_msg("hud-bag-shoulders"),
         ArmorKind::Chest => i18n.get_msg("hud-bag-chest"),
         ArmorKind::Belt => i18n.get_msg("hud-bag-belt"),
@@ -388,13 +388,12 @@ fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> Cow<'a, str> {
         ArmorKind::Head => i18n.get_msg("hud-bag-head"),
         ArmorKind::Tabard => i18n.get_msg("hud-bag-tabard"),
         ArmorKind::Bag => i18n.get_msg("hud-bag-bag"),
-    };
-    kind
+    }
 }
 
 // Tool
 fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
-    let kind = match tool.kind {
+    match tool.kind {
         ToolKind::Sword => i18n.get_msg("common-weapons-sword"),
         ToolKind::Axe => i18n.get_msg("common-weapons-axe"),
         ToolKind::Hammer => i18n.get_msg("common-weapons-hammer"),
@@ -413,17 +412,15 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
         ToolKind::Pick => i18n.get_msg("common-tool-pick"),
         ToolKind::Shovel => i18n.get_msg("common-tool-shovel"),
         ToolKind::Empty => i18n.get_msg("common-empty"),
-    };
-    kind
+    }
 }
 
 /// Output the number of hands needed to hold a tool
 pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> Cow<'a, str> {
-    let hands = match tool.hands {
+    match tool.hands {
         Hands::One => i18n.get_msg("common-hands-one"),
         Hands::Two => i18n.get_msg("common-hands-two"),
-    };
-    hands
+    }
 }
 
 /// Compare two type, output a colored character to show comparison

@@ -238,6 +238,7 @@ impl Widget for Map<'_> {
 
     fn style(&self) -> Self::Style {}
 
+    #[expect(clippy::neg_multiply)]
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;

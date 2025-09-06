@@ -151,10 +151,10 @@ impl TrailMgr {
 
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
-        if scene_data.weapon_trails_enabled {
-            if let Some(dynamic_model) = &self.dynamic_model {
-                drawer.draw(dynamic_model.submodel(0..self.model_len))
-            }
+        if scene_data.weapon_trails_enabled
+            && let Some(dynamic_model) = &self.dynamic_model
+        {
+            drawer.draw(dynamic_model.submodel(0..self.model_len))
         }
     }
 

@@ -94,7 +94,11 @@ impl<const FLIP_X: bool> PackingFormula for WidePacking<FLIP_X> {
     #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i0 = if FLIP_X {
-            if z % 2 == 0 { x } else { dims.x - x - 1 }
+            if z.is_multiple_of(2) {
+                x
+            } else {
+                dims.x - x - 1
+            }
         } else {
             x
         };

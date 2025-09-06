@@ -93,10 +93,10 @@ impl ShutdownCoordinator {
             }
 
             // In the last 10 seconds start sending messages every 1 second
-            if let Some(time_until_shutdown) = self.time_until_shutdown() {
-                if time_until_shutdown <= Duration::from_secs(10) {
-                    self.msg_interval = Duration::from_secs(1);
-                }
+            if let Some(time_until_shutdown) = self.time_until_shutdown()
+                && time_until_shutdown <= Duration::from_secs(10)
+            {
+                self.msg_interval = Duration::from_secs(1);
             }
 
             // Send another shutdown warning message to all connected clients if

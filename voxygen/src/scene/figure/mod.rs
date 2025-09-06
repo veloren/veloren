@@ -1136,15 +1136,14 @@ impl FigureMgr {
             // interpolate motion
             const MIN_PERFECT_RATE_DIST: f32 = 100.0;
 
-            if (i as u64 + data.tick)
-                % ((((pos.distance_squared(focus_pos) / entity_data.scale.map_or(1.0, |s| s.0))
+            if !(i as u64 + data.tick).is_multiple_of(
+                ((((pos.distance_squared(focus_pos) / entity_data.scale.map_or(1.0, |s| s.0))
                     .powf(0.25)
                     - MIN_PERFECT_RATE_DIST.sqrt())
                 .max(0.0)
                     / 3.0) as u64)
-                    .saturating_add(1)
-                != 0
-            {
+                    .saturating_add(1),
+            ) {
                 continue;
             }
 

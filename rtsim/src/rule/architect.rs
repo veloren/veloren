@@ -53,7 +53,7 @@ fn on_death(ctx: EventCtx<Architect, OnDeath>) {
 }
 
 fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
-    if ctx.event.tick % ARCHITECT_TICK_SKIP != 0 {
+    if !ctx.event.tick.is_multiple_of(ARCHITECT_TICK_SKIP) {
         return;
     }
 

@@ -125,7 +125,7 @@ impl Rule for NpcAi {
                     // Don't run AI for dead NPCs
                     .filter(|(_, npc)| !npc.is_dead() && !matches!(npc.role, Role::Vehicle))
                     // Don't run AI for simulated NPCs every tick
-                    .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick) % SIMULATED_TICK_SKIP == 0)
+                    .filter(|(_, npc)| matches!(npc.mode, SimulationMode::Loaded) || (npc.seed as u64 + ctx.event.tick).is_multiple_of(SIMULATED_TICK_SKIP))
                     .map(|(npc_id, npc)| {
                         let controller = std::mem::take(&mut npc.controller);
                         let inbox = std::mem::take(&mut npc.inbox);
@@ -823,7 +823,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .then(just(move |ctx, _| ctx.controller.set_new_home(new_home))));
         }
         let day_period = DayPeriod::from(ctx.time_of_day.0);
-        let is_weekend = ctx.time_of_day.day() as u64 % 6 == 0;
+        let is_weekend = (ctx.time_of_day.day() as u64).is_multiple_of(6);
         let is_evening = day_period == DayPeriod::Evening;
 
         let is_free_time = is_weekend || is_evening;

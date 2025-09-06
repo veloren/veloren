@@ -634,27 +634,24 @@ pub fn edit_character(
     let (body,) = editable_components;
     let mut char_list = load_character_list(uuid, transaction);
 
-    if let Ok(char_list) = &mut char_list {
-        if let Some(char) = char_list
+    if let Ok(char_list) = &mut char_list
+        && let Some(char) = char_list
             .iter_mut()
             .find(|c| c.character.id == Some(character_id))
-        {
-            if let (comp::Body::Humanoid(new), comp::Body::Humanoid(old)) = (body, char.body) {
-                let allow_change = match trusted_change {
-                    Some(change) => change.expected_old_body == char.body,
-                    None => new.species == old.species && new.body_type == old.body_type,
-                };
-                if !allow_change {
-                    warn!(
-                        "Character edit rejected due to failed validation - Character ID: {} \
-                         Alias: {:?}",
-                        character_id.0, character_alias
-                    );
-                    return Err(PersistenceError::CharacterDataError);
-                } else {
-                    char.body = body;
-                }
-            }
+        && let (comp::Body::Humanoid(new), comp::Body::Humanoid(old)) = (body, char.body)
+    {
+        let allow_change = match trusted_change {
+            Some(change) => change.expected_old_body == char.body,
+            None => new.species == old.species && new.body_type == old.body_type,
+        };
+        if !allow_change {
+            warn!(
+                "Character edit rejected due to failed validation - Character ID: {} Alias: {:?}",
+                character_id.0, character_alias
+            );
+            return Err(PersistenceError::CharacterDataError);
+        } else {
+            char.body = body;
         }
     }
 

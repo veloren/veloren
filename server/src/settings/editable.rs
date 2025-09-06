@@ -257,10 +257,10 @@ fn save_to_file<S: EditableSetting>(setting: S, path: &Path) -> Result<S, ErrorI
     // the file.
     let (_, settings): (Version, S) = raw.try_into().map_err(ErrorInternal::Integrity)?;
     // Create dir if it doesn't exist
-    if let Some(dir) = path.parent() {
-        if let Err(err) = fs::create_dir_all(dir) {
-            return Err(ErrorInternal::Io(err, settings));
-        }
+    if let Some(dir) = path.parent()
+        && let Err(err) = fs::create_dir_all(dir)
+    {
+        return Err(ErrorInternal::Io(err, settings));
     }
     // Atomically write the validated string to the settings file.
     let atomic_file = AtomicFile::new(path, OverwriteBehavior::AllowOverwrite);

@@ -1455,10 +1455,10 @@ impl Item {
     }
 
     pub fn increment_damage(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
-        if let Some(durability_lost) = &mut self.durability_lost {
-            if *durability_lost < Self::MAX_DURABILITY {
-                *durability_lost += 1;
-            }
+        if let Some(durability_lost) = &mut self.durability_lost
+            && *durability_lost < Self::MAX_DURABILITY
+        {
+            *durability_lost += 1;
         }
         // Update item state after applying durability because stats have potential to
         // change from different durability

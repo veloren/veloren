@@ -150,16 +150,14 @@ fn conrod_convert_event(
             // `conrod` expects different events for text input and pressed keys.
             // We work around that by sending the key as text but only if no modifier is
             // pressed, so shortcuts still work.
-            if let Some(text) = &event.text {
-                if let Some(c) = text.chars().next() {
-                    if !c.is_control()
-                        && !modifiers.alt_key()
-                        && !modifiers.control_key()
-                        && !modifiers.super_key()
-                    {
-                        return event.state.is_pressed().then(|| Input::Text(c.to_string()));
-                    }
-                }
+            if let Some(text) = &event.text
+                && let Some(c) = text.chars().next()
+                && !c.is_control()
+                && !modifiers.alt_key()
+                && !modifiers.control_key()
+                && !modifiers.super_key()
+            {
+                return event.state.is_pressed().then(|| Input::Text(c.to_string()));
             }
 
             let key = input::Button::Keyboard(conrod_convert_key(&event.logical_key));

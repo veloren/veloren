@@ -157,16 +157,13 @@ impl Default for ModerationSettings {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub enum CalendarMode {
     None,
+    #[default]
     Auto,
     Timezone(chrono_tz::Tz),
     Events(Vec<CalendarEvent>),
-}
-
-impl Default for CalendarMode {
-    fn default() -> Self { Self::Auto }
 }
 
 impl CalendarMode {

@@ -135,12 +135,12 @@ pub fn clip_points_by_plane<T: Float + MulAdd<T, T, Output = T> + core::fmt::Deb
             // Push previous point.
             points.push(prev_point);
         }
-        if prev_is_outside != is_outside {
-            if let Some(intersection_point) = intersect_plane_edge(prev_point, current_point) {
-                // Push intersection point.
-                intersection_points.push(intersection_point);
-                points.push(intersection_point);
-            }
+        if prev_is_outside != is_outside
+            && let Some(intersection_point) = intersect_plane_edge(prev_point, current_point)
+        {
+            // Push intersection point.
+            intersection_points.push(intersection_point);
+            points.push(intersection_point);
         }
     });
     last_is_outside

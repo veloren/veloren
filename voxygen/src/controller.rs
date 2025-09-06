@@ -177,13 +177,12 @@ impl ControllerSettings {
 
             if layer_entry.mod1 == Button::Simple(GilButton::Unknown)
                 && layer_entry.mod2 == Button::Simple(GilButton::Unknown)
+                && let Some(game_inputs) = self.inverse_game_button_map.get(&layer_entry.button)
             {
-                if let Some(game_inputs) = self.inverse_game_button_map.get(&layer_entry.button) {
-                    for a in layer_inputs.iter() {
-                        for b in game_inputs.iter() {
-                            if !GameInput::can_share_bindings(*a, *b) {
-                                return true;
-                            }
+                for a in layer_inputs.iter() {
+                    for b in game_inputs.iter() {
+                        if !GameInput::can_share_bindings(*a, *b) {
+                            return true;
                         }
                     }
                 }

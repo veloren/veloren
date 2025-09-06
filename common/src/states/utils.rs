@@ -1165,65 +1165,64 @@ pub fn handle_manipulate_loadout(
             // position
             let sprite_interact =
                 sprite_at_pos.and_then(Option::<interact::SpriteInteractKind>::from);
-            if let Some(sprite_interact) = sprite_interact {
-                if can_reach_block(
+            if let Some(sprite_interact) = sprite_interact
+                && can_reach_block(
                     data.pos.0,
                     sprite_pos,
                     MAX_PICKUP_RANGE,
                     data.body,
                     data.terrain,
-                ) {
-                    let sprite_cfg = data.terrain.sprite_cfg_at(sprite_pos);
-                    let required_item = sprite_at_pos.and_then(|s| {
-                        s.unlock_condition(sprite_cfg).and_then(|unlock| {
-                            match unlock.into_owned() {
-                                UnlockKind::Free => None,
-                                UnlockKind::Requires(item) => Some((item, false)),
-                                UnlockKind::Consumes(item) => Some((item, true)),
-                            }
+                )
+            {
+                let sprite_cfg = data.terrain.sprite_cfg_at(sprite_pos);
+                let required_item = sprite_at_pos.and_then(|s| {
+                    s.unlock_condition(sprite_cfg)
+                        .and_then(|unlock| match unlock.into_owned() {
+                            UnlockKind::Free => None,
+                            UnlockKind::Requires(item) => Some((item, false)),
+                            UnlockKind::Consumes(item) => Some((item, true)),
                         })
-                    });
-                    // None: An required items exist but no available
-                    // Some(None): No required items
-                    // Some(Some(_)): Required items satisfied, contains info about them
-                    let has_required_items = match required_item {
-                        // Produces `None` if we can't find the item or `Some(Some(_))` if we can
-                        Some((item_id, consume)) => data
-                            .inventory
-                            .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
-                            .map(|slot| Some((item_id, slot, consume))),
-                        None => Some(None),
-                    };
-                    if let Some(required_item) = has_required_items {
-                        // If the sprite is collectible, enter the sprite interaction character
-                        // state TODO: Handle cases for sprite being
-                        // interactible, but not collectible (none currently
-                        // exist)
-                        let (buildup_duration, use_duration, recover_duration) =
-                            sprite_interact.durations();
+                });
+                // None: An required items exist but no available
+                // Some(None): No required items
+                // Some(Some(_)): Required items satisfied, contains info about them
+                let has_required_items = match required_item {
+                    // Produces `None` if we can't find the item or `Some(Some(_))` if we can
+                    Some((item_id, consume)) => data
+                        .inventory
+                        .and_then(|inv| inv.get_slot_of_item_by_def_id(&item_id))
+                        .map(|slot| Some((item_id, slot, consume))),
+                    None => Some(None),
+                };
+                if let Some(required_item) = has_required_items {
+                    // If the sprite is collectible, enter the sprite interaction character
+                    // state TODO: Handle cases for sprite being
+                    // interactible, but not collectible (none currently
+                    // exist)
+                    let (buildup_duration, use_duration, recover_duration) =
+                        sprite_interact.durations();
 
-                        update.character = CharacterState::Interact(interact::Data {
-                            static_data: interact::StaticData {
-                                buildup_duration,
-                                // Item interactions are never indefinite
-                                use_duration: Some(use_duration),
-                                recover_duration,
-                                interact: interact::InteractKind::Sprite {
-                                    pos: sprite_pos,
-                                    kind: sprite_interact,
-                                },
-                                was_wielded: data.character.is_wield(),
-                                was_sneak: data.character.is_stealthy(),
-                                required_item,
+                    update.character = CharacterState::Interact(interact::Data {
+                        static_data: interact::StaticData {
+                            buildup_duration,
+                            // Item interactions are never indefinite
+                            use_duration: Some(use_duration),
+                            recover_duration,
+                            interact: interact::InteractKind::Sprite {
+                                pos: sprite_pos,
+                                kind: sprite_interact,
                             },
-                            timer: Duration::default(),
-                            stage_section: StageSection::Buildup,
-                        })
-                    } else {
-                        output_events.emit_local(LocalEvent::CreateOutcome(
-                            Outcome::FailedSpriteUnlock { pos: sprite_pos },
-                        ));
-                    }
+                            was_wielded: data.character.is_wield(),
+                            was_sneak: data.character.is_stealthy(),
+                            required_item,
+                        },
+                        timer: Duration::default(),
+                        stage_section: StageSection::Buildup,
+                    })
+                } else {
+                    output_events.emit_local(LocalEvent::CreateOutcome(
+                        Outcome::FailedSpriteUnlock { pos: sprite_pos },
+                    ));
                 }
             }
         },
@@ -1404,8 +1403,8 @@ fn handle_ability(
     input: InputKind,
 ) -> bool {
     let context = AbilityContext::from(data.stance, data.inventory, data.combo);
-    if let Some(ability_input) = input.into() {
-        if let Some((ability, from_offhand, spec_ability)) = data
+    if let Some(ability_input) = input.into()
+        && let Some((ability, from_offhand, spec_ability)) = data
             .active_abilities
             .and_then(|a| {
                 a.activate_ability(
@@ -1425,70 +1424,69 @@ fn handle_ability(
                 (a, f, s)
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
-        {
-            match CharacterState::try_from((
-                &ability,
-                AbilityInfo::new(
-                    data,
-                    from_offhand,
-                    input,
-                    Some(spec_ability),
-                    ability.ability_meta(),
-                ),
+    {
+        match CharacterState::try_from((
+            &ability,
+            AbilityInfo::new(
                 data,
-            )) {
-                Ok(character_state) => {
-                    update.character = character_state;
+                from_offhand,
+                input,
+                Some(spec_ability),
+                ability.ability_meta(),
+            ),
+            data,
+        )) {
+            Ok(character_state) => {
+                update.character = character_state;
 
-                    if let Some(init_event) = ability.ability_meta().init_event {
-                        match init_event {
-                            AbilityInitEvent::EnterStance(stance) => {
-                                output_events.emit_server(ChangeStanceEvent {
-                                    entity: data.entity,
-                                    stance,
-                                });
-                            },
-                            AbilityInitEvent::GainBuff {
-                                kind,
-                                strength,
-                                duration,
-                            } => {
-                                let dest_info = DestInfo {
-                                    stats: Some(data.stats),
-                                    mass: Some(data.mass),
-                                };
-                                output_events.emit_server(BuffEvent {
-                                    entity: data.entity,
-                                    buff_change: BuffChange::Add(Buff::new(
-                                        kind,
-                                        BuffData::new(strength, duration),
-                                        vec![BuffCategory::SelfBuff],
-                                        BuffSource::Character { by: *data.uid },
-                                        *data.time,
-                                        dest_info,
-                                        Some(data.mass),
-                                    )),
-                                });
-                            },
-                        }
+                if let Some(init_event) = ability.ability_meta().init_event {
+                    match init_event {
+                        AbilityInitEvent::EnterStance(stance) => {
+                            output_events.emit_server(ChangeStanceEvent {
+                                entity: data.entity,
+                                stance,
+                            });
+                        },
+                        AbilityInitEvent::GainBuff {
+                            kind,
+                            strength,
+                            duration,
+                        } => {
+                            let dest_info = DestInfo {
+                                stats: Some(data.stats),
+                                mass: Some(data.mass),
+                            };
+                            output_events.emit_server(BuffEvent {
+                                entity: data.entity,
+                                buff_change: BuffChange::Add(Buff::new(
+                                    kind,
+                                    BuffData::new(strength, duration),
+                                    vec![BuffCategory::SelfBuff],
+                                    BuffSource::Character { by: *data.uid },
+                                    *data.time,
+                                    dest_info,
+                                    Some(data.mass),
+                                )),
+                            });
+                        },
                     }
-                    if let CharacterState::Roll(roll) = &mut update.character {
-                        if data.character.is_wield() || data.character.was_wielded() {
-                            roll.was_wielded = true;
-                        }
-                        if data.character.is_stealthy() {
-                            roll.is_sneaking = true;
-                        }
-                        if data.character.is_aimed() {
-                            roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
-                        }
+                }
+                if let CharacterState::Roll(roll) = &mut update.character {
+                    if data.character.is_wield() || data.character.was_wielded() {
+                        roll.was_wielded = true;
                     }
-                    return true;
-                },
-                Err(err) => {
-                    warn!("Failed to enter character state: {err:?}");
-                },
-            }
+                    if data.character.is_stealthy() {
+                        roll.is_sneaking = true;
+                    }
+                    if data.character.is_aimed() {
+                        roll.prev_aimed_dir = Some(data.controller.inputs.look_dir);
+                    }
+                }
+                return true;
+            },
+            Err(err) => {
+                warn!("Failed to enter character state: {err:?}");
+            },
         }
     }
     false
@@ -1805,10 +1803,10 @@ pub fn end_ability(data: &JoinData<'_>, update: &mut StateUpdate) {
             time_entered: *data.time,
         });
     }
-    if let CharacterState::Roll(roll) = data.character {
-        if let Some(dir) = roll.prev_aimed_dir {
-            update.ori = dir.into();
-        }
+    if let CharacterState::Roll(roll) = data.character
+        && let Some(dir) = roll.prev_aimed_dir
+    {
+        update.ori = dir.into();
     }
 }
 

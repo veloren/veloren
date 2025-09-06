@@ -33,18 +33,18 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         return;
     };
 
-    if let Some(Alignment::Owned(existing_owner_uid)) = alignments.get(pet_entity) {
-        if *existing_owner_uid != owner_uid {
-            warn!("Disallowing taming of pet already owned by another entity");
-            return;
-        }
+    if let Some(Alignment::Owned(existing_owner_uid)) = alignments.get(pet_entity)
+        && *existing_owner_uid != owner_uid
+    {
+        warn!("Disallowing taming of pet already owned by another entity");
+        return;
     }
 
-    if let Alignment::Owned(owner_alignment_uid) = owner_alignment {
-        if owner_alignment_uid != owner_uid {
-            error!("Pets cannot be owners of pets");
-            return;
-        }
+    if let Alignment::Owned(owner_alignment_uid) = owner_alignment
+        && owner_alignment_uid != owner_uid
+    {
+        error!("Pets cannot be owners of pets");
+        return;
     }
 
     if (

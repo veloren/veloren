@@ -99,10 +99,10 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             .unwrap_or((Some(asset_path(DEFAULT_WORLD_MAP)), None));
 
         let map_path = to.join("map.bin");
-        if let Some(map_file) = map_file {
-            if let Err(err) = fs::copy(map_file, &map_path) {
-                error!("Failed to copy map file to singleplayer world: {err}");
-            }
+        if let Some(map_file) = map_file
+            && let Err(err) = fs::copy(map_file, &map_path)
+        {
+            error!("Failed to copy map file to singleplayer world: {err}");
         }
 
         write_world_meta(&SingleplayerWorld {

@@ -63,12 +63,11 @@ pub fn run(
                 window.send_event(Event::Ui(event));
             }
             // iced ui events
-            if let winit::event::Event::WindowEvent { event, .. } = &event {
-                if let Some(event) =
+            if let winit::event::Event::WindowEvent { event, .. } = &event
+                && let Some(event) =
                     ui::ice::window_event(event, window.scale_factor(), window.modifiers())
-                {
-                    window.send_event(Event::IcedUi(event));
-                }
+            {
+                window.send_event(Event::IcedUi(event));
             }
         }
 

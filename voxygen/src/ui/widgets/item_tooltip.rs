@@ -101,13 +101,13 @@ impl ItemTooltipManager {
         }
 
         // Handle fade timing
-        if let HoverState::Fading(start, _, maybe_hover) = self.state {
-            if start.elapsed() > self.fade_dur {
-                self.state = match maybe_hover {
-                    Some((start, hover)) => HoverState::Start(start, hover),
-                    None => HoverState::None,
-                };
-            }
+        if let HoverState::Fading(start, _, maybe_hover) = self.state
+            && start.elapsed() > self.fade_dur
+        {
+            self.state = match maybe_hover {
+                Some((start, hover)) => HoverState::Start(start, hover),
+                None => HoverState::None,
+            };
         }
     }
 
@@ -711,93 +711,87 @@ impl Widget for ItemTooltip<'_> {
                     )
                 }
 
-                if let Some(equipped_item) = equipped_item {
-                    if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
-                        let tool_stats = tool.stats(item.stats_durability_multiplier());
-                        let equipped_tool_stats =
-                            equipped_tool.stats(equipped_item.stats_durability_multiplier());
-                        let diff = tool_stats - equipped_tool_stats;
-                        let power_diff =
-                            util::comparison(tool_stats.power, equipped_tool_stats.power);
-                        let speed_diff =
-                            util::comparison(tool_stats.speed, equipped_tool_stats.speed);
-                        let effect_power_diff = util::comparison(
-                            tool_stats.effect_power,
-                            equipped_tool_stats.effect_power,
-                        );
-                        let range_diff =
-                            util::comparison(tool_stats.range, equipped_tool_stats.range);
-                        let energy_efficiency_diff = util::comparison(
-                            tool_stats.energy_efficiency,
-                            equipped_tool_stats.energy_efficiency,
-                        );
-                        let buff_strength_diff = util::comparison(
-                            tool_stats.buff_strength,
-                            equipped_tool_stats.buff_strength,
-                        );
+                if let Some(equipped_item) = equipped_item
+                    && let ItemKind::Tool(equipped_tool) = &*equipped_item.kind()
+                {
+                    let tool_stats = tool.stats(item.stats_durability_multiplier());
+                    let equipped_tool_stats =
+                        equipped_tool.stats(equipped_item.stats_durability_multiplier());
+                    let diff = tool_stats - equipped_tool_stats;
+                    let power_diff = util::comparison(tool_stats.power, equipped_tool_stats.power);
+                    let speed_diff = util::comparison(tool_stats.speed, equipped_tool_stats.speed);
+                    let effect_power_diff =
+                        util::comparison(tool_stats.effect_power, equipped_tool_stats.effect_power);
+                    let range_diff = util::comparison(tool_stats.range, equipped_tool_stats.range);
+                    let energy_efficiency_diff = util::comparison(
+                        tool_stats.energy_efficiency,
+                        equipped_tool_stats.energy_efficiency,
+                    );
+                    let buff_strength_diff = util::comparison(
+                        tool_stats.buff_strength,
+                        equipped_tool_stats.buff_strength,
+                    );
 
-                        let tool_durability =
-                            util::item_durability(item).unwrap_or(Item::MAX_DURABILITY);
-                        let equipped_durability =
-                            util::item_durability(equipped_item).unwrap_or(Item::MAX_DURABILITY);
-                        let durability_diff =
-                            util::comparison(tool_durability, equipped_durability);
+                    let tool_durability =
+                        util::item_durability(item).unwrap_or(Item::MAX_DURABILITY);
+                    let equipped_durability =
+                        util::item_durability(equipped_item).unwrap_or(Item::MAX_DURABILITY);
+                    let durability_diff = util::comparison(tool_durability, equipped_durability);
 
-                        let mut diff_text = |text: String, color, id_index| {
-                            widget::Text::new(&text)
-                                .align_middle_y_of(state.ids.stats[id_index])
-                                .right_from(state.ids.stats[id_index], H_PAD)
-                                .graphics_for(id)
-                                .parent(id)
-                                .with_style(style)
-                                .color(color)
-                                .set(state.ids.diffs[id_index], ui)
-                        };
+                    let mut diff_text = |text: String, color, id_index| {
+                        widget::Text::new(&text)
+                            .align_middle_y_of(state.ids.stats[id_index])
+                            .right_from(state.ids.stats[id_index], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(style)
+                            .color(color)
+                            .set(state.ids.diffs[id_index], ui)
+                    };
 
-                        if diff.power.abs() > f32::EPSILON {
-                            let text = format!("{} {:.1}", &power_diff.0, &diff.power * 10.0);
-                            diff_text(text, power_diff.1, 0)
-                        }
-                        if diff.speed.abs() > f32::EPSILON {
-                            let text = format!("{} {:+.0}", &speed_diff.0, &diff.speed * 100.0);
-                            diff_text(text, speed_diff.1, 1)
-                        }
-                        if diff.effect_power.abs() > f32::EPSILON {
-                            let text = format!(
-                                "{} {:+.0}",
-                                &effect_power_diff.0,
-                                &diff.effect_power * 100.0
-                            );
-                            diff_text(text, effect_power_diff.1, 2)
-                        }
-                        if diff.range.abs() > f32::EPSILON {
-                            let text = format!("{} {:.1}%", &range_diff.0, &diff.range * 100.0);
-                            diff_text(text, range_diff.1, 3)
-                        }
-                        if diff.energy_efficiency.abs() > f32::EPSILON {
-                            let text = format!(
-                                "{} {:.1}%",
-                                &energy_efficiency_diff.0,
-                                &diff.energy_efficiency * 100.0
-                            );
-                            diff_text(text, energy_efficiency_diff.1, 4)
-                        }
-                        if diff.buff_strength.abs() > f32::EPSILON {
-                            let text = format!(
-                                "{} {:.1}%",
-                                &buff_strength_diff.0,
-                                &diff.buff_strength * 100.0
-                            );
-                            diff_text(text, buff_strength_diff.1, 5)
-                        }
-                        if tool_durability != equipped_durability && item.has_durability() {
-                            let text = format!(
-                                "{} {}",
-                                &durability_diff.0,
-                                tool_durability as i32 - equipped_durability as i32
-                            );
-                            diff_text(text, durability_diff.1, 6)
-                        }
+                    if diff.power.abs() > f32::EPSILON {
+                        let text = format!("{} {:.1}", &power_diff.0, &diff.power * 10.0);
+                        diff_text(text, power_diff.1, 0)
+                    }
+                    if diff.speed.abs() > f32::EPSILON {
+                        let text = format!("{} {:+.0}", &speed_diff.0, &diff.speed * 100.0);
+                        diff_text(text, speed_diff.1, 1)
+                    }
+                    if diff.effect_power.abs() > f32::EPSILON {
+                        let text = format!(
+                            "{} {:+.0}",
+                            &effect_power_diff.0,
+                            &diff.effect_power * 100.0
+                        );
+                        diff_text(text, effect_power_diff.1, 2)
+                    }
+                    if diff.range.abs() > f32::EPSILON {
+                        let text = format!("{} {:.1}%", &range_diff.0, &diff.range * 100.0);
+                        diff_text(text, range_diff.1, 3)
+                    }
+                    if diff.energy_efficiency.abs() > f32::EPSILON {
+                        let text = format!(
+                            "{} {:.1}%",
+                            &energy_efficiency_diff.0,
+                            &diff.energy_efficiency * 100.0
+                        );
+                        diff_text(text, energy_efficiency_diff.1, 4)
+                    }
+                    if diff.buff_strength.abs() > f32::EPSILON {
+                        let text = format!(
+                            "{} {:.1}%",
+                            &buff_strength_diff.0,
+                            &diff.buff_strength * 100.0
+                        );
+                        diff_text(text, buff_strength_diff.1, 5)
+                    }
+                    if tool_durability != equipped_durability && item.has_durability() {
+                        let text = format!(
+                            "{} {}",
+                            &durability_diff.0,
+                            tool_durability as i32 - equipped_durability as i32
+                        );
+                        diff_text(text, durability_diff.1, 6)
                     }
                 }
             },
@@ -934,114 +928,107 @@ impl Widget for ItemTooltip<'_> {
                     );
                 }
 
-                if let Some(equipped_item) = equipped_item {
-                    if let ItemKind::Armor(equipped_armor) = &*equipped_item.kind() {
-                        let equipped_stats = equipped_armor
-                            .stats(self.msm, equipped_item.stats_durability_multiplier());
-                        let diff = armor_stats - equipped_stats;
-                        let protection_diff = util::option_comparison(
-                            &armor_stats.protection,
-                            &equipped_stats.protection,
-                        );
-                        let poise_res_diff = util::option_comparison(
-                            &armor_stats.poise_resilience,
-                            &equipped_stats.poise_resilience,
-                        );
-                        let energy_max_diff = util::option_comparison(
-                            &armor_stats.energy_max,
-                            &equipped_stats.energy_max,
-                        );
-                        let energy_reward_diff = util::option_comparison(
-                            &armor_stats.energy_reward,
-                            &equipped_stats.energy_reward,
-                        );
-                        let precision_power_diff = util::option_comparison(
-                            &armor_stats.precision_power,
-                            &equipped_stats.precision_power,
-                        );
-                        let stealth_diff =
-                            util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
+                if let Some(equipped_item) = equipped_item
+                    && let ItemKind::Armor(equipped_armor) = &*equipped_item.kind()
+                {
+                    let equipped_stats =
+                        equipped_armor.stats(self.msm, equipped_item.stats_durability_multiplier());
+                    let diff = armor_stats - equipped_stats;
+                    let protection_diff = util::option_comparison(
+                        &armor_stats.protection,
+                        &equipped_stats.protection,
+                    );
+                    let poise_res_diff = util::option_comparison(
+                        &armor_stats.poise_resilience,
+                        &equipped_stats.poise_resilience,
+                    );
+                    let energy_max_diff = util::option_comparison(
+                        &armor_stats.energy_max,
+                        &equipped_stats.energy_max,
+                    );
+                    let energy_reward_diff = util::option_comparison(
+                        &armor_stats.energy_reward,
+                        &equipped_stats.energy_reward,
+                    );
+                    let precision_power_diff = util::option_comparison(
+                        &armor_stats.precision_power,
+                        &equipped_stats.precision_power,
+                    );
+                    let stealth_diff =
+                        util::option_comparison(&armor_stats.stealth, &equipped_stats.stealth);
 
-                        let armor_durability = util::item_durability(item);
-                        let equipped_durability = util::item_durability(equipped_item);
-                        let durability_diff =
-                            util::option_comparison(&armor_durability, &equipped_durability);
+                    let armor_durability = util::item_durability(item);
+                    let equipped_durability = util::item_durability(equipped_item);
+                    let durability_diff =
+                        util::option_comparison(&armor_durability, &equipped_durability);
 
-                        let mut diff_text = |text: String, color, id_index| {
-                            widget::Text::new(&text)
-                                .align_middle_y_of(state.ids.stats[id_index])
-                                .right_from(state.ids.stats[id_index], H_PAD)
-                                .graphics_for(id)
-                                .parent(id)
-                                .with_style(style)
-                                .color(color)
-                                .set(state.ids.diffs[id_index], ui)
-                        };
+                    let mut diff_text = |text: String, color, id_index| {
+                        widget::Text::new(&text)
+                            .align_middle_y_of(state.ids.stats[id_index])
+                            .right_from(state.ids.stats[id_index], H_PAD)
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(style)
+                            .color(color)
+                            .set(state.ids.diffs[id_index], ui)
+                    };
 
-                        let mut index = 0;
-                        if let Some(p_diff) = diff.protection {
-                            if p_diff != Protection::Normal(0.0) {
-                                let text = format!(
-                                    "{} {}",
-                                    &protection_diff.0,
-                                    util::protec2string(p_diff)
-                                );
-                                diff_text(text, protection_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.protection.is_some() as usize;
+                    let mut index = 0;
+                    if let Some(p_diff) = diff.protection
+                        && p_diff != Protection::Normal(0.0)
+                    {
+                        let text =
+                            format!("{} {}", &protection_diff.0, util::protec2string(p_diff));
+                        diff_text(text, protection_diff.1, index);
+                    }
+                    index += armor_stats.protection.is_some() as usize;
 
-                        if let Some(p_r_diff) = diff.poise_resilience {
-                            if p_r_diff != Protection::Normal(0.0) {
-                                let text = format!(
-                                    "{} {}",
-                                    &poise_res_diff.0,
-                                    util::protec2string(p_r_diff)
-                                );
-                                diff_text(text, poise_res_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.poise_resilience.is_some() as usize;
+                    if let Some(p_r_diff) = diff.poise_resilience
+                        && p_r_diff != Protection::Normal(0.0)
+                    {
+                        let text =
+                            format!("{} {}", &poise_res_diff.0, util::protec2string(p_r_diff));
+                        diff_text(text, poise_res_diff.1, index);
+                    }
+                    index += armor_stats.poise_resilience.is_some() as usize;
 
-                        if let Some(e_m_diff) = diff.energy_max {
-                            if e_m_diff.abs() > Energy::ENERGY_EPSILON {
-                                let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
-                                diff_text(text, energy_max_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.energy_max.is_some() as usize;
+                    if let Some(e_m_diff) = diff.energy_max
+                        && e_m_diff.abs() > Energy::ENERGY_EPSILON
+                    {
+                        let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
+                        diff_text(text, energy_max_diff.1, index);
+                    }
+                    index += armor_stats.energy_max.is_some() as usize;
 
-                        if let Some(e_r_diff) = diff.energy_reward {
-                            if e_r_diff.abs() > Energy::ENERGY_EPSILON {
-                                let text =
-                                    format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
-                                diff_text(text, energy_reward_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.energy_reward.is_some() as usize;
+                    if let Some(e_r_diff) = diff.energy_reward
+                        && e_r_diff.abs() > Energy::ENERGY_EPSILON
+                    {
+                        let text = format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
+                        diff_text(text, energy_reward_diff.1, index);
+                    }
+                    index += armor_stats.energy_reward.is_some() as usize;
 
-                        if let Some(p_p_diff) = diff.precision_power {
-                            if p_p_diff != 0.0_f32 {
-                                let text = format!("{} {:.3}", &precision_power_diff.0, p_p_diff);
-                                diff_text(text, precision_power_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.precision_power.is_some() as usize;
+                    if let Some(p_p_diff) = diff.precision_power
+                        && p_p_diff != 0.0_f32
+                    {
+                        let text = format!("{} {:.3}", &precision_power_diff.0, p_p_diff);
+                        diff_text(text, precision_power_diff.1, index);
+                    }
+                    index += armor_stats.precision_power.is_some() as usize;
 
-                        if let Some(s_diff) = diff.stealth {
-                            if s_diff != 0.0_f32 {
-                                let text = format!("{} {:.3}", &stealth_diff.0, s_diff);
-                                diff_text(text, stealth_diff.1, index);
-                            }
-                        }
-                        index += armor_stats.stealth.is_some() as usize;
+                    if let Some(s_diff) = diff.stealth
+                        && s_diff != 0.0_f32
+                    {
+                        let text = format!("{} {:.3}", &stealth_diff.0, s_diff);
+                        diff_text(text, stealth_diff.1, index);
+                    }
+                    index += armor_stats.stealth.is_some() as usize;
 
-                        if armor_durability != equipped_durability && item.has_durability() {
-                            let diff = armor_durability.unwrap_or(Item::MAX_DURABILITY) as i32
-                                - equipped_durability.unwrap_or(Item::MAX_DURABILITY) as i32;
-                            let text = format!("{} {}", &durability_diff.0, diff);
-                            diff_text(text, durability_diff.1, index);
-                        }
+                    if armor_durability != equipped_durability && item.has_durability() {
+                        let diff = armor_durability.unwrap_or(Item::MAX_DURABILITY) as i32
+                            - equipped_durability.unwrap_or(Item::MAX_DURABILITY) as i32;
+                        let text = format!("{} {}", &durability_diff.0, diff);
+                        diff_text(text, durability_diff.1, index);
                     }
                 }
             },

@@ -572,24 +572,23 @@ impl ParticleMgr {
                     .ecs()
                     .read_resource::<IdMaps>()
                     .uid_entity(*uid)
+                    && let Some(pos) = scene_data.state.read_component_copied::<Pos>(entity)
                 {
-                    if let Some(pos) = scene_data.state.read_component_copied::<Pos>(entity) {
-                        let heads = figure_mgr.get_heads(scene_data, entity);
-                        let head_pos = pos.0 + heads.get(*head).copied().unwrap_or_default();
+                    let heads = figure_mgr.get_heads(scene_data, entity);
+                    let head_pos = pos.0 + heads.get(*head).copied().unwrap_or_default();
 
-                        self.particles.resize_with(self.particles.len() + 40, || {
-                            Particle::new(
-                                Duration::from_millis(1000),
-                                time,
-                                ParticleMode::Death,
-                                head_pos
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-0.1..0.1))
-                                        .normalized(),
-                                scene_data,
-                            )
-                        });
-                    }
+                    self.particles.resize_with(self.particles.len() + 40, || {
+                        Particle::new(
+                            Duration::from_millis(1000),
+                            time,
+                            ParticleMode::Death,
+                            head_pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-0.1..0.1))
+                                    .normalized(),
+                            scene_data,
+                        )
+                    });
                 };
             },
             Outcome::Splash {
@@ -748,18 +747,18 @@ impl ParticleMgr {
             .join()
         {
             for item in inv.equipped_items() {
-                if let ItemDefinitionId::Simple(str) = item.item_definition_id() {
-                    if &*str == "common.items.armor.misc.head.pipe" {
-                        self.maintain_pipe_particles(
-                            scene_data,
-                            figure_mgr,
-                            entity,
-                            interpolated.pos,
-                            body,
-                            scale,
-                            physics,
-                        )
-                    }
+                if let ItemDefinitionId::Simple(str) = item.item_definition_id()
+                    && &*str == "common.items.armor.misc.head.pipe"
+                {
+                    self.maintain_pipe_particles(
+                        scene_data,
+                        figure_mgr,
+                        entity,
+                        interpolated.pos,
+                        body,
+                        scale,
+                        physics,
+                    )
                 }
             }
         }

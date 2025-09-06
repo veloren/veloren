@@ -390,13 +390,13 @@ impl BParticipant {
                 // recv
                 trace!("TODO: for now decide to FAIL this participant and not wait for a failover");
                 sorted_send_protocols.delete(&cid).unwrap();
-                if let Some(info) = self.channels.write().await.get(&cid) {
-                    if let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
+                if let Some(info) = self.channels.write().await.get(&cid)
+                    && let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
                         info.lock().await.remote_con_addr.clone(),
-                    )) {
-                        debug!(?e, "Participant was dropped during channel disconnect");
-                    };
-                }
+                    ))
+                {
+                    debug!(?e, "Participant was dropped during channel disconnect");
+                };
                 self.metrics.channels_disconnected(&self.remote_pid_string);
                 if sorted_send_protocols.data.is_empty() {
                     break;
@@ -407,13 +407,13 @@ impl BParticipant {
                 debug!(?cid, "remove protocol");
                 match sorted_send_protocols.delete(&cid) {
                     Some(mut prot) => {
-                        if let Some(info) = self.channels.write().await.get(&cid) {
-                            if let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
+                        if let Some(info) = self.channels.write().await.get(&cid)
+                            && let Err(e) = b2a_event_s.send(ParticipantEvent::ChannelDeleted(
                                 info.lock().await.remote_con_addr.clone(),
-                            )) {
-                                debug!(?e, "Participant was dropped during channel disconnect");
-                            };
-                        }
+                            ))
+                        {
+                            debug!(?e, "Participant was dropped during channel disconnect");
+                        };
                         self.metrics.channels_disconnected(&self.remote_pid_string);
                         trace!("blocking flush");
                         let _ = prot.flush(u64::MAX, Duration::from_secs(1)).await;

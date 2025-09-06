@@ -58,7 +58,6 @@ impl Structure for DwarvenMine {
     const UPDATE_FN: &'static [u8] = b"render_mine\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_mine"))]
-
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let center = self.bounds.center();
         // Entrance
@@ -459,7 +458,5 @@ fn spawn_random_entity(pos: Vec3<i32>, painter: &Painter, rot: u8) {
         let random_sprite_index = rng.random_range(0..sprites.len());
         let random_sprite = sprites[random_sprite_index];
         painter.rotated_sprite(pos, random_sprite, rot);
-    } else {
-        return;
     }
 }

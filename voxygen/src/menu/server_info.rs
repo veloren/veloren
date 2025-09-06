@@ -178,17 +178,16 @@ impl PlayState for ServerInfoState {
             }
         }
 
-        if let Some(char_select) = &mut self.char_select {
-            if let Err(err) = char_select
+        if let Some(char_select) = &mut self.char_select
+            && let Err(err) = char_select
                 .client()
                 .borrow_mut()
                 .tick(comp::ControllerInputs::default(), global_state.clock.dt())
-            {
-                error!(?err, "[server_info] Failed to tick the client");
-                global_state.info_message =
-                    Some(get_client_msg_error(err, None, &global_state.i18n.read()));
-                return PlayStateResult::Pop;
-            }
+        {
+            error!(?err, "[server_info] Failed to tick the client");
+            global_state.info_message =
+                Some(get_client_msg_error(err, None, &global_state.i18n.read()));
+            return PlayStateResult::Pop;
         }
 
         // Maintain the UI.

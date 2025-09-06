@@ -287,10 +287,10 @@ impl<'a> System<'a> for Sys {
                 if projectile_vanished {
                     continue 'projectile_loop;
                 }
-            } else if let Some(ori) = orientations.get_mut(entity) {
-                if let Some(dir) = Dir::from_unnormalized(vel.0) {
-                    *ori = dir.into();
-                }
+            } else if let Some(ori) = orientations.get_mut(entity)
+                && let Some(dir) = Dir::from_unnormalized(vel.0)
+            {
+                *ori = dir.into();
             }
 
             if projectile.time_left == Duration::ZERO {
@@ -631,10 +631,10 @@ fn dispatch_hit(
         projectile::Effect::Possess => {
             let target_uid = projectile_target_info.uid;
             let owner_uid = projectile_info.owner_uid;
-            if let Some(owner_uid) = owner_uid {
-                if target_uid != owner_uid {
-                    emitters.emit(PossessEvent(owner_uid, target_uid));
-                }
+            if let Some(owner_uid) = owner_uid
+                && target_uid != owner_uid
+            {
+                emitters.emit(PossessEvent(owner_uid, target_uid));
             }
         },
         projectile::Effect::Stick => {},

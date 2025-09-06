@@ -622,7 +622,7 @@ impl Client {
         }
         // Pass the server info back to the caller to ensure they can access it even
         // if this function errors.
-        mem::swap(mismatched_server_info, &mut Some(server_info.clone()));
+        *mismatched_server_info = Some(server_info.clone());
         debug!("Auth Server: {:?}", server_info.auth_provider);
 
         ping_stream.send(PingMsg::Ping)?;
@@ -2392,10 +2392,11 @@ impl Client {
 
         // Save dead hardcore character ids to avoid displaying in the character list
         // while the server is still in the process of deleting the character
-        if self.current::<Hardcore>().is_some() && self.is_dead() {
-            if let Some(PresenceKind::Character(character_id)) = self.presence {
-                self.character_being_deleted = Some(character_id);
-            }
+        if self.current::<Hardcore>().is_some()
+            && self.is_dead()
+            && let Some(PresenceKind::Character(character_id)) = self.presence
+        {
+            self.character_being_deleted = Some(character_id);
         }
 
         // 4) Tick the client's LocalState
@@ -2425,19 +2426,19 @@ impl Client {
         }
 
         // 6) Update the server about the player's physics attributes.
-        if self.presence.is_some() {
-            if let (Some(pos), Some(vel), Some(ori)) = (
+        if self.presence.is_some()
+            && let (Some(pos), Some(vel), Some(ori)) = (
                 self.state.read_storage().get(self.entity()).cloned(),
                 self.state.read_storage().get(self.entity()).cloned(),
                 self.state.read_storage().get(self.entity()).cloned(),
-            ) {
-                self.in_game_stream.send(ClientGeneral::PlayerPhysics {
-                    pos,
-                    vel,
-                    ori,
-                    force_counter: self.force_update_counter,
-                })?;
-            }
+            )
+        {
+            self.in_game_stream.send(ClientGeneral::PlayerPhysics {
+                pos,
+                vel,
+                ori,
+                force_counter: self.force_update_counter,
+            })?;
         }
 
         /*
@@ -2587,20 +2588,18 @@ impl Client {
             if self
                 .lod_last_requested
                 .is_none_or(|i| i.elapsed() > Duration::from_secs(5))
-            {
-                if let Some(rpos) = Spiral2d::new()
+                && let Some(rpos) = Spiral2d::new()
                     .take((1 + self.lod_distance.ceil() as i32 * 2).pow(2) as usize)
                     .filter(|rpos| !self.lod_zones.contains_key(&(lod_zone + *rpos)))
                     .min_by_key(|rpos| rpos.magnitude_squared())
                     .filter(|rpos| {
                         rpos.map(|e| e as f32).magnitude() < (self.lod_distance - 0.5).max(0.0)
                     })
-                {
-                    self.send_msg_err(ClientGeneral::LodZoneRequest {
-                        key: lod_zone + rpos,
-                    })?;
-                    self.lod_last_requested = Some(Instant::now());
-                }
+            {
+                self.send_msg_err(ClientGeneral::LodZoneRequest {
+                    key: lod_zone + rpos,
+                })?;
+                self.lod_last_requested = Some(Instant::now());
             }
 
             // Cull LoD zones out of range
@@ -2749,13 +2748,13 @@ impl Client {
                     if let Some(old_entity) = old_player_entity.0 {
                         // Transfer controller to the new entity.
                         let mut controllers = self.state.ecs().write_storage::<Controller>();
-                        if let Some(controller) = controllers.remove(old_entity) {
-                            if let Err(e) = controllers.insert(entity, controller) {
-                                error!(
-                                    ?e,
-                                    "Failed to insert controller when setting new player entity!"
-                                );
-                            }
+                        if let Some(controller) = controllers.remove(old_entity)
+                            && let Err(e) = controllers.insert(entity, controller)
+                        {
+                            error!(
+                                ?e,
+                                "Failed to insert controller when setting new player entity!"
+                            );
                         }
                     }
                     if let Some(presence) = self.presence {

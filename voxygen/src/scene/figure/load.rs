@@ -393,7 +393,7 @@ impl HumHeadSpec {
             });
         (
             head,
-            Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
+            Vec3::from(spec.offset) + origin_offset.map(|e| -(e as f32)),
         )
     }
 }
@@ -6138,23 +6138,23 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
-        if let Ok(Cell::Filled(data)) = segment.get(pos) {
-            if !data.attr.is_hollow() {
-                if pos.x < x_min {
-                    x_min = pos.x;
-                } else if pos.x > x_max {
-                    x_max = pos.x;
-                }
-                if pos.y < y_min {
-                    y_min = pos.y;
-                } else if pos.y > y_max {
-                    y_max = pos.y;
-                }
-                if pos.z < z_min {
-                    z_min = pos.z;
-                } else if pos.z > z_max {
-                    z_max = pos.z;
-                }
+        if let Ok(Cell::Filled(data)) = segment.get(pos)
+            && !data.attr.is_hollow()
+        {
+            if pos.x < x_min {
+                x_min = pos.x;
+            } else if pos.x > x_max {
+                x_max = pos.x;
+            }
+            if pos.y < y_min {
+                y_min = pos.y;
+            } else if pos.y > y_max {
+                y_max = pos.y;
+            }
+            if pos.z < z_min {
+                z_min = pos.z;
+            } else if pos.z > z_max {
+                z_max = pos.z;
             }
         }
     }

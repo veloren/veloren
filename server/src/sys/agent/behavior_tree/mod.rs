@@ -277,55 +277,55 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
             if bdata.read_data.time.0 - health.last_change.time.0 < DAMAGE_MEMORY_DURATION
                 && health.last_change.amount < 0.0 =>
         {
-            if let Some(by) = health.last_change.damage_by() {
-                if let Some(attacker) = bdata.read_data.id_maps.uid_entity(by.uid()) {
-                    // If target is dead or invulnerable (for now, this only
-                    // means safezone), untarget them and idle.
-                    if is_dead_or_invulnerable(attacker, bdata.read_data) {
-                        bdata.agent.target = None;
-                    } else {
-                        if bdata.agent.target.is_none() {
-                            bdata
-                                .controller
-                                .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
-                        }
-
-                        bdata.agent.awareness.change_by(1.0);
-
-                        // Determine whether the new target should be a priority
-                        // over the old one (i.e: because it's either close or
-                        // because they attacked us).
-                        if bdata.agent.target.is_none_or(|target| {
-                            bdata.agent_data.is_more_dangerous_than_target(
-                                attacker,
-                                target,
-                                bdata.read_data,
-                            )
-                        }) {
-                            bdata.agent.target = Some(Target {
-                                target: attacker,
-                                hostile: true,
-                                selected_at: bdata.read_data.time.0,
-                                aggro_on: true,
-                                last_known_pos: bdata
-                                    .read_data
-                                    .positions
-                                    .get(attacker)
-                                    .map(|pos| pos.0),
-                            });
-                        }
-
-                        // Remember this attack if we're an RtSim entity
-                        /*
-                        if let Some(attacker_stats) =
-                            bdata.rtsim_entity.and(bdata.read_data.stats.get(attacker))
-                        {
-                            bdata
-                                .agent
-                                .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
-                        }
-                        */
+            if let Some(by) = health.last_change.damage_by()
+                && let Some(attacker) = bdata.read_data.id_maps.uid_entity(by.uid())
+            {
+                // If target is dead or invulnerable (for now, this only
+                // means safezone), untarget them and idle.
+                if is_dead_or_invulnerable(attacker, bdata.read_data) {
+                    bdata.agent.target = None;
+                } else {
+                    if bdata.agent.target.is_none() {
+                        bdata
+                            .controller
+                            .push_event(ControlEvent::Utterance(UtteranceKind::Angry));
                     }
+
+                    bdata.agent.awareness.change_by(1.0);
+
+                    // Determine whether the new target should be a priority
+                    // over the old one (i.e: because it's either close or
+                    // because they attacked us).
+                    if bdata.agent.target.is_none_or(|target| {
+                        bdata.agent_data.is_more_dangerous_than_target(
+                            attacker,
+                            target,
+                            bdata.read_data,
+                        )
+                    }) {
+                        bdata.agent.target = Some(Target {
+                            target: attacker,
+                            hostile: true,
+                            selected_at: bdata.read_data.time.0,
+                            aggro_on: true,
+                            last_known_pos: bdata
+                                .read_data
+                                .positions
+                                .get(attacker)
+                                .map(|pos| pos.0),
+                        });
+                    }
+
+                    // Remember this attack if we're an RtSim entity
+                    /*
+                    if let Some(attacker_stats) =
+                        bdata.rtsim_entity.and(bdata.read_data.stats.get(attacker))
+                    {
+                        bdata
+                            .agent
+                            .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
+                    }
+                    */
                 }
             }
         },
@@ -384,11 +384,12 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
 fn do_hostile_tree_if_hostile_and_aware(bdata: &mut BehaviorData) -> bool {
     let alert = bdata.agent.awareness.reached();
 
-    if let Some(Target { hostile, .. }) = bdata.agent.target {
-        if alert && hostile {
-            BehaviorTree::hostile().run(bdata);
-            return true;
-        }
+    if let Some(Target { hostile, .. }) = bdata.agent.target
+        && alert
+        && hostile
+    {
+        BehaviorTree::hostile().run(bdata);
+        return true;
     }
     false
 }
@@ -516,32 +517,26 @@ fn do_save_allies(bdata: &mut BehaviorData) -> bool {
 
 /// If too far away, then follow the target
 fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
-    if let Some(Target { target, .. }) = bdata.agent.target {
-        if let Some(tgt_pos) = bdata.read_data.positions.get(target) {
-            if let Some(stay_pos) = bdata.agent.stay_pos {
-                let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
-                bdata.controller.push_action(ControlAction::Sit);
-                if distance_from_stay > (MAX_STAY_DISTANCE).powi(2) {
-                    bdata.agent_data.follow(
-                        bdata.agent,
-                        bdata.controller,
-                        bdata.read_data,
-                        &stay_pos,
-                    );
-                    return true;
-                }
-            } else {
-                bdata.controller.push_action(ControlAction::Stand);
-                let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
-                if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) {
-                    bdata.agent_data.follow(
-                        bdata.agent,
-                        bdata.controller,
-                        bdata.read_data,
-                        tgt_pos,
-                    );
-                    return true;
-                }
+    if let Some(Target { target, .. }) = bdata.agent.target
+        && let Some(tgt_pos) = bdata.read_data.positions.get(target)
+    {
+        if let Some(stay_pos) = bdata.agent.stay_pos {
+            let distance_from_stay = stay_pos.0.distance_squared(bdata.agent_data.pos.0);
+            bdata.controller.push_action(ControlAction::Sit);
+            if distance_from_stay > (MAX_STAY_DISTANCE).powi(2) {
+                bdata
+                    .agent_data
+                    .follow(bdata.agent, bdata.controller, bdata.read_data, &stay_pos);
+                return true;
+            }
+        } else {
+            bdata.controller.push_action(ControlAction::Stand);
+            let dist_sqrd = bdata.agent_data.pos.0.distance_squared(tgt_pos.0);
+            if dist_sqrd > (MAX_PATROL_DIST * bdata.agent.psyche.idle_wander_factor).powi(2) {
+                bdata
+                    .agent_data
+                    .follow(bdata.agent, bdata.controller, bdata.read_data, tgt_pos);
+                return true;
             }
         }
     }
@@ -551,26 +546,26 @@ fn follow_if_far_away(bdata: &mut BehaviorData) -> bool {
 /// Attack target's attacker (if there is one)
 /// Target is the owner in this case
 fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
-    if let Some(Target { target, .. }) = bdata.agent.target {
-        if bdata.read_data.positions.get(target).is_some() {
-            let owner_recently_attacked =
-                if let Some(target_health) = bdata.read_data.healths.get(target) {
-                    bdata.read_data.time.0 - target_health.last_change.time.0 < 5.0
-                        && target_health.last_change.amount < 0.0
-                } else {
-                    false
-                };
-            let stay = bdata.agent.stay_pos.is_some();
-            if owner_recently_attacked && !stay {
-                bdata.agent_data.attack_target_attacker(
-                    bdata.agent,
-                    bdata.read_data,
-                    bdata.controller,
-                    bdata.emitters,
-                    bdata.rng,
-                );
-                return true;
-            }
+    if let Some(Target { target, .. }) = bdata.agent.target
+        && bdata.read_data.positions.get(target).is_some()
+    {
+        let owner_recently_attacked =
+            if let Some(target_health) = bdata.read_data.healths.get(target) {
+                bdata.read_data.time.0 - target_health.last_change.time.0 < 5.0
+                    && target_health.last_change.amount < 0.0
+            } else {
+                false
+            };
+        let stay = bdata.agent.stay_pos.is_some();
+        if owner_recently_attacked && !stay {
+            bdata.agent_data.attack_target_attacker(
+                bdata.agent,
+                bdata.read_data,
+                bdata.controller,
+                bdata.emitters,
+                bdata.rng,
+            );
+            return true;
         }
     }
     false
@@ -580,22 +575,22 @@ fn attack_if_owner_hurt(bdata: &mut BehaviorData) -> bool {
 fn set_owner_if_no_target(bdata: &mut BehaviorData) -> bool {
     let small_chance = bdata.rng.random_bool(0.1);
 
-    if bdata.agent.target.is_none() && small_chance {
-        if let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment {
-            if let Some(owner) = get_entity_by_id(*owner, bdata.read_data) {
-                let owner_pos = bdata.read_data.positions.get(owner).map(|pos| pos.0);
+    if bdata.agent.target.is_none()
+        && small_chance
+        && let Some(Alignment::Owned(owner)) = bdata.agent_data.alignment
+        && let Some(owner) = get_entity_by_id(*owner, bdata.read_data)
+    {
+        let owner_pos = bdata.read_data.positions.get(owner).map(|pos| pos.0);
 
-                bdata.agent.target = Some(Target::new(
-                    owner,
-                    false,
-                    bdata.read_data.time.0,
-                    false,
-                    owner_pos,
-                ));
-                // Always become aware of our owner no matter what
-                bdata.agent.awareness.set_maximally_aware();
-            }
-        }
+        bdata.agent.target = Some(Target::new(
+            owner,
+            false,
+            bdata.read_data.time.0,
+            false,
+            owner_pos,
+        ));
+        // Always become aware of our owner no matter what
+        bdata.agent.awareness.set_maximally_aware();
     }
     false
 }
@@ -728,32 +723,32 @@ fn update_last_known_pos(bdata: &mut BehaviorData) -> bool {
     if let Some(target_info) = agent.target {
         let target = target_info.target;
 
-        if let Some(target_pos) = read_data.positions.get(target) {
-            if agent_data.detects_other(
+        if let Some(target_pos) = read_data.positions.get(target)
+            && agent_data.detects_other(
                 agent,
                 controller,
                 &target,
                 target_pos,
                 read_data.scales.get(target),
                 read_data,
-            ) {
-                let updated_pos = Some(target_pos.0);
+            )
+        {
+            let updated_pos = Some(target_pos.0);
 
-                let Target {
-                    hostile,
-                    selected_at,
-                    aggro_on,
-                    ..
-                } = target_info;
+            let Target {
+                hostile,
+                selected_at,
+                aggro_on,
+                ..
+            } = target_info;
 
-                agent.target = Some(Target::new(
-                    target,
-                    hostile,
-                    selected_at,
-                    aggro_on,
-                    updated_pos,
-                ));
-            }
+            agent.target = Some(Target::new(
+                target,
+                hostile,
+                selected_at,
+                aggro_on,
+                updated_pos,
+            ));
         }
     }
 
@@ -838,12 +833,12 @@ fn search_last_known_pos_if_not_alert(bdata: &mut BehaviorData) -> bool {
         ..
     } = bdata;
 
-    if let Some(target) = agent.target {
-        if let Some(last_known_pos) = target.last_known_pos {
-            agent_data.follow(agent, controller, read_data, &Pos(last_known_pos));
+    if let Some(target) = agent.target
+        && let Some(last_known_pos) = target.last_known_pos
+    {
+        agent_data.follow(agent, controller, read_data, &Pos(last_known_pos));
 
-            return true;
-        }
+        return true;
     }
 
     false

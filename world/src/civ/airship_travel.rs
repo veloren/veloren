@@ -1457,7 +1457,7 @@ impl TriangulationExt for Triangulation {
 
             let mut odd_connected_count = odd_keys.len();
             assert!(
-                odd_connected_count % 2 == 0,
+                odd_connected_count.is_multiple_of(2),
                 "Odd connected count should be even, got {}",
                 odd_connected_count
             );
@@ -1738,16 +1738,14 @@ fn find_best_eulerian_circuit(
 
         if let Some((route_segments, max_seg_len, min_spread)) =
             best_eulerian_circuit_segments(&graph, &circuit)
+            && (max_seg_len > best_max_seg_len
+                || (max_seg_len == best_max_seg_len && min_spread < best_min_spread))
         {
-            if max_seg_len > best_max_seg_len
-                || (max_seg_len == best_max_seg_len && min_spread < best_min_spread)
-            {
-                best_circuit = circuit.clone();
-                best_route_segments = route_segments;
-                best_max_seg_len = max_seg_len;
-                best_min_spread = min_spread;
-                best_iteration = i;
-            }
+            best_circuit = circuit.clone();
+            best_route_segments = route_segments;
+            best_max_seg_len = max_seg_len;
+            best_min_spread = min_spread;
+            best_iteration = i;
         }
     }
     if best_route_segments.is_empty() {

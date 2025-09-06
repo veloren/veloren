@@ -785,33 +785,31 @@ impl<'a> Trade<'a> {
                 .font_size(self.fonts.cyri.scale(14))
                 .color(text_color)
                 .set(state.ids.amount_input, ui)
+                && new_input != key.input
             {
-                if new_input != key.input {
-                    new_input.trim().clone_into(&mut key.input);
-                    if !key.input.is_empty() {
-                        // trade amount can change with (shift||ctrl)-click
-                        let amount = *trade.offers[key.who].get(&key.slot).unwrap_or(&0);
-                        match key.input.parse::<i32>() {
-                            Ok(new_amount) => {
-                                key.input = format!("{}", new_amount);
-                                if new_amount > -1 && new_amount <= key.inv as i32 {
-                                    key.err = None;
-                                    let delta = new_amount - amount as i32;
-                                    key.submit_action =
-                                        TradeAction::item(key.slot, delta, key.ours);
-                                } else {
-                                    key.err = Some("out of range".to_owned());
-                                    key.submit_action = None;
-                                }
-                            },
-                            Err(_) => {
-                                key.err = Some("bad quantity".to_owned());
+                new_input.trim().clone_into(&mut key.input);
+                if !key.input.is_empty() {
+                    // trade amount can change with (shift||ctrl)-click
+                    let amount = *trade.offers[key.who].get(&key.slot).unwrap_or(&0);
+                    match key.input.parse::<i32>() {
+                        Ok(new_amount) => {
+                            key.input = format!("{}", new_amount);
+                            if new_amount > -1 && new_amount <= key.inv as i32 {
+                                key.err = None;
+                                let delta = new_amount - amount as i32;
+                                key.submit_action = TradeAction::item(key.slot, delta, key.ours);
+                            } else {
+                                key.err = Some("out of range".to_owned());
                                 key.submit_action = None;
-                            },
-                        }
-                    } else {
-                        key.submit_action = None;
+                            }
+                        },
+                        Err(_) => {
+                            key.err = Some("bad quantity".to_owned());
+                            key.submit_action = None;
+                        },
                     }
+                } else {
+                    key.submit_action = None;
                 }
             }
         } else {

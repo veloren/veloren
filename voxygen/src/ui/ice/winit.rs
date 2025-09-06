@@ -24,10 +24,10 @@ impl Clipboard {
 
     /// Writes the given text contents to the [`Clipboard`].
     pub fn write(&mut self, contents: String) {
-        if let Some(clipboard) = &mut self.connection {
-            if let Err(error) = clipboard.write(contents) {
-                tracing::warn!("error writing to clipboard: {}", error)
-            }
+        if let Some(clipboard) = &mut self.connection
+            && let Err(error) = clipboard.write(contents)
+        {
+            tracing::warn!("error writing to clipboard: {}", error)
         }
     }
 }
@@ -95,15 +95,17 @@ pub fn window_event(
             // `iced` expects different events for text input and pressed keys.
             // We work around that by sending the key as text but only if no modifier is
             // pressed, so shortcuts still work.
-            if let Some(text) = &event.text {
-                if let Some(c) = text.chars().next() {
-                    if !c.is_control() && !modifiers.alt && !modifiers.control && !modifiers.logo {
-                        return event
-                            .state
-                            .is_pressed()
-                            .then_some(Event::Keyboard(keyboard::Event::CharacterReceived(c)));
-                    }
-                }
+            if let Some(text) = &event.text
+                && let Some(c) = text.chars().next()
+                && !c.is_control()
+                && !modifiers.alt
+                && !modifiers.control
+                && !modifiers.logo
+            {
+                return event
+                    .state
+                    .is_pressed()
+                    .then_some(Event::Keyboard(keyboard::Event::CharacterReceived(c)));
             }
 
             let key_code = key_code(&event.logical_key)?;
