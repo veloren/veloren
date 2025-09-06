@@ -41,7 +41,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     }
 
     #[inline(always)]
-    pub fn par_keys(&self) -> hashbrown::hash_map::rayon::ParKeys<Vec2<i32>, Arc<V>>
+    pub fn par_keys(&self) -> hashbrown::hash_map::rayon::ParKeys<'_, Vec2<i32>, Arc<V>>
     where
         V: Send + Sync,
     {
@@ -217,7 +217,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     pub fn clear(&mut self) { self.chunks.clear(); }
 
-    pub fn drain(&mut self) -> hash_map::Drain<Vec2<i32>, Arc<V>> { self.chunks.drain() }
+    pub fn drain(&mut self) -> hash_map::Drain<'_, Vec2<i32>, Arc<V>> { self.chunks.drain() }
 
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
@@ -237,13 +237,13 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     #[inline(always)]
     pub fn pos_chunk(&self, pos: Vec3<i32>) -> Option<&V> { self.get_key(self.pos_key(pos)) }
 
-    pub fn iter(&self) -> ChunkIter<V> {
+    pub fn iter(&self) -> ChunkIter<'_, V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }
     }
 
-    pub fn cached(&self) -> CachedVolGrid2d<V> { CachedVolGrid2d::new(self) }
+    pub fn cached(&self) -> CachedVolGrid2d<'_, V> { CachedVolGrid2d::new(self) }
 }
 
 pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {

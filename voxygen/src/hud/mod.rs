@@ -5456,7 +5456,10 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
     }
 }
 
-pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
+pub fn get_sprite_desc(
+    sprite: SpriteKind,
+    localized_strings: &Localization,
+) -> Option<Cow<'_, str>> {
     let i18n_key = match sprite {
         SpriteKind::Empty | SpriteKind::GlassBarrier => return None,
         SpriteKind::Anvil => "hud-crafting-anvil",

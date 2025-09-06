@@ -17,7 +17,7 @@ pub trait WorldSyncExt {
     fn register_tracker<C: specs::Component + Clone + Send + Sync>(&mut self)
     where
         C::Storage: Default + specs::storage::Tracked;
-    fn create_entity_synced(&mut self) -> specs::EntityBuilder;
+    fn create_entity_synced(&mut self) -> specs::EntityBuilder<'_>;
     fn delete_entity_and_clear_uid_mapping(&mut self, uid: Uid);
     fn uid_from_entity(&self, entity: specs::Entity) -> Option<Uid>;
     fn entity_from_uid(&self, uid: Uid) -> Option<specs::Entity>;
@@ -51,7 +51,7 @@ impl WorldSyncExt for specs::World {
         self.insert(tracker);
     }
 
-    fn create_entity_synced(&mut self) -> specs::EntityBuilder {
+    fn create_entity_synced(&mut self) -> specs::EntityBuilder<'_> {
         // TODO: Add metric for number of new entities created in a tick? Most
         // convenient would be to store counter in `IdMaps` so that we don't
         // have to fetch another resource nor require an additional parameter here

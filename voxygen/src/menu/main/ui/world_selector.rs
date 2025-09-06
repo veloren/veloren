@@ -71,7 +71,7 @@ impl Screen {
         worlds: &crate::singleplayer::SingleplayerWorlds,
         i18n: &Localization,
         button_style: style::button::Style,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
         let worlds_count = worlds.worlds.len();

@@ -187,5 +187,5 @@ impl CharacterLoader {
     }
 
     /// Returns a non-blocking iterator over CharacterUpdaterMessage messages
-    pub fn messages(&self) -> TryIter<CharacterUpdaterMessage> { self.update_rx.try_iter() }
+    pub fn messages(&self) -> TryIter<'_, CharacterUpdaterMessage> { self.update_rx.try_iter() }
 }

@@ -125,7 +125,7 @@ impl IndexOwned {
         })
     }
 
-    pub fn as_index_ref(&self) -> IndexRef {
+    pub fn as_index_ref(&self) -> IndexRef<'_> {
         IndexRef {
             colors: &self.colors,
             features: &self.features,

@@ -11,7 +11,7 @@ pub fn neat_button<M: Clone + 'static>(
     fill_fraction: f32,
     button_style: Style,
     message: Option<M>,
-) -> Element<M, ui::IcedRenderer> {
+) -> Element<'_, M, ui::IcedRenderer> {
     let button = Button::new(state, FillText::new(label).fill_fraction(fill_fraction))
         .height(Length::Fill)
         .width(Length::Fill)

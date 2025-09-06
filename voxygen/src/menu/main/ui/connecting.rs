@@ -83,7 +83,7 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
         controls: &ControlSettings,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         // TODO: add built in support for animated images
         let frame_index = (time * self.loading_animation.speed_factor as f64)
             % self.loading_animation.frames.len() as f64;

@@ -77,7 +77,7 @@ impl Cache {
 
     pub fn glyph_cache_mut(&mut self) -> &mut GlyphBrush { self.glyph_brush.get_mut() }
 
-    pub fn glyph_calculator(&self) -> RefMut<GlyphBrush> { self.glyph_brush.borrow_mut() }
+    pub fn glyph_calculator(&self) -> RefMut<'_, GlyphBrush> { self.glyph_brush.borrow_mut() }
 
     // TODO: consider not re-adding default font
     pub fn add_font(&mut self, font: RawFont) -> FontId {

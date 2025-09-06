@@ -379,7 +379,7 @@ struct SpotConfig<'a> {
     // spec = Manifest spec for the entity kind
     entities: &'a [(Range<i32>, &'a str)],
 }
-fn spot_config(spot: &Spot) -> SpotConfig {
+fn spot_config(spot: &Spot) -> SpotConfig<'_> {
     match spot {
         // Themed Spots
         Spot::DwarvenGrave => SpotConfig {

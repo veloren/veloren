@@ -37,7 +37,7 @@ impl<T: Copy + Pod> Instances<T> {
 
     /// Create a set of instances with a slice of a portion of these instances
     /// to send to the renderer.
-    pub fn subinstances(&self, inst_range: Range<u32>) -> SubInstances<T> {
+    pub fn subinstances(&self, inst_range: Range<u32>) -> SubInstances<'_, T> {
         SubInstances {
             inst_range,
             buf: self.buf(),

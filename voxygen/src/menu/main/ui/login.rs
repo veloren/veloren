@@ -51,7 +51,7 @@ impl Screen {
         language_metadatas: &[LanguageMetadata],
         button_style: style::button::Style,
         version: &str,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         let mut buttons = Vec::new();
         // If the server field is locked, we don't want to show the server selection
         // list!
@@ -227,7 +227,7 @@ impl LanguageSelectBanner {
         language_metadatas: &[LanguageMetadata],
         selected_language_index: Option<usize>,
         button_style: style::button::Style,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         // Reset button states if languages were added / removed
         if self.language_buttons.len() != language_metadatas.len() {
             self.language_buttons = vec![Default::default(); language_metadatas.len()];
@@ -340,7 +340,7 @@ impl LoginBanner {
         login_info: &LoginInfo,
         i18n: &Localization,
         button_style: style::button::Style,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
         let server_field: Element<Message> = if server_field_locked {

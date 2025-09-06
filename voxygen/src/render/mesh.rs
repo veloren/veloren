@@ -103,10 +103,10 @@ impl<V: Vertex> Mesh<V> {
         }
     }
 
-    pub fn iter(&self) -> std::slice::Iter<V> { self.verts.iter() }
+    pub fn iter(&self) -> std::slice::Iter<'_, V> { self.verts.iter() }
 
     /// NOTE: Panics if vertex_range is out of bounds of vertices.
-    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<V> {
+    pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<'_, V> {
         self.verts[vertex_range].iter_mut()
     }
 

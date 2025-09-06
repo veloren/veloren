@@ -504,7 +504,7 @@ impl MusicMgr {
                 .biomes
                 .iter()
                 .find(|b| b.0 == current_biome)
-                .map_or(1.0, |b| (1.0_f32 / (b.1 as f32)))
+                .map_or(1.0, |b| 1.0_f32 / (b.1 as f32))
         });
         debug!(
             "selecting new track for {:?}: {:?}",

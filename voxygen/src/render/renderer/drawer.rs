@@ -237,7 +237,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Returns None if the rain occlusion renderer is not enabled at some
     /// level, the pipelines are not available yet or clouds are disabled.
-    pub fn rain_occlusion_pass(&mut self) -> Option<RainOcclusionPassDrawer> {
+    pub fn rain_occlusion_pass(&mut self) -> Option<RainOcclusionPassDrawer<'_>> {
         if !self.borrow.pipeline_modes.cloud.is_enabled() {
             return None;
         }
@@ -276,7 +276,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Returns None if the shadow renderer is not enabled at some level or the
     /// pipelines are not available yet
-    pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer> {
+    pub fn shadow_pass(&mut self) -> Option<ShadowPassDrawer<'_>> {
         if !self.borrow.pipeline_modes.shadow.is_map() {
             return None;
         }
@@ -312,7 +312,7 @@ impl<'frame> Drawer<'frame> {
     }
 
     /// Returns None if all the pipelines are not available
-    pub fn first_pass(&mut self) -> Option<FirstPassDrawer> {
+    pub fn first_pass(&mut self) -> Option<FirstPassDrawer<'_>> {
         let pipelines = self.borrow.pipelines.all()?;
         // Note: this becomes Some once pipeline creation is complete even if shadows
         // are not enabled
@@ -366,7 +366,7 @@ impl<'frame> Drawer<'frame> {
     }
 
     /// Returns None if the volumetrics pipeline is not available
-    pub fn volumetric_pass(&mut self) -> Option<VolumetricPassDrawer> {
+    pub fn volumetric_pass(&mut self) -> Option<VolumetricPassDrawer<'_>> {
         let pipelines = &self.borrow.pipelines.all()?;
         let shadow = self.borrow.shadow?;
 
@@ -399,7 +399,7 @@ impl<'frame> Drawer<'frame> {
     }
 
     /// Returns None if the trail pipeline is not available
-    pub fn transparent_pass(&mut self) -> Option<TransparentPassDrawer> {
+    pub fn transparent_pass(&mut self) -> Option<TransparentPassDrawer<'_>> {
         let pipelines = &self.borrow.pipelines.all()?;
         let shadow = self.borrow.shadow?;
 
@@ -580,7 +580,7 @@ impl<'frame> Drawer<'frame> {
     ///
     /// Note, this automatically calls the internal `run_ui_premultiply_passes`
     /// to complete any pending image uploads for the UI.
-    pub fn third_pass(&mut self) -> ThirdPassDrawer {
+    pub fn third_pass(&mut self) -> ThirdPassDrawer<'_> {
         self.run_ui_premultiply_passes();
 
         let mut render_pass =

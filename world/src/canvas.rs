@@ -43,7 +43,7 @@ impl<'a> CanvasInfo<'a> {
         .into()
     }
 
-    pub fn col(&self, wpos: Vec2<i32>) -> Option<&'a ColumnSample> {
+    pub fn col(&self, wpos: Vec2<i32>) -> Option<&'a ColumnSample<'_>> {
         self.column_grid
             .get(self.column_grid_border + wpos - self.wpos())
             .and_then(Option::as_ref)
@@ -54,7 +54,7 @@ impl<'a> CanvasInfo<'a> {
     /// have it.
     ///
     /// This function does not (currently) cache generated columns.
-    pub fn col_or_gen(&self, wpos: Vec2<i32>) -> Option<Cow<'a, ColumnSample>> {
+    pub fn col_or_gen(&self, wpos: Vec2<i32>) -> Option<Cow<'a, ColumnSample<'_>>> {
         self.col(wpos).map(Cow::Borrowed).or_else(|| {
             Some(Cow::Owned(ColumnGen::new(self.chunks()).get((
                 wpos,

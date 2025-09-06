@@ -310,13 +310,14 @@ impl World {
     pub fn sample_columns(
         &self,
     ) -> impl Sampler<
-        Index = (Vec2<i32>, IndexRef, Option<&'_ Calendar>),
-        Sample = Option<ColumnSample>,
+        '_,
+        Index = (Vec2<i32>, IndexRef<'_>, Option<&'_ Calendar>),
+        Sample = Option<ColumnSample<'_>>,
     > + '_ {
         ColumnGen::new(&self.sim)
     }
 
-    pub fn sample_blocks(&self) -> BlockGen { BlockGen::new(ColumnGen::new(&self.sim)) }
+    pub fn sample_blocks(&self) -> BlockGen<'_> { BlockGen::new(ColumnGen::new(&self.sim)) }
 
     /// Find a position that's accessible to a player at the given world
     /// position by searching blocks vertically.

@@ -376,7 +376,7 @@ fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex
                 .next()
                 .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
                 .unwrap_or(Rgb::broadcast(127));
-            let color = srgb_to_linear(color.map(|c| (c as f32 / 255.0)));
+            let color = srgb_to_linear(color.map(|c| c as f32 / 255.0));
             let flags = if objname.contains("InstCol") && objname.contains("Glow") {
                 VertexFlags::INST_COLOR | VertexFlags::GLOW
             } else if objname.contains("Glow") {

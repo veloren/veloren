@@ -104,7 +104,7 @@ impl ModularBase {
         components: &[Item],
         msm: &MaterialStatManifest,
         durability_multiplier: DurabilityMultiplier,
-    ) -> Cow<ItemKind> {
+    ) -> Cow<'_, ItemKind> {
         let toolkind = components
             .iter()
             .find_map(|comp| match &*comp.kind() {
@@ -140,7 +140,7 @@ impl ModularBase {
     /// Modular weapons are named as "{Material} {Weapon}" where {Weapon} is
     /// from the damage component used and {Material} is from the material
     /// the damage component is created from.
-    pub fn generate_name(&self, components: &[Item]) -> Cow<str> {
+    pub fn generate_name(&self, components: &[Item]) -> Cow<'_, str> {
         match self {
             ModularBase::Tool => {
                 let name = components
@@ -185,7 +185,7 @@ impl ModularBase {
             .fold(Quality::MIN, |a, b| a.max(b.quality()))
     }
 
-    pub fn ability_spec(&self, components: &[Item]) -> Option<Cow<AbilitySpec>> {
+    pub fn ability_spec(&self, components: &[Item]) -> Option<Cow<'_, AbilitySpec>> {
         match self {
             ModularBase::Tool => components.iter().find_map(|comp| match &*comp.kind() {
                 ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {

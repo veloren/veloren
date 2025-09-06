@@ -42,7 +42,7 @@ impl<V: Vertex> Model<V> {
 
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<'_, V> {
         SubModel {
             vertex_range,
             buf: self.buf(),
@@ -74,7 +74,7 @@ impl<V: Vertex> DynamicModel<V> {
 
     /// Create a model with a slice of a portion of this model to send to the
     /// renderer.
-    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<V> {
+    pub fn submodel(&self, vertex_range: Range<u32>) -> SubModel<'_, V> {
         SubModel {
             vertex_range,
             buf: self.buf(),

@@ -580,7 +580,7 @@ impl<E> Default for EventBus<E> {
 }
 
 impl<E> EventBus<E> {
-    pub fn emitter(&self) -> Emitter<E> {
+    pub fn emitter(&self) -> Emitter<'_, E> {
         Emitter {
             bus: self,
             events: VecDeque::new(),
@@ -681,7 +681,7 @@ macro_rules! event_emitters {
             }
 
             impl<'a> $read_data<'a> {
-                pub fn get_emitters(&self) -> $emitters {
+                pub fn get_emitters(&self) -> $emitters<'_> {
                     $emitters {
                         $($ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
                     }

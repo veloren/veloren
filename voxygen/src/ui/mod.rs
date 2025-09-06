@@ -248,9 +248,9 @@ impl Ui {
         self.ui.fonts.insert(font)
     }
 
-    pub fn id_generator(&mut self) -> Generator { self.ui.widget_id_generator() }
+    pub fn id_generator(&mut self) -> Generator<'_> { self.ui.widget_id_generator() }
 
-    pub fn set_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager, &mut TooltipManager) {
+    pub fn set_widgets(&mut self) -> (UiCell<'_>, &mut ItemTooltipManager, &mut TooltipManager) {
         (
             self.ui.set_widgets(),
             &mut self.item_tooltip_manager,
@@ -258,7 +258,7 @@ impl Ui {
         )
     }
 
-    pub fn set_item_widgets(&mut self) -> (UiCell, &mut ItemTooltipManager) {
+    pub fn set_item_widgets(&mut self) -> (UiCell<'_>, &mut ItemTooltipManager) {
         (self.ui.set_widgets(), &mut self.item_tooltip_manager)
     }
 
@@ -318,7 +318,7 @@ impl Ui {
         }
     }
 
-    pub fn widget_input(&self, id: widget::Id) -> Widget { self.ui.widget_input(id) }
+    pub fn widget_input(&self, id: widget::Id) -> Widget<'_> { self.ui.widget_input(id) }
 
     pub fn maintain(
         &mut self,

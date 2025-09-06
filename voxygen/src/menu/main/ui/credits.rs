@@ -29,7 +29,7 @@ impl Screen {
         i18n: &Localization,
         credits: &Credits,
         button_style: style::button::Style,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         use core::fmt::Write;
         let format_art_credit = |credit: &crate::credits::Art| -> Result<String, core::fmt::Error> {
             let mut text = String::new();

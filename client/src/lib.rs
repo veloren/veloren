@@ -2195,7 +2195,7 @@ impl Client {
         self.send_msg(ClientGeneral::RequestSiteInfo(id))
     }
 
-    pub fn inventories(&self) -> ReadStorage<comp::Inventory> { self.state.read_storage() }
+    pub fn inventories(&self) -> ReadStorage<'_, comp::Inventory> { self.state.read_storage() }
 
     /// Send a chat message to the server.
     pub fn send_chat(&mut self, message: String) {

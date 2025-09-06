@@ -158,6 +158,7 @@ impl Rule for NpcAi {
 
                         controller.reset();
 
+                        #[allow(unused)] // TODO: check if correct
                         brain.action.tick(&mut NpcCtx {
                             state: ctx.state,
                             world: ctx.world,
