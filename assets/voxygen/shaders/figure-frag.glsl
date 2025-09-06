@@ -25,6 +25,10 @@
 #include <cloud.glsl>
 #include <lod.glsl>
 
+#ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+#include <random.glsl>
+#endif
+
 layout(location = 0) in vec3 f_pos;
 // in float dummy;
 // in vec3 f_col;
@@ -86,6 +90,29 @@ layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
 
 void main() {
+    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+    if ((flags & 1) == 1) {
+        if (int(cam_mode) == 1) {
+            float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
+
+            float opacity = clamp(distance / distance_divider, 0.5, 1);
+
+            if (dither(gl_FragCoord.xy, opacity, 123456789)) {
+                discard;
+            }
+        }
+
+        if (int(cam_mode) == 0) {
+            float s = min(screen_res.x, screen_res.y);
+            float opacity = clamp(distance(gl_FragCoord.xy, screen_res.xy * 0.5) / s, 0.5, 1.0);
+
+            if (dither(gl_FragCoord.xy, opacity, 123456789)) {
+                discard;
+            }
+        }
+    }
+    #endif
+
     // vec2 texSize = textureSize(t_col_light, 0);
     // vec4 col_light = texture(t_col_light, (f_uv_pos + 0.5) / texSize);
     // vec3 f_col = col_light.rgb;
@@ -290,17 +317,6 @@ void main() {
     */
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
-
-    // if ((flags & 1) == 1 && int(cam_mode) == 1) {
-    //  float distance = distance(vec3(cam_pos), focus_pos.xyz) - 2;
-
-    //  float opacity = clamp(distance / distance_divider, 0, 1);
-
-    //  // if(threshold_matrix[int(gl_FragCoord.x) % 4][int(gl_FragCoord.y) % 4] > opacity) {
-    //     //     discard;
-    //     //     return;
-    //  // }
-    // }
 
     tgt_color = vec4(surf_color, 1.0);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);

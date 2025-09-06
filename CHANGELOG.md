@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added more varieties of house-building materials
 - New LoD models for all five AirshipDock plots.
 - Structures now support a `Choice()` block to allow for randomized spawns.
+- Added `DiscardTransparency` experimental shader.
 
 ### Changed
 

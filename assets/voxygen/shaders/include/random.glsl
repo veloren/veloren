@@ -155,4 +155,39 @@ float caustics(vec2 p, float t) {
     return pow(l,3.)*5.5;
 }
 
+#ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+bool dither(vec2 frag_coord, float a, uint id) {
+    if (a < 1.0 / 17.0) {
+        return true;
+    }
+    if (a > 16.0 / 17.0) {
+        return false;
+    }
+
+    // Use the id to try to discard different pixels from different objects, causing
+    // them to be visible behind eachother.
+    float r0 = floor(hash_one(id) * 16.0);
+    vec2 r1 = vec2(floor(r0 * 0.25), mod(r0, 4.0));
+
+    // We sample the bayer multiple times to have a smoother gradient of dithering.
+    // This could be achieved by having a larger bayer matrix, but would then have
+    // to define a larger one and not sure it would be much more efficient.
+    uvec2 pos0 = uvec2(frag_coord + r1) % 4;
+    uvec2 pos1 = uvec2(frag_coord / 4.0 + r1) % 4;
+    uvec2 pos2 = uvec2(frag_coord / 16.0 + r1) % 4;
+
+    mat4 bayer = mat4(
+        16.0, 4.0, 13.0, 1.0,
+        8.0, 12.0, 5.0, 9.0,
+        14.0, 2.0, 15.0, 3.0,
+        6.0, 10.0, 7.0, 11.0
+    );
+    mat4 bayer0 = bayer / 17.0;
+    mat4 bayer1 = bayer / (17.0 * 17.0);
+    mat4 bayer2 = bayer / (17.0 * 17.0 * 17.0);
+
+    return a < bayer0[pos0.x][pos0.y] + bayer1[pos1.x][pos1.y] + bayer2[pos2.x][pos2.y];
+}
+#endif
+
 #endif
