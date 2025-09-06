@@ -137,7 +137,7 @@ pub trait BodySpec: Sized {
         key: &FigureKey<Self>,
         manifests: &Self::Manifests,
         extra: Self::Extra,
-    ) -> [Option<Self::BoneMesh>; anim::MAX_BONE_COUNT];
+    ) -> [Option<Self::BoneMesh>; 16]; // anim::MAX_BONE_COUNT cargo bug, this does not compiled when set to the const. but should need adjustment if you ever wanna change the const
 }
 
 macro_rules! make_vox_spec {
