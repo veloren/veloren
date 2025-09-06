@@ -1,8 +1,8 @@
 [package]
-authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2021"
 name = "veloren-common-systems"
 version = "0.10.0"
+edition.workspace = true
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 
 [lints]
 workspace = true

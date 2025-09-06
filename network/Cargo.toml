@@ -1,8 +1,8 @@
 [package]
 name = "veloren-network"
 version = "0.3.0"
+edition.workspace = true
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2021"
 
 [lints]
 workspace = true

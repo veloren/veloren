@@ -27,6 +27,10 @@ members = [
     "network/protocol",
 ]
 
+### PACKAGE ###
+[workspace.package]
+edition = "2024"
+
 ### LINTS ###
 
 # Note, crates not in this workspace don't include these lints. We have added a

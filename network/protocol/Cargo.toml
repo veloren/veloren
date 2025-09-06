@@ -1,9 +1,9 @@
 [package]
 name = "veloren-network-protocol"
-description = "pure Protocol without any I/O itself"
 version = "0.6.1"
+description = "pure Protocol without any I/O itself"
+edition.workspace = true
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2021"
 
 [lints]
 workspace = true

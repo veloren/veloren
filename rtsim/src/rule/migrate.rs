@@ -6,7 +6,7 @@ use crate::{
         npc::Profession,
     },
     event::OnSetup,
-    gen::wanted_population,
+    generate::wanted_population,
 };
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;

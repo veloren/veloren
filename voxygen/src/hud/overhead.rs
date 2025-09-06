@@ -257,12 +257,12 @@ impl Widget for Overhead<'_> {
                 .parent(id)
                 .set(state.ids.buffs_align, ui);
 
-            let gen = &mut ui.widget_id_generator();
+            let generator = &mut ui.widget_id_generator();
             if state.ids.buffs.len() < buff_count {
-                state.update(|state| state.ids.buffs.resize(buff_count, gen));
+                state.update(|state| state.ids.buffs.resize(buff_count, generator));
             };
             if state.ids.buff_timers.len() < buff_count {
-                state.update(|state| state.ids.buff_timers.resize(buff_count, gen));
+                state.update(|state| state.ids.buff_timers.resize(buff_count, generator));
             };
 
             let buff_ani = ((self.pulse * 4.0).cos() * 0.5 + 0.8) + 0.5; //Animation timer

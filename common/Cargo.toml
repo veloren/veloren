@@ -1,12 +1,12 @@
 [package]
 name = "veloren-common"
 version = "0.10.0"
+edition.workspace = true
 authors = [
     "Joshua Barretto <joshua.s.barretto@gmail.com>",
     "Luna Ćwięka <luna@lunareclipse.zone>",
     "Imbris <imbrisf@gmail.com>",
 ]
-edition = "2021"
 
 [lints]
 workspace = true

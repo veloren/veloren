@@ -444,9 +444,9 @@ pub fn handle_possess(
         let new_presence = {
             let ecs = state.ecs();
             // Check that entities still exist
-            if !possessor.gen().is_alive()
+            if !possessor.r#gen().is_alive()
                 || !ecs.is_alive(possessor)
-                || !possessee.gen().is_alive()
+                || !possessee.r#gen().is_alive()
                 || !ecs.is_alive(possessee)
             {
                 error!(

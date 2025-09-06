@@ -1,7 +1,7 @@
 use crate::{
     ai::Action,
     data::{Reports, Sentiments},
-    gen::name,
+    generate::name,
 };
 pub use common::rtsim::{NpcId, Profession};
 use common::{

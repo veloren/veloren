@@ -4,15 +4,15 @@ use vek::Vec2;
 use super::{Sampler, StructureGen2d};
 
 pub struct StructureGenCache<T> {
-    gen: StructureGen2d,
+    generation: StructureGen2d,
     // TODO: Compare performance of using binary search instead of hashmap
     cache: HashMap<Vec2<i32>, Option<T>>,
 }
 
 impl<T> StructureGenCache<T> {
-    pub fn new(gen: StructureGen2d) -> Self {
+    pub fn new(generation: StructureGen2d) -> Self {
         Self {
-            gen,
+            generation,
             cache: HashMap::new(),
         }
     }
@@ -22,7 +22,7 @@ impl<T> StructureGenCache<T> {
         index: Vec2<i32>,
         mut generate: impl FnMut(Vec2<i32>, u32) -> Option<T>,
     ) -> Vec<&T> {
-        let close = self.gen.get(index);
+        let close = self.generation.get(index);
         for (wpos, seed) in close {
             self.cache
                 .entry(wpos)

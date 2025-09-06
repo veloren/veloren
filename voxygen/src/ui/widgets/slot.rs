@@ -171,7 +171,7 @@ where
     S: SumSlot,
 {
     pub fn new(
-        mut gen: widget::id::Generator,
+        mut generator: widget::id::Generator,
         drag_img_size: Vec2<f32>,
         use_prefixes: bool,
         prefix_switch_point: u32,
@@ -186,13 +186,13 @@ where
             slot_ids: Vec::new(),
             slots: Vec::new(),
             events: Vec::new(),
-            drag_id: gen.next(),
+            drag_id: generator.next(),
             mouse_over_slot: None,
             use_prefixes,
             prefix_switch_point,
             // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in
-            // hand". drag_amount_id: gen.next(),
-            // drag_amount_shadow_id: gen.next(),
+            // hand". drag_amount_id: generator.next(),
+            // drag_amount_shadow_id: generator.next(),
             // amount_font,
             // amount_font_size,
             // amount_margins,

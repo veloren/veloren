@@ -2297,7 +2297,6 @@ impl WorldSim {
         Some(z0 + z1 + z2 + z3)
     }
 
-    #[expect(impl_trait_overcaptures)]
     pub fn get_nearest_ways<'a, M: Clone + Lerp<Output = M>>(
         &'a self,
         wpos: Vec2<i32>,
