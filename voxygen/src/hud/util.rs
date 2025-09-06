@@ -227,14 +227,14 @@ fn buff_key(buff: BuffKind) -> &'static str {
 }
 
 /// Returns localized buff title
-pub fn get_buff_title(buff: BuffKind, i18n: &Localization) -> Cow<str> {
+pub fn get_buff_title(buff: BuffKind, i18n: &Localization) -> Cow<'_, str> {
     let key = buff_key(buff);
 
     i18n.get_msg(key)
 }
 
 /// Returns localized buff description
-pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow<str> {
+pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow<'_, str> {
     let key = buff_key(buff);
     if let BuffKind::RestingHeal = buff {
         i18n.get_attr_ctx(key, "desc", &i18n::fluent_args! {
@@ -245,7 +245,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, i18n: &Localization) -> Cow
     }
 }
 
-fn almost_integer(number: &f32) -> FluentValue {
+fn almost_integer(number: &f32) -> FluentValue<'_> {
     let epsilon = 0.001;
     if number.fract() < epsilon {
         FluentValue::from(number.round() as usize)

@@ -134,7 +134,7 @@ impl<V: RasterableVol> VolGrid3d<V> {
 
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> { Self::chunk_key(pos) }
 
-    pub fn iter(&self) -> ChunkIter<V> {
+    pub fn iter(&self) -> ChunkIter<'_, V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }

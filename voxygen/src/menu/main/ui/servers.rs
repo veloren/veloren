@@ -33,7 +33,7 @@ impl Screen {
         selected_server_index: Option<usize>,
         i18n: &Localization,
         button_style: style::button::Style,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         let title = Text::new(i18n.get_msg("main-servers-select_server"))
             .size(fonts.cyri.scale(35))
             .width(Length::Fill)

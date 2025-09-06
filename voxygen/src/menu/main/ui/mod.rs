@@ -363,7 +363,7 @@ impl Controls {
         settings: &Settings,
         dt: f32,
         #[cfg(feature = "singleplayer")] worlds: &crate::singleplayer::SingleplayerWorlds,
-    ) -> Element<Message> {
+    ) -> Element<'_, Message> {
         self.time += dt as f64;
 
         // TODO: consider setting this as the default in the renderer

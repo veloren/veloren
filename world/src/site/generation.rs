@@ -198,6 +198,7 @@ impl Primitive {
         Self::Translate(a.into(), trans)
     }
 
+    #[allow(dead_code)] // TODO: check if correct - part of toolchaon update
     pub fn scale(a: impl Into<Id<Primitive>>, scale: Vec3<f32>) -> Self {
         Self::Scale(a.into(), scale)
     }
@@ -865,18 +866,18 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of an axis aligned bounding box. The geometric
     /// name of this shape is a "right rectangular prism."
-    pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         self.prim(Primitive::Aabb(aabb.made_valid()))
     }
 
     /// Returns a `PrimitiveRef` of a sphere using a radius check.
-    pub fn sphere(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn sphere(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         self.prim(Primitive::Sphere(aabb.made_valid()))
     }
 
     /// Returns a `PrimitiveRef` of a sphere using a radius check where a radius
     /// and origin are parameters instead of a bounding box.
-    pub fn sphere_with_radius(&self, origin: Vec3<i32>, radius: f32) -> PrimitiveRef {
+    pub fn sphere_with_radius(&self, origin: Vec3<i32>, radius: f32) -> PrimitiveRef<'_> {
         let min = origin - Vec3::broadcast(radius.round() as i32);
         let max = origin + Vec3::broadcast(radius.round() as i32);
         self.prim(Primitive::Sphere(Aabb { min, max }))
@@ -885,7 +886,7 @@ impl Painter {
     /// Returns a `PrimitiveRef` of a sphere by returning an ellipsoid with
     /// congruent legs. The voxel artifacts are slightly different from the
     /// radius check `sphere()` method.
-    pub fn sphere2(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn sphere2(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         let radius = aabb.size().w.min(aabb.size().h) / 2;
         let aabb = Aabb {
@@ -898,7 +899,7 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of an ellipsoid by constructing a superquadric
     /// with a degree value of 2.0.
-    pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         let degree = 2.0;
         self.prim(Primitive::Superquadric { aabb, degree })
@@ -913,27 +914,27 @@ impl Painter {
     /// faces. A degree of 2.0 produces an ellipsoid. Values larger than 2.0
     /// produce a rounded Aabb. The degree cannot be less than 0.0 without
     /// the shape extending to infinity.
-    pub fn superquadric(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef {
+    pub fn superquadric(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Superquadric { aabb, degree })
     }
 
     /// Returns a `PrimitiveRef` of a rounded Aabb by producing a superquadric
     /// with a degree value of 3.0.
-    pub fn rounded_aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn rounded_aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Superquadric { aabb, degree: 3.0 })
     }
 
     /// Returns a `PrimitiveRef` of the largest cylinder that fits in the
     /// provided Aabb.
-    pub fn cylinder(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn cylinder(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
     /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in
     /// the provided Aabb.
-    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
         let aabr = Aabr::from(aabb);
         let length = dir.select(aabr.size());
         let height = aabb.max.z - aabb.min.z;
@@ -952,7 +953,7 @@ impl Painter {
         origin: Vec3<i32>,
         radius: f32,
         height: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let min = origin - Vec2::broadcast(radius.round() as i32);
         let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
         self.prim(Primitive::Cylinder(Aabb { min, max }))
@@ -960,13 +961,18 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of the largest cone that fits in the
     /// provided Aabb.
-    pub fn cone(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn cone(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         self.prim(Primitive::Cone(aabb.made_valid()))
     }
 
     /// Returns a `PrimitiveRef` of a cone using a radius check where a radius
     /// and origin are parameters instead of a bounding box.
-    pub fn cone_with_radius(&self, origin: Vec3<i32>, radius: f32, height: f32) -> PrimitiveRef {
+    pub fn cone_with_radius(
+        &self,
+        origin: Vec3<i32>,
+        radius: f32,
+        height: f32,
+    ) -> PrimitiveRef<'_> {
         let min = origin - Vec2::broadcast(radius.round() as i32);
         let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
         self.prim(Primitive::Cone(Aabb { min, max }))
@@ -979,7 +985,7 @@ impl Painter {
         a: Vec3<impl AsPrimitive<f32>>,
         b: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         self.prim(Primitive::Segment {
             segment: LineSegment3 {
                 start: a.as_(),
@@ -998,7 +1004,7 @@ impl Painter {
         b: Vec3<impl AsPrimitive<f32>>,
         r0: f32,
         r1: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         self.prim(Primitive::Segment {
             segment: LineSegment3 {
                 start: a.as_(),
@@ -1020,7 +1026,7 @@ impl Painter {
         b: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
         height: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let segment = LineSegment3 {
             start: a.as_(),
             end: b.as_(),
@@ -1042,7 +1048,7 @@ impl Painter {
         ctrl1: Vec3<impl AsPrimitive<f32>>,
         end: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let bezier = CubicBezier3 {
             start: start.as_(),
             ctrl0: ctrl0.as_(),
@@ -1061,7 +1067,7 @@ impl Painter {
         bezier: CubicBezier3<f32>,
         radius: f32,
         num_segments: u16,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let mut bezier_prim = self.empty();
         let range: Vec<_> = (0..=num_segments).collect();
         range.windows(2).for_each(|w| {
@@ -1086,7 +1092,7 @@ impl Painter {
         end: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
         height: f32,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let bezier = CubicBezier3 {
             start: start.as_(),
             ctrl0: ctrl0.as_(),
@@ -1109,7 +1115,7 @@ impl Painter {
         radius: f32,
         height: f32,
         num_segments: u16,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let mut bezier_prim = self.empty();
         let range: Vec<_> = (0..=num_segments).collect();
         range.windows(2).for_each(|w| {
@@ -1125,7 +1131,12 @@ impl Painter {
     /// the plane in the xy plane and the gradient determines its slope through
     /// the dot product. A gradient of <1.0, 0.0> creates a plane with a
     /// slope of 1.0 in the xz plane.
-    pub fn plane(&self, aabr: Aabr<i32>, origin: Vec3<i32>, gradient: Vec2<f32>) -> PrimitiveRef {
+    pub fn plane(
+        &self,
+        aabr: Aabr<i32>,
+        origin: Vec3<i32>,
+        gradient: Vec2<f32>,
+    ) -> PrimitiveRef<'_> {
         let aabr = aabr.made_valid();
         self.prim(Primitive::Plane(aabr, origin, gradient))
     }
@@ -1133,12 +1144,12 @@ impl Painter {
     /// Returns a `PrimitiveRef` of an Aabb with a slope cut into it. The
     /// `inset` governs the slope. The `dir` determines which direction the
     /// ramp points.
-    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp { aabb, inset, dir })
     }
 
-    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp {
             aabb,
@@ -1150,7 +1161,7 @@ impl Painter {
     /// Returns a `PrimitiveRef` of a triangular prism with the base being
     /// vertical. A gable is a tent shape. The `inset` governs the slope of
     /// the gable. The `dir` determines which way the gable points.
-    pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+    pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Gable { aabb, inset, dir })
     }
@@ -1213,7 +1224,7 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of the largest pyramid with a slope of 1 that
     /// fits in the provided Aabb.
-    pub fn pyramid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+    pub fn pyramid(&self, aabb: Aabb<i32>) -> PrimitiveRef<'_> {
         let inset = 0;
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp {
@@ -1240,7 +1251,7 @@ impl Painter {
 
     /// Used to create a new `PrimitiveRef`. Requires the desired `Primitive` to
     /// be supplied.
-    pub fn prim(&self, prim: Primitive) -> PrimitiveRef {
+    pub fn prim(&self, prim: Primitive) -> PrimitiveRef<'_> {
         PrimitiveRef {
             id: self.prims.borrow_mut().insert(prim),
             painter: self,
@@ -1249,7 +1260,7 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of an empty primitive. Useful when additional
     /// primitives are unioned within a loop.
-    pub fn empty(&self) -> PrimitiveRef { self.prim(Primitive::Empty) }
+    pub fn empty(&self) -> PrimitiveRef<'_> { self.prim(Primitive::Empty) }
 
     /// Fills the supplied primitive with the provided `Fill`.
     pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
@@ -1271,7 +1282,7 @@ impl Painter {
     /// |_____|/
     /// ```
     /// A horizontal half cylinder on top of an `Aabb`.
-    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef {
+    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
         let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
 
         let mut prim = self.horizontal_cylinder(
@@ -1294,7 +1305,7 @@ impl Painter {
     }
 
     /// Place aabbs around another aabb in a symmetric and distributed manner.
-    pub fn aabbs_around_aabb(&self, aabb: Aabb<i32>, size: i32, offset: i32) -> PrimitiveRef {
+    pub fn aabbs_around_aabb(&self, aabb: Aabb<i32>, size: i32, offset: i32) -> PrimitiveRef<'_> {
         let pillar = self.aabb(Aabb {
             min: (aabb.min.xy() - 1).with_z(aabb.min.z),
             max: (aabb.min.xy() + size - 1).with_z(aabb.max.z),
@@ -1322,7 +1333,7 @@ impl Painter {
         aabb: Aabb<i32>,
         thickness: i32,
         start_dir: Dir,
-    ) -> PrimitiveRef {
+    ) -> PrimitiveRef<'_> {
         let mut forward = start_dir;
         let mut z = aabb.max.z - 1;
         let aabr = Aabr::from(aabb);
@@ -1365,7 +1376,7 @@ impl Painter {
     }
 
     /// A simple numeral 0-9
-    pub fn numeral(&self, origin: Vec3<i32>, numeral: usize) -> PrimitiveRef {
+    pub fn numeral(&self, origin: Vec3<i32>, numeral: usize) -> PrimitiveRef<'_> {
         let bottom_bar = self.aabb(Aabb {
             min: Vec2::new(origin.x, origin.y).with_z(origin.z),
             max: Vec2::new(origin.x + 1, origin.y + 4).with_z(origin.z + 1),
@@ -1437,7 +1448,7 @@ impl Painter {
         prim
     }
 
-    pub fn column(&self, point: Vec2<i32>, range: impl RangeBounds<i32>) -> PrimitiveRef {
+    pub fn column(&self, point: Vec2<i32>, range: impl RangeBounds<i32>) -> PrimitiveRef<'_> {
         self.aabb(Aabb {
             min: point.with_z(match range.start_bound() {
                 std::ops::Bound::Included(n) => *n,

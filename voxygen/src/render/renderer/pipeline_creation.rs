@@ -1170,13 +1170,15 @@ impl Progress {
     /// Creates a task incrementing the total number of tasks
     /// NOTE: all tasks should be created as upfront as possible so that the
     /// total reflects the amount of tasks that will need to be completed
-    pub fn create_task(&self) -> Task {
+    pub fn create_task(&self) -> Task<'_> {
         self.total.fetch_add(1, Ordering::Relaxed);
         Task { progress: self }
     }
 
     /// Helper method for creating tasks to do in bulk
-    pub fn create_tasks<const N: usize>(&self) -> [Task; N] { [(); N].map(|()| self.create_task()) }
+    pub fn create_tasks<const N: usize>(&self) -> [Task<'_>; N] {
+        [(); N].map(|()| self.create_task())
+    }
 }
 
 impl<'a> Task<'a> {

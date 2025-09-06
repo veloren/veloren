@@ -152,7 +152,7 @@ impl ActiveAbilities {
         &self,
         inv: Option<&Inventory>,
         skill_set: Option<&SkillSet>,
-    ) -> Cow<Vec<AuxiliaryAbility>> {
+    ) -> Cow<'_, Vec<AuxiliaryAbility>> {
         let aux_key = Self::active_auxiliary_key(inv);
 
         self.auxiliary_sets

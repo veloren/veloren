@@ -176,7 +176,7 @@ impl Economy {
                 .iter()
                 .filter_map(|(g, a)| a.map(|a| (Good::from(g), a)))
                 .collect(),
-            labors: self.labors.iter().map(|(_, a)| (*a)).collect(),
+            labors: self.labors.iter().map(|(_, a)| *a).collect(),
             last_exports: self
                 .last_exports
                 .iter()
@@ -360,7 +360,7 @@ impl Economy {
         let mut missing_goods: Vec<(GoodIndex, (f32, f32))> = self
             .surplus
             .iter()
-            .filter(|(g, a)| (**a < 0.0 && *g != *TRANSPORTATION_INDEX))
+            .filter(|(g, a)| **a < 0.0 && *g != *TRANSPORTATION_INDEX)
             .map(|(g, a)| (g, (self.values[g].unwrap_or(Economy::MINIMUM_PRICE), -*a)))
             .collect();
         missing_goods.sort_by(|a, b| b.1.0.partial_cmp(&a.1.0).unwrap_or(Less));
@@ -368,7 +368,7 @@ impl Economy {
             self.surplus
                 .iter()
                 .chain(core::iter::once((*COIN_INDEX, &self.stocks[*COIN_INDEX])))
-                .filter(|(g, a)| (**a > 0.0 && *g != *TRANSPORTATION_INDEX))
+                .filter(|(g, a)| **a > 0.0 && *g != *TRANSPORTATION_INDEX)
                 .map(|(g, a)| (g, *a)),
             0.0,
         );
@@ -613,14 +613,14 @@ impl Economy {
                 .filter(|&(_, &a)| a > 0.0)
                 .map(|(g, a)| (g, *a, prices[g]))
                 .collect();
-            sorted_sell.sort_by(|a, b| (a.2.partial_cmp(&b.2).unwrap_or(Less)));
+            sorted_sell.sort_by(|a, b| a.2.partial_cmp(&b.2).unwrap_or(Less));
             let mut sorted_buy: Vec<(GoodIndex, f32, f32)> = o
                 .amount
                 .iter()
                 .filter(|&(_, &a)| a < 0.0)
                 .map(|(g, a)| (g, *a, prices[g]))
                 .collect();
-            sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap_or(Less)));
+            sorted_buy.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(Less));
             trace!(
                 "with {} {:?} buy {:?}",
                 o.customer.id(),

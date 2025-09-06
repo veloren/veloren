@@ -411,7 +411,7 @@ impl CharacterUpdater {
     }
 
     /// Returns a non-blocking iterator over CharacterUpdaterMessage messages
-    pub fn messages(&self) -> TryIter<CharacterUpdaterMessage> { self.response_rx.try_iter() }
+    pub fn messages(&self) -> TryIter<'_, CharacterUpdaterMessage> { self.response_rx.try_iter() }
 }
 
 fn execute_batch_update(

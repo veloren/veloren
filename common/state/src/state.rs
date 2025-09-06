@@ -453,7 +453,7 @@ impl State {
     }
 
     /// Get a read-only reference to the storage of a particular component type.
-    pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
+    pub fn read_storage<C: Component>(&self) -> EcsStorage<'_, C, Fetch<'_, EcsMaskedStorage<C>>> {
         self.ecs.read_storage::<C>()
     }
 
@@ -468,13 +468,13 @@ impl State {
     /// Get a reference to the `TerrainChanges` structure of the state. This
     /// contains information about terrain state that has changed since the
     /// last game tick.
-    pub fn terrain_changes(&self) -> Fetch<TerrainChanges> { self.ecs.read_resource() }
+    pub fn terrain_changes(&self) -> Fetch<'_, TerrainChanges> { self.ecs.read_resource() }
 
     /// Get a reference the current in-game weather grid.
-    pub fn weather_grid(&self) -> Fetch<WeatherGrid> { self.ecs.read_resource() }
+    pub fn weather_grid(&self) -> Fetch<'_, WeatherGrid> { self.ecs.read_resource() }
 
     /// Get a mutable reference the current in-game weather grid.
-    pub fn weather_grid_mut(&mut self) -> FetchMut<WeatherGrid> { self.ecs.write_resource() }
+    pub fn weather_grid_mut(&mut self) -> FetchMut<'_, WeatherGrid> { self.ecs.write_resource() }
 
     /// Get the current weather at a position in worldspace.
     pub fn weather_at(&self, pos: Vec2<f32>) -> Weather {
@@ -509,13 +509,13 @@ impl State {
     pub fn get_delta_time(&self) -> f32 { self.ecs.read_resource::<DeltaTime>().0 }
 
     /// Get a reference to this state's terrain.
-    pub fn terrain(&self) -> Fetch<TerrainGrid> { self.ecs.read_resource() }
+    pub fn terrain(&self) -> Fetch<'_, TerrainGrid> { self.ecs.read_resource() }
 
     /// Get a reference to this state's terrain.
-    pub fn slow_job_pool(&self) -> Fetch<SlowJobPool> { self.ecs.read_resource() }
+    pub fn slow_job_pool(&self) -> Fetch<'_, SlowJobPool> { self.ecs.read_resource() }
 
     /// Get a writable reference to this state's terrain.
-    pub fn terrain_mut(&self) -> FetchMut<TerrainGrid> { self.ecs.write_resource() }
+    pub fn terrain_mut(&self) -> FetchMut<'_, TerrainGrid> { self.ecs.write_resource() }
 
     /// Get a block in this state's terrain.
     pub fn get_block(&self, pos: Vec3<i32>) -> Option<Block> {

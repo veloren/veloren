@@ -241,7 +241,7 @@ impl PlayState for ServerInfoState {
 }
 
 impl Controls {
-    fn view(&mut self) -> Element<Message> {
+    fn view(&mut self) -> Element<'_, Message> {
         pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
         pub const IMPORTANT_TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 0.85, 0.5);
         pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);

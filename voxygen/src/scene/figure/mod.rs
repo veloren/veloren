@@ -108,7 +108,7 @@ pub type FigureModelRef<'a> = (
 pub trait ModelEntry {
     fn allocation(&self) -> &guillotiere::Allocation;
 
-    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>>;
+    fn lod_model(&self, lod: usize) -> Option<SubModel<'_, TerrainVertex>>;
 
     fn atlas_textures(&self) -> &AtlasTextures<pipelines::figure::Locals, FigureSpriteAtlasData>;
 }
@@ -136,7 +136,7 @@ pub struct FigureModelEntry<const N: usize> {
 impl<const N: usize> ModelEntry for FigureModelEntry<N> {
     fn allocation(&self) -> &guillotiere::Allocation { &self.allocation }
 
-    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
+    fn lod_model(&self, lod: usize) -> Option<SubModel<'_, TerrainVertex>> {
         // Note: Range doesn't impl Copy even for trivially Cloneable things
         self.model
             .opaque
@@ -178,7 +178,7 @@ pub struct TerrainModelEntry<const N: usize> {
 impl<const N: usize> ModelEntry for TerrainModelEntry<N> {
     fn allocation(&self) -> &guillotiere::Allocation { &self.allocation }
 
-    fn lod_model(&self, lod: usize) -> Option<SubModel<TerrainVertex>> {
+    fn lod_model(&self, lod: usize) -> Option<SubModel<'_, TerrainVertex>> {
         // Note: Range doesn't impl Copy even for trivially Cloneable things
         self.model
             .opaque
@@ -586,7 +586,7 @@ struct FigureUpdateData<'a, CSS, COR> {
 }
 
 impl FigureReadData<'_> {
-    pub fn get_entity(&self, entity: EcsEntity) -> Option<FigureUpdateParams> {
+    pub fn get_entity(&self, entity: EcsEntity) -> Option<FigureUpdateParams<'_>> {
         Some(FigureUpdateParams {
             entity,
             pos: self.positions.get(entity)?,
@@ -7041,7 +7041,7 @@ impl FigureMgr {
         mut_count: usize,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
         item_key: Option<ItemKey>,
-    ) -> Option<FigureModelRef> {
+    ) -> Option<FigureModelRef<'_>> {
         let body = *body;
 
         let viewpoint_camera_mode = if is_viewpoint {

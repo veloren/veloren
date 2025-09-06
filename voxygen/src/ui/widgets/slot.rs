@@ -57,7 +57,7 @@ where
         &mut self,
         contents: K,
         wh: [f32; 2],
-    ) -> Slot<K, C, I, S> {
+    ) -> Slot<'_, K, C, I, S> {
         let content_size = {
             let ContentSize {
                 max_fraction,

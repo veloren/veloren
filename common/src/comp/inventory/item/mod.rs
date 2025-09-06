@@ -1291,7 +1291,7 @@ impl Item {
     }
 
     #[deprecated = "since item i18n"]
-    pub fn name(&self) -> Cow<str> {
+    pub fn name(&self) -> Cow<'_, str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
@@ -1316,7 +1316,7 @@ impl Item {
         }
     }
 
-    pub fn kind(&self) -> Cow<ItemKind> {
+    pub fn kind(&self) -> Cow<'_, ItemKind> {
         match &self.item_base {
             ItemBase::Simple(item_def) => Cow::Borrowed(&item_def.kind),
             ItemBase::Modular(mod_base) => {
@@ -1389,7 +1389,7 @@ impl Item {
         }
     }
 
-    pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
+    pub fn ability_spec(&self) -> Option<Cow<'_, AbilitySpec>> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 item_def.ability_spec.as_ref().map(Cow::Borrowed).or({
@@ -1743,8 +1743,8 @@ pub trait ItemDesc {
     #[deprecated = "since item i18n"]
     fn description(&self) -> &str;
     #[deprecated = "since item i18n"]
-    fn name(&self) -> Cow<str>;
-    fn kind(&self) -> Cow<ItemKind>;
+    fn name(&self) -> Cow<'_, str>;
+    fn kind(&self) -> Cow<'_, ItemKind>;
     fn amount(&self) -> NonZeroU32;
     fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
@@ -1784,12 +1784,12 @@ impl ItemDesc for Item {
         self.description()
     }
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.name()
     }
 
-    fn kind(&self) -> Cow<ItemKind> { self.kind() }
+    fn kind(&self) -> Cow<'_, ItemKind> { self.kind() }
 
     fn amount(&self) -> NonZeroU32 { self.amount }
 
@@ -1820,12 +1820,12 @@ impl ItemDesc for FrontendItem {
         self.0.description()
     }
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.0.name()
     }
 
-    fn kind(&self) -> Cow<ItemKind> { self.0.kind() }
+    fn kind(&self) -> Cow<'_, ItemKind> { self.0.kind() }
 
     fn amount(&self) -> NonZeroU32 { self.0.amount }
 
@@ -1856,12 +1856,12 @@ impl ItemDesc for ItemDef {
         &self.description
     }
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         Cow::Borrowed(&self.name)
     }
 
-    fn kind(&self) -> Cow<ItemKind> { Cow::Borrowed(&self.kind) }
+    fn kind(&self) -> Cow<'_, ItemKind> { Cow::Borrowed(&self.kind) }
 
     fn amount(&self) -> NonZeroU32 { NonZeroU32::new(1).unwrap() }
 
@@ -1894,12 +1894,12 @@ impl ItemDesc for PickupItem {
         self.item().description()
     }
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.item().name()
     }
 
-    fn kind(&self) -> Cow<ItemKind> { self.item().kind() }
+    fn kind(&self) -> Cow<'_, ItemKind> { self.item().kind() }
 
     fn amount(&self) -> NonZeroU32 {
         NonZeroU32::new(self.amount()).expect("Item having amount of 0 is invariant")
@@ -1950,12 +1950,12 @@ impl<T: ItemDesc + ?Sized> ItemDesc for &T {
         (*self).description()
     }
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         (*self).name()
     }
 
-    fn kind(&self) -> Cow<ItemKind> { (*self).kind() }
+    fn kind(&self) -> Cow<'_, ItemKind> { (*self).kind() }
 
     fn amount(&self) -> NonZeroU32 { (*self).amount() }
 

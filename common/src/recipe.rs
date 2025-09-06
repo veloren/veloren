@@ -357,7 +357,7 @@ pub fn modular_weapon(
 ) -> Result<Item, ModularWeaponError> {
     use modular::ModularComponent;
     // Closure to get inner modular component info from item in a given slot
-    fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<Cow<ModularComponent>> {
+    fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<Cow<'_, ModularComponent>> {
         inv.get(slot).and_then(|item| match item.kind() {
             Cow::Owned(ItemKind::ModularComponent(mod_comp)) => Some(Cow::Owned(mod_comp)),
             Cow::Borrowed(ItemKind::ModularComponent(mod_comp)) => Some(Cow::Borrowed(mod_comp)),
