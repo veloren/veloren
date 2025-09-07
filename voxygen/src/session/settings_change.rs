@@ -144,6 +144,8 @@ pub enum Interface {
     MinimapShow(bool),
     MinimapFaceNorth(bool),
     MinimapZoom(f64),
+    MinimapShowCoordinates(bool),
+    MinimapColoredPlayerMarker(bool),
     //Map settings
     MapZoom(f64),
     MapShowTopoMap(bool),
@@ -662,6 +664,12 @@ impl SettingsChange {
                     },
                     Interface::MinimapZoom(minimap_zoom) => {
                         settings.interface.minimap_zoom = minimap_zoom;
+                    },
+                    Interface::MinimapShowCoordinates(state) => {
+                        settings.interface.minimap_show_coordinates = state;
+                    },
+                    Interface::MinimapColoredPlayerMarker(state) => {
+                        settings.interface.minimap_colored_player_marker = state;
                     },
                     Interface::MapZoom(map_zoom) => {
                         settings.interface.map_zoom = map_zoom;

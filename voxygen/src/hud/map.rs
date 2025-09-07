@@ -250,6 +250,11 @@ impl Widget for Map<'_> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
+        let colored_player_marker = self
+            .global_state
+            .settings
+            .interface
+            .minimap_colored_player_marker;
         let zoom = self.global_state.settings.interface.map_zoom;
         let show_difficulty = self.global_state.settings.interface.map_show_difficulty;
         let show_towns = self.global_state.settings.interface.map_show_towns;
@@ -1581,7 +1586,14 @@ impl Widget for Map<'_> {
         if let Some((rpos, fade)) =
             wpos_to_rpos_fade(player_pos.xy(), arrow_sz, arrow_sz.reduce_partial_min())
         {
-            Image::new(self.rot_imgs.indicator_mmap_small.target_north)
+            let ind = {
+                if colored_player_marker {
+                    self.rot_imgs.indicator_mmap_colored.target_north
+                } else {
+                    self.rot_imgs.indicator_mmap.target_north
+                }
+            };
+            Image::new(ind)
                 .x_y_position_relative_to(
                     state.ids.map_layers[0],
                     position::Relative::Scalar(rpos.x as f64),

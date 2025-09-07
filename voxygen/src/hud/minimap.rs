@@ -476,6 +476,11 @@ impl Widget for MiniMap<'_> {
         let mut events = Vec::new();
 
         let widget::UpdateArgs { state, ui, .. } = args;
+        let colored_player_marker = self
+            .global_state
+            .settings
+            .interface
+            .minimap_colored_player_marker;
         let mut zoom = self.global_state.settings.interface.minimap_zoom;
         const SCALE: f64 = 1.5; // TODO Make this a setting
         let show_minimap = self.global_state.settings.interface.minimap_show;
@@ -915,9 +920,17 @@ impl Widget for MiniMap<'_> {
             // Indicator
             let ind_scale = 0.4;
             let ind_rotation = if is_facing_north {
-                self.rot_imgs.indicator_mmap_small.target_north
+                if colored_player_marker {
+                    self.rot_imgs.indicator_mmap_colored.target_north
+                } else {
+                    self.rot_imgs.indicator_mmap.target_north
+                }
             } else {
-                self.rot_imgs.indicator_mmap_small.none
+                if colored_player_marker {
+                    self.rot_imgs.indicator_mmap_colored.none
+                } else {
+                    self.rot_imgs.indicator_mmap.none
+                }
             };
             Image::new(ind_rotation)
                 .middle_of(state.ids.map_layers[0])

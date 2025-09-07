@@ -6,7 +6,8 @@ rotation_image_ids! {
         <VoxelGraphic>
 
         <ImageGraphic>
-        indicator_mmap_small: "voxygen.element.ui.minimap.icons.indicator_mmap",
+        indicator_mmap: "voxygen.element.ui.minimap.icons.indicator_mmap",
+        indicator_mmap_colored: "voxygen.element.ui.minimap.icons.indicator_mmap_colored",
          // Tooltip Test
          tt_side: "voxygen.element.ui.generic.frames.tt_test_edge",
          tt_corner: "voxygen.element.ui.generic.frames.tt_test_corner_tr",
@@ -499,6 +500,7 @@ image_ids! {
         map_frame: "voxygen.element.ui.map.map_frame",
         map_frame_art: "voxygen.element.ui.map.map_frame_art",
         indicator_mmap: "voxygen.element.ui.minimap.icons.indicator_mmap",
+        indicator_mmap_colored: "voxygen.element.ui.minimap.icons.indicator_mmap_colored",
         indicator_map_overlay: "voxygen.element.ui.minimap.icons.indicator_mmap_small",
         indicator_group: "voxygen.element.ui.map.buttons.group_indicator",
         indicator_group_up: "voxygen.element.ui.map.buttons.group_indicator_arrow_up",

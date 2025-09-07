@@ -113,6 +113,10 @@ widget_ids! {
         experience_numbers_title,
         accum_experience_text,
         accum_experience_button,
+        //
+        minimap_title,
+        minimap_colored_player_marker_text,
+        minimap_colored_player_marker_button,
     }
 }
 
@@ -1367,6 +1371,54 @@ impl Widget for Interface<'_> {
         .graphics_for(state.ids.accum_experience_button)
         .color(TEXT_COLOR)
         .set(state.ids.accum_experience_text, ui);
+
+        // Minimap
+        Text::new(&self.localized_strings.get_msg("hud-settings-minimap"))
+            .down_from(state.ids.accum_experience_button, 20.0)
+            .font_size(self.fonts.cyri.scale(18))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.minimap_title, ui);
+
+        // Colored Player Marker
+        let minimap_colored_player_marker = ToggleButton::new(
+            self.global_state
+                .settings
+                .interface
+                .minimap_colored_player_marker,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .down_from(state.ids.minimap_title, 8.0)
+        .w_h(18.0, 18.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.minimap_colored_player_marker_button, ui);
+        if self
+            .global_state
+            .settings
+            .interface
+            .minimap_colored_player_marker
+            != minimap_colored_player_marker
+        {
+            events.push(MinimapColoredPlayerMarker(
+                !self
+                    .global_state
+                    .settings
+                    .interface
+                    .minimap_colored_player_marker,
+            ));
+        }
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-colored_player_marker"),
+        )
+        .right_from(state.ids.minimap_colored_player_marker_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.minimap_colored_player_marker_text, ui);
 
         // Reset the interface settings to the default settings
         if Button::image(self.imgs.button)
