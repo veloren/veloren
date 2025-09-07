@@ -383,6 +383,7 @@ widget_ids! {
         mmap_frame_2,
         mmap_frame_bg,
         mmap_location,
+        mmap_coordinates,
         mmap_button,
         mmap_plus,
         mmap_minus,
@@ -966,6 +967,27 @@ impl Widget for MiniMap<'_> {
                     })
                     .parent(ui.window)
                     .set(*id, ui);
+            }
+
+            // Coordinates Display
+            if self
+                .global_state
+                .settings
+                .interface
+                .minimap_show_coordinates
+            {
+                let coordinates_text = {
+                    format!(
+                        "{:.0}, {:.0}, {:.0}",
+                        player_pos.x, player_pos.z, player_pos.y,
+                    )
+                };
+                Text::new(&coordinates_text)
+                    .mid_top_with_margin_on(state.ids.mmap_frame, map_size.y + 35.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(16))
+                    .color(TEXT_COLOR)
+                    .set(state.ids.mmap_coordinates, ui);
             }
         } else {
             Image::new(self.imgs.mmap_frame_closed)
