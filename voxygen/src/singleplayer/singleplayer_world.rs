@@ -1,6 +1,6 @@
 use std::{
     fs,
-    io::Read,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
 };
 
@@ -34,6 +34,8 @@ fn load_map(path: &Path) -> Option<SingleplayerWorld> {
         error!("Failed to open {}", meta_path.to_string_lossy());
         return None;
     };
+
+    let f = BufReader::new(f);
 
     let Ok(bytes) = f.bytes().collect::<Result<Vec<u8>, _>>() else {
         error!("Failed to read {}", meta_path.to_string_lossy());

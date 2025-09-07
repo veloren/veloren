@@ -83,6 +83,7 @@ pub trait ModelEntryFuture<const N: usize> {
 }
 
 /// A future FigureModelEntryLod.
+#[expect(clippy::large_enum_variant)]
 pub enum FigureModelEntryFuture<const N: usize> {
     /// We can poll the future to see whether the figure model is ready.
     // TODO: See if we can find away to either get rid of this Arc, or reuse Arcs across different
@@ -111,6 +112,7 @@ impl<const N: usize> ModelEntryFuture<N> for FigureModelEntryFuture<N> {
 }
 
 /// A future TerrainModelEntryLod.
+#[expect(clippy::large_enum_variant)]
 pub enum TerrainModelEntryFuture<const N: usize> {
     /// We can poll the future to see whether the figure model is ready.
     // TODO: See if we can find away to either get rid of this Arc, or reuse Arcs across different

@@ -1063,32 +1063,28 @@ fn change_chat_mode(
     chat_settings: &ChatSettings,
 ) {
     if let Some(msg) = message.strip_prefix(chat_settings.chat_cmd_prefix) {
-        match parse_cmd(msg.trim()) {
-            Ok((name, args)) => {
-                #[expect(clippy::collapsible_match)]
-                if let Ok(command) = name.parse::<ServerChatCommand>() {
-                    match command {
-                        ServerChatCommand::Group
-                        | ServerChatCommand::Say
-                        | ServerChatCommand::Faction
-                        | ServerChatCommand::Region
-                        | ServerChatCommand::World => {
-                            // Only remove the command if there is no message
-                            if args.is_empty() {
-                                // We found a match to a command so clear the input
-                                // message
-                                state.update(|s| s.input.message.clear());
-                                events.push(Event::SendCommand(name.to_owned(), args))
-                            }
-                        },
-                        // TODO: Add support for Whispers (might need to adjust widget
-                        // for this.)
-                        _ => (),
+        // Do nothing on Err because we are just completing the Chat Mode
+        if let Ok((name, args)) = parse_cmd(msg.trim())
+            && let Ok(command) = name.parse::<ServerChatCommand>()
+        {
+            match command {
+                ServerChatCommand::Group
+                | ServerChatCommand::Say
+                | ServerChatCommand::Faction
+                | ServerChatCommand::Region
+                | ServerChatCommand::World => {
+                    // Only remove the command if there is no message
+                    if args.is_empty() {
+                        // We found a match to a command so clear the input
+                        // message
+                        state.update(|s| s.input.message.clear());
+                        events.push(Event::SendCommand(name.to_owned(), args))
                     }
-                }
-            },
-            // Do nothing because we are just completing the Chat Mode
-            Err(_) => (),
+                },
+                // TODO: Add support for Whispers (might need to adjust widget
+                // for this.)
+                _ => (),
+            }
         }
     }
 }

@@ -98,6 +98,7 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
+#[expect(clippy::large_enum_variant)]
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,

@@ -27,6 +27,7 @@ pub enum Error {
     ServerNotFound,
 }
 
+#[expect(clippy::large_enum_variant)]
 pub enum Msg {
     IsAuthTrusted(String),
     Done(Result<Client, Error>),

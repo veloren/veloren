@@ -372,7 +372,7 @@ impl AudioFrontend {
                 let supported_configs = device.supported_output_configs();
                 if let Ok(supported_configs) = supported_configs {
                     let best_config = supported_configs
-                        .max_by(|x, y| SupportedStreamConfigRange::cmp_default_heuristics(x, y));
+                        .max_by(SupportedStreamConfigRange::cmp_default_heuristics);
                     if let Some(best_config) = best_config {
                         warn!("Attempting to change samplerate to 48khz");
                         supported_config = best_config.try_with_sample_rate(SampleRate(48000));
@@ -389,7 +389,7 @@ impl AudioFrontend {
                 let supported_configs = device.supported_output_configs();
                 if let Ok(supported_configs) = supported_configs {
                     let best_config = supported_configs
-                        .max_by(|x, y| SupportedStreamConfigRange::cmp_default_heuristics(x, y));
+                        .max_by(SupportedStreamConfigRange::cmp_default_heuristics);
                     if let Some(best_config) = best_config {
                         warn!("Attempting to force samplerate to {:?}", set_samplerate);
                         supported_config =

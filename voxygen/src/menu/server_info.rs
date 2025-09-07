@@ -74,6 +74,7 @@ fn rules_hash(rules: &Option<String>) -> u64 {
 
 impl ServerInfoState {
     /// Create a new `MainMenuState`.
+    #[expect(clippy::result_large_err)]
     pub fn try_from_server_info(
         global_state: &mut GlobalState,
         bg_img_spec: &'static str,
@@ -171,10 +172,9 @@ impl PlayState for ServerInfoState {
                 continue;
             }
 
-            match event {
-                Event::Close => return PlayStateResult::Shutdown,
-                // Ignore all other events.
-                _ => {},
+            // Shutdown on Close, ignore all other events.
+            if matches!(event, Event::Close) {
+                return PlayStateResult::Shutdown;
             }
         }
 
