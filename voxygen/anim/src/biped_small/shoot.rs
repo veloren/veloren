@@ -28,7 +28,6 @@ impl Animation for ShootAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_small_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_shoot"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

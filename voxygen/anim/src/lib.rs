@@ -1,3 +1,4 @@
+#![allow(clippy::neg_multiply)]
 #![expect(clippy::single_match)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");

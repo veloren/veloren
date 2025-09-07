@@ -39,7 +39,6 @@ impl Skeleton for DragonSkeleton {
     const COMPUTE_FN: &'static [u8] = b"dragon_compute_mats\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "dragon_compute_mats"))]
-
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,

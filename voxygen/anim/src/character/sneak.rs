@@ -15,7 +15,6 @@ impl Animation for SneakAnimation {
     const UPDATE_FN: &'static [u8] = b"character_sneak\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_sneak"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency<'_>,

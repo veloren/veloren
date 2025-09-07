@@ -623,7 +623,7 @@ impl Window {
                         },
                         AnalogMenuInput::MoveY(d) => {
                             // This just has to be inverted for some reason
-                            self.mouse_emulation_vec.y = d * -1.0;
+                            self.mouse_emulation_vec.y = -d;
                             None
                         },
                         input => Some(Event::AnalogMenuInput(input)),
@@ -827,20 +827,19 @@ impl Window {
 
     /// Moves cursor by an offset
     pub fn offset_cursor(&self, d: Vec2<f32>) {
-        if d != Vec2::zero() {
-            if let Err(err) = self
+        if d != Vec2::zero()
+            && let Err(err) = self
                 .window
                 .set_cursor_position(winit::dpi::LogicalPosition::new(
                     d.x as f64 + self.cursor_position.x,
                     d.y as f64 + self.cursor_position.y,
                 ))
-            {
-                // Log this error once rather than every frame
-                static SPAM_GUARD: std::sync::Once = std::sync::Once::new();
-                SPAM_GUARD.call_once(|| {
-                    error!("Error setting cursor position: {:?}", err);
-                })
-            }
+        {
+            // Log this error once rather than every frame
+            static SPAM_GUARD: std::sync::Once = std::sync::Once::new();
+            SPAM_GUARD.call_once(|| {
+                error!("Error setting cursor position: {:?}", err);
+            })
         }
     }
 
@@ -1141,12 +1140,11 @@ impl Window {
             };
 
             // Check if folder exists and create it if it does not
-            if !path.exists() {
-                if let Err(e) = std::fs::create_dir_all(&path) {
-                    warn!(?e, ?path, "Couldn't create folder for screenshot");
-                    let _result =
-                        sender.send(String::from("Couldn't create folder for screenshot"));
-                }
+            if !path.exists()
+                && let Err(e) = std::fs::create_dir_all(&path)
+            {
+                warn!(?e, ?path, "Couldn't create folder for screenshot");
+                let _result = sender.send(String::from("Couldn't create folder for screenshot"));
             }
             path.push(format!(
                 "screenshot_{}.png",

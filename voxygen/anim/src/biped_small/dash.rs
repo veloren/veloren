@@ -27,7 +27,6 @@ impl Animation for DashAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_small_dash\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_dash"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

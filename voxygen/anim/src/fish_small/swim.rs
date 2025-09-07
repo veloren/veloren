@@ -16,7 +16,6 @@ impl Animation for SwimAnimation {
     const UPDATE_FN: &'static [u8] = b"fish_small_swim\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "fish_small_swim"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, _global_time, avg_vel, acc_vel): Self::Dependency<'_>,
