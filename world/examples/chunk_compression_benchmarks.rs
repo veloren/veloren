@@ -156,7 +156,11 @@ impl PackingFormula for TallPacking {
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i = x;
         let j0 = if self.flip_y {
-            if z % 2 == 0 { y } else { dims.y - y - 1 }
+            if z.is_multiple_of(2) {
+                y
+            } else {
+                dims.y - y - 1
+            }
         } else {
             y
         };

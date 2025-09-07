@@ -244,10 +244,10 @@ fn main() {
                 let world_map = image::RgbaImage::from_raw(x as u32, y as u32, buf)
                     .expect("Image dimensions must be valid");
                 let mut path = PathBuf::from("./screenshots");
-                if !path.exists() {
-                    if let Err(e) = std::fs::create_dir(&path) {
-                        warn!(?e, ?path, "Couldn't create folder for screenshot");
-                    }
+                if !path.exists()
+                    && let Err(e) = std::fs::create_dir(&path)
+                {
+                    warn!(?e, ?path, "Couldn't create folder for screenshot");
                 }
                 path.push(format!(
                     "worldmap_{}.png",
@@ -283,25 +283,24 @@ fn main() {
                 quads.iter().map(|x| x.iter().sum::<u32>()).sum::<u32>()
             );
         }
-        if win.get_mouse_down(minifb::MouseButton::Left) {
-            if let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp) {
-                let chunk_pos = (Vec2::<f64>::from(focus)
-                    + (Vec2::new(mx as f64, my as f64) * scale))
-                    .map(|e| e as i32);
-                let block_pos = chunk_pos.cpos_to_wpos();
-                println!(
-                    "Block: ({}, {}), Chunk: ({}, {})",
-                    block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y
-                );
-                if let Some(chunk) = sampler.get(chunk_pos) {
-                    //println!("Chunk info: {:#?}", chunk);
-                    if let Some(id) = &chunk.place {
-                        let place = world.civs().place(*id);
-                        println!("Place {} info: {:#?}", id.id(), place);
+        if win.get_mouse_down(minifb::MouseButton::Left)
+            && let Some((mx, my)) = win.get_mouse_pos(minifb::MouseMode::Clamp)
+        {
+            let chunk_pos = (Vec2::<f64>::from(focus) + (Vec2::new(mx as f64, my as f64) * scale))
+                .map(|e| e as i32);
+            let block_pos = chunk_pos.cpos_to_wpos();
+            println!(
+                "Block: ({}, {}), Chunk: ({}, {})",
+                block_pos.x, block_pos.y, chunk_pos.x, chunk_pos.y
+            );
+            if let Some(chunk) = sampler.get(chunk_pos) {
+                //println!("Chunk info: {:#?}", chunk);
+                if let Some(id) = &chunk.place {
+                    let place = world.civs().place(*id);
+                    println!("Place {} info: {:#?}", id.id(), place);
 
-                        if let Some(site) = world.civs().sites().find(|site| site.place == *id) {
-                            println!("Site: {}", site);
-                        }
+                    if let Some(site) = world.civs().sites().find(|site| site.place == *id) {
+                        println!("Site: {}", site);
                     }
                 }
             }
