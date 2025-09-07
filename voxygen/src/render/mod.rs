@@ -407,6 +407,8 @@ pub struct RenderMode {
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
     pub profiler_enabled: bool,
+    #[serde(skip)]
+    pub enable_naga: bool,
 }
 
 impl Default for RenderMode {
@@ -427,6 +429,7 @@ impl Default for RenderMode {
             upscale_mode: UpscaleMode::default(),
             present_mode: PresentMode::default(),
             profiler_enabled: false,
+            enable_naga: std::env::var("VELOREN_ENABLE_NAGA_SHADERS").is_ok(),
         }
     }
 }
@@ -447,6 +450,7 @@ impl RenderMode {
                 point_glow: self.point_glow,
                 flashing_lights_enabled: self.flashing_lights_enabled,
                 experimental_shaders: self.experimental_shaders,
+                enable_naga: self.enable_naga,
             },
             OtherModes {
                 upscale_mode: self.upscale_mode,
@@ -473,6 +477,7 @@ pub struct PipelineModes {
     point_glow: f32,
     flashing_lights_enabled: bool,
     experimental_shaders: HashSet<ExperimentalShader>,
+    enable_naga: bool,
 }
 
 /// Other render modes that don't effect pipelines

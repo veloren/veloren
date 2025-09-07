@@ -313,9 +313,7 @@ impl ShaderModules {
             })
         };
 
-        let enable_naga = std::env::var("VELOREN_ENABLE_NAGA_SHADERS").is_ok();
-
-        let mut compiler: Box<dyn super::compiler::Compiler> = if enable_naga {
+        let mut compiler: Box<dyn super::compiler::Compiler> = if pipeline_modes.enable_naga {
             Box::new(WgpuCompiler::new(fetch_include)?)
         } else {
             Box::new(ShaderCCompiler::new(shaderc_opts, fetch_include)?)

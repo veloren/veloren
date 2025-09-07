@@ -52,6 +52,8 @@ pub enum ClientChatCommand {
     Help,
     /// Mutes a player in the chat
     Mute,
+    /// Toggles use of naga for shader processing (change not persisted).
+    Naga,
     /// Unmutes a previously muted player
     Unmute,
     /// Displays the name of the site or biome where the current waypoint is
@@ -109,6 +111,7 @@ impl ClientChatCommand {
                 Content::localized("command-wiki-desc"),
                 None,
             ),
+            ClientChatCommand::Naga => cmd(vec![], Content::localized("command-naga-desc"), None),
         }
     }
 
@@ -124,6 +127,7 @@ impl ClientChatCommand {
             ClientChatCommand::Unmute => "unmute",
             ClientChatCommand::Waypoint => "waypoint",
             ClientChatCommand::Wiki => "wiki",
+            ClientChatCommand::Naga => "naga",
         }
     }
 
@@ -459,12 +463,13 @@ fn run_client_command(
         ClientChatCommand::Unmute => handle_unmute,
         ClientChatCommand::Waypoint => handle_waypoint,
         ClientChatCommand::Wiki => handle_wiki,
+        ClientChatCommand::Naga => handle_naga,
     };
 
     command(session_state, global_state, args)
 }
 
-/// Handles [`ClientChatCommand::Unmute`]
+/// Handles [`ClientChatCommand::Clear`]
 fn handle_clear(
     session_state: &mut SessionState,
     _global_state: &mut GlobalState,
@@ -719,6 +724,24 @@ fn handle_wiki(
                 LocalizationArg::from(e.to_string()),
             )])
         })
+}
+
+/// Handles [`ClientChatCommand::Naga`]
+///
+///Toggles use of naga in initial shader processing.
+fn handle_naga(
+    _session_state: &mut SessionState,
+    global_state: &mut GlobalState,
+    _args: Vec<String>,
+) -> CommandResult {
+    let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
+    new_render_mode.enable_naga ^= true;
+    change_render_mode(
+        new_render_mode,
+        &mut global_state.window,
+        &mut global_state.settings,
+    );
+    Ok(None)
 }
 
 /// Trait for types that can provide tab completion suggestions.
