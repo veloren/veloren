@@ -35,7 +35,8 @@ dialogue-question-quest_req =
 
 dialogue-question-quest-escort-where = Where are we going?
 
-dialogue-question-quest-slay-where = Where is the { $body }?
+# Used TAIL() to strip the article
+dialogue-question-quest-slay-where = Where is the { TAIL($body) }?
 dialogue-question-quest-slay-claim = The monster has been slain!
 
 dialogue-play_game = Play a game
