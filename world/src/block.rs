@@ -1,7 +1,7 @@
 use crate::{
     CONFIG, IndexRef,
     column::{ColumnGen, ColumnSample},
-    util::{FastNoise, RandomField, Sampler, SmallCache},
+    util::{FastNoise, RandomField, Sampler, SmallCache, seed_expan},
 };
 use common::{
     calendar::{Calendar, CalendarEvent},
@@ -12,7 +12,8 @@ use common::{
     },
 };
 use core::ops::{Div, Mul, Range};
-use rand::{Rng, prelude::IndexedRandom};
+use rand::{Rng, SeedableRng, prelude::IndexedRandom};
+use rand_chacha::ChaChaRng;
 use serde::Deserialize;
 use vek::*;
 
@@ -249,7 +250,8 @@ pub fn block_from_structure<'a>(
             Some((block, sprite_cfg, None))
         },
         StructureBlock::EntitySpawner(entity_path, spawn_chance) => {
-            let mut rng = rand::rng();
+            let mut rng: rand_chacha::ChaCha20Rng =
+                ChaChaRng::from_seed(seed_expan::rng_state(structure_seed));
             if rng.random::<f32>() < *spawn_chance {
                 // TODO: Use BlockKind::Hollow instead of BlockKind::Air
                 Some((
