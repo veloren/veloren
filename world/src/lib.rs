@@ -6,7 +6,7 @@
 )]
 #![expect(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(option_zip, let_chains)]
+#![feature(option_zip)]
 #![cfg_attr(feature = "simd", feature(portable_simd))]
 
 mod all;
