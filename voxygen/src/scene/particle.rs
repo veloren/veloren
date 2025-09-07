@@ -9,7 +9,7 @@ use crate::{
     scene::terrain::FireplaceType,
 };
 use common::{
-    assets::{AssetExt, DotVoxAsset},
+    assets::{AssetExt, DotVox},
     comp::{
         self, Beam, Body, CharacterActivity, CharacterState, Fluid, Inventory, Ori, PhysicsState,
         Pos, Scale, Shockwave, Vel,
@@ -69,7 +69,7 @@ impl ParticleMgr {
     ) {
         prof_span!("ParticleMgr::handle_outcome");
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         match outcome {
             Outcome::Lightning { pos } => {
@@ -810,7 +810,7 @@ impl ParticleMgr {
                 (Danari, Female) => Vec3::new(4.5, 10.5, -1.25),
             };
 
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             let dt = scene_data.state.get_delta_time();
             if rng.random_bool((0.25 * dt as f64).min(1.0)) {
                 self.particles.resize_with(self.particles.len() + 10, || {
@@ -849,7 +849,7 @@ impl ParticleMgr {
                     .get((pos.0 + Vec3::unit_z()).as_())
                     .is_ok_and(|b| b.kind() == BlockKind::Water)
             {
-                let mut rng = rand::thread_rng();
+                let mut rng = rand::rng();
                 let time = scene_data.state.get_time();
                 let dt = scene_data.state.get_delta_time();
                 for _ in 0..self
@@ -860,7 +860,8 @@ impl ParticleMgr {
                         Duration::from_secs(1),
                         time,
                         ParticleMode::Bubble,
-                        pos.0.map(|e| e + rng.gen_range(-0.1..0.1)) - vel.0 * dt * rng.gen::<f32>(),
+                        pos.0.map(|e| e + rng.random_range(-0.1..0.1))
+                            - vel.0 * dt * rng.random::<f32>(),
                         scene_data,
                     ));
                 }
@@ -933,7 +934,7 @@ impl ParticleMgr {
 
     fn maintain_fire_gigas_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
         let time = scene_data.state.get_time();
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         if rng.random_bool(0.05) {
             self.particles.resize_with(self.particles.len() + 1, || {
@@ -1004,7 +1005,7 @@ impl ParticleMgr {
         let end = pos + end;
 
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         self.particles.resize_with(
             self.particles.len()
@@ -1033,7 +1034,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_campfirelit_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
             self.particles.push(Particle::new(
@@ -1048,7 +1049,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::CampfireSmoke,
-                pos.map(|e| e + thread_rng().random_range(-0.25..0.25))
+                pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
                     + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
                 scene_data,
             ));
@@ -1064,7 +1065,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_barrel_organ_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(20)) {
             self.particles.push(Particle::new(
@@ -1079,7 +1080,7 @@ impl ParticleMgr {
                 Duration::from_secs(10),
                 time,
                 ParticleMode::BarrelOrgan,
-                pos.map(|e| e + thread_rng().random_range(-0.25..0.25))
+                pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
                     + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
                 scene_data,
             ));
@@ -1095,7 +1096,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_boltfire_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(4)) {
             self.particles.push(Particle::new(
@@ -1125,7 +1126,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_boltfirebig_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // fire
         self.particles.resize_with(
@@ -1167,7 +1168,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_fireraindrop_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // trace
         self.particles.resize_with(
@@ -1195,7 +1196,7 @@ impl ParticleMgr {
     ) {
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // nature
         self.particles.resize_with(
@@ -1215,7 +1216,7 @@ impl ParticleMgr {
 
     fn maintain_tornado_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // air particles
         self.particles.resize_with(
@@ -1234,7 +1235,7 @@ impl ParticleMgr {
 
     fn maintain_fiery_tornado_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // air particles
         self.particles.resize_with(
@@ -1260,7 +1261,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_bomb_particles");
         let time = scene_data.state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
             // sparks
@@ -1287,7 +1288,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_active_portal_particles");
 
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
             let outer_pos =
@@ -1308,7 +1309,7 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_portal_particles");
 
         let time = scene_data.state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(150)) {
             let outer_pos = pos
@@ -1349,7 +1350,7 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
         let dt = scene_data.state.get_delta_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for (
             entity,
@@ -1399,7 +1400,7 @@ impl ParticleMgr {
                             states::basic_melee::FrontendSpecifier::FlameTornado => {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
-                                    let mut rng = thread_rng();
+                                    let mut rng = rand::rng();
                                     self.particles.resize_with(
                                         self.particles.len()
                                             + 10
@@ -1423,7 +1424,7 @@ impl ParticleMgr {
                             states::basic_melee::FrontendSpecifier::FireGigasWhirlwind => {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
-                                    let mut rng = thread_rng();
+                                    let mut rng = rand::rng();
                                     self.particles.resize_with(
                                         self.particles.len()
                                             + 3
@@ -1529,7 +1530,7 @@ impl ParticleMgr {
                             states::rapid_melee::FrontendSpecifier::IceWhirlwind => {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
-                                    let mut rng = thread_rng();
+                                    let mut rng = rand::rng();
                                     self.particles.resize_with(
                                         self.particles.len()
                                             + 3
@@ -2041,7 +2042,7 @@ impl ParticleMgr {
         // Limit to 100 per tick, so at less than 10 FPS particle generation
         // work doesn't increase frame cost further.
         let tick_elapse = u32::from(self.scheduler.heartbeats(Duration::from_millis(1)).min(100));
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for (beam, ori) in (&ecs.read_storage::<Beam>(), &ecs.read_storage::<Ori>()).join() {
             let particles_per_sec = (match beam.specifier {
@@ -2386,7 +2387,7 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let dt = scene_data.state.get_delta_time();
 
         for (interp, pos, auras, body_maybe) in (
@@ -2625,7 +2626,7 @@ impl ParticleMgr {
         let state = scene_data.state;
         let ecs = state.ecs();
         let time = state.get_time();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         for (interp, pos, buffs, body, ori, scale) in (
             ecs.read_storage::<Interpolated>().maybe(),
@@ -2940,7 +2941,7 @@ impl ParticleMgr {
         ];
 
         let ecs = scene_data.state.ecs();
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         // Hard cap for performance reasons; Assuming that 25% of a chunk is covered in
         // lava or 32*32*0.25 = 256 TODO: Make this a setting?
         let cap = 512;
@@ -3728,7 +3729,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
     let mut model_cache = HashMap::new();
 
     model_cache.entry(DEFAULT_MODEL_KEY).or_insert_with(|| {
-        let vox = DotVoxAsset::load_expect(DEFAULT_MODEL_KEY);
+        let vox = DotVox::load_expect(DEFAULT_MODEL_KEY);
 
         // NOTE: If we add texturing we may eventually try to share it among all
         // particles in a single atlas.
