@@ -599,7 +599,7 @@ impl Fill {
                         p.get_bounds().center().xy(),
                         *seed,
                         col_sample.unwrap(),
-                        Block::air,
+                        || Block::air(SpriteKind::Empty),
                         canvas_info.calendar(),
                         &Vec2::new(Vec2::new(1, 0), Vec2::new(0, 1)),
                     ) {

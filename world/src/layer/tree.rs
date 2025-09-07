@@ -283,7 +283,7 @@ pub fn apply_trees_to(
                     tree.pos.xy(),
                     tree.seed,
                     col,
-                    Block::air,
+                    || Block::air(SpriteKind::Empty),
                     calendar,
                     &Vec2::new(tree.units.0, tree.units.1),
                 )

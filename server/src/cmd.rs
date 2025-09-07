@@ -1013,7 +1013,7 @@ fn handle_make_sprite(
 
             Ok(())
         } else if let Ok(sprite) = ron::from_str::<StructureSprite>(sprite_name.as_str()) {
-            set_block(sprite.get_block(|s| old_block.with_sprite(s)));
+            set_block(sprite.apply_to_block(old_block).unwrap_or_else(|b| b));
 
             Ok(())
         } else {

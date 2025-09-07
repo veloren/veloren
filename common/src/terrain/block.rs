@@ -723,11 +723,23 @@ impl Block {
     /// If this block is a fluid, replace its sprite.
     #[inline]
     #[must_use]
-    pub fn with_sprite(mut self, sprite: SpriteKind) -> Self {
-        if !self.is_filled() {
-            self = Self::unfilled(self.kind, sprite);
+    pub fn with_sprite(self, sprite: SpriteKind) -> Self {
+        match self.try_with_sprite(sprite) {
+            Ok(b) => b,
+            Err(b) => b,
         }
-        self
+    }
+
+    /// If this block is a fluid, replace its sprite.
+    ///
+    /// Returns block in `Err` if the sprite was not replaced.
+    #[inline]
+    pub fn try_with_sprite(self, sprite: SpriteKind) -> Result<Self, Self> {
+        if self.is_filled() {
+            Err(self)
+        } else {
+            Ok(Self::unfilled(self.kind, sprite))
+        }
     }
 
     /// If this block can have orientation, give it a new orientation.

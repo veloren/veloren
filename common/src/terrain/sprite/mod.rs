@@ -91,8 +91,11 @@ use vek::*;
 pub struct StructureSprite(StructureSpriteKind);
 
 impl StructureSprite {
-    pub fn get_block(self, with_sprite: impl FnMut(SpriteKind) -> Block) -> Block {
-        self.0.get_block(with_sprite)
+    /// Assigns this structure sprite to a block.
+    ///
+    /// Returns error if [`Block::try_with_sprite`] fails.
+    pub fn apply_to_block(self, block: Block) -> Result<Block, Block> {
+        self.0.apply_to_block(block)
     }
 }
 

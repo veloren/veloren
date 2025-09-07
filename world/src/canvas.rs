@@ -272,7 +272,7 @@ impl<'a> Canvas<'a> {
                             origin.xy(),
                             seed,
                             col,
-                            |sprite| block.into_vacant().with_sprite(sprite),
+                            || block.into_vacant(),
                             info.calendar,
                             &units,
                         ) {
