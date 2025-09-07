@@ -52,18 +52,17 @@ float tick_loop(float period) {
     return tick_loop(period, 1.0, 0.0);
 }
 
-
-vec4 tick_loop4(float period, vec4 scale, vec4 offset) {
-    vec4 loop = tick_overflow * scale;
-    vec4 rem = mod(loop, period);
-    vec4 rest = rem * tick.y;
+vec3 tick_loop(float period, vec3 scale, vec3 offset) {
+    vec3 loop = tick_overflow * scale;
+    vec3 rem = mod(loop, period);
+    vec3 rest = rem * tick.y;
 
     return mod(rest + tick.x * scale + offset, period);
 }
 
 // Only works if t happened within tick_overflow
 float time_since(float t) {
-    return tick.x < t ? (tick_overflow - t + tick.x) : (tick.x - t); 
+    return tick.x < t ? (tick_overflow - t + tick.x) : (tick.x - t);
 }
 
 #endif

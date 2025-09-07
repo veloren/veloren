@@ -827,7 +827,7 @@ impl ParticleMgr {
     }
 
     fn maintain_fluid_particles(&mut self, scene_data: &SceneData) {
-        prof_span!("ParticleMgr::maintain_body_particles");
+        prof_span!("ParticleMgr::maintain_fluid_particles");
         let ecs = scene_data.state.ecs();
         for (pos, vel, collider) in (
             &ecs.read_storage::<Pos>(),

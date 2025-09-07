@@ -240,9 +240,9 @@ vec3 blown_by_wind(float mass, float drift_factor) {
     float factor = pow(percent(), mass) * drift_factor;
     float rand = hash(vec4(inst_entropy + 45));
     return vec3(inst_start_wind_vel * lifetime * factor, 0.0)
-        + sin(vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * factor) + tick.x * 0.25)
-            * sin(tick.x * 0.9 * vec3(1.0, 1.1, 1.2))
-            * length(inst_start_wind_vel.xy)
+        + sin(tick_loop(2.0 * PI, vec3(0.25), vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * factor)))
+            * sin(tick_loop(2.0 * PI, 0.9 * vec3(1.0, 1.1, 1.2), vec3(0.0)))
+            * length(inst_start_wind_vel)
             * factor;
 }
 
