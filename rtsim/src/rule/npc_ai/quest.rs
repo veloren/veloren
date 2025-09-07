@@ -257,7 +257,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                 .say_statement(Content::localized("npc-response-quest-nothing"))
                 .boxed()
         } else {
-            quests.remove(ctx.rng.gen_range(0..quests.len()))
+            quests.remove(ctx.rng.random_range(0..quests.len()))
         }
     })
 }
@@ -304,7 +304,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
             // Occasionally, tell the escoter to wait if we're lagging far behind
             if let Some(escorter_pos) = util::locate_actor(ctx, escorter)
                 && ctx.npc.wpos.xy().distance_squared(escorter_pos.xy()) > 20.0f32.powi(2)
-                && ctx.rng.gen_bool(ctx.dt as f64 / 30.0)
+                && ctx.rng.random_bool(ctx.dt as f64 / 30.0)
             {
                 ctx.controller
                     .say(None, Content::localized("npc-speech-wait_for_me"));

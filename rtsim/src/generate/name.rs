@@ -20,7 +20,7 @@ fn generate_alias(rng: &mut impl Rng) -> String {
         name += cons.choose(rng).unwrap();
     }
 
-    if rng.gen_bool(0.25) {
+    if rng.random_bool(0.25) {
         name += vowels.choose(rng).unwrap();
     }
 
@@ -72,7 +72,7 @@ fn generate_adjective(rng: &mut impl Rng) -> &'static str {
 }
 
 pub fn generate_npc(rng: &mut impl Rng) -> String {
-    match rng.gen_range(0..3) {
+    match rng.random_range(0..3) {
         0 => generate_alias(rng),
         1 => format!("{} the {}", generate_alias(rng), generate_adjective(rng)),
         _ => format!("{} {}", generate_adjective(rng), generate_alias(rng)),
