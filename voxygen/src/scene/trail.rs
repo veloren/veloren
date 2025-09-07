@@ -65,7 +65,7 @@ impl TrailMgr {
                     let last_pos = *self.pos_cache.entry(entity).or_insert(*pos);
                     let offset = self.offset;
                     let quad_mesh = self.entity_mesh_or_insert(entity, true);
-                    const THICKNESS: f32 = 0.05;
+                    const THICKNESS: f32 = 0.2;
                     let p1 = pos.0;
                     let p2 = p1 + Vec3::unit_z() * THICKNESS;
                     let p4 = last_pos.0;

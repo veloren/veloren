@@ -85,7 +85,7 @@ void main() {
 
     #ifdef EXPERIMENTAL_VIEWNORMALS
         tgt_color = vec4(vec3(mat.xyz) / 255.0, 1);
-    #elseifdef EXPERIMENTAL_VIEWMATERIALS
+    #elif defined(EXPERIMENTAL_VIEWMATERIALS)
         const vec3 mat_colors[5] = vec3[](
             vec3(0, 1, 1), // MAT_SKY
             vec3(1, 1, 0), // MAT_BLOCK
@@ -94,7 +94,7 @@ void main() {
             vec3(0.5, 1, 0) // MAT_LOD
         );
         tgt_color = vec4(mat_colors[mat.a % 5u], 1);
-    #elseifdef EXPERIMENTAL_VIEWDEPTH
+    #elif defined(EXPERIMENTAL_VIEWDEPTH)
         tgt_color = vec4(vec3(pow(clamp(depth_at(uv) / 524288.0, 0, 1), 0.3)), 1);
     #else
         vec3 wpos = wpos_at(uv);

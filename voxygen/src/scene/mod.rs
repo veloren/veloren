@@ -127,7 +127,7 @@ pub struct Scene {
     ambience_mgr: AmbienceMgr,
 
     integrated_rain_vel: f32,
-    wind_vel: Vec2<f32>,
+    pub wind_vel: Vec2<f32>,
     pub interpolated_time_of_day: Option<f64>,
     last_lightning: Option<(Vec3<f32>, f64)>,
     local_time: f64,
@@ -156,6 +156,7 @@ pub struct SceneData<'a> {
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
     pub interpolated_time_of_day: Option<f64>,
+    pub wind_vel: Vec2<f32>,
 }
 
 impl SceneData<'_> {
@@ -1502,12 +1503,12 @@ impl Scene {
             // Render tethers.
             self.tether_mgr.render(&mut first_pass);
 
-            // Draws translucent
-            self.terrain.render_translucent(&mut first_pass, focus_pos);
-
             // Render particle effects.
             self.particle_mgr
                 .render(&mut first_pass.draw_particles(), scene_data);
+
+            // Draws translucent
+            self.terrain.render_translucent(&mut first_pass, focus_pos);
 
             // Render debug shapes
             self.debug.render(&mut first_pass.draw_debug());
