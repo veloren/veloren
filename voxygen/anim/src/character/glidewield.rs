@@ -14,7 +14,6 @@ impl Animation for GlideWieldAnimation {
     const UPDATE_FN: &'static [u8] = b"character_glidewield\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_glidewield"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (orientation, glider_orientation): Self::Dependency<'_>,

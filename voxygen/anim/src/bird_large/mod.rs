@@ -61,7 +61,6 @@ impl Skeleton for BirdLargeSkeleton {
         feature = "be-dyn-lib",
         unsafe(export_name = "bird_large_compute_mats")
     )]
-
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,

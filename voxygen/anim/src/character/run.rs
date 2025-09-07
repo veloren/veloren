@@ -28,7 +28,6 @@ impl Animation for RunAnimation {
     const UPDATE_FN: &'static [u8] = b"character_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_run"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

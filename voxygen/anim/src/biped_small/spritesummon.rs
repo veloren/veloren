@@ -29,7 +29,6 @@ impl Animation for SpriteSummonAnimation {
         feature = "be-dyn-lib",
         unsafe(export_name = "biped_small_spritesummon")
     )]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (

@@ -15,7 +15,6 @@ impl Animation for ShootAnimation {
     const UPDATE_FN: &'static [u8] = b"golem_shoot\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "golem_shoot"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (stage_section, _global_time, _timer, look_dir, ability_id): Self::Dependency<'_>,

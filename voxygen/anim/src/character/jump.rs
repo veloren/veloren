@@ -21,7 +21,6 @@ impl Animation for JumpAnimation {
     const UPDATE_FN: &'static [u8] = b"character_jump\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_jump"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency<'_>,

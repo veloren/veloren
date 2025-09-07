@@ -16,7 +16,6 @@ impl Animation for RunAnimation {
     const UPDATE_FN: &'static [u8] = b"biped_small_run\0";
 
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "biped_small_run"))]
-
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
         (velocity, orientation, last_ori, global_time, _avg_vel, acc_vel): Self::Dependency<'_>,
