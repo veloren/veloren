@@ -956,14 +956,11 @@ impl Widget for Map<'_> {
         for (i, marker) in markers.iter().enumerate() {
             let rside = zoom as f32 * 8.0 * 1.2;
 
-            let (rpos, fade) = match wpos_to_rpos_fade(
-                marker.wpos.map(|e| e as f32),
-                Vec2::from(rside / 2.0),
-                rside / 2.0,
-            ) {
-                Some(rpos) => rpos,
-                None => continue,
-            };
+            let (rpos, fade) =
+                match wpos_to_rpos_fade(marker.wpos, Vec2::from(rside / 2.0), rside / 2.0) {
+                    Some(rpos) => rpos,
+                    None => continue,
+                };
 
             let title = marker
                 .label
@@ -1094,7 +1091,7 @@ impl Widget for Map<'_> {
 
             handle_widget_mouse_events(
                 state.ids.mmap_site_icons[i],
-                MarkerChange::Pos(marker.wpos.map(|e| e as f32)),
+                MarkerChange::Pos(marker.wpos),
                 ui,
                 &mut events,
                 state.ids.map_layers[0],
@@ -1227,7 +1224,7 @@ impl Widget for Map<'_> {
 
                 handle_widget_mouse_events(
                     state.ids.site_difs[i],
-                    MarkerChange::Pos(marker.wpos.map(|e| e as f32)),
+                    MarkerChange::Pos(marker.wpos),
                     ui,
                     &mut events,
                     state.ids.map_layers[0],

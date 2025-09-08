@@ -1443,7 +1443,7 @@ impl Controls {
                         let pos_frac = info
                             .wpos
                             .map2(self.world_sz * TerrainChunkSize::RECT_SIZE, |e, sz| {
-                                e as f32 / sz as f32
+                                e / sz as f32
                             });
                         let point = Vec2::new(pos_frac.x, 1.0 - pos_frac.y)
                             .map2(map_sz, |e, sz| e * sz as f32 - 12.0);

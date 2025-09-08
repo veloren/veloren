@@ -725,7 +725,7 @@ impl Widget for MiniMap<'_> {
             };
 
             for (i, marker) in markers.iter().enumerate() {
-                let rpos = match wpos_to_rpos(marker.wpos.map(|e| e as f32), false) {
+                let rpos = match wpos_to_rpos(marker.wpos, false) {
                     Some(rpos) => rpos,
                     None => continue,
                 };
