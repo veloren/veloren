@@ -739,7 +739,8 @@ impl ServerEvent for DestroyEvent {
                                         // c = y2 - a*x1
                                         let intercept = 1.0 - gradient * start_dist;
                                         // y = clamp(a*x + c)
-                                        let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
+                                        let strength =
+                                            (gradient * dist + intercept).clamp(*min_str, 1.0);
                                         strength_modifier *= strength;
                                     }
                                 },
@@ -2901,7 +2902,8 @@ impl ServerEvent for EntityAttackedHookEvent {
                                         // c = y2 - a*x1
                                         let intercept = 1.0 - gradient * start_dist;
                                         // y = clamp(a*x + c)
-                                        let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
+                                        let strength =
+                                            (gradient * dist + intercept).clamp(*min_str, 1.0);
                                         strength_modifier *= strength;
                                     }
                                 },

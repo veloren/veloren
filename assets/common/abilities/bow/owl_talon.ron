@@ -7,8 +7,8 @@ SelfBuff(
     ],
     buff_cat: Some(RemoveOnAttack),
     use_raw_buff_strength: true,
-    energy_cost: 10,
+    energy_cost: 15,
     meta: (
-        contextual_stats: Some((context: Stealth(0.25), field: BuffStrength)),
+        contextual_stats: Some((context: Stealth(4.0), field: BuffStrength)),
     ),
 )

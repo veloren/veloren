@@ -1,6 +1,6 @@
 Simple(
     energy_cost: 0,
-    combo_cost: 15,
+    combo_cost: 10,
     buildup_duration: 0.1,
     meta: (
         init_event: Some(EnterStance(Bow(DeathVolley))),

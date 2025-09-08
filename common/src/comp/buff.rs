@@ -630,7 +630,7 @@ impl BuffKind {
             BuffKind::OwlTalon => vec![
                 BuffEffect::ConditionalPrecisionModifier(
                     CombatRequirement::TargetUnwielded,
-                    1.0,
+                    0.8,
                     false,
                 ),
                 BuffEffect::AttackDamage(1.0 + data.strength),
@@ -639,30 +639,32 @@ impl BuffKind {
                 let range_mod = CombatModification::RangeWeakening {
                     start_dist: 5.0,
                     end_dist: 50.0,
-                    min_str: 0.1,
+                    min_str: 0.3,
                 };
                 let knockback = AttackEffect::new(
                     None,
                     CombatEffect::Knockback(Knockback {
                         direction: KnockbackDir::Away,
-                        strength: 25.0 * data.strength,
+                        strength: 20.0 * data.strength,
                     }),
                 )
                 .with_requirement(CombatRequirement::AnyDamage)
                 .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
                 .with_modification(range_mod);
-                let poise = AttackEffect::new(None, CombatEffect::Poise(50.0 * data.strength))
+                let poise = AttackEffect::new(None, CombatEffect::Poise(35.0 * data.strength))
                     .with_requirement(CombatRequirement::AnyDamage)
                     .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
                     .with_modification(range_mod);
                 vec![
                     BuffEffect::AttackEffect(knockback),
                     BuffEffect::AttackEffect(poise),
+                    // BuffEffect::AttackDamage(0.5 * data.strength), // TODO: has no effect on
+                    // damage?
                 ]
             },
             BuffKind::Heartseeker => {
                 let energy =
-                    AttackEffect::new(None, CombatEffect::EnergyReward(40.0 * data.strength))
+                    AttackEffect::new(None, CombatEffect::EnergyReward(30.0 * data.strength))
                         .with_requirement(CombatRequirement::AnyDamage)
                         .with_requirement(CombatRequirement::AttackSource(
                             AttackSource::Projectile,
@@ -670,7 +672,7 @@ impl BuffKind {
                 vec![
                     BuffEffect::ConditionalPrecisionModifier(
                         CombatRequirement::AttackSource(AttackSource::Projectile),
-                        data.strength * 0.5,
+                        data.strength * 0.4,
                         false,
                     ),
                     BuffEffect::AttackEffect(energy),
@@ -712,7 +714,7 @@ impl BuffKind {
                 )
                 .with_requirement(projectile_req);
                 let mut energy_reward_effect =
-                    AttackedModification::new(AttackedModifier::EnergyReward(1.0 + data.strength))
+                    AttackedModification::new(AttackedModifier::EnergyReward(0.6 + data.strength))
                         .with_requirement(projectile_req);
                 if let Some(uid) = source_entity {
                     let attacker_req = CombatRequirement::Attacker(uid);

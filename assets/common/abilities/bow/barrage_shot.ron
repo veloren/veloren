@@ -9,8 +9,8 @@ RapidRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 5,
-            energy: Some(4),
+            damage: 4,
+            energy: Some(3),
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

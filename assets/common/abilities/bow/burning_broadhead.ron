@@ -1,7 +1,7 @@
 ChargedRanged(
     energy_cost: 0,
-    energy_drain: 0,
-    idle_drain: 10,
+    energy_drain: 6,
+    idle_drain: 12,
     projectile: (
         kind: Explosive(
             radius: 3,
@@ -9,20 +9,20 @@ ChargedRanged(
             reagent: Some(Red),
         ),
         attack: Some((
-            damage: 5,
+            damage: 7,
         )),
         scaled: Some((
             damage: 20,
-            knockback: Some(10),
+            knockback: Some(25),
         )),
     ),
     buildup_duration: 0.3,
-    charge_duration: 1.2,
+    charge_duration: 1.0,
     recover_duration: 0.1,
     projectile_body: Object(Arrow),
     projectile_light: None,
     initial_projectile_speed: 50.0,
-    scaled_projectile_speed: 200.0,
+    scaled_projectile_speed: 150.0,
     move_speed: 0.4,
     meta: (
         init_event: Some(EnterStance(None)),

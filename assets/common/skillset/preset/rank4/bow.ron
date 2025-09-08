@@ -1,17 +1,17 @@
 [
     Group(Weapon(Bow)),
 
-    Skill((Bow(Foothold), 1)),
     Skill((Bow(SnareShot), 1)),
+    Skill((Bow(Foothold), 1)),
 
-    Skill((Bow(Barrage), 1)),
-    Skill((Bow(EagleEye), 1)),
     Skill((Bow(ArdentHunt), 1)),
+    Skill((Bow(HeavyNock), 1)),
+    Skill((Bow(Barrage), 1)),
 
     Skill((Bow(OwlTalon), 1)),
-    Skill((Bow(HeavyNock), 1)),
+    Skill((Bow(EagleEye), 1)),
     Skill((Bow(IgniteArrow), 1)),
     Skill((Bow(DrenchArrow), 1)),
     Skill((Bow(PiercingGale), 1)),
-    Skill((Bow(Hawkstrike), 1)),
+    Skill((Bow(Scatterburst), 1)),
 ]

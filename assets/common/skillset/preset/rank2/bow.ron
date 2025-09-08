@@ -1,6 +1,6 @@
 [
     Group(Weapon(Bow)),
 
-    Skill((Bow(Foothold), 1)),
     Skill((Bow(SnareShot), 1)),
+    Skill((Bow(Foothold), 1)),
 ]

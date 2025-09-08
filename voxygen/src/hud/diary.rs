@@ -2371,26 +2371,26 @@ impl Diary<'_> {
             SkillIcon::Ability {
                 skill: Skill::Bow(BowSkill::Foothold),
                 ability_id: "common.abilities.bow.foothold",
-                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 368.0),
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 480.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Bow(BowSkill::SnareShot),
                 ability_id: "common.abilities.bow.snare_shot",
-                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 480.0),
-            },
-            SkillIcon::Ability {
-                skill: Skill::Bow(BowSkill::Barrage),
-                ability_id: "common.abilities.bow.barrage",
-                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 204.0),
-            },
-            SkillIcon::Ability {
-                skill: Skill::Bow(BowSkill::EagleEye),
-                ability_id: "common.abilities.bow.eagle_eye",
-                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 424.0),
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 368.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Bow(BowSkill::ArdentHunt),
                 ability_id: "common.abilities.bow.ardent_hunt",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 204.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::HeavyNock),
+                ability_id: "common.abilities.bow.heavy_nock",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 424.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Barrage),
+                ability_id: "common.abilities.bow.barrage",
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 644.0),
             },
             SkillIcon::Ability {
@@ -2399,8 +2399,8 @@ impl Diary<'_> {
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 154.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Bow(BowSkill::HeavyNock),
-                ability_id: "common.abilities.bow.heavy_nock",
+                skill: Skill::Bow(BowSkill::EagleEye),
+                ability_id: "common.abilities.bow.eagle_eye",
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 254.0),
             },
             SkillIcon::Ability {
@@ -2419,8 +2419,8 @@ impl Diary<'_> {
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 594.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Bow(BowSkill::Hawkstrike),
-                ability_id: "common.abilities.bow.hawkstrike",
+                skill: Skill::Bow(BowSkill::Scatterburst),
+                ability_id: "common.abilities.bow.scatterburst",
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 694.0),
             },
             SkillIcon::Ability {
@@ -2429,8 +2429,8 @@ impl Diary<'_> {
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 154.0),
             },
             SkillIcon::Ability {
-                skill: Skill::Bow(BowSkill::Scatterburst),
-                ability_id: "common.abilities.bow.scatterburst",
+                skill: Skill::Bow(BowSkill::Hawkstrike),
+                ability_id: "common.abilities.bow.hawkstrike",
                 position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 254.0),
             },
             SkillIcon::Ability {

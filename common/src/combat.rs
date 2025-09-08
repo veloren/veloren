@@ -1453,11 +1453,13 @@ impl AttackedModification {
                                         if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
                                             let dist = attacker_pos.distance(target.pos);
                                             // a = (y2 - y1) / (x2 - x1)
-                                            let gradient = (*min_str - 1.0) / (end_dist - start_dist);
+                                            let gradient =
+                                                (*min_str - 1.0) / (end_dist - start_dist);
                                             // c = y2 - a*x1
                                             let intercept = 1.0 - gradient * start_dist;
                                             // y = clamp(a*x + c)
-                                            let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
+                                            let strength =
+                                                (gradient * dist + intercept).clamp(*min_str, 1.0);
                                             strength_modifier *= strength;
                                         }
                                     },
