@@ -636,11 +636,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, _rng: &mut impl Rng, calendar: Opti
                 (
                     close(col.temp, 1.0, 0.95)
                         .max(close(col.temp, CONFIG.snow_temp, 0.95))
-                        .min(close(col.humidity, 0.0, 0.3).max(close(
-                            col.humidity,
-                            CONFIG.forest_hum,
-                            0.3,
-                        )))
+                        .min(close(col.humidity, 0.0, 0.45))
                         * MUSH_FACT
                         * 7.5,
                     None,
