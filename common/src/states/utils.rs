@@ -965,7 +965,10 @@ pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Al
 
 pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() {
-        update.character = CharacterState::Talk(Default::default());
+        update.character = CharacterState::Talk(match update.character {
+            CharacterState::Talk(t) => t.refreshed(),
+            _ => Default::default(),
+        });
     }
 }
 
