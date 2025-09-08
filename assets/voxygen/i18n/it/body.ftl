@@ -1,5 +1,4 @@
-## Monster descriptions, used ONLY in npc-speech-tell_monster
-
+#
 body-npc-speech-generic = una creatura
 body-npc-speech-biped_large-ogre-male = un ogre
 body-npc-speech-biped_large-ogre-female = un'ogre

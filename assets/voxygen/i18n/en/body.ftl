@@ -1,6 +1,4 @@
-## Monster descriptions, used ONLY in npc-speech-tell_monster
-
-body-npc-speech-generic = some creature
+body-npc-speech-generic = a creature
 body-npc-speech-biped_large-ogre-male = an ogre
 body-npc-speech-biped_large-ogre-female = an ogre
 body-npc-speech-biped_large-cyclops = a cyclops
