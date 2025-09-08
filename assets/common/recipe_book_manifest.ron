@@ -2887,7 +2887,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "firedrop": (
-        output: ("common.items.consumable.firedrop", 20),
+        output: ("common.items.consumable.firedrop", 12),
         inputs: [
             (Item("common.items.crafting_ing.resin"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
@@ -2895,7 +2895,7 @@
         craft_sprite: Some(Cauldron),
     ),
     "poison_clot": (
-        output: ("common.items.consumable.poison_clot", 20),
+        output: ("common.items.consumable.poison_clot", 12),
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.venom_sac"), 1, false),
             (Item("common.items.crafting_ing.bloodbag"), 1, false),
@@ -2903,7 +2903,7 @@
         craft_sprite: Some(Cauldron),
     ),
     "gelid_gel": (
-        output: ("common.items.consumable.gelid_gel", 20),
+        output: ("common.items.consumable.gelid_gel", 12),
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.icy_fang"), 1, false),
             (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
@@ -2911,9 +2911,10 @@
         craft_sprite: Some(Cauldron),
     ),
     "levin_dust": (
-        output: ("common.items.consumable.levin_dust", 10),
+        output: ("common.items.consumable.levin_dust", 12),
         inputs: [
             (Item("common.items.mineral.ore.lodestone"), 1, false),
+            (Item("common.items.mineral.ore.velorite"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),

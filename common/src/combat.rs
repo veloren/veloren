@@ -794,10 +794,12 @@ impl Attack {
                         } => {
                             if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
                                 let dist = attacker_pos.distance(target.pos);
-                                let p = (dist - start_dist) / (end_dist - start_dist).min(0.1);
-                                let strength = (1.0 - p.clamp(0.0, 1.0))
-                                    * (1.0 - min_str.clamp(0.0, 1.0))
-                                    + min_str;
+                                // a = (y2 - y1) / (x2 - x1)
+                                let gradient = (*min_str - 1.0) / (end_dist - start_dist);
+                                // c = y2 - a*x1
+                                let intercept = 1.0 - gradient * start_dist;
+                                // y = clamp(a*x + c)
+                                let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
                                 strength_modifier *= strength;
                             }
                         },
@@ -1450,11 +1452,12 @@ impl AttackedModification {
                                     } => {
                                         if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
                                             let dist = attacker_pos.distance(target.pos);
-                                            let p = (dist - start_dist)
-                                                / (end_dist - start_dist).min(0.1);
-                                            let strength = (1.0 - p.clamp(0.0, 1.0))
-                                                * (1.0 - min_str.clamp(0.0, 1.0))
-                                                + min_str;
+                                            // a = (y2 - y1) / (x2 - x1)
+                                            let gradient = (*min_str - 1.0) / (end_dist - start_dist);
+                                            // c = y2 - a*x1
+                                            let intercept = 1.0 - gradient * start_dist;
+                                            // y = clamp(a*x + c)
+                                            let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
                                             strength_modifier *= strength;
                                         }
                                     },
@@ -1564,7 +1567,7 @@ impl CombatRequirement {
                 .2
                 .zip(attack_source)
                 .is_some_and(|(cs, attack)| cs.is_block(attack) || cs.is_parry(attack)),
-            CombatRequirement::TargetUnwielded => target.2.is_some_and(|cs| cs.is_wield()),
+            CombatRequirement::TargetUnwielded => target.2.is_some_and(|cs| !cs.is_wield()),
             CombatRequirement::AttackSource(source) => attack_source == Some(*source),
             CombatRequirement::AttackInput(input) => {
                 ability_info.is_some_and(|ai| ai.input == *input)
@@ -1576,7 +1579,7 @@ impl CombatRequirement {
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum CombatModification {
-    /// Linearly ecreases effect strength starting with 1 strength at some
+    /// Linearly decreases effect strength starting with 1 strength at some
     /// distance, ending at a minimum strength by some end distance
     RangeWeakening {
         start_dist: f32,

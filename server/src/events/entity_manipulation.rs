@@ -734,11 +734,12 @@ impl ServerEvent for DestroyEvent {
                                         .zip(data.positions.get(ev.entity))
                                     {
                                         let dist = pos_a.0.distance(pos_b.0);
-                                        let p =
-                                            (dist - start_dist) / (end_dist - start_dist).min(0.1);
-                                        let strength = (1.0 - p.clamp(0.0, 1.0))
-                                            * (1.0 - min_str.clamp(0.0, 1.0))
-                                            + min_str;
+                                        // a = (y2 - y1) / (x2 - x1)
+                                        let gradient = (*min_str - 1.0) / (end_dist - start_dist);
+                                        // c = y2 - a*x1
+                                        let intercept = 1.0 - gradient * start_dist;
+                                        // y = clamp(a*x + c)
+                                        let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
                                         strength_modifier *= strength;
                                     }
                                 },
@@ -2895,11 +2896,12 @@ impl ServerEvent for EntityAttackedHookEvent {
                                         .zip(data.positions.get(ev.entity))
                                     {
                                         let dist = pos_a.0.distance(pos_b.0);
-                                        let p =
-                                            (dist - start_dist) / (end_dist - start_dist).min(0.1);
-                                        let strength = (1.0 - p.clamp(0.0, 1.0))
-                                            * (1.0 - min_str.clamp(0.0, 1.0))
-                                            + min_str;
+                                        // a = (y2 - y1) / (x2 - x1)
+                                        let gradient = (*min_str - 1.0) / (end_dist - start_dist);
+                                        // c = y2 - a*x1
+                                        let intercept = 1.0 - gradient * start_dist;
+                                        // y = clamp(a*x + c)
+                                        let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
                                         strength_modifier *= strength;
                                     }
                                 },
