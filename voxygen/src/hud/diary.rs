@@ -1120,16 +1120,14 @@ impl Widget for Diary<'_> {
                         .top_left_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
                         .set(state.ids.abilities[id_index], ui);
 
-                    if same_weap_kinds {
-                        if let AuxiliaryAbility::MainWeapon(slot) = ability {
-                            let ability = AuxiliaryAbility::OffWeapon(*slot);
+                    if same_weap_kinds && let AuxiliaryAbility::MainWeapon(slot) = ability {
+                        let ability = AuxiliaryAbility::OffWeapon(*slot);
 
-                            let slot = AbilitySlot::Ability(ability);
-                            slot_maker
-                                .fabricate(slot, [100.0; 2])
-                                .top_right_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
-                                .set(state.ids.abilities_dual[id_index], ui);
-                        }
+                        let slot = AbilitySlot::Ability(ability);
+                        slot_maker
+                            .fabricate(slot, [100.0; 2])
+                            .top_right_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
+                            .set(state.ids.abilities_dual[id_index], ui);
                     }
                     // The page width...
                     let text_width = 299.0 * 2.0

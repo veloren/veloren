@@ -77,18 +77,17 @@ pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
         return false;
     }
 
-    if let Some(AgentEvent::Dialogue(sender, dialogue)) = agent.inbox.pop_front() {
-        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox
-            && let Some(sender_entity) = read_data.id_maps.uid_entity(sender)
-            && let Some(sender_actor) = read_data
-                .presences
-                .get(sender_entity)
-                .and_then(|p| p.kind.character_id().map(Actor::Character))
-                .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(sender_entity)?.0)))
-        {
-            rtsim_outbox.push_back(NpcInput::Dialogue(sender_actor, dialogue));
-            return false;
-        }
+    if let Some(AgentEvent::Dialogue(sender, dialogue)) = agent.inbox.pop_front()
+        && let Some(rtsim_outbox) = &mut agent.rtsim_outbox
+        && let Some(sender_entity) = read_data.id_maps.uid_entity(sender)
+        && let Some(sender_actor) = read_data
+            .presences
+            .get(sender_entity)
+            .and_then(|p| p.kind.character_id().map(Actor::Character))
+            .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(sender_entity)?.0)))
+    {
+        rtsim_outbox.push_back(NpcInput::Dialogue(sender_actor, dialogue));
+        return false;
     }
     true
 }
@@ -106,33 +105,32 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
     if let Some(AgentEvent::Talk(by)) = agent.inbox.pop_front() {
         let by_entity = get_entity_by_id(by, read_data);
 
-        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox {
-            if let Some(by_entity) = by_entity
-                && let Some(actor) = read_data
-                    .presences
-                    .get(by_entity)
-                    .and_then(|p| p.kind.character_id().map(Actor::Character))
-                    .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
-            {
-                rtsim_outbox.push_back(NpcInput::Interaction(actor));
-                return false;
-            }
+        if let Some(rtsim_outbox) = &mut agent.rtsim_outbox
+            && let Some(by_entity) = by_entity
+            && let Some(actor) = read_data
+                .presences
+                .get(by_entity)
+                .and_then(|p| p.kind.character_id().map(Actor::Character))
+                .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
+        {
+            rtsim_outbox.push_back(NpcInput::Interaction(actor));
+            return false;
         }
 
-        if agent.allowed_to_speak() {
-            if let Some(target) = by_entity {
-                let target_pos = read_data.positions.get(target).map(|pos| pos.0);
+        if agent.allowed_to_speak()
+            && let Some(target) = by_entity
+        {
+            let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 
-                agent.target = Some(Target::new(
-                    target,
-                    false,
-                    read_data.time.0,
-                    false,
-                    target_pos,
-                ));
-                // We're always aware of someone we're talking to
-                agent.awareness.set_maximally_aware();
-            }
+            agent.target = Some(Target::new(
+                target,
+                false,
+                read_data.time.0,
+                false,
+                target_pos,
+            ));
+            // We're always aware of someone we're talking to
+            agent.awareness.set_maximally_aware();
         }
     }
     true
@@ -207,22 +205,22 @@ pub fn handle_inbox_trade_accepted(bdata: &mut BehaviorData) -> bool {
         return false;
     }
 
-    if let Some(AgentEvent::TradeAccepted(with)) = agent.inbox.pop_front() {
-        if !agent.behavior.is(BehaviorState::TRADING) {
-            if let Some(target) = get_entity_by_id(with, read_data) {
-                let target_pos = read_data.positions.get(target).map(|pos| pos.0);
+    if let Some(AgentEvent::TradeAccepted(with)) = agent.inbox.pop_front()
+        && !agent.behavior.is(BehaviorState::TRADING)
+    {
+        if let Some(target) = get_entity_by_id(with, read_data) {
+            let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 
-                agent.target = Some(Target::new(
-                    target,
-                    false,
-                    read_data.time.0,
-                    false,
-                    target_pos,
-                ));
-            }
-            agent.behavior.set(BehaviorState::TRADING);
-            agent.behavior.set(BehaviorState::TRADING_ISSUER);
+            agent.target = Some(Target::new(
+                target,
+                false,
+                read_data.time.0,
+                false,
+                target_pos,
+            ));
         }
+        agent.behavior.set(BehaviorState::TRADING);
+        agent.behavior.set(BehaviorState::TRADING_ISSUER);
     }
     true
 }
@@ -240,27 +238,27 @@ pub fn handle_inbox_finished_trade(bdata: &mut BehaviorData) -> bool {
         return false;
     }
 
-    if let Some(AgentEvent::FinishedTrade(result)) = agent.inbox.pop_front() {
-        if agent.behavior.is(BehaviorState::TRADING) {
-            match result {
-                TradeResult::Completed => {
-                    agent_data.chat_npc_if_allowed_to_speak(
-                        Content::localized("npc-speech-merchant_trade_successful"),
-                        agent,
-                        emitters,
-                    );
-                },
-                _ => {
-                    agent_data.chat_npc_if_allowed_to_speak(
-                        Content::localized("npc-speech-merchant_trade_declined"),
-                        agent,
-                        emitters,
-                    );
-                },
-            }
-            agent.behavior.unset(BehaviorState::TRADING);
-            agent.target = None;
+    if let Some(AgentEvent::FinishedTrade(result)) = agent.inbox.pop_front()
+        && agent.behavior.is(BehaviorState::TRADING)
+    {
+        match result {
+            TradeResult::Completed => {
+                agent_data.chat_npc_if_allowed_to_speak(
+                    Content::localized("npc-speech-merchant_trade_successful"),
+                    agent,
+                    emitters,
+                );
+            },
+            _ => {
+                agent_data.chat_npc_if_allowed_to_speak(
+                    Content::localized("npc-speech-merchant_trade_declined"),
+                    agent,
+                    emitters,
+                );
+            },
         }
+        agent.behavior.unset(BehaviorState::TRADING);
+        agent.target = None;
     }
     true
 }
@@ -365,17 +363,16 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                     let msm = MaterialStatManifest::load().read();
                     if let Some(ri) = &inventories[1 - who] {
                         for (slot, _) in pending.offers[1 - who].iter() {
-                            if let Some(item) = ri.inventory.get(slot) {
-                                if let Ok(item) = Item::new_from_item_definition_id(
+                            if let Some(item) = ri.inventory.get(slot)
+                                && let Ok(item) = Item::new_from_item_definition_id(
                                     item.name.as_ref(),
                                     &ability_map,
                                     &msm,
-                                ) {
-                                    if !item.tags().contains(&ItemTag::Food) {
-                                        only_food = false;
-                                        break;
-                                    }
-                                }
+                                )
+                                && !item.tags().contains(&ItemTag::Food)
+                            {
+                                only_food = false;
+                                break;
                             }
                         }
                     }

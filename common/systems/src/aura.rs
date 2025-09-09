@@ -70,10 +70,10 @@ impl<'a> System<'a> for Sys {
             // Iterate through the auras attached to this entity
             for (key, aura) in auras_comp.auras.iter() {
                 // Tick the aura and subtract dt from it
-                if let Some(end_time) = aura.end_time {
-                    if read_data.time.0 > end_time.0 {
-                        expired_auras.push(key);
-                    }
+                if let Some(end_time) = aura.end_time
+                    && read_data.time.0 > end_time.0
+                {
+                    expired_auras.push(key);
                 }
                 let target_iter = read_data
                     .cached_spatial_grid

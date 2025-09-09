@@ -208,49 +208,46 @@ impl StuckAirshipTracker {
         // The position history must be full to determine if the airship is stuck.
         if self.pos_history.len() == StuckAirshipTracker::MAX_POS_HISTORY_SIZE
             && self.backout_route.is_empty()
+            && let Some(last_pos) = self.pos_history.last()
         {
-            if let Some(last_pos) = self.pos_history.last() {
-                // If all the positions in the history are within 10 of the last position,
-                if self
-                    .pos_history
-                    .iter()
-                    .all(|pos| pos.distance_squared(*last_pos) < 10.0)
-                {
-                    // Airship is stuck on some obstacle.
+            // If all the positions in the history are within 10 of the last position,
+            if self
+                .pos_history
+                .iter()
+                .all(|pos| pos.distance_squared(*last_pos) < 10.0)
+            {
+                // Airship is stuck on some obstacle.
 
-                    // The direction to backout is opposite to the direction from the airship
-                    // to where it was going before it got stuck.
-                    if let Some(backout_dir) = (ctx.npc.wpos.xy() - target_pos)
-                        .with_z(0.0)
-                        .try_normalized()
-                    {
-                        let ground = ctx
-                            .world
-                            .sim()
-                            .get_surface_alt_approx(last_pos.xy().map(|e| e as i32));
-                        // The position to backout to is the current position + a distance in the
-                        // backout direction.
-                        let mut backout_pos =
-                            ctx.npc.wpos + backout_dir * StuckAirshipTracker::BACKOUT_DIST;
-                        // Add a z offset to the backout pos if the airship is near the ground.
-                        if (ctx.npc.wpos.z - ground).abs() < StuckAirshipTracker::NEAR_GROUND_HEIGHT
-                        {
-                            backout_pos.z += 50.0;
-                        }
-                        self.backout_route =
-                            vec![backout_pos, backout_pos + Vec3::unit_z() * 200.0];
-                        // The airship is stuck.
-                        #[cfg(debug_assertions)]
-                        debug!(
-                            "Airship {} Stuck! at {} {} {}, backout_dir:{:?}, backout_pos:{:?}",
-                            format!("{:?}", ctx.npc_id),
-                            ctx.npc.wpos.x,
-                            ctx.npc.wpos.y,
-                            ctx.npc.wpos.z,
-                            backout_dir,
-                            backout_pos
-                        );
+                // The direction to backout is opposite to the direction from the airship
+                // to where it was going before it got stuck.
+                if let Some(backout_dir) = (ctx.npc.wpos.xy() - target_pos)
+                    .with_z(0.0)
+                    .try_normalized()
+                {
+                    let ground = ctx
+                        .world
+                        .sim()
+                        .get_surface_alt_approx(last_pos.xy().map(|e| e as i32));
+                    // The position to backout to is the current position + a distance in the
+                    // backout direction.
+                    let mut backout_pos =
+                        ctx.npc.wpos + backout_dir * StuckAirshipTracker::BACKOUT_DIST;
+                    // Add a z offset to the backout pos if the airship is near the ground.
+                    if (ctx.npc.wpos.z - ground).abs() < StuckAirshipTracker::NEAR_GROUND_HEIGHT {
+                        backout_pos.z += 50.0;
                     }
+                    self.backout_route = vec![backout_pos, backout_pos + Vec3::unit_z() * 200.0];
+                    // The airship is stuck.
+                    #[cfg(debug_assertions)]
+                    debug!(
+                        "Airship {} Stuck! at {} {} {}, backout_dir:{:?}, backout_pos:{:?}",
+                        format!("{:?}", ctx.npc_id),
+                        ctx.npc.wpos.x,
+                        ctx.npc.wpos.y,
+                        ctx.npc.wpos.z,
+                        backout_dir,
+                        backout_pos
+                    );
                 }
             }
         }
@@ -391,10 +388,10 @@ where
     /// Add a value to the average. Maintains the sum without needing to iterate
     /// the values.
     fn add(&mut self, value: T) {
-        if self.values.len() == S {
-            if let Some(old_value) = self.values.pop_front() {
-                self.sum = self.sum - old_value;
-            }
+        if self.values.len() == S
+            && let Some(old_value) = self.values.pop_front()
+        {
+            self.sum = self.sum - old_value;
         }
         self.values.push_back(value);
         self.sum += value;

@@ -144,17 +144,16 @@ impl<'a> System<'a> for Sys {
                                     // Doesn't overlap with entity deletion in sync packages
                                     // because the uid would not be available if the entity was
                                     // deleted
-                                    if let Some(&uid) = uids.get(entities.entity(*id)) {
-                                        if !maybe_key
+                                    if let Some(&uid) = uids.get(entities.entity(*id))
+                                        && !maybe_key
                                             .as_ref()
                                             // Don't need to check that this isn't also in the
                                             // regions to remove since the entity will be removed 
                                             // when we get to that one.
                                             .map(|key| subscription.regions.contains(key))
                                             .unwrap_or(false)
-                                        {
-                                            client.send_fallible(ServerGeneral::DeleteEntity(uid));
-                                        }
+                                    {
+                                        client.send_fallible(ServerGeneral::DeleteEntity(uid));
                                     }
                                 },
                             }
@@ -178,9 +177,10 @@ impl<'a> System<'a> for Sys {
                 ) {
                     // Send client initial info about the entities in this region if it was not
                     // already within the set of subscribed regions
-                    if subscription.regions.insert(key) {
-                        if let Some(region) = region_map.get(key) {
-                            (
+                    if subscription.regions.insert(key)
+                        && let Some(region) = region_map.get(key)
+                    {
+                        (
                                 &positions,
                                 velocities.maybe(),
                                 orientations.maybe(),
@@ -203,7 +203,6 @@ impl<'a> System<'a> for Sys {
                                     // physics components
                                     client.send_fallible(ServerGeneral::CreateEntity(msg));
                                 })
-                        }
                     }
                 }
             }

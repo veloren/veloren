@@ -88,10 +88,9 @@ impl<'a> System<'a> for Sys {
                                 &read_data.terrain_grid,
                                 &read_data.id_maps,
                                 &read_data.colliders,
-                            ) {
-                                if block.is_mountable() {
-                                    emitters.emit(event::MountEvent::MountVolume(entity, volume));
-                                }
+                            ) && block.is_mountable()
+                            {
+                                emitters.emit(event::MountEvent::MountVolume(entity, volume));
                             }
                         },
                         ControlEvent::SetPetStay(pet_uid, stay) => {

@@ -1569,6 +1569,7 @@ pub trait PrimitiveTransform {
     fn rotate_z_90_about(self, n: i32, point: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
+    #[expect(dead_code)]
     #[must_use]
     fn scale(self, scale: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Returns a `PrimitiveRef` of the primitive in addition to the same

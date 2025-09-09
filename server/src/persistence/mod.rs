@@ -120,9 +120,10 @@ pub enum ConnectionMode {
     ReadWrite,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SqlLogMode {
     /// Logging is disabled
+    #[default]
     Disabled,
     /// Records timings for each SQL statement
     Profile,
@@ -132,10 +133,6 @@ pub enum SqlLogMode {
 
 impl SqlLogMode {
     pub fn variants() -> [&'static str; 3] { ["disabled", "profile", "trace"] }
-}
-
-impl Default for SqlLogMode {
-    fn default() -> Self { Self::Disabled }
 }
 
 impl core::str::FromStr for SqlLogMode {

@@ -24,13 +24,13 @@ impl<'a> System<'a> for Sys {
         let mut lossless = 0u64;
         for sc in chunk_receiver.try_iter() {
             for recipient in sc.recipients {
-                if let Some(client) = clients.get(recipient) {
-                    if client.send_prepared(&sc.msg).is_err() {
-                        if sc.lossy_compression {
-                            lossy += 1;
-                        } else {
-                            lossless += 1;
-                        }
+                if let Some(client) = clients.get(recipient)
+                    && client.send_prepared(&sc.msg).is_err()
+                {
+                    if sc.lossy_compression {
+                        lossy += 1;
+                    } else {
+                        lossless += 1;
                     }
                 }
             }

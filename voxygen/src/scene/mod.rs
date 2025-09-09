@@ -1615,11 +1615,11 @@ impl Scene {
                         };
 
                         // If this shape no longer matches, remove the old one
-                        if let Some(shape_id) = hitboxes.get(&entity) {
-                            if self.debug.get_shape(*shape_id).is_some_and(|s| s != &shape) {
-                                self.debug.remove_shape(*shape_id);
-                                hitboxes.remove(&entity);
-                            }
+                        if let Some(shape_id) = hitboxes.get(&entity)
+                            && self.debug.get_shape(*shape_id).is_some_and(|s| s != &shape)
+                        {
+                            self.debug.remove_shape(*shape_id);
+                            hitboxes.remove(&entity);
                         }
 
                         let shape_id = hitboxes

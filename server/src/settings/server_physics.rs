@@ -11,6 +11,7 @@ pub enum ServerPhysicsForceListRaw {
     V0(ServerPhysicsForceList),
 }
 
+#[expect(clippy::infallible_try_from)] // TODO: evaluate
 impl TryFrom<ServerPhysicsForceListRaw> for (Version, ServerPhysicsForceList) {
     type Error = <ServerPhysicsForceList as EditableSetting>::Error;
 

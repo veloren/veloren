@@ -546,10 +546,10 @@ fn handle_mute(
                 )])
             })?;
 
-        if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid)) {
-            if target.uuid == me.uuid {
-                return Err(Content::localized("command-mute-cannot-mute-self"));
-            }
+        if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid))
+            && target.uuid == me.uuid
+        {
+            return Err(Content::localized("command-mute-cannot-mute-self"));
         }
 
         if global_state
@@ -591,10 +591,10 @@ fn handle_unmute(
         {
             let client = &mut session_state.client.borrow_mut();
 
-            if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid)) {
-                if uuid == me.uuid {
-                    return Err(Content::localized("command-unmute-cannot-unmute-self"));
-                }
+            if let Some(me) = client.uid().and_then(|uid| client.player_list().get(&uid))
+                && uuid == me.uuid
+            {
+                return Err(Content::localized("command-unmute-cannot-unmute-self"));
             }
 
             global_state.profile.mutelist.remove(&uuid);

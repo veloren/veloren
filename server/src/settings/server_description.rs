@@ -30,6 +30,7 @@ impl From<ServerDescriptions> for ServerDescriptionRaw {
     }
 }
 
+#[expect(clippy::infallible_try_from)] // TODO: evaluate
 impl TryFrom<ServerDescriptionRaw> for (Version, ServerDescriptions) {
     type Error = <ServerDescriptions as EditableSetting>::Error;
 
@@ -115,6 +116,7 @@ mod v0 {
 
     /// Pretty much every `TryFrom` implementation except that of the very last
     /// version should look exactly like this.
+    #[expect(clippy::infallible_try_from)] // TODO: evaluate
     impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;
 
@@ -169,6 +171,7 @@ mod v1 {
     }
 
     use super::v2 as next;
+    #[expect(clippy::infallible_try_from)] // TODO: evaluate
     impl TryFrom<ServerDescription> for Final {
         type Error = <Final as EditableSetting>::Error;
 

@@ -129,24 +129,24 @@ impl ServerEvent for InitiateInviteEvent {
                 }
             } else {
                 // cancel current trades for inviter before inviting someone else to trade
-                if let Some(inviter_uid) = uids.get(inviter).copied() {
-                    if let Some(active_trade) = trades.entity_trades.get(&inviter_uid).copied() {
-                        trades
-                            .decline_trade(active_trade, inviter_uid)
-                            .and_then(|u| id_maps.uid_entity(u))
-                            .map(|e| {
-                                if let Some(client) = clients.get(e) {
-                                    client.send_fallible(ServerGeneral::FinishedTrade(
-                                        TradeResult::Declined,
-                                    ));
-                                }
-                                if let Some(agent) = agents.get_mut(e) {
-                                    agent.inbox.push_back(AgentEvent::FinishedTrade(
-                                        TradeResult::Declined,
-                                    ));
-                                }
-                            });
-                    }
+                if let Some(inviter_uid) = uids.get(inviter).copied()
+                    && let Some(active_trade) = trades.entity_trades.get(&inviter_uid).copied()
+                {
+                    trades
+                        .decline_trade(active_trade, inviter_uid)
+                        .and_then(|u| id_maps.uid_entity(u))
+                        .map(|e| {
+                            if let Some(client) = clients.get(e) {
+                                client.send_fallible(ServerGeneral::FinishedTrade(
+                                    TradeResult::Declined,
+                                ));
+                            }
+                            if let Some(agent) = agents.get_mut(e) {
+                                agent
+                                    .inbox
+                                    .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                            }
+                        });
                 };
             }
 
@@ -206,11 +206,11 @@ impl ServerEvent for InitiateInviteEvent {
                     });
                 }
             } else if let Some(agent) = agents.get_mut(invitee) {
-                if send_invite() {
-                    if let Some(inviter) = uids.get(inviter) {
-                        agent.inbox.push_back(AgentEvent::TradeInvite(*inviter));
-                        invite_sent = true;
-                    }
+                if send_invite()
+                    && let Some(inviter) = uids.get(inviter)
+                {
+                    agent.inbox.push_back(AgentEvent::TradeInvite(*inviter));
+                    invite_sent = true;
                 }
             } else if let Some(client) = clients.get(inviter) {
                 client.send_fallible(ServerGeneral::server_msg(
@@ -220,10 +220,8 @@ impl ServerEvent for InitiateInviteEvent {
             }
 
             // Notify inviter that the invite is pending
-            if invite_sent {
-                if let Some(client) = clients.get(inviter) {
-                    client.send_fallible(ServerGeneral::InvitePending(invitee_uid));
-                }
+            if invite_sent && let Some(client) = clients.get(inviter) {
+                client.send_fallible(ServerGeneral::InvitePending(invitee_uid));
             }
         }
     }
@@ -389,23 +387,22 @@ fn handle_invite_answer(
 ) {
     if matches!(kind, InviteKind::Trade) && matches!(invite_answer, InviteAnswer::Accepted) {
         // invitee must close current trade if one exists before accepting new one
-        if let Some(invitee_uid) = data.uids.get(entity).copied() {
-            if let Some(active_trade) = data.trades.entity_trades.get(&invitee_uid).copied() {
-                data.trades
-                    .decline_trade(active_trade, invitee_uid)
-                    .and_then(|u| data.id_maps.uid_entity(u))
-                    .map(|e| {
-                        if let Some(client) = data.clients.get(e) {
-                            client
-                                .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
-                        }
-                        if let Some(agent) = data.agents.get_mut(e) {
-                            agent
-                                .inbox
-                                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
-                        }
-                    });
-            }
+        if let Some(invitee_uid) = data.uids.get(entity).copied()
+            && let Some(active_trade) = data.trades.entity_trades.get(&invitee_uid).copied()
+        {
+            data.trades
+                .decline_trade(active_trade, invitee_uid)
+                .and_then(|u| data.id_maps.uid_entity(u))
+                .map(|e| {
+                    if let Some(client) = data.clients.get(e) {
+                        client.send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+                    }
+                    if let Some(agent) = data.agents.get_mut(e) {
+                        agent
+                            .inbox
+                            .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                    }
+                });
         };
     }
     if let (Some(client), Some(target)) =

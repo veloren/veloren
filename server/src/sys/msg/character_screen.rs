@@ -86,15 +86,14 @@ impl Sys {
 
             if client.client_type.emit_login_events()
                 && !client.login_msg_sent.load(Ordering::Relaxed)
+                && let Some(player_uid) = uids.get(entity)
             {
-                if let Some(player_uid) = uids.get(entity) {
-                    emitters.emit(ChatEvent {
-                        msg: ChatType::Online(*player_uid).into_plain_msg(""),
-                        from_client: false,
-                    });
+                emitters.emit(ChatEvent {
+                    msg: ChatType::Online(*player_uid).into_plain_msg(""),
+                    from_client: false,
+                });
 
-                    client.login_msg_sent.store(true, Ordering::Relaxed);
-                }
+                client.login_msg_sent.store(true, Ordering::Relaxed);
             }
             Ok(())
         };
@@ -250,22 +249,22 @@ impl Sys {
                         "Alias '{}' contains a banned word",
                         alias
                     )))?;
-                } else if let Some(player) = players.get(entity) {
-                    if let Err(error) = character_creator::edit_character(
+                } else if let Some(player) = players.get(entity)
+                    && let Err(error) = character_creator::edit_character(
                         entity,
                         player.uuid().to_string(),
                         id,
                         alias,
                         body,
                         character_updater,
-                    ) {
-                        debug!(
-                            ?error,
-                            ?body,
-                            "Denied editing character because of invalid input."
-                        );
-                        client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
-                    }
+                    )
+                {
+                    debug!(
+                        ?error,
+                        ?body,
+                        "Denied editing character because of invalid input."
+                    );
+                    client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
                 }
             },
             ClientGeneral::DeleteCharacter(character_id) => {

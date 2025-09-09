@@ -995,27 +995,26 @@ impl RepairRecipeBook {
             Slot::Inventory(slot) => inv.get(slot),
             // Items in overflow slots cannot be repaired until item is moved to a real slot
             Slot::Overflow(_) => None,
-        } {
-            if let Some(repair_recipe) = self.repair_recipe(item) {
-                repair_recipe
-                    .inputs(item)
-                    .enumerate()
-                    .for_each(|(i, (input, amount))| {
-                        // Gets all slots provided for this input by the frontend
-                        let input_slots = slots
-                            .iter()
-                            .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
-                            .copied();
-                        // Checks if requirement is met, and if not marks it as unsatisfied
-                        input.handle_requirement(
-                            amount,
-                            &mut slot_claims,
-                            &mut unsatisfied_requirements,
-                            inv,
-                            input_slots,
-                        );
-                    })
-            }
+        } && let Some(repair_recipe) = self.repair_recipe(item)
+        {
+            repair_recipe
+                .inputs(item)
+                .enumerate()
+                .for_each(|(i, (input, amount))| {
+                    // Gets all slots provided for this input by the frontend
+                    let input_slots = slots
+                        .iter()
+                        .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
+                        .copied();
+                    // Checks if requirement is met, and if not marks it as unsatisfied
+                    input.handle_requirement(
+                        amount,
+                        &mut slot_claims,
+                        &mut unsatisfied_requirements,
+                        inv,
+                        input_slots,
+                    );
+                })
         }
 
         if unsatisfied_requirements.is_empty() {

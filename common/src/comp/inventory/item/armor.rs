@@ -56,17 +56,14 @@ impl Armor {
 }
 
 /// longitudinal and lateral friction, only meaningful for footwear
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Friction {
+    #[default]
     Normal,
     Ski,
     Skate,
     // Snowshoe,
     // Spikes,
-}
-
-impl Default for Friction {
-    fn default() -> Self { Self::Normal }
 }
 
 impl Friction {

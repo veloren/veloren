@@ -39,20 +39,20 @@ fn notify_agent_prices(
     entity: EcsEntity,
     event: AgentEvent,
 ) {
-    if let Some((site_id, agent)) = agents.get_mut(entity).map(|a| (a.behavior.trade_site(), a)) {
-        if let AgentEvent::UpdatePendingTrade(boxval) = event {
-            // Prefer using this Agent's price data, but use the counterparty's price
-            // data if we don't have price data
-            let prices = site_id
-                .and_then(|site_id| index.get_site_prices(site_id))
-                .unwrap_or(boxval.2);
-            // Box<(tid, pend, _, inventories)>) = event {
-            agent
-                .inbox
-                .push_back(AgentEvent::UpdatePendingTrade(Box::new((
-                    boxval.0, boxval.1, prices, boxval.3,
-                ))));
-        }
+    if let Some((site_id, agent)) = agents.get_mut(entity).map(|a| (a.behavior.trade_site(), a))
+        && let AgentEvent::UpdatePendingTrade(boxval) = event
+    {
+        // Prefer using this Agent's price data, but use the counterparty's price
+        // data if we don't have price data
+        let prices = site_id
+            .and_then(|site_id| index.get_site_prices(site_id))
+            .unwrap_or(boxval.2);
+        // Box<(tid, pend, _, inventories)>) = event {
+        agent
+            .inbox
+            .push_back(AgentEvent::UpdatePendingTrade(Box::new((
+                boxval.0, boxval.1, prices, boxval.3,
+            ))));
     }
 }
 
@@ -400,14 +400,13 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     let msm = ecs.read_resource::<MaterialStatManifest>();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
-            if let Some(quantity) = NonZeroU32::new(*quantity) {
-                if let Some(item) = inventories
+            if let Some(quantity) = NonZeroU32::new(*quantity)
+                && let Some(item) = inventories
                     .get_mut(entities[who])
                     .expect(invmsg)
                     .take_amount(*slot, quantity, &ability_map, &msm)
-                {
-                    items[who].push(item);
-                }
+            {
+                items[who].push(item);
             }
         }
     }

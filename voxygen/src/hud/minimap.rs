@@ -167,8 +167,7 @@ impl VoxelMinimap {
                 && delta.y < VOXEL_MINIMAP_SIDELENGTH / TerrainChunkSize::RECT_SIZE.y
                 && (!self.chunk_minimaps.contains_key(&key)
                     || self.chunks_to_replace.contains(&key))
-            {
-                if let Some((_, column)) = self.keyed_jobs.spawn(Some(pool), key, || {
+                && let Some((_, column)) = self.keyed_jobs.spawn(Some(pool), key, || {
                     let arc_chunk = Arc::clone(chunk);
                     move |_| {
                         let mut layers = Vec::new();
@@ -201,11 +200,11 @@ impl VoxelMinimap {
                             ),
                         }
                     }
-                }) {
-                    self.chunks_to_replace.remove(&key);
-                    self.chunk_minimaps.insert(key, column);
-                    new_chunks = true;
-                }
+                })
+            {
+                self.chunks_to_replace.remove(&key);
+                self.chunk_minimaps.insert(key, column);
+                new_chunks = true;
             }
         }
         new_chunks

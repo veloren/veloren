@@ -83,6 +83,7 @@ pub trait ModelEntryFuture<const N: usize> {
 }
 
 /// A future FigureModelEntryLod.
+#[expect(clippy::large_enum_variant)]
 pub enum FigureModelEntryFuture<const N: usize> {
     /// We can poll the future to see whether the figure model is ready.
     // TODO: See if we can find away to either get rid of this Arc, or reuse Arcs across different
@@ -111,6 +112,7 @@ impl<const N: usize> ModelEntryFuture<N> for FigureModelEntryFuture<N> {
 }
 
 /// A future TerrainModelEntryLod.
+#[expect(clippy::large_enum_variant)]
 pub enum TerrainModelEntryFuture<const N: usize> {
     /// We can poll the future to see whether the figure model is ready.
     // TODO: See if we can find away to either get rid of this Arc, or reuse Arcs across different
@@ -369,15 +371,13 @@ where
         <Skel::Body as BodySpec>::Spec: Clone,
     {
         // TODO: Don't hard-code this.
-        if tick % 60 == 0 {
+        if tick.is_multiple_of(60) {
             self.models.retain(|_, ((model_entry, _), last_used)| {
                 // Wait about a minute at 60 fps before invalidating old models.
                 let delta = 60 * 60;
                 let alive = *last_used + delta > tick;
-                if !alive {
-                    if let Some(model_entry) = model_entry.get_done() {
-                        atlas.allocator.deallocate(model_entry.allocation().id);
-                    }
+                if !alive && let Some(model_entry) = model_entry.get_done() {
+                    atlas.allocator.deallocate(model_entry.allocation().id);
                 }
                 alive
             });

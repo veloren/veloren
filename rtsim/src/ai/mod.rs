@@ -926,10 +926,10 @@ impl<
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R0> {
-        if let Some(new_a1) = (self.f)(ctx, state) {
-            if self.a1.as_ref().is_none_or(|a1| !a1.is_same(&new_a1)) {
-                self.a1 = Some(new_a1);
-            }
+        if let Some(new_a1) = (self.f)(ctx, state)
+            && self.a1.as_ref().is_none_or(|a1| !a1.is_same(&new_a1))
+        {
+            self.a1 = Some(new_a1);
         }
 
         if let Some(a1) = &mut self.a1 {

@@ -68,14 +68,14 @@ impl<V: Vertex> Mesh<V> {
     /// Overwrite a quad
     pub fn replace_quad(&mut self, index: usize, quad: Quad<V>) {
         if V::QUADS_INDEX.is_some() {
-            debug_assert!(index % 4 == 0);
+            debug_assert!(index.is_multiple_of(4));
             assert!(index + 3 < self.verts.len());
             self.verts[index] = quad.b;
             self.verts[index + 1] = quad.c;
             self.verts[index + 2] = quad.a;
             self.verts[index + 3] = quad.d;
         } else {
-            debug_assert!(index % 3 == 0);
+            debug_assert!(index.is_multiple_of(3));
             assert!(index + 5 < self.verts.len());
             // Tri 1
             self.verts[index] = quad.a;

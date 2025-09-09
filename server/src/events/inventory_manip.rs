@@ -845,14 +845,11 @@ impl ServerEvent for InventoryManipEvent {
                         Slot::Inventory(source_inv_slot_id),
                         Slot::Inventory(target_inv_slot_id),
                     ) = (slot, target)
+                        && let Some(source_item) = inventory.get(source_inv_slot_id)
+                        && let Some(target_item) = inventory.get(target_inv_slot_id)
+                        && source_item != target_item
                     {
-                        if let Some(source_item) = inventory.get(source_inv_slot_id) {
-                            if let Some(target_item) = inventory.get(target_inv_slot_id) {
-                                if source_item != target_item {
-                                    continue;
-                                }
-                            }
-                        }
+                        continue;
                     }
 
                     let item = match slot {
@@ -863,10 +860,10 @@ impl ServerEvent for InventoryManipEvent {
                         Slot::Overflow(_) => None,
                     };
 
-                    if let Some(item) = item {
-                        if let Slot::Inventory(target) = target {
-                            inventory.insert_or_stack_at(target, item).ok();
-                        }
+                    if let Some(item) = item
+                        && let Slot::Inventory(target) = target
+                    {
+                        inventory.insert_or_stack_at(target, item).ok();
                     }
 
                     data.inventory_updates

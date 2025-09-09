@@ -211,12 +211,14 @@ pub fn distribute_many<T: Copy + Eq + Hash, I>(
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[rustfmt::skip] // breaks doc comments
+#[derive(Default)]
 pub enum LootSpec<T: AsRef<str>> {
     /// Asset specifier
     Item(T),
     /// Loot table
     LootTable(T),
     /// No loot given
+    #[default]
     Nothing,
     /// Random modular weapon that matches requested restrictions
     ModularWeapon {
@@ -431,10 +433,6 @@ impl<T: AsRef<str>> LootSpec<T> {
             None
         }
     }
-}
-
-impl Default for LootSpec<String> {
-    fn default() -> Self { Self::Nothing }
 }
 
 #[cfg(test)]

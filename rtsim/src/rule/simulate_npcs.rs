@@ -274,10 +274,10 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         // Move home if required
         if let Some(new_home) = npc.controller.new_home.take() {
             // Remove the NPC from their old home population
-            if let Some(old_home) = npc.home {
-                if let Some(old_home) = data.sites.get_mut(old_home) {
-                    old_home.population.remove(&npc_id);
-                }
+            if let Some(old_home) = npc.home
+                && let Some(old_home) = data.sites.get_mut(old_home)
+            {
+                old_home.population.remove(&npc_id);
             }
             // Add the NPC to their new home population
             if let Some(new_home) = new_home

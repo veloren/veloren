@@ -271,25 +271,25 @@ impl<'a> System<'a> for Sys {
                 (actions, inputs)
             });
 
-            if is_volume_rider.block.is_controller() {
-                if let Some((actions, inputs)) = inputs {
-                    if let Some(mut character_activity) = character_activities
-                        .get_mut(entity)
-                        .filter(|c| c.steer_dir != inputs.move_dir.y)
-                    {
-                        character_activity.steer_dir = inputs.move_dir.y;
-                    }
-                    match is_volume_rider.pos.kind {
-                        common::mounting::Volume::Entity(uid) => {
-                            if let Some(controller) =
-                                id_maps.uid_entity(uid).and_then(|e| controllers.get_mut(e))
-                            {
-                                controller.inputs = inputs;
-                                controller.actions = actions;
-                            }
-                        },
-                        common::mounting::Volume::Terrain => {},
-                    }
+            if is_volume_rider.block.is_controller()
+                && let Some((actions, inputs)) = inputs
+            {
+                if let Some(mut character_activity) = character_activities
+                    .get_mut(entity)
+                    .filter(|c| c.steer_dir != inputs.move_dir.y)
+                {
+                    character_activity.steer_dir = inputs.move_dir.y;
+                }
+                match is_volume_rider.pos.kind {
+                    common::mounting::Volume::Entity(uid) => {
+                        if let Some(controller) =
+                            id_maps.uid_entity(uid).and_then(|e| controllers.get_mut(e))
+                        {
+                            controller.inputs = inputs;
+                            controller.actions = actions;
+                        }
+                    },
+                    common::mounting::Volume::Terrain => {},
                 }
             }
         }

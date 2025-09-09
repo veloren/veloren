@@ -235,10 +235,10 @@ pub fn maintain_egui_inner(
 
     // If a debug cylinder was added in the last frame, store it against the
     // selected entity
-    if let Some(shape_id) = added_cylinder_shape_id {
-        if let Some(selected_entity) = &mut egui_state.selected_entity_info {
-            selected_entity.debug_shape_id = Some(shape_id);
-        }
+    if let Some(shape_id) = added_cylinder_shape_id
+        && let Some(selected_entity) = &mut egui_state.selected_entity_info
+    {
+        selected_entity.debug_shape_id = Some(shape_id);
     }
 
     if let Some(debug_info) = debug_info.as_ref() {
@@ -494,32 +494,32 @@ pub fn maintain_egui_inner(
         &experimental_shaders,
     );
 
-    if let Some(previous) = previous_selected_entity {
-        if let Some(debug_shape_id) = previous.debug_shape_id {
-            egui_actions
-                .actions
-                .push(EguiAction::DebugShape(EguiDebugShapeAction::RemoveShape(
-                    debug_shape_id,
-                )));
-        }
+    if let Some(previous) = previous_selected_entity
+        && let Some(debug_shape_id) = previous.debug_shape_id
+    {
+        egui_actions
+            .actions
+            .push(EguiAction::DebugShape(EguiDebugShapeAction::RemoveShape(
+                debug_shape_id,
+            )));
     };
 
-    if let Some(selected_entity) = &egui_state.selected_entity_info {
-        if let Some(debug_shape_id) = selected_entity.debug_shape_id {
-            if (egui_state.selected_entity_cylinder_height - selected_entity_cylinder_height).abs()
-                > f32::EPSILON
-            {
-                egui_actions.actions.push(EguiAction::DebugShape(
-                    EguiDebugShapeAction::RemoveShape(debug_shape_id),
-                ));
-                egui_actions.actions.push(EguiAction::DebugShape(
-                    EguiDebugShapeAction::AddCylinder {
-                        radius: 1.0,
-                        height: selected_entity_cylinder_height,
-                    },
-                ));
-            }
-        }
+    if let Some(selected_entity) = &egui_state.selected_entity_info
+        && let Some(debug_shape_id) = selected_entity.debug_shape_id
+        && (egui_state.selected_entity_cylinder_height - selected_entity_cylinder_height).abs()
+            > f32::EPSILON
+    {
+        egui_actions
+            .actions
+            .push(EguiAction::DebugShape(EguiDebugShapeAction::RemoveShape(
+                debug_shape_id,
+            )));
+        egui_actions
+            .actions
+            .push(EguiAction::DebugShape(EguiDebugShapeAction::AddCylinder {
+                radius: 1.0,
+                height: selected_entity_cylinder_height,
+            }));
     };
     if debug_vectors_enabled_mut != egui_state.debug_vectors_enabled {
         egui_actions
@@ -583,16 +583,16 @@ fn selected_entity_window(
         .filter(|(e, _, _, _, _, _, _, _, _, _, _, _, _, _, (_, _, _, _))| e.id() == entity_id)
     {
         let time = ecs.read_resource::<Time>();
-        if let Some(pos) = pos {
-            if let Some(shape_id) = selected_entity_info.debug_shape_id {
-                egui_actions.actions.push(EguiAction::DebugShape(
-                    EguiDebugShapeAction::SetPosAndColor {
-                        id: shape_id,
-                        color: [1.0, 1.0, 0.0, 0.5],
-                        pos: [pos.0.x, pos.0.y, pos.0.z + 2.0, 0.0],
-                    },
-                ));
-            }
+        if let Some(pos) = pos
+            && let Some(shape_id) = selected_entity_info.debug_shape_id
+        {
+            egui_actions.actions.push(EguiAction::DebugShape(
+                EguiDebugShapeAction::SetPosAndColor {
+                    id: shape_id,
+                    color: [1.0, 1.0, 0.0, 0.5],
+                    pos: [pos.0.x, pos.0.y, pos.0.z + 2.0, 0.0],
+                },
+            ));
         };
 
         Window::new("Selected Entity")

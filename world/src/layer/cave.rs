@@ -1418,7 +1418,7 @@ fn write_column<R: Rng>(
                     {
                         let mixed = col.marble.add(col.marble_small.sub(0.5).mul(0.25));
                         if (0.25..0.45).contains(&mixed) || (0.55..0.75).contains(&mixed) {
-                            return [
+                            [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
                                 (SpriteKind::JungleFern, 0.5),
@@ -1433,19 +1433,19 @@ fn write_column<R: Rng>(
                             ]
                             .choose_weighted(rng, |(_, w)| *w)
                             .ok()
-                            .map(|s| s.0);
+                            .map(|s| s.0)
                         } else if (0.0..0.25).contains(&mixed) {
-                            return [(Some(SpriteKind::LanternPlant), 0.5), (None, 0.5)]
+                            [(Some(SpriteKind::LanternPlant), 0.5), (None, 0.5)]
                                 .choose_weighted(rng, |(_, w)| *w)
                                 .ok()
-                                .and_then(|s| s.0);
+                                .and_then(|s| s.0)
                         } else if (0.75..1.0).contains(&mixed) {
-                            return [(Some(SpriteKind::LushFlower), 0.6), (None, 0.4)]
+                            [(Some(SpriteKind::LushFlower), 0.6), (None, 0.4)]
                                 .choose_weighted(rng, |(_, w)| *w)
                                 .ok()
-                                .and_then(|s| s.0);
+                                .and_then(|s| s.0)
                         } else {
-                            return [
+                            [
                                 (SpriteKind::LongGrass, 1.0),
                                 (SpriteKind::MediumGrass, 2.0),
                                 (SpriteKind::JungleFern, 0.5),
@@ -1465,7 +1465,7 @@ fn write_column<R: Rng>(
                             ]
                             .choose_weighted(rng, |(_, w)| *w)
                             .ok()
-                            .map(|s| s.0);
+                            .map(|s| s.0)
                         }
                     } else if rand.chance(wpos2d.with_z(2), biome.dusty.max(biome.sandy) * 0.01) {
                         [
@@ -1639,8 +1639,8 @@ fn write_column<R: Rng>(
 
 // #[inline_tweak::tweak_fn]
 fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Biome, rng: &mut R) {
-    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.035) {
-        if let Some(entity_asset) = [
+    if RandomField::new(canvas.info().index().seed).chance(wpos, 0.035)
+        && let Some(entity_asset) = [
             // Mushroom biome
             (
                 Some("common.entity.wild.aggressive.goblin_thug"),
@@ -1919,13 +1919,12 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         .choose_weighted(rng, |(_, w)| *w)
         .ok()
         .and_then(|s| s.0)
-        {
-            canvas.spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(
-                entity_asset,
-                rng,
-                None,
-            ));
-        }
+    {
+        canvas.spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(
+            entity_asset,
+            rng,
+            None,
+        ));
     }
 
     // FIXME: Add back waypoints once caves are not impossible to escape.

@@ -1185,33 +1185,32 @@ impl<'a> Skillbar<'a> {
             }
 
             // shortcuts
-            if let ShortcutNumbers::On = shortcuts {
-                if let Some(key) = &self
+            if let ShortcutNumbers::On = shortcuts
+                && let Some(key) = &self
                     .global_state
                     .settings
                     .controls
                     .get_binding(entry.game_input)
-                {
-                    let position = entry.shortcut_position;
-                    let position_bg = entry.shortcut_position_bg;
-                    let (id, id_bg) = entry.shortcut_widget_ids;
+            {
+                let position = entry.shortcut_position;
+                let position_bg = entry.shortcut_position_bg;
+                let (id, id_bg) = entry.shortcut_widget_ids;
 
-                    let key_desc = key.display_shortest();
-                    // shortcut text
-                    Text::new(&key_desc)
-                        .position(position)
-                        .font_size(self.fonts.cyri.scale(8))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(id, ui);
-                    // shortcut background
-                    Text::new(&key_desc)
-                        .position(position_bg)
-                        .font_size(self.fonts.cyri.scale(8))
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .color(BLACK)
-                        .set(id_bg, ui);
-                }
+                let key_desc = key.display_shortest();
+                // shortcut text
+                Text::new(&key_desc)
+                    .position(position)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(id, ui);
+                // shortcut background
+                Text::new(&key_desc)
+                    .position(position_bg)
+                    .font_size(self.fonts.cyri.scale(8))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(BLACK)
+                    .set(id_bg, ui);
             }
         }
         // Slot M1

@@ -114,21 +114,19 @@ impl AgentData<'_> {
                 {
                     if let (Some(alignment), Some(other_alignment)) =
                         (self.alignment, read_data.alignments.get(entity))
+                        && Alignment::passive_towards(*alignment, *other_alignment)
+                        && let (Some(pos), Some(body), Some(other_body)) = (
+                            read_data.positions.get(entity),
+                            self.body,
+                            read_data.bodies.get(entity),
+                        )
                     {
-                        if Alignment::passive_towards(*alignment, *other_alignment) {
-                            if let (Some(pos), Some(body), Some(other_body)) = (
-                                read_data.positions.get(entity),
-                                self.body,
-                                read_data.bodies.get(entity),
-                            ) {
-                                let dist_xy = self.pos.0.xy().distance(pos.0.xy());
-                                let spacing = body.spacing_radius() + other_body.spacing_radius();
-                                if dist_xy < spacing {
-                                    let pos_diff = self.pos.0.xy() - pos.0.xy();
-                                    sep_vec += pos_diff.try_normalized().unwrap_or_else(Vec2::zero)
-                                        * ((spacing - dist_xy) / spacing);
-                                }
-                            }
+                        let dist_xy = self.pos.0.xy().distance(pos.0.xy());
+                        let spacing = body.spacing_radius() + other_body.spacing_radius();
+                        if dist_xy < spacing {
+                            let pos_diff = self.pos.0.xy() - pos.0.xy();
+                            sep_vec += pos_diff.try_normalized().unwrap_or_else(Vec2::zero)
+                                * ((spacing - dist_xy) / spacing);
                         }
                     }
                 }
@@ -865,10 +863,11 @@ impl AgentData<'_> {
 
         self.dismount_uncontrollable(controller, read_data);
 
-        if let Some(body) = self.body {
-            if body.can_strafe() && !self.is_gliding {
-                controller.push_action(ControlAction::Unwield);
-            }
+        if let Some(body) = self.body
+            && body.can_strafe()
+            && !self.is_gliding
+        {
+            controller.push_action(ControlAction::Unwield);
         }
 
         if let Some((bearing, speed, stuck)) = agent.chaser.chase(
@@ -966,27 +965,26 @@ impl AgentData<'_> {
             let mut value = 0.0;
             let mut heal_multiplier_value = 1.0;
 
-            if let ItemKind::Consumable { kind, effects, .. } = &*item.kind() {
-                if matches!(kind, ConsumableKind::Drink)
-                    || (relaxed && matches!(kind, ConsumableKind::Food))
-                {
-                    match effects {
-                        Effects::Any(effects) => {
-                            // Add the average of all effects.
-                            for effect in effects.iter() {
-                                let (add, red) = effect_healing_value(effect);
-                                value += add / effects.len() as f32;
-                                heal_multiplier_value *= 1.0 - red / effects.len() as f32;
-                            }
-                        },
-                        Effects::All(_) | Effects::One(_) => {
-                            for effect in effects.effects() {
-                                let (add, red) = effect_healing_value(effect);
-                                value += add;
-                                heal_multiplier_value *= 1.0 - red;
-                            }
-                        },
-                    }
+            if let ItemKind::Consumable { kind, effects, .. } = &*item.kind()
+                && (matches!(kind, ConsumableKind::Drink)
+                    || (relaxed && matches!(kind, ConsumableKind::Food)))
+            {
+                match effects {
+                    Effects::Any(effects) => {
+                        // Add the average of all effects.
+                        for effect in effects.iter() {
+                            let (add, red) = effect_healing_value(effect);
+                            value += add / effects.len() as f32;
+                            heal_multiplier_value *= 1.0 - red / effects.len() as f32;
+                        }
+                    },
+                    Effects::All(_) | Effects::One(_) => {
+                        for effect in effects.effects() {
+                            let (add, red) = effect_healing_value(effect);
+                            value += add;
+                            heal_multiplier_value *= 1.0 - red;
+                        }
+                    },
                 }
             }
             // Prefer non-potion sources of healing when under at least one stack of potion
@@ -2076,46 +2074,44 @@ impl AgentData<'_> {
         emitters: &mut AgentEmitters,
         rng: &mut impl Rng,
     ) {
-        if let Some(Target { target, .. }) = agent.target {
-            if let Some(tgt_health) = read_data.healths.get(target) {
-                if let Some(by) = tgt_health.last_change.damage_by() {
-                    if let Some(attacker) = get_entity_by_id(by.uid(), read_data) {
-                        if agent.target.is_none() {
-                            controller.push_utterance(UtteranceKind::Angry);
-                        }
+        if let Some(Target { target, .. }) = agent.target
+            && let Some(tgt_health) = read_data.healths.get(target)
+            && let Some(by) = tgt_health.last_change.damage_by()
+            && let Some(attacker) = get_entity_by_id(by.uid(), read_data)
+        {
+            if agent.target.is_none() {
+                controller.push_utterance(UtteranceKind::Angry);
+            }
 
-                        let attacker_pos = read_data.positions.get(attacker).map(|pos| pos.0);
-                        agent.target = Some(Target::new(
-                            attacker,
-                            true,
-                            read_data.time.0,
-                            true,
-                            attacker_pos,
-                        ));
+            let attacker_pos = read_data.positions.get(attacker).map(|pos| pos.0);
+            agent.target = Some(Target::new(
+                attacker,
+                true,
+                read_data.time.0,
+                true,
+                attacker_pos,
+            ));
 
-                        if let Some(tgt_pos) = read_data.positions.get(attacker) {
-                            if is_dead_or_invulnerable(attacker, read_data) {
-                                agent.target = Some(Target::new(
-                                    target,
-                                    false,
-                                    read_data.time.0,
-                                    false,
-                                    Some(tgt_pos.0),
-                                ));
+            if let Some(tgt_pos) = read_data.positions.get(attacker) {
+                if is_dead_or_invulnerable(attacker, read_data) {
+                    agent.target = Some(Target::new(
+                        target,
+                        false,
+                        read_data.time.0,
+                        false,
+                        Some(tgt_pos.0),
+                    ));
 
-                                self.idle(agent, controller, read_data, emitters, rng);
-                            } else {
-                                let target_data = TargetData::new(tgt_pos, target, read_data);
-                                // TODO: Reimplement this in rtsim
-                                // if let Some(tgt_name) =
-                                //     read_data.stats.get(target).map(|stats| stats.name.clone())
-                                // {
-                                //     agent.add_fight_to_memory(&tgt_name, read_data.time.0)
-                                // }
-                                self.attack(agent, controller, &target_data, read_data, rng);
-                            }
-                        }
-                    }
+                    self.idle(agent, controller, read_data, emitters, rng);
+                } else {
+                    let target_data = TargetData::new(tgt_pos, target, read_data);
+                    // TODO: Reimplement this in rtsim
+                    // if let Some(tgt_name) =
+                    //     read_data.stats.get(target).map(|stats| stats.name.clone())
+                    // {
+                    //     agent.add_fight_to_memory(&tgt_name, read_data.time.0)
+                    // }
+                    self.attack(agent, controller, &target_data, read_data, rng);
                 }
             }
         }

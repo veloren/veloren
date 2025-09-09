@@ -163,11 +163,7 @@ impl<'a> System<'a> for Sys {
                 .join()
             {
                 // Check to see if entity has already been hit
-                if shockwave_hit_list
-                    .hit_entities
-                    .iter()
-                    .any(|&uid| uid == *uid_b)
-                {
+                if shockwave_hit_list.hit_entities.contains(uid_b) {
                     continue;
                 }
 

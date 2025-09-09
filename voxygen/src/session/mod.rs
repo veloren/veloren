@@ -610,14 +610,13 @@ impl PlayState for SessionState {
             let player_entity = client.entity();
 
             #[cfg(feature = "discord")]
-            if global_state.discord.is_active() {
-                if let Some(chunk) = client.current_chunk() {
-                    if let Some(location_name) = chunk.meta().name() {
-                        global_state
-                            .discord
-                            .update_location(location_name, client.current_site());
-                    }
-                }
+            if global_state.discord.is_active()
+                && let Some(chunk) = client.current_chunk()
+                && let Some(location_name) = chunk.meta().name()
+            {
+                global_state
+                    .discord
+                    .update_location(location_name, client.current_site());
             }
 
             if global_state.settings.gameplay.bow_zoom {
@@ -626,10 +625,9 @@ impl PlayState for SessionState {
                     .state()
                     .read_storage::<comp::CharacterState>()
                     .get(player_entity)
+                    && cr.charge_frac() > 0.5
                 {
-                    if cr.charge_frac() > 0.5 {
-                        fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
-                    }
+                    fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
                 }
                 camera.set_fixate(fov_scaling);
             } else {
@@ -860,17 +858,17 @@ impl PlayState for SessionState {
                                 self.walking_speed = false;
                                 let mut client = self.client.borrow_mut();
                                 if can_build {
-                                    if state {
-                                        if let Some(block) = build_target.and_then(|bt| {
+                                    if state
+                                        && let Some(block) = build_target.and_then(|bt| {
                                             client
                                                 .state()
                                                 .terrain()
                                                 .get(bt.position_int())
                                                 .ok()
                                                 .copied()
-                                        }) {
-                                            self.selected_block = block;
-                                        }
+                                        })
+                                    {
+                                        self.selected_block = block;
                                     }
                                 } else if controlling_char {
                                     client.handle_input(
@@ -1179,42 +1177,40 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Trade => {
-                                if state && controlling_char {
-                                    if let Some((_, Interactable::Entity { entity, .. })) =
+                                if state
+                                    && controlling_char
+                                    && let Some((_, Interactable::Entity { entity, .. })) =
                                         self.interactables.input_map.get(&GameInput::Trade)
+                                {
+                                    let mut client = self.client.borrow_mut();
+                                    if let Some(uid) = client.state().ecs().uid_from_entity(*entity)
                                     {
-                                        let mut client = self.client.borrow_mut();
-                                        if let Some(uid) =
-                                            client.state().ecs().uid_from_entity(*entity)
-                                        {
-                                            let name = client
-                                                .player_list()
-                                                .get(&uid)
-                                                .map(|info| info.player_alias.clone())
-                                                .unwrap_or_else(|| {
-                                                    let stats =
-                                                        client.state().read_storage::<Stats>();
-                                                    stats.get(*entity).map_or(
-                                                        format!("<entity {:?}>", uid),
-                                                        |e| {
-                                                            global_state
-                                                                .i18n
-                                                                .read()
-                                                                .get_content(&e.name)
-                                                        },
-                                                    )
-                                                });
+                                        let name = client
+                                            .player_list()
+                                            .get(&uid)
+                                            .map(|info| info.player_alias.clone())
+                                            .unwrap_or_else(|| {
+                                                let stats = client.state().read_storage::<Stats>();
+                                                stats.get(*entity).map_or(
+                                                    format!("<entity {:?}>", uid),
+                                                    |e| {
+                                                        global_state
+                                                            .i18n
+                                                            .read()
+                                                            .get_content(&e.name)
+                                                    },
+                                                )
+                                            });
 
-                                            self.hud.new_message(ChatType::Meta.into_msg(
-                                                Content::localized_with_args(
-                                                    "hud-trade-invite_sent",
-                                                    [("playername", name)],
-                                                ),
-                                            ));
+                                        self.hud.new_message(ChatType::Meta.into_msg(
+                                            Content::localized_with_args(
+                                                "hud-trade-invite_sent",
+                                                [("playername", name)],
+                                            ),
+                                        ));
 
-                                            client.send_invite(uid, InviteKind::Trade)
-                                        };
-                                    }
+                                        client.send_invite(uid, InviteKind::Trade)
+                                    };
                                 }
                             },
                             GameInput::FreeLook => {
@@ -1320,15 +1316,15 @@ impl PlayState for SessionState {
                                     // camera as a result of spectating.
                                     ori.z = 0.0;
                                     self.scene.camera_mut().set_orientation(ori);
-                                } else if let Some(target_entity) = entity_target {
-                                    if self.scene.camera().get_mode() == CameraMode::Freefly {
-                                        // Notify the server that we start spectating an entity so
-                                        // we get viewpoint specific component packages.
-                                        client.start_spectate_entity(target_entity.kind.0);
+                                } else if let Some(target_entity) = entity_target
+                                    && self.scene.camera().get_mode() == CameraMode::Freefly
+                                {
+                                    // Notify the server that we start spectating an entity so
+                                    // we get viewpoint specific component packages.
+                                    client.start_spectate_entity(target_entity.kind.0);
 
-                                        self.viewpoint_entity = Some(target_entity.kind.0);
-                                        self.scene.camera_mut().set_mode(CameraMode::FirstPerson);
-                                    }
+                                    self.viewpoint_entity = Some(target_entity.kind.0);
+                                    self.scene.camera_mut().set_mode(CameraMode::FirstPerson);
                                 }
                             },
                             GameInput::ToggleWalk if state => {
@@ -1801,23 +1797,50 @@ impl PlayState for SessionState {
                     } => {
                         let mut move_allowed = true;
 
-                        if !bypass_dialog {
-                            if let Some(inventory) = self
+                        if !bypass_dialog
+                            && let Some(inventory) = self
                                 .client
                                 .borrow()
                                 .state()
                                 .ecs()
                                 .read_storage::<comp::Inventory>()
                                 .get(self.client.borrow().entity())
-                            {
-                                match slot {
-                                    Slot::Inventory(inv_slot) => {
-                                        let slot_deficit = inventory.free_after_equip(inv_slot);
+                        {
+                            match slot {
+                                Slot::Inventory(inv_slot) => {
+                                    let slot_deficit = inventory.free_after_equip(inv_slot);
+                                    if slot_deficit < 0 {
+                                        self.hud.set_prompt_dialog(PromptDialogSettings::new(
+                                            global_state.i18n.read().get_content(
+                                                &Content::localized_with_args(
+                                                    "hud-bag-use_slot_equip_drop_items",
+                                                    [(
+                                                        "slot_deficit",
+                                                        slot_deficit.unsigned_abs() as u64,
+                                                    )],
+                                                ),
+                                            ),
+                                            HudEvent::UseSlot {
+                                                slot,
+                                                bypass_dialog: true,
+                                            },
+                                            None,
+                                        ));
+                                        move_allowed = false;
+                                    }
+                                },
+                                Slot::Equip(equip_slot) => {
+                                    // Ensure there is a free slot that is not provided by the
+                                    // item being unequipped
+                                    let free_slots =
+                                        inventory.free_slots_minus_equipped_item(equip_slot);
+                                    if free_slots > 0 {
+                                        let slot_deficit = inventory.free_after_unequip(equip_slot);
                                         if slot_deficit < 0 {
                                             self.hud.set_prompt_dialog(PromptDialogSettings::new(
                                                 global_state.i18n.read().get_content(
                                                     &Content::localized_with_args(
-                                                        "hud-bag-use_slot_equip_drop_items",
+                                                        "hud-bag-use_slot_unequip_drop_items",
                                                         [(
                                                             "slot_deficit",
                                                             slot_deficit.unsigned_abs() as u64,
@@ -1832,43 +1855,13 @@ impl PlayState for SessionState {
                                             ));
                                             move_allowed = false;
                                         }
-                                    },
-                                    Slot::Equip(equip_slot) => {
-                                        // Ensure there is a free slot that is not provided by the
-                                        // item being unequipped
-                                        let free_slots =
-                                            inventory.free_slots_minus_equipped_item(equip_slot);
-                                        if free_slots > 0 {
-                                            let slot_deficit =
-                                                inventory.free_after_unequip(equip_slot);
-                                            if slot_deficit < 0 {
-                                                self.hud
-                                                    .set_prompt_dialog(PromptDialogSettings::new(
-                                                    global_state.i18n.read().get_content(
-                                                        &Content::localized_with_args(
-                                                            "hud-bag-use_slot_unequip_drop_items",
-                                                            [(
-                                                                "slot_deficit",
-                                                                slot_deficit.unsigned_abs() as u64,
-                                                            )],
-                                                        ),
-                                                    ),
-                                                    HudEvent::UseSlot {
-                                                        slot,
-                                                        bypass_dialog: true,
-                                                    },
-                                                    None,
-                                                ));
-                                                move_allowed = false;
-                                            }
-                                        } else {
-                                            move_allowed = false;
-                                        }
-                                    },
-                                    Slot::Overflow(_) => {},
-                                }
-                            };
-                        }
+                                    } else {
+                                        move_allowed = false;
+                                    }
+                                },
+                                Slot::Overflow(_) => {},
+                            }
+                        };
 
                         if move_allowed {
                             self.client.borrow_mut().use_slot(slot);
@@ -1883,50 +1876,46 @@ impl PlayState for SessionState {
                         bypass_dialog,
                     } => {
                         let mut move_allowed = true;
-                        if !bypass_dialog {
-                            if let Some(inventory) = self
+                        if !bypass_dialog
+                            && let Some(inventory) = self
                                 .client
                                 .borrow()
                                 .state()
                                 .ecs()
                                 .read_storage::<comp::Inventory>()
                                 .get(self.client.borrow().entity())
-                            {
-                                match (slot_a, slot_b) {
-                                    (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
-                                    | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
-                                        if !inventory.can_swap(inv_slot, equip_slot) {
-                                            move_allowed = false;
-                                        } else {
-                                            let slot_deficit =
-                                                inventory.free_after_swap(equip_slot, inv_slot);
-                                            if slot_deficit < 0 {
-                                                self.hud.set_prompt_dialog(
-                                                    PromptDialogSettings::new(
-                                                        global_state.i18n.read().get_content(
-                                                            &Content::localized_with_args(
-                                                                "hud-bag-swap_slots_drop_items",
-                                                                [(
-                                                                    "slot_deficit",
-                                                                    slot_deficit.unsigned_abs()
-                                                                        as u64,
-                                                                )],
-                                                            ),
-                                                        ),
-                                                        HudEvent::SwapSlots {
-                                                            slot_a,
-                                                            slot_b,
-                                                            bypass_dialog: true,
-                                                        },
-                                                        None,
+                        {
+                            match (slot_a, slot_b) {
+                                (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
+                                | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
+                                    if !inventory.can_swap(inv_slot, equip_slot) {
+                                        move_allowed = false;
+                                    } else {
+                                        let slot_deficit =
+                                            inventory.free_after_swap(equip_slot, inv_slot);
+                                        if slot_deficit < 0 {
+                                            self.hud.set_prompt_dialog(PromptDialogSettings::new(
+                                                global_state.i18n.read().get_content(
+                                                    &Content::localized_with_args(
+                                                        "hud-bag-swap_slots_drop_items",
+                                                        [(
+                                                            "slot_deficit",
+                                                            slot_deficit.unsigned_abs() as u64,
+                                                        )],
                                                     ),
-                                                );
-                                                move_allowed = false;
-                                            }
+                                                ),
+                                                HudEvent::SwapSlots {
+                                                    slot_a,
+                                                    slot_b,
+                                                    bypass_dialog: true,
+                                                },
+                                                None,
+                                            ));
+                                            move_allowed = false;
                                         }
-                                    },
-                                    _ => {},
-                                }
+                                    }
+                                },
+                                _ => {},
                             }
                         }
                         if move_allowed {
@@ -1942,48 +1931,46 @@ impl PlayState for SessionState {
                         bypass_dialog,
                     } => {
                         let mut move_allowed = true;
-                        if !bypass_dialog {
-                            if let Some(inventory) = self
+                        if !bypass_dialog
+                            && let Some(inventory) = self
                                 .client
                                 .borrow()
                                 .state()
                                 .ecs()
                                 .read_storage::<comp::Inventory>()
                                 .get(self.client.borrow().entity())
-                            {
-                                match (slot_a, slot_b) {
-                                    (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
-                                    | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
-                                        if !inventory.can_swap(inv_slot, equip_slot) {
-                                            move_allowed = false;
-                                        } else {
-                                            let slot_deficit =
-                                                inventory.free_after_swap(equip_slot, inv_slot);
-                                            if slot_deficit < 0 {
-                                                self.hud
-                                                    .set_prompt_dialog(PromptDialogSettings::new(
-                                                    global_state.i18n.read().get_content(
-                                                        &Content::localized_with_args(
-                                                            "hud-bag-split_swap_slots_drop_items",
-                                                            [(
-                                                                "slot_deficit",
-                                                                slot_deficit.unsigned_abs() as u64,
-                                                            )],
-                                                        ),
+                        {
+                            match (slot_a, slot_b) {
+                                (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
+                                | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
+                                    if !inventory.can_swap(inv_slot, equip_slot) {
+                                        move_allowed = false;
+                                    } else {
+                                        let slot_deficit =
+                                            inventory.free_after_swap(equip_slot, inv_slot);
+                                        if slot_deficit < 0 {
+                                            self.hud.set_prompt_dialog(PromptDialogSettings::new(
+                                                global_state.i18n.read().get_content(
+                                                    &Content::localized_with_args(
+                                                        "hud-bag-split_swap_slots_drop_items",
+                                                        [(
+                                                            "slot_deficit",
+                                                            slot_deficit.unsigned_abs() as u64,
+                                                        )],
                                                     ),
-                                                    HudEvent::SwapSlots {
-                                                        slot_a,
-                                                        slot_b,
-                                                        bypass_dialog: true,
-                                                    },
-                                                    None,
-                                                ));
-                                                move_allowed = false;
-                                            }
+                                                ),
+                                                HudEvent::SwapSlots {
+                                                    slot_a,
+                                                    slot_b,
+                                                    bypass_dialog: true,
+                                                },
+                                                None,
+                                            ));
+                                            move_allowed = false;
                                         }
-                                    },
-                                    _ => {},
-                                }
+                                    }
+                                },
+                                _ => {},
                             }
                         };
                         if move_allowed {
@@ -2058,7 +2045,7 @@ impl PlayState for SessionState {
                         let slots = {
                             let client = self.client.borrow();
 
-                            let s = if let Some(inventory) = client
+                            if let Some(inventory) = client
                                 .state()
                                 .ecs()
                                 .read_storage::<comp::Inventory>()
@@ -2073,8 +2060,7 @@ impl PlayState for SessionState {
                                 }
                             } else {
                                 None
-                            };
-                            s
+                            }
                         };
                         if let Some(slots) = slots {
                             self.client.borrow_mut().craft_recipe(
@@ -2283,7 +2269,7 @@ impl PlayState for SessionState {
             // of going back to character selection.
             if client_type.can_spectate() && !client_type.can_enter_character() {
                 // Go back to the main menu state
-                return PlayStateResult::Pop;
+                PlayStateResult::Pop
             } else {
                 PlayStateResult::Switch(Box::new(CharSelectionState::new(
                     global_state,

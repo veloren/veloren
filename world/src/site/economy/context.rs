@@ -138,12 +138,12 @@ impl Environment {
     }
 
     fn csv_tick(&mut self, index: &Index) {
-        if let Some(f) = self.csv_file.as_mut() {
-            if let Some(site) = index.sites.values().find(|s| s.do_economic_simulation()) {
-                Economy::csv_entry(f, site).unwrap_or_else(|_| {
-                    self.csv_file.take();
-                });
-            }
+        if let Some(f) = self.csv_file.as_mut()
+            && let Some(site) = index.sites.values().find(|s| s.do_economic_simulation())
+        {
+            Economy::csv_entry(f, site).unwrap_or_else(|_| {
+                self.csv_file.take();
+            });
         }
     }
 }

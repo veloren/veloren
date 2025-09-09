@@ -404,14 +404,14 @@ impl Scene {
                 None,
             );
 
-            if let Some((model, char_state)) = model.zip(self.char_state.as_ref()) {
-                if let Some(lod) = model.lod_model(0) {
-                    figure_drawer.draw(
-                        lod,
-                        char_state.bound(),
-                        self.figure_atlas.texture(ModelEntryRef::Figure(model)),
-                    );
-                }
+            if let Some((model, char_state)) = model.zip(self.char_state.as_ref())
+                && let Some(lod) = model.lod_model(0)
+            {
+                figure_drawer.draw(
+                    lod,
+                    char_state.bound(),
+                    self.figure_atlas.texture(ModelEntryRef::Figure(model)),
+                );
             }
         }
 
@@ -424,14 +424,14 @@ impl Scene {
             None,
             None,
         );
-        if let Some((model, airship_state)) = model.zip(self.airship_state.as_ref()) {
-            if let Some(lod) = model.lod_model(0) {
-                figure_drawer.draw(
-                    lod,
-                    airship_state.bound(),
-                    self.figure_atlas.texture(ModelEntryRef::Terrain(model)),
-                );
-            }
+        if let Some((model, airship_state)) = model.zip(self.airship_state.as_ref())
+            && let Some(lod) = model.lod_model(0)
+        {
+            figure_drawer.draw(
+                lod,
+                airship_state.bound(),
+                self.figure_atlas.texture(ModelEntryRef::Terrain(model)),
+            );
         }
 
         drop(figure_drawer);

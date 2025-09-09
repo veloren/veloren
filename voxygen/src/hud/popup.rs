@@ -97,25 +97,25 @@ impl Widget for Popup<'_> {
         let message_color = |fade| Color::Rgba(1.0, 1.0, 1.0, fade);
 
         // Push chunk name to message queue
-        if let Some(chunk) = self.client.current_chunk() {
-            if let Some(current) = chunk.meta().name() {
-                // Check if no other popup is displayed and a new one is needed
-                if state.messages.is_empty()
-                    && state
-                        .last_region_name
-                        .as_ref()
-                        .map(|l| l != current)
-                        .unwrap_or(true)
-                {
-                    // Update last_region
-                    state.update(|s| {
-                        if s.messages.is_empty() {
-                            s.last_message_update = Instant::now();
-                        }
-                        s.last_region_name = Some(current.to_owned());
-                        s.messages.push_back(current.to_owned());
-                    });
-                }
+        if let Some(chunk) = self.client.current_chunk()
+            && let Some(current) = chunk.meta().name()
+        {
+            // Check if no other popup is displayed and a new one is needed
+            if state.messages.is_empty()
+                && state
+                    .last_region_name
+                    .as_ref()
+                    .map(|l| l != current)
+                    .unwrap_or(true)
+            {
+                // Update last_region
+                state.update(|s| {
+                    if s.messages.is_empty() {
+                        s.last_message_update = Instant::now();
+                    }
+                    s.last_region_name = Some(current.to_owned());
+                    s.messages.push_back(current.to_owned());
+                });
             }
         }
 
@@ -179,30 +179,30 @@ impl Widget for Popup<'_> {
         }
 
         // Display info as popup
-        if !self.show.intro {
-            if let Some(info) = state.infos.front() {
-                let seconds = state.last_info_update.elapsed().as_secs_f32();
-                let fade = if seconds < FADE_IN {
-                    seconds / FADE_IN
-                } else if seconds < FADE_IN + FADE_HOLD {
-                    1.0
-                } else {
-                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-                };
+        if !self.show.intro
+            && let Some(info) = state.infos.front()
+        {
+            let seconds = state.last_info_update.elapsed().as_secs_f32();
+            let fade = if seconds < FADE_IN {
+                seconds / FADE_IN
+            } else if seconds < FADE_IN + FADE_HOLD {
+                1.0
+            } else {
+                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+            };
 
-                Text::new(info)
-                    .mid_top_with_margin_on(ui.window, 100.0)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(bg_color(fade))
-                    .set(state.ids.info_bg, ui);
-                Text::new(info)
-                    .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
-                    .font_size(self.fonts.cyri.scale(20))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(info_color(fade))
-                    .set(state.ids.info_text, ui);
-            }
+            Text::new(info)
+                .mid_top_with_margin_on(ui.window, 100.0)
+                .font_size(self.fonts.cyri.scale(20))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(bg_color(fade))
+                .set(state.ids.info_bg, ui);
+            Text::new(info)
+                .top_left_with_margins_on(state.ids.info_bg, -1.0, -1.0)
+                .font_size(self.fonts.cyri.scale(20))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(info_color(fade))
+                .set(state.ids.info_text, ui);
         }
 
         // Get next message from queue
@@ -216,29 +216,29 @@ impl Widget for Popup<'_> {
         }
 
         // Display message as popup
-        if !self.show.intro {
-            if let Some(message) = state.messages.front() {
-                let seconds = state.last_message_update.elapsed().as_secs_f32();
-                let fade = if seconds < FADE_IN {
-                    seconds / FADE_IN
-                } else if seconds < FADE_IN + FADE_HOLD {
-                    1.0
-                } else {
-                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
-                };
-                Text::new(message)
-                    .mid_top_with_margin_on(ui.window, 200.0)
-                    .font_size(self.fonts.alkhemi.scale(70))
-                    .font_id(self.fonts.alkhemi.conrod_id)
-                    .color(bg_color(fade))
-                    .set(state.ids.message_bg, ui);
-                Text::new(message)
-                    .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
-                    .font_size(self.fonts.alkhemi.scale(70))
-                    .font_id(self.fonts.alkhemi.conrod_id)
-                    .color(message_color(fade))
-                    .set(state.ids.message_text, ui);
-            }
+        if !self.show.intro
+            && let Some(message) = state.messages.front()
+        {
+            let seconds = state.last_message_update.elapsed().as_secs_f32();
+            let fade = if seconds < FADE_IN {
+                seconds / FADE_IN
+            } else if seconds < FADE_IN + FADE_HOLD {
+                1.0
+            } else {
+                (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+            };
+            Text::new(message)
+                .mid_top_with_margin_on(ui.window, 200.0)
+                .font_size(self.fonts.alkhemi.scale(70))
+                .font_id(self.fonts.alkhemi.conrod_id)
+                .color(bg_color(fade))
+                .set(state.ids.message_bg, ui);
+            Text::new(message)
+                .top_left_with_margins_on(state.ids.message_bg, -2.5, -2.5)
+                .font_size(self.fonts.alkhemi.scale(70))
+                .font_id(self.fonts.alkhemi.conrod_id)
+                .color(message_color(fade))
+                .set(state.ids.message_text, ui);
         }
     }
 }

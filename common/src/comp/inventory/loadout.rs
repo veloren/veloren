@@ -106,12 +106,11 @@ impl Loadout {
         item: Option<Item>,
         time: Time,
     ) -> Option<Item> {
-        if let Some(item_def_id) = item.as_ref().map(|item| item.item_definition_id()) {
-            if let Some((_unequip_time, count)) =
+        if let Some(item_def_id) = item.as_ref().map(|item| item.item_definition_id())
+            && let Some((_unequip_time, count)) =
                 self.recently_unequipped_items.get_mut(&item_def_id)
-            {
-                *count = count.saturating_sub(1);
-            }
+        {
+            *count = count.saturating_sub(1);
         }
         self.cull_recently_unequipped_items(time);
         let unequipped_item = self

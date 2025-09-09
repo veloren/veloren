@@ -122,10 +122,9 @@ impl ServerEvent for NpcInteractEvent {
             if within_range
                 && let Some(agent) = agents.get_mut(npc_entity)
                 && agent.target.is_none()
+                && let Some(interactor_uid) = uids.get(interactor)
             {
-                if let Some(interactor_uid) = uids.get(interactor) {
-                    agent.inbox.push_back(AgentEvent::Talk(*interactor_uid));
-                }
+                agent.inbox.push_back(AgentEvent::Talk(*interactor_uid));
             }
         }
     }
@@ -560,15 +559,13 @@ impl ServerEvent for ToggleSpriteLightEvent {
             if let Some(entity_pos) = positions.get(ev.entity)
                 && entity_pos.0.distance_squared(ev.pos.as_()) < MAX_INTERACT_RANGE.powi(2)
                 && block_change.can_set_block(ev.pos)
-            {
-                if let Some(new_block) = terrain
+                && let Some(new_block) = terrain
                     .get(ev.pos)
                     .ok()
                     .and_then(|block| block.with_toggle_light(ev.enable))
-                {
-                    block_change.set(ev.pos, new_block);
-                    // TODO: Emit outcome
-                }
+            {
+                block_change.set(ev.pos, new_block);
+                // TODO: Emit outcome
             }
         }
     }

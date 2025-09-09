@@ -279,20 +279,20 @@ impl ServerEvent for HealthChangeEvent {
                     }
                 }
 
-                if let (Some(pos), Some(uid)) = (pos, uid) {
-                    if changed {
-                        emitters.emit(Outcome::HealthChange {
-                            pos: pos.0,
-                            info: HealthChangeInfo {
-                                amount: ev.change.amount,
-                                by: ev.change.by,
-                                target: *uid,
-                                cause: ev.change.cause,
-                                precise: ev.change.precise,
-                                instance: ev.change.instance,
-                            },
-                        });
-                    }
+                if let (Some(pos), Some(uid)) = (pos, uid)
+                    && changed
+                {
+                    emitters.emit(Outcome::HealthChange {
+                        pos: pos.0,
+                        info: HealthChangeInfo {
+                            amount: ev.change.amount,
+                            by: ev.change.by,
+                            target: *uid,
+                            cause: ev.change.cause,
+                            precise: ev.change.precise,
+                            instance: ev.change.instance,
+                        },
+                    });
                 }
 
                 if !health.is_dead && health.should_die() {
@@ -310,10 +310,10 @@ impl ServerEvent for HealthChangeEvent {
             // This if statement filters out anything under 5 damage, for DOT ticks
             // TODO: Find a better way to separate direct damage from DOT here
             let damage = -ev.change.amount;
-            if damage > 5.0 {
-                if let Some(agent) = data.agents.get_mut(ev.entity) {
-                    agent.inbox.push_back(AgentEvent::Hurt);
-                }
+            if damage > 5.0
+                && let Some(agent) = data.agents.get_mut(ev.entity)
+            {
+                agent.inbox.push_back(AgentEvent::Hurt);
             }
         }
     }
@@ -1061,13 +1061,10 @@ impl ServerEvent for DestroyEvent {
                         .is_some_and(|our_pos| {
                             let our_pos = our_pos.0.map(|i| i as i32);
 
-                            let is_in_area = data
-                                .areas_container
+                            data.areas_container
                                 .areas()
                                 .iter()
-                                .any(|(_, area)| area.contains_point(our_pos));
-
-                            is_in_area
+                                .any(|(_, area)| area.contains_point(our_pos))
                         });
 
                 // Modify durability on all equipped items
@@ -1972,72 +1969,67 @@ impl ServerEvent for BonkEvent {
             } else {
                 use common::terrain::SpriteKind;
                 let pos = ev.pos.map(|e| e.floor() as i32);
-                if let Some(block) = terrain.get(pos).ok().copied().filter(|b| b.is_bonkable()) {
-                    if block_change
+                if let Some(block) = terrain.get(pos).ok().copied().filter(|b| b.is_bonkable())
+                    && block_change
                         .try_set(pos, block.with_sprite(SpriteKind::Empty))
                         .is_some()
-                    {
-                        let sprite_cfg = terrain.sprite_cfg_at(pos);
-                        if let Some(items) = comp::Item::try_reclaim_from_block(block, sprite_cfg) {
-                            let msm = &MaterialStatManifest::load().read();
-                            let ability_map = &AbilityMap::load().read();
-                            for item in flatten_counted_items(&items, ability_map, msm) {
-                                let pos = Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
-                                let vel = comp::Vel::default();
-                                // TODO: Use the `ItemDrop` body for this.
-                                let body = match block.get_sprite() {
-                                    // Create different containers depending on the original
-                                    // sprite
-                                    Some(SpriteKind::Apple) => comp::object::Body::Apple,
-                                    Some(SpriteKind::Beehive) => comp::object::Body::Hive,
-                                    Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
-                                    Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
-                                    _ => comp::object::Body::Pebble,
-                                };
+                {
+                    let sprite_cfg = terrain.sprite_cfg_at(pos);
+                    if let Some(items) = comp::Item::try_reclaim_from_block(block, sprite_cfg) {
+                        let msm = &MaterialStatManifest::load().read();
+                        let ability_map = &AbilityMap::load().read();
+                        for item in flatten_counted_items(&items, ability_map, msm) {
+                            let pos = Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0));
+                            let vel = comp::Vel::default();
+                            // TODO: Use the `ItemDrop` body for this.
+                            let body = match block.get_sprite() {
+                                // Create different containers depending on the original
+                                // sprite
+                                Some(SpriteKind::Apple) => comp::object::Body::Apple,
+                                Some(SpriteKind::Beehive) => comp::object::Body::Hive,
+                                Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                                Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
+                                _ => comp::object::Body::Pebble,
+                            };
 
-                                if matches!(block.get_sprite(), Some(SpriteKind::Bomb)) {
-                                    shoot_emitter.emit(ShootEvent {
-                                        entity: None,
-                                        pos,
-                                        dir: Dir::from_unnormalized(vel.0).unwrap_or_default(),
-                                        body: Body::Object(body),
-                                        light: None,
-                                        projectile: ProjectileConstructor {
-                                            kind: ProjectileConstructorKind::Explosive {
-                                                radius: 12.0,
-                                                min_falloff: 0.75,
-                                                reagent: None,
-                                                terrain: Some((4.0, ColorPreset::Black)),
-                                            },
-                                            attack: Some(ProjectileAttack {
-                                                damage: 40.0,
-                                                poise: Some(100.0),
-                                                knockback: None,
-                                                energy: None,
-                                                buff: None,
-                                                friendly_fire: true,
-                                            }),
-                                            scaled: None,
-                                        }
-                                        .create_projectile(None, 1.0, None),
-                                        speed: vel.0.magnitude(),
-                                        object: None,
-                                    });
-                                } else {
-                                    create_object_emitter.emit(CreateObjectEvent {
-                                        pos,
-                                        vel,
-                                        body,
-                                        object: None,
-                                        item: Some(comp::PickupItem::new(
-                                            item,
-                                            *program_time,
-                                            false,
-                                        )),
-                                        light_emitter: None,
-                                        stats: None,
-                                    });
-                                }
+                            if matches!(block.get_sprite(), Some(SpriteKind::Bomb)) {
+                                shoot_emitter.emit(ShootEvent {
+                                    entity: None,
+                                    pos,
+                                    dir: Dir::from_unnormalized(vel.0).unwrap_or_default(),
+                                    body: Body::Object(body),
+                                    light: None,
+                                    projectile: ProjectileConstructor {
+                                        kind: ProjectileConstructorKind::Explosive {
+                                            radius: 12.0,
+                                            min_falloff: 0.75,
+                                            reagent: None,
+                                            terrain: Some((4.0, ColorPreset::Black)),
+                                        },
+                                        attack: Some(ProjectileAttack {
+                                            damage: 40.0,
+                                            poise: Some(100.0),
+                                            knockback: None,
+                                            energy: None,
+                                            buff: None,
+                                            friendly_fire: true,
+                                        }),
+                                        scaled: None,
+                                    }
+                                    .create_projectile(None, 1.0, None),
+                                    speed: vel.0.magnitude(),
+                                    object: None,
+                                });
+                            } else {
+                                create_object_emitter.emit(CreateObjectEvent {
+                                    pos,
+                                    vel,
+                                    body,
+                                    object: None,
+                                    item: Some(comp::PickupItem::new(item, *program_time, false)),
+                                    light_emitter: None,
+                                    stats: None,
+                                });
                             }
                         }
                     }
@@ -2081,13 +2073,13 @@ impl ServerEvent for AuraEvent {
                     }
                 },
                 AuraChange::ExitAura(uid, key, variant) => {
-                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity) {
-                        if let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant) {
-                            entered_auras_variant.remove(&(uid, key));
+                    if let Some(mut entered_auras) = entered_auras.get_mut(ev.entity)
+                        && let Some(entered_auras_variant) = entered_auras.auras.get_mut(&variant)
+                    {
+                        entered_auras_variant.remove(&(uid, key));
 
-                            if entered_auras_variant.is_empty() {
-                                entered_auras.auras.remove(&variant);
-                            }
+                        if entered_auras_variant.is_empty() {
+                            entered_auras.auras.remove(&variant);
                         }
                     }
                 },
@@ -2405,16 +2397,15 @@ impl ServerEvent for TeleportToEvent {
                 .and_then(|e| positions.get(e))
                 .copied();
 
-            if let (Some(pos), Some(target_pos)) = (positions.get_mut(ev.entity), target_pos) {
-                if ev
+            if let (Some(pos), Some(target_pos)) = (positions.get_mut(ev.entity), target_pos)
+                && ev
                     .max_range
                     .is_none_or(|r| pos.0.distance_squared(target_pos.0) < r.powi(2))
-                {
-                    *pos = target_pos;
-                    force_updates
-                        .get_mut(ev.entity)
-                        .map(|force_update| force_update.update());
-                }
+            {
+                *pos = target_pos;
+                force_updates
+                    .get_mut(ev.entity)
+                    .map(|force_update| force_update.update());
             }
         }
     }
@@ -2507,33 +2498,33 @@ impl ServerEvent for EntityAttackedHookEvent {
             });
 
             // If entity was in an active trade, cancel it
-            if let Some(uid) = data.uids.get(ev.entity) {
-                if let Some(trade) = data.trades.entity_trades.get(uid).copied() {
-                    data.trades
-                        .decline_trade(trade, *uid)
-                        .and_then(|uid| data.id_maps.uid_entity(uid))
-                        .map(|entity_b| {
-                            // Notify both parties that the trade ended
-                            let mut notify_trade_party = |entity| {
-                                // TODO: Can probably improve UX here for the user that sent the
-                                // trade invite, since right now it
-                                // may seems like their request was
-                                // purposefully declined, rather than e.g. being interrupted.
-                                if let Some(client) = data.clients.get(entity) {
-                                    client.send_fallible(ServerGeneral::FinishedTrade(
-                                        TradeResult::Declined,
-                                    ));
-                                }
-                                if let Some(agent) = data.agents.get_mut(entity) {
-                                    agent.inbox.push_back(AgentEvent::FinishedTrade(
-                                        TradeResult::Declined,
-                                    ));
-                                }
-                            };
-                            notify_trade_party(ev.entity);
-                            notify_trade_party(entity_b);
-                        });
-                }
+            if let Some(uid) = data.uids.get(ev.entity)
+                && let Some(trade) = data.trades.entity_trades.get(uid).copied()
+            {
+                data.trades
+                    .decline_trade(trade, *uid)
+                    .and_then(|uid| data.id_maps.uid_entity(uid))
+                    .map(|entity_b| {
+                        // Notify both parties that the trade ended
+                        let mut notify_trade_party = |entity| {
+                            // TODO: Can probably improve UX here for the user that sent the
+                            // trade invite, since right now it
+                            // may seems like their request was
+                            // purposefully declined, rather than e.g. being interrupted.
+                            if let Some(client) = data.clients.get(entity) {
+                                client.send_fallible(ServerGeneral::FinishedTrade(
+                                    TradeResult::Declined,
+                                ));
+                            }
+                            if let Some(agent) = data.agents.get_mut(entity) {
+                                agent
+                                    .inbox
+                                    .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                            }
+                        };
+                        notify_trade_party(ev.entity);
+                        notify_trade_party(entity_b);
+                    });
             }
 
             if let Some(stats) = data.stats.get(ev.entity) {

@@ -4,7 +4,6 @@
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
     fundamental,
-    let_chains,
     trait_alias,
     type_changing_struct_update,
     macro_metavar_expr

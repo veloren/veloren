@@ -558,21 +558,20 @@ pub(super) fn point_voxel_collision(
     pos.0 += pos_delta.try_normalized().unwrap_or_else(Vec3::zero) * dist;
 
     // TODO: Not all projectiles should count as sticky!
-    if sticky {
-        if let Some((projectile, body)) = read
+    if sticky
+        && let Some((projectile, body)) = read
             .projectiles
             .get(entity)
             .filter(|_| vel.0.magnitude_squared() > 1.0 && block.is_some())
             .zip(read.bodies.get(entity).copied())
-        {
-            outcomes.push(Outcome::ProjectileHit {
-                pos: pos.0 + pos_delta * dist,
-                body,
-                vel: vel.0,
-                source: projectile.owner,
-                target: None,
-            });
-        }
+    {
+        outcomes.push(Outcome::ProjectileHit {
+            pos: pos.0 + pos_delta * dist,
+            body,
+            vel: vel.0,
+            source: projectile.owner,
+            target: None,
+        });
     }
 
     if block.is_some() {

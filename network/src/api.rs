@@ -520,11 +520,11 @@ impl Network {
         if let Err(()) = shutdown_scheduler_s.send(()) {
             error!("Scheduler is closed, but nobody other should be able to close it")
         };
-        if let Ok(return_s) = return_s {
-            if return_s.send(()).is_err() {
-                warn!("Network::drop stopped after a timeout and didn't wait for our shutdown");
-            };
-        }
+        if let Ok(return_s) = return_s
+            && return_s.send(()).is_err()
+        {
+            warn!("Network::drop stopped after a timeout and didn't wait for our shutdown");
+        };
         debug!("Network has shut down");
     }
 }

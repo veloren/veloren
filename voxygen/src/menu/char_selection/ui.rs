@@ -1771,25 +1771,25 @@ impl Controls {
                 events.push(Event::ShowRules);
             },
             Message::ConfirmDeletion => {
-                if let Mode::Select { info_content, .. } = &mut self.mode {
-                    if let Some(InfoContent::Deletion(idx)) = info_content {
-                        if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
-                            events.push(Event::DeleteCharacter(id));
-                            // Deselect if the selected character was deleted
-                            if Some(id) == self.selected {
-                                self.selected = None;
-                                events.push(Event::SelectCharacter(None));
-                            }
+                if let Mode::Select { info_content, .. } = &mut self.mode
+                    && let Some(InfoContent::Deletion(idx)) = info_content
+                {
+                    if let Some(id) = characters.get(*idx).and_then(|i| i.character.id) {
+                        events.push(Event::DeleteCharacter(id));
+                        // Deselect if the selected character was deleted
+                        if Some(id) == self.selected {
+                            self.selected = None;
+                            events.push(Event::SelectCharacter(None));
                         }
-                        *info_content = None;
                     }
+                    *info_content = None;
                 }
             },
             Message::CancelDeletion => {
-                if let Mode::Select { info_content, .. } = &mut self.mode {
-                    if let Some(InfoContent::Deletion(_)) = info_content {
-                        *info_content = None;
-                    }
+                if let Mode::Select { info_content, .. } = &mut self.mode
+                    && let Some(InfoContent::Deletion(_)) = info_content
+                {
+                    *info_content = None;
                 }
             },
             Message::ClearCharacterListError => {
@@ -1835,19 +1835,17 @@ impl Controls {
                 }
             },
             Message::Edit(idx) => {
-                if matches!(&self.mode, Mode::Select { .. }) {
-                    if let Some(character) = characters.get(idx) {
-                        if let comp::Body::Humanoid(body) = character.body {
-                            if let Some(id) = character.character.id {
-                                self.mode = Mode::edit(
-                                    character.character.alias.clone(),
-                                    id,
-                                    body,
-                                    &character.inventory,
-                                );
-                            }
-                        }
-                    }
+                if matches!(&self.mode, Mode::Select { .. })
+                    && let Some(character) = characters.get(idx)
+                    && let comp::Body::Humanoid(body) = character.body
+                    && let Some(id) = character.character.id
+                {
+                    self.mode = Mode::edit(
+                        character.character.alias.clone(),
+                        id,
+                        body,
+                        &character.inventory,
+                    );
                 }
             },
             Message::NewCharacter => {
@@ -2014,27 +2012,26 @@ impl Controls {
                 }
             },
             Message::PrevStartingSite => {
-                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
-                    if !self.possible_starting_sites.is_empty() {
-                        *start_site_idx = Some(
-                            (start_site_idx.unwrap_or_default()
-                                + self.possible_starting_sites.len()
-                                - 1)
-                                % self.possible_starting_sites.len(),
-                        );
-                    }
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode
+                    && !self.possible_starting_sites.is_empty()
+                {
+                    *start_site_idx = Some(
+                        (start_site_idx.unwrap_or_default() + self.possible_starting_sites.len()
+                            - 1)
+                            % self.possible_starting_sites.len(),
+                    );
                 }
             },
             Message::NextStartingSite => {
-                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode {
-                    if !self.possible_starting_sites.is_empty() {
-                        *start_site_idx = Some(
-                            (start_site_idx.unwrap_or_default()
-                                + self.possible_starting_sites.len()
-                                + 1)
-                                % self.possible_starting_sites.len(),
-                        );
-                    }
+                if let Mode::CreateOrEdit { start_site_idx, .. } = &mut self.mode
+                    && !self.possible_starting_sites.is_empty()
+                {
+                    *start_site_idx = Some(
+                        (start_site_idx.unwrap_or_default()
+                            + self.possible_starting_sites.len()
+                            + 1)
+                            % self.possible_starting_sites.len(),
+                    );
                 }
             },
         }

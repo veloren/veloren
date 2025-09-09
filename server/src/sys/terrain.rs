@@ -397,6 +397,7 @@ pub struct NpcData {
 /// from EntityInfo
 // TODO: better name?
 // TODO: if this is send around network, optimize the large_enum_variant
+#[expect(clippy::large_enum_variant)] // TODO: evaluate
 #[derive(Debug)]
 pub enum SpawnEntityData {
     Npc(NpcData),
@@ -567,6 +568,7 @@ impl SpawnEntityData {
         })
     }
 
+    #[expect(clippy::result_large_err)]
     pub fn into_npc_data_inner(self) -> Result<NpcData, Self> {
         match self {
             SpawnEntityData::Npc(inner) => Ok(inner),

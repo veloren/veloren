@@ -329,13 +329,11 @@ impl RtSim {
 
         // If we need to wait until the save thread has done its work (due to, for
         // example, server shutdown) then do that.
-        if wait_until_finished {
-            if let Some((tx, handle)) = self.save_thread.take() {
-                drop(tx);
-                info!("Waiting for rtsim save thread to finish...");
-                handle.join().expect("Save thread failed to join");
-                info!("Rtsim save thread finished.");
-            }
+        if wait_until_finished && let Some((tx, handle)) = self.save_thread.take() {
+            drop(tx);
+            info!("Waiting for rtsim save thread to finish...");
+            handle.join().expect("Save thread failed to join");
+            info!("Rtsim save thread finished.");
         }
 
         self.last_saved = Some(Instant::now());

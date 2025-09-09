@@ -304,11 +304,11 @@ impl<V, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some((sub_chunk_min_z, ref mut inner)) = self.opt_inner {
-                if let Some(mut pos) = inner.next() {
-                    pos.z += sub_chunk_min_z;
-                    return Some(pos);
-                }
+            if let Some((sub_chunk_min_z, ref mut inner)) = self.opt_inner
+                && let Some(mut pos) = inner.next()
+            {
+                pos.z += sub_chunk_min_z;
+                return Some(pos);
             }
             match self.outer.next() {
                 None => return None,

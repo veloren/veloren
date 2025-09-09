@@ -184,20 +184,21 @@ impl InternalSlowJobPool {
             .collect::<HashMap<_, _>>();
         // grab all configs that are queued and not running. in roundrobin order
         for n in roundrobin.clone().into_iter() {
-            if let Some(c) = queued.get_mut(&n) {
-                if *c > 0 && spawned.get(&n).cloned().unwrap_or(0) == 0 {
-                    result.push(n.clone());
-                    *c -= 1;
-                    limit -= 1;
-                    queried_capped.get_mut(&n).map(|v| *v -= 1);
-                    roundrobin
-                        .iter()
-                        .position(|e| e == &n)
-                        .map(|i| roundrobin.remove(i));
-                    roundrobin.push(n);
-                    if limit == 0 {
-                        return result;
-                    }
+            if let Some(c) = queued.get_mut(&n)
+                && *c > 0
+                && spawned.get(&n).cloned().unwrap_or(0) == 0
+            {
+                result.push(n.clone());
+                *c -= 1;
+                limit -= 1;
+                queried_capped.get_mut(&n).map(|v| *v -= 1);
+                roundrobin
+                    .iter()
+                    .position(|e| e == &n)
+                    .map(|i| roundrobin.remove(i));
+                roundrobin.push(n);
+                if limit == 0 {
+                    return result;
                 }
             }
         }

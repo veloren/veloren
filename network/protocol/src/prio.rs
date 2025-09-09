@@ -55,11 +55,11 @@ impl PrioManager {
     }
 
     pub fn try_close_stream(&mut self, sid: Sid) -> bool {
-        if let Some(si) = self.streams.get(&sid) {
-            if si.messages.is_empty() {
-                self.streams.remove(&sid);
-                return true;
-            }
+        if let Some(si) = self.streams.get(&sid)
+            && si.messages.is_empty()
+        {
+            self.streams.remove(&sid);
+            return true;
         }
         false
     }

@@ -74,6 +74,7 @@ fn rules_hash(rules: &Option<String>) -> u64 {
 
 impl ServerInfoState {
     /// Create a new `MainMenuState`.
+    #[expect(clippy::result_large_err)]
     pub fn try_from_server_info(
         global_state: &mut GlobalState,
         bg_img_spec: &'static str,
@@ -171,24 +172,22 @@ impl PlayState for ServerInfoState {
                 continue;
             }
 
-            match event {
-                Event::Close => return PlayStateResult::Shutdown,
-                // Ignore all other events.
-                _ => {},
+            // Shutdown on Close, ignore all other events.
+            if matches!(event, Event::Close) {
+                return PlayStateResult::Shutdown;
             }
         }
 
-        if let Some(char_select) = &mut self.char_select {
-            if let Err(err) = char_select
+        if let Some(char_select) = &mut self.char_select
+            && let Err(err) = char_select
                 .client()
                 .borrow_mut()
                 .tick(comp::ControllerInputs::default(), global_state.clock.dt())
-            {
-                error!(?err, "[server_info] Failed to tick the client");
-                global_state.info_message =
-                    Some(get_client_msg_error(err, None, &global_state.i18n.read()));
-                return PlayStateResult::Pop;
-            }
+        {
+            error!(?err, "[server_info] Failed to tick the client");
+            global_state.info_message =
+                Some(get_client_msg_error(err, None, &global_state.i18n.read()));
+            return PlayStateResult::Pop;
         }
 
         // Maintain the UI.

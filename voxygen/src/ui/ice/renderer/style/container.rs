@@ -16,10 +16,11 @@ pub enum Border {
 }
 
 /// Background of the container
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum Style {
     Image(image::Handle, Rgba<u8>),
     Color(Rgba<u8>, Border),
+    #[default]
     None,
 }
 
@@ -48,8 +49,4 @@ impl Style {
     ) -> Self {
         Self::Color(color, Border::Image { corner, edge })
     }
-}
-
-impl Default for Style {
-    fn default() -> Self { Self::None }
 }

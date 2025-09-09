@@ -75,10 +75,10 @@ impl WorldSyncExt for specs::World {
                 // easier to reuse the same structure here since there is shared code that needs to
                 // lookup the entity from a uid.
                 .remove_entity(None, Some(uid), None, None);
-        if let Some(entity) = maybe_entity {
-            if let Err(e) = self.delete_entity(entity) {
-                error!(?e, "Failed to delete entity");
-            }
+        if let Some(entity) = maybe_entity
+            && let Err(e) = self.delete_entity(entity)
+        {
+            error!(?e, "Failed to delete entity");
         }
     }
 

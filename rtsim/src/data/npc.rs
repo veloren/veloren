@@ -485,10 +485,10 @@ impl NpcLinks {
     }
 
     pub fn dismount(&mut self, rider: impl Into<Actor>) {
-        if let Some(id) = self.rider_map.remove(&rider.into()) {
-            if let Some(link) = self.links.remove(id) {
-                self.remove_rider(id, &link);
-            }
+        if let Some(id) = self.rider_map.remove(&rider.into())
+            && let Some(link) = self.links.remove(id)
+        {
+            self.remove_rider(id, &link);
         }
     }
 

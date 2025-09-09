@@ -48,10 +48,10 @@ pub fn try_owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
 ) -> Option<&'a Alignment> {
-    if let Some(&Alignment::Owned(owner_uid)) = alignment {
-        if let Some(owner) = get_entity_by_id(owner_uid, read_data) {
-            return read_data.alignments.get(owner);
-        }
+    if let Some(&Alignment::Owned(owner_uid)) = alignment
+        && let Some(owner) = get_entity_by_id(owner_uid, read_data)
+    {
+        return read_data.alignments.get(owner);
     }
     alignment
 }
@@ -324,10 +324,10 @@ pub fn handle_attack_aggression(
                         rng.random_range(6.0..10.0)
                     };
             }
-            if let Some(pos) = agent.combat_state.positions[position_guarded_cover_index] {
-                if pos.distance_squared(agent_data.pos.0) < 3_f32.powi(2) {
-                    agent.combat_state.positions[position_guarded_cover_index] = None;
-                }
+            if let Some(pos) = agent.combat_state.positions[position_guarded_cover_index]
+                && pos.distance_squared(agent_data.pos.0) < 3_f32.powi(2)
+            {
+                agent.combat_state.positions[position_guarded_cover_index] = None;
             }
             if !agent.combat_state.conditions[condition_guarded_defend_index] {
                 agent.combat_state.positions[position_guarded_cover_index] = None;

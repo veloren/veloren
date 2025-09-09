@@ -34,7 +34,7 @@ impl IndexOwned {
         None
     }
 
-    pub fn as_index_ref(&self) -> IndexRef { IndexRef(self) }
+    pub fn as_index_ref(&self) -> IndexRef<'_> { IndexRef(self) }
 }
 
 impl World {

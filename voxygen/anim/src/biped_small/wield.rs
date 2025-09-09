@@ -163,10 +163,10 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(-0.3);
 
-                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec {
-                    if spec.as_str() == "Ashen Axe" {
-                        next.main.position += Vec3::new(-4.0, -2.5, 0.0);
-                    }
+                if let Some(AbilitySpec::Custom(spec)) = active_tool_spec
+                    && spec.as_str() == "Ashen Axe"
+                {
+                    next.main.position += Vec3::new(-4.0, -2.5, 0.0);
                 }
             },
             Some(ToolKind::Dagger | ToolKind::Sword) => {

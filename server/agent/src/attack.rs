@@ -7631,10 +7631,10 @@ impl AgentData<'_> {
 
         if matches!(self.char_state, CharacterState::LeapMelee(_)) {
             let tgt_vec = tgt_data.pos.0.xy() - self.pos.0.xy();
-            if tgt_vec.magnitude_squared() > 2_f32.powi(2) {
-                if let Some(look_dir) = Dir::from_unnormalized(Vec3::from(tgt_vec)) {
-                    controller.inputs.look_dir = look_dir;
-                }
+            if tgt_vec.magnitude_squared() > 2_f32.powi(2)
+                && let Some(look_dir) = Dir::from_unnormalized(Vec3::from(tgt_vec))
+            {
+                controller.inputs.look_dir = look_dir;
             }
         }
 

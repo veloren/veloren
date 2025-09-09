@@ -73,22 +73,19 @@ impl<'a> System<'a> for Sys {
                 for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
                     if player_pos.0.distance_squared(waypoint_pos.0)
                         < waypoint_area.radius().powi(2)
-                    {
-                        if let Ok(wp_old) =
+                        && let Ok(wp_old) =
                             waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
-                        {
-                            if wp_old.is_none_or(|w| w.elapsed(*time) > NOTIFY_TIME) {
-                                let location_name = world.get_location_name(
-                                    index.as_index_ref(),
-                                    player_pos.0.xy().as_::<i32>(),
-                                );
+                        && wp_old.is_none_or(|w| w.elapsed(*time) > NOTIFY_TIME)
+                    {
+                        let location_name = world.get_location_name(
+                            index.as_index_ref(),
+                            player_pos.0.xy().as_::<i32>(),
+                        );
 
-                                if let Some(location_name) = location_name {
-                                    client.send_fallible(ServerGeneral::Notification(
-                                        Notification::WaypointSaved { location_name },
-                                    ));
-                                }
-                            }
+                        if let Some(location_name) = location_name {
+                            client.send_fallible(ServerGeneral::Notification(
+                                Notification::WaypointSaved { location_name },
+                            ));
                         }
                     }
                 }

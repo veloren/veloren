@@ -482,12 +482,11 @@ struct EqualitySet {
 impl EqualitySet {
     fn canonical<'a>(&'a self, item_name: &'a ItemDefinitionIdOwned) -> &'a ItemDefinitionIdOwned {
         // TODO: use hashbrown Equivalent trait to avoid needing owned item def here
-        let canonical_itemname = self
+
+        (self
             .equivalence_class
             .get(item_name)
-            .map_or(item_name, |i| i);
-
-        canonical_itemname
+            .map_or(item_name, |i| i)) as _
     }
 }
 

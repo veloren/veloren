@@ -98,6 +98,7 @@ struct Shadow {
 /// Represent two states of the renderer:
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
+#[expect(clippy::large_enum_variant)]
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,
@@ -1227,10 +1228,9 @@ impl Renderer {
         if matches!(&self.state, State::Complete {
             recreating: None,
             ..
-        }) {
-            if let Some(new_pipeline_modes) = self.recreation_pending.take() {
-                self.recreate_pipelines(new_pipeline_modes);
-            }
+        }) && let Some(new_pipeline_modes) = self.recreation_pending.take()
+        {
+            self.recreate_pipelines(new_pipeline_modes);
         }
 
         let texture = match self.surface.get_current_texture() {

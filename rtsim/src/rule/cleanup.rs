@@ -26,7 +26,7 @@ impl Rule for CleanUp {
             data.npcs
                 .iter_mut()
                 // Only cleanup NPCs every few ticks
-                .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick) % NPC_SENTIMENT_TICK_SKIP == 0)
+                .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick).is_multiple_of(NPC_SENTIMENT_TICK_SKIP))
                 .for_each(|(_, npc)| npc.sentiments.decay(&mut rng, ctx.event.dt * NPC_SENTIMENT_TICK_SKIP as f32));
 
             // Remove dead NPCs
@@ -46,7 +46,7 @@ impl Rule for CleanUp {
 
             // Clean up site population.
             data.sites.iter_mut()
-                .filter(|(_, site)| (site.seed as u64 + ctx.event.tick) % SITE_CLEANUP_TICK_SKIP == 0)
+                .filter(|(_, site)| (site.seed as u64 + ctx.event.tick).is_multiple_of(SITE_CLEANUP_TICK_SKIP))
                 .for_each(|(id, site)| {
                 site.population.retain(|npc_id| {
                     data.npcs.get(*npc_id).is_some_and(|npc| npc.home == Some(id))
@@ -56,19 +56,19 @@ impl Rule for CleanUp {
             // Clean up entities
             data.npcs
                 .iter_mut()
-                .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick) % NPC_CLEANUP_TICK_SKIP == 0)
+                .filter(|(_, npc)| (npc.seed as u64 + ctx.event.tick).is_multiple_of(NPC_CLEANUP_TICK_SKIP))
                 .for_each(|(_, npc)| npc.cleanup(&data.reports));
 
             // Clean up factions
             data.factions
                 .iter_mut()
-                .filter(|(_, faction)| (faction.seed as u64 + ctx.event.tick) % FACTION_CLEANUP_TICK_SKIP == 0)
+                .filter(|(_, faction)| (faction.seed as u64 + ctx.event.tick).is_multiple_of(FACTION_CLEANUP_TICK_SKIP))
                 .for_each(|(_, faction)| faction.cleanup());
 
             // Clean up sites
             data.sites
                 .iter_mut()
-                .filter(|(_, site)| (site.seed as u64 + ctx.event.tick) % SITE_CLEANUP_TICK_SKIP == 0)
+                .filter(|(_, site)| (site.seed as u64 + ctx.event.tick).is_multiple_of(SITE_CLEANUP_TICK_SKIP))
                 .for_each(|(_, site)| site.cleanup(&data.reports));
 
             // Clean up old reports

@@ -57,14 +57,12 @@ impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> Key
                     KeyedJobTask::Completed(at, _) => now - *at < KEYEDJOBS_GC_INTERVAL,
                     KeyedJobTask::Pending(at, job) => {
                         let fresh = now - *at < KEYEDJOBS_GC_INTERVAL;
-                        if !fresh {
-                            if let Some(job) = job.take() {
-                                // Cancelling a job only fails if the job doesn't exist anymore,
-                                // which means that it completed while we tried to GC its pending
-                                // struct, which means that we'll GC it in the next cycle, so ignore
-                                // the error in this collection.
-                                let _ = pool.cancel(job);
-                            }
+                        if !fresh && let Some(job) = job.take() {
+                            // Cancelling a job only fails if the job doesn't exist anymore,
+                            // which means that it completed while we tried to GC its pending
+                            // struct, which means that we'll GC it in the next cycle, so ignore
+                            // the error in this collection.
+                            let _ = pool.cancel(job);
                         }
                         fresh
                     },

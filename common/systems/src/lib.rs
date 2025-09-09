@@ -1,4 +1,3 @@
-#![feature(extract_if, let_chains)]
 #![expect(clippy::option_map_unit_fn)]
 
 mod aura;

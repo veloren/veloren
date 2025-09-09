@@ -701,13 +701,12 @@ impl Widget for Group<'_> {
                         .label_font_size(self.fonts.cyri.scale(10))
                         .set(state.ids.btn_leader, ui)
                         .was_clicked()
+                        && let Some(uid) = selected
                     {
-                        if let Some(uid) = selected {
-                            events.push(Event::AssignLeader(uid));
-                            state.update(|s| {
-                                s.selected_member = None;
-                            });
-                        }
+                        events.push(Event::AssignLeader(uid));
+                        state.update(|s| {
+                            s.selected_member = None;
+                        });
                     };
                     if Button::image(self.imgs.button)
                         .w_h(90.0, 22.0)
@@ -740,13 +739,12 @@ impl Widget for Group<'_> {
                         .label_font_size(self.fonts.cyri.scale(10))
                         .set(state.ids.btn_kick, ui)
                         .was_clicked()
+                        && let Some(uid) = selected
                     {
-                        if let Some(uid) = selected {
-                            events.push(Event::Kick(uid));
-                            state.update(|s| {
-                                s.selected_member = None;
-                            });
-                        }
+                        events.push(Event::Kick(uid));
+                        state.update(|s| {
+                            s.selected_member = None;
+                        });
                     };
                 }
                 // Group Members, only character names, cut long names when they exceed the

@@ -562,10 +562,10 @@ impl Widget for Overhead<'_> {
                 .x_align_to(state.ids.name, Align::Middle)
                 .parent(id);
 
-            if let Some(w) = text.get_w(ui) {
-                if w > MAX_BUBBLE_WIDTH {
-                    text = text.w(MAX_BUBBLE_WIDTH);
-                }
+            if let Some(w) = text.get_w(ui)
+                && w > MAX_BUBBLE_WIDTH
+            {
+                text = text.w(MAX_BUBBLE_WIDTH);
             }
             Image::new(if dark_mode {
                 self.imgs.dark_bubble_top_left
@@ -677,10 +677,10 @@ impl Widget for Overhead<'_> {
             // Move text to front (conrod depth is lowest first; not a z-index)
             text.depth(text_shadow.get_depth() - 1.0)
                 .set(state.ids.speech_bubble_text, ui);
-            if let Some(w) = text_shadow.get_w(ui) {
-                if w > MAX_BUBBLE_WIDTH {
-                    text_shadow = text_shadow.w(MAX_BUBBLE_WIDTH);
-                }
+            if let Some(w) = text_shadow.get_w(ui)
+                && w > MAX_BUBBLE_WIDTH
+            {
+                text_shadow = text_shadow.w(MAX_BUBBLE_WIDTH);
             }
             text_shadow.set(state.ids.speech_bubble_shadow, ui);
             let icon = if self.settings.speech_bubble_icon {

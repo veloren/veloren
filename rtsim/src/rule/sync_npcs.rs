@@ -77,21 +77,20 @@ fn on_health_change(ctx: EventCtx<SyncNpcs, OnHealthChange>) {
     // health fraction to 0 (dead)
     if ctx.event.new_health_fraction != 0.0
         && let Actor::Npc(npc_id) = ctx.event.actor
+        && let Some(npc) = data.npcs.get_mut(npc_id)
     {
-        if let Some(npc) = data.npcs.get_mut(npc_id) {
-            npc.health_fraction = ctx.event.new_health_fraction;
-        }
+        npc.health_fraction = ctx.event.new_health_fraction;
     }
 }
 
 fn on_death(ctx: EventCtx<SyncNpcs, OnDeath>) {
     let data = &mut *ctx.state.data_mut();
 
-    if let Actor::Npc(npc_id) = ctx.event.actor {
-        if let Some(npc) = data.npcs.get_mut(npc_id) {
-            // Mark the NPC as dead, allowing us to clear them up later
-            npc.health_fraction = 0.0;
-        }
+    if let Actor::Npc(npc_id) = ctx.event.actor
+        && let Some(npc) = data.npcs.get_mut(npc_id)
+    {
+        // Mark the NPC as dead, allowing us to clear them up later
+        npc.health_fraction = 0.0;
     }
 }
 
@@ -114,18 +113,17 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
         // TODO: Only share new reports
         if let Some(current_site) = npc.current_site
             && Some(current_site) == npc.home
+            && let Some(site) = data.sites.get_mut(current_site)
         {
-            if let Some(site) = data.sites.get_mut(current_site) {
-                // TODO: Sites should have an inbox and their own AI code
-                site.known_reports.extend(npc.known_reports.iter().copied());
-                npc.inbox.extend(
-                    site.known_reports
-                        .iter()
-                        .copied()
-                        .filter(|report| !npc.known_reports.contains(report))
-                        .map(NpcInput::Report),
-                );
-            }
+            // TODO: Sites should have an inbox and their own AI code
+            site.known_reports.extend(npc.known_reports.iter().copied());
+            npc.inbox.extend(
+                site.known_reports
+                    .iter()
+                    .copied()
+                    .filter(|report| !npc.known_reports.contains(report))
+                    .map(NpcInput::Report),
+            );
         }
 
         // Update the NPC's grid cell
@@ -134,10 +132,9 @@ fn on_tick(ctx: EventCtx<SyncNpcs, OnTick>) {
             if let Some(cell) = npc
                 .chunk_pos
                 .and_then(|chunk_pos| data.npcs.npc_grid.get_mut(chunk_pos))
+                && let Some(index) = cell.npcs.iter().position(|id| *id == npc_id)
             {
-                if let Some(index) = cell.npcs.iter().position(|id| *id == npc_id) {
-                    cell.npcs.swap_remove(index);
-                }
+                cell.npcs.swap_remove(index);
             }
             npc.chunk_pos = Some(chunk_pos);
             if let Some(cell) = data.npcs.npc_grid.get_mut(chunk_pos) {

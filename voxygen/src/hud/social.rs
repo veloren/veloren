@@ -488,13 +488,12 @@ impl Widget for Social<'_> {
             invite_button.set(state.ids.invite_button, ui)
         }
         .was_clicked()
+            && let Some(uid) = selected_to_invite
         {
-            if let Some(uid) = selected_to_invite {
-                events.push(Event::Invite(uid));
-                state.update(|s| {
-                    s.selected_uid = None;
-                });
-            }
+            events.push(Event::Invite(uid));
+            state.update(|s| {
+                s.selected_uid = None;
+            });
         }
 
         // Player Search

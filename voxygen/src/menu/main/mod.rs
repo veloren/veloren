@@ -209,10 +209,9 @@ impl PlayState for MainMenuState {
                 continue;
             }
 
-            match event {
-                Event::Close => return PlayStateResult::Shutdown,
-                // Ignore all other events.
-                _ => {},
+            // Shutdown on Close, ignore all other events.
+            if matches!(event, Event::Close) {
+                return PlayStateResult::Shutdown;
             }
         }
 

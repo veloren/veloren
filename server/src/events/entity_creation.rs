@@ -141,11 +141,11 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         .maybe_with(death_effects)
         .maybe_with(rider_effects);
 
-    if let Some(agent) = &mut agent {
-        if let Alignment::Owned(_) = &alignment {
-            agent.behavior.allow(BehaviorCapability::TRADE);
-            agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
-        }
+    if let Some(agent) = &mut agent
+        && let Alignment::Owned(_) = &alignment
+    {
+        agent.behavior.allow(BehaviorCapability::TRADE);
+        agent.behavior.trading_behavior = TradingBehavior::AcceptFood;
     }
 
     let entity = entity.with(alignment);

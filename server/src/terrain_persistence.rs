@@ -174,10 +174,10 @@ impl TerrainPersistence {
             if chunk.blocks.is_empty() {
                 let path = self.path_for(key);
 
-                if path.is_file() {
-                    if let Err(error) = std::fs::remove_file(&path) {
-                        error!(?error, ?path, "Failed to remove file for empty chunk");
-                    }
+                if path.is_file()
+                    && let Err(error) = std::fs::remove_file(&path)
+                {
+                    error!(?error, ?path, "Failed to remove file for empty chunk");
                 }
             } else {
                 let bytes =

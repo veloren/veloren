@@ -112,10 +112,10 @@ impl Sys {
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
-                if presence.kind.controlling_char() {
-                    if let Some(controller) = controller {
-                        controller.inputs.update_with_new(*inputs);
-                    }
+                if presence.kind.controlling_char()
+                    && let Some(controller) = controller
+                {
+                    controller.inputs.update_with_new(*inputs);
                 }
             },
             ClientGeneral::ControlEvent(event) => {
@@ -132,10 +132,10 @@ impl Sys {
                 }
             },
             ClientGeneral::ControlAction(event) => {
-                if presence.kind.controlling_char() {
-                    if let Some(controller) = controller {
-                        controller.push_action(event);
-                    }
+                if presence.kind.controlling_char()
+                    && let Some(controller) = controller
+                {
+                    controller.push_action(event);
                 }
             },
             ClientGeneral::PlayerPhysics {
@@ -159,59 +159,55 @@ impl Sys {
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
-                if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.enabled {
-                        for area in comp_can_build.build_areas.iter() {
-                            if let Some(old_block) = build_areas
+                if let Some(comp_can_build) = can_build.get(entity)
+                    && comp_can_build.enabled
+                {
+                    for area in comp_can_build.build_areas.iter() {
+                        if let Some(old_block) = build_areas
                                 .areas()
                                 .get(*area)
                                 // TODO: Make this an exclusive check on the upper bound of the AABB
                                 // Vek defaults to inclusive which is not optimal
                                 .filter(|aabb| aabb.contains_point(pos))
                                 .and_then(|_| terrain.get(pos).ok())
+                        {
+                            let new_block = old_block.into_vacant();
+                            // Take the rare writes lock as briefly as possible.
+                            let mut guard = rare_writes.lock();
+                            let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+                            #[cfg(feature = "persistent_world")]
+                            if _was_set
+                                && let Some(terrain_persistence) =
+                                    guard._terrain_persistence.as_mut()
                             {
-                                let new_block = old_block.into_vacant();
-                                // Take the rare writes lock as briefly as possible.
-                                let mut guard = rare_writes.lock();
-                                let _was_set =
-                                    guard.block_changes.try_set(pos, new_block).is_some();
-                                #[cfg(feature = "persistent_world")]
-                                if _was_set {
-                                    if let Some(terrain_persistence) =
-                                        guard._terrain_persistence.as_mut()
-                                    {
-                                        terrain_persistence.set_block(pos, new_block);
-                                    }
-                                }
+                                terrain_persistence.set_block(pos, new_block);
                             }
                         }
                     }
                 }
             },
             ClientGeneral::PlaceBlock(pos, new_block) => {
-                if let Some(comp_can_build) = can_build.get(entity) {
-                    if comp_can_build.enabled {
-                        for area in comp_can_build.build_areas.iter() {
-                            if build_areas
+                if let Some(comp_can_build) = can_build.get(entity)
+                    && comp_can_build.enabled
+                {
+                    for area in comp_can_build.build_areas.iter() {
+                        if build_areas
                                 .areas()
                                 .get(*area)
                                 // TODO: Make this an exclusive check on the upper bound of the AABB
                                 // Vek defaults to inclusive which is not optimal
                                 .filter(|aabb| aabb.contains_point(pos))
                                 .is_some()
+                        {
+                            // Take the rare writes lock as briefly as possible.
+                            let mut guard = rare_writes.lock();
+                            let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+                            #[cfg(feature = "persistent_world")]
+                            if _was_set
+                                && let Some(terrain_persistence) =
+                                    guard._terrain_persistence.as_mut()
                             {
-                                // Take the rare writes lock as briefly as possible.
-                                let mut guard = rare_writes.lock();
-                                let _was_set =
-                                    guard.block_changes.try_set(pos, new_block).is_some();
-                                #[cfg(feature = "persistent_world")]
-                                if _was_set {
-                                    if let Some(terrain_persistence) =
-                                        guard._terrain_persistence.as_mut()
-                                    {
-                                        terrain_persistence.set_block(pos, new_block);
-                                    }
-                                }
+                                terrain_persistence.set_block(pos, new_block);
                             }
                         }
                     }
@@ -248,10 +244,9 @@ impl Sys {
                 if let Some(admin) = maybe_admin
                     && admin.0 >= AdminRole::Moderator
                     && presence.kind == PresenceKind::Spectator
+                    && let Some(position) = position
                 {
-                    if let Some(position) = position {
-                        position.0 = pos;
-                    }
+                    position.0 = pos;
                 }
             },
             ClientGeneral::SpectateEntity(uid) => {

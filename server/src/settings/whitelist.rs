@@ -29,6 +29,7 @@ impl From<Whitelist> for WhitelistRaw {
     }
 }
 
+#[expect(clippy::infallible_try_from)] // TODO: evaluate
 impl TryFrom<WhitelistRaw> for (Version, Whitelist) {
     type Error = <Whitelist as EditableSetting>::Error;
 
@@ -115,6 +116,7 @@ mod v0 {
 
     /// Pretty much every `TryFrom` implementation except that of the very last
     /// version should look exactly like this.
+    #[expect(clippy::infallible_try_from)] // TODO: evaluate
     impl TryFrom<Whitelist> for Final {
         type Error = <Final as EditableSetting>::Error;
 

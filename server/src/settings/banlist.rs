@@ -406,15 +406,15 @@ mod v1 {
             //
             // We also deliberately leave the bad order intact, in case this reflects
             // history more accurately than the system clock does.
-            if let Some(prev_record) = prev_record {
-                if prev_record.date > self.date {
-                    warn!(
-                        "Ban list history is inconsistent, or a just-added ban was behind a \
-                         historical entry in the ban
+            if let Some(prev_record) = prev_record
+                && prev_record.date > self.date
+            {
+                warn!(
+                    "Ban list history is inconsistent, or a just-added ban was behind a \
+                     historical entry in the ban
                           record; please investigate the contents of the file (might indicate a \
-                         system clock change?)."
-                    );
-                }
+                     system clock change?)."
+                );
             }
             let ban = match (&self.action, prev_record.map(|record| &record.action)) {
                 // A ban is always valid if it follows an unban.
@@ -457,13 +457,13 @@ mod v1 {
             };
 
             // End date of a ban must be at least as big as the start date.
-            if let Some(end_date) = ban.end_date {
-                if self.date > end_date {
-                    return Err(BanErrorKind::InvalidDateRange {
-                        start_date: self.date,
-                        end_date,
-                    });
-                }
+            if let Some(end_date) = ban.end_date
+                && self.date > end_date
+            {
+                return Err(BanErrorKind::InvalidDateRange {
+                    start_date: self.date,
+                    end_date,
+                });
             }
             Ok(())
         }
@@ -821,15 +821,15 @@ mod v2 {
             //
             // We also deliberately leave the bad order intact, in case this reflects
             // history more accurately than the system clock does.
-            if let Some(prev_record) = prev_record {
-                if prev_record.date > self.date {
-                    warn!(
-                        "Ban list history is inconsistent, or a just-added ban was behind a \
-                         historical entry in the ban
+            if let Some(prev_record) = prev_record
+                && prev_record.date > self.date
+            {
+                warn!(
+                    "Ban list history is inconsistent, or a just-added ban was behind a \
+                     historical entry in the ban
                           record; please investigate the contents of the file (might indicate a \
-                         system clock change?)."
-                    );
-                }
+                     system clock change?)."
+                );
             }
             let ban = match (&self.action, prev_record.map(|record| &record.action)) {
                 // A ban is always valid if it follows an unban.
@@ -872,13 +872,13 @@ mod v2 {
             };
 
             // End date of a ban must be at least as big as the start date.
-            if let Some(end_date) = ban.end_date {
-                if self.date > end_date {
-                    return Err(BanErrorKind::InvalidDateRange {
-                        start_date: self.date,
-                        end_date,
-                    });
-                }
+            if let Some(end_date) = ban.end_date
+                && self.date > end_date
+            {
+                return Err(BanErrorKind::InvalidDateRange {
+                    start_date: self.date,
+                    end_date,
+                });
             }
             Ok(())
         }
@@ -1009,15 +1009,15 @@ mod v2 {
             //
             // We also deliberately leave the bad order intact, in case this reflects
             // history more accurately than the system clock does.
-            if let Some(prev_record) = prev_record {
-                if prev_record.date > self.date {
-                    warn!(
-                        "Ban list history is inconsistent, or a just-added ban was behind a \
-                         historical entry in the ban
+            if let Some(prev_record) = prev_record
+                && prev_record.date > self.date
+            {
+                warn!(
+                    "Ban list history is inconsistent, or a just-added ban was behind a \
+                     historical entry in the ban
                           record; please investigate the contents of the file (might indicate a \
-                         system clock change?)."
-                    );
-                }
+                     system clock change?)."
+                );
             }
             let ban = match (&self.action, prev_record.map(|record| &record.action)) {
                 // A ban is always valid if it follows an unban.
@@ -1060,13 +1060,13 @@ mod v2 {
             };
 
             // End date of a ban must be at least as big as the start date.
-            if let Some(end_date) = ban.end_date {
-                if self.date > end_date {
-                    return Err(BanErrorKind::InvalidDateRange {
-                        start_date: self.date,
-                        end_date,
-                    });
-                }
+            if let Some(end_date) = ban.end_date
+                && self.date > end_date
+            {
+                return Err(BanErrorKind::InvalidDateRange {
+                    start_date: self.date,
+                    end_date,
+                });
             }
             Ok(())
         }

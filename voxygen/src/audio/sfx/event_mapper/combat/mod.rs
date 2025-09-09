@@ -144,33 +144,30 @@ impl CombatEventMapper {
             .and_then(|ability| ability.hand)
             .map_or(EquipSlot::ActiveMainhand, |hand| hand.to_equip_slot());
 
-        if let Some(item) = inventory.equipped(equip_slot) {
-            if let ItemKind::Tool(data) = &*item.kind() {
-                if character_state.is_attack() {
-                    return SfxEvent::Attack(
-                        CharacterAbilityType::from(character_state),
-                        data.kind,
-                    );
-                } else if character_state.is_music() {
-                    if let Some(ability_spec) = item
-                        .ability_spec()
-                        .map(|ability_spec| ability_spec.into_owned())
-                    {
-                        return SfxEvent::Music(data.kind, ability_spec);
-                    }
-                } else if let Some(wield_event) = match (
-                    previous_state.weapon_drawn,
-                    Self::weapon_drawn(character_state),
-                ) {
-                    (false, true) => Some(SfxEvent::Wield(data.kind)),
-                    (true, false) => Some(SfxEvent::Unwield(data.kind)),
-                    _ => None,
-                } {
-                    return wield_event;
+        if let Some(item) = inventory.equipped(equip_slot)
+            && let ItemKind::Tool(data) = &*item.kind()
+        {
+            if character_state.is_attack() {
+                return SfxEvent::Attack(CharacterAbilityType::from(character_state), data.kind);
+            } else if character_state.is_music() {
+                if let Some(ability_spec) = item
+                    .ability_spec()
+                    .map(|ability_spec| ability_spec.into_owned())
+                {
+                    return SfxEvent::Music(data.kind, ability_spec);
                 }
+            } else if let Some(wield_event) = match (
+                previous_state.weapon_drawn,
+                Self::weapon_drawn(character_state),
+            ) {
+                (false, true) => Some(SfxEvent::Wield(data.kind)),
+                (true, false) => Some(SfxEvent::Unwield(data.kind)),
+                _ => None,
+            } {
+                return wield_event;
             }
-            // Check for attacking states
         }
+        // Check for attacking states
 
         SfxEvent::Idle
     }

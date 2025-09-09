@@ -430,11 +430,11 @@ impl FileOpts {
 
         // Check if folder exists and create it if it does not
         let map_dir = path.parent().expect("failed to get map directory");
-        if !map_dir.exists() {
-            if let Err(e) = std::fs::create_dir_all(map_dir) {
-                warn!(?e, ?map_dir, "Couldn't create folder for map");
-                return;
-            }
+        if !map_dir.exists()
+            && let Err(e) = std::fs::create_dir_all(map_dir)
+        {
+            warn!(?e, ?map_dir, "Couldn't create folder for map");
+            return;
         }
 
         let file = match File::create(path.clone()) {

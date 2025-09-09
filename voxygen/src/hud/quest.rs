@@ -117,13 +117,12 @@ impl<'a> Quest<'a> {
             state.text_timer = Some(now);
         }
 
-        if let Some(start_time) = state.text_timer {
-            if now.duration_since(start_time) >= Duration::from_millis(10)
-                && state.text_position < msg_text.chars().count()
-            {
-                state.text_position += 1;
-                state.text_timer = Some(now);
-            }
+        if let Some(start_time) = state.text_timer
+            && now.duration_since(start_time) >= Duration::from_millis(10)
+            && state.text_position < msg_text.chars().count()
+        {
+            state.text_position += 1;
+            state.text_timer = Some(now);
         }
 
         let display_text: String = msg_text
