@@ -68,10 +68,12 @@ pub fn do_dialogue<S: State, T: Default + Clone + Send + Sync + 'static, A: Acti
                 });
                 stop
             })
-            .and_then(move |x: Option<T>| just(move |ctx, _| {
+            // As a backstop, timeout after 10 minutes of dialogue to avoid accidentally soft-locking NPCs
+            .stop_if(timeout(600.0))
+            .and_then(move |x: Option<Option<T>>| just(move |ctx, _| {
                 ctx.controller.do_idle();
                 ctx.controller.dialogue_end(session);
-                x.clone().unwrap_or_default()
+                x.clone().flatten().unwrap_or_default()
             }))
             // Handle early cancellation elegantly
             .when_cancelled(move |ctx: &mut NpcCtx| ctx.controller.dialogue_end(session))
@@ -193,8 +195,8 @@ impl DialogueSession {
                         ControlFlow::Continue(talk(self.target))
                     }
                 })
-                    // As a final safeguard, timeout after 120 seconds
-                    .stop_if(timeout(120.0)))
+                    // As a final safeguard, timeout after a while
+                    .stop_if(timeout(30.0)))
         })
         .map(|_, _| ())
     }
