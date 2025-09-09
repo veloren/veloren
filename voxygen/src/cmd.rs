@@ -736,12 +736,24 @@ fn handle_naga(
 ) -> CommandResult {
     let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
     new_render_mode.enable_naga ^= true;
+    let naga_enabled = new_render_mode.enable_naga;
     change_render_mode(
         new_render_mode,
         &mut global_state.window,
         &mut global_state.settings,
     );
-    Ok(None)
+
+    Ok(Some(Content::localized_with_args(
+        "command-shader-backend",
+        [(
+            "shader-backend",
+            if naga_enabled {
+                LocalizationArg::from("naga")
+            } else {
+                LocalizationArg::from("shaderc")
+            },
+        )],
+    )))
 }
 
 /// Trait for types that can provide tab completion suggestions.
