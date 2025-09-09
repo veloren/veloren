@@ -9,7 +9,7 @@ workspace = true
 
 [features]
 simd = ["vek/platform_intrinsics"]
-plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tar", "bincode", "serde", "dep:sha2", "dep:hex", "dep:atomic_refcell"]
+plugins = ["common-assets/plugins", "toml", "wasmtime", "wasmtime-wasi", "tokio", "tar", "bincode", "serde", "dep:sha2", "dep:hex", "dep:atomic_refcell"]
 
 default = ["simd"]
 
@@ -39,10 +39,10 @@ toml = { version = "0.9", optional = true }
 tar = { version = "0.4.37", optional = true }
 bincode = { workspace = true, optional = true }
 timer-queue = "0.1.0"
-wasmtime = { version = "29.0.1", optional = true , features = ["component-model", "async"] }
-wasmtime-wasi = { version = "29.0.1", optional = true }
+wasmtime = { version = "36", optional = true , features = ["component-model", "async"] }
+wasmtime-wasi = { version = "36", optional = true }
+tokio = { workspace = true, optional = true }
 async-trait = { workspace = true }
-bytes = "^1"
 futures = "0.3.30"
 sha2 = { workspace = true, optional = true }
 hex = { workspace = true, optional = true }

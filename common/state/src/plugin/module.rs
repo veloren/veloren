@@ -1,4 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    io,
+    pin::Pin,
+    sync::{Arc, Mutex},
+    task::{Context, Poll},
+};
 
 use super::{
     CommandResults,
@@ -6,11 +11,16 @@ use super::{
     memory_manager::{EcsAccessManager, EcsWorld},
 };
 use hashbrown::{HashMap, HashSet};
+use tokio::io::AsyncWrite;
 use wasmtime::{
     Config, Engine, Store,
-    component::{Component, Linker},
+    component::{Component, HasSelf, Linker},
 };
-use wasmtime_wasi::WasiView;
+use wasmtime_wasi::{
+    WasiCtx, WasiCtxBuilder, WasiCtxView, WasiView,
+    cli::{IsTerminal, StdoutStream},
+    p2::Pollable,
+};
 
 pub(crate) mod types_mod {
     wasmtime::component::bindgen!({
@@ -172,17 +182,20 @@ pub struct PluginModule {
 }
 
 struct WasiHostCtx {
-    preview2_ctx: wasmtime_wasi::WasiCtx,
+    preview2_ctx: WasiCtx,
     preview2_table: wasmtime::component::ResourceTable,
     ecs: Arc<EcsAccessManager>,
     registered_commands: HashSet<String>,
     registered_bodies: HashMap<String, types::BodyIndex>,
 }
 
-impl wasmtime_wasi::WasiView for WasiHostCtx {
-    fn table(&mut self) -> &mut wasmtime::component::ResourceTable { &mut self.preview2_table }
-
-    fn ctx(&mut self) -> &mut wasmtime_wasi::WasiCtx { &mut self.preview2_ctx }
+impl WasiView for WasiHostCtx {
+    fn ctx(&mut self) -> WasiCtxView<'_> {
+        WasiCtxView {
+            ctx: &mut self.preview2_ctx,
+            table: &mut self.preview2_table,
+        }
+    }
 }
 
 impl information::Host for WasiHostCtx {}
@@ -209,7 +222,8 @@ impl information::HostEntity for WasiHostCtx {
         &mut self,
         uid: actions::Uid,
     ) -> Result<wasmtime::component::Resource<information::Entity>, types::Error> {
-        self.table()
+        self.ctx()
+            .table
             .push(Entity {
                 uid: common::uid::Uid(uid),
             })
@@ -221,7 +235,8 @@ impl information::HostEntity for WasiHostCtx {
         self_: wasmtime::component::Resource<information::Entity>,
     ) -> Result<information::Health, types::Error> {
         let uid = self
-            .table()
+            .ctx()
+            .table
             .get(&self_)
             .map_err(|_err| types::Error::RuntimeError)?
             .uid;
@@ -248,7 +263,8 @@ impl information::HostEntity for WasiHostCtx {
         self_: wasmtime::component::Resource<information::Entity>,
     ) -> Result<String, types::Error> {
         let uid = self
-            .table()
+            .ctx()
+            .table
             .get(&self_)
             .map_err(|_err| types::Error::RuntimeError)?
             .uid;
@@ -271,58 +287,76 @@ impl information::HostEntity for WasiHostCtx {
         &mut self,
         rep: wasmtime::component::Resource<information::Entity>,
     ) -> wasmtime::Result<()> {
-        Ok(self.table().delete(rep).map(|_entity| ())?)
+        Ok(self.ctx().table.delete(rep).map(|_entity| ())?)
     }
 }
 
 struct InfoStream(String);
 
-impl wasmtime_wasi::HostOutputStream for InfoStream {
-    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::StreamResult<()> {
-        tracing::info!("{}: {}", self.0, String::from_utf8_lossy(bytes.as_ref()));
-        Ok(())
+impl AsyncWrite for InfoStream {
+    fn poll_write(
+        self: Pin<&mut Self>,
+        _cx: &mut Context,
+        buf: &[u8],
+    ) -> Poll<Result<usize, io::Error>> {
+        tracing::info!("{}: {}", self.0, String::from_utf8_lossy(buf));
+        Poll::Ready(Ok(buf.len()))
     }
 
-    fn flush(&mut self) -> wasmtime_wasi::StreamResult<()> { Ok(()) }
+    fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Result<(), io::Error>> {
+        Poll::Ready(Ok(()))
+    }
 
-    fn check_write(&mut self) -> wasmtime_wasi::StreamResult<usize> { Ok(1024) }
+    fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Result<(), io::Error>> {
+        Poll::Ready(Ok(()))
+    }
 }
 
 #[wasmtime_wasi::async_trait]
-impl wasmtime_wasi::Subscribe for InfoStream {
+impl Pollable for InfoStream {
     async fn ready(&mut self) {}
 }
 
 struct ErrorStream(String);
 
-impl wasmtime_wasi::HostOutputStream for ErrorStream {
-    fn write(&mut self, bytes: bytes::Bytes) -> wasmtime_wasi::StreamResult<()> {
-        tracing::error!("{}: {}", self.0, String::from_utf8_lossy(bytes.as_ref()));
-        Ok(())
+impl AsyncWrite for ErrorStream {
+    fn poll_write(
+        self: Pin<&mut Self>,
+        _cx: &mut Context,
+        buf: &[u8],
+    ) -> Poll<Result<usize, io::Error>> {
+        tracing::error!("{}: {}", self.0, String::from_utf8_lossy(buf));
+        Poll::Ready(Ok(buf.len()))
     }
 
-    fn flush(&mut self) -> wasmtime_wasi::StreamResult<()> { Ok(()) }
+    fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Result<(), io::Error>> {
+        Poll::Ready(Ok(()))
+    }
 
-    fn check_write(&mut self) -> wasmtime_wasi::StreamResult<usize> { Ok(1024) }
+    fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Result<(), io::Error>> {
+        Poll::Ready(Ok(()))
+    }
 }
 
 #[wasmtime_wasi::async_trait]
-impl wasmtime_wasi::Subscribe for ErrorStream {
+impl Pollable for ErrorStream {
     async fn ready(&mut self) {}
 }
 
 struct LogStream(String, tracing::Level);
 
-impl wasmtime_wasi::StdoutStream for LogStream {
-    fn stream(&self) -> Box<dyn wasmtime_wasi::HostOutputStream> {
+impl IsTerminal for LogStream {
+    fn is_terminal(&self) -> bool { true }
+}
+
+impl StdoutStream for LogStream {
+    fn async_stream(&self) -> Box<dyn AsyncWrite + Send + Sync> {
         if self.1 == tracing::Level::INFO {
             Box::new(InfoStream(self.0.clone()))
         } else {
             Box::new(ErrorStream(self.0.clone()))
         }
     }
-
-    fn isatty(&self) -> bool { true }
 }
 
 impl PluginModule {
@@ -336,7 +370,7 @@ impl PluginModule {
 
         let engine = Engine::new(&config).map_err(PluginModuleError::Wasmtime)?;
         // create a WASI environment (std implementing system calls)
-        let wasi = wasmtime_wasi::WasiCtxBuilder::new()
+        let wasi = WasiCtxBuilder::new()
             .stdout(LogStream(name.clone(), tracing::Level::INFO))
             .stderr(LogStream(name.clone(), tracing::Level::ERROR))
             .build();
@@ -356,8 +390,9 @@ impl PluginModule {
 
         // register WASI and Veloren methods with the runtime
         let mut linker = Linker::new(&engine);
-        wasmtime_wasi::add_to_linker_sync(&mut linker).map_err(PluginModuleError::Wasmtime)?;
-        Plugin::add_to_linker(&mut linker, |x| x).map_err(PluginModuleError::Wasmtime)?;
+        wasmtime_wasi::p2::add_to_linker_sync(&mut linker).map_err(PluginModuleError::Wasmtime)?;
+        Plugin::add_to_linker::<_, HasSelf<_>>(&mut linker, |x| x)
+            .map_err(PluginModuleError::Wasmtime)?;
 
         let instance_fut = linker.instantiate(&mut store, &module);
         let instance = (instance_fut).map_err(PluginModuleError::Wasmtime)?;
