@@ -93,6 +93,7 @@ impl ClientChatCommand {
                 Content::localized("command-help-desc"),
                 None,
             ),
+            ClientChatCommand::Naga => cmd(vec![], Content::localized("command-naga-desc"), None),
             ClientChatCommand::Mute => cmd(
                 vec![PlayerName(Required)],
                 Content::localized("command-mute-desc"),
@@ -111,7 +112,6 @@ impl ClientChatCommand {
                 Content::localized("command-wiki-desc"),
                 None,
             ),
-            ClientChatCommand::Naga => cmd(vec![], Content::localized("command-naga-desc"), None),
         }
     }
 
@@ -123,11 +123,11 @@ impl ClientChatCommand {
             ClientChatCommand::Clear => "clear",
             ClientChatCommand::ExperimentalShader => "experimental_shader",
             ClientChatCommand::Help => "help",
+            ClientChatCommand::Naga => "naga",
             ClientChatCommand::Mute => "mute",
             ClientChatCommand::Unmute => "unmute",
             ClientChatCommand::Waypoint => "waypoint",
             ClientChatCommand::Wiki => "wiki",
-            ClientChatCommand::Naga => "naga",
         }
     }
 
@@ -459,11 +459,11 @@ fn run_client_command(
         ClientChatCommand::Clear => handle_clear,
         ClientChatCommand::ExperimentalShader => handle_experimental_shader,
         ClientChatCommand::Help => handle_help,
+        ClientChatCommand::Naga => handle_naga,
         ClientChatCommand::Mute => handle_mute,
         ClientChatCommand::Unmute => handle_unmute,
         ClientChatCommand::Waypoint => handle_waypoint,
         ClientChatCommand::Wiki => handle_wiki,
-        ClientChatCommand::Naga => handle_naga,
     };
 
     command(session_state, global_state, args)
@@ -477,6 +477,67 @@ fn handle_clear(
 ) -> CommandResult {
     session_state.hud.clear_chat();
     Ok(None)
+}
+
+/// Handles [`ClientChatCommand::ExperimentalShader`]
+fn handle_experimental_shader(
+    _session_state: &mut SessionState,
+    global_state: &mut GlobalState,
+    args: Vec<String>,
+) -> CommandResult {
+    if args.is_empty() {
+        Ok(Some(Content::localized_with_args(
+            "command-experimental-shaders-list",
+            [(
+                "shader-list",
+                LocalizationArg::from(
+                    ExperimentalShader::iter()
+                        .map(|s| {
+                            let is_active = global_state
+                                .settings
+                                .graphics
+                                .render_mode
+                                .experimental_shaders
+                                .contains(&s);
+                            format!("[{}] {}", if is_active { "x" } else { "  " }, s)
+                        })
+                        .collect::<Vec<String>>()
+                        .join("/"),
+                ),
+            )],
+        )))
+    } else if let Some(item) = parse_cmd_args!(args, String) {
+        if let Ok(shader) = ExperimentalShader::from_str(&item) {
+            let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
+            let res = if new_render_mode.experimental_shaders.remove(&shader) {
+                Ok(Some(Content::localized_with_args(
+                    "command-experimental-shaders-disabled",
+                    [("shader", LocalizationArg::from(item))],
+                )))
+            } else {
+                new_render_mode.experimental_shaders.insert(shader);
+                Ok(Some(Content::localized_with_args(
+                    "command-experimental-shaders-enabled",
+                    [("shader", LocalizationArg::from(item))],
+                )))
+            };
+
+            change_render_mode(
+                new_render_mode,
+                &mut global_state.window,
+                &mut global_state.settings,
+            );
+
+            res
+        } else {
+            Err(Content::localized_with_args(
+                "command-experimental-shaders-not-a-shader",
+                [("shader", LocalizationArg::from(item))],
+            ))
+        }
+    } else {
+        Err(Content::localized("command-experimental-shaders-not-valid"))
+    }
 }
 
 /// Handles [`ClientChatCommand::Help`]
@@ -529,6 +590,36 @@ fn handle_help(
             ),
         ])))
     }
+}
+
+/// Handles [`ClientChatCommand::Naga`]
+///
+///Toggles use of naga in initial shader processing.
+fn handle_naga(
+    _session_state: &mut SessionState,
+    global_state: &mut GlobalState,
+    _args: Vec<String>,
+) -> CommandResult {
+    let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
+    new_render_mode.enable_naga ^= true;
+    let naga_enabled = new_render_mode.enable_naga;
+    change_render_mode(
+        new_render_mode,
+        &mut global_state.window,
+        &mut global_state.settings,
+    );
+
+    Ok(Some(Content::localized_with_args(
+        "command-shader-backend",
+        [(
+            "shader-backend",
+            if naga_enabled {
+                LocalizationArg::from("naga")
+            } else {
+                LocalizationArg::from("shaderc")
+            },
+        )],
+    )))
 }
 
 /// Handles [`ClientChatCommand::Mute`]
@@ -619,67 +710,6 @@ fn handle_unmute(
     }
 }
 
-/// Handles [`ClientChatCommand::ExperimentalShader`]
-fn handle_experimental_shader(
-    _session_state: &mut SessionState,
-    global_state: &mut GlobalState,
-    args: Vec<String>,
-) -> CommandResult {
-    if args.is_empty() {
-        Ok(Some(Content::localized_with_args(
-            "command-experimental-shaders-list",
-            [(
-                "shader-list",
-                LocalizationArg::from(
-                    ExperimentalShader::iter()
-                        .map(|s| {
-                            let is_active = global_state
-                                .settings
-                                .graphics
-                                .render_mode
-                                .experimental_shaders
-                                .contains(&s);
-                            format!("[{}] {}", if is_active { "x" } else { "  " }, s)
-                        })
-                        .collect::<Vec<String>>()
-                        .join("/"),
-                ),
-            )],
-        )))
-    } else if let Some(item) = parse_cmd_args!(args, String) {
-        if let Ok(shader) = ExperimentalShader::from_str(&item) {
-            let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
-            let res = if new_render_mode.experimental_shaders.remove(&shader) {
-                Ok(Some(Content::localized_with_args(
-                    "command-experimental-shaders-disabled",
-                    [("shader", LocalizationArg::from(item))],
-                )))
-            } else {
-                new_render_mode.experimental_shaders.insert(shader);
-                Ok(Some(Content::localized_with_args(
-                    "command-experimental-shaders-enabled",
-                    [("shader", LocalizationArg::from(item))],
-                )))
-            };
-
-            change_render_mode(
-                new_render_mode,
-                &mut global_state.window,
-                &mut global_state.settings,
-            );
-
-            res
-        } else {
-            Err(Content::localized_with_args(
-                "command-experimental-shaders-not-a-shader",
-                [("shader", LocalizationArg::from(item))],
-            ))
-        }
-    } else {
-        Err(Content::localized("command-experimental-shaders-not-valid"))
-    }
-}
-
 /// Handles [`ClientChatCommand::Waypoint`]
 fn handle_waypoint(
     session_state: &mut SessionState,
@@ -724,36 +754,6 @@ fn handle_wiki(
                 LocalizationArg::from(e.to_string()),
             )])
         })
-}
-
-/// Handles [`ClientChatCommand::Naga`]
-///
-///Toggles use of naga in initial shader processing.
-fn handle_naga(
-    _session_state: &mut SessionState,
-    global_state: &mut GlobalState,
-    _args: Vec<String>,
-) -> CommandResult {
-    let mut new_render_mode = global_state.settings.graphics.render_mode.clone();
-    new_render_mode.enable_naga ^= true;
-    let naga_enabled = new_render_mode.enable_naga;
-    change_render_mode(
-        new_render_mode,
-        &mut global_state.window,
-        &mut global_state.settings,
-    );
-
-    Ok(Some(Content::localized_with_args(
-        "command-shader-backend",
-        [(
-            "shader-backend",
-            if naga_enabled {
-                LocalizationArg::from("naga")
-            } else {
-                LocalizationArg::from("shaderc")
-            },
-        )],
-    )))
 }
 
 /// Trait for types that can provide tab completion suggestions.
