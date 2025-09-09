@@ -1,5 +1,6 @@
 #![deny(unsafe_code)]
 #![deny(clippy::clone_on_ref_ptr)]
+#![feature(let_chains)]
 
 pub mod addr;
 pub mod error;
@@ -2235,6 +2236,19 @@ impl Client {
             //     self.send_msg(ClientGeneral::ChatMsg(msg));
             // }
             self.control_event(ControlEvent::Dialogue(target_uid, dialogue));
+        }
+    }
+
+    pub fn do_talk(&mut self, tgt: Option<EcsEntity>) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<comp::Controller>()
+            .get_mut(self.entity())
+        {
+            controller.push_action(ControlAction::Talk(
+                tgt.and_then(|tgt| self.state.read_component_copied(tgt)),
+            ));
         }
     }
 

@@ -6,6 +6,7 @@ use crate::{
     },
     resources::Time,
     states::behavior::{CharacterBehavior, JoinData},
+    uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 
@@ -118,9 +119,9 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn talk(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn talk(&self, data: &JoinData, _: &mut OutputEvents, tgt: Option<Uid>) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_talk(data, &mut update);
+        attempt_talk(data, &mut update, tgt);
         update
     }
 }

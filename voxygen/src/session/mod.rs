@@ -1371,6 +1371,11 @@ impl PlayState for SessionState {
                 }
             }
 
+            // Talk to entities when we are in dialogue with them
+            if let Some(tgt) = self.hud.current_dialogue() {
+                self.client.borrow_mut().do_talk(Some(tgt));
+            }
+
             if let Some(viewpoint_entity) = self.viewpoint_entity
                 && !self
                     .client

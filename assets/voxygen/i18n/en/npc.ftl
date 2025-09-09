@@ -404,6 +404,12 @@ npc-speech-arena = Let's sit over there!
 
 ## NPC dialogue
 
+npc-goodbye =
+    .a0 = See you later!
+    .a1 = Bye!
+    .a2 = Goodbye!
+    .a3 = Later!
+
 npc-question-general =
     .a0 = What can I do for you?
     .a1 = G'day. What's the matter?

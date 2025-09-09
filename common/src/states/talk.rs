@@ -5,6 +5,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         idle,
     },
+    uid::Uid,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -16,18 +17,18 @@ const MIN_TALK_TIME: Duration = Duration::from_millis(500);
 pub struct Data {
     pub timer: Duration,
     pub max_time: Duration,
-}
-
-impl Default for Data {
-    fn default() -> Self {
-        Self {
-            timer: Duration::default(),
-            max_time: MIN_TALK_TIME,
-        }
-    }
+    pub tgt: Option<Uid>,
 }
 
 impl Data {
+    pub fn at(tgt: Option<Uid>) -> Self {
+        Self {
+            timer: Duration::default(),
+            max_time: MIN_TALK_TIME,
+            tgt,
+        }
+    }
+
     pub fn refreshed(mut self) -> Self {
         self.max_time = self.timer + MIN_TALK_TIME;
         self
@@ -47,17 +48,26 @@ impl CharacterBehavior for Data {
             CharacterState::Talk(Self {
                 timer: self.timer + Duration::from_secs_f32(data.dt.0),
                 max_time: self.max_time,
+                tgt: self.tgt,
             })
         };
 
         update
     }
 
-    fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+    fn talk(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+        tgt: Option<Uid>,
+    ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         // Refresh timer
-        update.character = CharacterState::Talk(self.refreshed());
+        update.character = CharacterState::Talk(Self {
+            tgt,
+            ..self.refreshed()
+        });
 
         update
     }

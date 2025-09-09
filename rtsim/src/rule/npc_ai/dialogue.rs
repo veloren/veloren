@@ -140,6 +140,13 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
         ));
         // TODO: Include trading here!
 
+        responses.push((
+            Response::from(Content::localized("dialogue-finish")),
+            session
+                .say_statement(Content::localized("npc-goodbye"))
+                .boxed(),
+        ));
+
         session.ask_question(Content::localized("npc-question-general"), responses)
     })
 }

@@ -1,1 +1,1 @@
-body-npc-speech-biped_large-ogre-male = een oger
+noun-ogre-male = een oger

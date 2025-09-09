@@ -228,6 +228,7 @@ impl<'a> System<'a> for Sys {
                 id_maps: &id_maps,
                 alignments: &read_data.alignments,
                 prev_phys_caches: &read_data.prev_phys_caches,
+                bodies: &read_data.bodies,
             };
 
             for action in actions {

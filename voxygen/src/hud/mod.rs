@@ -1487,6 +1487,10 @@ impl Hud {
             .set_prefix_switch_point(prefix_switch_point);
     }
 
+    pub fn current_dialogue(&self) -> Option<EcsEntity> {
+        self.current_dialogue.as_ref().map(|(e, _)| *e)
+    }
+
     #[expect(clippy::single_match)] // TODO: Pending review in #587
     fn update_layout(
         &mut self,

@@ -159,7 +159,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
             if !agent.behavior.is(BehaviorState::TRADING) {
                 // stand still and looking towards the trading player
                 controller.push_action(ControlAction::Stand);
-                controller.push_action(ControlAction::Talk);
+                controller.push_action(ControlAction::Talk(Some(with)));
                 if let Some(target) = get_entity_by_id(with, read_data) {
                     let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 

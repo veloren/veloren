@@ -1,3 +1,5 @@
+dialogue-finish = Goodbye
+
 dialogue-question-site =
     .a0 = Where am I?
     .a1 = Where are we?
