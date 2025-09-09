@@ -306,6 +306,7 @@ impl<const IS_VALIDATED: bool> Dialogue<IS_VALIDATED> {
             DialogueKind::Start | DialogueKind::End | DialogueKind::Marker { .. } => None,
             DialogueKind::Statement { msg, .. } | DialogueKind::Question { msg, .. } => Some(msg),
             DialogueKind::Response { response, .. } => Some(&response.msg),
+            DialogueKind::Ack { .. } => None,
         }
     }
 }
@@ -321,6 +322,11 @@ pub enum DialogueKind {
     Statement {
         msg: Content,
         given_item: Option<(Arc<ItemDef>, u32)>,
+        tag: u32,
+    },
+    // Acknowledge a statement, allowing the conversation to proceed
+    Ack {
+        tag: u32,
     },
     Question {
         // Used to uniquely track each question/response

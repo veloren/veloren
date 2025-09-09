@@ -6,13 +6,19 @@ use conrod_core::{
     widget_ids,
 };
 use i18n::Localization;
-use std::time::{Duration, Instant};
+use std::{
+    borrow::Cow,
+    time::{Duration, Instant},
+};
 
-use crate::ui::{TooltipManager, fonts::Fonts};
+use crate::{
+    GlobalState,
+    ui::{TooltipManager, fonts::Fonts},
+};
 use inline_tweak::*;
 
 use super::{
-    Show, TEXT_COLOR, animate_by_pulse,
+    GameInput, Show, TEXT_COLOR, animate_by_pulse,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
 };
@@ -38,6 +44,7 @@ widget_ids! {
         scrollbar,
         intro_txt,
         desc_txt_0,
+        ack_prompt,
         quest_objectives[],
         quest_response_txt,
         objective_text,
@@ -58,11 +65,13 @@ pub struct Quest<'a> {
     _imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    global_state: &'a GlobalState,
     _rot_imgs: &'a ImgsRot,
     _tooltip_manager: &'a mut TooltipManager,
     item_imgs: &'a ItemImgs,
     sender: EcsEntity,
     dialogue: &'a rtsim::Dialogue<true>,
+    recv_time: Instant,
     pulse: f32,
 
     #[conrod(common_builder)]
@@ -76,11 +85,13 @@ impl<'a> Quest<'a> {
         _imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
+        global_state: &'a GlobalState,
         _rot_imgs: &'a ImgsRot,
         _tooltip_manager: &'a mut TooltipManager,
         item_imgs: &'a ItemImgs,
         sender: EcsEntity,
         dialogue: &'a rtsim::Dialogue<true>,
+        recv_time: Instant,
         pulse: f32,
     ) -> Self {
         Self {
@@ -90,10 +101,12 @@ impl<'a> Quest<'a> {
             _rot_imgs,
             fonts,
             localized_strings,
+            global_state,
             _tooltip_manager,
             item_imgs,
             sender,
             dialogue,
+            recv_time,
             pulse,
             common: widget::CommonBuilder::default(),
         }
@@ -211,6 +224,33 @@ impl Widget for Quest<'_> {
             .auto_hide(true)
             .rgba(1.0, 1.0, 1.0, 0.2)
             .set(state.ids.scrollbar, ui);
+
+        if let rtsim::DialogueKind::Statement { .. } = &self.dialogue.kind {
+            let recv_time = self.recv_time.elapsed().as_secs_f32();
+            Text::new(&if let Some(key) = self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Interact)
+            {
+                self.localized_strings.get_msg_ctx(
+                    "hud-dialogue-ack",
+                    &i18n::fluent_args! { "key" => key.display_string() },
+                )
+            } else {
+                Cow::Borrowed("")
+            })
+            .bottom_right_with_margins_on(state.ids.text_align, 12.0, 12.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(12))
+            .color(Color::Rgba(
+                1.0,
+                1.0,
+                1.0,
+                (0.6 + (recv_time * tweak!(5.0)).sin() * 0.4) * (recv_time - 1.0).clamp(0.0, 1.0),
+            ))
+            .set(state.ids.ack_prompt, ui);
+        }
 
         // Define type of quest to change introduction text
         let msg_text = self

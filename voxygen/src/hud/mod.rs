@@ -1321,7 +1321,7 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     force_chat: bool,
     clear_chat: bool,
-    current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
+    current_dialogue: Option<(EcsEntity, Instant, rtsim::Dialogue<true>)>,
     extra_markers: Vec<map::ExtraMarker>,
 }
 
@@ -1488,7 +1488,7 @@ impl Hud {
     }
 
     pub fn current_dialogue(&self) -> Option<EcsEntity> {
-        self.current_dialogue.as_ref().map(|(e, _)| *e)
+        self.current_dialogue.as_ref().map(|(e, _, _)| *e)
     }
 
     #[expect(clippy::single_match)] // TODO: Pending review in #587
@@ -3691,7 +3691,7 @@ impl Hud {
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
         let interpolated = client.state().ecs().read_storage::<vcomp::Interpolated>();
-        if let Some((sender, dialogue)) = &self.current_dialogue
+        if let Some((sender, _, dialogue)) = &self.current_dialogue
             && let Some(i) = interpolated.get(*sender)
             && let Some(player_i) = interpolated.get(client.entity())
             && i.pos.distance_squared(player_i.pos) > MAX_NPCINTERACT_RANGE.powi(2)
@@ -3704,7 +3704,7 @@ impl Hud {
         }
 
         let dialogue_open = if self.show.quest
-            && let Some((sender, dialogue)) = &self.current_dialogue
+            && let Some((sender, time, dialogue)) = &self.current_dialogue
         {
             match Quest::new(
                 &self.show,
@@ -3712,11 +3712,13 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
+                global_state,
                 &self.rot_imgs,
                 tooltip_manager,
                 &self.item_imgs,
                 *sender,
                 dialogue,
+                *time,
                 self.pulse,
             )
             .set(self.ids.quest_window, ui_widgets)
@@ -3741,7 +3743,7 @@ impl Hud {
             false
         };
 
-        if !dialogue_open && let Some((sender, dialogue)) = self.current_dialogue.take() {
+        if !dialogue_open && let Some((sender, _, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {
                 id: dialogue.id,
                 kind: rtsim::DialogueKind::End,
@@ -4657,7 +4659,7 @@ impl Hud {
             rtsim::DialogueKind::End => {
                 if self
                     .current_dialogue
-                    .take_if(|(old_sender, _)| *old_sender == sender)
+                    .take_if(|(old_sender, _, _)| *old_sender == sender)
                     .is_some()
                 {
                     self.show.quest(false);
@@ -4668,10 +4670,10 @@ impl Hud {
                     || self
                         .current_dialogue
                         .as_ref()
-                        .is_none_or(|(old_sender, _)| *old_sender == sender)
+                        .is_none_or(|(old_sender, _, _)| *old_sender == sender)
                 {
                     self.show.quest(true);
-                    self.current_dialogue = Some((sender, dialogue));
+                    self.current_dialogue = Some((sender, Instant::now(), dialogue));
                 }
             },
         }
@@ -4974,6 +4976,20 @@ impl Hud {
                     },
                     GameInput::MuteAmbience if state => {
                         toggle_mute(Audio::MuteAmbienceVolume(!gs_audio.ambience_volume.muted))
+                    },
+                    GameInput::Interact if state => {
+                        // Send ACKs during conversation
+                        if let Some((sender, _, dialogue)) = &self.current_dialogue
+                            && let rtsim::DialogueKind::Statement { tag, .. } = dialogue.kind
+                        {
+                            self.events.push(Event::Dialogue(*sender, rtsim::Dialogue {
+                                id: dialogue.id,
+                                kind: rtsim::DialogueKind::Ack { tag },
+                            }));
+                            true
+                        } else {
+                            false
+                        }
                     },
                     // Skillbar
                     input => {

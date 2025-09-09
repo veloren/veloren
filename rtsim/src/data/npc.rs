@@ -25,7 +25,10 @@ use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicU32, Ordering},
+    },
 };
 use tracing::error;
 use vek::*;
@@ -204,6 +207,11 @@ impl Controller {
             }));
     }
 
+    fn new_dialogue_tag(&self) -> u32 {
+        static TAG_COUNTER: AtomicU32 = AtomicU32::new(0);
+        TAG_COUNTER.fetch_add(1, Ordering::Relaxed)
+    }
+
     /// Ask a question, with various possible answers. Returns the dialogue tag,
     /// used for identifying the answer.
     pub fn dialogue_question(
@@ -212,7 +220,7 @@ impl Controller {
         msg: comp::Content,
         responses: impl IntoIterator<Item = (u16, Response)>,
     ) -> u32 {
-        let tag = rand::rng().random();
+        let tag = self.new_dialogue_tag();
 
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
@@ -227,18 +235,27 @@ impl Controller {
         tag
     }
 
-    /// Provide a statement as part of a dialogue.
+    /// Provide a statement as part of a dialogue. Returns the dialogue tag,
+    /// used for identifying acknowledgements.
     pub fn dialogue_statement(
         &mut self,
         session: DialogueSession,
         msg: comp::Content,
         given_item: Option<(Arc<ItemDef>, u32)>,
-    ) {
+    ) -> u32 {
+        let tag = self.new_dialogue_tag();
+
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
-                kind: DialogueKind::Statement { msg, given_item },
+                kind: DialogueKind::Statement {
+                    msg,
+                    given_item,
+                    tag,
+                },
             }));
+
+        tag
     }
 
     /// Provide a location marker as part of a dialogue.

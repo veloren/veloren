@@ -169,7 +169,8 @@ impl ServerEvent for DialogueEvent {
                     DialogueKind::Start
                     | DialogueKind::End
                     | DialogueKind::Question { .. }
-                    | DialogueKind::Marker { .. } => None,
+                    | DialogueKind::Marker { .. }
+                    | DialogueKind::Ack { .. } => None,
                     DialogueKind::Statement { given_item, .. } => given_item.as_ref(),
                     DialogueKind::Response { response, .. } => response.given_item.as_ref(),
                 };

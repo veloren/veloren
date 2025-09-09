@@ -191,23 +191,23 @@ fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
             .npc
             .profession()
             .map(|p| match p {
-                Profession::Farmer => "npc-info-role_farmer",
-                Profession::Hunter => "npc-info-role_hunter",
-                Profession::Merchant => "npc-info-role_merchant",
-                Profession::Guard => "npc-info-role_guard",
-                Profession::Adventurer(_) => "npc-info-role_adventurer",
-                Profession::Blacksmith => "npc-info-role_blacksmith",
-                Profession::Chef => "npc-info-role_chef",
-                Profession::Alchemist => "npc-info-role_alchemist",
-                Profession::Pirate(_) => "npc-info-role_pirate",
-                Profession::Cultist => "npc-info-role_cultist",
-                Profession::Herbalist => "npc-info-role_herbalist",
-                Profession::Captain => "npc-info-role_captain",
+                Profession::Farmer => "noun-role-farmer",
+                Profession::Hunter => "noun-role-hunter",
+                Profession::Merchant => "noun-role-merchant",
+                Profession::Guard => "noun-role-guard",
+                Profession::Adventurer(_) => "noun-role-adventurer",
+                Profession::Blacksmith => "noun-role-blacksmith",
+                Profession::Chef => "noun-role-chef",
+                Profession::Alchemist => "noun-role-alchemist",
+                Profession::Pirate(_) => "noun-role-pirate",
+                Profession::Cultist => "noun-role-cultist",
+                Profession::Herbalist => "noun-role-herbalist",
+                Profession::Captain => "noun-role-captain",
             })
             .map(|p| {
                 Content::localized_with_args("npc-info-role", [("role", Content::localized(p))])
             })
-            .unwrap_or_else(|| Content::localized("npc-info-role_none"));
+            .unwrap_or_else(|| Content::localized("noun-role-none"));
 
         let home = if let Some(site_name) = util::site_name(ctx, ctx.npc.home) {
             Content::localized_with_args("npc-info-self_home", [(

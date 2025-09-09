@@ -116,7 +116,7 @@ impl DialogueSession {
                         // Check that the response is for the same dialogue
                         && dialogue.id == self.id
                         && let DialogueKind::Response { tag, response_id, response, .. } = &dialogue.kind
-                        // Check that the response relates the the question just asked
+                        // Check that the response relates to the question just asked
                         && *tag == q_tag
                         // Check that the response matches one of our requested responses
                         && responses.iter().any(|(r_id, r)| r_id == response_id && r == response)
@@ -162,14 +162,40 @@ impl DialogueSession {
         item: Option<(Arc<ItemDef>, u32)>,
     ) -> impl Action<S> {
         now(move |ctx, _| {
-            ctx.controller
+            let s_tag = ctx
+                .controller
                 .dialogue_statement(self, stmt.clone(), item.clone());
-            idle()
-        })
-        .then(talk(self.target)
+            // Wait for the ack
+            talk(self.target)
             .repeat()
-            // Wait for a while before making the statement to allow other dialogue to be read
-            .stop_if(timeout(2.5)))
+            // Wait for a while before accepting the ACK to avoid dialogue progressing too fast
+            .stop_if(timeout(1.5))
+            // Wait for the ACK
+            .then(until(move |ctx, _| {
+                    let mut acked = false;
+                    ctx.inbox.retain(|input| {
+                        if let NpcInput::Dialogue(_, dialogue) = input
+                            // Check that the response is for the same dialogue
+                            && dialogue.id == self.id
+                            && let DialogueKind::Ack { tag } = &dialogue.kind
+                            // Check that the ACL relates to the statement just given
+                            && *tag == s_tag
+                        {
+                            acked = true;
+                            false
+                        } else {
+                            true
+                        }
+                    });
+                    if acked {
+                       ControlFlow::Break(())
+                    } else {
+                        ControlFlow::Continue(talk(self.target))
+                    }
+                })
+                    // As a final safeguard, timeout after 120 seconds
+                    .stop_if(timeout(120.0)))
+        })
         .map(|_, _| ())
     }
 

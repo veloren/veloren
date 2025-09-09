@@ -40,3 +40,18 @@ noun-terracotta_pursuer = a terracotta pursuer
 noun-cursekeeper = a terracotta pursuer
 noun-strigoi = a strigoi
 noun-executioner = an executioner
+
+# Roles
+
+noun-role-farmer = a farmer
+noun-role-hunter = a hunter
+noun-role-merchant = a merchant
+noun-role-guard = a guard
+noun-role-adventurer = an adventurer
+noun-role-blacksmith = a blacksmith
+noun-role-chef = a chef
+noun-role-alchemist = an alchemist
+noun-role-pirate = a pirate
+noun-role-cultist = a cultist
+noun-role-herbalist = a herbalist
+noun-role-captain = a captain
