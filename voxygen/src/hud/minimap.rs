@@ -928,12 +928,10 @@ impl Widget for MiniMap<'_> {
                 } else {
                     self.rot_imgs.indicator_mmap.target_north
                 }
-            } else {
-                if colored_player_marker {
+            } else if colored_player_marker {
                     self.rot_imgs.indicator_mmap_colored.none
-                } else {
+            } else {
                     self.rot_imgs.indicator_mmap.none
-                }
             };
             Image::new(ind_rotation)
                 .middle_of(state.ids.map_layers[0])
