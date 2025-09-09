@@ -41,7 +41,7 @@ dialogue-question-quest-escort-where = Where are we going?
 dialogue-question-quest-slay-where = Where is the { TAIL($body) }?
 dialogue-question-quest-slay-claim = The monster has been slain!
 
-dialogue-play_game = Play a game
+dialogue-play_game = Let's play a game
 dialogue-game-what_game =
     .a0 = What game do you want to play?
     .a1 = Sure! What game?

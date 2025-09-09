@@ -1,11 +1,15 @@
 use client::{Client, EcsEntity};
-use common::{comp::ItemKey, rtsim};
+use common::{
+    comp::{self, ItemKey},
+    rtsim,
+};
 use conrod_core::{
     Borderable, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids,
 };
 use i18n::Localization;
+use specs::WorldExt;
 use std::{
     borrow::Cow,
     time::{Duration, Instant},
@@ -61,7 +65,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Quest<'a> {
     _show: &'a Show,
-    _client: &'a Client,
+    client: &'a Client,
     _imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
@@ -81,7 +85,7 @@ pub struct Quest<'a> {
 impl<'a> Quest<'a> {
     pub fn new(
         _show: &'a Show,
-        _client: &'a Client,
+        client: &'a Client,
         _imgs: &'a Imgs,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
@@ -96,7 +100,7 @@ impl<'a> Quest<'a> {
     ) -> Self {
         Self {
             _show,
-            _client,
+            client,
             _imgs,
             _rot_imgs,
             fonts,
@@ -302,10 +306,26 @@ impl Widget for Quest<'_> {
             };
 
             for (i, (response_id, response)) in responses.iter().enumerate() {
+                // Determine whether all requirements for sending the response are met
+                let is_valid = if let Some((item, amount)) = &response.given_item {
+                    self.client
+                        .state()
+                        .ecs()
+                        .read_storage::<comp::Inventory>()
+                        .get(self.client.entity())
+                        .is_some_and(|inv| inv.item_count(item) >= *amount as u64)
+                } else {
+                    true
+                };
+
                 let frame = Button::new()
                     .border_color(color::TRANSPARENT)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 0.0))
-                    .hover_color(Color::Rgba(1.0, 1.0, 1.0, 0.05))
+                    .hover_color(if is_valid {
+                        Color::Rgba(1.0, 1.0, 1.0, 0.05)
+                    } else {
+                        Color::Rgba(1.0, 0.5, 0.5, 0.05)
+                    })
                     .press_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
                     .parent(state.ids.topics_align)
                     .w_h(286.0, 30.0);
@@ -339,7 +359,7 @@ impl Widget for Quest<'_> {
                     .middle_of(state.ids.quest_responses_frames[i])
                     .graphics_for(state.ids.quest_responses_frames[i])
                     .font_id(self.fonts.cyri.conrod_id)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .color(Color::Rgba(1.0, 1.0, 1.0, if is_valid { 1.0 } else { 0.3 }))
                     .font_size(self.fonts.cyri.scale(tweak!(14)))
                     .set(state.ids.quest_rewards_txts[i], ui);
 
@@ -360,7 +380,12 @@ impl Widget for Quest<'_> {
                         .mid_left_with_margin_on(state.ids.quest_responses_icons[i], tweak!(24.0))
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(12))
-                        .color(TEXT_COLOR)
+                        .color(if is_valid {
+                            TEXT_COLOR
+                        } else {
+                            // Not enough present!
+                            Color::Rgba(1.0, 0.2, 0.2, 0.6 + (self.pulse * 8.0).sin() * 0.4)
+                        })
                         .wrap_by_word()
                         .set(state.ids.quest_responses_amounts[i], ui);
                 }
