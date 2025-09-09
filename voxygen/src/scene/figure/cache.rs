@@ -156,10 +156,22 @@ pub struct FigureKey<Body> {
     pub extra: Option<Arc<CharacterCacheKey>>,
 }
 
-#[derive(Deserialize, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Deserialize, Eq, Hash, PartialEq, Debug)]
 pub enum ToolKey {
     Tool(String),
     Modular(modular::ModularWeaponKey),
+}
+
+impl From<&Item> for ToolKey {
+    fn from(item: &Item) -> Self {
+        match item.item_definition_id() {
+            ItemDefinitionId::Simple(id) => ToolKey::Tool(String::from(id)),
+            ItemDefinitionId::Modular { .. } => ToolKey::Modular(modular::weapon_to_key(item)),
+            ItemDefinitionId::Compound { simple_base, .. } => {
+                ToolKey::Tool(String::from(simple_base))
+            },
+        }
+    }
 }
 
 /// Character data that should be visible when tools are visible (i.e. in third
@@ -261,22 +273,13 @@ impl CharacterCacheKey {
                 })
             },
             tool: if are_tools_visible {
-                let tool_key_from_item = |item: &Item| match item.item_definition_id() {
-                    ItemDefinitionId::Simple(id) => ToolKey::Tool(String::from(id)),
-                    ItemDefinitionId::Modular { .. } => {
-                        ToolKey::Modular(modular::weapon_to_key(item))
-                    },
-                    ItemDefinitionId::Compound { simple_base, .. } => {
-                        ToolKey::Tool(String::from(simple_base))
-                    },
-                };
                 Some(CharacterToolKey {
                     active: inventory
                         .equipped(EquipSlot::ActiveMainhand)
-                        .map(tool_key_from_item),
+                        .map(ToolKey::from),
                     second: inventory
                         .equipped(EquipSlot::ActiveOffhand)
-                        .map(tool_key_from_item),
+                        .map(ToolKey::from),
                 })
             } else {
                 None

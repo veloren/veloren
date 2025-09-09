@@ -1,10 +1,59 @@
-use super::SceneData;
+use super::{SceneData, figure::cache::ToolKey};
 use crate::render::{DynamicModel, Mesh, Quad, Renderer, TrailDrawer, TrailVertex};
-use common::comp::{Body, Pos, Vel, object};
+use common::{
+    assets::{AssetExt, BoxedError, FileAsset, load_ron},
+    comp::{
+        Body, Item, Pos, Vel,
+        item::ItemKind,
+        object,
+        tool::{Tool, ToolKind},
+    },
+};
 use common_base::span;
+use serde::Deserialize;
 use specs::{Entity as EcsEntity, Join, WorldExt};
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 use vek::*;
+
+lazy_static::lazy_static! {
+    pub static ref TOOL_TRAIL_MANIFEST: ToolTrailManifest = ToolTrailManifest::load_expect_cloned("voxygen.voxel.tool_trail_manifest");
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ToolTrailManifest(pub HashMap<ToolKey, ([f32; 3], [f32; 3])>);
+
+impl FileAsset for ToolTrailManifest {
+    const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> { load_ron(&bytes) }
+}
+
+impl ToolTrailManifest {
+    pub fn get(&self, item: &Item) -> Option<(Vec3<f32>, Vec3<f32>)> {
+        let tool_key = ToolKey::from(item);
+        self.0
+            .get(&tool_key)
+            .map(|trail_points| (Vec3::from(trail_points.0), Vec3::from(trail_points.1)))
+            .or_else(|| {
+                if let ItemKind::Tool(Tool { kind, .. }) = *item.kind() {
+                    let z_offsets = match kind {
+                        ToolKind::Sword => (0.0, 29.25),
+                        ToolKind::Axe => (10.0, 19.25),
+                        ToolKind::Hammer => (10.0, 19.25),
+                        ToolKind::Staff => (10.0, 19.25),
+                        ToolKind::Sceptre => (10.0, 19.25),
+                        _ => (0.0, 0.0),
+                    };
+                    Some((
+                        Vec3::new(0.0, 0.0, z_offsets.0),
+                        Vec3::new(0.0, 0.0, z_offsets.1),
+                    ))
+                } else {
+                    None
+                }
+            })
+    }
+}
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 struct MeshKey {

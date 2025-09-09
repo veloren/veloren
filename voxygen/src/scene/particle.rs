@@ -6,7 +6,7 @@ use crate::{
         Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
         pipelines::particle::ParticleMode,
     },
-    scene::terrain::FireplaceType,
+    scene::{terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
 };
 use common::{
     assets::{AssetExt, DotVox},
@@ -751,13 +751,17 @@ impl ParticleMgr {
                         "common.items.armor.misc.head.pipe" => self.maintain_pipe_particles(
                             scene_data, figure_mgr, entity, body, scale, physics,
                         ),
-                        "common.items.npc_weapons.sword.gigas_fire_sword" => self
-                            .maintain_gigas_fire_sword_particles(
-                                scene_data,
-                                figure_mgr,
-                                entity,
-                                interpolated.pos,
-                            ),
+                        "common.items.npc_weapons.sword.gigas_fire_sword" => {
+                            if let Some(trail_points) = TOOL_TRAIL_MANIFEST.get(item) {
+                                self.maintain_gigas_fire_sword_particles(
+                                    scene_data,
+                                    figure_mgr,
+                                    trail_points,
+                                    entity,
+                                    interpolated.pos,
+                                )
+                            }
+                        },
                         _ => {},
                     }
                 }
@@ -824,6 +828,7 @@ impl ParticleMgr {
         &mut self,
         scene_data: &SceneData,
         figure_mgr: &FigureMgr,
+        trail_points: (Vec3<f32>, Vec3<f32>),
         entity: Entity,
         pos: Vec3<f32>,
     ) {
@@ -837,14 +842,11 @@ impl ParticleMgr {
             return;
         };
 
-        let blade_base = Vec3::new(-0.5, 2.0, 15.0);
-        let blade_tip = Vec3::new(-0.5, 2.0, 48.0);
-
         let mut rng = rand::rng();
         let time = scene_data.state.get_time();
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
-            let blade_offset = blade_base
-                + rng.random_range(0.0..1.0_f32) * (blade_tip - blade_base)
+            let blade_offset = trail_points.0
+                + rng.random_range(0.0..1.0_f32) * (trail_points.1 - trail_points.0)
                 + rng.random_range(-5.0..5.0) * Vec3::<f32>::unit_y()
                 + rng.random_range(-1.0..1.0) * Vec3::<f32>::unit_x();
 
@@ -852,7 +854,7 @@ impl ParticleMgr {
             let end_pos = start_pos + rng.random_range(1.0..2.0) * Vec3::<f32>::unit_z();
 
             self.particles.push(Particle::new_directed(
-                Duration::from_millis(400),
+                Duration::from_millis(500),
                 time,
                 ParticleMode::FlameThrower,
                 start_pos,
