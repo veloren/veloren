@@ -1,10 +1,10 @@
 # Descriptions and Help
 
 command-help-template = { $usage } { $description }
-command-help-list = 
+command-help-list =
   { $client-commands }
   { $server-commands }
-  
+
   Additionally, you can use the following shortcuts:
   { $additional-shortcuts }
 
@@ -121,11 +121,12 @@ command-whitelist-desc = Adds/removes username to whitelist
 command-wiring-desc = Create wiring element
 command-world-desc = Send messages to everyone on the server
 command-wiki-desc = Open the wiki or search for a topic
+command-naga-desc = Toogle use of naga in initial shader processing (not persisted)
 # Command: /players
 players-list-header = { $count ->
-  [1] { $count } player online 
+  [1] { $count } player online
     { $player_list }
-  *[other] { $count } players online 
+  *[other] { $count } players online
     { $player_list }
 }
 ## Voxygen Client Commands
@@ -144,11 +145,11 @@ command-preprocess-not-riding-valid-entity = Not riding a valid entity
 command-preprocess-not-valid-rider = No valid rider
 command-preprocess-no-player-entity = No player entity
 command-invalid-command-message =
-  Could not find a command named { $invalid-command }. 
+  Could not find a command named { $invalid-command }.
   Did you mean any of the following?
   { $most-similar-command }
-  { $commands-with-same-prefix } 
-  
+  { $commands-with-same-prefix }
+
   Type /help to see a list of all commands.
 command-mute-cannot-mute-self = You cannot mute yourself
 command-mute-success = Successfully muted { $player }
@@ -159,6 +160,7 @@ command-unmute-cannot-unmute-self = You cannot unmute yourself
 command-unmute-success = Successfully unmuted { $player }
 command-unmute-no-muted-player-found = Could not find a muted player named { $player }
 command-unmute-no-player-specified = You must specify a player to mute
+command-shader-backend = Current Shader Backend: { $shader-backend }
 # Only returns a list of shaders
 command-experimental-shaders-list = { $shader-list }
 command-experimental-shaders-not-found = There are no experimental shaders
