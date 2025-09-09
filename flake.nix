@@ -38,8 +38,6 @@
         "CONTRIBUTING.md"
         "CHANGELOG.md"
         "CODE_OF_CONDUCT.md"
-        "clippy.toml"
-        ".cargo"
         ".github"
         ".gitlab"
       ];
