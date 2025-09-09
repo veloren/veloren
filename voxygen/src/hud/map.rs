@@ -14,7 +14,7 @@ use client::{self, Client, SiteMarker};
 use common::{
     comp,
     comp::group::Role,
-    map::{Marker, MarkerKind},
+    map::{Marker, MarkerFlags, MarkerKind},
     terrain::{CoordinateConversions, TerrainChunkSize},
     trade::Good,
     vol::RectVolSize,
@@ -91,6 +91,9 @@ widget_ids! {
         show_glider_courses_img,
         show_glider_courses_box,
         show_glider_courses_text,
+        show_quests_img,
+        show_quests_box,
+        show_quests_text,
         show_voxel_map_img,
         show_voxel_map_box,
         show_voxel_map_text,
@@ -127,7 +130,7 @@ pub struct Map<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    _pulse: f32,
+    pulse: f32,
     localized_strings: &'a Localization,
     global_state: &'a GlobalState,
     rot_imgs: &'a ImgsRot,
@@ -158,7 +161,7 @@ impl<'a> Map<'a> {
             client,
             fonts,
             common: widget::CommonBuilder::default(),
-            _pulse: pulse,
+            pulse,
             localized_strings,
             global_state,
             tooltip_manager,
@@ -258,6 +261,7 @@ impl Widget for Map<'_> {
         let show_peaks = self.global_state.settings.interface.map_show_peaks;
         let show_biomes = self.global_state.settings.interface.map_show_biomes;
         let show_glider_courses = self.global_state.settings.interface.map_show_glider_courses;
+        let show_quests = self.global_state.settings.interface.map_show_quests;
         let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let location_marker_binding = self
@@ -809,6 +813,13 @@ impl Widget for Map<'_> {
             .graphics_for(state.ids.show_peaks_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_peaks_text, ui);
+        Text::new(&i18n.get_msg("hud-map-peaks"))
+            .right_from(state.ids.show_peaks_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_peaks_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_peaks_text, ui);
         // Glider Courses
         Image::new(self.imgs.mmap_site_glider_course)
             .down_from(state.ids.show_peaks_img, 10.0)
@@ -845,6 +856,40 @@ impl Widget for Map<'_> {
             .graphics_for(state.ids.show_glider_courses_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_glider_courses_text, ui);
+        // Quests
+        Image::new(self.imgs.mmap_unknown)
+            .down_from(state.ids.show_glider_courses_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_quests_img, ui);
+        if Button::image(if show_quests {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_quests {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_quests {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_quests_img, 10.0)
+        .set(state.ids.show_quests_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::SettingsChange(MapShowQuests(!show_quests)));
+        }
+        Text::new(&i18n.get_msg("hud-map-quests"))
+            .right_from(state.ids.show_quests_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_quests_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_quests_text, ui);
 
         const EXPOSE_VOXEL_MAP_TOGGLE_IN_UI: bool = false;
         if EXPOSE_VOXEL_MAP_TOGGLE_IN_UI {
@@ -1060,9 +1105,13 @@ impl Widget for Map<'_> {
                 MarkerKind::Bridge => self.imgs.mmap_site_bridge_hover,
                 MarkerKind::GliderCourse => self.imgs.mmap_site_glider_course_hover,
                 MarkerKind::Character => self.imgs.mmap_character_hover,
-            })
-            .image_color(UI_HIGHLIGHT_0.alpha(fade))
-            .with_tooltip(
+            });
+            let site_btn = if let Some(color) = marker_color(marker, self.pulse) {
+                site_btn.image_color(color.alpha(fade))
+            } else {
+                site_btn.image_color(UI_HIGHLIGHT_0.alpha(fade))
+            };
+            let site_btn = site_btn.with_tooltip(
                 self.tooltip_manager,
                 &title,
                 &desc,
@@ -1099,6 +1148,7 @@ impl Widget for Map<'_> {
 
             // Only display sites that are toggled on
             let show_site = match &marker.kind {
+                _ if marker.flags.contains(MarkerFlags::IS_QUEST) => show_quests,
                 MarkerKind::Unknown => true,
                 MarkerKind::Town => show_towns,
                 MarkerKind::Gnarling
@@ -1676,5 +1726,18 @@ impl Widget for Map<'_> {
             .set(state.ids.minimap_mode_overlay, ui);
 
         events
+    }
+}
+
+pub fn marker_color(marker: &Marker, pulse: f32) -> Option<Color> {
+    if marker.flags.contains(MarkerFlags::IS_QUEST) {
+        Some(Color::Rgba(
+            0.3,
+            1.0,
+            0.85,
+            0.75 + (pulse * 4.0).sin() * 0.25,
+        ))
+    } else {
+        None
     }
 }

@@ -4,6 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::{any::Any, hash::Hash};
 use vek::*;
 
+bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+    pub struct MarkerFlags: u8 {
+        const IS_QUEST = 0b0000_0001;
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Marker {
     id: Option<u64>, /* Arbitrary value that identifies the thing the marker is pointing to.
@@ -12,6 +19,7 @@ pub struct Marker {
     pub kind: MarkerKind,
     pub wpos: Vec2<f32>,
     pub label: Option<Content>,
+    pub flags: MarkerFlags,
 }
 
 impl Marker {
@@ -22,6 +30,7 @@ impl Marker {
             kind: MarkerKind::Unknown,
             wpos,
             label: None,
+            flags: MarkerFlags::empty(),
         }
     }
 
@@ -46,6 +55,11 @@ impl Marker {
 
     pub fn with_site_id(mut self, site: impl Into<Option<SiteId>>) -> Self {
         self.site = site.into();
+        self
+    }
+
+    pub fn with_quest_flag(mut self, is: bool) -> Self {
+        self.flags.set(MarkerFlags::IS_QUEST, is);
         self
     }
 

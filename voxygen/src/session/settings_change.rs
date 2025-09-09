@@ -158,6 +158,7 @@ pub enum Interface {
     MapShowPeaks(bool),
     MapShowBiomes(bool),
     MapShowVoxelMap(bool),
+    MapShowQuests(bool),
     AccumExperience(bool),
     //Slots
     SlotsUsePrefixes(bool),
@@ -694,6 +695,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowPeaks(map_show_peaks) => {
                         settings.interface.map_show_peaks = map_show_peaks;
+                    },
+                    Interface::MapShowQuests(map_show_quests) => {
+                        settings.interface.map_show_quests = map_show_quests;
                     },
                     Interface::MapShowBiomes(map_show_biomes) => {
                         settings.interface.map_show_biomes = map_show_biomes;

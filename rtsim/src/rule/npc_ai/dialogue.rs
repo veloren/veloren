@@ -45,13 +45,34 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                     to,
                 } if *escortee == Actor::Npc(ctx.npc_id) && *escorter == tgt => {
                     let to_name = util::site_name(ctx, *to).unwrap_or_default();
+                    let dst_wpos = ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(*to)
+                        .map_or(Vec2::zero(), |s| s.wpos.as_());
                     responses.push((
                         Response::from(Content::localized("dialogue-question-quest-escort-where")),
                         session
-                            .say_statement(Content::localized_with_args(
+                            .give_marker(
+                                Marker::at(dst_wpos)
+                                    .with_id(quest_id)
+                                    .with_label(
+                                        Content::localized("hud-map-escort-label")
+                                            .with_arg(
+                                                "name",
+                                                ctx.npc
+                                                    .get_name()
+                                                    .unwrap_or_else(|| "<unknown>".to_string()),
+                                            )
+                                            .with_arg("place", to_name.clone()),
+                                    )
+                                    .with_quest_flag(true),
+                            )
+                            .then(session.say_statement(Content::localized_with_args(
                                 "npc-response-quest-escort-where",
                                 [("dst", to_name)],
-                            ))
+                            )))
                             .boxed(),
                     ));
                 },
@@ -64,27 +85,28 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                     };
                     // Is the monster dead?
                     if let Some(target_npc) = data.npcs.get(*target_npc_id) {
-                        let marker = Marker::at(target_npc.wpos.xy())
-                            .with_id(*target)
-                            .with_label(
-                                Content::localized("hud-map-creature-label")
-                                    .with_arg("body", target_npc.body.localize_npc()),
-                            );
                         responses.push((
                             Response::from(
                                 Content::localized("dialogue-question-quest-slay-where")
                                     .with_arg("body", target_npc.body.localize_npc()),
                             ),
-                            just(move |ctx, _| {
-                                ctx.controller.dialogue_marker(session, marker.clone())
-                            })
-                            .then(
-                                session.say_statement(
-                                    Content::localized("npc-response-quest-slay-where")
-                                        .with_arg("body", target_npc.body.localize_npc()),
-                                ),
-                            )
-                            .boxed(),
+                            session
+                                .give_marker(
+                                    Marker::at(target_npc.wpos.xy())
+                                        .with_id(*target)
+                                        .with_label(
+                                            Content::localized("hud-map-creature-label")
+                                                .with_arg("body", target_npc.body.localize_npc()),
+                                        )
+                                        .with_quest_flag(true),
+                                )
+                                .then(
+                                    session.say_statement(
+                                        Content::localized("npc-response-quest-slay-where")
+                                            .with_arg("body", target_npc.body.localize_npc()),
+                                    ),
+                                )
+                                .boxed(),
                         ));
                     } else {
                         responses.push((
@@ -316,20 +338,19 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
             {
                 responses.push((
                     Content::localized("dialogue-direction-actor").with_arg("name", name.clone()),
-                    now(move |ctx, _| {
-                        ctx.controller.dialogue_marker(
-                            session,
+                    session
+                        .give_marker(
                             Marker::at(pos.xy())
                                 .with_label(
                                     Content::localized("hud-map-character-label")
                                         .with_arg("name", name.clone()),
                                 )
                                 .with_kind(MarkerKind::Character)
-                                .with_id(actor),
-                        );
-                        session.say_statement(Content::localized("npc-response-directions"))
-                    })
-                    .boxed(),
+                                .with_id(actor)
+                                .with_quest_flag(true),
+                        )
+                        .then(session.say_statement(Content::localized("npc-response-directions")))
+                        .boxed(),
                 ));
             }
         }
@@ -346,14 +367,21 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
                             ws.tile_center_wpos(p.root_tile())
                                 .distance_squared(ctx.npc.wpos.xy().as_())
                         }) {
-                            ctx.controller.dialogue_marker(
-                                session,
-                                Marker::at(ws.tile_center_wpos(p.root_tile()).as_())
-                                    .with_label(plot_name(p)),
-                            );
-                            session.say_statement(Content::localized("npc-response-directions"))
+                            session
+                                .give_marker(
+                                    Marker::at(ws.tile_center_wpos(p.root_tile()).as_())
+                                        .with_label(plot_name(p)),
+                                )
+                                .then(
+                                    session.say_statement(Content::localized(
+                                        "npc-response-directions",
+                                    )),
+                                )
+                                .boxed()
                         } else {
-                            session.say_statement(Content::localized("npc-response-doesnt_exist"))
+                            session
+                                .say_statement(Content::localized("npc-response-doesnt_exist"))
+                                .boxed()
                         }
                     })
                     .boxed()

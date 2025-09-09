@@ -14,7 +14,7 @@ use common::{
     comp,
     comp::group::Role,
     grid::Grid,
-    map::MarkerKind,
+    map::{MarkerFlags, MarkerKind},
     slowjob::SlowJobPool,
     terrain::{
         Block, BlockKind, CoordinateConversions, TerrainChunk, TerrainChunkSize, TerrainGrid,
@@ -409,6 +409,7 @@ pub struct MiniMap<'a> {
     rot_imgs: &'a ImgsRot,
     world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     fonts: &'a Fonts,
+    pulse: f32,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     ori: Vec3<f32>,
@@ -425,6 +426,7 @@ impl<'a> MiniMap<'a> {
         rot_imgs: &'a ImgsRot,
         world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
         fonts: &'a Fonts,
+        pulse: f32,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
         location_markers: &'a MapMarkers,
@@ -437,6 +439,7 @@ impl<'a> MiniMap<'a> {
             rot_imgs,
             world_map,
             fonts,
+            pulse,
             common: widget::CommonBuilder::default(),
             ori,
             global_state,
@@ -725,10 +728,11 @@ impl Widget for MiniMap<'_> {
             };
 
             for (i, marker) in markers.iter().enumerate() {
-                let rpos = match wpos_to_rpos(marker.wpos, false) {
-                    Some(rpos) => rpos,
-                    None => continue,
-                };
+                let rpos =
+                    match wpos_to_rpos(marker.wpos, marker.flags.contains(MarkerFlags::IS_QUEST)) {
+                        Some(rpos) => rpos,
+                        None => continue,
+                    };
                 let difficulty = match &marker.kind {
                     MarkerKind::ChapelSite => Some(4),
                     MarkerKind::Terracotta => Some(5),
@@ -801,7 +805,9 @@ impl Widget for MiniMap<'_> {
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)
-                .color(Some(UI_HIGHLIGHT_0))
+                .color(Some(
+                    super::map::marker_color(marker, self.pulse).unwrap_or(UI_HIGHLIGHT_0),
+                ))
                 .set(state.ids.mmap_site_icons[i], ui);
             }
 

@@ -47,7 +47,7 @@ pub fn talk<S: State>(tgt: Actor) -> impl Action<S> + Clone {
 
 pub fn do_dialogue<S: State, T: Default + Clone + Send + Sync + 'static, A: Action<S, T>>(
     tgt: Actor,
-    f: impl Fn(DialogueSession) -> A + Send + Sync + 'static,
+    f: impl Fn(DialogueSession) -> A + Clone + Send + Sync + 'static,
 ) -> impl Action<S, T> {
     now(move |ctx, _| {
         let session = ctx.controller.dialogue_start(tgt);
@@ -101,7 +101,7 @@ impl DialogueSession {
             .map(|(idx, (r, a))| ((idx as u16, r.into()), a))
             .unzip();
 
-        let actions_once = take_once::TakeOnce::new();
+        let actions_once = Arc::new(take_once::TakeOnce::new());
         let _ = actions_once.store(actions);
 
         now(move |ctx, _| {
@@ -203,5 +203,9 @@ impl DialogueSession {
 
     pub fn say_statement<S: State>(self, stmt: Content) -> impl Action<S> {
         self.say_statement_with_gift(stmt, None)
+    }
+
+    pub fn give_marker<S: State>(self, marker: Marker) -> impl Action<S> {
+        just(move |ctx, _| ctx.controller.dialogue_marker(self, marker.clone()))
     }
 }

@@ -495,7 +495,7 @@ pub struct Now<F, A>(F, Option<A>);
 impl<
     S: State,
     R: Send + Sync + 'static,
-    F: Fn(&mut NpcCtx, &mut S) -> A + Send + Sync + 'static,
+    F: FnOnce(&mut NpcCtx, &mut S) -> A + Clone + Send + Sync + 'static,
     A: Action<S, R>,
 > Action<S, R> for Now<F, A>
 {
@@ -520,9 +520,8 @@ impl<
         }
     }
 
-    // TODO: Reset closure state?
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
-        (self.1.get_or_insert_with(|| (self.0)(ctx, state))).tick(ctx, state)
+        (self.1.get_or_insert_with(|| (self.0.clone())(ctx, state))).tick(ctx, state)
     }
 }
 
@@ -540,7 +539,7 @@ impl<
 /// ```
 pub fn now<S, R, F, A: Action<S, R>>(f: F) -> Now<F, A>
 where
-    F: Fn(&mut NpcCtx, &mut S) -> A + Send + Sync + 'static,
+    F: FnOnce(&mut NpcCtx, &mut S) -> A + Clone + Send + Sync + 'static,
 {
     Now(f, None)
 }
@@ -913,7 +912,7 @@ impl<
     A1: Action<S, R1>,
     R0: Send + Sync + 'static,
     R1: Send + Sync + 'static,
-    F: Fn(R0) -> A1 + Send + Sync + 'static,
+    F: FnOnce(R0) -> A1 + Clone + Send + Sync + 'static,
 > Action<S, R1> for AndThen<A0, F, A1, R0>
 {
     fn is_same(&self, other: &Self) -> bool {
@@ -951,7 +950,7 @@ impl<
         let a1 = match &mut self.a1 {
             None => match self.a0.tick(ctx, state) {
                 ControlFlow::Continue(()) => return ControlFlow::Continue(()),
-                ControlFlow::Break(r) => self.a1.insert((self.f)(r)),
+                ControlFlow::Break(r) => self.a1.insert((self.f.clone())(r)),
             },
             Some(a1) => a1,
         };

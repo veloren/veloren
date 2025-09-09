@@ -3130,6 +3130,7 @@ impl Hud {
             &self.rot_imgs,
             &self.world_map,
             &self.fonts,
+            self.pulse,
             camera.get_orientation(),
             global_state,
             &persisted_state.location_markers,

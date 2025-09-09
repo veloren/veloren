@@ -125,41 +125,60 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             // They must be a merchant
             && matches!(ctx.npc.profession(), Some(Profession::Merchant))
             // Choose an appropriate target site
-            && let Some((dst_site, dist)) = ctx
+            && let Some((dst_site_id, dst_site, dist)) = ctx
                 .state
                 .data()
                 .sites
                 .iter()
                 // Find the distance to the site
-                .map(|(site_id, site)| (site_id, site.wpos.as_().distance(ctx.npc.wpos.xy())))
+                .map(|(site_id, site)| (site_id, site, site.wpos.as_().distance(ctx.npc.wpos.xy())))
                 // Don't try to be escorted to the site we're currently in, and ensure it's a reasonable distance away
-                .filter(|(site_id, dist)| Some(*site_id) != ctx.npc.current_site && (1000.0..5_000.0).contains(dist))
+                .filter(|(site_id, _, dist)| Some(*site_id) != ctx.npc.current_site && (1000.0..5_000.0).contains(dist))
                 // Temporarily, try to choose the same target site for 15 minutes to avoid players asking many times
                 // TODO: Don't do this
                 .choose(&mut ChaChaRng::from_seed([(ctx.time.0 / (60.0 * 15.0)) as u8; 32]))
             // Escort reward amount is proportional to distance
             && let escort_reward_amount = dist / 25.0
-            && let Some(dst_site_name) = util::site_name(ctx, dst_site)
+            && let Some(dst_site_name) = util::site_name(ctx, dst_site_id)
             && let time_limit = 1.0 + dist as f64 / 80.0
             && let Some(accept_quest) = create_deposit(ctx, ESCORT_REWARD_ITEM, escort_reward_amount, session
                     .ask_yes_no_question(Content::localized("npc-response-quest-escort-ask")
-                        .with_arg("dst", dst_site_name)
+                        .with_arg("dst", dst_site_name.clone())
                         .with_arg("coins", escort_reward_amount as u64)
                         .with_arg("mins", time_limit as u64)))
         {
+            let dst_wpos = dst_site.wpos.as_();
             quests.push(
                 accept_quest
                     .and_then(move |yes| {
                         now(move |ctx, _| {
                             if yes {
                                 let quest =
-                                    Quest::escort(ctx.npc_id.into(), session.target, dst_site)
+                                    Quest::escort(ctx.npc_id.into(), session.target, dst_site_id)
                                         .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount)
                                         .with_timeout(ctx.time.add_minutes(time_limit));
                                 create_quest(quest.clone())
-                                    .and_then(|quest_id| {
-                                        just(move |ctx, _| {
-                                            ctx.controller.job = Some(Job::Quest(quest_id))
+                                    .and_then(move |quest_id| {
+                                        now(move |ctx, _| {
+                                            ctx.controller.job = Some(Job::Quest(quest_id));
+                                            session.give_marker(
+                                                Marker::at(dst_wpos)
+                                                    .with_id(quest_id)
+                                                    .with_label(
+                                                        Content::localized("hud-map-escort-label")
+                                                            .with_arg(
+                                                                "name",
+                                                                ctx.npc.get_name().unwrap_or_else(
+                                                                    || "<unknown>".to_string(),
+                                                                ),
+                                                            )
+                                                            .with_arg(
+                                                                "place",
+                                                                dst_site_name.clone(),
+                                                            ),
+                                                    )
+                                                    .with_quest_flag(true),
+                                            )
                                         })
                                     })
                                     .then(session.say_statement(Content::localized(
@@ -221,9 +240,8 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                                 .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount)
                                 .with_timeout(ctx.time.add_minutes(60.0));
                                 create_quest(quest.clone())
-                                    .then(just(move |ctx, _| {
-                                        ctx.controller.dialogue_marker(
-                                            session,
+                                    .then(
+                                        session.give_marker(
                                             Marker::at(monster_pos.xy())
                                                 .with_id(Actor::from(monster_id))
                                                 .with_label(
@@ -232,9 +250,10 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                                                             "body",
                                                             monster_body.localize_npc(),
                                                         ),
-                                                ),
-                                        )
-                                    }))
+                                                )
+                                                .with_quest_flag(true),
+                                        ),
+                                    )
                                     .then(session.say_statement(Content::localized(
                                         "npc-response-quest-slay-start",
                                     )))
