@@ -369,7 +369,7 @@ async fn connect_quic(
     validate_tls: bool,
 ) -> Result<network::Participant, crate::error::Error> {
     let config = if validate_tls {
-        quinn::ClientConfig::with_platform_verifier()
+        quinn::ClientConfig::try_with_platform_verifier()?
     } else {
         warn!(
             "skipping validation of server identity. There is no guarantee that the server you're \

@@ -313,6 +313,8 @@ impl Protocols {
         let endpoint = quinn::Endpoint::server(server_config, addr)?;
         trace!(?addr, "Quic Listener bound");
         let mut end_receiver = s2s_stop_listening_r.fuse();
+        let config = quinn::ClientConfig::try_with_platform_verifier()
+            .map_err(|e| io::Error::other(Box::new(e)))?;
         tokio::spawn(async move {
             while let Some(Some(connecting)) = select! {
                 next = endpoint.accept().fuse() => Some(next),
@@ -338,7 +340,7 @@ impl Protocols {
                         // a reverse DNS lookup
                         let connect_addr = ConnectAddr::Quic(
                             addr,
-                            quinn::ClientConfig::with_platform_verifier(),
+                            config.clone(),
                             "TODO_remote_hostname".to_string(),
                         );
                         let _ = c2s_protocol_s.send((quic, connect_addr, cid));

@@ -2608,20 +2608,20 @@ pub fn do_erosion(
         .collect::<Vec<_>>()
         .into_boxed_slice();
     let sum_uplift = uplift
+        .clone()
         .into_par_iter()
-        .cloned()
         .map(|e| e as f64)
         .sum::<f64>();
     debug!("Sum uplifts: {:?}", sum_uplift);
 
     let max_uplift = uplift
+        .clone()
         .into_par_iter()
-        .cloned()
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     let max_g = g
+        .clone()
         .into_par_iter()
-        .cloned()
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap();
     debug!("Max uplift: {:?}", max_uplift);
