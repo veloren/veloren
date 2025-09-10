@@ -133,3 +133,11 @@ buff-resilience = Odolnost
     .desc = Po zásahu oslabujícím útokem jsi odolnější proti dalším oslabujícím efektům.
 buff-resting_heal = Léčení odpočinkem
     .desc = Odpočinek obnoví { $rate } % zdraví za sekundu.
+buff-combo_generation = Tvorba komba
+    .desc = S ubíhajícím časem vytváří kombo.
+    .stat =
+        { $duration ->
+            [1] Vytváří { $str_total } kombo za { $duration } sekund.
+            [few] Vytváří { $str_total } komba za { $duration } sekund.
+           *[other] Vytváří { $str_total } komb za { $duration } sekund.
+        }

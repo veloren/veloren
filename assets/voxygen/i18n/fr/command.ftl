@@ -50,7 +50,7 @@ command-group-desc = Envoyer un message à votre groupe
 command-group_kick-desc = Retirer un joueur de votre groupe
 command-group_leave-desc = Quitter votre groupe actuel
 command-group_promote-desc = Promouvoir un joueur chef de groupe
-command-health-desc = Définissez votre santé actuelle
+command-health-desc = Définir votre santé actuelle
 command-into_npc-desc = Vous convertir en PNJ. Soyez prudent !
 command-join_faction-desc = Rejoindre / quitter la faction spécifiée
 command-kick-desc = Exclu le joueur avec le pseudonyme donné
@@ -77,3 +77,31 @@ command-respawn-desc = Téléporter à votre point de passage
 command-revoke_build_all-desc = Révoque toutes les permission de construire pour le joueur
 command-safezone-desc = Créer une zone sans danger
 command-object-desc = Faire apparaître un objet
+command-set_body_type-not_found =
+    Ce type de corps est invalide.
+    Merci d'essayer avec un des suivants :
+    { $options }
+command-set_body_type-no_body = Impossible d'appliquer le type de corps : la cible n'a pas de corps.
+command-scale-desc = Changer la taille de votre personnage
+command-set_motd-desc = Changer la description du serveur
+command-site-desc = Se téléporter à un site
+command-skill_preset-desc = Donne les compétences désirées à votre personnage.
+command-spawn-desc = Faire apparaître une entité de test
+command-tell-desc = Envoyer un message à un autre joueur
+command-set_body_type-not_character = Il est uniquement possible de modifier le type de corps de façon permanente si la cible est un joueur connecté en tant que personnage.
+command-world-desc = Envoyer des messages à tout le monde sur le serveur
+players-list-header =
+    { $count ->
+        [1]
+            { $count } joueur en ligne 
+            { $player_list }
+       *[other]
+            { $count } joueurs en ligne 
+            { $player_list }
+    }
+command-say-desc = Envoyer un message à toutes les personnes à portée de cri
+command-skill_point-desc = S'octroyer des points de compétence pour un arbre spécifique
+command-set_body_type-desc = Choisissez votre type de corps, Féminin ou Masculin.
+command-weather_zone-desc = Créer une zone météorologique
+command-make_sprite-desc = Crée un Sprite à votre position, pour définir ses attributs utilisez la syntaxe ron pour un StructureSprite.
+command-permit_build-desc = Octroie au joueur une zone délimitée dans laquelle il est possible de construire

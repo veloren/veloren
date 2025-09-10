@@ -1,7 +1,5 @@
-lantern-magic_lantern = 神灯
-    .desc =
-        足以照亮极暗地牢
-        为获取它，一个巨大的怪物死于非命.
+lantern-magic_lantern = 魔法提灯
+    .desc = 足以照亮最暗的地牢。一个强大的怪物因这个物品被斩杀。
 lantern-black = 黑色提灯
     .desc = 由于新手冒险家们的普遍使用，它相当常见！
 lantern-blue = 酷蓝提灯

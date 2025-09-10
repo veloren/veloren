@@ -84,3 +84,7 @@ recipe-armor-brinestone = Sältastenrustningsrecept
     .desc = { "" }
 recipe-armor-druid = Druidrustningsrecept
     .desc = { "" }
+recipe-armor-witch = Häxrustningsrecept
+    .desc = { "" }
+recipe-lanterns = Lyktrecept
+    .desc = { "" }

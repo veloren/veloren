@@ -1,4 +1,4 @@
-character_window-character_name = Karakter Adı
+character_window-character_name = Karakter adı
 character_window-character_stats =
     Dayanıklılık
 

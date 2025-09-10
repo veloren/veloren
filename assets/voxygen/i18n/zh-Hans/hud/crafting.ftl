@@ -1,5 +1,5 @@
 hud-crafting = 制作
-hud-crafting-recipes = 菜单
+hud-crafting-recipes = 配方
 hud-crafting-ingredients = 配方:
 hud-crafting-craft = 制作
 hud-crafting-craft_all = 全部制作
@@ -29,7 +29,7 @@ hud-crafting-dismantle_title = 拆卸
 hud-crafting-dismantle_explanation =
     光标悬停在你背包的物品上
     以查看你可以回收的物品.
-    
+
     双击它们开始拆卸.
 hud-crafting-modular_desc = 将物品部件拖到此处以制作武器
 hud-crafting-mod_weap_prim_slot_title = 主要武器部件
