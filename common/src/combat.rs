@@ -117,6 +117,7 @@ pub struct Attack {
     damages: Vec<AttackDamage>,
     effects: Vec<AttackEffect>,
     precision_multiplier: f32,
+    pub blockable: bool,
 }
 
 impl Default for Attack {
@@ -125,6 +126,7 @@ impl Default for Attack {
             damages: Vec::new(),
             effects: Vec::new(),
             precision_multiplier: 1.0,
+            blockable: true,
         }
     }
 }
@@ -149,6 +151,12 @@ impl Attack {
     }
 
     #[must_use]
+    pub fn with_blockable(mut self, blockable: bool) -> Self {
+        self.blockable = blockable;
+        self
+    }
+
+    #[must_use]
     pub fn with_combo_requirement(self, combo: i32, requirement: CombatRequirement) -> Self {
         self.with_effect(
             AttackEffect::new(None, CombatEffect::Combo(combo)).with_requirement(requirement),
@@ -166,6 +174,7 @@ impl Attack {
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
     pub fn compute_block_damage_decrement(
+        blockable: bool,
         attacker: Option<&AttackerInfo>,
         damage_reduction: f32,
         target: &TargetInfo,
@@ -177,7 +186,7 @@ impl Attack {
         emitters: &mut (impl EmitExt<ParryHookEvent> + EmitExt<PoiseChangeEvent>),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
-        if damage.value > 0.0 {
+        if blockable && damage.value > 0.0 {
             if let (Some(char_state), Some(ori), Some(inventory)) =
                 (target.char_state, target.ori, target.inventory)
             {
@@ -351,6 +360,7 @@ impl Attack {
                 Attack::compute_damage_reduction(attacker.as_ref(), target, damage.damage, msm);
 
             let block_damage_decrement = Attack::compute_block_damage_decrement(
+                self.blockable,
                 attacker.as_ref(),
                 damage_reduction,
                 target,

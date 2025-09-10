@@ -44,6 +44,9 @@ pub struct StaticData {
     /// If the beam can be dodged, and in what way
     #[serde(default)]
     pub dodgeable: Dodgeable,
+    /// If the beam can be blocked
+    #[serde(default)]
+    pub blockable: bool,
     /// The radius at the far distance of the beam. Radius linearly increases
     /// from 0 moving from start pos to end po.
     pub end_radius: f32,
@@ -139,6 +142,7 @@ impl CharacterBehavior for Data {
                         Attack::default()
                             .with_damage(damage)
                             .with_precision(precision_mult)
+                            .with_blockable(self.static_data.blockable)
                             .with_effect(energy)
                             .with_combo_increment()
                     };

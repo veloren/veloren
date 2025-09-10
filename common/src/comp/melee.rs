@@ -56,6 +56,7 @@ impl Component for Melee {
     type Storage = VecStorage<Self>;
 }
 
+fn default_true() -> bool { true }
 fn default_simultaneous_hits() -> u32 { 1 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -82,6 +83,8 @@ pub struct MeleeConstructor {
     pub attack_effect: Option<(CombatEffect, CombatRequirement)>,
     #[serde(default)]
     pub dodgeable: Dodgeable,
+    #[serde(default = "default_true")]
+    pub blockable: bool,
     #[serde(default = "default_simultaneous_hits")]
     pub simultaneous_hits: u32,
     #[serde(default)]
@@ -365,7 +368,8 @@ impl MeleeConstructor {
                     .with_effect(knockback)
             },
         }
-        .with_precision(precision_mult);
+        .with_precision(precision_mult)
+        .with_blockable(self.blockable);
 
         let attack = if let Some((effect, requirement)) = self.attack_effect {
             let effect = AttackEffect::new(Some(GroupTarget::OutOfGroup), effect)

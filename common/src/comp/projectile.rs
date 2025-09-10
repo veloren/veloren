@@ -51,6 +51,20 @@ impl Component for Projectile {
     type Storage = specs::DenseVecStorage<Self>;
 }
 
+impl Projectile {
+    pub fn is_blockable(&self) -> bool {
+        !self.hit_entity.iter().any(|effect| {
+            matches!(
+                effect,
+                Effect::Attack(Attack {
+                    blockable: false,
+                    ..
+                })
+            )
+        })
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectileConstructor {
     pub kind: ProjectileConstructorKind,
@@ -66,6 +80,8 @@ pub struct Scaled {
     energy: Option<f32>,
 }
 
+fn default_true() -> bool { true }
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ProjectileAttack {
     pub damage: f32,
@@ -75,6 +91,8 @@ pub struct ProjectileAttack {
     pub buff: Option<CombatBuff>,
     #[serde(default)]
     pub friendly_fire: bool,
+    #[serde(default = "default_true")]
+    pub blockable: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -192,6 +210,7 @@ impl ProjectileConstructor {
             let mut attack = Attack::default()
                 .with_damage(damage)
                 .with_precision(precision_mult)
+                .with_blockable(a.blockable)
                 .with_combo_increment();
 
             if let Some(poise) = poise {
