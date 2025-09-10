@@ -929,9 +929,9 @@ impl Widget for MiniMap<'_> {
                     self.rot_imgs.indicator_mmap.target_north
                 }
             } else if colored_player_marker {
-                    self.rot_imgs.indicator_mmap_colored.none
+                self.rot_imgs.indicator_mmap_colored.none
             } else {
-                    self.rot_imgs.indicator_mmap.none
+                self.rot_imgs.indicator_mmap.none
             };
             Image::new(ind_rotation)
                 .middle_of(state.ids.map_layers[0])
@@ -967,27 +967,6 @@ impl Widget for MiniMap<'_> {
                     })
                     .parent(ui.window)
                     .set(*id, ui);
-            }
-
-            // Coordinates Display
-            if self
-                .global_state
-                .settings
-                .interface
-                .minimap_show_coordinates
-            {
-                let coordinates_text = {
-                    format!(
-                        "{:.0}, {:.0}, {:.0}",
-                        player_pos.x, player_pos.z, player_pos.y,
-                    )
-                };
-                Text::new(&coordinates_text)
-                    .mid_top_with_margin_on(state.ids.mmap_frame, map_size.y + 25.0 * scale)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(16))
-                    .color(TEXT_COLOR)
-                    .set(state.ids.mmap_coordinates, ui);
             }
         } else {
             Image::new(self.imgs.mmap_frame_closed)

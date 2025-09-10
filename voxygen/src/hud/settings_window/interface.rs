@@ -118,8 +118,6 @@ widget_ids! {
         minimap_scale_text,
         minimap_scale_slider,
         minimap_scale_value_text,
-        minimap_show_coordinates_text,
-        minimap_show_coordinates_button,
         minimap_colored_player_marker_text,
         minimap_colored_player_marker_button,
     }
@@ -1419,49 +1417,6 @@ impl Widget for Interface<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.minimap_scale_value_text, ui);
 
-        // Show Coordinates
-        let minimap_show_coordinates = ToggleButton::new(
-            self.global_state
-                .settings
-                .interface
-                .minimap_show_coordinates,
-            self.imgs.checkbox,
-            self.imgs.checkbox_checked,
-        )
-        .w_h(18.0, 18.0)
-        .down_from(state.ids.minimap_scale_text, 10.0)
-        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-        .set(state.ids.minimap_show_coordinates_button, ui);
-
-        if self
-            .global_state
-            .settings
-            .interface
-            .minimap_show_coordinates
-            != minimap_show_coordinates
-        {
-            events.push(MinimapShowCoordinates(
-                !self
-                    .global_state
-                    .settings
-                    .interface
-                    .minimap_show_coordinates,
-            ));
-        }
-
-        Text::new(
-            &self
-                .localized_strings
-                .get_msg("hud-settings-show_coordinates"),
-        )
-        .right_from(state.ids.minimap_show_coordinates_button, 10.0)
-        .font_size(self.fonts.cyri.scale(14))
-        .font_id(self.fonts.cyri.conrod_id)
-        .graphics_for(state.ids.minimap_show_coordinates_button)
-        .color(TEXT_COLOR)
-        .set(state.ids.minimap_show_coordinates_text, ui);
-
         // Colored Player Marker
         let minimap_colored_player_marker = ToggleButton::new(
             self.global_state
@@ -1471,7 +1426,7 @@ impl Widget for Interface<'_> {
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
-        .down_from(state.ids.minimap_show_coordinates_button, 10.0)
+        .down_from(state.ids.minimap_scale_text, 10.0)
         .w_h(18.0, 18.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)

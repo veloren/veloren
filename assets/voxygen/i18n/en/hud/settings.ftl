@@ -39,7 +39,6 @@ hud-settings-experience_numbers = Experience points
 hud-settings-accumulate_experience = Show experience points as aggregate
 hud-settings-minimap = Minimap
 hud-settings-minimap_scale = Scale
-hud-settings-show_coordinates = Show Coordinates
 hud-settings-colored_player_marker = Colored Player Marker
 hud-settings-values = Values
 hud-settings-percentages = Percentages
