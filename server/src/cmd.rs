@@ -2150,6 +2150,13 @@ fn handle_rtsim_chunk(
     let rtsim = server.state.ecs().read_resource::<RtSim>();
     let data = rtsim.state().data();
 
+    let oob_err = || {
+        Content::localized_with_args("command-chunk-out-of-bounds", [
+            ("x", chunk_key.x.to_string()),
+            ("y", chunk_key.y.to_string()),
+        ])
+    };
+
     let chunk_states = rtsim.state().resource::<ChunkStates>();
     let chunk_state = match chunk_states.0.get(chunk_key) {
         Some(Some(chunk_state)) => chunk_state,
@@ -2160,13 +2167,7 @@ fn handle_rtsim_chunk(
             ]));
         },
         None => {
-            return Err(Content::localized_with_args(
-                "command-chunk-out-of-bounds",
-                [
-                    ("x", chunk_key.x.to_string()),
-                    ("y", chunk_key.y.to_string()),
-                ],
-            ));
+            return Err(oob_err());
         },
     };
 
@@ -2176,7 +2177,11 @@ fn handle_rtsim_chunk(
         "-- Chunk {}, {} Resources --",
         chunk_key.x, chunk_key.y
     );
-    for (res, frac) in data.nature.get_chunk_resources(chunk_key) {
+    for (res, frac) in data
+        .nature
+        .chunk_resources(chunk_key)
+        .ok_or_else(|| oob_err())?
+    {
         let total = chunk_state.max_res[res];
         let _ = writeln!(
             &mut info,

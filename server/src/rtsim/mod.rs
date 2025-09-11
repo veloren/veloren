@@ -341,7 +341,12 @@ impl RtSim {
 
     // TODO: Clean up this API a bit
     pub fn get_chunk_resources(&self, key: Vec2<i32>) -> EnumMap<TerrainResource, f32> {
-        self.state.data().nature.get_chunk_resources(key)
+        self.state
+            .data()
+            .nature
+            .chunk_resources(key)
+            .copied()
+            .unwrap_or_default()
     }
 
     pub fn state(&self) -> &RtState { &self.state }

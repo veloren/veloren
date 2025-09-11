@@ -1,5 +1,4 @@
 use crate::{RtState, Rule, RuleError, event::OnTick};
-use rand::prelude::*;
 
 pub struct ReplenishResources;
 
@@ -26,14 +25,18 @@ impl Rule for ReplenishResources {
             let replenish_amount = world_size.product() as f32
                 * ctx.event.dt
                 * (1.0 / REPLENISH_TIME / REPLENISH_PER_TICK as f32);
-            for _ in 0..REPLENISH_PER_TICK {
-                let key = world_size.map(|e| rand::rng().random_range(0..e as i32));
 
-                let mut res = data.nature.get_chunk_resources(key);
-                for (_, res) in &mut res {
+            let chunks = data.nature.chunks.raw_mut();
+            // The number of times we need to replenish to cover the whole world
+            let group_count = chunks.len() / REPLENISH_PER_TICK + 1;
+            for chunk in chunks
+                .iter_mut()
+                .skip((ctx.event.tick as usize % group_count) * REPLENISH_PER_TICK)
+                .take(REPLENISH_PER_TICK)
+            {
+                for (_, res) in &mut chunk.res {
                     *res = (*res + replenish_amount).clamp(0.0, 1.0);
                 }
-                data.nature.set_chunk_resources(key, res);
             }
         });
 

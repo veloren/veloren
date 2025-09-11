@@ -35,6 +35,7 @@ impl<T> Grid<T> {
         }
     }
 
+    #[inline]
     fn idx(&self, pos: Vec2<i32>) -> Option<usize> {
         if pos.map2(self.size, |e, sz| e >= 0 && e < sz).reduce_and() {
             Some((pos.y * self.size.x + pos.x) as usize)
@@ -43,20 +44,25 @@ impl<T> Grid<T> {
         }
     }
 
+    #[inline]
     pub fn size(&self) -> Vec2<i32> { self.size }
 
+    #[inline]
     pub fn get(&self, pos: Vec2<i32>) -> Option<&T> { self.cells.get(self.idx(pos)?) }
 
+    #[inline]
     pub fn get_mut(&mut self, pos: Vec2<i32>) -> Option<&mut T> {
         let idx = self.idx(pos)?;
         self.cells.get_mut(idx)
     }
 
+    #[inline]
     pub fn set(&mut self, pos: Vec2<i32>, cell: T) -> Option<T> {
         let idx = self.idx(pos)?;
         self.cells.get_mut(idx).map(|c| core::mem::replace(c, cell))
     }
 
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &T)> + '_ {
         let w = self.size.x;
         self.cells
@@ -65,6 +71,7 @@ impl<T> Grid<T> {
             .map(move |(i, cell)| (Vec2::new(i as i32 % w, i as i32 / w), cell))
     }
 
+    #[inline]
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut T)> + '_ {
         let w = self.size.x;
         self.cells
@@ -73,6 +80,7 @@ impl<T> Grid<T> {
             .map(move |(i, cell)| (Vec2::new(i as i32 % w, i as i32 / w), cell))
     }
 
+    #[inline]
     pub fn iter_area(
         &self,
         pos: Vec2<i32>,
@@ -88,12 +96,17 @@ impl<T> Grid<T> {
         })
     }
 
+    #[inline]
     pub fn raw(&self) -> &[T] { &self.cells }
+
+    #[inline]
+    pub fn raw_mut(&mut self) -> &mut [T] { &mut self.cells }
 }
 
 impl<T> Index<Vec2<i32>> for Grid<T> {
     type Output = T;
 
+    #[inline]
     fn index(&self, index: Vec2<i32>) -> &Self::Output {
         self.get(index).unwrap_or_else(|| {
             panic!(
@@ -106,6 +119,7 @@ impl<T> Index<Vec2<i32>> for Grid<T> {
 }
 
 impl<T> IndexMut<Vec2<i32>> for Grid<T> {
+    #[inline]
     fn index_mut(&mut self, index: Vec2<i32>) -> &mut Self::Output {
         let size = self.size();
         self.get_mut(index).unwrap_or_else(|| {
