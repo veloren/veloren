@@ -1,7 +1,5 @@
 char_selection-loading_characters = Karakterler yükleniyor...
-char_selection-delete_permanently =
-    Bu karakteri kalıcı olarak
-    silmek istediğinden emin misin?
+char_selection-delete_permanently = Bu karakter kalıcı olarak silinsin mi?
 char_selection-enter_world = Dünyaya Gir
 char_selection-logout = Çıkış yap
 char_selection-create_new_character = Yeni Karakter Oluştur

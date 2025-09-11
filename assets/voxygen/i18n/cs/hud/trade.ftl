@@ -39,3 +39,4 @@ hud-trade-sell =
         [many] { $coin_formatted } mince
        *[other] { $coin_formatted } mincí
     }
+hud-trade-player_who = Hráč { $player_who }

@@ -110,3 +110,7 @@ recipe-unique-bloodmoon_relic = Recept na Relikvii Červeného měsíce
     .desc = { "" }
 recipe-unique-crux = Recept na Jádro
     .desc = { "" }
+recipe-armor-witch = Recepty na Čarovné Brnění
+    .desc = { "" }
+recipe-lanterns = Recepty na lucerny
+    .desc = { "" }

@@ -208,3 +208,7 @@ weapon-sword-sabre-iron-2h = Sabre en fer
     .desc = { "" }
 weapon-sword-longsword-iron-2h = Épée longue en fer
     .desc = { "" }
+weapon-axe-ornate-orichalcum-2h = Hache ornementée en orichalque
+    .desc = { "" }
+weapon-axe-ornate-orichalcum-1h = Kilonda en orichalque
+    .desc = { "" }

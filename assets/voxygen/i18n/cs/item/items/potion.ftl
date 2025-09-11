@@ -20,3 +20,5 @@ object-burning_charm = Zaříkadlo podpálení
     .desc = Plamen je kámoš, využij ho ke spálení nepřátel.
 object-frozen_charm = Ledové zaříkadlo
     .desc = Ať nepřátelé cítí štiplavý mráz i v hloubi duše.
+object-potion_trans = Tinktura pro zrychlenou reformaci
+    .desc = Trvale změní typ tvé postavy

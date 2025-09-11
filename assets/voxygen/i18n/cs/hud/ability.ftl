@@ -169,7 +169,7 @@ common-abilities-hammer-thunderclap = Zahřmění
 common-abilities-axe-riptide = Zpětný proud
     .desc =
         Stáhni z kůže všechny okolo a odlehči jim tak od krve.
-        Automaticky se povýší z Rozsápání při 50 kombo bodech.
+        Automaticky se povýší z Rozsápání při { $min_combo_upg } kombo bodech.
 common-abilities-sword-basic_dual_cross_cut = Základní příčný řez
     .desc = Souběžný základní pravý a levý sek.
 common-abilities-sword-heavy_dual_cross_cut = Těžký příčný řez
@@ -271,12 +271,12 @@ common-abilities-axe-savage_sense = Barbarský smysl
 common-abilities-axe-execute = Poprava
     .desc =
         Devastující úder, který je často fatální.
-        Vyžaduje 30 kombo bodů.
-        Automaticky se povýší na Smršť při 50 kombo bodech.
+        Vyžaduje { $min_combo } kombo bodů.
+        Automaticky se povýší na Smršť při { $min_combo_upg } kombo bodech.
 common-abilities-axe-maelstrom = Smršť
     .desc =
         Udeř cokoliv ve svém dosahu devastujícím kruhovým úderem.
-        Automaticky se povyšuje z Popravy při 50 kombo bodech.
+        Automaticky se povyšuje z Popravy při { $min_combo_upg } kombo bodech.
 common-abilities-axe-rake = Hrábě
     .desc = Táhni sekeru po těle svého nepřítele a způsob mu tak krvácení.
 common-abilities-axe-dual_fierce_raze = Neúprosné zničení
@@ -286,8 +286,8 @@ common-abilities-axe-furor = Poprask
 common-abilities-axe-lacerate = Rozsápání
     .desc =
         Stáhni nepřítele z kůže a způsob mu silné krvácení.
-        Vyžaduje 30 kombo bodů.
-        Automaticky se povýší na Zpětný proud při 50 kombo bodech.
+        Vyžaduje { $min_combo } kombo bodů.
+        Automaticky se povýší na Zpětný proud při { $min_combo_upg } kombo bodech.
 common-abilities-axe-skull_bash = Úder po hlavě
     .desc = Úder plochou sekery, který omračuje.
 common-abilities-axe-sunder = Rozpolcení
@@ -301,7 +301,7 @@ common-abilities-axe-keelhaul = Přitažení
 common-abilities-axe-capsize = Převrhnutí
     .desc =
         Omrač všechny okolo mohutným točícím se úderem.
-        Automaticky se povyšuje z Přepažení při 50 kombo bodech.
+        Automaticky se povyšuje z Přepažení při { $min_combo_upg } kombo bodech.
 common-abilities-sword-agile_hundred_cuts = Tisíce řezů
     .desc =
         Spousta velmi rychlých seků.
@@ -329,8 +329,8 @@ common-abilities-axe-fracture = Zlomenina
 common-abilities-axe-bulkhead = Přepažení
     .desc =
         Tvrdé máchnutí, které prý dokáže omráčit i titány.
-        Vyžaduje 30 kombo bodů.
-        Automaticky se povyšuje na Převrhnutí při 50 kombo bodech.
+        Vyžaduje { $min_combo } kombo bodů.
+        Automaticky se povyšuje na Převrhnutí při { $min_combo_upg } kombo bodech.
 common-abilities-hammer-vigorous_bash = Rázný úder
     .desc = Použij hlavu kladiva a rychle udeř nepřátele. Pokud je cíl mimo rovnováhu, navalí se ti adrenalin.
 common-abilities-hammer-dual_heavy_whorl = Těžká spirála

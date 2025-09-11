@@ -73,3 +73,5 @@ loading-tips =
     .a15 = Geliştirme Takımına katılmak istiyorsan veya sadece sohbet etmek istiyorsan Discord sunucumuza katıl.
     .a16 = Can barında canı sayı olarak görmek istiyorsan, bunu ayarlardan aktifleştirebilirsin.
     .a17 = Niteliklerini görmek için envanterindeki 'Nitelikler' düğmesine tıklayabilirsin.
+main-singleplayer-new = Yeni
+main-singleplayer-delete = Sil

@@ -39,3 +39,4 @@ hud-bag-sort_by_name = 根据名称排序
 hud-bag-sort_by_quality = 根据品质排序
 hud-bag-sort_by_category = 根据类别排序
 hud-bag-sort_by_tag = 根据标签排序
+hud-bag-backpack = 背包

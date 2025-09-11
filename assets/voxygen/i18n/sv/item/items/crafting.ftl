@@ -155,3 +155,10 @@ sprite-crafting_ing-brinestone = Saltlagssten
     .desc = Används för rustningstillverkning.
 sprite-crafting_ing-resin = Kåda
     .desc = Används till trähantverk.
+sprite-mineral-ingot-orichalcum = Orikalkumtacka
+    .desc =
+        En tacka gjord av raffinerad orikalkum.
+
+        Kan användas vid tillverkning av metallvapen.
+sprite-mineral-ore-ancient_gold = Antikt Guld
+    .desc = Antik tacka av guld, genomblöt av magiska energier.

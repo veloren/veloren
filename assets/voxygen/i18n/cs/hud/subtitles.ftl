@@ -161,3 +161,7 @@ subtitle-instrument_timbrel_of_chaos = Tamburín Chaosu hraje
 subtitle-instrument_rhythmo = Rytmo hraje
 subtitle-instrument_oud = Hrající Úd
 subtitle-instrument_viola_pizzicato = Drnkání na Violu
+subtitle-spear_attack = Švih kopím
+subtitle-uwield_spear = Kopí schováno
+subtitle-pickup_spear = Kopí zdvihnuto
+subtitle-wield_spear = Vyzbrojení kopím

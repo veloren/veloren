@@ -113,3 +113,5 @@ hud-init-stage-server-worldsim-erosion_time_left =
             [few] ~{ $n } sekundy zbývají
            *[other] ~{ $n } sekund zbývá
         }
+hud-rest = Odpočívat
+hud-waypoint_interact = Nastavit cestovní bod

@@ -45,3 +45,5 @@ hud-map-glider_course = Glidbana
 hud-map-glider_courses = Glidbanor
 hud-map-vampire_castle = Vampyrslott
 hud-map-myrmidon = Myrmidon-dungeon
+hud-map-plaza = Torg
+hud-map-unknown = Okänd

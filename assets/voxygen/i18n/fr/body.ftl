@@ -64,3 +64,4 @@ body-npc-speech-biped_large-executioner = un bourreau
 body-npc-speech-biped_large-strigoi = un strigoï
 body-npc-speech-biped_large-terracotta_besieger = un assiégeur en terre cuite
 body-npc-speech-biped_large-husk_brute = une brute désincarnée
+body-npc-speech-biped_large-gigas_fire = un géant de feu
