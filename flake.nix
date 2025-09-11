@@ -3,16 +3,25 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    d2n = {
-      url = "github:nix-community/dream2nix/git-fetcher-no-shallow";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nci = {
-      url = "github:yusdacra/nix-cargo-integration";
+      url = "github:90-008/nix-cargo-integration";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.parts.follows = "parts";
       inputs.dream2nix.follows = "d2n";
+      inputs.crane.follows = "crane";
     };
-    parts.url = "github:hercules-ci/flake-parts";
+    parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+    d2n = {
+      url = "github:NeuralModder/dream2nix/git-fetcher-no-shallow";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    crane = {
+      url = "github:ipetkov/crane/v0.21.0";
+      flake = false;
+    };
   };
 
   outputs = inp: let
