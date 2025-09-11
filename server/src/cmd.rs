@@ -2180,7 +2180,7 @@ fn handle_rtsim_chunk(
     for (res, frac) in data
         .nature
         .chunk_resources(chunk_key)
-        .ok_or_else(|| oob_err())?
+        .ok_or_else(oob_err)?
     {
         let total = chunk_state.max_res[res];
         let _ = writeln!(

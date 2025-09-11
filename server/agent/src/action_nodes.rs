@@ -836,7 +836,7 @@ impl AgentData<'_> {
         if let Some(tgt_pos) = read_data.positions.get(target)
             && !is_steering(*self.entity, read_data)
             && let Some(dir) = Dir::look_toward(
-                &self.pos,
+                self.pos,
                 self.body,
                 Some(&comp::Scale(self.scale)),
                 tgt_pos,

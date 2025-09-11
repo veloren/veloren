@@ -2,7 +2,7 @@
 //! game.
 //!
 //! See the `veloren_rtsim` crate for an in-depth explanation as to what rtsim
-//! and how it works.
+//! is and how it works.
 //!
 //! The types in this module generally come in a few flavours:
 //!

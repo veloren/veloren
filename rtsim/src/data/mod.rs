@@ -112,7 +112,7 @@ impl Data {
         rmp_serde::encode::write_named(&mut writer, self)
     }
 
-    /// Performm whatever initial preparation is required for rtsim data to be
+    /// Perform whatever initial preparation is required for rtsim data to be
     /// ready for simulation.
     ///
     /// This might include populating caches, normalising data, etc.

@@ -44,7 +44,8 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                     escorter,
                     to,
                 } if *escortee == Actor::Npc(ctx.npc_id) && *escorter == tgt => {
-                    let to_name = util::site_name(ctx, *to).unwrap_or_default();
+                    let to_name =
+                        util::site_name(ctx, *to).unwrap_or_else(|| "<unknown>".to_string());
                     let dst_wpos = ctx
                         .state
                         .data()
@@ -330,8 +331,8 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
             .quests
             .related_actors(session.target)
             .filter(|actor| *actor != Actor::Npc(ctx.npc_id))
+            // Avoid mentioning too many actors
             .take(32)
-        // Avoid mentioning too many actors
         {
             if let Some(pos) = util::locate_actor(ctx, actor)
                 && let Some(name) = util::actor_name(ctx, actor)
