@@ -1139,11 +1139,7 @@ impl SpriteKind {
     #[inline]
     pub fn mount_buffs(&self) -> Option<Vec<BuffEffect>> {
         match self {
-            SpriteKind::BedWoodWoodlandHead
-            | SpriteKind::BedMesa
-            | SpriteKind::BedrollSnow
-            | SpriteKind::BedrollPirate
-            | SpriteKind::Bedroll => Some(vec![BuffEffect {
+            sprite if sprite.is_bed() => Some(vec![BuffEffect {
                 kind: BuffKind::RestingHeal,
                 data: BuffData::new(0.02, Some(Secs(1.0))),
                 cat_ids: Vec::new(),
