@@ -222,6 +222,7 @@
                   voxygen/src/audio/soundcache.rs
                 '';
               };
+            rust-crane.buildFlags = ["--bin=veloren-voxygen"];
           };
         };
       };
