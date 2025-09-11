@@ -708,7 +708,7 @@ pub fn handle_orientation(
         )
     {
         update.character_activity.look_dir = Some(dir);
-        Dir::to_horizontal(dir).unwrap_or_else(|| dir).into()
+        Dir::to_horizontal(dir).unwrap_or(dir).into()
     } else if is_strafing(data, update) || update.character.should_follow_look() {
         data.inputs
             .look_dir
