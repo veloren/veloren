@@ -29,6 +29,7 @@ use rtsim::{
 };
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use std::{
+    ops::Range,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -38,6 +39,7 @@ pub fn trader_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
     mut permitted: impl FnMut(Good) -> bool,
+    coin_range: Range<f32>,
 ) -> LoadoutBuilder {
     let rng = &mut rand::rng();
     let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
@@ -75,13 +77,9 @@ pub fn trader_loadout(
             .entry(Good::Potions)
             .and_modify(|e| *e = e.powf(0.25));
     }
-    // It's safe to truncate here, because coins clamped to 3000 max
-    // also we don't really want negative values here
-    if permitted(Good::Coin) {
-        stockmap
-            .entry(Good::Coin)
-            .and_modify(|e| *e = e.min(rng.random_range(1000.0..3000.0)));
-    }
+    stockmap
+        .entry(Good::Coin)
+        .and_modify(|e| *e = e.min(rng.random_range(coin_range)));
     // assume roughly 10 merchants sharing a town's stock (other logic for coins)
     stockmap
         .iter_mut()
@@ -192,7 +190,7 @@ fn merchant_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |_| true)
+    trader_loadout(loadout_builder, economy, |_| true, 1000.0..3000.0)
 }
 
 fn farmer_loadout(
@@ -200,9 +198,12 @@ fn farmer_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Food | Good::Coin)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Food | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn herbalist_loadout(
@@ -210,9 +211,12 @@ fn herbalist_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Ingredients)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Ingredients),
+        200.0..300.0,
+    )
 }
 
 fn chef_loadout(
@@ -220,9 +224,12 @@ fn chef_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Food | Good::Coin)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Food | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn blacksmith_loadout(
@@ -230,9 +237,12 @@ fn blacksmith_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Tools | Good::Armor | Good::Coin)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Tools | Good::Armor | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn alchemist_loadout(
@@ -240,9 +250,12 @@ fn alchemist_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Potions | Good::Coin)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Potions | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn profession_extra_loadout(
