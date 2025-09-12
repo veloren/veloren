@@ -31,7 +31,7 @@
       sourceInfo = inp.self.sourceInfo;
       dateTimeFormat = import ./nix/dateTimeFormat.nix;
       dateTime = dateTimeFormat sourceInfo.lastModified;
-      shortRev = sourceInfo.shortRev or "dirty";
+      shortRev = lib.strings.concatStrings (lib.lists.take 8 (lib.strings.stringToCharacters (sourceInfo.rev or sourceInfo.dirtyRev)));
     in {
       prettyRev = shortRev + "/" + dateTime;
       tag = "";
