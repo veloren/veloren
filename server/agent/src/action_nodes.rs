@@ -104,8 +104,8 @@ impl AgentData<'_> {
 
         let pos_difference = tgt_pos - self.pos.0;
         let pathing_pos = match path {
-            Path::Seperate => {
-                let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
+            Path::Separate => {
+                let mut sep_vec: Vec3<f32> = Vec3::zero();
 
                 for entity in read_data
                     .cached_spatial_grid
@@ -131,7 +131,7 @@ impl AgentData<'_> {
                     }
                 }
 
-                sep_vec * SEPARATION_BIAS + pos_difference * (1.0 - SEPARATION_BIAS)
+                tgt_pos + sep_vec * SEPARATION_BIAS + pos_difference * (1.0 - SEPARATION_BIAS)
             },
             Path::AtTarget => tgt_pos,
         };
