@@ -186,7 +186,7 @@ impl GenSite {
 
 /// World site generation statistics.
 /// The map is keyed by site name.
-// TODO: This is a bad idea
+// TODO: This is a bad idea, site names could conflict
 pub struct SitesGenMeta {
     seed: u32,
     sites: DHashMap<String, GenSite>,

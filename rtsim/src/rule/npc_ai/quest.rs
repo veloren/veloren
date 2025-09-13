@@ -212,7 +212,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             // Filter out monsters that are too far away
             .filter(|(_, npc)| npc.wpos.xy().distance(ctx.npc.wpos.xy()) < 2500.0)
             // Find the closest
-            .min_by_key(|(_, npc)| npc.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
+            .min_by_key(|(_, npc)| npc.wpos.xy().distance_squared(ctx.npc.wpos.xy()) as i64)
             && let monster_pos = monster.wpos
             && let monster_body = monster.body
             && let escort_reward_amount = 200.0

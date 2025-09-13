@@ -348,13 +348,7 @@ impl Widget for Quest<'_> {
                     }));
                 }
 
-                // Slot BG
-                // Button::new()
-                //     .w_h(120.0, 40.0)
-                //     .hover_color(Color::Rgba(1.0, 1.0, 1.0, 0.25))
-                //     .middle_of(state.ids.quest_responses_frames[i])
-                //     .set(state.ids.quest_responses_btn[i], ui);
-
+                // Response text
                 Text::new(&self.localized_strings.get_content(&response.msg))
                     .middle_of(state.ids.quest_responses_frames[i])
                     .graphics_for(state.ids.quest_responses_frames[i])
