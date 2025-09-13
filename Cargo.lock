@@ -7893,6 +7893,7 @@ dependencies = [
 name = "veloren-common"
 version = "0.10.0"
 dependencies = [
+ "ahash 0.8.12",
  "approx 0.5.1",
  "bitflags 2.9.4",
  "chrono",

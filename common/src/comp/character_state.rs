@@ -422,7 +422,6 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::Wielding(_)
-                | CharacterState::Talk(_)
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)

@@ -3,6 +3,7 @@ pub mod architect;
 pub mod faction;
 pub mod nature;
 pub mod npc;
+pub mod quest;
 pub mod report;
 pub mod sentiment;
 pub mod site;
@@ -11,6 +12,7 @@ pub use self::{
     faction::{Faction, FactionId, Factions},
     nature::Nature,
     npc::{Npc, NpcId, Npcs},
+    quest::Quests,
     report::{Report, ReportId, ReportKind, Reports},
     sentiment::{Sentiment, Sentiments},
     site::{Site, SiteId, Sites},
@@ -51,6 +53,8 @@ pub struct Data {
     pub reports: Reports,
     #[serde(default)]
     pub architect: Architect,
+    #[serde(default)]
+    pub quests: Quests,
 
     #[serde(default)]
     pub tick: u64,
@@ -107,6 +111,12 @@ impl Data {
     pub fn write_to<W: Write>(&self, mut writer: W) -> Result<(), WriteError> {
         rmp_serde::encode::write_named(&mut writer, self)
     }
+
+    /// Perform whatever initial preparation is required for rtsim data to be
+    /// ready for simulation.
+    ///
+    /// This might include populating caches, normalising data, etc.
+    pub fn prepare(&mut self) { self.quests.prepare(); }
 }
 
 fn rugged_ser_enum_map<

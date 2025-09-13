@@ -1,3 +1,5 @@
+dialogue-finish = Goodbye
+
 dialogue-question-site =
     .a0 = Where am I?
     .a1 = Where are we?
@@ -11,7 +13,6 @@ dialogue-question-hire =
 dialogue-question-sentiment =
     .a0 = How do you feel about...
     .a1 = What do you think about...
-dialogue-question-directions = Can you give me directions?
 dialogue-cancel_hire = I want to stop hiring you.
 dialogue-me = Me
 dialogue-buy_hire_days =
@@ -23,12 +24,24 @@ dialogue-buy_hire_days =
     }
 dialogue-cancel_interaction = I've changed my mind.
 
+dialogue-question-directions = Can you give me directions?
 dialogue-direction-tavern = The local tavern
 dialogue-direction-plaza = The nearest town square
 dialogue-direction-workshop = A workshop
 dialogue-direction-airship_dock = The airship dock
+dialogue-direction-actor = Where is { $name }?
 
-dialogue-play_game = Play a game
+dialogue-question-quest_req =
+    .a0 = Do you have work for me?
+    .a1 = Are there any jobs going?
+
+dialogue-question-quest-escort-where = Where are we going?
+
+# Used TAIL() to strip the article
+dialogue-question-quest-slay-where = Where is the { TAIL($body) }?
+dialogue-question-quest-slay-claim = The monster has been slain!
+
+dialogue-play_game = Let's play a game
 dialogue-game-what_game =
     .a0 = What game do you want to play?
     .a1 = Sure! What game?

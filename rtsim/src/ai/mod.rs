@@ -21,8 +21,8 @@ use common::{
 use hashbrown::HashSet;
 use itertools::Either;
 use rand_chacha::ChaChaRng;
-use specs::{Read, ReadExpect, ReadStorage, SystemData, WriteExpect, shred};
-use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow};
+use specs::{Read, ReadExpect, ReadStorage, SystemData, WriteExpect, WriteStorage, shred};
+use std::{any::Any, collections::VecDeque, marker::PhantomData, ops::ControlFlow, sync::Mutex};
 use world::{IndexRef, World};
 
 pub trait State: Clone + Send + Sync + 'static {}
@@ -121,6 +121,9 @@ pub struct NpcSystemData<'a> {
     pub server_constants: ReadExpect<'a, ServerConstants>,
     pub weather_grid: ReadExpect<'a, WeatherGrid>,
     pub rtsim_gizmos: WriteExpect<'a, RtsimGizmos>,
+    pub ability_map: ReadExpect<'a, comp::tool::AbilityMap>,
+    pub msm: ReadExpect<'a, comp::item::MaterialStatManifest>,
+    pub inventories: Mutex<WriteStorage<'a, comp::Inventory>>,
 }
 
 /// A trait that describes 'actions': long-running tasks performed by rtsim
@@ -174,6 +177,12 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
 
     /// Reset the action to its initial state such that it can be repeated.
     fn reset(&mut self);
+
+    /// Perform logic when the event gets unexpectedly cancelled.
+    ///
+    /// This function should be invoked recursively, with inner actions being
+    /// invoked before later ones.
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S);
 
     /// Perform the action for the current tick.
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R>;
@@ -230,7 +239,7 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
     ///
     /// ```ignore
     /// // Endlessly collect flax from the environment
-    /// find_and_collect(ChunkResource::Flax).repeat()
+    /// find_and_collect(TerrainResource::Flax).repeat()
     /// ```
     #[must_use]
     fn repeat(self) -> Repeat<Self, R>
@@ -254,6 +263,18 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
         Self: Sized,
     {
         StopIf(self, p.into())
+    }
+
+    /// Perform some logic if the action is cancelled early.
+    #[must_use]
+    fn when_cancelled<F: Fn(&mut NpcCtx) + Send + Sync + 'static>(
+        self,
+        f: F,
+    ) -> WhenCancelled<Self, F>
+    where
+        Self: Sized,
+    {
+        WhenCancelled(self, f)
     }
 
     /// Pause an action to possibly perform another action.
@@ -418,6 +439,8 @@ impl<S: State, R: 'static> Action<S, R> for Box<dyn Action<S, R>> {
 
     fn reset(&mut self) { (**self).reset(); }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { (**self).on_cancel(ctx, state) }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         (**self).tick(ctx, state)
     }
@@ -448,6 +471,13 @@ impl<S: State, R: 'static, A: Action<S, R>, B: Action<S, R>> Action<S, R> for Ei
         }
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        match self {
+            Either::Left(x) => x.on_cancel(ctx, state),
+            Either::Right(x) => x.on_cancel(ctx, state),
+        }
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         match self {
             Either::Left(x) => x.tick(ctx, state),
@@ -465,7 +495,7 @@ pub struct Now<F, A>(F, Option<A>);
 impl<
     S: State,
     R: Send + Sync + 'static,
-    F: Fn(&mut NpcCtx, &mut S) -> A + Send + Sync + 'static,
+    F: FnOnce(&mut NpcCtx, &mut S) -> A + Clone + Send + Sync + 'static,
     A: Action<S, R>,
 > Action<S, R> for Now<F, A>
 {
@@ -484,9 +514,14 @@ impl<
 
     fn reset(&mut self) { self.1 = None; }
 
-    // TODO: Reset closure state?
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(x) = &mut self.1 {
+            x.on_cancel(ctx, state);
+        }
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
-        (self.1.get_or_insert_with(|| (self.0)(ctx, state))).tick(ctx, state)
+        (self.1.get_or_insert_with(|| (self.0.clone())(ctx, state))).tick(ctx, state)
     }
 }
 
@@ -504,7 +539,7 @@ impl<
 /// ```
 pub fn now<S, R, F, A: Action<S, R>>(f: F) -> Now<F, A>
 where
-    F: Fn(&mut NpcCtx, &mut S) -> A + Send + Sync + 'static,
+    F: FnOnce(&mut NpcCtx, &mut S) -> A + Clone + Send + Sync + 'static,
 {
     Now(f, None)
 }
@@ -537,6 +572,12 @@ impl<
     }
 
     fn reset(&mut self) { self.1 = None; }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(x) = &mut self.1 {
+            x.on_cancel(ctx, state);
+        }
+    }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
         let action = match &mut self.1 {
@@ -581,6 +622,8 @@ impl<S: State, R: Send + Sync + 'static, F: Fn(&mut NpcCtx, &mut S) -> R + Send 
 
     fn reset(&mut self) {}
 
+    fn on_cancel(&mut self, _ctx: &mut NpcCtx, _state: &mut S) {}
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         ControlFlow::Break((self.0)(ctx, state))
     }
@@ -618,6 +661,8 @@ impl<S: State> Action<S, ()> for Finish {
     fn backtrace(&self, _bt: &mut Vec<String>) {}
 
     fn reset(&mut self) {}
+
+    fn on_cancel(&mut self, _ctx: &mut NpcCtx, _state: &mut S) {}
 
     fn tick(&mut self, _ctx: &mut NpcCtx, _state: &mut S) -> ControlFlow<()> {
         ControlFlow::Break(())
@@ -691,6 +736,12 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
 
     fn reset(&mut self) { self.prev = None; }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(x) = &mut self.prev {
+            x.0.on_cancel(ctx, state);
+        }
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         let new = (self.next)(ctx, state);
 
@@ -698,7 +749,12 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
             Some(prev) if prev.1 <= new.1 && (prev.0.dyn_is_same(&*new.0) || !self.interrupt) => {
                 prev
             },
-            _ => self.prev.insert(new),
+            _ => {
+                if let Some(mut prev) = self.prev.take() {
+                    prev.0.on_cancel(ctx, state);
+                }
+                self.prev.insert(new)
+            },
         };
 
         match prev.0.tick(ctx, state) {
@@ -820,6 +876,14 @@ impl<
         self.a1.reset();
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if !self.a0_finished {
+            self.a0.on_cancel(ctx, state)
+        } else {
+            self.a1.on_cancel(ctx, state);
+        }
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
         if !self.a0_finished {
             match self.a0.tick(ctx, state) {
@@ -848,7 +912,7 @@ impl<
     A1: Action<S, R1>,
     R0: Send + Sync + 'static,
     R1: Send + Sync + 'static,
-    F: Fn(R0) -> A1 + Send + Sync + 'static,
+    F: FnOnce(R0) -> A1 + Clone + Send + Sync + 'static,
 > Action<S, R1> for AndThen<A0, F, A1, R0>
 {
     fn is_same(&self, other: &Self) -> bool {
@@ -874,11 +938,19 @@ impl<
         self.a1 = None;
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(a1) = &mut self.a1 {
+            a1.on_cancel(ctx, state);
+        } else {
+            self.a0.on_cancel(ctx, state);
+        }
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
         let a1 = match &mut self.a1 {
             None => match self.a0.tick(ctx, state) {
                 ControlFlow::Continue(()) => return ControlFlow::Continue(()),
-                ControlFlow::Break(r) => self.a1.insert((self.f)(r)),
+                ControlFlow::Break(r) => self.a1.insert((self.f.clone())(r)),
             },
             Some(a1) => a1,
         };
@@ -925,6 +997,13 @@ impl<
         self.a1 = None;
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(x) = &mut self.a1 {
+            x.on_cancel(ctx, state);
+        }
+        self.a0.on_cancel(ctx, state);
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R0> {
         if let Some(new_a1) = (self.f)(ctx, state)
             && self.a1.as_ref().is_none_or(|a1| !a1.is_same(&new_a1))
@@ -957,6 +1036,8 @@ impl<S: State, R: Send + Sync + 'static, A: Action<S, R>> Action<S, !> for Repea
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) { self.0.reset(); }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { self.0.on_cancel(ctx, state); }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<!> {
         match self.0.tick(ctx, state) {
@@ -997,6 +1078,12 @@ impl<
     fn reset(&mut self) {
         self.0.reset();
         self.1 = None;
+    }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        if let Some(x) = &mut self.1 {
+            x.on_cancel(ctx, state);
+        }
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<()> {
@@ -1066,12 +1153,42 @@ impl<S: State, A: Action<S, R>, P: Predicate + Clone + Send + Sync + 'static, R>
         self.1.reset();
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { self.0.on_cancel(ctx, state); }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<Option<R>> {
         if self.1.should(ctx) {
+            self.0.on_cancel(ctx, state);
             ControlFlow::Break(None)
         } else {
             self.0.tick(ctx, state).map_break(Some)
         }
+    }
+}
+
+// WhenCancelled
+
+/// See [`Action::when_cancelled`].
+#[derive(Copy, Clone)]
+pub struct WhenCancelled<A, F>(A, F);
+
+impl<S: State, A: Action<S, R>, F: Fn(&mut NpcCtx) + Clone + Send + Sync + 'static, R> Action<S, R>
+    for WhenCancelled<A, F>
+{
+    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
+
+    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
+
+    fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
+        self.0.on_cancel(ctx, state);
+        (self.1)(ctx);
+    }
+
+    fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
+        self.0.tick(ctx, state)
     }
 }
 
@@ -1096,6 +1213,8 @@ impl<
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) { self.0.reset(); }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { self.0.on_cancel(ctx, state); }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R1> {
         self.0.tick(ctx, state).map_break(|t| (self.1)(t, state))
@@ -1127,6 +1246,8 @@ impl<
 
     fn reset(&mut self) { self.0.reset(); }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { self.0.on_cancel(ctx, state); }
+
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
         self.0.tick(ctx, state)
     }
@@ -1152,6 +1273,10 @@ impl<S0: State, S: State, R, A: Action<S, R>> Action<S0, R> for WithState<A, S, 
         self.1.reset();
     }
 
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, _state: &mut S0) {
+        self.0.on_cancel(ctx, &mut self.1.current);
+    }
+
     fn tick(&mut self, ctx: &mut NpcCtx, _state: &mut S0) -> ControlFlow<R> {
         self.0.tick(ctx, &mut self.1.current)
     }
@@ -1175,6 +1300,10 @@ impl<S0: State, S: State, R, A: Action<S, R>, F: Fn(&mut S0) -> &mut S + Send + 
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt) }
 
     fn reset(&mut self) { self.0.reset(); }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S0) {
+        self.0.on_cancel(ctx, (self.1)(state));
+    }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S0) -> ControlFlow<R> {
         self.0.tick(ctx, (self.1)(state))

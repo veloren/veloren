@@ -123,10 +123,7 @@ use common::{
     vol::RectRasterableVol,
 };
 use common_base::{prof_span, span};
-use common_net::{
-    msg::world_msg::{Marker, MarkerKind, SiteId},
-    sync::WorldSyncExt,
-};
+use common_net::{msg::world_msg::SiteId, sync::WorldSyncExt};
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, Widget,
     text::cursor::Index,
@@ -1324,8 +1321,8 @@ pub struct Hud {
     map_drag: Vec2<f64>,
     force_chat: bool,
     clear_chat: bool,
-    current_dialogue: Option<(EcsEntity, rtsim::Dialogue<true>)>,
-    extra_markers: HashMap<Vec2<i32>, Marker>,
+    current_dialogue: Option<(EcsEntity, Instant, rtsim::Dialogue<true>)>,
+    extra_markers: Vec<map::ExtraMarker>,
 }
 
 impl Hud {
@@ -1467,7 +1464,7 @@ impl Hud {
             force_chat: false,
             clear_chat: false,
             current_dialogue: None,
-            extra_markers: HashMap::default(),
+            extra_markers: Vec::new(),
         }
     }
 
@@ -1488,6 +1485,10 @@ impl Hud {
     pub fn set_slots_prefix_switch_point(&mut self, prefix_switch_point: u32) {
         self.slot_manager
             .set_prefix_switch_point(prefix_switch_point);
+    }
+
+    pub fn current_dialogue(&self) -> Option<EcsEntity> {
+        self.current_dialogue.as_ref().map(|(e, _, _)| *e)
     }
 
     #[expect(clippy::single_match)] // TODO: Pending review in #587
@@ -3129,6 +3130,7 @@ impl Hud {
             &self.rot_imgs,
             &self.world_map,
             &self.fonts,
+            self.pulse,
             camera.get_orientation(),
             global_state,
             &persisted_state.location_markers,
@@ -3690,7 +3692,7 @@ impl Hud {
         // Quest Window
         let stats = client.state().ecs().read_storage::<comp::Stats>();
         let interpolated = client.state().ecs().read_storage::<vcomp::Interpolated>();
-        if let Some((sender, dialogue)) = &self.current_dialogue
+        if let Some((sender, _, dialogue)) = &self.current_dialogue
             && let Some(i) = interpolated.get(*sender)
             && let Some(player_i) = interpolated.get(client.entity())
             && i.pos.distance_squared(player_i.pos) > MAX_NPCINTERACT_RANGE.powi(2)
@@ -3703,7 +3705,7 @@ impl Hud {
         }
 
         let dialogue_open = if self.show.quest
-            && let Some((sender, dialogue)) = &self.current_dialogue
+            && let Some((sender, time, dialogue)) = &self.current_dialogue
         {
             match Quest::new(
                 &self.show,
@@ -3711,11 +3713,13 @@ impl Hud {
                 &self.imgs,
                 &self.fonts,
                 i18n,
+                global_state,
                 &self.rot_imgs,
                 tooltip_manager,
                 &self.item_imgs,
                 *sender,
                 dialogue,
+                *time,
                 self.pulse,
             )
             .set(self.ids.quest_window, ui_widgets)
@@ -3740,7 +3744,7 @@ impl Hud {
             false
         };
 
-        if !dialogue_open && let Some((sender, dialogue)) = self.current_dialogue.take() {
+        if !dialogue_open && let Some((sender, _, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {
                 id: dialogue.id,
                 kind: rtsim::DialogueKind::End,
@@ -4638,20 +4642,25 @@ impl Hud {
         self.new_loot_messages.push_back(item);
     }
 
-    pub fn dialogue(&mut self, sender: EcsEntity, dialogue: rtsim::Dialogue<true>) {
-        match &dialogue.kind {
-            rtsim::DialogueKind::Marker { wpos, name } => {
-                self.extra_markers.insert(*wpos, Marker {
-                    id: None,
-                    wpos: *wpos,
-                    kind: MarkerKind::Unknown,
-                    name: Some(name.clone()),
+    pub fn dialogue(
+        &mut self,
+        sender: EcsEntity,
+        player_pos: Vec3<f32>,
+        dialogue: rtsim::Dialogue<true>,
+    ) {
+        match dialogue.kind {
+            rtsim::DialogueKind::Marker(marker) => {
+                // Remove any existing markers with the same ID
+                self.extra_markers.retain(|em| !em.marker.is_same(&marker));
+                self.extra_markers.push(map::ExtraMarker {
+                    recv_pos: player_pos.xy(),
+                    marker,
                 });
             },
             rtsim::DialogueKind::End => {
                 if self
                     .current_dialogue
-                    .take_if(|(old_sender, _)| *old_sender == sender)
+                    .take_if(|(old_sender, _, _)| *old_sender == sender)
                     .is_some()
                 {
                     self.show.quest(false);
@@ -4662,10 +4671,10 @@ impl Hud {
                     || self
                         .current_dialogue
                         .as_ref()
-                        .is_none_or(|(old_sender, _)| *old_sender == sender)
+                        .is_none_or(|(old_sender, _, _)| *old_sender == sender)
                 {
                     self.show.quest(true);
-                    self.current_dialogue = Some((sender, dialogue));
+                    self.current_dialogue = Some((sender, Instant::now(), dialogue));
                 }
             },
         }
@@ -4969,6 +4978,20 @@ impl Hud {
                     GameInput::MuteAmbience if state => {
                         toggle_mute(Audio::MuteAmbienceVolume(!gs_audio.ambience_volume.muted))
                     },
+                    GameInput::Interact if state => {
+                        // Send ACKs during conversation
+                        if let Some((sender, _, dialogue)) = &self.current_dialogue
+                            && let rtsim::DialogueKind::Statement { tag, .. } = dialogue.kind
+                        {
+                            self.events.push(Event::Dialogue(*sender, rtsim::Dialogue {
+                                id: dialogue.id,
+                                kind: rtsim::DialogueKind::Ack { tag },
+                            }));
+                            true
+                        } else {
+                            false
+                        }
+                    },
                     // Skillbar
                     input => {
                         if let Some(slot) = try_hotbar_slot_from_input(input) {
@@ -5026,6 +5049,16 @@ impl Hud {
         ),
     ) -> Vec<Event> {
         span!(_guard, "maintain", "Hud::maintain");
+
+        // Remove extra map markers that we've wandered a long distance away from
+        if let Some(pos) = client.position() {
+            self.extra_markers.retain(|em| {
+                const EXTRA_DISTANCE: f32 = 100.0;
+                em.marker.wpos.distance(pos.xy())
+                    < em.recv_pos.distance(em.marker.wpos) + EXTRA_DISTANCE
+            });
+        }
+
         // conrod eats tabs. Un-eat a tabstop so tab completion can work
         if self.ui.ui.global_input().events().any(|event| {
             use conrod_core::{event, input};

@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     comp::{
         Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
-        Ori, Pos, StateUpdate,
+        Ori, Pos, Scale, StateUpdate,
         ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
         arthropod, biped_large, biped_small, bird_medium,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
@@ -25,6 +25,7 @@ use crate::{
     outcome::Outcome,
     states::{behavior::JoinData, utils::CharacterState::Idle, *},
     terrain::{Block, TerrainGrid, UnlockKind},
+    uid::Uid,
     util::Dir,
     vol::ReadVol,
 };
@@ -214,7 +215,7 @@ impl Body {
         // => (dv / 30) / (1 / (1 - drag).powi(2) - 1) = v
         let v = match self {
             Body::Ship(ship) => ship.get_speed(),
-            _ => (-self.base_accel() / 30.0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0),
+            _ => (-self.base_accel() * 6.0 / self.mass().0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0),
         };
         debug_assert!(v >= 0.0, "Speed must be positive!");
         v
@@ -647,6 +648,9 @@ pub fn handle_orientation(
         (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
     }
 
+    // Look at things
+    update.character_activity.look_dir = Some(data.controller.inputs.look_dir);
+
     let (tilt_ori, efficiency) = if let Body::Ship(ship) = data.body
         && ship.has_wheels()
     {
@@ -684,9 +688,27 @@ pub fn handle_orientation(
 
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
-    // else the current horizontal movement direction is used
+    // else we special-case talking, else the current horizontal movement direction
+    // is used
     let target_ori = if let Some(dir_override) = dir_override {
         dir_override.into()
+    } else if let CharacterState::Talk(t) = data.character
+        && let Some(tgt_uid) = t.tgt
+        && let Some(tgt) = data.id_maps.uid_entity(tgt_uid)
+        && let (tgt_body, Some(tgt_prev_phys)) =
+            (data.bodies.get(tgt), data.prev_phys_caches.get(tgt))
+        && let Some(tgt_pos) = tgt_prev_phys.pos.as_ref()
+        && let Some(dir) = Dir::look_toward(
+            data.pos,
+            Some(data.body),
+            data.scale,
+            tgt_pos,
+            tgt_body,
+            Some(&Scale(tgt_prev_phys.scale)),
+        )
+    {
+        update.character_activity.look_dir = Some(dir);
+        Dir::to_horizontal(dir).unwrap_or(dir).into()
     } else if is_strafing(data, update) || update.character.should_follow_look() {
         data.inputs
             .look_dir
@@ -728,9 +750,6 @@ pub fn handle_orientation(
             .ori
             .slerped_towards(target_ori, target_fraction.min(1.0))
     };
-
-    // Look at things
-    update.character_activity.look_dir = Some(data.controller.inputs.look_dir);
 }
 
 /// Updates components to move player as if theyre swimming
@@ -963,9 +982,12 @@ pub fn can_perform_pet(position: Pos, target_position: Pos, target_alignment: Al
     within_distance && valid_alignment
 }
 
-pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate, tgt: Option<Uid>) {
     if data.physics.on_ground.is_some() {
-        update.character = CharacterState::Talk(Default::default());
+        update.character = CharacterState::Talk(match update.character {
+            CharacterState::Talk(t) if t.tgt == tgt => t.refreshed(),
+            _ => talk::Data::at(tgt),
+        });
     }
 }
 

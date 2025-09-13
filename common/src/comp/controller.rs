@@ -190,7 +190,7 @@ pub enum ControlAction {
     Dance,
     Sneak,
     Stand,
-    Talk,
+    Talk(Option<Uid>),
     StartInput {
         input: InputKind,
         target_entity: Option<Uid>,

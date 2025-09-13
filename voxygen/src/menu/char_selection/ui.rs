@@ -26,11 +26,12 @@ use common::{
     LoadoutBuilder,
     character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER, MAX_NAME_LENGTH},
     comp::{self, Inventory, Item, humanoid, inventory::slot::EquipSlot},
+    map::Marker,
     resources::Time,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
 };
-use common_net::msg::world_msg::{Marker, SiteId};
+use common_net::msg::world_msg::SiteId;
 use i18n::{Localization, LocalizationHandle};
 use rand::{Rng, rng};
 //ImageFrame, Tooltip,
@@ -1432,7 +1433,7 @@ impl Controls {
                     {
                         let site_name = Text::new(
                             self.possible_starting_sites[start_site_idx.unwrap_or_default()]
-                                .name
+                                .label
                                 .as_ref()
                                 .map(|name| i18n.get_content(name))
                                 .unwrap_or_else(|| "Unknown".to_string()),
@@ -1442,7 +1443,7 @@ impl Controls {
                         let pos_frac = info
                             .wpos
                             .map2(self.world_sz * TerrainChunkSize::RECT_SIZE, |e, sz| {
-                                e as f32 / sz as f32
+                                e / sz as f32
                             });
                         let point = Vec2::new(pos_frac.x, 1.0 - pos_frac.y)
                             .map2(map_sz, |e, sz| e * sz as f32 - 12.0);
@@ -1873,7 +1874,7 @@ impl Controls {
                         start_site: self
                             .possible_starting_sites
                             .get(start_site_idx.unwrap_or_default())
-                            .and_then(|info| info.id),
+                            .and_then(|info| info.site),
                     });
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }

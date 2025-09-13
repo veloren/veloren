@@ -36,6 +36,7 @@ use common::{
     grid::Grid,
     link::Is,
     lod,
+    map::Marker,
     mounting::{Rider, VolumePos, VolumeRider},
     outcome::Outcome,
     recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
@@ -61,7 +62,7 @@ use common_net::{
         Notification, PingMsg, PlayerInfo, PlayerListUpdate, RegisterError, ServerGeneral,
         ServerInit, ServerRegisterAnswer,
         server::ServerDescription,
-        world_msg::{EconomyInfo, Marker, PoiInfo, SiteId},
+        world_msg::{EconomyInfo, PoiInfo, SiteId},
     },
     sync::WorldSyncExt,
 };
@@ -1044,13 +1045,13 @@ impl Client {
             sites: sites
                 .iter()
                 .filter_map(|m| {
-                    Some((m.id?, SiteMarker {
+                    Some((m.site?, SiteMarker {
                         marker: m.clone(),
                         economy: None,
                     }))
                 })
                 .collect(),
-            extra_markers: sites.iter().filter(|m| m.id.is_none()).cloned().collect(),
+            extra_markers: sites.iter().filter(|m| m.site.is_none()).cloned().collect(),
             possible_starting_sites,
             pois,
             component_recipe_book,
@@ -2234,6 +2235,19 @@ impl Client {
             //     self.send_msg(ClientGeneral::ChatMsg(msg));
             // }
             self.control_event(ControlEvent::Dialogue(target_uid, dialogue));
+        }
+    }
+
+    pub fn do_talk(&mut self, tgt: Option<EcsEntity>) {
+        if let Some(controller) = self
+            .state
+            .ecs()
+            .write_storage::<comp::Controller>()
+            .get_mut(self.entity())
+        {
+            controller.push_action(ControlAction::Talk(
+                tgt.and_then(|tgt| self.state.read_component_copied(tgt)),
+            ));
         }
     }
 

@@ -98,10 +98,6 @@ image_ids! {
         quest_frame: "voxygen.element.ui.quests.quest_frame",
         quest_ico: "voxygen.element.ui.quests.quest_icon",
 
-        // Dialog Window
-        dialogue_bg: "voxygen.element.ui.dialogue.bg",
-        dialogue_frame: "voxygen.element.ui.dialogue.frame",
-
         // Social Window
         social_frame_on: "voxygen.element.ui.social.social_frame",
         social_bg_on: "voxygen.element.ui.social.social_bg",
@@ -544,6 +540,8 @@ image_ids! {
         mmap_unknown: "voxygen.element.ui.map.buttons.unknown",
         mmap_unknown_hover: "voxygen.element.ui.map.buttons.unknown_hover",
         mmap_unknown_bg: "voxygen.element.ui.map.buttons.unknown_bg",
+        mmap_character: "voxygen.element.ui.map.buttons.character",
+        mmap_character_hover: "voxygen.element.ui.map.buttons.character_hover",
         mmap_site_town: "voxygen.element.ui.map.buttons.town",
         mmap_site_town_hover: "voxygen.element.ui.map.buttons.town_hover",
         mmap_site_town_bg: "voxygen.element.ui.map.buttons.town_bg",

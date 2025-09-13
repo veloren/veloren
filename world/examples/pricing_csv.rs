@@ -42,7 +42,7 @@ fn good_pricing_csv(world: &World, index: &Index) -> Result<(), Box<dyn Error>> 
                 let prices = economy.get_site_prices();
                 //println!("{:?}: {:?} {:?}", site.name(), civsite.center, prices);
                 csv.write_record([
-                    site.name(),
+                    site.name().unwrap_or(""),
                     &format!("{}", civsite.center.x),
                     &format!("{}", civsite.center.y),
                     &format!("{}", prices.values.get(&Good::Flour).unwrap_or(&0.0)),

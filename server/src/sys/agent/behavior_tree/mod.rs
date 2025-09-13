@@ -677,11 +677,15 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
     ) {
         None => {
             // Look toward the interacting entity for a while
-            if let Some(Target { target, .. }) = &bdata.agent.target {
+            if let Some(Target { target, .. }) = &bdata.agent.target
+                && let Some(target_uid) = bdata.read_data.uids.get(*target)
+            {
                 bdata
                     .agent_data
                     .look_toward(bdata.controller, bdata.read_data, *target);
-                bdata.controller.push_action(ControlAction::Talk);
+                bdata
+                    .controller
+                    .push_action(ControlAction::Talk(Some(*target_uid)));
             }
         },
         Some(just_ended) => {

@@ -582,7 +582,7 @@ impl AgentData<'_> {
                             controller.inputs.move_dir = Vec2::zero();
                         }
                     }
-                    controller.push_action(ControlAction::Talk);
+                    controller.push_action(ControlAction::Talk(None));
                     break 'activity; // Don't fall through to idle wandering
                 },
                 Some(NpcActivity::Sit(dir, pos)) => {
@@ -620,11 +620,12 @@ impl AgentData<'_> {
                 Some(NpcActivity::Talk(target)) => {
                     if agent.target.is_none()
                         && let Some(target) = read_data.id_maps.actor_entity(target)
+                        && let Some(target_uid) = read_data.uids.get(target)
                     {
                         // We're always aware of someone we're talking to
                         controller.push_action(ControlAction::Stand);
                         self.look_toward(controller, read_data, target);
-                        controller.push_action(ControlAction::Talk);
+                        controller.push_action(ControlAction::Talk(Some(*target_uid)));
                         break 'activity;
                     }
                 },
@@ -834,17 +835,16 @@ impl AgentData<'_> {
     ) -> bool {
         if let Some(tgt_pos) = read_data.positions.get(target)
             && !is_steering(*self.entity, read_data)
+            && let Some(dir) = Dir::look_toward(
+                self.pos,
+                self.body,
+                Some(&comp::Scale(self.scale)),
+                tgt_pos,
+                read_data.bodies.get(target),
+                read_data.scales.get(target),
+            )
         {
-            let eye_offset = self.body.map_or(0.0, |b| b.eye_height(self.scale));
-            let tgt_eye_offset = read_data.bodies.get(target).map_or(0.0, |b| {
-                b.eye_height(read_data.scales.get(target).map_or(1.0, |s| s.0))
-            });
-            if let Some(dir) = Dir::from_unnormalized(
-                Vec3::new(tgt_pos.0.x, tgt_pos.0.y, tgt_pos.0.z + tgt_eye_offset)
-                    - Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
-            ) {
-                controller.inputs.look_dir = dir;
-            }
+            controller.inputs.look_dir = dir;
             true
         } else {
             false

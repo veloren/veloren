@@ -2,11 +2,143 @@ use super::*;
 
 pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
-        let is_hired_by_tgt = ctx.npc.hiring.is_some_and(|(a, _)| a == tgt);
-
         let mut responses = Vec::new();
 
+        // Job-dependent responses
+        match &ctx.npc.job {
+            // TODO: Implement hiring as a quest?
+            Some(Job::Hired(by, _)) if *by == tgt => {
+                responses.push((
+                    Response::from(Content::localized("dialogue-cancel_hire")),
+                    session
+                        .say_statement(Content::localized("npc-dialogue-hire_cancelled"))
+                        .then(just(move |ctx, _| ctx.controller.end_hiring()))
+                        .boxed(),
+                ));
+            },
+            Some(_) => {},
+            None => {
+                responses.push((
+                    Response::from(Content::localized("dialogue-question-quest_req")),
+                    quest::quest_request(session).boxed(),
+                ));
+
+                let can_be_hired = matches!(ctx.npc.profession(), Some(Profession::Adventurer(_)));
+                if can_be_hired {
+                    responses.push((
+                        Response::from(Content::localized("dialogue-question-hire")),
+                        dialogue::hire(tgt, session).boxed(),
+                    ));
+                }
+            },
+        }
+
+        for quest_id in ctx.state.data().quests.related_to(ctx.npc_id) {
+            let data = ctx.state.data();
+            let Some(quest) = data.quests.get(quest_id) else {
+                continue;
+            };
+            match &quest.kind {
+                QuestKind::Escort {
+                    escortee,
+                    escorter,
+                    to,
+                } if *escortee == Actor::Npc(ctx.npc_id) && *escorter == tgt => {
+                    let to_name =
+                        util::site_name(ctx, *to).unwrap_or_else(|| "<unknown>".to_string());
+                    let dst_wpos = ctx
+                        .state
+                        .data()
+                        .sites
+                        .get(*to)
+                        .map_or(Vec2::zero(), |s| s.wpos.as_());
+                    responses.push((
+                        Response::from(Content::localized("dialogue-question-quest-escort-where")),
+                        session
+                            .give_marker(
+                                Marker::at(dst_wpos)
+                                    .with_id(quest_id)
+                                    .with_label(
+                                        Content::localized("hud-map-escort-label")
+                                            .with_arg(
+                                                "name",
+                                                ctx.npc
+                                                    .get_name()
+                                                    .unwrap_or_else(|| "<unknown>".to_string()),
+                                            )
+                                            .with_arg("place", to_name.clone()),
+                                    )
+                                    .with_quest_flag(true),
+                            )
+                            .then(session.say_statement(Content::localized_with_args(
+                                "npc-response-quest-escort-where",
+                                [("dst", to_name)],
+                            )))
+                            .boxed(),
+                    ));
+                },
+                QuestKind::Slay { target, slayer }
+                    if quest.arbiter == Actor::Npc(ctx.npc_id) && *slayer == tgt =>
+                {
+                    // TODO: Work for non-NPCs?
+                    let Actor::Npc(target_npc_id) = target else {
+                        continue;
+                    };
+                    // Is the monster dead?
+                    if let Some(target_npc) = data.npcs.get(*target_npc_id) {
+                        responses.push((
+                            Response::from(
+                                Content::localized("dialogue-question-quest-slay-where")
+                                    .with_arg("body", target_npc.body.localize_npc()),
+                            ),
+                            session
+                                .give_marker(
+                                    Marker::at(target_npc.wpos.xy())
+                                        .with_id(*target)
+                                        .with_label(
+                                            Content::localized("hud-map-creature-label")
+                                                .with_arg("body", target_npc.body.localize_npc()),
+                                        )
+                                        .with_quest_flag(true),
+                                )
+                                .then(
+                                    session.say_statement(
+                                        Content::localized("npc-response-quest-slay-where")
+                                            .with_arg("body", target_npc.body.localize_npc()),
+                                    ),
+                                )
+                                .boxed(),
+                        ));
+                    } else {
+                        responses.push((
+                            Response::from(Content::localized(
+                                "dialogue-question-quest-slay-claim",
+                            )),
+                            session
+                                .say_statement(Content::localized("npc-response-quest-slay-thanks"))
+                                .then(now(move |ctx, _| {
+                                    if let Ok(deposit) =
+                                        quest::resolve_take_deposit(ctx, quest_id, true)
+                                    {
+                                        session
+                                            .say_statement_with_gift(
+                                                Content::localized("npc-response-quest-reward"),
+                                                deposit,
+                                            )
+                                            .boxed()
+                                    } else {
+                                        finish().boxed()
+                                    }
+                                }))
+                                .boxed(),
+                        ));
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        // General informational questions
         responses.push((
             Response::from(Content::localized("dialogue-question-site")),
             dialogue::about_site(session).boxed(),
@@ -19,27 +151,23 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             Response::from(Content::localized("dialogue-question-sentiment")),
             dialogue::sentiments(tgt, session).boxed(),
         ));
-        if is_hired_by_tgt {
-            responses.push((
-                Response::from(Content::localized("dialogue-cancel_hire")),
-                session
-                    .say_statement(Content::localized("npc-dialogue-hire_cancelled"))
-                    .then(just(move |ctx, _| ctx.controller.end_hiring()))
-                    .boxed(),
-            ));
-        } else if can_be_hired {
-            responses.push((
-                Response::from(Content::localized("dialogue-question-hire")),
-                dialogue::hire(tgt, session).boxed(),
-            ));
-        }
         responses.push((
             Response::from(Content::localized("dialogue-question-directions")),
             dialogue::directions(session).boxed(),
         ));
+
+        // Local activities
         responses.push((
             Response::from(Content::localized("dialogue-play_game")),
             dialogue::games(session).boxed(),
+        ));
+        // TODO: Include trading here!
+
+        responses.push((
+            Response::from(Content::localized("dialogue-finish")),
+            session
+                .say_statement(Content::localized("npc-goodbye"))
+                .boxed(),
         ));
 
         session.ask_question(Content::localized("npc-question-general"), responses)
@@ -79,32 +207,30 @@ fn about_site<S: State>(session: DialogueSession) -> impl Action<S> {
 
 fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        let name = Content::localized_with_args("npc-info-self_name", [(
-            "name",
-            Content::Plain(ctx.npc.get_name()),
-        )]);
+        let name = Content::localized("npc-info-self_name")
+            .with_arg("name", ctx.npc.get_name().as_deref().unwrap_or("unknown"));
 
         let job = ctx
             .npc
             .profession()
             .map(|p| match p {
-                Profession::Farmer => "npc-info-role_farmer",
-                Profession::Hunter => "npc-info-role_hunter",
-                Profession::Merchant => "npc-info-role_merchant",
-                Profession::Guard => "npc-info-role_guard",
-                Profession::Adventurer(_) => "npc-info-role_adventurer",
-                Profession::Blacksmith => "npc-info-role_blacksmith",
-                Profession::Chef => "npc-info-role_chef",
-                Profession::Alchemist => "npc-info-role_alchemist",
-                Profession::Pirate(_) => "npc-info-role_pirate",
-                Profession::Cultist => "npc-info-role_cultist",
-                Profession::Herbalist => "npc-info-role_herbalist",
-                Profession::Captain => "npc-info-role_captain",
+                Profession::Farmer => "noun-role-farmer",
+                Profession::Hunter => "noun-role-hunter",
+                Profession::Merchant => "noun-role-merchant",
+                Profession::Guard => "noun-role-guard",
+                Profession::Adventurer(_) => "noun-role-adventurer",
+                Profession::Blacksmith => "noun-role-blacksmith",
+                Profession::Chef => "noun-role-chef",
+                Profession::Alchemist => "noun-role-alchemist",
+                Profession::Pirate(_) => "noun-role-pirate",
+                Profession::Cultist => "noun-role-cultist",
+                Profession::Herbalist => "noun-role-herbalist",
+                Profession::Captain => "noun-role-captain",
             })
             .map(|p| {
                 Content::localized_with_args("npc-info-role", [("role", Content::localized(p))])
             })
-            .unwrap_or_else(|| Content::localized("npc-info-role_none"));
+            .unwrap_or_else(|| Content::localized("noun-role-none"));
 
         let home = if let Some(site_name) = util::site_name(ctx, ctx.npc.home) {
             Content::localized_with_args("npc-info-self_home", [(
@@ -139,7 +265,7 @@ fn sentiments<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> 
 
 fn hire<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
-        if ctx.npc.hiring.is_none() && ctx.npc.rng(38792).random_bool(0.5) {
+        if ctx.npc.job.is_none() && ctx.npc.rng(38792).random_bool(0.5) {
             let hire_level = match ctx.npc.profession() {
                 Some(Profession::Adventurer(l)) => l,
                 _ => 0,
@@ -199,6 +325,37 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         let mut responses = Vec::new();
 
+        for actor in ctx
+            .state
+            .data()
+            .quests
+            .related_actors(session.target)
+            .filter(|actor| *actor != Actor::Npc(ctx.npc_id))
+            // Avoid mentioning too many actors
+            .take(32)
+        {
+            if let Some(pos) = util::locate_actor(ctx, actor)
+                && let Some(name) = util::actor_name(ctx, actor)
+            {
+                responses.push((
+                    Content::localized("dialogue-direction-actor").with_arg("name", name.clone()),
+                    session
+                        .give_marker(
+                            Marker::at(pos.xy())
+                                .with_label(
+                                    Content::localized("hud-map-character-label")
+                                        .with_arg("name", name.clone()),
+                                )
+                                .with_kind(MarkerKind::Character)
+                                .with_id(actor)
+                                .with_quest_flag(true),
+                        )
+                        .then(session.say_statement(Content::localized("npc-response-directions")))
+                        .boxed(),
+                ));
+            }
+        }
+
         if let Some(current_site) = ctx.npc.current_site
             && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
         {
@@ -211,14 +368,21 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
                             ws.tile_center_wpos(p.root_tile())
                                 .distance_squared(ctx.npc.wpos.xy().as_())
                         }) {
-                            ctx.controller.dialogue_marker(
-                                session,
-                                ws.tile_center_wpos(p.root_tile()),
-                                plot_name(p),
-                            );
-                            session.say_statement(Content::localized("npc-response-directions"))
+                            session
+                                .give_marker(
+                                    Marker::at(ws.tile_center_wpos(p.root_tile()).as_())
+                                        .with_label(plot_name(p)),
+                                )
+                                .then(
+                                    session.say_statement(Content::localized(
+                                        "npc-response-directions",
+                                    )),
+                                )
+                                .boxed()
                         } else {
-                            session.say_statement(Content::localized("npc-response-doesnt_exist"))
+                            session
+                                .say_statement(Content::localized("npc-response-doesnt_exist"))
+                                .boxed()
                         }
                     })
                     .boxed()

@@ -11,8 +11,9 @@ impl Rule for DepleteResources {
             let mut data = ctx.state.data_mut();
             for change in &ctx.event.changes {
                 let key = change.wpos.xy().wpos_to_cpos();
-                if let Some(Some(chunk_state)) = chunk_states.0.get(key) {
-                    let mut chunk_res = data.nature.get_chunk_resources(key);
+                if let Some(Some(chunk_state)) = chunk_states.0.get(key)
+                    && let Some(chunk_res) = data.nature.chunk_resources_mut(key)
+                {
                     let get_resource_damage = |block: Block| {
                         block
                             .get_attr::<sprite::Damage>()
@@ -43,8 +44,6 @@ impl Rule for DepleteResources {
                             / chunk_state.max_res[res] as f32)
                             .clamp(0.0, 1.0);
                     }
-
-                    data.nature.set_chunk_resources(key, chunk_res);
                 }
             }
         });

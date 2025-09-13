@@ -347,6 +347,10 @@ npc-speech-merchant_sell_directed =
     .a0 = You there! Are you in need of a new thingamabob?
     .a1 = Are you hungry? I'm sure I've got some cheese you can buy.
     .a2 = You look like you could do with some new armour!
+npc-speech-wait_for_me =
+    .a0 = Wait for me!
+    .a1 = You're moving too fast for me!
+    .a2 = Give me a chance to catch up!
 
 ## NPC site hints
 ## Available variables:
@@ -400,6 +404,12 @@ npc-speech-arena = Let's sit over there!
 
 ## NPC dialogue
 
+npc-goodbye =
+    .a0 = See you later!
+    .a1 = Bye!
+    .a2 = Goodbye!
+    .a3 = Later!
+
 npc-question-general =
     .a0 = What can I do for you?
     .a1 = G'day. What's the matter?
@@ -419,23 +429,11 @@ npc-info-self_homeless =
     .a0 = I don't have a home.
     .a1 = I've nowhere to call home.
 npc-info-role =
-    .a0 = I'm a { $role }.
-    .a1 = I work as a { $role }.
-    .a2 = I'm a { $role } by trade.
-npc-info-role_none =
+    .a0 = I'm { $role }.
+    .a1 = I work as { $role }.
+    .a2 = I'm { $role } by trade.
+noun-role-none =
     .a0 = I'm a free spirit.
-npc-info-role_farmer = farmer
-npc-info-role_hunter = hunter
-npc-info-role_merchant = merchant
-npc-info-role_guard = guard
-npc-info-role_adventurer = adventurer
-npc-info-role_blacksmith = blacksmith
-npc-info-role_chef = chef
-npc-info-role_alchemist = alchemist
-npc-info-role_pirate = pirate
-npc-info-role_cultist = cultist
-npc-info-role_herbalist = herbalist
-npc-info-role_captain = captain
 npc-info-unknown =
     .a0 = I don't know.
     .a1 = I'm not sure.
@@ -456,6 +454,47 @@ npc-dialogue-hire_cancelled_unhappy = I can't continue working for you in good c
 npc-dialogue-hire_arrive_tavern = I'll hang out at { $tavern } for a bit, see you later!
 npc-response-no_problem = No problem! See you later.
 
+npc-response-quest-nothing =
+    .a0 = Nothing right now, sorry.
+    .a1 = Not right now.
+    .a2 = Maybe later!
+npc-response-quest-rejected =
+    .a0 = Whatever! You do you.
+    .a1 = No skin off my nose.
+    .a2 = Beggars can't be choosers. Stop wasting my time!
+npc-response-quest-reward =
+    .a0 = Here's your reward.
+    .a1 = Here's the payment for your efforts.
+npc-response-quest-timeout =
+    .a0 = You've run out of time, our deal is off!
+    .a1 = Time's up, no money for you!
+
+npc-response-quest-escort-ask =
+    .a0 = Could you lead me to { $dst }? I'll pay you { $coins } coins! I need to get there in { $mins } minutes!
+    .a1 = I want to go to { $dst } in the next { $mins } minutes. Could you take me there for { $coins } coins?
+npc-response-quest-escort-start =
+    .a0 = Lead on then! I've marked the place on your map.
+    .a1 = Excellent. You'll find the destination on your map. You first, I'll follow along.
+npc-response-quest-escort-where =
+    .a0 = We're heading to { $dst }.
+    .a1 = I'm trying to get to { $dst }.
+    .a2 = We're going to { $dst }, right?
+npc-response-quest-escort-complete =
+    .a0 = We've arrived. Thank you!
+    .a1 = Thank you for leading me here. See you later!
+
+npc-response-quest-slay-ask =
+    .a0 = The people here are being terrorised by { $body }! It must be slain! I'll pay you { $coins } coins for the job.
+    .a1 = Not far from here, { $body } lurks. We can't live like this! { $coins } coins are on offer if you'll do the deed!
+npc-response-quest-slay-start =
+    .a0 = Return to me when the deed is done and you shall receive your payment. I've marked the beast's last known location on your map.
+    .a1 = I've marked your map so you know where to go. Godspeed! Your payment awaits you when you return!
+npc-response-quest-slay-where = I've updated the location of the monster on your map.
+npc-response-quest-slay-thanks =
+    .a0 = Thank you! The people here will be safe once more.
+    .a1 = You have my gratitude... and my money!
+    .a2 = You've done us a huge favour, many thanks.
+
 npc-response-like_you =
     .a0 = I like you!
     .a1 = You seem like a good friend.
@@ -470,7 +509,7 @@ npc-response-dislike_you =
 npc-question-directions =
     .a0 = Where do you want to go?
     .a1 = What are you looking for?
-npc-response-directions = I've marked it on your map. Good luck!
+npc-response-directions = I've marked your map. Good luck!
 npc-response-doesnt_exist = We don't have one around these parts.
 
 ## NPC reactions

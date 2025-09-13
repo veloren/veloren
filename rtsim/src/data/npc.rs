@@ -1,17 +1,18 @@
 use crate::{
     ai::Action,
-    data::{Reports, Sentiments},
+    data::{Reports, Sentiments, quest::Quest},
     generate::name,
 };
 pub use common::rtsim::{NpcId, Profession};
 use common::{
     character::CharacterId,
-    comp::{self, agent::FlightMode},
+    comp::{self, agent::FlightMode, item::ItemDef},
     grid::Grid,
+    map::Marker,
     resources::Time,
     rtsim::{
-        Actor, ChunkResource, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction,
-        NpcActivity, NpcInput, Personality, ReportId, Response, Role, SiteId,
+        Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
+        Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -24,6 +25,10 @@ use slotmap::HopSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
+    sync::{
+        Arc,
+        atomic::{AtomicU32, Ordering},
+    },
 };
 use tracing::error;
 use vek::*;
@@ -62,15 +67,17 @@ pub struct Controller {
     pub activity: Option<NpcActivity>,
     pub new_home: Option<Option<SiteId>>,
     pub look_dir: Option<Dir>,
-    pub hiring: Option<Option<(Actor, Time)>>,
+    pub job: Option<Job>,
+    pub quests_to_create: Vec<(QuestId, Quest)>,
 }
 
 impl Controller {
     /// Reset the controller to a neutral state before the start of the next
     /// brain tick.
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, npc: &Npc) {
         self.activity = None;
         self.look_dir = None;
+        self.job = npc.job.clone();
     }
 
     pub fn do_idle(&mut self) { self.activity = None; }
@@ -99,7 +106,7 @@ impl Controller {
         ));
     }
 
-    pub fn do_gather(&mut self, resources: &'static [ChunkResource]) {
+    pub fn do_gather(&mut self, resources: &'static [TerrainResource]) {
         self.activity = Some(NpcActivity::Gather(resources));
     }
 
@@ -142,10 +149,20 @@ impl Controller {
     }
 
     pub fn set_newly_hired(&mut self, actor: Actor, expires: Time) {
-        self.hiring = Some(Some((actor, expires)));
+        self.job = Some(Job::Hired(actor, expires));
     }
 
-    pub fn end_hiring(&mut self) { self.hiring = Some(None); }
+    pub fn end_hiring(&mut self) {
+        if matches!(self.job, Some(Job::Hired(..))) {
+            self.job = None;
+        }
+    }
+
+    pub fn end_quest(&mut self) {
+        if matches!(self.job, Some(Job::Quest(..))) {
+            self.job = None;
+        }
+    }
 
     /// Start a new dialogue.
     pub fn dialogue_start(&mut self, target: impl Into<Actor>) -> DialogueSession {
@@ -190,6 +207,11 @@ impl Controller {
             }));
     }
 
+    fn new_dialogue_tag(&self) -> u32 {
+        static TAG_COUNTER: AtomicU32 = AtomicU32::new(0);
+        TAG_COUNTER.fetch_add(1, Ordering::Relaxed)
+    }
+
     /// Ask a question, with various possible answers. Returns the dialogue tag,
     /// used for identifying the answer.
     pub fn dialogue_question(
@@ -198,7 +220,7 @@ impl Controller {
         msg: comp::Content,
         responses: impl IntoIterator<Item = (u16, Response)>,
     ) -> u32 {
-        let tag = rand::rng().random();
+        let tag = self.new_dialogue_tag();
 
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
@@ -213,26 +235,35 @@ impl Controller {
         tag
     }
 
-    /// Provide a statement as part of a dialogue.
-    pub fn dialogue_statement(&mut self, session: DialogueSession, msg: comp::Content) {
+    /// Provide a statement as part of a dialogue. Returns the dialogue tag,
+    /// used for identifying acknowledgements.
+    pub fn dialogue_statement(
+        &mut self,
+        session: DialogueSession,
+        msg: comp::Content,
+        given_item: Option<(Arc<ItemDef>, u32)>,
+    ) -> u32 {
+        let tag = self.new_dialogue_tag();
+
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
-                kind: DialogueKind::Statement(msg),
+                kind: DialogueKind::Statement {
+                    msg,
+                    given_item,
+                    tag,
+                },
             }));
+
+        tag
     }
 
     /// Provide a location marker as part of a dialogue.
-    pub fn dialogue_marker(
-        &mut self,
-        session: DialogueSession,
-        wpos: Vec2<i32>,
-        name: comp::Content,
-    ) {
+    pub fn dialogue_marker(&mut self, session: DialogueSession, marker: Marker) {
         self.actions
             .push(NpcAction::Dialogue(session.target, Dialogue {
                 id: session.id,
-                kind: DialogueKind::Marker { wpos, name },
+                kind: DialogueKind::Marker(marker),
             }));
     }
 }
@@ -272,10 +303,8 @@ pub struct Npc {
     #[serde(default)]
     pub sentiments: Sentiments,
 
-    /// An NPC can temporarily become a hired hand (`(hiring_actor,
-    /// termination_time)`).
     #[serde(default)]
-    pub hiring: Option<(Actor, Time)>,
+    pub job: Option<Job>,
 
     // Unpersisted state
     #[serde(skip)]
@@ -302,6 +331,18 @@ pub struct Npc {
     pub npc_dialogue: VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
 }
 
+/// A job is a long-running, persistent, non-stackable occupation that an NPC
+/// must persistently attend to, but may be temporarily interrupted from. NPCs
+/// will recurrently attempt to perform tasks that relate to their job.
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
+pub enum Job {
+    /// An NPC can temporarily become a hired hand (`(hiring_actor,
+    /// termination_time)`).
+    Hired(Actor, Time),
+    /// NPC is helping to perform a quest
+    Quest(QuestId),
+}
+
 impl Clone for Npc {
     fn clone(&self) -> Self {
         Self {
@@ -317,7 +358,7 @@ impl Clone for Npc {
             body: self.body,
             personality: self.personality,
             sentiments: self.sentiments.clone(),
-            hiring: self.hiring,
+            job: self.job.clone(),
             // Not persisted
             chunk_pos: None,
             current_site: Default::default(),
@@ -344,7 +385,7 @@ impl Npc {
             body,
             personality: Default::default(),
             sentiments: Default::default(),
-            hiring: None,
+            job: None,
             role,
             home: None,
             faction: None,
@@ -396,12 +437,26 @@ impl Npc {
 
     // TODO: Don't make this depend on deterministic RNG, actually persist names
     // once we've decided that we want to
-    pub fn get_name(&self) -> String { name::generate(&mut self.rng(Self::PERM_NAME)) }
+    pub fn get_name(&self) -> Option<String> {
+        if let comp::Body::Humanoid(_) = &self.body {
+            Some(name::generate_npc(&mut self.rng(Self::PERM_NAME)))
+        } else {
+            None
+        }
+    }
 
     pub fn profession(&self) -> Option<Profession> {
         match &self.role {
             Role::Civilised(profession) => *profession,
             Role::Monster | Role::Wild | Role::Vehicle => None,
+        }
+    }
+
+    pub fn hired(&self) -> Option<(Actor, Time)> {
+        if let Some(Job::Hired(actor, time)) = self.job {
+            Some((actor, time))
+        } else {
+            None
         }
     }
 

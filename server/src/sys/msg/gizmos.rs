@@ -177,7 +177,7 @@ fn gizmos_for_target(
         },
         GizmoSubscription::Rtsim => {
             if let Some(npc) = data.rtsim_entities.get(target) {
-                rtsim_gizmos(gizmos, npc.0, rtsim_tracker);
+                rtsim_gizmos(gizmos, *npc, rtsim_tracker);
             }
         },
     }

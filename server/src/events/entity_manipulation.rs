@@ -188,7 +188,7 @@ pub fn entity_as_actor(
     presences: &ReadStorage<Presence>,
 ) -> Option<Actor> {
     if let Some(rtsim_entity) = rtsim_entities.get(entity).copied() {
-        Some(Actor::Npc(rtsim_entity.0))
+        Some(Actor::Npc(rtsim_entity))
     } else if let Some(PresenceKind::Character(character)) = presences.get(entity).map(|p| p.kind) {
         Some(Actor::Character(character))
     } else {

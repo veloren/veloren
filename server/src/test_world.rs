@@ -2,7 +2,7 @@ use common::{
     calendar::Calendar,
     generation::ChunkSupplement,
     resources::TimeOfDay,
-    rtsim::ChunkResource,
+    rtsim::TerrainResource,
     terrain::{
         Block, BlockKind, MapSizeLg, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize,
     },
@@ -51,7 +51,7 @@ impl World {
         &self,
         _index: IndexRef,
         chunk_pos: Vec2<i32>,
-        _rtsim_resources: Option<EnumMap<ChunkResource, f32>>,
+        _rtsim_resources: Option<EnumMap<TerrainResource, f32>>,
         // TODO: misleading name
         mut _should_continue: impl FnMut() -> bool,
         _time: Option<(TimeOfDay, Calendar)>,

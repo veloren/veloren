@@ -142,6 +142,7 @@ key = "veloren-nix.cachix.org-1:zokfKJqVsNV6kI/oJdLF6TYBdNPYGSb+diMVQPn/5Rc="
 ### DEPENDENCIES ###
 
 [workspace.dependencies]
+ahash = { version = "0.8" }
 async-trait = "0.1.42"
 atomic_refcell = "0.1.13"
 bincode = { version = "2", features = ["serde"] }

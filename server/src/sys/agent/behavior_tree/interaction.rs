@@ -84,7 +84,7 @@ pub fn handle_inbox_dialogue(bdata: &mut BehaviorData) -> bool {
             .presences
             .get(sender_entity)
             .and_then(|p| p.kind.character_id().map(Actor::Character))
-            .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(sender_entity)?.0)))
+            .or_else(|| Some(Actor::Npc(*read_data.rtsim_entities.get(sender_entity)?)))
     {
         rtsim_outbox.push_back(NpcInput::Dialogue(sender_actor, dialogue));
         return false;
@@ -111,7 +111,7 @@ pub fn handle_inbox_talk(bdata: &mut BehaviorData) -> bool {
                 .presences
                 .get(by_entity)
                 .and_then(|p| p.kind.character_id().map(Actor::Character))
-                .or_else(|| Some(Actor::Npc(read_data.rtsim_entities.get(by_entity)?.0)))
+                .or_else(|| Some(Actor::Npc(*read_data.rtsim_entities.get(by_entity)?)))
         {
             rtsim_outbox.push_back(NpcInput::Interaction(actor));
             return false;
@@ -159,7 +159,7 @@ pub fn handle_inbox_trade_invite(bdata: &mut BehaviorData) -> bool {
             if !agent.behavior.is(BehaviorState::TRADING) {
                 // stand still and looking towards the trading player
                 controller.push_action(ControlAction::Stand);
-                controller.push_action(ControlAction::Talk);
+                controller.push_action(ControlAction::Talk(Some(with)));
                 if let Some(target) = get_entity_by_id(with, read_data) {
                     let target_pos = read_data.positions.get(target).map(|pos| pos.0);
 

@@ -553,20 +553,22 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_alias(mut self, alias: String) -> Self {
-        self.name = Some(Content::localized_with_args(
-            "name-misc-with-alias-template",
-            [
-                ("alias", Content::Plain(alias)),
-                (
-                    "old_name",
-                    self.name.unwrap_or_else(|| {
-                        dev_panic!("no name present to use with with_alias");
-                        Content::Plain("??".to_owned())
-                    }),
-                ),
-            ],
-        ));
+    pub fn with_alias(mut self, alias: impl Into<Option<String>>) -> Self {
+        if let Some(alias) = alias.into() {
+            self.name = Some(Content::localized_with_args(
+                "name-misc-with-alias-template",
+                [
+                    ("alias", Content::Plain(alias)),
+                    (
+                        "old_name",
+                        self.name.unwrap_or_else(|| {
+                            dev_panic!("no name present to use with with_alias");
+                            Content::Plain("??".to_owned())
+                        }),
+                    ),
+                ],
+            ));
+        }
         self
     }
 
@@ -593,7 +595,7 @@ impl EntityInfo {
 #[derive(Default)]
 pub struct ChunkSupplement {
     pub entities: Vec<EntityInfo>,
-    pub rtsim_max_resources: EnumMap<rtsim::ChunkResource, usize>,
+    pub rtsim_max_resources: EnumMap<rtsim::TerrainResource, usize>,
 }
 
 impl ChunkSupplement {

@@ -1,5 +1,5 @@
 use super::*;
-use crate::sys::terrain::SpawnEntityData;
+use crate::{ServerConstants, sys::terrain::SpawnEntityData};
 use common::{
     LoadoutBuilder,
     calendar::Calendar,
@@ -14,22 +14,32 @@ use common::{
     slowjob::SlowJobPool,
     terrain::CoordinateConversions,
     trade::{Good, SiteInformation},
+    uid::IdMaps,
     util::Dir,
+    weather::WeatherGrid,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use rand::Rng;
-use rtsim::data::{
-    Npc, Sites,
-    npc::{Profession, SimulationMode},
+use rtsim::{
+    ai::NpcSystemData,
+    data::{
+        Npc, Sites,
+        npc::{Profession, SimulationMode},
+    },
 };
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
-use std::{sync::Arc, time::Duration};
+use std::{
+    ops::Range,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use tracing::error;
 
 pub fn trader_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
     mut permitted: impl FnMut(Good) -> bool,
+    coin_range: Range<f32>,
 ) -> LoadoutBuilder {
     let rng = &mut rand::rng();
     let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
@@ -67,13 +77,9 @@ pub fn trader_loadout(
             .entry(Good::Potions)
             .and_modify(|e| *e = e.powf(0.25));
     }
-    // It's safe to truncate here, because coins clamped to 3000 max
-    // also we don't really want negative values here
-    if permitted(Good::Coin) {
-        stockmap
-            .entry(Good::Coin)
-            .and_modify(|e| *e = e.min(rng.random_range(1000.0..3000.0)));
-    }
+    stockmap
+        .entry(Good::Coin)
+        .and_modify(|e| *e = e.min(rng.random_range(coin_range)));
     // assume roughly 10 merchants sharing a town's stock (other logic for coins)
     stockmap
         .iter_mut()
@@ -184,7 +190,7 @@ fn merchant_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |_| true)
+    trader_loadout(loadout_builder, economy, |_| true, 1000.0..3000.0)
 }
 
 fn farmer_loadout(
@@ -192,7 +198,12 @@ fn farmer_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Food | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn herbalist_loadout(
@@ -200,9 +211,12 @@ fn herbalist_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Ingredients)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Ingredients),
+        200.0..300.0,
+    )
 }
 
 fn chef_loadout(
@@ -210,7 +224,12 @@ fn chef_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| matches!(good, Good::Food))
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Food | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn blacksmith_loadout(
@@ -218,9 +237,12 @@ fn blacksmith_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Tools | Good::Armor)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Tools | Good::Armor | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn alchemist_loadout(
@@ -228,9 +250,12 @@ fn alchemist_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |good| {
-        matches!(good, Good::Potions)
-    })
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Potions | Good::Coin),
+        200.0..300.0,
+    )
 }
 
 fn profession_extra_loadout(
@@ -370,7 +395,13 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, comp::Agent>,
         ReadStorage<'a, Presence>,
         ReadExpect<'a, Calendar>,
-        <rtsim::OnTick as rtsim::Event>::SystemData<'a>,
+        Read<'a, IdMaps>,
+        ReadExpect<'a, ServerConstants>,
+        ReadExpect<'a, WeatherGrid>,
+        WriteStorage<'a, comp::Inventory>,
+        WriteExpect<'a, comp::gizmos::RtsimGizmos>,
+        ReadExpect<'a, comp::tool::AbilityMap>,
+        ReadExpect<'a, comp::item::MaterialStatManifest>,
     );
 
     const NAME: &'static str = "rtsim::tick";
@@ -396,7 +427,13 @@ impl<'a> System<'a> for Sys {
             mut agents,
             presences,
             calendar,
-            mut tick_data,
+            id_maps,
+            server_constants,
+            weather_grid,
+            inventories,
+            rtsim_gizmos,
+            ability_map,
+            msm,
         ): Self::SystemData,
     ) {
         let mut create_ship_emitter = create_ship_events.emitter();
@@ -429,7 +466,16 @@ impl<'a> System<'a> for Sys {
 
         // Tick rtsim
         rtsim.state.tick(
-            &mut tick_data,
+            &mut NpcSystemData {
+                positions: positions.clone(),
+                id_maps,
+                server_constants,
+                weather_grid,
+                inventories: Mutex::new(inventories),
+                rtsim_gizmos,
+                ability_map,
+                msm,
+            },
             &world,
             index.as_index_ref(),
             *time_of_day,
@@ -456,7 +502,7 @@ impl<'a> System<'a> for Sys {
                     pos: comp::Pos(npc.wpos),
                     ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
                     ship: body,
-                    rtsim_entity: Some(RtSimEntity(id)),
+                    rtsim_entity: Some(id),
                     driver: steering,
                 });
             },
@@ -484,7 +530,7 @@ impl<'a> System<'a> for Sys {
                 create_npc_emitter.emit(CreateNpcEvent {
                     pos,
                     ori: comp::Ori::from(Dir::new(npc.dir.with_z(0.0))),
-                    npc: npc_builder.with_rtsim(RtSimEntity(id)).with_rider(steering),
+                    npc: npc_builder.with_rtsim(id).with_rider(steering),
                 });
             },
         };
@@ -519,7 +565,7 @@ impl<'a> System<'a> for Sys {
                             .expect("Entity loaded from assets cannot be special")
                             .to_npc_builder()
                             .0
-                            .with_rtsim(RtSimEntity(npc_id));
+                            .with_rtsim(npc_id);
 
                         if let Some(agent) = &mut npc_builder.agent {
                             agent.rtsim_outbox = Some(Default::default());
@@ -568,7 +614,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if let Some(npc) = data.npcs.get_mut(rtsim_entity.0) {
+            if let Some(npc) = data.npcs.get_mut(*rtsim_entity) {
                 match npc.mode {
                     SimulationMode::Loaded => {
                         // Update rtsim NPC state

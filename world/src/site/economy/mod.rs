@@ -1161,7 +1161,7 @@ impl Economy {
         write!(
             *f,
             "{}, {}, {}, {:.1}, {},,",
-            site.name(),
+            site.name().unwrap_or("<None>"),
             site.origin.x,
             site.origin.y,
             economy.pop,

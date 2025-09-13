@@ -1,0 +1,13 @@
+noun-ogre-male = un căpcăun
+noun-ogre-female = o căpcăunoaică
+noun-cyclops = un ciclop
+noun-wendigo = un wendigo
+noun-werewolf = un vârcolac
+noun-cave_troll = un trol de peșteră
+noun-creature = o creatură
+noun-mountain_troll = un trol de munte
+noun-swamp_troll = un trol de mlaștină
+noun-blue_oni = un oni albastru
+noun-red_oni = un oni roșu
+noun-dullahan = un dullahan
+noun-tursus = o torsă

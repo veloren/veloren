@@ -135,7 +135,7 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
                     && let Some(rider_actor) = state.entity_as_actor(rider_entity)
                     && let Some(volume_pos) = volume_pos.try_map_entity(|uid| {
                         let entity = uid_allocator.uid_entity(uid)?;
-                        state.read_storage::<RtSimEntity>().get(entity).map(|v| v.0)
+                        state.read_storage::<RtSimEntity>().get(entity).copied()
                     })
                 {
                     state

@@ -9,7 +9,7 @@ use vek::*;
 use common::{
     assets::{AssetCombined, AssetHandle, Ron},
     comp::{
-        self,
+        self, InventoryUpdateEvent,
         agent::{AgentEvent, Sound, SoundKind},
         inventory::slot::EquipSlot,
         item::{MaterialStatManifest, flatten_counted_items},
@@ -139,13 +139,21 @@ impl ServerEvent for DialogueEvent {
         WriteStorage<'a, comp::Inventory>,
         ReadExpect<'a, AbilityMap>,
         ReadExpect<'a, MaterialStatManifest>,
+        WriteStorage<'a, comp::InventoryUpdate>,
     );
 
     fn handle(
         events: impl ExactSizeIterator<Item = Self>,
-        (uids, positions, clients, mut agents, mut inventories, ability_map, msm): Self::SystemData<
-            '_,
-        >,
+        (
+            uids,
+            positions,
+            clients,
+            mut agents,
+            mut inventories,
+            ability_map,
+            msm,
+            mut inventory_updates,
+        ): Self::SystemData<'_>,
     ) {
         for DialogueEvent(sender, target, dialogue) in events {
             let within_range = positions
@@ -157,42 +165,48 @@ impl ServerEvent for DialogueEvent {
 
             if within_range && let Some(sender_uid) = uids.get(sender) {
                 // Perform item transfer, if required
-                match &dialogue.kind {
+                let given_item = match &dialogue.kind {
                     DialogueKind::Start
                     | DialogueKind::End
-                    | DialogueKind::Statement(..)
                     | DialogueKind::Question { .. }
-                    | DialogueKind::Marker { .. } => {},
-                    DialogueKind::Response { response, .. } => {
-                        // If the response requires an item to be given, perform exchange (or exit)
-                        if let Some((item_def, amount)) = &response.given_item {
-                            // Check that the target's inventory has enough space for the item
-                            if let Some(target_inv) = inventories.get(target)
-                                && target_inv.has_space_for(item_def, *amount)
-                                // Check that the sender has enough of the item
-                                && let Some(mut sender_inv) = inventories.get_mut(sender)
-                                && sender_inv.item_count(item_def) >= *amount as u64
-                                // First, remove the item from the sender's inventory
-                                && let Some(items) = sender_inv.remove_item_amount(item_def, *amount, &ability_map, &msm)
-                                && let Some(mut target_inv) = inventories.get_mut(target)
-                            {
-                                for item in items {
-                                    // Push the items to the target's inventory
-                                    if target_inv.push(item).is_err() {
-                                        error!(
-                                            "Failed to insert dialogue given item despite target \
-                                             inventory claiming to have space, dropping remaining \
-                                             items..."
-                                        );
-                                        break;
-                                    }
-                                }
+                    | DialogueKind::Marker { .. }
+                    | DialogueKind::Ack { .. } => None,
+                    DialogueKind::Statement { given_item, .. } => given_item.as_ref(),
+                    DialogueKind::Response { response, .. } => response.given_item.as_ref(),
+                };
+                // If the response requires an item to be given, perform exchange (or exit)
+                if let Some((item_def, amount)) = given_item {
+                    // Check that the target's inventory has enough space for the item
+                    if let Some(target_inv) = inventories.get(target)
+                        && target_inv.has_space_for(item_def, *amount)
+                        // Check that the sender has enough of the item
+                        && let Some(mut sender_inv) = inventories.get_mut(sender)
+                        && sender_inv.item_count(item_def) >= *amount as u64
+                        // First, remove the item from the sender's inventory
+                        && let Some(items) = sender_inv.remove_item_amount(item_def, *amount, &ability_map, &msm)
+                        && let Some(mut target_inv) = inventories.get_mut(target)
+                    {
+                        for item in items {
+                            let item_event = InventoryUpdateEvent::Collected(
+                                item.frontend_item(&ability_map, &msm),
+                            );
+                            // Push the items to the target's inventory
+                            if target_inv.push(item).is_err() {
+                                error!(
+                                    "Failed to insert dialogue given item despite target \
+                                     inventory claiming to have space, dropping remaining items..."
+                                );
+                                break;
                             } else {
-                                // TODO: Respond with error message on failure?
-                                continue;
+                                inventory_updates
+                                    .insert(target, comp::InventoryUpdate::new(item_event))
+                                    .expect("The entity must exist because we have its inventory");
                             }
                         }
-                    },
+                    } else {
+                        // TODO: Respond with error message on failure?
+                        continue;
+                    }
                 }
 
                 let dialogue = dialogue.into_validated_unchecked();

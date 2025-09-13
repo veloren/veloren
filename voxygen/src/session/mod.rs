@@ -401,7 +401,7 @@ impl SessionState {
                 },
                 client::Event::Dialogue(sender_uid, dialogue) => {
                     if let Some(sender) = client.state().ecs().entity_from_uid(sender_uid) {
-                        self.hud.dialogue(sender, dialogue);
+                        self.hud.dialogue(sender, pos, dialogue);
                     }
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
@@ -1369,6 +1369,11 @@ impl PlayState for SessionState {
                         self.scene.handle_input_event(event, &self.client.borrow());
                     }, // TODO: Do something if the event wasn't handled?
                 }
+            }
+
+            // Talk to entities when we are in dialogue with them
+            if let Some(tgt) = self.hud.current_dialogue() {
+                self.client.borrow_mut().do_talk(Some(tgt));
             }
 
             if let Some(viewpoint_entity) = self.viewpoint_entity

@@ -1419,7 +1419,7 @@ fn resolve_site(
         .index
         .sites
         .iter()
-        .find(|(_, site)| site.name() == key)
+        .find(|(_, site)| site.name() == Some(key))
         .map(|(id, _)| (id, None))
         .ok_or_else(|| Content::localized("command-site-not-found"))
 }
@@ -1957,12 +1957,11 @@ fn handle_rtsim_info(
                 Err(e) => return Some(Err(e)),
             };
 
-            let npc_id = server
+            let npc_id = *server
                 .state
                 .ecs()
                 .read_storage::<common::rtsim::RtSimEntity>()
-                .get(entity)?
-                .0;
+                .get(entity)?;
 
             Some(Ok(rtsim.state().data().npcs.get(npc_id)?.uid))
         })
@@ -2073,7 +2072,12 @@ fn handle_rtsim_npc(
 
         let _ = writeln!(&mut info, "-- NPCs matching [{}] --", terms.join(", "));
         for npc in npcs.iter().take(count.unwrap_or(!0) as usize) {
-            let _ = write!(&mut info, "{} ({}), ", npc.get_name(), npc.uid);
+            let _ = write!(
+                &mut info,
+                "{} ({}), ",
+                npc.get_name().as_deref().unwrap_or("<unknown>"),
+                npc.uid
+            );
         }
         let _ = writeln!(&mut info);
         let _ = writeln!(
@@ -2146,6 +2150,13 @@ fn handle_rtsim_chunk(
     let rtsim = server.state.ecs().read_resource::<RtSim>();
     let data = rtsim.state().data();
 
+    let oob_err = || {
+        Content::localized_with_args("command-chunk-out-of-bounds", [
+            ("x", chunk_key.x.to_string()),
+            ("y", chunk_key.y.to_string()),
+        ])
+    };
+
     let chunk_states = rtsim.state().resource::<ChunkStates>();
     let chunk_state = match chunk_states.0.get(chunk_key) {
         Some(Some(chunk_state)) => chunk_state,
@@ -2156,13 +2167,7 @@ fn handle_rtsim_chunk(
             ]));
         },
         None => {
-            return Err(Content::localized_with_args(
-                "command-chunk-out-of-bounds",
-                [
-                    ("x", chunk_key.x.to_string()),
-                    ("y", chunk_key.y.to_string()),
-                ],
-            ));
+            return Err(oob_err());
         },
     };
 
@@ -2172,7 +2177,7 @@ fn handle_rtsim_chunk(
         "-- Chunk {}, {} Resources --",
         chunk_key.x, chunk_key.y
     );
-    for (res, frac) in data.nature.get_chunk_resources(chunk_key) {
+    for (res, frac) in data.nature.chunk_resources(chunk_key).ok_or_else(oob_err)? {
         let total = chunk_state.max_res[res];
         let _ = writeln!(
             &mut info,
@@ -3111,7 +3116,7 @@ fn handle_kill_npcs(
                     rtsim.hook_rtsim_actor_death(
                         &ecs.read_resource::<Arc<world::World>>(),
                         ecs.read_resource::<world::IndexOwned>().as_index_ref(),
-                        Actor::Npc(rtsim_entity.0),
+                        Actor::Npc(rtsim_entity),
                         Some(pos.0),
                         None,
                     );
@@ -4834,7 +4839,7 @@ fn get_entity_target(entity_target: EntityTarget, server: &Server) -> CmdResult<
                 .state()
                 .ecs()
                 .read_resource::<common::uid::IdMaps>()
-                .rtsim_entity(common::rtsim::RtSimEntity(npc_id))
+                .rtsim_entity(npc_id)
                 .ok_or(Content::Plain(format!("Npc with id {id} isn't loaded.")))
         },
         EntityTarget::Uid(uid) => server

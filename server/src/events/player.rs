@@ -156,7 +156,7 @@ pub fn handle_exit_ingame(server: &mut Server, entity: EcsEntity, skip_persisten
             .hook_rtsim_actor_death(
                 &world,
                 index.as_index_ref(),
-                common::rtsim::Actor::Npc(rtsim_entity.0),
+                common::rtsim::Actor::Npc(rtsim_entity),
                 pos.map(|p| p.0),
                 None,
             );

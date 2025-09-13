@@ -1837,7 +1837,7 @@ impl Body {
             }
         }
 
-        try_localize(self).unwrap_or_else(|| Content::localized("body-npc-speech-generic"))
+        try_localize(self).unwrap_or_else(|| Content::localized("noun-creature"))
     }
 
     /// Read comment on `Gender` for more

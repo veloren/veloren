@@ -186,6 +186,34 @@ impl assets::Asset for Language {
             }
         }
 
+        bundle
+            .add_function("HEAD", |positional, _named| match positional.first() {
+                Some(FluentValue::String(s)) => FluentValue::String(
+                    s.trim_start()
+                        .split_once(char::is_whitespace)
+                        .map(|(h, _)| h)
+                        .unwrap_or(s)
+                        .to_string()
+                        .into(),
+                ),
+                _ => FluentValue::Error,
+            })
+            .expect("Failed to add the HEAD function.");
+
+        bundle
+            .add_function("TAIL", |positional, _named| match positional.first() {
+                Some(FluentValue::String(s)) => FluentValue::String(
+                    s.trim_start()
+                        .split_once(char::is_whitespace)
+                        .map(|(_, t)| t.trim_start())
+                        .unwrap_or(s)
+                        .to_string()
+                        .into(),
+                ),
+                _ => FluentValue::Error,
+            })
+            .expect("Failed to add the TAIL function.");
+
         // NOTE:
         // Basically a hack, but conrod can't use isolation marks yet.
         // Veloren Issue 1649

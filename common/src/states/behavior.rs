@@ -59,7 +59,12 @@ pub trait CharacterBehavior {
     fn stand(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
         StateUpdate::from(data)
     }
-    fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+    fn talk(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+        _tgt: Option<Uid>,
+    ) -> StateUpdate {
         StateUpdate::from(data)
     }
     fn on_input(
@@ -116,7 +121,7 @@ pub trait CharacterBehavior {
                 }
             },
             ControlAction::Stand => self.stand(data, output_events),
-            ControlAction::Talk => self.talk(data, output_events),
+            ControlAction::Talk(tgt) => self.talk(data, output_events, tgt),
             ControlAction::StartInput {
                 input,
                 target_entity,
@@ -165,6 +170,7 @@ pub struct JoinData<'a> {
     pub id_maps: &'a Read<'a, IdMaps>,
     pub alignments: &'a ReadStorage<'a, Alignment>,
     pub prev_phys_caches: &'a ReadStorage<'a, PreviousPhysCache>,
+    pub bodies: &'a ReadStorage<'a, Body>,
 }
 
 pub struct JoinStruct<'a> {
@@ -199,6 +205,7 @@ pub struct JoinStruct<'a> {
     pub id_maps: &'a Read<'a, IdMaps>,
     pub alignments: &'a ReadStorage<'a, Alignment>,
     pub prev_phys_caches: &'a ReadStorage<'a, PreviousPhysCache>,
+    pub bodies: &'a ReadStorage<'a, Body>,
 }
 
 impl<'a> JoinData<'a> {
@@ -247,6 +254,7 @@ impl<'a> JoinData<'a> {
             id_maps: j.id_maps,
             alignments: j.alignments,
             prev_phys_caches: j.prev_phys_caches,
+            bodies: j.bodies,
         }
     }
 }
