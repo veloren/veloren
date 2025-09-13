@@ -134,7 +134,7 @@ impl<'a> System<'a> for Sys {
                         .actions
                         .extract_if(.., |action| match action {
                             ControlAction::StartInput { input: i, .. }
-                            | ControlAction::CancelInput(i) => {
+                            | ControlAction::CancelInput { input: i } => {
                                 matches!(
                                     i,
                                     InputKind::Jump
@@ -266,7 +266,7 @@ impl<'a> System<'a> for Sys {
                     .actions
                     .extract_if(.., |action| match action {
                         ControlAction::StartInput { input: i, .. }
-                        | ControlAction::CancelInput(i) => {
+                        | ControlAction::CancelInput { input: i } => {
                             matches!(
                                 i,
                                 InputKind::Jump
