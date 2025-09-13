@@ -143,7 +143,7 @@ impl CharacterBehavior for Data {
         output_events: &mut OutputEvents,
     ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        if matches!(input, InputKind::Jump) {
+        if matches!(input, InputKind::WallJump) {
             handle_walljump(data, output_events, &mut update, self.was_wielded);
         }
         update

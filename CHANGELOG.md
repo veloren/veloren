@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simple quest system
 - Quest: Escort a merchant
 - Quest: Slay a monster
+- Add separate wall jump button
 
 ### Changed
 

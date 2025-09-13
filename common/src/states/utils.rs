@@ -1531,7 +1531,7 @@ pub fn handle_input(
         InputKind::Jump => {
             handle_jump(data, output_events, update, 1.0);
         },
-        InputKind::Fly => {},
+        InputKind::WallJump | InputKind::Fly => {},
     }
 }
 

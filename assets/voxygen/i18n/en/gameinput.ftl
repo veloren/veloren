@@ -26,6 +26,7 @@ gameinput-moveleft = Move Left
 gameinput-moveright = Move Right
 gameinput-moveback = Move Backwards
 gameinput-jump = Jump
+gameinput-walljump = Wall-Jump
 gameinput-glide = Glider
 gameinput-roll = Roll
 gameinput-togglelantern = Toggle Lantern

@@ -57,6 +57,8 @@ pub enum GameInput {
     MoveRight,
     #[strum(serialize = "gameinput-jump")]
     Jump,
+    #[strum(serialize = "gameinput-walljump")]
+    WallJump,
     #[strum(serialize = "gameinput-sit")]
     Sit,
     #[strum(serialize = "gameinput-crawl")]
@@ -183,26 +185,42 @@ impl GameInput {
     /// same time without conflict. For example, the player can't jump and climb
     /// at the same time, so these can be bound to the same key.
     pub fn can_share_bindings(a: GameInput, b: GameInput) -> bool {
-        a.get_representative_binding() == b.get_representative_binding()
+        let bindings_a = a.get_representative_bindings();
+        let bindings_b = b.get_representative_bindings();
+
+        if bindings_a.is_empty() && bindings_b.is_empty() {
+            return a == b;
+        }
+        if bindings_a.is_empty() {
+            return bindings_b.contains(&a);
+        }
+        if bindings_b.is_empty() {
+            return bindings_a.contains(&b);
+        }
+
+        bindings_a.iter().any(|x| bindings_b.contains(x))
     }
 
     /// If two GameInputs are able to be bound at the same time, then they will
-    /// return the same value from this function (the representative value for
-    /// that set). This models the Find operation of a disjoint-set data
+    /// return a slice that contains the other GameInput.
+    /// Since a GameInput might be fine to be shared with multiple other
+    /// GameInputs a slice is required instead of just a single GameInput.
+    /// This models the Find operation of a disjoint-set data
     /// structure.
-    fn get_representative_binding(&self) -> GameInput {
+    fn get_representative_bindings(self) -> &'static [GameInput] {
         match self {
-            GameInput::Jump => GameInput::Jump,
-            GameInput::SwimUp => GameInput::Jump,
-            GameInput::Respawn => GameInput::Jump,
+            GameInput::SwimUp | GameInput::Respawn | GameInput::GiveUp => &[GameInput::Jump],
 
-            GameInput::FreeLook => GameInput::FreeLook,
-            GameInput::AutoWalk => GameInput::FreeLook,
+            GameInput::AutoWalk | GameInput::FreeLook => &[GameInput::FreeLook],
 
-            GameInput::Glide => GameInput::Glide,
-            GameInput::SpectateSpeedBoost => GameInput::Glide,
+            GameInput::SpectateSpeedBoost => &[GameInput::Glide],
+            GameInput::WallJump => &[GameInput::Mount, GameInput::Jump],
 
-            _ => *self,
+            GameInput::SwimDown | GameInput::Sneak | GameInput::CancelClimb => &[GameInput::Roll],
+
+            GameInput::SpectateViewpoint => &[GameInput::MapSetMarker],
+
+            _ => &[],
         }
     }
 }
