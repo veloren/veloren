@@ -1553,7 +1553,7 @@ impl ParticleMgr {
                             states::rapid_melee::FrontendSpecifier::ElephantVacuum => {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
-                                    let mut rng = thread_rng();
+                                    let mut rng = rand::rng();
 
                                     let (end_radius, max_range) =
                                         if let CharacterState::RapidMelee(data) = character_state {
@@ -1592,10 +1592,10 @@ impl ParticleMgr {
                                         || {
                                             let trunk_pos = interpolated.pos + beam_offsets;
 
-                                            let range = rng.gen_range(0.05..=max_range);
-                                            let radius =
-                                                rng.gen_range(0.0..=end_radius * range / max_range);
-                                            let theta = rng.gen_range(0.0..2.0 * PI);
+                                            let range = rng.random_range(0.05..=max_range);
+                                            let radius = rng
+                                                .random_range(0.0..=end_radius * range / max_range);
+                                            let theta = rng.random_range(0.0..2.0 * PI);
 
                                             Particle::new_directed(
                                                 Duration::from_millis(300),
@@ -1608,6 +1608,7 @@ impl ParticleMgr {
                                                         range,
                                                     ),
                                                 trunk_pos,
+                                                scene_data,
                                             )
                                         },
                                     );

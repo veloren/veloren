@@ -4975,15 +4975,15 @@ impl AgentData<'_> {
 
         if dashing {
             controller.push_basic_input(DASH);
-        } else if rng.gen_bool(0.2) {
+        } else if rng.random_bool(0.2) {
             if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
-                if rng.gen_bool(0.5) && could_use(STOMP) {
+                if rng.random_bool(0.5) && could_use(STOMP) {
                     controller.push_basic_input(STOMP);
                 } else {
                     controller.push_basic_input(GOUGE);
                 }
             } else if attack_data.dist_sqrd < RANGED_RANGE.powi(2) {
-                if rng.gen_bool(0.5) {
+                if rng.random_bool(0.5) {
                     controller.push_basic_input(WATER);
                 } else if could_use(VACUUM) {
                     controller.push_basic_input(VACUUM);
@@ -5000,8 +5000,8 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Partial,
-            attack_data.in_min_range().then_some(0.1),
+            Path::AtTarget,
+            None,
         );
     }
 
