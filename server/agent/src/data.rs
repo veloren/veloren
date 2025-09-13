@@ -452,7 +452,7 @@ pub enum Path {
     /// Try to path exactly to the target.
     AtTarget,
     /// Try to path to a position close to the target.
-    Seperate,
+    Separate,
 }
 
 #[derive(Clone, Debug)]

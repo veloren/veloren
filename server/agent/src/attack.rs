@@ -325,7 +325,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             )
             .is_none()
@@ -358,7 +358,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 )
                 .is_some()
@@ -939,7 +939,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -1746,7 +1746,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -2062,7 +2062,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -2145,7 +2145,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 );
                 if attack_data.angle < 15.0 {
@@ -2563,7 +2563,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 )
                 .is_some()
@@ -2765,7 +2765,7 @@ impl AgentData<'_> {
         } else {
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
                 // if too far away from target, move towards them
-                Path::Seperate
+                Path::Separate
             } else {
                 Path::AtTarget
             };
@@ -2914,7 +2914,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -2958,7 +2958,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -3003,7 +3003,7 @@ impl AgentData<'_> {
             }
         } else {
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-                Path::Seperate
+                Path::Separate
             } else {
                 Path::AtTarget
             };
@@ -3035,7 +3035,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 )
                 .is_some()
@@ -3096,7 +3096,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -3194,7 +3194,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -3257,7 +3257,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -3914,7 +3914,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else if attack_data.angle < 15.0 {
@@ -3933,7 +3933,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 Some(0.5),
             );
             agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] += read_data.dt.0;
@@ -3953,7 +3953,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -4047,7 +4047,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else if self.energy.current() > 60.0
@@ -4062,7 +4062,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 Some(0.5),
             );
             agent.combat_state.timers[ActionStateTimers::TimerBirdLargeBreathe as usize] +=
@@ -4084,7 +4084,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -4146,7 +4146,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Seperate,
+            Path::Separate,
             None,
         );
     }
@@ -4773,7 +4773,7 @@ impl AgentData<'_> {
             controller,
             tgt_data.pos.0,
             read_data,
-            Path::Seperate,
+            Path::Separate,
             (attack_data.dist_sqrd
                 < (attack_data.min_attack_dist + GOLEM_MELEE_RANGE / 1.5).powi(2))
             .then_some(0.1),
@@ -5578,7 +5578,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
 
@@ -6757,7 +6757,7 @@ impl AgentData<'_> {
         }
         // chase
         let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            Path::Seperate
+            Path::Separate
         } else {
             Path::AtTarget
         };
@@ -7352,7 +7352,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 )
                 .is_some()
@@ -7437,7 +7437,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -7446,7 +7446,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
             let dir = if agent.combat_state.conditions[ROTATE_DIR_CONDITION] {
@@ -7505,7 +7505,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -7553,7 +7553,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -7644,7 +7644,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -7749,7 +7749,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -7871,7 +7871,7 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     // Slow down if close to the target
                     (attack_data.dist_sqrd
                         < (2.5 + self.body.map_or(0.0, |b| b.front_radius())).powi(2))
@@ -8003,7 +8003,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -8032,7 +8032,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         } else {
@@ -8127,14 +8127,14 @@ impl AgentData<'_> {
                     controller,
                     tgt_data.pos.0,
                     read_data,
-                    Path::Seperate,
+                    Path::Separate,
                     None,
                 );
             }
         } else {
             // if target is hiding, don't follow, guard the room
             if (home - self.pos.0).xy().magnitude_squared() > (3.0_f32).powi(2) {
-                self.path_toward_target(agent, controller, home, read_data, Path::Seperate, None);
+                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
             }
         }
     }
@@ -8191,9 +8191,9 @@ impl AgentData<'_> {
         } else if agent.combat_state.timers[ActionStateTimers::AttackTimer as usize] < 4.0 {
             if !is_home {
                 // if target is wall cheesing, reposition
-                self.path_toward_target(agent, controller, home, read_data, Path::Seperate, None);
+                self.path_toward_target(agent, controller, home, read_data, Path::Separate, None);
             } else {
-                self.path_toward_target(agent, controller, spawn, read_data, Path::Seperate, None);
+                self.path_toward_target(agent, controller, spawn, read_data, Path::Separate, None);
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(
@@ -8201,7 +8201,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -8277,7 +8277,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
@@ -8507,7 +8507,7 @@ impl AgentData<'_> {
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::Seperate,
+                Path::Separate,
                 None,
             );
         }
