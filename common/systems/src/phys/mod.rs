@@ -1112,225 +1112,229 @@ impl PhysicsData<'_> {
                         }
                     };
                     // Collide with terrain-like entities
-                    let query_center = path_sphere.center.xy();
-                    let query_radius = path_sphere.radius;
+                    // TODO: For now disable voxel-voxel collisions, we do want this to work
+                    // eventually but is very broken right now.
+                    if !collider.is_voxel() {
+                        let query_center = path_sphere.center.xy();
+                        let query_radius = path_sphere.radius;
 
-                    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+                        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
 
-                    voxel_collider_spatial_grid
-                        .in_circle_aabr(query_center, query_radius)
-                        .filter_map(|entity| {
-                            positions.get(entity).and_then(|pos| {
-                                Some((
-                                    entity,
-                                    pos,
-                                    velocities.get(entity)?,
-                                    previous_phys_cache.get(entity)?,
-                                    read.colliders.get(entity)?,
-                                    read.scales.get(entity),
-                                    orientations.get(entity)?,
-                                ))
+                        voxel_collider_spatial_grid
+                            .in_circle_aabr(query_center, query_radius)
+                            .filter_map(|entity| {
+                                positions.get(entity).and_then(|pos| {
+                                    Some((
+                                        entity,
+                                        pos,
+                                        velocities.get(entity)?,
+                                        previous_phys_cache.get(entity)?,
+                                        read.colliders.get(entity)?,
+                                        read.scales.get(entity),
+                                        orientations.get(entity)?,
+                                    ))
+                                })
                             })
-                        })
-                        .for_each(
-                            |(
-                                entity_other,
-                                pos_other,
-                                vel_other,
-                                previous_cache_other,
-                                collider_other,
-                                scale_other,
-                                ori_other,
-                            )| {
-                                if entity == entity_other {
-                                    return;
-                                }
-
-                                let voxel_collider =
-                                    collider_other.get_vol(&voxel_colliders_manifest);
-
-                                // use bounding cylinder regardless of our collider
-                                // TODO: extract point-terrain collision above to its own
-                                // function
-                                let radius = collider.bounding_radius();
-                                let (_, z_max) = collider.get_z_limits(1.0);
-
-                                let radius = radius.min(0.45) * scale;
-                                let z_min = 0.0;
-                                let z_max = z_max.clamped(1.2, 1.95) * scale;
-
-                                if let Some(voxel_collider) = voxel_collider {
-                                    // TODO: cache/precompute sphere?
-                                    let voxel_sphere = collision::voxel_collider_bounding_sphere(
-                                        voxel_collider,
-                                        pos_other,
-                                        ori_other,
-                                        scale_other,
-                                    );
-                                    // Early check
-                                    if voxel_sphere.center.distance_squared(path_sphere.center)
-                                        > (voxel_sphere.radius + path_sphere.radius).powi(2)
-                                    {
+                            .for_each(
+                                |(
+                                    entity_other,
+                                    pos_other,
+                                    vel_other,
+                                    previous_cache_other,
+                                    collider_other,
+                                    scale_other,
+                                    ori_other,
+                                )| {
+                                    if entity == entity_other {
                                         return;
                                     }
 
-                                    let mut physics_state_delta = PhysicsState::default();
+                                    let voxel_collider =
+                                        collider_other.get_vol(&voxel_colliders_manifest);
 
-                                    // Helper function for computing a transformation matrix and its
-                                    // inverse. Should
-                                    // be much cheaper than using `Mat4::inverted`.
-                                    let from_to_matricies =
-                                        |entity_rpos: Vec3<f32>, collider_ori: Quaternion<f32>| {
-                                            (
-                                                Mat4::<f32>::translation_3d(entity_rpos)
-                                                    * Mat4::from(collider_ori)
-                                                    * Mat4::scaling_3d(previous_cache_other.scale)
-                                                    * Mat4::translation_3d(
-                                                        voxel_collider.translation,
-                                                    ),
-                                                Mat4::<f32>::translation_3d(
+                                    // use bounding cylinder regardless of our collider
+                                    // TODO: extract point-terrain collision above to its own
+                                    // function
+                                    let radius = collider.bounding_radius();
+                                    let (_, z_max) = collider.get_z_limits(1.0);
+
+                                    let radius = radius.min(0.45) * scale;
+                                    let z_min = 0.0;
+                                    let z_max = z_max.clamped(1.2, 1.95) * scale;
+
+                                    if let Some(voxel_collider) = voxel_collider {
+                                        // TODO: cache/precompute sphere?
+                                        let voxel_sphere = collision::voxel_collider_bounding_sphere(
+                                            voxel_collider,
+                                            pos_other,
+                                            ori_other,
+                                            scale_other,
+                                        );
+                                        // Early check
+                                        if voxel_sphere.center.distance_squared(path_sphere.center)
+                                            > (voxel_sphere.radius + path_sphere.radius).powi(2)
+                                        {
+                                            return;
+                                        }
+
+                                        let mut physics_state_delta = PhysicsState::default();
+
+                                        // Helper function for computing a transformation matrix and its
+                                        // inverse. Should
+                                        // be much cheaper than using `Mat4::inverted`.
+                                        let from_to_matricies =
+                                            |entity_rpos: Vec3<f32>, collider_ori: Quaternion<f32>| {
+                                                (
+                                                    Mat4::<f32>::translation_3d(entity_rpos)
+                                                        * Mat4::from(collider_ori)
+                                                        * Mat4::scaling_3d(previous_cache_other.scale)
+                                                        * Mat4::translation_3d(
+                                                            voxel_collider.translation,
+                                                        ),
+                                                    Mat4::<f32>::translation_3d(
+                                                        -voxel_collider.translation,
+                                                    ) * Mat4::scaling_3d(
+                                                        1.0 / previous_cache_other.scale,
+                                                    ) * Mat4::from(collider_ori.inverse())
+                                                        * Mat4::translation_3d(-entity_rpos),
+                                                )
+                                            };
+
+                                        // Compute matrices that allow us to transform to and from the
+                                        // coordinate space of
+                                        // the collider. We have two variants of each, one for the
+                                        // current state and one for
+                                        // the previous state. This allows us to 'perfectly' track
+                                        // change in position
+                                        // between ticks, which prevents entities falling through voxel
+                                        // colliders due to spurious
+                                        // issues like differences in ping/variable dt.
+                                        // TODO: Cache the matrices here to avoid recomputing for each
+                                        // entity on them
+                                        let (_transform_last_from, transform_last_to) =
+                                            from_to_matricies(
+                                                previous_cache_other.pos.unwrap_or(*pos_other).0
+                                                    - previous_cache.pos.unwrap_or(*pos).0,
+                                                previous_cache_other.ori,
+                                            );
+                                        let (transform_from, transform_to) =
+                                            from_to_matricies(pos_other.0 - pos.0, ori_other.to_quat());
+
+                                        // Compute the velocity of the collider, accounting for changes
+                                        // in orientation
+                                        // from the last tick. We then model this change as a change in
+                                        // surface velocity
+                                        // for the collider.
+                                        let vel_other = {
+                                            let pos_rel =
+                                                (Mat4::<f32>::translation_3d(
                                                     -voxel_collider.translation,
-                                                ) * Mat4::scaling_3d(
-                                                    1.0 / previous_cache_other.scale,
-                                                ) * Mat4::from(collider_ori.inverse())
-                                                    * Mat4::translation_3d(-entity_rpos),
-                                            )
+                                                ) * Mat4::from(ori_other.to_quat().inverse()))
+                                                .mul_point(pos.0 - pos_other.0);
+                                            let rpos_last =
+                                                (Mat4::<f32>::from(previous_cache_other.ori)
+                                                    * Mat4::translation_3d(voxel_collider.translation))
+                                                .mul_point(pos_rel);
+                                            vel_other.0
+                                                + (pos.0 - (pos_other.0 + rpos_last)) / read.dt.0
                                         };
 
-                                    // Compute matrices that allow us to transform to and from the
-                                    // coordinate space of
-                                    // the collider. We have two variants of each, one for the
-                                    // current state and one for
-                                    // the previous state. This allows us to 'perfectly' track
-                                    // change in position
-                                    // between ticks, which prevents entities falling through voxel
-                                    // colliders due to spurious
-                                    // issues like differences in ping/variable dt.
-                                    // TODO: Cache the matrices here to avoid recomputing for each
-                                    // entity on them
-                                    let (_transform_last_from, transform_last_to) =
-                                        from_to_matricies(
-                                            previous_cache_other.pos.unwrap_or(*pos_other).0
-                                                - previous_cache.pos.unwrap_or(*pos).0,
-                                            previous_cache_other.ori,
-                                        );
-                                    let (transform_from, transform_to) =
-                                        from_to_matricies(pos_other.0 - pos.0, ori_other.to_quat());
+                                        {
+                                            // Transform the entity attributes into the coordinate space
+                                            // of the collider ready
+                                            // for collision resolution
+                                            let mut rpos =
+                                                Pos(transform_last_to.mul_point(Vec3::zero()));
+                                            vel.0 = previous_cache_other.ori.inverse()
+                                                * (vel.0 - vel_other);
 
-                                    // Compute the velocity of the collider, accounting for changes
-                                    // in orientation
-                                    // from the last tick. We then model this change as a change in
-                                    // surface velocity
-                                    // for the collider.
-                                    let vel_other = {
-                                        let pos_rel =
-                                            (Mat4::<f32>::translation_3d(
-                                                -voxel_collider.translation,
-                                            ) * Mat4::from(ori_other.to_quat().inverse()))
-                                            .mul_point(pos.0 - pos_other.0);
-                                        let rpos_last =
-                                            (Mat4::<f32>::from(previous_cache_other.ori)
-                                                * Mat4::translation_3d(voxel_collider.translation))
-                                            .mul_point(pos_rel);
-                                        vel_other.0
-                                            + (pos.0 - (pos_other.0 + rpos_last)) / read.dt.0
-                                    };
+                                            // Perform collision resolution
+                                            collision::box_voxel_collision(
+                                                (radius, z_min, z_max),
+                                                &voxel_collider.volume(),
+                                                entity,
+                                                &mut rpos,
+                                                transform_to.mul_point(tgt_pos - pos.0),
+                                                &mut vel,
+                                                &mut physics_state_delta,
+                                                &read.dt,
+                                                was_on_ground,
+                                                block_snap,
+                                                climbing,
+                                                |entity, vel, surface_normal| {
+                                                    land_on_ground = Some((
+                                                        entity,
+                                                        Vel(previous_cache_other.ori * vel.0
+                                                            + vel_other),
+                                                        previous_cache_other.ori * surface_normal,
+                                                    ));
+                                                },
+                                                read,
+                                                &ori,
+                                                |vel| friction_factor(previous_cache_other.ori * vel),
+                                            );
 
-                                    {
-                                        // Transform the entity attributes into the coordinate space
-                                        // of the collider ready
-                                        // for collision resolution
-                                        let mut rpos =
-                                            Pos(transform_last_to.mul_point(Vec3::zero()));
-                                        vel.0 = previous_cache_other.ori.inverse()
-                                            * (vel.0 - vel_other);
+                                            // Transform entity attributes back into world space now
+                                            // that we've performed
+                                            // collision resolution with them
+                                            tgt_pos = transform_from.mul_point(rpos.0) + pos.0;
+                                            vel.0 = previous_cache_other.ori * vel.0 + vel_other;
+                                        }
 
-                                        // Perform collision resolution
-                                        collision::box_voxel_collision(
-                                            (radius, z_min, z_max),
-                                            &voxel_collider.volume(),
-                                            entity,
-                                            &mut rpos,
-                                            transform_to.mul_point(tgt_pos - pos.0),
-                                            &mut vel,
-                                            &mut physics_state_delta,
-                                            &read.dt,
-                                            was_on_ground,
-                                            block_snap,
-                                            climbing,
-                                            |entity, vel, surface_normal| {
-                                                land_on_ground = Some((
-                                                    entity,
-                                                    Vel(previous_cache_other.ori * vel.0
-                                                        + vel_other),
-                                                    previous_cache_other.ori * surface_normal,
-                                                ));
-                                            },
-                                            read,
-                                            &ori,
-                                            |vel| friction_factor(previous_cache_other.ori * vel),
-                                        );
-
-                                        // Transform entity attributes back into world space now
-                                        // that we've performed
-                                        // collision resolution with them
-                                        tgt_pos = transform_from.mul_point(rpos.0) + pos.0;
-                                        vel.0 = previous_cache_other.ori * vel.0 + vel_other;
+                                        // Collision resolution may also change the physics state. Since
+                                        // we may be interacting
+                                        // with multiple colliders at once (along with the regular
+                                        // terrain!) we keep track
+                                        // of a physics state 'delta' and try to sensibly resolve them
+                                        // against one-another at each step.
+                                        if physics_state_delta.on_ground.is_some() {
+                                            // TODO: Do we need to do this? Perhaps just take the
+                                            // ground_vel regardless?
+                                            physics_state.ground_vel = previous_cache_other.ori
+                                                * physics_state_delta.ground_vel
+                                                + vel_other;
+                                        }
+                                        if physics_state_delta.on_surface().is_some() {
+                                            // If the collision resulted in us being on a surface,
+                                            // rotate us with the
+                                            // collider. Really this should be modelled via friction or
+                                            // something, but
+                                            // our physics model doesn't really take orientation into
+                                            // consideration.
+                                            ori = ori.rotated(
+                                                ori_other.to_quat()
+                                                    * previous_cache_other.ori.inverse(),
+                                            );
+                                        }
+                                        physics_state.on_ground =
+                                            physics_state.on_ground.or(physics_state_delta.on_ground);
+                                        physics_state.on_ceiling |= physics_state_delta.on_ceiling;
+                                        physics_state.on_wall = physics_state.on_wall.or_else(|| {
+                                            physics_state_delta
+                                                .on_wall
+                                                .map(|dir| previous_cache_other.ori * dir)
+                                        });
+                                        physics_state.in_fluid = match (
+                                            physics_state.in_fluid,
+                                            physics_state_delta.in_fluid,
+                                        ) {
+                                            (Some(x), Some(y)) => x
+                                                .depth()
+                                                .and_then(|xh| {
+                                                    y.depth()
+                                                        .map(|yh| xh > yh)
+                                                        .unwrap_or(true)
+                                                        .then_some(x)
+                                                })
+                                                .or(Some(y)),
+                                            (x @ Some(_), _) => x,
+                                            (_, y @ Some(_)) => y,
+                                            _ => None,
+                                        };
                                     }
-
-                                    // Collision resolution may also change the physics state. Since
-                                    // we may be interacting
-                                    // with multiple colliders at once (along with the regular
-                                    // terrain!) we keep track
-                                    // of a physics state 'delta' and try to sensibly resolve them
-                                    // against one-another at each step.
-                                    if physics_state_delta.on_ground.is_some() {
-                                        // TODO: Do we need to do this? Perhaps just take the
-                                        // ground_vel regardless?
-                                        physics_state.ground_vel = previous_cache_other.ori
-                                            * physics_state_delta.ground_vel
-                                            + vel_other;
-                                    }
-                                    if physics_state_delta.on_surface().is_some() {
-                                        // If the collision resulted in us being on a surface,
-                                        // rotate us with the
-                                        // collider. Really this should be modelled via friction or
-                                        // something, but
-                                        // our physics model doesn't really take orientation into
-                                        // consideration.
-                                        ori = ori.rotated(
-                                            ori_other.to_quat()
-                                                * previous_cache_other.ori.inverse(),
-                                        );
-                                    }
-                                    physics_state.on_ground =
-                                        physics_state.on_ground.or(physics_state_delta.on_ground);
-                                    physics_state.on_ceiling |= physics_state_delta.on_ceiling;
-                                    physics_state.on_wall = physics_state.on_wall.or_else(|| {
-                                        physics_state_delta
-                                            .on_wall
-                                            .map(|dir| previous_cache_other.ori * dir)
-                                    });
-                                    physics_state.in_fluid = match (
-                                        physics_state.in_fluid,
-                                        physics_state_delta.in_fluid,
-                                    ) {
-                                        (Some(x), Some(y)) => x
-                                            .depth()
-                                            .and_then(|xh| {
-                                                y.depth()
-                                                    .map(|yh| xh > yh)
-                                                    .unwrap_or(true)
-                                                    .then_some(x)
-                                            })
-                                            .or(Some(y)),
-                                        (x @ Some(_), _) => x,
-                                        (_, y @ Some(_)) => y,
-                                        _ => None,
-                                    };
-                                }
-                            },
-                        );
+                                },
+                            );
+                    }
 
                     if tgt_pos != pos.0 {
                         pos_vel_ori_defer.pos = Some(Pos(tgt_pos));
