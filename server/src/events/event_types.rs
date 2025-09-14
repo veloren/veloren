@@ -1,9 +1,9 @@
 pub use common::event::{
     AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent, ChangeStanceEvent,
     ChatEvent, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, ComboChangeEvent,
-    CommandEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
-    CreateShipEvent, CreateSpecialEntityEvent, CreateSpriteEvent, DeleteCharacterEvent,
-    DeleteEvent, DestroyEvent, DialogueEvent, DownedEvent, EnergyChangeEvent,
+    CommandEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
+    CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent, CreateSpriteEvent,
+    DeleteCharacterEvent, DeleteEvent, DestroyEvent, DialogueEvent, DownedEvent, EnergyChangeEvent,
     EntityAttackedHookEvent, EventBus, ExitIngameEvent, ExplosionEvent, GroupManipEvent,
     HealthChangeEvent, HelpDownedEvent, InitializeCharacterEvent, InitializeSpectatorEvent,
     InitiateInviteEvent, InventoryManipEvent, InviteResponseEvent, KillEvent, KnockbackEvent,
@@ -27,6 +27,7 @@ macro_rules! server_events {
             CommandEvent
             CreateSpecialEntityEvent
             CreateNpcEvent
+            CreateNpcGroupEvent
             CreateShipEvent
             CreateItemDropEvent
             CreateObjectEvent

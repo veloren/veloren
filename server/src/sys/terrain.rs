@@ -19,9 +19,12 @@ use common::{
         self, BehaviorCapability, Content, ForceUpdate, Pos, Presence, Waypoint, agent,
         biped_small, bird_medium,
     },
-    event::{CreateNpcEvent, CreateSpecialEntityEvent, EmitExt, EventBus, NpcBuilder},
+    event::{
+        CreateNpcEvent, CreateNpcGroupEvent, CreateSpecialEntityEvent, EmitExt, EventBus,
+        NpcBuilder,
+    },
     event_emitters,
-    generation::{EntityInfo, SpecialEntity},
+    generation::{EntityInfo, EntitySpawn, SpecialEntity},
     lottery::LootSpec,
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
@@ -58,6 +61,7 @@ type RtSimData<'a> = ();
 event_emitters! {
     struct Events[Emitters] {
         create_npc: CreateNpcEvent,
+        create_npc_group: CreateNpcGroupEvent,
         create_waypoint: CreateSpecialEntityEvent,
     }
 }
@@ -171,28 +175,60 @@ impl<'a> System<'a> for Sys {
             }
 
             // Handle chunk supplement
-            for entity in supplement.entities {
+            for entity_spawn in supplement.entity_spawns {
                 // Check this because it's a common source of weird bugs
-                assert!(
-                    data.terrain
-                        .pos_key(entity.pos.map(|e| e.floor() as i32))
-                        .map2(key, |e, tgt| (e - tgt).abs() <= 1)
-                        .reduce_and(),
-                    "Chunk spawned entity that wasn't nearby",
-                );
+                let check_pos = |pos: Vec3<f32>| {
+                    assert!(
+                        data.terrain
+                            .pos_key(pos.map(|e| e.floor() as i32))
+                            .map2(key, |e, tgt| (e - tgt).abs() <= 1)
+                            .reduce_and(),
+                        "Chunk spawned entity that wasn't nearby",
+                    )
+                };
 
-                let data = SpawnEntityData::from_entity_info(entity);
-                match data {
-                    SpawnEntityData::Special(pos, entity) => {
-                        emitters.emit(CreateSpecialEntityEvent { pos, entity });
+                match entity_spawn {
+                    EntitySpawn::Entity(entity) => {
+                        check_pos(entity.pos);
+
+                        let data = SpawnEntityData::from_entity_info(*entity);
+                        match data {
+                            SpawnEntityData::Special(pos, entity) => {
+                                emitters.emit(CreateSpecialEntityEvent { pos, entity });
+                            },
+                            SpawnEntityData::Npc(data) => {
+                                let (npc_builder, pos) = data.to_npc_builder();
+
+                                emitters.emit(CreateNpcEvent {
+                                    pos,
+                                    ori: comp::Ori::from(Dir::random_2d(&mut rng)),
+                                    npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
+                                });
+                            },
+                        }
                     },
-                    SpawnEntityData::Npc(data) => {
-                        let (npc_builder, pos) = data.to_npc_builder();
+                    EntitySpawn::Group(group) => {
+                        for entity in group.iter() {
+                            check_pos(entity.pos);
+                        }
 
-                        emitters.emit(CreateNpcEvent {
-                            pos,
-                            ori: comp::Ori::from(Dir::random_2d(&mut rng)),
-                            npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
+                        let create_npc_events = group
+                            .into_iter()
+                            .filter_map(|entity| match SpawnEntityData::from_entity_info(entity) {
+                                SpawnEntityData::Special(..) => None,
+                                SpawnEntityData::Npc(data) => {
+                                    let (npc_builder, pos) = data.to_npc_builder();
+                                    Some(CreateNpcEvent {
+                                        pos,
+                                        ori: comp::Ori::from(Dir::random_2d(&mut rng)),
+                                        npc: npc_builder.with_anchor(comp::Anchor::Chunk(key)),
+                                    })
+                                },
+                            })
+                            .collect::<Vec<_>>();
+
+                        emitters.emit(CreateNpcGroupEvent {
+                            npcs: create_npc_events,
                         });
                     },
                 }

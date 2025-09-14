@@ -6,7 +6,7 @@ use crate::{
     util::{RandomField, attempt, sampler::Sampler, within_distance},
 };
 use common::{
-    generation::{ChunkSupplement, EntityInfo},
+    generation::{ChunkSupplement, EntityInfo, EntitySpawn},
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
 use kiddo::{SquaredEuclidean, float::kdtree::KdTree};
@@ -357,7 +357,7 @@ impl GnarlingFortification {
                     _ => Vec::new(),
                 };
                 for entity in entities {
-                    supplement.add_entity(entity)
+                    supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(entity)))
                 }
             }
         }
@@ -366,10 +366,10 @@ impl GnarlingFortification {
         if area.contains_point(self.tunnels.end.xy() - self.origin) {
             let boss_room_offset = (self.tunnels.end.xy() - self.tunnels.start.xy())
                 .map(|e| if e < 0 { -20 } else { 20 });
-            supplement.add_entity(harvester_boss(
+            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(harvester_boss(
                 self.tunnels.end + boss_room_offset - 2 * Vec3::unit_z(),
                 dynamic_rng,
-            ));
+            ))));
         }
 
         // above-ground structures
@@ -382,7 +382,9 @@ impl GnarlingFortification {
                         let num =
                             dynamic_rng.random_range(NUM_HUT_GNARLINGS[0]..=NUM_HUT_GNARLINGS[1]);
                         for _ in 1..=num {
-                            supplement.add_entity(random_gnarling(wpos, dynamic_rng));
+                            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                                random_gnarling(wpos, dynamic_rng),
+                            )));
                         }
                     },
                     GnarlingStructure::VeloriteHut => {
@@ -392,10 +394,12 @@ impl GnarlingFortification {
                         const GROUND_HEIGHT: i32 = 8;
                         let num = dynamic_rng.random_range(1..=NUM_VELO_GNARLINGS);
                         for _ in 1..=num {
-                            supplement.add_entity(random_gnarling(
-                                wpos.xy().with_z(wpos.z + VELO_HEIGHT),
-                                dynamic_rng,
-                            ));
+                            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                                random_gnarling(
+                                    wpos.xy().with_z(wpos.z + VELO_HEIGHT),
+                                    dynamic_rng,
+                                ),
+                            )));
                         }
                         if num <= GOLEM_SPAWN_THRESHOLD {
                             // wooden golem (with oriented spawn)
@@ -424,7 +428,10 @@ impl GnarlingFortification {
                                 wpos.y + y_offset,
                                 wpos.z + GROUND_HEIGHT,
                             );
-                            supplement.add_entity(wood_golem(pos, dynamic_rng));
+                            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(wood_golem(
+                                pos,
+                                dynamic_rng,
+                            ))));
                         }
                     },
                     GnarlingStructure::Banner => {},
@@ -432,10 +439,18 @@ impl GnarlingFortification {
                         // inside hut
                         const FLOOR_HEIGHT: i32 = 8;
                         let pos = wpos.xy().with_z(wpos.z + FLOOR_HEIGHT);
-                        supplement.add_entity(gnarling_chieftain(pos, dynamic_rng));
-                        supplement.add_entity(gnarling_logger(pos, dynamic_rng));
-                        supplement.add_entity(gnarling_mugger(pos, dynamic_rng));
-                        supplement.add_entity(gnarling_stalker(pos, dynamic_rng));
+                        supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                            gnarling_chieftain(pos, dynamic_rng),
+                        )));
+                        supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                            gnarling_logger(pos, dynamic_rng),
+                        )));
+                        supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                            gnarling_mugger(pos, dynamic_rng),
+                        )));
+                        supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                            gnarling_stalker(pos, dynamic_rng),
+                        )));
                         // hut corner posts
                         const CORNER_HEIGHT: i32 = 10;
                         const CORNER_OFFSET: i32 = 18;
@@ -448,7 +463,9 @@ impl GnarlingFortification {
                                     wpos.y + y * CORNER_OFFSET,
                                     height,
                                 );
-                                supplement.add_entity(gnarling_stalker(pos, dynamic_rng));
+                                supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                                    gnarling_stalker(pos, dynamic_rng),
+                                )));
                             }
                         }
                         // hut sides on ground (using orientation)
@@ -468,22 +485,29 @@ impl GnarlingFortification {
                             if x_or_y {
                                 (pos_ori, pos_xori) = (pos_xori, pos_ori);
                             }
-                            supplement.add_entity(wood_golem(pos_ori, dynamic_rng));
+                            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(wood_golem(
+                                pos_ori,
+                                dynamic_rng,
+                            ))));
                             for _ in 1..=NUM_SIDE_GNARLINGS {
-                                supplement.add_entity(melee_gnarling(pos_xori, dynamic_rng));
+                                supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                                    melee_gnarling(pos_xori, dynamic_rng),
+                                )));
                             }
                         }
                     },
                     GnarlingStructure::WatchTower => {
                         const NUM_WATCHTOWER_STALKERS: i32 = 2;
                         const FLOOR_HEIGHT: i32 = 27;
-                        supplement.add_entity(wood_golem(wpos, dynamic_rng));
+                        supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(wood_golem(
+                            wpos,
+                            dynamic_rng,
+                        ))));
                         let spawn_pos = wpos.xy().with_z(wpos.z + FLOOR_HEIGHT);
                         for _ in 1..=NUM_WATCHTOWER_STALKERS {
-                            supplement.add_entity(gnarling_stalker(
-                                spawn_pos + Vec2::broadcast(4),
-                                dynamic_rng,
-                            ));
+                            supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                                gnarling_stalker(spawn_pos + Vec2::broadcast(4), dynamic_rng),
+                            )));
                         }
                     },
                     GnarlingStructure::Totem => {},
@@ -500,10 +524,10 @@ impl GnarlingFortification {
                 let num =
                     dynamic_rng.random_range(NUM_WALLTOWER_STALKERS[0]..=NUM_WALLTOWER_STALKERS[1]);
                 for _ in 1..=num {
-                    supplement.add_entity(gnarling_stalker(
+                    supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(gnarling_stalker(
                         wpos.xy().with_z(wpos.z + FLOOR_HEIGHT),
                         dynamic_rng,
-                    ))
+                    ))))
                 }
             }
         }

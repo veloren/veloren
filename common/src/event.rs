@@ -308,6 +308,10 @@ pub struct CreateNpcEvent {
     pub npc: NpcBuilder,
 }
 
+pub struct CreateNpcGroupEvent {
+    pub npcs: Vec<CreateNpcEvent>,
+}
+
 pub struct CreateAuraEntityEvent {
     pub auras: comp::Auras,
     pub pos: Pos,

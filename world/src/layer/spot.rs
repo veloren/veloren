@@ -4,7 +4,7 @@ use crate::{
     util::{Sampler, UnitChooser, seed_expan},
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, EntitySpawn},
     spot::{RON_SPOT_PROPERTIES, Spot, SpotCondition},
     terrain::{BiomeKind, Structure, TerrainChunkSize},
     vol::RectVolSize,
@@ -578,10 +578,10 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     .then(|| canvas.find_spawn_pos(wpos2d.with_z(alt)))
                     .flatten()
                 {
-                    canvas.spawn(
+                    canvas.spawn(EntitySpawn::Entity(Box::new(
                         EntityInfo::at(wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0))
                             .with_asset_expect(spec, &mut rng, None),
-                    );
+                    )));
                 }
             }
         }
