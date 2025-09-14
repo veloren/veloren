@@ -4975,7 +4975,7 @@ impl AgentData<'_> {
 
         if dashing {
             controller.push_basic_input(DASH);
-        } else if rng.random_bool(0.2) {
+        } else if rng.random_bool(0.05) {
             if attack_data.dist_sqrd < MELEE_RANGE.powi(2) {
                 if rng.random_bool(0.5) && could_use(STOMP) {
                     controller.push_basic_input(STOMP);
