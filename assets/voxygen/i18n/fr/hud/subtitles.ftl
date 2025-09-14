@@ -143,3 +143,6 @@ subtitle-pickup_spear = Lance ramassée
 subtitle-wield_spear = Lance équipée
 subtitle-attack-strigoi_head = Cri de Strigoï
 subtitle-spear_attack = Coup de lance
+subtitle-utterance-legoom-calm = Appel d'un Laidgume
+subtitle-utterance-legoom-hurt = Laidgume blessé
+subtitle-utterance-legoom-angry = Laidgume criant

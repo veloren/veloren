@@ -111,3 +111,5 @@ hud-downed_recieving_help = En train de recevoir de l'aide.
 hud-help = Aider
 hud-rest = Repos
 hud-waypoint_interact = Définir un point de passage
+hud-steal-consumes = Utiliser { $item } pour voler
+hud-steal-requires = Voler avec { $item }

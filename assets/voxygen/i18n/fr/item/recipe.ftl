@@ -106,3 +106,5 @@ pseudo-recipe-modular_weapon-sceptre = Hampe de sceptre
     .desc = { "" }
 recipe-armor-witch = Recettes d'armures de Sorcière
     .desc = { "" }
+recipe-armor-serpentscale = Recettes d'Armures en Écailles de serpent
+    .desc = { "" }
