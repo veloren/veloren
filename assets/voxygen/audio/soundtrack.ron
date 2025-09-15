@@ -15,23 +15,33 @@
         [
 
         // Overworld exploration tracks
-
-Individual((
-    title: "Aventure Fantastic",
-    path: "voxygen.audio.soundtrack.overworld.aventure_fantastic",
-    length: 130.0,
-    timing: Day, 
-    weather: None,
-    biomes: [
-        (Grassland, 1),
-        (Forest, 1),
-        (Taiga, 1),
-    ],
-    sites: [Void],
-    music_state: Activity(Explore),
-    artist: ("Federico Orfanó", "https://soundcloud.com/federico-orfano-1336105")
-)),
-
+            
+        Individual((
+            title: "Legoom's Lament",
+            path: "voxygen.audio.soundtrack.overworld.legooms_lament",
+            length: 167.0,
+            timing: None,
+            weather: Rain,
+            biomes: [],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("DaforLynx", "https://dafor.link/"),
+        )),
+        Individual((
+            title: "Aventure Fantastic",
+            path: "voxygen.audio.soundtrack.overworld.aventure_fantastic",
+            length: 130.0,
+            timing: Day, 
+            weather: None,
+            biomes: [
+                (Grassland, 1),
+                (Forest, 1),
+                (Taiga, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("Federico Orfanó", "https://soundcloud.com/federico-orfano-1336105")
+        )),
         Individual((
             title: "The Summit Awaits",
             path: "voxygen.audio.soundtrack.overworld.the_summit_awaits",
