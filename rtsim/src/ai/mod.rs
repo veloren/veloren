@@ -3,12 +3,9 @@ pub mod predicate;
 use predicate::Predicate;
 use rand::Rng;
 
-use crate::{
-    RtState,
-    data::{
-        ReportId, Sentiments,
-        npc::{Controller, Npc, NpcId},
-    },
+use crate::data::{
+    Data, ReportId, Sentiments,
+    npc::{Controller, Npc, NpcId},
 };
 use common::{
     comp::{self, gizmos::RtsimGizmos},
@@ -62,7 +59,7 @@ impl<T> std::ops::DerefMut for Resettable<T> {
 /// be possible to access any and all important information about the game world
 /// through this struct.
 pub struct NpcCtx<'a, 'd> {
-    pub state: &'a RtState,
+    pub data: &'a Data,
     pub world: &'a World,
     pub index: IndexRef<'a>,
 

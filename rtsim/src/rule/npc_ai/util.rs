@@ -1,13 +1,13 @@
 use super::*;
 
 pub fn site_name(ctx: &NpcCtx, site_id: impl Into<Option<SiteId>>) -> Option<String> {
-    let world_site = ctx.state.data().sites.get(site_id.into()?)?.world_site?;
+    let world_site = ctx.data.sites.get(site_id.into()?)?.world_site?;
     Some(ctx.index.sites.get(world_site).name()?.to_string())
 }
 
 pub fn locate_actor(ctx: &NpcCtx, actor: Actor) -> Option<Vec3<f32>> {
     match actor {
-        Actor::Npc(npc_id) => ctx.state.data().npcs.get(npc_id).map(|npc| npc.wpos),
+        Actor::Npc(npc_id) => ctx.data.npcs.get(npc_id).map(|npc| npc.wpos),
         Actor::Character(character_id) => ctx
             .system_data
             .id_maps
@@ -19,7 +19,7 @@ pub fn locate_actor(ctx: &NpcCtx, actor: Actor) -> Option<Vec3<f32>> {
 
 pub fn actor_exists(ctx: &NpcCtx, actor: Actor) -> bool {
     match actor {
-        Actor::Npc(npc_id) => ctx.state.data().npcs.contains_key(npc_id),
+        Actor::Npc(npc_id) => ctx.data.npcs.contains_key(npc_id),
         Actor::Character(character_id) => ctx
             .system_data
             .id_maps
@@ -30,12 +30,7 @@ pub fn actor_exists(ctx: &NpcCtx, actor: Actor) -> bool {
 
 pub fn actor_name(ctx: &NpcCtx, actor: Actor) -> Option<String> {
     match actor {
-        Actor::Npc(npc_id) => ctx
-            .state
-            .data()
-            .npcs
-            .get(npc_id)
-            .and_then(|npc| npc.get_name()),
+        Actor::Npc(npc_id) => ctx.data.npcs.get(npc_id).and_then(|npc| npc.get_name()),
         // TODO
         Actor::Character(_) => None,
     }

@@ -431,7 +431,7 @@ pub fn travel_to_point<S: State>(wpos: Vec2<f32>, speed_factor: f32) -> impl Act
 /// Try to travel to a site. Where practical, paths will be taken.
 pub fn travel_to_site<S: State>(tgt_site: SiteId, speed_factor: f32) -> impl Action<S> {
     now(move |ctx, _| {
-        let sites = &ctx.state.data().sites;
+        let sites = &ctx.data.sites;
 
         let site_wpos = sites.get(tgt_site).map(|site| site.wpos.as_());
 
