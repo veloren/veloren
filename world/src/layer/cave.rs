@@ -1555,7 +1555,9 @@ fn write_column<R: Rng>(
                         // default loot table
                         if chest == Some(SpriteKind::DungeonChest3) {
                             sprite_cfg_to_set = Some(SpriteCfg {
-                                loot_table: Some("common.loot_tables.cave_large".to_owned()),
+                                loot_table: Some(
+                                    "common.loot_tables.dungeon.haniwa.chest".to_owned(),
+                                ),
                                 ..Default::default()
                             });
                         }
