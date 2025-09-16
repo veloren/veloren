@@ -73,6 +73,7 @@ pub fn do_dialogue<S: State, T: Default + Clone + Send + Sync + 'static, A: Acti
             // Handle early cancellation elegantly
             .when_cancelled(move |ctx: &mut NpcCtx| ctx.controller.dialogue_end(session))
     })
+    .with_important_priority()
 }
 
 impl DialogueSession {
