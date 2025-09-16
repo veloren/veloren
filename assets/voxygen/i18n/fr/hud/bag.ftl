@@ -61,3 +61,8 @@ hud-bag-split_swap_slots_drop_items =
         [1] Cela entraînera le dépôt de 1 objet au sol. Êtes-vous sûr ?
        *[other] Cela entraînera le dépôt de { $slot_deficit } objets au sol. Êtes-vous sûr ?
     }
+hud-bag-change_to_sort_by_name = Changer à trier par Nom
+hud-bag-change_to_sort_by_quality = Changer à trier par Qualité
+hud-bag-change_to_sort_by_category = Changer à trier par Catégorie
+hud-bag-change_to_sort_by_tag = Changer à trier par Tag
+hud-bag-change_to_sort_by_quantity = Changer à trier par Quantité
