@@ -246,18 +246,19 @@ fn tell_site_content(ctx: &NpcCtx, site: SiteId) -> Option<Content> {
     if let Some(world_site) = ctx.data.sites.get(site)
         && let Some(site_name) = util::site_name(ctx, site)
     {
-        Some(Content::localized_with_args("npc-speech-tell_site", [
-            ("site", Content::Plain(site_name)),
-            (
-                "dir",
-                Direction::from_dir(world_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc(),
-            ),
-            (
-                "dist",
-                Distance::from_length(world_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
-                    .localize_npc(),
-            ),
-        ]))
+        Some(
+            Content::localized("npc-speech-tell_site")
+                .with_arg("site", site_name)
+                .with_arg(
+                    "dir",
+                    Direction::from_dir(world_site.wpos.as_() - ctx.npc.wpos.xy()).localize_npc(),
+                )
+                .with_arg(
+                    "dist",
+                    Distance::from_length(world_site.wpos.as_().distance(ctx.npc.wpos.xy()) as i32)
+                        .localize_npc(),
+                ),
+        )
     } else {
         None
     }
@@ -284,10 +285,7 @@ fn smalltalk_to<S: State>(tgt: Actor) -> impl Action<S> {
                 && let Some(current_site) = ctx.npc.current_site
                 && let Some(current_site_name) = util::site_name(ctx, current_site)
             {
-                Content::localized_with_args("npc-speech-site", [(
-                    "site",
-                    Content::Plain(current_site_name),
-                )])
+                Content::localized("npc-speech-site").with_arg("site", current_site_name)
 
             // Mention nearby monsters
             } else if ctx.rng.random_bool(0.3)
@@ -298,18 +296,17 @@ fn smalltalk_to<S: State>(tgt: Actor) -> impl Action<S> {
                     .filter(|other| matches!(&other.role, Role::Monster))
                     .min_by_key(|other| other.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
             {
-                Content::localized_with_args("npc-speech-tell_monster", [
-                    ("body", monster.body.localize_npc()),
-                    (
+                Content::localized("npc-speech-tell_monster")
+                    .with_arg("body", monster.body.localize_npc())
+                    .with_arg(
                         "dir",
                         Direction::from_dir(monster.wpos.xy() - ctx.npc.wpos.xy()).localize_npc(),
-                    ),
-                    (
+                    )
+                    .with_arg(
                         "dist",
                         Distance::from_length(monster.wpos.xy().distance(ctx.npc.wpos.xy()) as i32)
                             .localize_npc(),
-                    ),
-                ])
+                    )
             // Specific night dialog
             } else if ctx.rng.random_bool(0.6) && DayPeriod::from(ctx.time_of_day.0).is_dark() {
                 Content::localized("npc-speech-night")
@@ -439,10 +436,8 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                 let leader = ctx.npc_id;
                                 ctx.controller.npc_dialogue(
                                     npc,
-                                    Content::localized_with_args("npc-speech-pirate_raid", [(
-                                        "site",
-                                        util::site_name(ctx, site_to_raid).unwrap_or_default(),
-                                    )]),
+                                    Content::localized("npc-speech-pirate_raid")
+                                        .with_arg("site", util::site_name(ctx, site_to_raid).unwrap_or_default()),
                                     idle().repeat().stop_if(timeout(2.0)).then(just(
                                         move |ctx, _| {
                                             let target = Actor::Npc(leader);
@@ -626,13 +621,12 @@ fn adventure() -> impl Action<DefaultState> {
             };
             let site_name = util::site_name(ctx, tgt_site).unwrap_or_default();
             // Travel to the site
-            consider.important(just(move |ctx, _| ctx.controller.say(None, Content::localized_with_args("npc-speech-moving_on", [("site", site_name.clone())])))
-                          .then(travel_to_site(tgt_site, 0.6))
-                          // Stop for a few minutes
-                          .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
-                          .map(|_, _| ())
-                          .boxed(),
-            )
+            consider.important(just(move |ctx, _| ctx.controller.say(None, Content::localized("npc-speech-moving_on").with_arg("site", site_name.as_str())))
+                .then(travel_to_site(tgt_site, 0.6))
+                // Stop for a few minutes
+                .then(villager(tgt_site).repeat().stop_if(timeout(wait_time)))
+                .map(|_, _| ())
+                .boxed())
         }
     })
     .debug(move || "adventure")
@@ -685,10 +679,8 @@ fn hired(tgt: Actor) -> impl Action<DefaultState> {
                     return Some(just(move |ctx, _| {
                         ctx.controller.say(
                             tgt,
-                            Content::localized_with_args(
-                                "npc-dialogue-hire_arrive_tavern",
-                                [("tavern", Content::Plain(tavern_name.clone()))]
-                            )
+                            Content::localized("npc-dialogue-hire_arrive_tavern")
+                                .with_arg("tavern", tavern_name.as_str())
                         )
                     })
                     .then(
@@ -806,7 +798,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
             let site_name = util::site_name(ctx, new_home);
             consider.important(just(move |ctx, _| {
                 if let Some(site_name) = &site_name {
-                    ctx.controller.say(None, Content::localized_with_args("npc-speech-migrating", [("site", site_name.clone())]))
+                    ctx.controller.say(None, Content::localized("npc-speech-migrating").with_arg("site", site_name.as_str()))
                 }
             })
                 .then(travel_to_site(new_home, 0.5))

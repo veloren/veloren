@@ -1181,13 +1181,9 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                             let next_site_name = ctx.index.sites.get(next_approach.site_id).name();
                             ctx.controller.say(
                                 None,
-                                Content::localized_with_args("npc-speech-pilot-announce_next", [
-                                (
-                                    "dir",
-                                    Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc(),
-                                ),
-                                ("dst", Content::Plain(next_site_name.unwrap_or("unknown").to_string())),
-                                ]),
+                                Content::localized("npc-speech-pilot-announce_next")
+                                    .with_arg("dir", Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc())
+                                    .with_arg("dst", next_site_name.unwrap_or("unknown")),
                             );
                         })
                     )
@@ -1198,11 +1194,10 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                 // Announce takeoff
                 just(move |ctx, route_context:&mut AirshipRouteContext| {
                     ctx.controller.say(
-                    None,
-                        Content::localized_with_args("npc-speech-pilot-takeoff", [
-                            ("src", Content::Plain(ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown").to_string())),
-                            ("dst", Content::Plain(ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown").to_string())),
-                        ]),
+                        None,
+                        Content::localized("npc-speech-pilot-takeoff")
+                            .with_arg("src", ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown"))
+                            .with_arg("dst", ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown")),
                     );
                     // This is when the airship target docking position changes to the next approach.
                     // Reset the next pilot distance trend tracker.
