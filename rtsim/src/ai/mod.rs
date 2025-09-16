@@ -69,7 +69,6 @@ pub struct NpcCtx<'a, 'd> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
-    pub npc_dialogue: &'a mut VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
     pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,

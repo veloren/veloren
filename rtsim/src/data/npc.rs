@@ -124,18 +124,6 @@ impl Controller {
         self.actions.push(NpcAction::Say(target.into(), content));
     }
 
-    pub fn npc_dialogue(
-        &mut self,
-        target: NpcId,
-        content: impl Into<Option<comp::Content>>,
-        response: impl Action<(), ()>,
-    ) {
-        if let Some(content) = content.into() {
-            self.say(Actor::Npc(target), content);
-        }
-        self.npc_action(target, response);
-    }
-
     pub fn npc_action(&mut self, target: NpcId, response: impl Action<(), ()>) {
         self.npc_actions.push((target, Box::new(response)));
     }
@@ -162,6 +150,11 @@ impl Controller {
         if matches!(self.job, Some(Job::Quest(..))) {
             self.job = None;
         }
+    }
+
+    pub fn request_pirate_hire(&mut self, to: Actor, leader: Actor) {
+        self.actions
+            .push(NpcAction::RequestPirateHire { to, leader });
     }
 
     /// Start a new dialogue.
@@ -326,9 +319,6 @@ pub struct Npc {
 
     #[serde(skip)]
     pub brain: Option<Brain>,
-
-    #[serde(skip)]
-    pub npc_dialogue: VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
 }
 
 /// A job is a long-running, persistent, non-stackable occupation that an NPC
@@ -366,7 +356,6 @@ impl Clone for Npc {
             inbox: Default::default(),
             mode: Default::default(),
             brain: Default::default(),
-            npc_dialogue: Default::default(),
         }
     }
 }
@@ -397,7 +386,6 @@ impl Npc {
             inbox: Default::default(),
             mode: SimulationMode::Simulated,
             brain: None,
-            npc_dialogue: Default::default(),
         }
     }
 

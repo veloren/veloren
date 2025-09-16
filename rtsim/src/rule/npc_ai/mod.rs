@@ -140,8 +140,7 @@ impl Rule for NpcAi {
                                 move_home_timer: every_range(400.0..2000.0).chance(0.5),
                             })),
                         });
-                        let npc_dialogue = std::mem::take(&mut npc.npc_dialogue);
-                        (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, ctx.system_data.rtsim_gizmos.tracked.remove(npc_id))
+                        (npc_id, controller, inbox, sentiments, known_reports, brain, ctx.system_data.rtsim_gizmos.tracked.remove(npc_id))
                     })
                     .collect::<Vec<_>>()
             };
@@ -156,7 +155,7 @@ impl Rule for NpcAi {
 
                 npc_data
                     .par_iter_mut()
-                    .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, gizmos)| {
+                    .for_each(|(npc_id, controller, inbox, sentiments, known_reports, brain, gizmos)| {
                         let npc = &data.npcs[*npc_id];
 
                         controller.reset(npc);
@@ -171,7 +170,6 @@ impl Rule for NpcAi {
                             npc,
                             npc_id: *npc_id,
                             controller,
-                            npc_dialogue,
                             inbox,
                             known_reports,
                             sentiments,
@@ -194,26 +192,16 @@ impl Rule for NpcAi {
             // Reinsert NPC brains
             let mut data = ctx.state.data_mut();
             let mut to_update = Vec::with_capacity(npc_data.len());
-            for (npc_id, controller, inbox, sentiments, known_reports, brain, npc_dialogue, gizmos) in npc_data {
+            for (npc_id, controller, inbox, sentiments, known_reports, brain, gizmos) in npc_data {
                 to_update.push(npc_id);
                 data.npcs[npc_id].controller = controller;
                 data.npcs[npc_id].brain = Some(brain);
                 data.npcs[npc_id].inbox = inbox;
                 data.npcs[npc_id].sentiments = sentiments;
                 data.npcs[npc_id].known_reports = known_reports;
-                data.npcs[npc_id].npc_dialogue = npc_dialogue;
 
                 if let Some(gizmos) = gizmos {
                     ctx.system_data.rtsim_gizmos.tracked.insert(npc_id, gizmos);
-                }
-            }
-
-            for npc_id in to_update {
-                let v = std::mem::take(&mut data.npcs[npc_id].controller.npc_actions);
-                for (target, action) in v {
-                    if let Some(npc) = data.npcs.get_mut(target) {
-                        npc.npc_dialogue.push_back((npc_id, action));
-                    }
                 }
             }
         });
@@ -434,24 +422,25 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                             })
                             .then(just(move |ctx, _| {
                                 let leader = ctx.npc_id;
-                                ctx.controller.npc_dialogue(
-                                    npc,
-                                    Content::localized("npc-speech-pirate_raid")
-                                        .with_arg("site", util::site_name(ctx, site_to_raid).unwrap_or_default()),
-                                    idle().repeat().stop_if(timeout(2.0)).then(just(
-                                        move |ctx, _| {
-                                            let target = Actor::Npc(leader);
-                                            ctx.controller.say(
-                                                target,
-                                                Content::localized("npc-response-accept_hire"),
-                                            );
-                                            ctx.controller.set_newly_hired(
-                                                target,
-                                                common::resources::Time(f64::INFINITY),
-                                            );
-                                        },
-                                    )),
-                                );
+                                ctx.controller.request_pirate_hire(npc.into(), leader.into());
+                                // ctx.controller.npc_dialogue(
+                                //     npc,
+                                //     Content::localized("npc-speech-pirate_raid")
+                                //         .with_arg("site", util::site_name(ctx, site_to_raid).unwrap_or_default()),
+                                //     idle().repeat().stop_if(timeout(2.0)).then(just(
+                                //         move |ctx, _| {
+                                //             let target = Actor::Npc(leader);
+                                //             ctx.controller.say(
+                                //                 target,
+                                //                 Content::localized("npc-response-accept_hire"),
+                                //             );
+                                //             ctx.controller.set_newly_hired(
+                                //                 target,
+                                //                 common::resources::Time(f64::INFINITY),
+                                //             );
+                                //         },
+                                //     )),
+                                // );
                             }))
                             .debug(|| "inviting raid participant")
                             .l()
@@ -1408,8 +1397,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
                                 just(move |ctx, _| {
                                     ctx.controller.say(killer, Content::localized(phrase))
                                 })
-                                .l()
-                                .l(),
+                                .boxed(),
                             );
                         }
                         false
@@ -1442,8 +1430,7 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
                                     just(move |ctx, _| {
                                         ctx.controller.say(thief, Content::localized(phrase))
                                     })
-                                    .r()
-                                    .l(),
+                                    .boxed(),
                                 );
                             }
                         }
@@ -1455,12 +1442,28 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
             },
             NpcInput::Report(_) => false, // Reports we already know of are ignored
             NpcInput::Interaction(by) => {
-                action = Some(talk_to(*by).r());
+                action = Some(talk_to(*by).boxed());
                 false
             },
             // Dialogue inputs get retained because they're handled by specific conversation actions
             // later
             NpcInput::Dialogue(_, _) => true,
+            NpcInput::RequestPirateHire { leader, .. } => {
+                let leader = *leader;
+                action = Some(
+                    idle()
+                        .repeat()
+                        .stop_if(timeout(2.0))
+                        .then(just(move |ctx, _| {
+                            ctx.controller
+                                .say(leader, Content::localized("npc-response-accept_hire"));
+                            ctx.controller
+                                .set_newly_hired(leader, common::resources::Time(f64::INFINITY));
+                        }))
+                        .boxed(),
+                );
+                false
+            },
         }
     });
 
@@ -1741,12 +1744,5 @@ fn think() -> impl Action<DefaultState> {
             Role::Wild => idle().r(),
             Role::Vehicle => idle().r(),
         },
-    })
-    .interrupt_with(|ctx, _| {
-        if let Some((_from, action)) = ctx.npc_dialogue.pop_front() {
-            Some(action.with_state(()))
-        } else {
-            None
-        }
     })
 }

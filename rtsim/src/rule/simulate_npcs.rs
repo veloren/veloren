@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body, agent::FlightMode},
     mounting::{Volume, VolumePos},
-    rtsim::{Actor, NpcAction, NpcActivity},
+    rtsim::{Actor, NpcAction, NpcActivity, NpcInput},
     terrain::{CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -115,7 +115,25 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         }
     }
 
+    let mut npc_inputs = Vec::new();
+
     for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead()) {
+        // Pass NPC communication to other NPCs, even when not simulated
+        npc.controller.actions.retain(|action| match action {
+            NpcAction::RequestPirateHire { to, leader } => {
+                if let Actor::Npc(to) = to {
+                    npc_inputs.push((*to, NpcInput::RequestPirateHire {
+                        from: npc_id.into(),
+                        leader: *leader,
+                    }));
+                } else {
+                    // TODO: Send to players?
+                }
+                false
+            },
+            _ => true,
+        });
+
         if matches!(npc.mode, SimulationMode::Simulated) {
             // Consume NPC actions
             for action in std::mem::take(&mut npc.controller.actions) {
@@ -123,6 +141,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
                     NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
                     NpcAction::Dialogue(_, _) => {},
+                    NpcAction::RequestPirateHire { .. } => {},
                 }
             }
 
@@ -338,5 +357,11 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
 
         // Set job status
         npc.job = npc.controller.job.clone();
+    }
+
+    for (npc_id, input) in npc_inputs {
+        if let Some(npc) = data.npcs.get_mut(npc_id) {
+            npc.inbox.push_back(input);
+        }
     }
 }

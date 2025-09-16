@@ -285,6 +285,11 @@ pub enum NpcAction {
     /// Attack the given target
     Attack(Actor),
     Dialogue(Actor, Dialogue),
+    // TODO: Make this more principled, currently only used by pirates
+    RequestPirateHire {
+        to: Actor,
+        leader: Actor,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -365,6 +370,8 @@ pub enum NpcInput {
     Report(ReportId),
     Interaction(Actor),
     Dialogue(Actor, Dialogue<true>),
+    // TODO: Make this more principled, currently only used by pirates
+    RequestPirateHire { from: Actor, leader: Actor },
 }
 
 /// Abstractly represents categories of resources that might naturally appear in
