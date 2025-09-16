@@ -659,7 +659,6 @@ const PRIORITY_CASUAL: u32 = 0;
 /// See [`choose`] and [`watch`].
 pub struct Tree<S, F, R> {
     next: F,
-    interrupt: bool,
     current: Option<(Box<dyn Action<S, R>>, u32, u32)>,
 }
 
@@ -707,15 +706,13 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S, &mut Consider<S, R>) + Send + Sync + '
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
-        if self.interrupt || self.current.is_none() {
-            let mut to_cancel = Vec::new();
-            (self.next)(ctx, state, &mut Consider {
-                current: &mut self.current,
-                to_cancel: &mut to_cancel,
-            });
-            for mut to_cancel in to_cancel {
-                to_cancel.on_cancel(ctx, state);
-            }
+        let mut to_cancel = Vec::new();
+        (self.next)(ctx, state, &mut Consider {
+            current: &mut self.current,
+            to_cancel: &mut to_cancel,
+        });
+        for mut to_cancel in to_cancel {
+            to_cancel.on_cancel(ctx, state);
         }
 
         let Some((current, _, override_priority)) = self.current.as_mut() else {
@@ -747,8 +744,7 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S, &mut Consider<S, R>) + Send + Sync + '
 /// action is chosen, it will be performed until completed *UNLESS* an action
 /// with a more urgent priority is chosen in a subsequent tick. [`choose`] tries
 /// to commit to actions when it can: only more urgent actions will interrupt an
-/// action that's currently being performed. If you want something that's more
-/// eager to switch actions, see [`watch`].
+/// action that's currently being performed.
 ///
 /// # Example
 ///
@@ -771,42 +767,6 @@ where
     Tree {
         next: f,
         current: None,
-        interrupt: false,
-    }
-}
-
-/// An action that allows implementing a decision tree, with action
-/// prioritisation.
-///
-/// The inner function will be run every tick to decide on an action. When an
-/// action is chosen, it will be performed until completed unless a different
-/// action of the same or higher priority is chosen in a subsequent tick.
-/// [`watch`] is very unfocused and will happily switch between actions
-/// rapidly between ticks if conditions change. If you want something that
-/// tends to commit to actions until they are completed, see [`choose`].
-///
-/// # Example
-///
-/// ```ignore
-/// watch(|ctx| {
-///     if ctx.npc.is_being_attacked() {
-///         urgent(combat()) // If we're in danger, do something!
-///     } else if ctx.npc.is_hungry() {
-///         important(eat()) // If we're hungry, eat
-///     } else {
-///         casual(idle()) // Otherwise, do nothing
-///     }
-/// })
-/// ```
-#[must_use]
-pub fn watch<S: State, R: 'static, F>(f: F) -> Tree<S, F, R>
-where
-    F: Fn(&mut NpcCtx, &mut S, &mut Consider<S, R>) + Send + Sync + 'static,
-{
-    Tree {
-        next: f,
-        current: None,
-        interrupt: true,
     }
 }
 
