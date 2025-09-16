@@ -1497,7 +1497,7 @@ impl Body {
     }
 
     /// Returns the eye height for this creature.
-    pub fn eye_height(&self, scale: f32) -> f32 { self.height() * 0.9 * scale }
+    pub fn eye_height(&self, scale: f32) -> f32 { self.height() * 0.8 * scale }
 
     pub fn default_light_offset(&self) -> Vec3<f32> {
         // TODO: Make this a manifest

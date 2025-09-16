@@ -200,9 +200,10 @@ pub struct CharacterCacheKey {
     pub(super) tool: Option<CharacterToolKey>,
     pub(super) lantern: Option<String>,
     pub(super) glider: Option<String>,
-    pub(super) hand: Option<String>,
     pub(super) foot: Option<String>,
     pub(super) head: Option<String>,
+    // None = invisible, Some(None) = no armour
+    pub(super) hand: Option<Option<String>>,
 }
 
 impl CharacterCacheKey {
@@ -241,6 +242,10 @@ impl CharacterCacheKey {
             // TODO: Figure out what to do here, and/or refactor how this works.
             .unwrap_or(false);
 
+        // When in first-person, hide our hands to make aiming a bow easier
+        // TODO: Make this less of a hack
+        let are_hands_visible = !is_first_person || cs.map(|cs| !cs.is_ranged()).unwrap_or(true);
+
         Self {
             // Third person armor is only modeled when the camera mode is not first person.
             third_person: if is_first_person {
@@ -278,9 +283,13 @@ impl CharacterCacheKey {
             },
             lantern: key_from_slot(EquipSlot::Lantern),
             glider: key_from_slot(EquipSlot::Glider),
-            hand: key_from_slot(EquipSlot::Armor(ArmorSlot::Hands)),
             foot: key_from_slot(EquipSlot::Armor(ArmorSlot::Feet)),
             head: key_from_slot(EquipSlot::Armor(ArmorSlot::Head)),
+            hand: if are_hands_visible {
+                Some(key_from_slot(EquipSlot::Armor(ArmorSlot::Hands)))
+            } else {
+                None
+            },
         }
     }
 }

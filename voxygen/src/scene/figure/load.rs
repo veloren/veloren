@@ -496,7 +496,7 @@ make_vox_spec!(
         let tool = loadout.tool.as_ref();
         let lantern = loadout.lantern.as_deref();
         let glider = loadout.glider.as_deref();
-        let hand = loadout.hand.as_deref();
+        let hand = loadout.hand.as_ref();
         let foot = loadout.foot.as_deref();
 
         let color = &spec.color.read().0;
@@ -536,8 +536,18 @@ make_vox_spec!(
                     .0
                     .mesh_pants(body, color, loadout.pants.as_deref())
             }),
-            Some(spec.armor_hand.read().0.mesh_left_hand(body, color, hand)),
-            Some(spec.armor_hand.read().0.mesh_right_hand(body, color, hand)),
+            hand.map(|hand| {
+                spec.armor_hand
+                    .read()
+                    .0
+                    .mesh_left_hand(body, color, hand.as_deref())
+            }),
+            hand.map(|hand| {
+                spec.armor_hand
+                    .read()
+                    .0
+                    .mesh_right_hand(body, color, hand.as_deref())
+            }),
             Some(spec.armor_foot.read().0.mesh_left_foot(body, color, foot)),
             Some(spec.armor_foot.read().0.mesh_right_foot(body, color, foot)),
             third_person.map(|loadout| {
@@ -3674,7 +3684,7 @@ make_vox_spec!(
         let loadout = extra.as_deref().unwrap_or(&DEFAULT_LOADOUT);
         let third_person = loadout.third_person.as_ref();
         let tool = loadout.tool.as_ref();
-        let hand = loadout.hand.as_deref();
+        let hand = loadout.hand.clone().flatten();
         let foot = loadout.foot.as_deref();
 
         [
@@ -3696,8 +3706,8 @@ make_vox_spec!(
                 .map(|tool| spec.weapon.read().0.mesh_main(tool, false)),
             tool.and_then(|tool| tool.second.as_ref())
                 .map(|tool| spec.weapon.read().0.mesh_main(tool, true)),
-            Some(spec.armor_hand.read().0.mesh_left_hand(hand)),
-            Some(spec.armor_hand.read().0.mesh_right_hand(hand)),
+            Some(spec.armor_hand.read().0.mesh_left_hand(hand.as_deref())),
+            Some(spec.armor_hand.read().0.mesh_right_hand(hand.as_deref())),
             Some(spec.armor_foot.read().0.mesh_left_foot(foot)),
             Some(spec.armor_foot.read().0.mesh_right_foot(foot)),
             None,

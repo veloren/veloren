@@ -610,6 +610,8 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             let player_entity = client.entity();
 
+            let dt = global_state.clock.get_stable_dt().as_secs_f32();
+
             #[cfg(feature = "discord")]
             if global_state.discord.is_active()
                 && let Some(chunk) = client.current_chunk()
@@ -1383,7 +1385,21 @@ impl PlayState for SessionState {
 
             // Talk to entities when we are in dialogue with them
             if let Some(tgt) = self.hud.current_dialogue() {
-                self.client.borrow_mut().do_talk(Some(tgt));
+                let mut client = self.client.borrow_mut();
+                client.do_talk(Some(tgt));
+                // Turn to face the entity when in first-person mode
+                if matches!(
+                    self.scene.camera().get_mode(),
+                    camera::CameraMode::FirstPerson
+                ) && let Some(activity) = client
+                    .state()
+                    .read_storage::<CharacterActivity>()
+                    .get(client.entity())
+                    && let Some(dir) = activity.look_dir
+                {
+                    let ori = Vec3::new(dir.x.atan2(dir.y), -dir.z.atan(), 0.0);
+                    self.scene.camera_mut().lerp_toward(ori, dt, 2.5);
+                }
             }
 
             if let Some(viewpoint_entity) = self.viewpoint_entity
@@ -1405,7 +1421,6 @@ impl PlayState for SessionState {
             // Get the current state of movement related inputs
             let input_vec = self.key_state.dir_vec();
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
-            let dt = global_state.clock.get_stable_dt().as_secs_f32();
 
             if let Some(ref mut timer) = self.key_state.give_up {
                 *timer += dt;

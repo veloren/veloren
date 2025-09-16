@@ -623,14 +623,6 @@ impl Camera {
             self.focus.z = lerped_focus.z;
         }
 
-        let lerp_angle = |a: f32, b: f32, rate: f32| {
-            let offs = [-2.0 * PI, 0.0, 2.0 * PI]
-                .iter()
-                .min_by_key(|offs: &&f32| ((a - (b + *offs)).abs() * 1000.0) as i32)
-                .unwrap();
-            Lerp::lerp(a, b + *offs, rate)
-        };
-
         let ori = if smoothing_enabled {
             Vec3::new(
                 lerp_angle(self.ori.x, self.tgt_ori.x, LERP_ORI_RATE * dt),
@@ -641,6 +633,15 @@ impl Camera {
             self.tgt_ori
         };
         self.ori = clamp_and_modulate(ori);
+    }
+
+    pub fn lerp_toward(&mut self, tgt_ori: Vec3<f32>, dt: f32, rate: f32) {
+        self.ori = Vec3::new(
+            lerp_angle(self.ori.x, tgt_ori.x, rate * dt),
+            Lerp::lerp(self.ori.y, tgt_ori.y, rate * dt),
+            lerp_angle(self.ori.z, tgt_ori.z, rate * dt),
+        );
+        self.tgt_ori = self.ori;
     }
 
     pub fn interp_time(&self) -> f32 {
@@ -775,4 +776,12 @@ impl Camera {
         let focus_off = self.get_focus_pos().map(f32::trunc);
         self.dependents().cam_pos + focus_off
     }
+}
+
+fn lerp_angle(a: f32, b: f32, rate: f32) -> f32 {
+    let offs = [-2.0 * PI, 0.0, 2.0 * PI]
+        .iter()
+        .min_by_key(|offs: &&f32| ((a - (b + *offs)).abs() * 1000.0) as i32)
+        .unwrap();
+    Lerp::lerp(a, b + *offs, rate)
 }
