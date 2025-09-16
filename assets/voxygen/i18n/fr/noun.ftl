@@ -34,3 +34,17 @@ noun-strigoi = un strigoï
 noun-terracotta_besieger = un assiégeur en terre cuite
 noun-husk_brute = une brute désincarnée
 noun-gigas_fire = un géant de feu
+
+
+noun-role-alchemist = alchimiste
+noun-role-pirate = pirate
+noun-role-cultist = cultiste
+noun-role-captain = capitaine
+noun-role-herbalist = herbaliste
+noun-role-farmer = fermier
+noun-role-hunter = chasseur
+noun-role-merchant = marchand
+noun-role-guard = garde
+noun-role-adventurer = aventurier
+noun-role-blacksmith = forgeron
+noun-role-chef = chef

@@ -33,3 +33,16 @@ noun-terracotta_pursuer = Terakotový Stíhač
 noun-cursekeeper = Zaklínač
 noun-strigoi = Strigoj
 noun-executioner = Kat
+
+noun-role-farmer = farmář
+noun-role-hunter = lovec
+noun-role-merchant = obchodník
+noun-role-guard = strážný
+noun-role-adventurer = dobrodruh
+noun-role-blacksmith = kovář
+noun-role-chef = kuchař
+noun-role-alchemist = alchymista
+noun-role-pirate = pirát
+noun-role-cultist = kultista
+noun-role-herbalist = bylinkář
+noun-role-captain = kapitán
