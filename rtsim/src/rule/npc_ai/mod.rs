@@ -59,7 +59,7 @@ use common::{
     match_some,
     path::Path,
     rtsim::{
-        Actor, DialogueKind, ItemResource, NpcInput, PersonalityTrait, Profession, QuestId,
+        Actor, DialogueKind, ItemResource, NpcInput, NpcMsg, PersonalityTrait, Profession, QuestId,
         Response, Role, SiteId, TerrainResource,
     },
     spiral::Spiral2d,
@@ -420,28 +420,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                 };
                                 ctx.npc.wpos.distance_squared(follow_npc.wpos) < 6.0f32.powi(2)
                             })
-                            .then(just(move |ctx, _| {
-                                let leader = ctx.npc_id;
-                                ctx.controller.request_pirate_hire(npc.into(), leader.into());
-                                // ctx.controller.npc_dialogue(
-                                //     npc,
-                                //     Content::localized("npc-speech-pirate_raid")
-                                //         .with_arg("site", util::site_name(ctx, site_to_raid).unwrap_or_default()),
-                                //     idle().repeat().stop_if(timeout(2.0)).then(just(
-                                //         move |ctx, _| {
-                                //             let target = Actor::Npc(leader);
-                                //             ctx.controller.say(
-                                //                 target,
-                                //                 Content::localized("npc-response-accept_hire"),
-                                //             );
-                                //             ctx.controller.set_newly_hired(
-                                //                 target,
-                                //                 common::resources::Time(f64::INFINITY),
-                                //             );
-                                //         },
-                                //     )),
-                                // );
-                            }))
+                            .then(just(move |ctx, _| ctx.controller.send_msg(npc, NpcMsg::RequestHire)))
                             .debug(|| "inviting raid participant")
                             .l()
                     } else {
@@ -515,8 +494,7 @@ fn pirate(is_leader: bool) -> impl Action<DefaultState> {
                                     .hired()
                                     .is_some_and(|(actor, _)| actor == Actor::Npc(ctx.npc_id))
                             {
-                                ctx.controller
-                                    .npc_action(npc_id, just(|ctx, _| ctx.controller.end_hiring()));
+                                ctx.controller.send_msg(npc_id, NpcMsg::EndHire);
                             }
                         }
                     }
@@ -1448,20 +1426,33 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
             // Dialogue inputs get retained because they're handled by specific conversation actions
             // later
             NpcInput::Dialogue(_, _) => true,
-            NpcInput::RequestPirateHire { leader, .. } => {
-                let leader = *leader;
+            NpcInput::Msg {
+                from,
+                msg: NpcMsg::RequestHire,
+            } => {
+                let from = *from;
                 action = Some(
                     idle()
                         .repeat()
                         .stop_if(timeout(2.0))
                         .then(just(move |ctx, _| {
                             ctx.controller
-                                .say(leader, Content::localized("npc-response-accept_hire"));
+                                .say(from, Content::localized("npc-response-accept_hire"));
                             ctx.controller
-                                .set_newly_hired(leader, common::resources::Time(f64::INFINITY));
+                                .set_newly_hired(from, common::resources::Time(f64::INFINITY));
                         }))
                         .boxed(),
                 );
+                false
+            },
+            NpcInput::Msg {
+                from,
+                msg: NpcMsg::EndHire,
+            } => {
+                // End hiring at the request of the hirer
+                if matches!(ctx.controller.job, Some(Job::Hired(hirer, _)) if hirer == *from) {
+                    ctx.controller.end_hiring();
+                }
                 false
             },
         }
@@ -1520,32 +1511,29 @@ fn humanoid() -> impl Action<DefaultState> {
             }
         } else if let Some(job) = &ctx.npc.job {
             // NPCs should try to perform their jobs
-            consider.important(
-                match job {
-                    Job::Hired(tgt, _) => {
-                        if util::actor_exists(ctx, *tgt) {
-                            hired(*tgt).boxed()
-                        } else {
-                            just(|ctx, _| ctx.controller.end_hiring()).boxed()
-                        }
-                    },
-                    Job::Quest(quest_id) => {
-                        match ctx.data.quests.get(*quest_id).map(|q| &q.kind) {
-                            // TODO: Support escort quests in which we are the escorter
-                            Some(QuestKind::Escort {
-                                escortee,
-                                escorter,
-                                to,
-                            }) if *escortee == Actor::Npc(ctx.npc_id) => {
-                                quest::escorted(*quest_id, *escorter, *to).boxed()
-                            },
-                            // A quest job that can't be acted upon gets ended
-                            _ => just(|ctx, _| ctx.controller.end_quest()).boxed(),
-                        }
-                    },
-                }
-                .interrupt_with(react_to_events),
-            );
+            match job {
+                Job::Hired(tgt, _) => {
+                    if util::actor_exists(ctx, *tgt) {
+                        consider.important(hired(*tgt));
+                    } else {
+                        ctx.controller.end_hiring();
+                    }
+                },
+                Job::Quest(quest_id) => {
+                    match ctx.data.quests.get(*quest_id).map(|q| &q.kind) {
+                        // TODO: Support escort quests in which we are the escorter
+                        Some(QuestKind::Escort {
+                            escortee,
+                            escorter,
+                            to,
+                        }) if *escortee == Actor::Npc(ctx.npc_id) => {
+                            consider.important(quest::escorted(*quest_id, *escorter, *to));
+                        },
+                        // A quest job that can't be acted upon gets ended
+                        _ => ctx.controller.end_quest(),
+                    }
+                },
+            };
         } else {
             let action = match ctx.npc.profession() {
                 Some(Profession::Adventurer(_) | Profession::Merchant) => adventure().l().l(),
@@ -1559,9 +1547,10 @@ fn humanoid() -> impl Action<DefaultState> {
                 },
             };
 
-            consider.casual(action.interrupt_with(react_to_events));
+            consider.casual(action);
         }
     })
+    .interrupt_with(react_to_events)
 }
 
 fn bird_large() -> impl Action<DefaultState> {

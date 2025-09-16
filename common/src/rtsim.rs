@@ -286,9 +286,9 @@ pub enum NpcAction {
     Attack(Actor),
     Dialogue(Actor, Dialogue),
     // TODO: Make this more principled, currently only used by pirates
-    RequestPirateHire {
+    Msg {
         to: Actor,
-        leader: Actor,
+        msg: NpcMsg,
     },
 }
 
@@ -371,7 +371,17 @@ pub enum NpcInput {
     Interaction(Actor),
     Dialogue(Actor, Dialogue<true>),
     // TODO: Make this more principled, currently only used by pirates
-    RequestPirateHire { from: Actor, leader: Actor },
+    Msg { from: Actor, msg: NpcMsg },
+}
+
+/// Represents a message that may be communicated between NPCs on a 1:1 basis
+#[derive(Clone, Debug)]
+pub enum NpcMsg {
+    /// Send by an NPC that wants to hire the receiver.
+    RequestHire,
+    /// Sent by an NPC to a hired hand when they wish to end the hiring
+    /// relationship
+    EndHire,
 }
 
 /// Abstractly represents categories of resources that might naturally appear in

@@ -12,7 +12,7 @@ use common::{
     resources::Time,
     rtsim::{
         Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
-        Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
+        NpcMsg, Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -62,7 +62,6 @@ pub struct PathingMemory {
 
 #[derive(Default)]
 pub struct Controller {
-    pub npc_actions: Vec<(NpcId, Box<dyn Action<(), ()>>)>,
     pub actions: Vec<NpcAction>,
     pub activity: Option<NpcActivity>,
     pub new_home: Option<Option<SiteId>>,
@@ -124,10 +123,6 @@ impl Controller {
         self.actions.push(NpcAction::Say(target.into(), content));
     }
 
-    pub fn npc_action(&mut self, target: NpcId, response: impl Action<(), ()>) {
-        self.npc_actions.push((target, Box::new(response)));
-    }
-
     pub fn attack(&mut self, target: impl Into<Actor>) {
         self.actions.push(NpcAction::Attack(target.into()));
     }
@@ -152,9 +147,8 @@ impl Controller {
         }
     }
 
-    pub fn request_pirate_hire(&mut self, to: Actor, leader: Actor) {
-        self.actions
-            .push(NpcAction::RequestPirateHire { to, leader });
+    pub fn send_msg(&mut self, to: impl Into<Actor>, msg: NpcMsg) {
+        self.actions.push(NpcAction::Msg { to: to.into(), msg });
     }
 
     /// Start a new dialogue.

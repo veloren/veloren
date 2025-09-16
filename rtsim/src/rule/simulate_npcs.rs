@@ -118,33 +118,26 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
     let mut npc_inputs = Vec::new();
 
     for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead()) {
-        // Pass NPC communication to other NPCs, even when not simulated
         npc.controller.actions.retain(|action| match action {
-            NpcAction::RequestPirateHire { to, leader } => {
+            // NPC-to-NPC messages never leave rtsim
+            NpcAction::Msg { to, msg } => {
                 if let Actor::Npc(to) = to {
-                    npc_inputs.push((*to, NpcInput::RequestPirateHire {
+                    npc_inputs.push((*to, NpcInput::Msg {
                         from: npc_id.into(),
-                        leader: *leader,
+                        msg: msg.clone(),
                     }));
                 } else {
                     // TODO: Send to players?
                 }
                 false
             },
-            _ => true,
+            // All other cases are handled by the game when loaded
+            NpcAction::Say(_, _) | NpcAction::Attack(_) | NpcAction::Dialogue(_, _) => {
+                matches!(npc.mode, SimulationMode::Loaded)
+            },
         });
 
         if matches!(npc.mode, SimulationMode::Simulated) {
-            // Consume NPC actions
-            for action in std::mem::take(&mut npc.controller.actions) {
-                match action {
-                    NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
-                    NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
-                    NpcAction::Dialogue(_, _) => {},
-                    NpcAction::RequestPirateHire { .. } => {},
-                }
-            }
-
             let activity = if data.npcs.mounts.get_mount_link(npc_id).is_some() {
                 // We are riding, nothing to do.
                 continue;
