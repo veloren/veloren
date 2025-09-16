@@ -33,3 +33,17 @@ noun-terracotta_punisher = 테라코타 징벌병
 noun-terracotta_pursuer = 테라코타 추적병
 noun-creature = 어떤 생물
 noun-cursekeeper = 테라코타 추적병
+
+
+noun-role-farmer = 농부
+noun-role-hunter = 사냥꾼
+noun-role-merchant = 상인
+noun-role-guard = 경비
+noun-role-adventurer = 모험가
+noun-role-blacksmith = 대장장이
+noun-role-chef = 요리사
+noun-role-alchemist = 연금술사
+noun-role-pirate = 해적
+noun-role-cultist = 광신도
+noun-role-herbalist = 약초상
+noun-role-captain = 선장

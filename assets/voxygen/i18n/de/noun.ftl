@@ -33,3 +33,17 @@ noun-adlet_elder = ein Adlet-Älterer
 noun-cursekeeper = ein Terrakotta-Verfolger
 noun-strigoi = ein Strigoi
 noun-executioner = ein Henker
+
+
+noun-role-guard = Wächter
+noun-role-adventurer = Abenteurer
+noun-role-blacksmith = Schmied
+noun-role-chef = Koch
+noun-role-alchemist = Alchemist
+noun-role-pirate = Pirat
+noun-role-cultist = Kultist
+noun-role-herbalist = Kräuterkundler
+noun-role-captain = Kapitän
+noun-role-farmer = Bauer
+noun-role-hunter = Jäger
+noun-role-merchant = Händler
