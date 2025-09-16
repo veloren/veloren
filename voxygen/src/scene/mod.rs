@@ -594,10 +594,23 @@ impl Scene {
                 .map_or((false, 1.0, 0.0), |b| {
                     (
                         matches!(b, comp::Body::Humanoid(_)),
-                        b.height(),
-                        b.eye_height(1.0), // Scale is applied later
+                        b.height() * viewpoint_scale,
+                        b.eye_height(1.0) * viewpoint_scale, // Scale is applied later
                     )
                 });
+            // If the character is animated, use that to determine the viewpoint height
+            let viewpoint_eye_height = if let Some(skeleton) = self
+                .figure_mgr
+                .states
+                .character_states
+                .get(&client.entity())
+                .map(|state| &state.computed_skeleton)
+            {
+                // TODO: Don't hard-code this offsets
+                skeleton.head.mul_point(Vec3::unit_z() * 0.45).z
+            } else {
+                viewpoint_eye_height
+            };
 
             if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly)
             {
@@ -612,11 +625,6 @@ impl Scene {
             }
 
             let viewpoint_offset = if is_humanoid {
-                let viewpoint_rolling = ecs
-                    .read_storage::<comp::CharacterState>()
-                    .get(scene_data.viewpoint_entity)
-                    .is_some_and(|cs| cs.is_dodge());
-
                 let is_running = ecs
                     .read_storage::<comp::Vel>()
                     .get(scene_data.viewpoint_entity)
@@ -655,9 +663,7 @@ impl Scene {
 
                 let up = match self.camera.get_mode() {
                     CameraMode::FirstPerson => {
-                        if viewpoint_rolling {
-                            viewpoint_height * 0.42
-                        } else if is_running && on_ground.unwrap_or(false) {
+                        if is_running && on_ground.unwrap_or(false) {
                             viewpoint_eye_height
                                 + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
                         } else {
@@ -665,10 +671,12 @@ impl Scene {
                         }
                     },
                     CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
-                        viewpoint_height * 1.16 + settings.gameplay.aim_offset_y
+                        viewpoint_height * 1.05 + settings.gameplay.aim_offset_y
                     },
-                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.16,
-                    CameraMode::ThirdPerson => viewpoint_eye_height,
+                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.05,
+                    // The `max` here is used to minimise camera motion due to rolling and other
+                    // unusual movement
+                    CameraMode::ThirdPerson => viewpoint_eye_height.max(viewpoint_height * 0.5),
                     CameraMode::Freefly => 0.0,
                 };
 
@@ -685,7 +693,7 @@ impl Scene {
                 let tilt = self.camera.get_orientation().y;
                 let dist = self.camera.get_distance();
 
-                Vec3::unit_z() * (up * viewpoint_scale - tilt.min(0.0).sin() * dist * 0.6)
+                Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
                     + self.camera.right() * (right * viewpoint_scale)
             } else {
                 self.figure_mgr

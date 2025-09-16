@@ -244,6 +244,16 @@ impl CharacterState {
         }
     }
 
+    pub fn is_ranged(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::BasicRanged(_)
+                | CharacterState::Throw(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+        )
+    }
+
     /// If this state can manipulate loadout, interact with sprites etc.
     pub fn can_interact(&self) -> bool {
         match self {
