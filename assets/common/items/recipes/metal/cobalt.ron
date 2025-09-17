@@ -12,6 +12,7 @@ ItemDef(
             "cobalt_pants",
             "cobalt_shoulder",
             "cobalt_head",
+            "cobalt_weapons",
         ],
     ),
     quality: High,

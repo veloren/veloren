@@ -12,6 +12,7 @@ ItemDef(
             "orichalcum_pants",
             "orichalcum_shoulder",
             "orichalcum_head",
+            "orichalcum_weapons",
         ],
     ),
     quality: Legendary,

@@ -18,6 +18,7 @@ loot_tables: [
     (0.09, false, "common.loot_tables.armor.cultist"),
     (0.3334, true, "common.trading.misc_armor_sellable"),
     (0.0016, false, "common.loot_tables.armor.boreal"),
+    (0.0016, false, "common.loot_tables.armor.ashen"),
 
     // Ingredients
     (72.5, true, "common.trading.sellable_materials"),
@@ -27,8 +28,8 @@ loot_tables: [
     (20.375, true, "common.trading.food"),
 
     // Recipes
-    (1.8, true, "common.trading.sellable_recipe"),
-    (1.5, false, "common.trading.unsellable_recipe"),
+    (3.0, true, "common.trading.sellable_recipe"),
+    (3.0, false, "common.trading.unsellable_recipe"),
 
     // Potions
     //

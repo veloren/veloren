@@ -19,8 +19,7 @@
         items: [
             (10, "common.items.consumable.potion_big"),
             (1, "common.items.recipes.equipment.basic"),
-            (1, "common.items.recipes.armor.iron"),
-            (1, "common.items.recipes.weapons.iron"),
+            (1, "common.items.recipes.metal.iron"),
             (1, "common.items.recipes.utility"),
         ],
     ),

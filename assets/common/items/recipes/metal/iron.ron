@@ -12,6 +12,7 @@ ItemDef(
             "iron_pants",
             "iron_shoulder",
             "iron_head",
+            "iron_weapons",
         ],
     ),
     quality: Common,

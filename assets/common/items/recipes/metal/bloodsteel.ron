@@ -12,6 +12,7 @@ ItemDef(
             "bloodsteel_pants",
             "bloodsteel_shoulder",
             "bloodsteel_head",
+            "bloodsteel_weapons",
         ],
     ),
     quality: Epic,
