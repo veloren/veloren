@@ -1240,7 +1240,7 @@ impl PlayState for SessionState {
                                     if self.free_look {
                                         self.prev_cam_pos = ori;
                                     } else {
-                                    camera.set_orientation_instant(self.prev_cam_pos);
+                                        camera.set_orientation_instant(self.prev_cam_pos);
                                     }
                                 }
                             },
