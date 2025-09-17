@@ -39,7 +39,11 @@ hud-temp_quest_text =
     Whenever you feel ready, try to get even better equipment from the many challenges marked on your map!
 hud-spell = Spells
 hud-diary = Diary
-hud-free_look_indicator = Free look active. Press { $key } to disable.
+hud-free_look_indicator =
+{ $toggle ->
+[0] Free look active. Press { $key } to disable.
+*[other] Free look active. Stop holding { $key } to disable.
+}
 hud-camera_clamp_indicator = Camera vertical clamp active. Press { $key } to disable.
 hud-auto_walk_indicator = Auto walk/swim active
 hud-zoom_lock_indicator-remind = Zoom locked
