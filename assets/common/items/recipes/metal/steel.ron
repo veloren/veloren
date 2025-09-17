@@ -12,6 +12,7 @@ ItemDef(
             "steel_pants",
             "steel_shoulder",
             "steel_head",
+            "steel_weapons",
         ],
     ),
     quality: Moderate,

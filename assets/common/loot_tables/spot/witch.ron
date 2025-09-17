@@ -64,7 +64,6 @@
         ],
     )),
     (2.2, All([
-        Item("common.items.recipes.unique.troll_hide_pack"),
         Item("common.items.recipes.potions"),
         Lottery([
             (4.0, Item("common.items.armor.witch.hand")),

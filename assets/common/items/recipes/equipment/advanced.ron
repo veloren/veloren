@@ -3,6 +3,8 @@ ItemDef(
     legacy_description: "",
     kind: RecipeGroup(
         recipes: [
+            "abyssal_gorget",
+            "abyssal_ring",
             "diamond_ring",
             "diamond_necklace",
             "ruby_ring",

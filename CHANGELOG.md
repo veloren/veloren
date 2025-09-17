@@ -109,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cliff town airship docks now have extra space around the dock to preclude taller cliff buildings from interferring.
 - Collars now require 2 tin ingots instead of an iron ingot, and their quality attribute has been changed to common instead of moderate.
 - Barns can spawn some items.
+- Significantly increased the frequency/number of recipes dropped from dungeon chests.
 
 ### Removed
 

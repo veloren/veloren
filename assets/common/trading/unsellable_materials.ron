@@ -60,4 +60,5 @@
     // Ultra Rare drops
     (0.001, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     (0.001, Item("common.items.crafting_ing.glacial_crystal")),
+    (0.001, Item("common.items.crafting_ing.molten_core")),
 ]

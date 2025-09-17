@@ -1,5 +1,5 @@
 [
-    (1.0, Nothing),
+    (2.0, Nothing),
     (1.0, LootTable("common.loot_tables.food.prepared")),
-    (0.5, Item("common.items.recipes.unique.seashell_necklace")),
+    (1.0, MultiDrop(Item("common.items.utility.coins"), 50, 100)),
 ]
