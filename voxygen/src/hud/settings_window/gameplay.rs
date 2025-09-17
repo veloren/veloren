@@ -51,6 +51,9 @@ widget_ids! {
         camera_clamp_behavior_list,
         zoom_lock_behavior_text,
         zoom_lock_behavior_list,
+        //
+        free_look_save_cam_pos_button,
+        free_look_save_cam_pos_label,
         stop_auto_walk_on_input_button,
         stop_auto_walk_on_input_label,
         auto_camera_button,
@@ -526,6 +529,38 @@ impl Widget for Gameplay<'_> {
             }
         }
 
+        // Free look remember camera position toggle
+        let free_look_save_cam_pos_toggle = ToggleButton::new(
+            self.global_state.settings.gameplay.free_look_save_cam_pos,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.smooth_pan_toggle_button, 8.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.free_look_save_cam_pos_button, ui);
+
+        if self.global_state.settings.gameplay.free_look_save_cam_pos
+            != free_look_save_cam_pos_toggle
+        {
+            events.push(ToggleFreeLookSaveCameraPosition(
+                !self.global_state.settings.gameplay.free_look_save_cam_pos,
+            ));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-free_look_save_cam_pos"),
+        )
+            .right_from(state.ids.free_look_save_cam_pos_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.free_look_save_cam_pos_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.free_look_save_cam_pos_label, ui);
+        
         // Stop autowalk on input toggle
         let stop_auto_walk_on_input_toggle = ToggleButton::new(
             self.global_state.settings.gameplay.stop_auto_walk_on_input,
@@ -533,7 +568,7 @@ impl Widget for Gameplay<'_> {
             self.imgs.checkbox_checked,
         )
         .w_h(18.0, 18.0)
-        .down_from(state.ids.smooth_pan_toggle_button, 8.0)
+        .down_from(state.ids.free_look_save_cam_pos_button, 8.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.stop_auto_walk_on_input_button, ui);

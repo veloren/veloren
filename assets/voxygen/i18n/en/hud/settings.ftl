@@ -55,6 +55,7 @@ hud-settings-invert_mouse_y_axis = Invert Mouse Y Axis
 hud-settings-invert_controller_y_axis = Invert Controller Y Axis
 hud-settings-enable_mouse_smoothing = Camera Smoothing
 hud-settings-free_look_behavior = Free look behavior
+hud-settings-free_look_save_cam_pos = Free look remember camera position
 hud-settings-auto_walk_behavior = Auto walk behavior
 hud-settings-walking_speed_behavior = Walking speed behavior
 hud-settings-walking_speed = Walking speed
