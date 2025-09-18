@@ -29,6 +29,7 @@ use crate::{
         music::MusicMgr,
         sfx::SfxMgr,
     },
+    ecs::comp::Interpolated,
     render::{
         CloudsLocals, Consts, CullingMode, Drawer, GlobalModel, Globals, GlobalsBindGroup, Light,
         Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals, Renderer, Shadow,
@@ -599,15 +600,23 @@ impl Scene {
                     )
                 });
             // If the character is animated, use that to determine the viewpoint height
-            let viewpoint_eye_height = if let Some(skeleton) = self
+            let viewpoint_eye_height = if let Some(state) = self
                 .figure_mgr
                 .states
                 .character_states
                 .get(&client.entity())
-                .map(|state| &state.computed_skeleton)
+                && let Some(interpolated) = ecs.read_storage::<Interpolated>().get(client.entity())
             {
                 // TODO: Don't hard-code this offsets
-                skeleton.head.mul_point(Vec3::unit_z() * 0.45).z
+                state
+                    .wpos_of(
+                        state
+                            .computed_skeleton
+                            .head
+                            .mul_point(Vec3::unit_z() * 0.45),
+                    )
+                    .z
+                    - interpolated.pos.z
             } else {
                 viewpoint_eye_height
             };
