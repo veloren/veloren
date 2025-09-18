@@ -596,34 +596,39 @@ impl Scene {
                     b.eye_height(1.0) * viewpoint_scale, // Scale is applied later
                 )
             });
-        // If the character is animated, use that to determine the viewpoint height
-        let viewpoint_eye_height = if let Some(state) = self
-            .figure_mgr
-            .states
-            .character_states
-            .get(&client.entity())
+        // When in first person, use the animated head position for the viewpoint
+        let viewpoint_eye_height = if matches!(self.camera.get_mode(), CameraMode::FirstPerson)
+            && let Some(char_state) = self
+                .figure_mgr
+                .states
+                .character_states
+                .get(&client.entity())
             && let Some(interpolated) = ecs.read_storage::<Interpolated>().get(client.entity())
         {
-            // TODO: Don't hard-code this offsets
-            state
+            // TODO: Don't hard-code this offset
+            char_state
                 .wpos_of(
-                    state
+                    char_state
                         .computed_skeleton
                         .head
-                        .mul_point(Vec3::unit_z() * 0.45),
+                        .mul_point(Vec3::unit_z() * 0.6),
                 )
                 .z
                 - interpolated.pos.z
         } else {
-            viewpoint_eye_height
+            // When not in first-person, just use the game-provided eye height, combined
+            // with a per-state factor
+            match client.current::<CharacterState>() {
+                Some(CharacterState::Crawl) => viewpoint_eye_height * 0.3,
+                Some(CharacterState::Sit) => viewpoint_eye_height * 0.7,
+                Some(c) if c.is_stealthy() => viewpoint_eye_height * 0.6,
+                _ => viewpoint_eye_height,
+            }
         };
 
         if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly) {
             // Add the analog input to camera if it's a mutable viewpoint
-            self.camera
-                .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
-            self.camera
-                .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
+            self.camera.rotate_by(self.camera_input_state.with_z(0.0));
         } else {
             // Otherwise set the cameras rotation to the viewpoints
             self.camera.set_orientation(viewpoint_look_ori);
@@ -676,9 +681,7 @@ impl Scene {
                     viewpoint_height * 1.05 + settings.gameplay.aim_offset_y
                 },
                 CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.05,
-                // The `max` here is used to minimise camera motion due to rolling and other
-                // unusual movement
-                CameraMode::ThirdPerson => viewpoint_eye_height.max(viewpoint_height * 0.35),
+                CameraMode::ThirdPerson => viewpoint_eye_height,
                 CameraMode::Freefly => 0.0,
             };
 
