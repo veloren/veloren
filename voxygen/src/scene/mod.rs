@@ -551,178 +551,186 @@ impl Scene {
 
         let positions = ecs.read_storage::<comp::Pos>();
 
-        let viewpoint_pos = if let Some(viewpoint_pos) =
-            positions.get(scene_data.viewpoint_entity).map(|pos| pos.0)
+        let viewpoint_ori = ecs
+            .read_storage::<comp::Ori>()
+            .get(scene_data.viewpoint_entity)
+            .map_or(Quaternion::identity(), |ori| ori.to_quat());
+
+        let viewpoint_look_ori = ecs
+            .read_storage::<comp::CharacterActivity>()
+            .get(scene_data.viewpoint_entity)
+            .and_then(|activity| activity.look_dir)
+            .map(|dir| {
+                let d = dir.to_vec();
+
+                let pitch = (-d.z).asin();
+                let yaw = d.x.atan2(d.y);
+
+                Vec3::new(yaw, pitch, 0.0)
+            })
+            .unwrap_or_else(|| {
+                let q = viewpoint_ori;
+                let sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+                let cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+                let pitch = sinr_cosp.atan2(cosr_cosp);
+
+                let siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+                let cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+                let yaw = siny_cosp.atan2(cosy_cosp);
+
+                Vec3::new(-yaw, -pitch, 0.0)
+            });
+
+        let viewpoint_scale = ecs
+            .read_storage::<comp::Scale>()
+            .get(scene_data.viewpoint_entity)
+            .map_or(1.0, |scale| scale.0);
+
+        let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
+            .read_storage::<comp::Body>()
+            .get(scene_data.viewpoint_entity)
+            .map_or((false, 1.0, 0.0), |b| {
+                (
+                    matches!(b, comp::Body::Humanoid(_)),
+                    b.height() * viewpoint_scale,
+                    b.eye_height(1.0) * viewpoint_scale, // Scale is applied later
+                )
+            });
+        // If the character is animated, use that to determine the viewpoint height
+        let viewpoint_eye_height = if let Some(state) = self
+            .figure_mgr
+            .states
+            .character_states
+            .get(&client.entity())
+            && let Some(interpolated) = ecs.read_storage::<Interpolated>().get(client.entity())
         {
-            let viewpoint_ori = ecs
-                .read_storage::<comp::Ori>()
-                .get(scene_data.viewpoint_entity)
-                .map_or(Quaternion::identity(), |ori| ori.to_quat());
-
-            let viewpoint_look_ori = ecs
-                .read_storage::<comp::CharacterActivity>()
-                .get(scene_data.viewpoint_entity)
-                .and_then(|activity| activity.look_dir)
-                .map(|dir| {
-                    let d = dir.to_vec();
-
-                    let pitch = (-d.z).asin();
-                    let yaw = d.x.atan2(d.y);
-
-                    Vec3::new(yaw, pitch, 0.0)
-                })
-                .unwrap_or_else(|| {
-                    let q = viewpoint_ori;
-                    let sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
-                    let cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-                    let pitch = sinr_cosp.atan2(cosr_cosp);
-
-                    let siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-                    let cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-                    let yaw = siny_cosp.atan2(cosy_cosp);
-
-                    Vec3::new(-yaw, -pitch, 0.0)
-                });
-
-            let viewpoint_scale = ecs
-                .read_storage::<comp::Scale>()
-                .get(scene_data.viewpoint_entity)
-                .map_or(1.0, |scale| scale.0);
-
-            let (is_humanoid, viewpoint_height, viewpoint_eye_height) = ecs
-                .read_storage::<comp::Body>()
-                .get(scene_data.viewpoint_entity)
-                .map_or((false, 1.0, 0.0), |b| {
-                    (
-                        matches!(b, comp::Body::Humanoid(_)),
-                        b.height() * viewpoint_scale,
-                        b.eye_height(1.0) * viewpoint_scale, // Scale is applied later
-                    )
-                });
-            // If the character is animated, use that to determine the viewpoint height
-            let viewpoint_eye_height = if let Some(state) = self
-                .figure_mgr
-                .states
-                .character_states
-                .get(&client.entity())
-                && let Some(interpolated) = ecs.read_storage::<Interpolated>().get(client.entity())
-            {
-                // TODO: Don't hard-code this offsets
-                state
-                    .wpos_of(
-                        state
-                            .computed_skeleton
-                            .head
-                            .mul_point(Vec3::unit_z() * 0.45),
-                    )
-                    .z
-                    - interpolated.pos.z
-            } else {
-                viewpoint_eye_height
-            };
-
-            if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly)
-            {
-                // Add the analog input to camera if it's a mutable viewpoint
-                self.camera
-                    .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
-                self.camera
-                    .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
-            } else {
-                // Otherwise set the cameras rotation to the viewpoints
-                self.camera.set_orientation(viewpoint_look_ori);
-            }
-
-            let viewpoint_offset = if is_humanoid {
-                let is_running = ecs
-                    .read_storage::<comp::Vel>()
-                    .get(scene_data.viewpoint_entity)
-                    .zip(
-                        ecs.read_storage::<comp::PhysicsState>()
-                            .get(scene_data.viewpoint_entity),
-                    )
-                    .map(|(v, ps)| {
-                        (v.0 - ps.ground_vel).magnitude_squared() > RUNNING_THRESHOLD.powi(2)
-                    })
-                    .unwrap_or(false);
-
-                let on_ground = ecs
-                    .read_storage::<comp::PhysicsState>()
-                    .get(scene_data.viewpoint_entity)
-                    .map(|p| p.on_ground.is_some());
-
-                let player_entity = client.entity();
-                let holding_ranged = client
-                    .inventories()
-                    .get(player_entity)
-                    .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
-                    .and_then(|item| item.tool_info())
-                    .is_some_and(|tool_kind| {
-                        matches!(
-                            tool_kind,
-                            ToolKind::Bow
-                                | ToolKind::Staff
-                                | ToolKind::Sceptre
-                                | ToolKind::Throwable
-                        )
-                    })
-                    || client
-                        .current::<CharacterState>()
-                        .is_some_and(|char_state| matches!(char_state, CharacterState::Throw(_)));
-
-                let up = match self.camera.get_mode() {
-                    CameraMode::FirstPerson => {
-                        if is_running && on_ground.unwrap_or(false) {
-                            viewpoint_eye_height
-                                + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
-                        } else {
-                            viewpoint_eye_height
-                        }
-                    },
-                    CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
-                        viewpoint_height * 1.05 + settings.gameplay.aim_offset_y
-                    },
-                    CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.05,
-                    // The `max` here is used to minimise camera motion due to rolling and other
-                    // unusual movement
-                    CameraMode::ThirdPerson => viewpoint_eye_height.max(viewpoint_height * 0.5),
-                    CameraMode::Freefly => 0.0,
-                };
-
-                let right = match self.camera.get_mode() {
-                    CameraMode::FirstPerson => 0.0,
-                    CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
-                        settings.gameplay.aim_offset_x
-                    },
-                    CameraMode::ThirdPerson => 0.0,
-                    CameraMode::Freefly => 0.0,
-                };
-
-                // Alter camera position to match player.
-                let tilt = self.camera.get_orientation().y;
-                let dist = self.camera.get_distance();
-
-                Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
-                    + self.camera.right() * (right * viewpoint_scale)
-            } else {
-                self.figure_mgr
-                    .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
-            };
-
-            match self.camera.get_mode() {
-                CameraMode::FirstPerson | CameraMode::ThirdPerson => {
-                    self.camera.set_focus_pos(viewpoint_pos + viewpoint_offset);
-                },
-                CameraMode::Freefly => {},
-            };
-
-            // Tick camera for interpolation.
-            self.camera
-                .update(scene_data.state.get_time(), dt, scene_data.mouse_smoothing);
-            viewpoint_pos
+            // TODO: Don't hard-code this offsets
+            state
+                .wpos_of(
+                    state
+                        .computed_skeleton
+                        .head
+                        .mul_point(Vec3::unit_z() * 0.45),
+                )
+                .z
+                - interpolated.pos.z
         } else {
-            Vec3::zero()
+            viewpoint_eye_height
         };
+
+        if scene_data.mutable_viewpoint || matches!(self.camera.get_mode(), CameraMode::Freefly) {
+            // Add the analog input to camera if it's a mutable viewpoint
+            self.camera
+                .rotate_by(Vec3::from([self.camera_input_state.x, 0.0, 0.0]));
+            self.camera
+                .rotate_by(Vec3::from([0.0, self.camera_input_state.y, 0.0]));
+        } else {
+            // Otherwise set the cameras rotation to the viewpoints
+            self.camera.set_orientation(viewpoint_look_ori);
+        }
+
+        let viewpoint_offset = if is_humanoid {
+            let is_running = ecs
+                .read_storage::<comp::Vel>()
+                .get(scene_data.viewpoint_entity)
+                .zip(
+                    ecs.read_storage::<comp::PhysicsState>()
+                        .get(scene_data.viewpoint_entity),
+                )
+                .map(|(v, ps)| {
+                    (v.0 - ps.ground_vel).magnitude_squared() > RUNNING_THRESHOLD.powi(2)
+                })
+                .unwrap_or(false);
+
+            let on_ground = ecs
+                .read_storage::<comp::PhysicsState>()
+                .get(scene_data.viewpoint_entity)
+                .map(|p| p.on_ground.is_some());
+
+            let player_entity = client.entity();
+            let holding_ranged = client
+                .inventories()
+                .get(player_entity)
+                .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
+                .and_then(|item| item.tool_info())
+                .is_some_and(|tool_kind| {
+                    matches!(
+                        tool_kind,
+                        ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre | ToolKind::Throwable
+                    )
+                })
+                || client
+                    .current::<CharacterState>()
+                    .is_some_and(|char_state| matches!(char_state, CharacterState::Throw(_)));
+
+            let up = match self.camera.get_mode() {
+                CameraMode::FirstPerson => {
+                    if is_running && on_ground.unwrap_or(false) {
+                        viewpoint_eye_height
+                            + (scene_data.state.get_time() as f32 * 17.0).sin() * 0.05
+                    } else {
+                        viewpoint_eye_height
+                    }
+                },
+                CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
+                    viewpoint_height * 1.05 + settings.gameplay.aim_offset_y
+                },
+                CameraMode::ThirdPerson if scene_data.is_aiming => viewpoint_height * 1.05,
+                // The `max` here is used to minimise camera motion due to rolling and other
+                // unusual movement
+                CameraMode::ThirdPerson => viewpoint_eye_height.max(viewpoint_height * 0.35),
+                CameraMode::Freefly => 0.0,
+            };
+
+            let right = match self.camera.get_mode() {
+                CameraMode::FirstPerson => 0.0,
+                CameraMode::ThirdPerson if scene_data.is_aiming && holding_ranged => {
+                    settings.gameplay.aim_offset_x
+                },
+                CameraMode::ThirdPerson => 0.0,
+                CameraMode::Freefly => 0.0,
+            };
+
+            // Alter camera position to match player.
+            let tilt = self.camera.get_orientation().y;
+            let dist = self.camera.get_distance();
+
+            Vec3::unit_z() * (up - tilt.min(0.0).sin() * dist * 0.6)
+                + self.camera.right() * (right * viewpoint_scale)
+        } else {
+            self.figure_mgr
+                .viewpoint_offset(scene_data, scene_data.viewpoint_entity)
+        };
+
+        let entity_pos = positions
+            .get(scene_data.viewpoint_entity)
+            .map_or(Vec3::zero(), |pos| pos.0);
+
+        let viewpoint_pos = match self.camera.get_mode() {
+            CameraMode::FirstPerson => {
+                // The camera is forces to forced on the interpolated x/y position but
+                // interpolates z. Effectively, x/y are controlled by entity
+                // interpolation, z is controlled by camera interpolation. Why? Because
+                // this produces visually smooth results in a larger variety of cases
+                let viewpoint_pos = ecs
+                    .read_storage::<Interpolated>()
+                    .get(client.entity())
+                    .map_or(entity_pos, |i| i.pos.xy().with_z(entity_pos.z));
+                self.camera
+                    .force_xy_focus_pos(viewpoint_pos + viewpoint_offset);
+                viewpoint_pos
+            },
+            CameraMode::ThirdPerson => {
+                let viewpoint_pos = entity_pos;
+                self.camera.set_focus_pos(viewpoint_pos + viewpoint_offset);
+                viewpoint_pos
+            },
+            CameraMode::Freefly => entity_pos,
+        };
+
+        // Tick camera for interpolation.
+        self.camera
+            .update(scene_data.state.get_time(), dt, scene_data.mouse_smoothing);
 
         // Compute camera matrices.
         self.camera.compute_dependents(&scene_data.state.terrain());
