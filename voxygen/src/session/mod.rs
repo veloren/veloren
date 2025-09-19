@@ -1234,14 +1234,12 @@ impl PlayState for SessionState {
                                     &mut self.free_look,
                                     |b| hud.free_look(b),
                                 );
-                                if global_state.settings.gameplay.free_look_save_cam_pos {
-                                    let camera = self.scene.camera_mut();
-                                    let ori = camera.get_orientation();
-                                    if self.free_look {
-                                        self.prev_cam_pos = ori;
-                                    } else {
-                                        camera.set_orientation_instant(self.prev_cam_pos);
-                                    }
+                                let camera = self.scene.camera_mut();
+                                let ori = camera.get_orientation();
+                                if self.free_look {
+                                    self.prev_cam_pos = ori;
+                                } else {
+                                    camera.set_orientation_instant(self.prev_cam_pos);
                                 }
                             },
                             GameInput::AutoWalk => {

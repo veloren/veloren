@@ -67,7 +67,6 @@ pub enum Gameplay {
     ToggleMouseYInvert(bool),
     ToggleZoomInvert(bool),
     ToggleSmoothPan(bool),
-    ToggleFreeLookSaveCameraPosition(bool),
 
     ChangeFreeLookBehavior(PressBehavior),
     ChangeAutoWalkBehavior(PressBehavior),
@@ -418,9 +417,6 @@ impl SettingsChange {
                     },
                     Gameplay::ToggleSmoothPan(smooth_pan_enabled) => {
                         settings.gameplay.smooth_pan_enable = smooth_pan_enabled;
-                    },
-                    Gameplay::ToggleFreeLookSaveCameraPosition(free_look_save_cam_pos) => {
-                        settings.gameplay.free_look_save_cam_pos = free_look_save_cam_pos;
                     },
                     Gameplay::ChangeFreeLookBehavior(behavior) => {
                         settings.gameplay.free_look_behavior = behavior;
