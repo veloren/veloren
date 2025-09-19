@@ -8155,7 +8155,7 @@ impl FigureStateMeta {
     }
 
     /// Due to a quirk of the way mount animations work, animation offsets do
-    /// not always correspond to world-space positions when mounted. This
+    /// not always correspond to world-space offsets when mounted. This
     /// function allows calculating the world-space.
     pub fn wpos_of(&self, figure_offs: Vec3<f32>) -> Vec3<f32> {
         // Calculate the correct offset given a figure offset

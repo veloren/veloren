@@ -602,8 +602,10 @@ impl Scene {
                 .figure_mgr
                 .states
                 .character_states
-                .get(&client.entity())
-            && let Some(interpolated) = ecs.read_storage::<Interpolated>().get(client.entity())
+                .get(&scene_data.viewpoint_entity)
+            && let Some(interpolated) = ecs
+                .read_storage::<Interpolated>()
+                .get(scene_data.viewpoint_entity)
         {
             // TODO: Don't hard-code this offset
             char_state
@@ -618,7 +620,10 @@ impl Scene {
         } else {
             // When not in first-person, just use the game-provided eye height, combined
             // with a per-state factor
-            match client.current::<CharacterState>() {
+            match ecs
+                .read_storage::<CharacterState>()
+                .get(scene_data.viewpoint_entity)
+            {
                 Some(CharacterState::Crawl) => viewpoint_eye_height * 0.3,
                 Some(CharacterState::Sit) => viewpoint_eye_height * 0.7,
                 Some(c) if c.is_stealthy() => viewpoint_eye_height * 0.6,
@@ -652,10 +657,9 @@ impl Scene {
                 .get(scene_data.viewpoint_entity)
                 .map(|p| p.on_ground.is_some());
 
-            let player_entity = client.entity();
             let holding_ranged = client
                 .inventories()
-                .get(player_entity)
+                .get(scene_data.viewpoint_entity)
                 .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
                 .and_then(|item| item.tool_info())
                 .is_some_and(|tool_kind| {
@@ -711,13 +715,13 @@ impl Scene {
 
         let viewpoint_pos = match self.camera.get_mode() {
             CameraMode::FirstPerson => {
-                // The camera is forces to forced on the interpolated x/y position but
+                // The camera is forced to focus on the interpolated x/y position but
                 // interpolates z. Effectively, x/y are controlled by entity
                 // interpolation, z is controlled by camera interpolation. Why? Because
                 // this produces visually smooth results in a larger variety of cases
                 let viewpoint_pos = ecs
                     .read_storage::<Interpolated>()
-                    .get(client.entity())
+                    .get(scene_data.viewpoint_entity)
                     .map_or(entity_pos, |i| i.pos.xy().with_z(entity_pos.z));
                 self.camera
                     .force_xy_focus_pos(viewpoint_pos + viewpoint_offset);
