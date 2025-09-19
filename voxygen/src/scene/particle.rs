@@ -736,9 +736,8 @@ impl ParticleMgr {
         prof_span!("ParticleMgr::maintain_armor_particles");
         let ecs = scene_data.state.ecs();
 
-        for (entity, interpolated, body, scale, inv, physics) in (
+        for (entity, body, scale, inv, physics) in (
             &ecs.entities(),
-            &ecs.read_storage::<Interpolated>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Scale>().maybe(),
             &ecs.read_storage::<Inventory>(),
@@ -751,13 +750,7 @@ impl ParticleMgr {
                     && &*str == "common.items.armor.misc.head.pipe"
                 {
                     self.maintain_pipe_particles(
-                        scene_data,
-                        figure_mgr,
-                        entity,
-                        interpolated.pos,
-                        body,
-                        scale,
-                        physics,
+                        scene_data, figure_mgr, entity, body, scale, physics,
                     )
                 }
             }
@@ -769,7 +762,6 @@ impl ParticleMgr {
         scene_data: &SceneData,
         figure_mgr: &FigureMgr,
         entity: Entity,
-        pos: Vec3<f32>,
         body: &Body,
         scale: Option<&Scale>,
         physics: &PhysicsState,
@@ -782,12 +774,7 @@ impl ParticleMgr {
             let Body::Humanoid(body) = body else {
                 return;
             };
-            let Some(skeleton) = figure_mgr
-                .states
-                .character_states
-                .get(&entity)
-                .map(|state| &state.computed_skeleton)
-            else {
+            let Some(state) = figure_mgr.states.character_states.get(&entity) else {
                 return;
             };
             let time = scene_data.state.get_time();
@@ -817,7 +804,7 @@ impl ParticleMgr {
                         Duration::from_millis(1500),
                         time,
                         ParticleMode::PipeSmoke,
-                        pos + skeleton.head.mul_point(pipe_offset),
+                        state.wpos_of(state.computed_skeleton.head.mul_point(pipe_offset)),
                         scene_data,
                     )
                 });

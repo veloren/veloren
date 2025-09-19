@@ -664,6 +664,12 @@ impl Camera {
         self.focus = focus;
     }
 
+    /// Set the focus position of the camera, without lerping.
+    pub fn force_xy_focus_pos(&mut self, focus: Vec3<f32>) {
+        self.tgt_focus = focus;
+        self.focus = focus.xy().with_z(self.focus.z);
+    }
+
     /// Get the aspect ratio of the camera.
     pub fn get_aspect_ratio(&self) -> f32 { self.aspect }
 

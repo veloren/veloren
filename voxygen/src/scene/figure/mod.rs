@@ -916,10 +916,7 @@ impl FigureMgr {
                     let pos = anim::vek::Vec3::from(
                         interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array(),
                     );
-                    Some(
-                        state.mount_world_pos + anim::vek::Vec3::from(lantern_offset?.into_array())
-                            - pos,
-                    )
+                    Some(state.wpos_of(lantern_offset?) - pos)
                 })
             {
                 light_anim.offset = lantern_offset;
@@ -8155,6 +8152,14 @@ impl FigureStateMeta {
     pub fn can_occlude_rain(&self) -> bool {
         // Either visible, or explicitly a rain occluder.
         self.visible || self.can_occlude_rain
+    }
+
+    /// Due to a quirk of the way mount animations work, animation offsets do
+    /// not always correspond to world-space offsets when mounted. This
+    /// function allows calculating the world-space.
+    pub fn wpos_of(&self, figure_offs: Vec3<f32>) -> Vec3<f32> {
+        // Calculate the correct offset given a figure offset
+        self.mount_world_pos + anim::vek::Vec3::from(figure_offs.into_array())
     }
 }
 
