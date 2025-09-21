@@ -108,6 +108,7 @@ pub struct SessionState {
     walk_forward_dir: Vec2<f32>,
     walk_right_dir: Vec2<f32>,
     free_look: bool,
+    freecam_pos: Vec3<f32>,
     auto_walk: bool,
     walking_speed: bool,
     camera_clamp: bool,
@@ -182,6 +183,7 @@ impl SessionState {
             walk_forward_dir,
             walk_right_dir,
             free_look: false,
+            freecam_pos: Vec3::zero(),
             auto_walk: false,
             walking_speed: false,
             camera_clamp: false,
@@ -1232,6 +1234,13 @@ impl PlayState for SessionState {
                                     &mut self.free_look,
                                     |b| hud.free_look(b),
                                 );
+                                let camera = self.scene.camera_mut();
+                                let ori = camera.get_orientation();
+                                if self.free_look {
+                                    self.freecam_pos = ori;
+                                } else {
+                                    camera.set_orientation_instant(self.freecam_pos);
+                                }
                             },
                             GameInput::AutoWalk => {
                                 let hud = &mut self.hud;

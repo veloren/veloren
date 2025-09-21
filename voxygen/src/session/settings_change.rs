@@ -66,7 +66,6 @@ pub enum Gameplay {
     ToggleControllerYInvert(bool),
     ToggleMouseYInvert(bool),
     ToggleZoomInvert(bool),
-
     ToggleSmoothPan(bool),
 
     ChangeFreeLookBehavior(PressBehavior),

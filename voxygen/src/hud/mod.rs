@@ -3961,6 +3961,7 @@ impl Hud {
         {
             let msg = i18n.get_msg_ctx("hud-free_look_indicator", &i18n::fluent_args! {
                 "key" => freelook_key.display_string(),
+                "toggle" => global_state.settings.gameplay.free_look_behavior as usize,
             });
             Text::new(&msg)
                 .color(TEXT_BG)

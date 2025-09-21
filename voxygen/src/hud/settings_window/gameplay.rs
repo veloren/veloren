@@ -51,6 +51,7 @@ widget_ids! {
         camera_clamp_behavior_list,
         zoom_lock_behavior_text,
         zoom_lock_behavior_list,
+        //
         stop_auto_walk_on_input_button,
         stop_auto_walk_on_input_label,
         auto_camera_button,
