@@ -157,14 +157,14 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
                 | CharacterState::RapidMelee(_)
-                | CharacterState::StaticAura(_) => {
+                | CharacterState::StaticAura(_)
+                | CharacterState::Roll(_) => {
                     if energy.needs_regen_rate_reset() {
                         energy.reset_regen_rate();
                     }
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
-                CharacterState::Roll(_)
-                | CharacterState::Crawl
+                CharacterState::Crawl
                 | CharacterState::Wallrun(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)
