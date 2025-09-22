@@ -723,10 +723,10 @@ pub fn handle_orientation(
     // unit is multiples of 180°
     let half_turns_per_tick = data.body.base_ori_rate() / data.scale.map_or(1.0, |s| s.0.sqrt())
         * efficiency
-        * if data.physics.on_ground.is_some() {
-            1.0
-        } else if data.physics.in_liquid().is_some() {
+        * if data.physics.in_liquid().is_some() {
             0.4
+        } else if data.physics.on_ground.is_some() || data.mount_data.is_some() {
+            1.0
         } else {
             0.2
         }

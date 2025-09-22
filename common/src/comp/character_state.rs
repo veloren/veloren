@@ -605,6 +605,22 @@ impl CharacterState {
         )
     }
 
+    /// A subset of `can_perform_mounted` actions that allow the character
+    /// to change their orientation towards their look dir when mounted.
+    pub fn can_look_while_mounted(&self) -> bool {
+        !matches!(
+            self,
+            CharacterState::Idle(_)
+                | CharacterState::Sit
+                | CharacterState::Dance
+                | CharacterState::Talk(_)
+                | CharacterState::Stunned(_)
+                | CharacterState::Equipping(_)
+                | CharacterState::SelfBuff(_)
+                | CharacterState::BasicAura(_)
+        ) && self.can_perform_mounted()
+    }
+
     pub fn is_sitting(&self) -> bool {
         use use_item::{Data, ItemUseKind, StaticData};
         matches!(
