@@ -10,6 +10,7 @@ ComboMelee2(
                 ),
                 range: 1.5,
                 angle: 45.0,
+                blockable: false,
                 attack_effect: Some((Poise(30), TargetBlocking)),
             ),
             buildup_duration: 0.3,
