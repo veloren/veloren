@@ -1,8 +1,9 @@
 use common::{
     combat::RiderEffects,
     comp::{
-        Body, Buff, BuffCategory, BuffChange, Buffs, CharacterActivity, Collider, ControlAction,
-        Controller, InputKind, Mass, Ori, PhysicsState, Pos, Scale, Stats, Vel, buff::DestInfo,
+        Body, Buff, BuffCategory, BuffChange, Buffs, CharacterActivity, CharacterState, Collider,
+        ControlAction, Controller, InputKind, Mass, Ori, PhysicsState, Pos, Scale, Stats, Vel,
+        buff::DestInfo,
     },
     event::{BuffEvent, EmitExt},
     event_emitters,
@@ -48,6 +49,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Mass>,
         ReadStorage<'a, RiderEffects>,
+        ReadStorage<'a, CharacterState>,
     );
 
     const NAME: &'static str = "mount";
@@ -78,6 +80,7 @@ impl<'a> System<'a> for Sys {
             stats,
             masses,
             rider_effects,
+            char_states,
         ): Self::SystemData,
     ) {
         let mut emitters = events.get_emitters();
@@ -166,7 +169,17 @@ impl<'a> System<'a> for Sys {
                         * scales.get(rider_entity).map_or(1.0, |s| s.0);
                 let _ =
                     positions.insert(rider_entity, Pos(pos.0 + ori.to_quat() * mounting_offset));
-                let _ = orientations.insert(rider_entity, ori);
+
+                // When the rider is doing an activity that requires them to aim
+                // in their look_dir, the mount shouldn't override their ori.
+                let should_set_ori = char_states
+                    .get(rider_entity)
+                    .is_none_or(|cs| !cs.can_look_while_mounted());
+
+                if should_set_ori {
+                    let _ = orientations.insert(rider_entity, ori);
+                }
+
                 let _ = velocities.insert(rider_entity, vel);
             }
             // ...and apply the rider's inputs to the mount's controller

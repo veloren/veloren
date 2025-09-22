@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collars now require 2 tin ingots instead of an iron ingot, and their quality attribute has been changed to common instead of moderate.
 - Barns can spawn some items.
 - Significantly increased the frequency/number of recipes dropped from dungeon chests.
+- More attacks and interactions can be aimed while mounted.
 
 ### Removed
 
