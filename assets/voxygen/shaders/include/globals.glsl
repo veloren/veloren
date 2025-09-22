@@ -34,7 +34,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     float globals_dummy; // Fix alignment.
 };
 
-float distance_divider = 2;
+float distance_divider = 2.0;
 float shadow_dithering = 0.5;
 
 float tick_overflow = 300000.0;

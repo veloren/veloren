@@ -70,7 +70,7 @@ float BeckmannDistribution_D(float NdotH, float alpha) {
     const float PI = 3.1415926535897932384626433832795;
     float NdotH2 = NdotH * NdotH;
     float NdotH2m2 = NdotH2 * alpha * alpha;
-    float k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
+    float k_spec = exp((NdotH2 - 1.0) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
     return mix(k_spec, 0.0, NdotH == 0.0);
 }
 
@@ -85,7 +85,7 @@ float BeckmannDistribution_D_Voxel(vec3 wh, vec3 voxel_norm, float alpha) {
     const float PI = 3.1415926535897932384626433832795;
     vec3 NdotH2 = NdotH * NdotH;
     vec3 NdotH2m2 = NdotH2 * alpha * alpha;
-    vec3 k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
+    vec3 k_spec = exp((NdotH2 - 1.0) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
     return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(voxel_norm));
     // // const float PI = 3.1415926535897932384626433832795;
     // const vec3 normals[6] = vec3[](vec3(1,0,0), vec3(0,1,0), vec3(0,0,1), vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1));
@@ -134,12 +134,12 @@ float TrowbridgeReitzDistribution_D_Voxel(vec3 wh, vec3 voxel_norm, float alpha)
     // vec3 m2 = alpha * alpha;
     // vec3 NdotH2m2 = NdotH2 * m2;
     vec3 NdotH2m2 = NdotH2 * alpha * alpha;
-    // vec3 Tan2Theta = (1 - NdotH2) / NdotH2;
-    // vec3 e = (NdotH2 / m2 + (1 - NdotH2) / m2) * Tan2Theta;
-    // vec3 e = 1 / m2 * (1 - NdotH2) / NdotH2;
-    vec3 e = (1 - NdotH2) / NdotH2m2;
-    vec3 k_spec = 1.0 / (PI * NdotH2m2 * NdotH2 * (1 + e) * (1 + e));
-    // vec3 k_spec = exp((NdotH2 - 1) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
+    // vec3 Tan2Theta = (1.0 - NdotH2) / NdotH2;
+    // vec3 e = (NdotH2 / m2 + (1.0 - NdotH2) / m2) * Tan2Theta;
+    // vec3 e = 1.0 / m2 * (1.0 - NdotH2) / NdotH2;
+    vec3 e = (1.0 - NdotH2) / NdotH2m2;
+    vec3 k_spec = 1.0 / (PI * NdotH2m2 * NdotH2 * (1.0 + e) * (1.0 + e));
+    // vec3 k_spec = exp((NdotH2 - 1.0) / NdotH2m2) / (PI * NdotH2m2 * NdotH2);
     return dot(mix(k_spec, /*cos_sides_o*/vec3(0.0), equal(NdotH, vec3(0.0))), /*cos_sides_i*/abs(voxel_norm));
 }
 
@@ -205,8 +205,8 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
         (1.0 - pow5(1.0 - 0.5 * abs(cos_wo)));
     /* Spectrum diffuse = (28.f/(23.f*Pi)) * Rd *
         (Spectrum(1.f) - Rs) *
-        (1 - pow5(1 - .5f * AbsCosTheta(wi))) *
-        (1 - pow5(1 - .5f * AbsCosTheta(wo))); */
+        (1 - pow5(1.0 - .5f * AbsCosTheta(wi))) *
+        (1 - pow5(1.0 - .5f * AbsCosTheta(wo))); */
     // Vector3f wh = wi + wo;
     vec3 wh = -light_dir + dir;
 #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
@@ -230,11 +230,11 @@ vec3 FresnelBlend_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_s, flo
     wh = normalize(wh);//mix(normalize(wh), vec3(0.0), equal(light_dir, dir));
     float dot_wi_wh = dot(-light_dir, wh);
     vec3 specular = dot(norm, dir) > 0.0 ? vec3(0.0) : (BeckmannDistribution_D(dot(wh, norm), alpha) /
-        (4 * abs(dot_wi_wh) *
+        (4.0 * abs(dot_wi_wh) *
         max(abs(cos_wi), abs(cos_wo))) *
         schlick_fresnel(R_s, dot_wi_wh));
     // Spectrum specular = distribution->D(wh) /
-    //     (4 * AbsDot(wi, wh) *
+    //     (4.0 * AbsDot(wi, wh) *
     //      std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
     //      SchlickFresnel(Dot(wi, wh));
     return mix(/*diffuse*//* + specular*/diffuse + specular, vec3(0.0), bvec3(all(equal(light_dir, dir))));
@@ -314,7 +314,7 @@ vec3 FresnelBlend_Voxel_f(vec3 norm, vec3 dir, vec3 light_dir, vec3 R_d, vec3 R_
     float distr = BeckmannDistribution_D_Voxel(wh, voxel_norm, alpha);
     // float distr = BeckmannDistribution_D(dot(wh, norm), alpha);
     vec3 specular = distr /
-        (4 * abs(dot_wi_wh) *
+        (4.0 * abs(dot_wi_wh) *
         max(abs(cos_wi), abs(cos_wo))) *
         schlick_fresnel(R_s, dot_wi_wh);
     return mix(/*diffuse*//* + specular*/diffuse + specular, vec3(0.0), bvec3(all(equal(light_dir, dir))));
@@ -628,10 +628,10 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
     // TODO: Use `texture` instead
     //vec2 light = texture(t_col_light, f_uv_pos).xy / 31;
 
-    uvec4 tex_00 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 0), 0) * 255);
-    uvec4 tex_10 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0) * 255);
-    uvec4 tex_01 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0) * 255);
-    uvec4 tex_11 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0) * 255);
+    uvec4 tex_00 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 0), 0) * 255.0);
+    uvec4 tex_10 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 0), 0) * 255.0);
+    uvec4 tex_01 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(0, 1), 0) * 255.0);
+    uvec4 tex_11 = uvec4(texelFetch(sampler2D(t_col_light, s_col_light), ivec2(f_uv_pos) + ivec2(1, 1), 0) * 255.0);
     vec3 light_00 = vec3(tex_00.rg >> 3u, tex_00.a & 1u);
     vec3 light_10 = vec3(tex_10.rg >> 3u, tex_10.a & 1u);
     vec3 light_01 = vec3(tex_01.rg >> 3u, tex_01.a & 1u);
@@ -642,7 +642,7 @@ vec3 greedy_extract_col_light_attr(texture2D t_col_light, sampler s_col_light, v
 
     vec3 f_col = vec3(
         float(((tex_00.r & 0x7u) << 1u) | (tex_00.b & 0xF0u)),
-        float(tex_00.a & 0xFE),
+        float(tex_00.a & 0xFEu),
         float(((tex_00.g & 0x7u) << 1u) | ((tex_00.b & 0x0Fu) << 4u))
     ) / 255.0;
 
@@ -660,7 +660,7 @@ vec3 greedy_extract_col_light_kind_terrain(
     vec2 f_uv_pos,
     out float f_light, out float f_glow, out float f_ao, out float f_sky_exposure, out uint f_kind
 ) {
-    float _f_attr;
+    uint _f_attr;
     f_kind = uint(texelFetch(t_kind, ivec2(f_uv_pos), 0).r);
     return greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_light, f_glow, f_ao, _f_attr, f_sky_exposure);
 }
