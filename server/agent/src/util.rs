@@ -391,7 +391,9 @@ pub fn handle_attack_aggression(
                         controller.push_basic_input(InputKind::Roll);
                         agent.combat_state.conditions[condition_rolling_breakthrough_index] = false;
                     }
-                    if tgt_data.char_state.is_some_and(|cs| cs.is_melee_attack()) {
+                    if tgt_data.char_state.is_some_and(|cs| {
+                        cs.is_melee_attack() && cs.is_blockable().unwrap_or(false)
+                    }) {
                         controller.push_basic_input(InputKind::Block);
                     }
                 } else {
