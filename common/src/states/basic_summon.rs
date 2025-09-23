@@ -147,7 +147,7 @@ impl CharacterBehavior for Data {
                                         .flatten()
                                         .unwrap_or_else(|| {
                                             Content::with_attr(
-                                                "npc-custom-fallback-summon",
+                                                "name-custom-fallback-summon",
                                                 body.gender_attr(),
                                             )
                                         }),
