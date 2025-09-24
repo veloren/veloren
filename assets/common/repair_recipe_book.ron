@@ -1004,7 +1004,7 @@ recipes: {
         ],
     ),
     // ARMOR/MAIL/COBALT
-    ItemDefId("common.items.armor.mail.bloodsteel.back"): (
+    ItemDefId("common.items.armor.mail.cobalt.back"): (
         inputs: [
             (Item("common.items.mineral.ingot.cobalt"), 1),
             (Item("common.items.mineral.ore.veloritefrag"), 2),
