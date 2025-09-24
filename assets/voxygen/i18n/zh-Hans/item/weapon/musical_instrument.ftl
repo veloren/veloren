@@ -34,3 +34,5 @@ weapon-tool-banjo = 班卓琴
     .desc = 班卓琴。
 weapon-tool-kora = 科拉琴
     .desc = 科拉琴。
+weapon-tool-steeltonguedrum = 钢舌鼓
+    .desc = 钢舌鼓。

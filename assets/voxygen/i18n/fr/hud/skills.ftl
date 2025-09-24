@@ -1,9 +1,9 @@
 hud-rank_up = Nouveau point de compétence
 hud-skill-sp_available =
     { $number ->
-        [0] Pas de point de compétence disponible
+        [0] Aucun point de compétence disponible
         [1] { $number } point de compétence disponible
-       *[other] { $number } points de compétence disponible
+       *[other] { $number } points de compétence disponibles
     }
 hud-skill-not_unlocked = Pas encore débloqué
 hud-skill-req_sp = { "\u000A" }Nécessite { $number } PC
