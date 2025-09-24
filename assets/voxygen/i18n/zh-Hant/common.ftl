@@ -40,7 +40,8 @@ common-language_settings = 語言設定
 common-chat_settings = 聊天設定
 common-networking_settings = 網路設定
 common-accessibility_settings = 無障礙設定
-common-connection_lost = 連線中斷！
+common-connection_lost =
+    連線中斷！
     伺服器是否重新啟動了？
     客戶端是否是最新版本？
 common-species-orc = 兽人
@@ -71,7 +72,6 @@ common-kind-modular_component = 模組化元件
 common-kind-modular_component_partial = 元件
 common-kind-glider = 滑翔翼
 common-kind-consumable = 消耗品
-common-kind-throwable = 可投擲
 common-kind-utility = 工具
 common-kind-ingredient = 原料
 common-kind-lantern = 燈籠
@@ -100,12 +100,6 @@ common-material-stone = 石頭
 common-material-cloth = 布料
 common-material-hide = 皮革
 common-sprite-chest = 箱子
-common-sprite-chair = 椅子
 common-sprite-mud = 泥巴
 common-sprite-grave = 墓碑
 common-sprite-crate = 木箱
-common-sprite-signboard = 告示牌
-common-sprite-street_lamp = 路燈
-common-sprite-lantern = 燈籠
-common-sprite-seashell_lantern = 貝殼燈籠
-common-sprite-firebowl_ground = 地面火盆

@@ -2,9 +2,7 @@
 ## 如果從這裡刪除，它們也會自動從es刪除，
 ## 所以即使在英文文件中沒有使用，也請保留它們。
 ## 請參閱 https://github.com/WeblateOrg/weblate/issues/9895
--hud-skill-sc_wardaura_title = ""
--hud-skill-bow_shotgun_title = ""
--hud-skill-st_shockwave_title = ""
+
 
 ## 技能樹 UI
 
@@ -16,18 +14,16 @@ hud-skill_tree-bow = 弓
 hud-skill_tree-staff = 火焰法杖
 hud-skill_tree-sceptre = 權杖
 hud-skill_tree-mining = 採礦
-
 hud-rank_up = 新技能點數
 hud-skill-sp_available =
     { $number ->
         [0] 無技能點數可用
         [1] { $number } 點技能點數可用
-        *[other] { $number } 點技能點數可用
+       *[other] { $number } 點技能點數可用
     }
 hud-skill-not_unlocked = 尚未解鎖
-hud-skill-req_sp = {"\u000A"}需要 { $number } SP
+hud-skill-req_sp = { "\u000A" }需要 { $number } SP
 hud-skill-set_as_exp_bar = 在經驗值條上跟蹤進度
-
 hud-skill-unlck_sword_title = 劍精通
 hud-skill-unlck_sword = 解鎖劍技能樹。{ $SP }
 hud-skill-unlck_axe_title = 斧精通
@@ -151,6 +147,7 @@ hud-skill-pick_strike_gemgain_title = 鑿擊寶石收獲
 hud-skill-pick_strike_gemgain = 額外獲得寶石的機會（每級 { $boost } %）。{ $SP }
 
 ## 技能樹錯誤對話框
+
 hud-skill-persistence-hash_mismatch = 自上次遊玩以來，檢測到其中一個技能組發生差異
 hud-skill-persistence-deserialization_failure = 從數據庫加載技能時發生錯誤
 hud-skill-persistence-spent_experience_missing = 其中一個技能組中的可用經驗值數量與你上次遊玩時不同

@@ -21,3 +21,4 @@ noun-sea_bishop = єпископ моря
 noun-sly_saurok = хитрий саурок
 noun-tursus = турсус
 noun-swamp_troll = болотний троль
+noun-role-farmer = фермер
