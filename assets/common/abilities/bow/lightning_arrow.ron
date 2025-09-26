@@ -21,6 +21,7 @@ ChargedRanged(
     projectile_light: None,
     initial_projectile_speed: 30.0,
     scaled_projectile_speed: 85.0,
+    marker: Some(JoltArrow),
     move_speed: 0.7,
     meta: (
         init_event: Some(EnterStance(None)),

@@ -116,6 +116,7 @@ const int PIPE_SMOKE = 74;
 const int TRAIN_SMOKE = 75;
 const int BUBBLE = 76;
 const int ELEPHANT_VACUUM = 77;
+const int ELECTRIC_SPARKS = 78;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -201,6 +202,28 @@ mat4 spin_in_axis(vec3 axis, float angle)
         0,
 
         0, 0, 0, 1
+    );
+}
+
+mat4 align_to_axis(vec3 axis)
+{
+    axis = normalize(axis);
+    float r_xy = sqrt(axis.x * axis.x + axis.y * axis.y);
+    float c;
+    float s;
+    if (r_xy < 0.001) {
+        s = 0;
+        c = 1;
+    } else {
+        s = axis.y / r_xy;
+        c = axis.x / r_xy;
+    }
+
+    return mat4(
+        axis.x, -s, -axis.z * c,    0,
+        axis.y, c,  -axis.z * s,    0,
+        axis.z, 0,  r_xy,           0,
+        0,      0,  0,              1
     );
 }
 
@@ -1234,6 +1257,17 @@ void main() {
                 vec3(vacuum_particle_size),
                 vec4(0.4, 0.4, 0.4, 0.1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case ELECTRIC_SPARKS:
+            float len = length(inst_dir) * 5 * percent() * (rand8 + 0.5);
+            float electric_arc_color = rand1 * 2 + 8;
+            float electric_arc_width = rand4 * 0.1 + 0.15;
+            attr = Attr(
+                inst_dir / 2 * percent() + vec3(rand5, rand6, rand7) * 0.1,
+                vec3(len, electric_arc_width, electric_arc_width),
+                vec4(electric_arc_color + rand2, electric_arc_color / 3, electric_arc_color + rand3, 1),
+                align_to_axis(inst_dir)
             );
             break;
         default:

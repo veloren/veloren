@@ -8,10 +8,9 @@ use specs::Component;
 use vek::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Arc {
+pub struct Arcing {
     pub properties: ArcProperties,
     pub last_arc_time: Time,
-    #[serde(skip)]
     pub hit_entities: Vec<Uid>,
     pub owner: Option<Uid>,
 }
@@ -23,8 +22,9 @@ pub struct ArcProperties {
     pub arcs: u32,
     pub min_delay: Secs,
     pub max_delay: Secs,
+    pub targets_owner: bool,
 }
 
-impl Component for Arc {
-    type Storage = specs::DenseVecStorage<Self>;
+impl Component for Arcing {
+    type Storage = specs::DerefFlaggedStorage<Self, specs::DenseVecStorage<Self>>;
 }

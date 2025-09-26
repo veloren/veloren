@@ -6,8 +6,8 @@ ChargedRanged(
         kind: Arcing(
             distance: 10,
             arcs: 5,
-            min_delay: 0.1,
-            max_delay: 0.3,
+            min_delay: 0.25,
+            max_delay: 1,
         ),
         attack: Some((
             damage: 4,
@@ -23,6 +23,7 @@ ChargedRanged(
     projectile_light: None,
     initial_projectile_speed: 50.0,
     scaled_projectile_speed: 150.0,
+    marker: Some(JoltArrow),
     move_speed: 0.4,
     meta: (
         init_event: Some(EnterStance(None)),

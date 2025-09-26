@@ -325,7 +325,7 @@ pub struct ExplosionEvent {
     pub owner: Option<Uid>,
 }
 
-pub struct ArcEvent {
+pub struct ArcingEvent {
     pub arc: ArcProperties,
     pub owner: Option<Uid>,
     pub target: Uid,
@@ -385,6 +385,7 @@ pub struct ShootEvent {
     pub projectile: comp::Projectile,
     pub speed: f32,
     pub object: Option<comp::Object>,
+    pub marker: Option<comp::FrontendMarker>,
 }
 
 pub struct ThrowEvent {

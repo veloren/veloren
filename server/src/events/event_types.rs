@@ -1,5 +1,5 @@
 pub use common::event::{
-    ArcEvent, AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent,
+    ArcingEvent, AuraEvent, BonkEvent, BuffEvent, ChangeAbilityEvent, ChangeBodyEvent,
     ChangeStanceEvent, ChatEvent, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent,
     ComboChangeEvent, CommandEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
     CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
@@ -90,7 +90,7 @@ macro_rules! server_events {
             RegrowHeadEvent
             SetBattleModeEvent
             SummonBeamPillarsEvent
-            ArcEvent
+            ArcingEvent
         }
     };
 }

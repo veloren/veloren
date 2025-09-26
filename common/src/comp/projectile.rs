@@ -149,6 +149,8 @@ pub enum ProjectileConstructorKind {
         arcs: u32,
         min_delay: Secs,
         max_delay: Secs,
+        #[serde(default)]
+        targets_owner: bool,
     },
     Possess,
     Hazard {
@@ -417,6 +419,7 @@ impl ProjectileConstructor {
                 arcs,
                 min_delay,
                 max_delay,
+                targets_owner,
             } => {
                 let mut hit_entity = vec![Effect::Vanish];
 
@@ -429,6 +432,7 @@ impl ProjectileConstructor {
                         arcs,
                         min_delay,
                         max_delay,
+                        targets_owner,
                     };
 
                     hit_entity.push(Effect::Arc(arc));

@@ -17,7 +17,7 @@ use common::{
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        ArcEvent, BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
+        ArcingEvent, BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
         CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
         EventBus, InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent,
         ShootEvent, SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
@@ -450,6 +450,7 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
         .create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile)
         .maybe_with(ev.light)
         .maybe_with(ev.object)
+        .maybe_with(ev.marker)
         .build();
 }
 
@@ -518,10 +519,10 @@ pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {
         .build();
 }
 
-pub fn handle_arc(server: &mut Server, ev: ArcEvent) {
+pub fn handle_arc(server: &mut Server, ev: ArcingEvent) {
     let state = server.state_mut();
     state
-        .create_arc(ev.arc, ev.target, ev.owner, ev.pos)
+        .create_arcing(ev.arc, ev.target, ev.owner, ev.pos)
         .build();
 }
 

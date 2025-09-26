@@ -1,7 +1,7 @@
 use crate::{
     combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, StateUpdate, ability::Amount,
+        Body, CharacterState, FrontendMarker, LightEmitter, Pos, StateUpdate, ability::Amount,
         character_state::OutputEvents, projectile::ProjectileConstructor,
     },
     event::ShootEvent,
@@ -36,6 +36,7 @@ pub struct StaticData {
     pub scaled_projectile_speed: f32,
     pub projectile_spread: Option<ProjectileSpread>,
     pub num_projectiles: Amount,
+    pub marker: Option<FrontendMarker>,
     /// Move speed efficiency
     pub move_speed: f32,
     /// What key is used to press ability
@@ -140,6 +141,7 @@ impl CharacterBehavior for Data {
                             speed: self.static_data.initial_projectile_speed
                                 + charge_frac * self.static_data.scaled_projectile_speed,
                             object: None,
+                            marker: self.static_data.marker,
                         });
                     }
 

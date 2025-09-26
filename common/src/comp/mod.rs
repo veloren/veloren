@@ -2,7 +2,7 @@ pub mod ability;
 mod admin;
 pub mod agent;
 pub mod anchor;
-pub mod arc;
+pub mod arcing;
 pub mod aura;
 pub mod beam;
 pub mod body;
@@ -51,7 +51,7 @@ pub use self::{
         TradingBehavior,
     },
     anchor::Anchor,
-    arc::{Arc, ArcProperties},
+    arcing::{ArcProperties, Arcing},
     aura::{Aura, AuraChange, AuraKind, Auras, EnteredAuras},
     beam::Beam,
     body::{
@@ -110,7 +110,7 @@ pub use self::{
     },
     stats::{Stats, StatsModifier},
     teleport::Teleporting,
-    visual::{LightAnimation, LightEmitter},
+    visual::{FrontendMarker, LightAnimation, LightEmitter},
 };
 pub use common_i18n::{Content, LocalizationArg};
 

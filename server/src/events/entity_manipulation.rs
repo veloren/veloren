@@ -2311,6 +2311,7 @@ impl ServerEvent for BonkEvent {
                                     ),
                                     speed: vel.0.magnitude(),
                                     object: None,
+                                    marker: None,
                                 });
                             } else {
                                 create_object_emitter.emit(CreateObjectEvent {

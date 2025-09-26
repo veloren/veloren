@@ -719,6 +719,8 @@ impl ParticleMgr {
             self.maintain_buff_particles(scene_data);
             self.maintain_fluid_particles(scene_data);
             self.maintain_stance_particles(scene_data);
+            self.maintain_marker_particles(scene_data);
+            self.maintain_arcing_particles(scene_data);
 
             self.upload_particles(renderer);
         } else {
@@ -3896,7 +3898,187 @@ impl ParticleMgr {
                         },
                     );
                 },
+                Stance::Bow(BowStance::JoltArrow) => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(20))),
+                        || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.2;
+                            let end_pos = start_pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.5;
+                            Particle::new_directed(
+                                Duration::from_millis(150),
+                                time,
+                                ParticleMode::ElectricSparks,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        },
+                    );
+                },
                 _ => {},
+            }
+        }
+    }
+
+    fn maintain_marker_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = rand::rng();
+
+        for (interp, pos, marker) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::FrontendMarker>(),
+        )
+            .join()
+        {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+
+            use comp::FrontendMarker;
+            match marker {
+                FrontendMarker::JoltArrow => {
+                    self.particles.resize_with(
+                        self.particles.len()
+                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(20))),
+                        || {
+                            let start_pos = pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.2;
+                            let end_pos = start_pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.5;
+                            Particle::new_directed(
+                                Duration::from_millis(150),
+                                time,
+                                ParticleMode::ElectricSparks,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        },
+                    );
+                },
+            }
+        }
+    }
+
+    fn maintain_arcing_particles(&mut self, scene_data: &SceneData) {
+        let state = scene_data.state;
+        let ecs = state.ecs();
+        let time = state.get_time();
+        let mut rng = rand::rng();
+        let id_maps = ecs.read_resource::<IdMaps>();
+
+        for (interp, pos, arcing) in (
+            ecs.read_storage::<Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<comp::Arcing>(),
+        )
+            .join()
+        {
+            let pos = interp.map_or(pos.0, |i| i.pos);
+            let body = arcing
+                .hit_entities
+                .last()
+                .and_then(|uid| id_maps.uid_entity(*uid))
+                .and_then(|e| ecs.read_storage::<Body>().get(e).copied());
+            let height = body.map_or(2.0, |b| b.height());
+            let radius = body.map_or(1.0, |b| b.max_radius());
+            let pos = pos + Vec3::unit_z() * height / 2.0;
+            self.particles.resize_with(
+                self.particles.len()
+                    + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
+                || {
+                    let start_pos = pos
+                        + Vec3::<f32>::zero()
+                            .map(|_| rng.random_range(-1.0..1.0))
+                            .normalized()
+                            * radius;
+                    let end_pos = start_pos
+                        + Vec3::<f32>::zero()
+                            .map(|_| rng.random_range(-1.0..1.0))
+                            .normalized()
+                            * (radius + 0.5);
+                    Particle::new_directed(
+                        Duration::from_millis(200),
+                        time,
+                        ParticleMode::ElectricSparks,
+                        start_pos,
+                        end_pos,
+                        scene_data,
+                    )
+                },
+            );
+
+            let num = arcing.hit_entities.len();
+            if num > 1 && (time - arcing.last_arc_time.0 < arcing.properties.min_delay.0) {
+                let last_pos = {
+                    let last_hit = arcing
+                        .hit_entities
+                        .get(num - 2)
+                        .and_then(|uid| id_maps.uid_entity(*uid));
+                    let pos = last_hit.and_then(|e| ecs.read_storage::<Pos>().get(e).map(|p| p.0));
+                    let height = last_hit
+                        .and_then(|e| ecs.read_storage::<Body>().get(e).map(|b| b.height()))
+                        .unwrap_or(2.0);
+                    pos.map(|p| p + Vec3::unit_z() * height / 2.0)
+                };
+
+                if let Some(last_pos) = last_pos {
+                    let vector = last_pos - pos;
+                    let dist = vector.magnitude();
+                    let ctrl = pos + vector / 2.0 + Vec3::unit_z() * dist;
+                    let bezier = QuadraticBezier3 {
+                        start: last_pos,
+                        ctrl,
+                        end: pos,
+                    };
+                    let segments = (dist * 1.0).ceil() as i32 + 2;
+                    for segment in 0..(segments - 1) {
+                        let t_0 = segment as f32 / segments as f32;
+                        let t_1 = (segment + 2) as f32 / segments as f32;
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(30))),
+                            || {
+                                let start_pos = bezier.evaluate(t_0)
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.random_range(-1.0..1.0))
+                                        .normalized()
+                                        * 0.2;
+                                let end_pos = bezier.evaluate(t_1)
+                                    + Vec3::<f32>::zero()
+                                        .map(|_| rng.random_range(-1.0..1.0))
+                                        .normalized()
+                                        * 0.2;
+                                Particle::new_directed(
+                                    Duration::from_millis(150),
+                                    time,
+                                    ParticleMode::ElectricSparks,
+                                    start_pos,
+                                    end_pos,
+                                    scene_data,
+                                )
+                            },
+                        );
+                    }
+                }
             }
         }
     }

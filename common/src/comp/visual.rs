@@ -28,3 +28,12 @@ pub struct LightAnimation {
 impl Component for LightAnimation {
     type Storage = DenseVecStorage<Self>;
 }
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum FrontendMarker {
+    JoltArrow,
+}
+
+impl Component for FrontendMarker {
+    type Storage = DerefFlaggedStorage<Self, specs::HashMapStorage<Self>>;
+}

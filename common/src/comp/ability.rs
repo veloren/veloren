@@ -1001,6 +1001,7 @@ pub enum CharacterAbility {
         projectile_spread: Option<ProjectileSpread>,
         #[serde(default)]
         num_projectiles: Amount,
+        marker: Option<comp::FrontendMarker>,
         move_speed: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1781,6 +1782,7 @@ impl CharacterAbility {
                 ref mut scaled_projectile_speed,
                 projectile_spread: _,
                 num_projectiles: _,
+                marker: _,
                 move_speed: _,
                 meta: _,
             } => {
@@ -2931,6 +2933,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 scaled_projectile_speed,
                 projectile_spread,
                 num_projectiles,
+                marker,
                 move_speed,
                 meta: _,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
@@ -2947,6 +2950,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     scaled_projectile_speed: *scaled_projectile_speed,
                     projectile_spread: *projectile_spread,
                     num_projectiles: *num_projectiles,
+                    marker: *marker,
                     move_speed: *move_speed,
                     ability_info,
                 },

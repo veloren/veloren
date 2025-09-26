@@ -95,7 +95,7 @@ pub trait StateExt {
         pos: comp::Pos,
         ori: comp::Ori,
     ) -> EcsEntityBuilder<'_>;
-    fn create_arc(
+    fn create_arcing(
         &mut self,
         arc: comp::ArcProperties,
         target: Uid,
@@ -410,7 +410,7 @@ impl StateExt for State {
             })
     }
 
-    fn create_arc(
+    fn create_arcing(
         &mut self,
         arc: comp::ArcProperties,
         target: Uid,
@@ -422,7 +422,7 @@ impl StateExt for State {
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(comp::Arc {
+            .with(comp::Arcing {
                 properties: arc,
                 last_arc_time: Time(time),
                 hit_entities: vec![target],

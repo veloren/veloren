@@ -139,6 +139,7 @@ impl CharacterBehavior for Data {
                             light: self.static_data.projectile_light,
                             speed: self.static_data.projectile_speed,
                             object: None,
+                            marker: None,
                         });
 
                         if let CharacterState::LeapRanged(c) = &mut update.character {

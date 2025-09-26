@@ -10,7 +10,7 @@ use common::{
     },
     effect,
     event::{
-        ArcEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt,
+        ArcingEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt,
         Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent,
         HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent,
         PossessEvent, ShootEvent, SoundEvent, TransformEvent,
@@ -55,7 +55,7 @@ event_emitters! {
         buff: BuffEvent,
         bonk: BonkEvent,
         possess: PossessEvent,
-        arc: ArcEvent,
+        arc: ArcingEvent,
         transform: TransformEvent,
     }
 }
@@ -414,6 +414,7 @@ impl<'a> System<'a> for Sys {
                                             },
                                             speed,
                                             object: None,
+                                            marker: None,
                                         });
                                     }
                                 }
@@ -474,18 +475,18 @@ impl<'a> System<'a> for Sys {
 
                                     emitters.emit(ShootEvent {
                                         entity: projectile_owner,
-                                        // source_vel: velocities.get(entity).copied(),
                                         source_vel: None,
                                         pos: *pos,
                                         dir,
                                         body: *body,
                                         light: None,
                                         projectile: split_projectile.clone(),
-                                        // speed: 0.0, // Only inherit the source projectile's speed
                                         speed: velocities
                                             .get(entity)
                                             .map_or(0.0, |v| v.0.magnitude()),
                                         object: None,
+                                        marker: None, /* TODO: Do we check original for
+                                                       * projectile's marker? */
                                     })
                                 }
                             },
@@ -725,7 +726,7 @@ fn dispatch_hit(
             });
         },
         projectile::Effect::Arc(a) => {
-            emitters.emit(ArcEvent {
+            emitters.emit(ArcingEvent {
                 arc: a,
                 owner: projectile_info.owner_uid,
                 target: projectile_target_info.uid,

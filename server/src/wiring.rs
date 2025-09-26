@@ -198,6 +198,7 @@ impl WiringAction {
                             light: None,
                             speed: 5.0,
                             object: None,
+                            marker: None,
                         });
                     }
                 },
