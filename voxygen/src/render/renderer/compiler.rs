@@ -46,9 +46,8 @@ impl ShaderCCompiler {
         optimize: bool,
         resolve_include: impl Fn(&str, &str) -> Result<String, String> + 'static,
     ) -> Result<Self, RenderError> {
-        let compiler = shaderc::Compiler::new().ok_or(RenderError::ErrorInitializingCompiler)?;
-        let mut options =
-            shaderc::CompileOptions::new().ok_or(RenderError::ErrorInitializingCompiler)?;
+        let compiler = shaderc::Compiler::new()?;
+        let mut options = shaderc::CompileOptions::new()?;
 
         if optimize {
             options.set_optimization_level(shaderc::OptimizationLevel::Performance);

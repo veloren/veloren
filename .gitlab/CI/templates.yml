@@ -83,7 +83,7 @@
   tags: ["saas-macos-large-m2pro"]
   image: macos-15-xcode-16
   script:
-    - export MACOSX_DEPLOYMENT_TARGET="10.13";
+    - export MACOSX_DEPLOYMENT_TARGET="10.15";
     - export VELOREN_USERDATA_STRATEGY=executable;
     - cargo build --profile ${PROFILE} --no-default-features --features default-publish --target ${RUST_TARGET};
     - cp -r target/${RUST_TARGET}/${PROFILE}/veloren-server-cli ${CI_PROJECT_DIR};

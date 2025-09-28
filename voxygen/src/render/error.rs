@@ -7,7 +7,7 @@ pub enum RenderError {
     CustomError(String),
     CouldNotFindAdapter,
     RequestAdapterError(wgpu::RequestAdapterError),
-    ErrorInitializingCompiler,
+    ErrorInitializingShaderCCompiler(shaderc::Error),
     ShaderShaderCError(String, shaderc::Error),
     ShaderWgpuError(String, wgpu::Error),
 }
@@ -32,7 +32,10 @@ impl fmt::Debug for RenderError {
                 // Use Display formatting for this error since they have nice descriptions
                 .field(&err.to_string())
                 .finish(),
-            Self::ErrorInitializingCompiler => f.debug_tuple("ErrorInitializingCompiler").finish(),
+            Self::ErrorInitializingShaderCCompiler(err) => f
+                .debug_tuple("ErrorInitializingShaderCCompiler")
+                .field(err)
+                .finish(),
             Self::ShaderShaderCError(shader_name, err) => write!(
                 f,
                 "\"{shader_name}\" shader failed to compile with shaderc due to the following \
@@ -61,6 +64,10 @@ impl From<wgpu::SurfaceError> for RenderError {
 
 impl From<wgpu::RequestAdapterError> for RenderError {
     fn from(err: wgpu::RequestAdapterError) -> Self { Self::RequestAdapterError(err) }
+}
+
+impl From<shaderc::Error> for RenderError {
+    fn from(err: shaderc::Error) -> Self { Self::ErrorInitializingShaderCCompiler(err) }
 }
 
 impl From<(&str, shaderc::Error)> for RenderError {
