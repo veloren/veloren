@@ -905,7 +905,10 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 
                     (true, 5.0)
                 },
-                _ => (agent_data.below_flee_health(agent), 1.0),
+                _ => (
+                    agent_data.below_flee_health(agent) || agent.stay_pos.is_some(),
+                    1.0,
+                ),
             };
 
             if flee {
