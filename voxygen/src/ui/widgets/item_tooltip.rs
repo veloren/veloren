@@ -1073,25 +1073,36 @@ impl Widget for ItemTooltip<'_> {
                 }
                 let offset = if known_key_color.is_some() { 1 } else { 0 };
                 for (i, desc) in recipes.iter().enumerate().map(|(i, s)| (i + offset, s)) {
-                    if let Some(recipe) = self.rbm.get(desc) {
+                    let (down_from, pad) = match i {
+                        0 => (state.ids.item_frame, V_PAD),
+                        _ => (state.ids.stats[i - 1], V_PAD_STATS),
+                    };
+
+                    let widget_text = if let Some(recipe) = self.rbm.get(desc) {
                         let (item_name, _) = util::item_text(
                             recipe.output.0.as_ref(),
                             self.localized_strings,
                             self.item_i18n,
                         );
-                        let (down_from, pad) = match i {
-                            0 => (state.ids.item_frame, V_PAD),
-                            _ => (state.ids.stats[i - 1], V_PAD_STATS),
-                        };
-                        widget::Text::new(&item_name)
-                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                            .graphics_for(id)
-                            .parent(id)
-                            .with_style(self.style.desc)
-                            .color(text_color)
-                            .down_from(down_from, pad)
-                            .set(state.ids.stats[i], ui);
-                    }
+
+                        item_name
+                    } else {
+                        // Some recipes (such as frostwood_weapons) don't
+                        // resolve to at least 1 specific item, but we have to
+                        // display at least 1 text widget, or else incorrect
+                        // index lookups will be performed and the UI will not
+                        // use the correct Y offsets.
+                        "".to_string()
+                    };
+
+                    widget::Text::new(&widget_text)
+                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(down_from, pad)
+                        .set(state.ids.stats[i], ui);
                 }
             },
             ItemKind::ModularComponent(mc) => {
