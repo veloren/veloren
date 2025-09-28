@@ -1,7 +1,7 @@
 #[cfg(feature = "worldgen")] use std::sync::Arc;
 
 use common::{
-    comp::{self, pet::is_mountable},
+    comp::{self, Agent, CharacterActivity, pet::is_mountable},
     consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE},
     event::MountEvent,
     link::Is,
@@ -72,16 +72,21 @@ fn handle_mount_entity(server: &mut Server, rider: EcsEntity, mount: EcsEntity) 
                     )
                 });
 
-            let is_stay = state
-                .ecs()
-                .read_storage::<comp::Agent>()
-                .get(mount)
-                .and_then(|x| x.stay_pos)
-                .is_some();
-
-            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride && !is_stay
-            {
+            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride {
                 drop(uids);
+
+                state
+                    .ecs()
+                    .write_storage::<CharacterActivity>()
+                    .get_mut(mount)
+                    .map(|mut activity| activity.is_pet_staying = false);
+
+                state
+                    .ecs()
+                    .write_storage::<Agent>()
+                    .get_mut(mount)
+                    .map(|agent| agent.stay_pos = None);
+
                 let _ = state.link(Mounting {
                     mount: mount_uid,
                     rider: rider_uid,
