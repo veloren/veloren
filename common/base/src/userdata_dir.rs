@@ -11,10 +11,10 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 /// Determines common user data directory used by veloren frontends.
 ///
 /// The first specified in this list is used.
-///   1. The VELOREN_USERDATA environment variable
-///   2. The VELOREN_USERDATA_STRATEGY environment variable
-///   3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata
-///      depending on if a workspace if being used
+///   1. The VELOREN_USERDATA runtime environment variable
+///   2. The VELOREN_USERDATA_STRATEGY compile time environment variable
+///   3. The CARGO_WORKSPACE_DIR/userdata compile time environment variable
+///      defined in .cargo/config.toml
 ///
 /// ### `VELOREN_USERDATA_STRATEGY` environment variable
 ///
@@ -25,12 +25,12 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 /// * "executable" => `<executable dir>/userdata`
 ///
 /// > **Note:** _case insensitive_
-pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str) -> PathBuf {
-    // 1. The VELOREN_USERDATA environment variable
+pub fn userdata_dir() -> PathBuf {
+    // 1. The VELOREN_USERDATA runtime environment variable
     std::env::var_os(VELOREN_USERDATA_ENV)
         .map(PathBuf::from)
-        // 2. The VELOREN_USERDATA_STRATEGY environment variable
-        .or_else(|| match strategy {
+        // 2. The VELOREN_USERDATA_STRATEGY compile time environment variable
+        .or_else(|| match option_env!("VELOREN_USERDATA_STRATEGY") {
             // "system" => system specific project data directory
             Some(s) if s.eq_ignore_ascii_case("system") => Some(directories_next::ProjectDirs::from("net", "veloren", "veloren")
                 .expect("System's $HOME directory path not found!")
@@ -56,13 +56,10 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
             },
             _ => None,
         })
-        // 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata depending on if a
-        //    workspace if being used
+        // 3. The CARGO_WORKSPACE_DIR/userdata compile time environment variable
+        //    defined in .cargo/config.toml
         .unwrap_or_else(|| {
-            let mut path = PathBuf::from(manifest_dir);
-            if workspace {
-                path.pop();
-            }
+            let mut path = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
             let exe_path = std::env::current_exe()
                 .expect("Failed to retrieve executable path!");
             // If this path exists
@@ -93,26 +90,4 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
                 path
             }
         })
-}
-
-#[macro_export]
-macro_rules! userdata_dir_workspace {
-    () => {
-        $crate::userdata_dir::userdata_dir(
-            true,
-            option_env!("VELOREN_USERDATA_STRATEGY"),
-            env!("CARGO_MANIFEST_DIR"),
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! userdata_dir_no_workspace {
-    () => {
-        $crate::userdata_dir::userdata_dir(
-            false,
-            option_env!("VELOREN_USERDATA_STRATEGY"),
-            env!("CARGO_MANIFEST_DIR"),
-        )
-    };
 }

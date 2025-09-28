@@ -57,7 +57,7 @@ pub enum SingleplayerState {
 
 impl SingleplayerState {
     pub fn init() -> Self {
-        let dir = common_base::userdata_dir_workspace!();
+        let dir = common_base::userdata_dir();
 
         Self::Init(SingleplayerWorlds::load(&dir))
     }

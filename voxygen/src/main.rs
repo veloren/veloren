@@ -63,7 +63,7 @@ fn main() {
     #[cfg(feature = "tracy")]
     common_base::tracy_client::Client::start();
 
-    let userdata_dir = common_base::userdata_dir_workspace!();
+    let userdata_dir = common_base::userdata_dir();
 
     // Determine where Voxygen's logs should go
     // Choose a path to store the logs by the following order:
@@ -79,7 +79,7 @@ fn main() {
     let _guards = common_frontend::init_stdout(Some((&logs_dir, &log_filename)));
 
     // Re-run userdata selection so any warnings will be logged
-    common_base::userdata_dir_workspace!();
+    common_base::userdata_dir();
 
     info!("Using userdata dir at: {}", userdata_dir.display());
 

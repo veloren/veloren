@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use tracing::warn;
 
 pub fn data_dir() -> PathBuf {
-    let mut path = common_base::userdata_dir_workspace!();
+    let mut path = common_base::userdata_dir();
     path.push("botclient");
     path
 }

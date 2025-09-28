@@ -15,6 +15,10 @@ rustflags = [
     "-C", "link-arg=-lpsapi",
 ]
 
+# Clever way to get workspace dir, from https://github.com/rust-lang/cargo/issues/3946#issuecomment-973132993
+[env]
+CARGO_WORKSPACE_DIR = { value = "", relative = true }
+
 [alias]
 # tools
 cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
