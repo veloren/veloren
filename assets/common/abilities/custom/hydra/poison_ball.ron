@@ -1,5 +1,5 @@
 BasicRanged(
-    energy_cost: 0,
+    energy_cost: 20,
     buildup_duration: 1.6,
     recover_duration: 0.7,
     projectile: (
@@ -14,7 +14,7 @@ BasicRanged(
         )),
     ),
     projectile_body: Object(PoisonBall),
-    projectile_speed: 30.0,
+    projectile_speed: 20.0,
     num_projectiles: PerHead(1),
     projectile_spread: 0.5,
     movement_modifier: (

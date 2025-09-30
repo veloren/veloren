@@ -22,8 +22,8 @@ BasicMelee(
         multi_target: Some(Normal),
     ),
     ori_modifier: (
-        buildup: Some(0.2),
-        swing: Some(0.2),
+        buildup: Some(0.75),
+        swing: Some(0.75),
         recover: Some(0.2),
     ),
 )

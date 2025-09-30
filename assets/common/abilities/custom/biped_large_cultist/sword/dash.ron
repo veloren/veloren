@@ -1,5 +1,5 @@
 DashMelee(
-    energy_cost: 10.0,
+    energy_cost: 40.0,
     melee_constructor: (
         kind: Stab(
             damage: 9.0,

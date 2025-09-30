@@ -11,7 +11,7 @@ BasicMelee(
             knockback: 0,
             energy_regen: 0,
         ),
-        range: 3.0,
+        range: 3.5,
         angle: 40.0,
         damage_effect: Some(Buff((
             kind: Burning,

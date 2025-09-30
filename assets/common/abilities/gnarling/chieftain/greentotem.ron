@@ -1,6 +1,6 @@
 BasicSummon(
     buildup_duration: 0.375,
-    cast_duration: 0.5,
+    cast_duration: 1.5,
     recover_duration: 0.375,
     summon_info: Npc(
         summoned_amount: 1,

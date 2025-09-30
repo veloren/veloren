@@ -17,10 +17,10 @@ ComboMelee2(
                     chance: 0.1,
                 ))),
             ),
-            buildup_duration: 0.8,
-            swing_duration: 0.18,
+            buildup_duration: 0.35,
+            swing_duration: 0.15,
             hit_timing: 0.5,
-            recover_duration: 0.9,
+            recover_duration: 0.4,
             movement: (
                 swing: Some(Forward(0.5)),
             ),
@@ -29,8 +29,8 @@ ComboMelee2(
             ),
             ori_modifier: (
                 buildup: Some(0.75),
-                swing: Some(0.25),
-                recover: Some(0.15),
+                swing: Some(0.75),
+                recover: Some(0.75),
             ),
         ),
         (
@@ -50,10 +50,10 @@ ComboMelee2(
                     chance: 0.1,
                 ))),
             ),
-            buildup_duration: 0.7,
+            buildup_duration: 0.35,
             swing_duration: 0.1,
             hit_timing: 0.5,
-            recover_duration: 0.7,
+            recover_duration: 1.65,
             movement: (
                 swing: Some(Forward(0.5)),
             ),
