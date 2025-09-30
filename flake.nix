@@ -151,15 +151,16 @@
           export = false;
           path = filteredSource;
         };
-        nci.crates."veloren-server-cli" = {
+        nci.crates."veloren-server-cli" = rec {
           profiles = {
             release.features = ["default-publish"];
             release.runTests = false;
             dev.features = ["default-publish"];
             dev.runTests = false;
           };
+          depsDrvConfig.mkDerivation.nativeBuildInputs = [pkgs.mold];
           drvConfig = {
-            mkDerivation.src = filteredSource;
+            mkDerivation = depsDrvConfig.mkDerivation;
             env = veloren-common-env;
           };
         };
@@ -171,6 +172,8 @@
             dev.runTests = false;
           };
           runtimeLibs = with pkgs; [
+            wayland
+            wayland-protocols
             xorg.libX11
             xorg.libXi
             xorg.libxcb
@@ -203,6 +206,7 @@
                 pkg-config
                 cmake
                 gnumake
+                mold
               ];
             };
           };
@@ -216,7 +220,6 @@
             mkDerivation =
               depsDrvConfig.mkDerivation
               // {
-                src = filteredSource;
                 prePatch = ''
                                 sed -i 's:"../../../assets/voxygen/audio/null.ogg":env!("VOXYGEN_NULL_SOUND_PATH"):' \
                   voxygen/src/audio/soundcache.rs
