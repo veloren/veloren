@@ -151,15 +151,20 @@
           export = false;
           path = filteredSource;
         };
-        nci.crates."veloren-server-cli" = {
+        nci.crates."veloren-server-cli" = rec {
           profiles = {
             release.features = ["default-publish"];
             release.runTests = false;
             dev.features = ["default-publish"];
             dev.runTests = false;
           };
+          depsDrvConfig.mkDerivation.nativeBuildInputs = [pkgs.mold];
           drvConfig = {
-            mkDerivation.src = filteredSource;
+            mkDerivation =
+              depsDrvConfig.mkDerivation
+              // {
+                src = filteredSource;
+              };
             env = veloren-common-env;
           };
         };
@@ -205,6 +210,7 @@
                 pkg-config
                 cmake
                 gnumake
+                mold
               ];
             };
           };
