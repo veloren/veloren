@@ -160,11 +160,7 @@
           };
           depsDrvConfig.mkDerivation.nativeBuildInputs = [pkgs.mold];
           drvConfig = {
-            mkDerivation =
-              depsDrvConfig.mkDerivation
-              // {
-                src = filteredSource;
-              };
+            mkDerivation = depsDrvConfig.mkDerivation;
             env = veloren-common-env;
           };
         };
@@ -224,7 +220,6 @@
             mkDerivation =
               depsDrvConfig.mkDerivation
               // {
-                src = filteredSource;
                 prePatch = ''
                                 sed -i 's:"../../../assets/voxygen/audio/null.ogg":env!("VOXYGEN_NULL_SOUND_PATH"):' \
                   voxygen/src/audio/soundcache.rs
