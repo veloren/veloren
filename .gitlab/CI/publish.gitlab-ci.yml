@@ -28,7 +28,9 @@ docker:
 
 gittag:
   stage: publish
-  image: bitnami/git:latest
+  image:
+    name: alpine/git:v2.49.1
+    entrypoint: ["/bin/sh"]
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
   before_script:
