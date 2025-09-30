@@ -171,6 +171,8 @@
             dev.runTests = false;
           };
           runtimeLibs = with pkgs; [
+            wayland
+            wayland-protocols
             xorg.libX11
             xorg.libXi
             xorg.libxcb
