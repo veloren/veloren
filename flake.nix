@@ -121,8 +121,8 @@
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
           # our wrapper instead.
-          NIX_GIT_HASH = "";
-          NIX_GIT_TAG = "";
+          VELOREN_GIT_VERSION = "";
+          VELOREN_GIT_TAG = "";
           VELOREN_USERDATA_STRATEGY = "system";
         };
         voxygenOut = config.nci.outputs."veloren-voxygen";

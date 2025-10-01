@@ -12,8 +12,8 @@ mod ron_recover;
 /// entities
 mod spatial_grid;
 
-pub const GIT_VERSION_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
-pub const GIT_TAG_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));
+pub const GIT_VERSION_BUILD: &str = env!("VELOREN_GIT_VERSION");
+pub const GIT_TAG_BUILD: &str = env!("VELOREN_GIT_TAG");
 pub const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
 
 lazy_static::lazy_static! {
