@@ -4,7 +4,7 @@ use crate::{
     event::{EventCtx, OnHealthChange, OnHelped, OnMountVolume, OnTick},
 };
 use common::{
-    comp::{self, Body},
+    comp::{self, Body, agent::FlightMode},
     mounting::{Volume, VolumePos},
     rtsim::{Actor, NpcAction, NpcActivity},
     terrain::{CoordinateConversions, TerrainChunkSize},
@@ -173,28 +173,70 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                     }
                 },
                 // Move Flying NPCs like airships if they have a target destination
-                Some(NpcActivity::GotoFlying(target, speed_factor, _, dir, _)) => {
+                Some(NpcActivity::GotoFlying(target, speed_factor, height, dir, mode)) => {
                     let diff = target - npc.wpos;
                     let dist2 = diff.magnitude_squared();
 
                     if dist2 > 0.5f32.powi(2) {
                         match npc.body {
                             Body::Ship(comp::ship::Body::DefaultAirship) => {
-                                // Don't limit airship movement to 1.0 per axis
-                                // SimulationMode::Simulated treats the Npc dimensions differently
-                                // somehow from when the Npc is
-                                // loaded. The calculation below results in a position
-                                // that is roughly the offset from the ship centerline to the
-                                // docking position and is also off
-                                // by the offset from the ship fore/aft centerline to the docking
-                                // position. The result is that if the player spawns in at a dock
-                                // where an airship is docked, the
-                                // airship will bounce around while seeking the docking position
-                                // in loaded mode.
-                                let offset = diff
-                                    * (npc.body.max_speed_approx() * speed_factor * ctx.event.dt
-                                        / dist2.sqrt());
-                                npc.wpos += offset;
+                                // RTSim NPCs don't interract with terrain, and their position is
+                                // independent of ground level.
+                                // While movement is simulated, airships will happily stay at ground
+                                // level or fly through mountains.
+                                // The code at the end of this block "Make sure NPCs remain in a
+                                // valid location" just forces
+                                // airships to be at least above ground (on the ground actually).
+                                // The reason is that when docking, airships need to descend much
+                                // closer to the terrain
+                                // than when cruising between sites, so airships cannot be forced to
+                                // stay at a fixed height above
+                                // terrain (i.e. flying_height()). Instead, when mode is
+                                // FlightMode::FlyThrough, set the airship altitude directly to
+                                // terrain height + height (if Some)
+                                // or terrain height + default height (npc.body.flying_height()).
+                                // When mode is FlightMode::Braking, the airship is allowed to
+                                // descend below flying height
+                                // because it is near or at the dock. In this mode, if height is
+                                // Some, set the airship altitude to
+                                // the maximum of target.z or terrain height + height. If height is
+                                // None, set the airship altitude to
+                                // target.z. By forcing the airship altitude to be at a specific
+                                // value, when the airship is
+                                // suddenly in a loaded chunk it will not be below or at the ground
+                                // and will not get stuck.
+
+                                // Move in x,y
+                                let diffxy = target.xy() - npc.wpos.xy();
+                                let distxy2 = diffxy.magnitude_squared();
+                                if distxy2 > 0.5f32.powi(2) {
+                                    let offsetxy = diffxy
+                                        * (npc.body.max_speed_approx()
+                                            * speed_factor
+                                            * ctx.event.dt
+                                            / distxy2.sqrt());
+                                    npc.wpos.x += offsetxy.x;
+                                    npc.wpos.y += offsetxy.y;
+                                }
+                                // The diff is not computed for z like x,y. Rather, the altitude is
+                                // set directly so that when the
+                                // simulated ship is suddenly in a loaded chunk it will not be below
+                                // or at the ground level and risk getting stuck.
+                                let base_height =
+                                    if mode == FlightMode::FlyThrough || height.is_some() {
+                                        ctx.world.sim().get_surface_alt_approx(npc.wpos.xy().as_())
+                                    } else {
+                                        0.0
+                                    };
+                                let ship_z = match mode {
+                                    FlightMode::FlyThrough => {
+                                        base_height + height.unwrap_or(npc.body.flying_height())
+                                    },
+                                    FlightMode::Braking(_) => {
+                                        (base_height + height.unwrap_or(0.0)).max(target.z)
+                                    },
+                                };
+                                npc.wpos.z = ship_z;
                             },
                             _ => {
                                 let offset = diff
@@ -254,6 +296,7 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
                 (ctx.world.sim().get_size() * TerrainChunkSize::RECT_SIZE).as_(),
             );
             match npc.body {
+                // Don't force air ships to be at flying_height, else they can't land at docks.
                 Body::Ship(comp::ship::Body::DefaultAirship | comp::ship::Body::AirBalloon) => {
                     npc.wpos = clamped_wpos.with_z(
                         ctx.world

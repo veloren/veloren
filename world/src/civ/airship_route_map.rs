@@ -7,7 +7,7 @@ use crate::{
     util::{DHashMap, DHashSet},
 };
 use common::{
-    assets::{self, Asset, AssetExt, BoxedError, Loader},
+    assets::{AssetExt, BoxedError, FileAsset, load_ron},
     terrain::{
         map::{MapConfig, MapSample, MapSizeLg},
         uniform_idx_as_vec2,
@@ -20,7 +20,7 @@ use tiny_skia::{
     Transform,
 };
 
-use std::{borrow::Cow, env, error::Error, io::ErrorKind, path::PathBuf};
+use std::{borrow::Cow, env, error::Error, path::PathBuf};
 use tracing::error;
 use vek::*;
 
@@ -28,29 +28,16 @@ use vek::*;
 /// This is necessary because Pixmap is in the tiny-skia crate.
 pub struct PackedSpritesPixmap(pub Pixmap);
 
-// Custom Asset loader that loads a tiny_skia::Pixmap from a PNG file.
-pub struct PackedSpritesPixmapLoader;
+// This allows Pixmaps to be loaded as assets from the file system or cache.
+impl FileAsset for PackedSpritesPixmap {
+    const EXTENSION: &'static str = "png";
 
-impl Loader<PackedSpritesPixmap> for PackedSpritesPixmapLoader {
-    fn load(content: Cow<[u8]>, ext: &str) -> Result<PackedSpritesPixmap, BoxedError> {
-        if ext != "png" {
-            return Err(Box::new(std::io::Error::new(
-                ErrorKind::Unsupported,
-                format!("Unsupported image format: {}", ext),
-            )));
-        }
-        match Pixmap::decode_png(&content) {
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        match Pixmap::decode_png(&bytes) {
             Ok(pixmap) => Ok(PackedSpritesPixmap(pixmap)),
             Err(e) => Err(Box::new(e)),
         }
     }
-}
-
-// This allows Pixmaps to be loaded as assets from the file system or cache.
-impl Asset for PackedSpritesPixmap {
-    type Loader = PackedSpritesPixmapLoader;
-
-    const EXTENSION: &'static str = "png";
 }
 
 /// Extension trait for tiny_skia::Pixmap.
@@ -201,10 +188,12 @@ struct TinySkiaSpriteMapMeta {
 }
 
 /// Allows a TinySkiaSpriteMapMeta to be loaded using the asset system.
-impl Asset for TinySkiaSpriteMapMeta {
-    type Loader = assets::RonLoader;
-
+impl FileAsset for TinySkiaSpriteMapMeta {
     const EXTENSION: &'static str = "ron";
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+        load_ron::<TinySkiaSpriteMapMeta>(&bytes)
+    }
 }
 
 /// A set of sprites that are unpacked from a larger sprite map image.
@@ -563,17 +552,17 @@ fn dock_sites_optimized_tesselation_map(
     for (_, dock_node) in node_connections.iter() {
         if let Some(dp1) = map_points.get(dock_node.node_id) {
             dock_node.connected.iter().for_each(|cpid| {
-                if let Some(dp2) = map_points.get(*cpid) {
-                    if !lines_drawn.contains(&(dock_node.node_id, *cpid)) {
-                        // calculate where the line intersects a circle of radius 10 around
-                        // each point
-                        let dir = (dp2 - dp1).normalized();
-                        let ep1 = dp1 + dir * 10.0;
-                        let ep2 = dp2 - dir * 10.0;
-                        pb.move_to(ep1.x, ep1.y);
-                        pb.line_to(ep2.x, ep2.y);
-                        lines_drawn.insert((dock_node.node_id, *cpid));
-                    }
+                if let Some(dp2) = map_points.get(*cpid)
+                    && !lines_drawn.contains(&(dock_node.node_id, *cpid))
+                {
+                    // calculate where the line intersects a circle of radius 10 around
+                    // each point
+                    let dir = (dp2 - dp1).normalized();
+                    let ep1 = dp1 + dir * 10.0;
+                    let ep2 = dp2 - dir * 10.0;
+                    pb.move_to(ep1.x, ep1.y);
+                    pb.line_to(ep2.x, ep2.y);
+                    lines_drawn.insert((dock_node.node_id, *cpid));
                 }
             });
         }
@@ -860,10 +849,9 @@ pub fn save_airship_routes_triangulation(
             index,
             sampler,
             map_image_path,
-        ) {
-            if pixmap.save_png(&world_map_file_path).is_err() {
-                error!("Failed to save airship routes triangulation map");
-            }
+        ) && pixmap.save_png(&world_map_file_path).is_err()
+        {
+            error!("Failed to save airship routes triangulation map");
         }
     }
 }
@@ -892,10 +880,9 @@ pub fn save_airship_route_segments(
             index,
             sampler,
             map_image_path,
-        ) {
-            if pixmap.save_png(&routes_with_spawning_file).is_err() {
-                error!("Failed to save airship route segments with spawning locations map");
-            }
+        ) && pixmap.save_png(&routes_with_spawning_file).is_err()
+        {
+            error!("Failed to save airship route segments with spawning locations map");
         }
         let routes_only_file =
             format!("{}/airship_routes_only_map_{}.png", routes_log_folder, seed);
@@ -907,10 +894,9 @@ pub fn save_airship_route_segments(
             index,
             sampler,
             map_image_path,
-        ) {
-            if pixmap.save_png(&routes_only_file).is_err() {
-                error!("Failed to save airship route segments only map");
-            }
+        ) && pixmap.save_png(&routes_only_file).is_err()
+        {
+            error!("Failed to save airship route segments only map");
         }
     }
 }
@@ -920,10 +906,10 @@ pub fn export_world_map(index: &Index, sampler: &WorldSim) -> Result<(), String>
     let routes_log_folder = airship_routes_log_folder
         .ok_or("AIRSHIP_ROUTES_LOG_FOLDER environment variable is not set".to_string())?;
     let world_map_file = format!("{}/basic_world_map{}.png", routes_log_folder, index.seed);
-    if let Some(world_map) = basic_world_pixmap(&sampler.map_size_lg(), index, sampler) {
-        if world_map.save_png(&world_map_file).is_err() {
-            error!("Failed to save world map");
-        }
+    if let Some(world_map) = basic_world_pixmap(&sampler.map_size_lg(), index, sampler)
+        && world_map.save_png(&world_map_file).is_err()
+    {
+        error!("Failed to save world map");
     }
     Ok(())
 }

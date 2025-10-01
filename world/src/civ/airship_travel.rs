@@ -855,10 +855,9 @@ impl Airships {
                 #[cfg(feature = "airship_maps")]
                 if let Some(index) = _index
                     && let Some(world_sim) = _sampler
+                    && let Err(e) = export_world_map(index, world_sim)
                 {
-                    if let Err(e) = export_world_map(index, world_sim) {
-                        eprintln!("Failed to export world map: {:?}", e);
-                    }
+                    eprintln!("Failed to export world map: {:?}", e);
                 }
             }
 

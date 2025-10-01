@@ -153,6 +153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Elusive bridge trolls are no longer at risk spawning in terrain.
 - Npc pathing.
 - More beds heal
+- RTsim airships now stay at flying height except when docking.
 
 ## [0.17.0] - 2024-12-28
 
