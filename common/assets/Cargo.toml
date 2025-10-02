@@ -1,6 +1,6 @@
 [package]
 name = "veloren-common-assets"
-version = "0.10.0"
+version.workspace = true
 description = "Crate for game loading assets for veloren."
 edition.workspace = true
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Marcel Märtens <marcel.cochem@googlemail.com>"]

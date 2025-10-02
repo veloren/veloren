@@ -1,6 +1,6 @@
 [package]
 name = "veloren-voxygen"
-version = "0.17.0"
+version.workspace = true
 default-run = "veloren-voxygen"
 edition.workspace = true
 authors = [

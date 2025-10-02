@@ -1,6 +1,6 @@
 [package]
 name = "veloren-client-i18n"
-version = "0.13.0"
+version.workspace = true
 description = "Optional crate for internalization and diagnostic of existing localizations for frontends to consume"
 edition.workspace = true
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]

@@ -1,6 +1,6 @@
 [package]
 name = "veloren-voxygen-i18n-helpers"
-version = "0.10.0"
+version.workspace = true
 description = "Crate for internalization and diagnostic of existing localizations."
 edition.workspace = true
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]

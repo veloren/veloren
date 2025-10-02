@@ -1,35 +1,36 @@
 [workspace]
 resolver = "2"
 members = [
+    "client",
+    "client/i18n",
     "common",
     "common/assets",
-    "common/i18n",
     "common/base",
     "common/dynlib",
     "common/ecs",
+    "common/frontend",
+    "common/i18n",
     "common/net",
+    "common/query_server",
     "common/state",
     "common/systems",
-    "common/frontend",
-    "common/query_server",
-    "client",
-    "client/i18n",
+    "network",
+    "network/protocol",
     "rtsim",
     "server",
     "server/agent",
     "server-cli",
     "voxygen",
     "voxygen/anim",
-    "voxygen/i18n-helpers",
     "voxygen/egui",
+    "voxygen/i18n-helpers",
     "world",
-    "network",
-    "network/protocol",
 ]
 
 ### PACKAGE ###
 [workspace.package]
 edition = "2024"
+version = "0.17.0"
 
 ### LINTS ###
 

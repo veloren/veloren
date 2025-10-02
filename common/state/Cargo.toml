@@ -1,6 +1,6 @@
 [package]
 name = "veloren-common-state"
-version = "0.10.0"
+version.workspace = true
 edition.workspace = true
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 

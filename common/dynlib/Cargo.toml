@@ -1,6 +1,6 @@
 [package]
 name = "veloren-common-dynlib"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 authors = ["Ben Wallis <atomyc@gmail.com>"]
 

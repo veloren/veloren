@@ -1,6 +1,6 @@
 [package]
 name = "veloren-common-frontend"
-version = "0.10.0"
+version.workspace = true
 description = "common stuff that is used by server-cli and voxygen directly"
 edition.workspace = true
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>", "Imbris <imbrisf@gmail.com>"]
