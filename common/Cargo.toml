@@ -2,6 +2,8 @@
 name = "veloren-common"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = [
     "Joshua Barretto <joshua.s.barretto@gmail.com>",
     "Luna Ćwięka <luna@lunareclipse.zone>",

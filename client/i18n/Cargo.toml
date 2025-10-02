@@ -1,8 +1,10 @@
 [package]
 name = "veloren-client-i18n"
-version.workspace = true
 description = "Optional crate for internalization and diagnostic of existing localizations for frontends to consume"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>"]
 
 [lints]

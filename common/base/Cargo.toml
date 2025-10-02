@@ -1,8 +1,10 @@
 [package]
 name = "veloren-common-base"
-version.workspace = true
 description = "minimal dependency for crates to now depend on whole common"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 
 [lints]
