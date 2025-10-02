@@ -33,8 +33,7 @@
       dateTime = dateTimeFormat sourceInfo.lastModified;
       shortRev = lib.strings.concatStrings (lib.lists.take 8 (lib.strings.stringToCharacters (sourceInfo.rev or sourceInfo.dirtyRev)));
     in {
-      prettyRev = shortRev + "/" + dateTime;
-      tag = "";
+      version = "/" + shortRev + "/" + dateTime;
     };
 
     filteredSource = let
@@ -114,15 +113,13 @@
             cp -rs --no-preserve=mode,ownership ${old} $out
             wrapProgram $out/bin/* \
               --set VELOREN_ASSETS ${assets} \
-              --set VELOREN_GIT_VERSION "${git.prettyRev}" \
-              --set VELOREN_GIT_TAG "${git.tag}"
+              --set VELOREN_GIT_VERSION "${git.version}" \
           '';
         veloren-common-env = {
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
           # our wrapper instead.
           VELOREN_GIT_VERSION = "";
-          VELOREN_GIT_TAG = "";
           VELOREN_USERDATA_STRATEGY = "system";
         };
         voxygenOut = config.nci.outputs."veloren-voxygen";
@@ -142,8 +139,7 @@
               exit 1
             fi
             export VELOREN_ASSETS="$PWD/assets"
-            export VELOREN_GIT_VERSION="${git.prettyRev}"
-            export VELOREN_GIT_TAG="${git.tag}"
+            export VELOREN_GIT_VERSION="${git.version}"
           '';
         });
 

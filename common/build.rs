@@ -1,12 +1,12 @@
 use std::process::Command;
 
 fn main() {
-    // If these env variables exist, they'll be used instead
+    // If this env var exists, it'll be used instead
     if option_env!("VELOREN_GIT_VERSION").is_none() {
         // Get the current githash+date
         // Note: It will compare commits. As long as the commits do not diverge from the
         // server no version change will be detected.
-        match Command::new("git")
+        let version = match Command::new("git")
             .args([
                 "log",
                 "-n",
@@ -18,28 +18,24 @@ fn main() {
             .output()
         {
             Ok(output) => match String::from_utf8(output.stdout) {
-                Ok(version) => {
-                    println!("cargo::rustc-env=VELOREN_GIT_VERSION={}", &version);
-                },
+                Ok(version) => version,
                 Err(e) => panic!("failed to convert git output to UTF-8: {}", e),
             },
             Err(e) => panic!("failed to retrieve current git commit hash and date: {}", e),
-        }
-    }
+        };
 
-    if option_env!("VELOREN_GIT_TAG").is_none() {
         // Get the current gittag
-        match Command::new("git")
+        let tag = match Command::new("git")
             .args(["describe", "--exact-match", "--tags", "HEAD"])
             .output()
         {
             Ok(output) => match String::from_utf8(output.stdout) {
-                Ok(tag) => {
-                    println!("cargo::rustc-env=VELOREN_GIT_TAG={}", &tag);
-                },
+                Ok(tag) => tag,
                 Err(e) => panic!("failed to convert git output to UTF-8: {}", e),
             },
             Err(e) => panic!("failed to retrieve current git tag: {}", e),
-        }
+        };
+
+        println!("cargo::rustc-env=VELOREN_GIT_VERSION={}/{}", &tag, &version);
     }
 }
