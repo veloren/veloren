@@ -12,30 +12,33 @@ mod ron_recover;
 /// entities
 mod spatial_grid;
 
-pub const VELOREN_GIT_VERSION_BUILD: &str = env!("VELOREN_GIT_VERSION");
-pub const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
+const VELOREN_GIT_VERSION_BUILD: &str = env!("VELOREN_GIT_VERSION");
+const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
 
+use std::str::FromStr;
 lazy_static::lazy_static! {
-    pub static ref VELOREN_GIT_VERSION: String =
+    static ref VELOREN_GIT_VERSION: String =
         std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| VELOREN_GIT_VERSION_BUILD.to_string());
-    pub static ref GIT_TAG: &'static str = VELOREN_GIT_VERSION.split('/').next().expect("failed to retrieve git_tag!");
-    pub static ref GIT_HASH: &'static str = VELOREN_GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_hash!");
-    static ref GIT_DATETIME: &'static str = VELOREN_GIT_VERSION.split('/').nth(2).expect("failed to retrieve git_datetime!");
-    pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
-    pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
-    pub static ref GIT_DATE_TIMESTAMP: i64 =
-        NaiveDateTime::parse_from_str(*GIT_DATETIME, "%Y-%m-%d-%H:%M")
-            .expect("Invalid date")
-            .and_utc().timestamp();
+    static ref GIT_TAG: &'static str = VELOREN_GIT_VERSION.split('/').next().expect("failed to retrieve git_tag!");
+    pub static ref GIT_HASH: u32 = u32::from_str_radix(VELOREN_GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_hash!"), 16).expect("invalid git_hash!");
+    pub static ref GIT_TIMESTAMP: i64 = i64::from_str(VELOREN_GIT_VERSION.split('/').nth(2).expect("failed to retrieve git_timestamp!")).expect("invalid git_timestamp!");
+    pub static ref TERSE_VERSION: String = make_terse_version(*GIT_HASH, *GIT_TIMESTAMP);
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {
-        format!("{}-{}", VELOREN_VERSION_STAGE, *GIT_DATE)
+        format!("{} {}", VELOREN_VERSION_STAGE, *TERSE_VERSION)
     } else {
-        format!("{}-{}", VELOREN_VERSION_STAGE, *GIT_TAG)
+        format!("{} {} | {}", VELOREN_VERSION_STAGE, *GIT_TAG, *TERSE_VERSION)
     };
-    pub static ref DISPLAY_VERSION_LONG: String = format!("{} ({})", DISPLAY_VERSION.as_str(), *GIT_HASH);
 }
 
-use chrono::NaiveDateTime;
+pub fn make_terse_version(hash: u32, timestamp: i64) -> String {
+    use chrono::DateTime;
+    if let Some(datetime) = DateTime::from_timestamp_secs(timestamp) {
+        format!("{:x} [{}]", hash, datetime.format("%F-%T"))
+    } else {
+        format!("{:x}", hash)
+    }
+}
+
 pub use color::*;
 pub use dir::*;
 pub use grid_hasher::GridHasher;

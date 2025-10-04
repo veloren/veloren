@@ -308,8 +308,6 @@ struct Controls {
     imgs: Imgs,
     // Voxygen version
     version: String,
-    // Alpha disclaimer
-    alpha: String,
     server_mismatched_version: Option<String>,
     tooltip_manager: TooltipManager,
     // Zone for rotating the character with the mouse
@@ -374,17 +372,17 @@ impl Controls {
         world_sz: Vec2<u32>,
         has_rules: bool,
     ) -> Self {
-        let version = common::util::DISPLAY_VERSION_LONG.clone();
-        let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
-        let server_mismatched_version = (common::util::GIT_HASH.to_string()
-            != server_info.git_hash)
-            .then(|| server_info.git_hash.clone());
+        let version = common::util::DISPLAY_VERSION.clone();
+        let server_mismatched_version = (*common::util::GIT_HASH != server_info.git_hash
+            || *common::util::GIT_TIMESTAMP != server_info.git_timestamp)
+            .then(|| {
+                common::util::make_terse_version(server_info.git_hash, server_info.git_timestamp)
+            });
 
         Self {
             fonts,
             imgs,
             version,
-            alpha,
             server_mismatched_version,
             tooltip_manager: TooltipManager::new(TOOLTIP_HOVER_DUR, TOOLTIP_FADE_DUR),
             mouse_detector: Default::default(),
@@ -433,19 +431,14 @@ impl Controls {
         };
 
         let version = Text::new(&self.version)
-            .size(self.fonts.cyri.scale(15))
-            .width(Length::Fill)
-            .horizontal_alignment(HorizontalAlignment::Right);
-
-        let alpha = Text::new(&self.alpha)
             .size(self.fonts.cyri.scale(12))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Center);
 
         let top_text = Row::with_children(vec![
             Space::new(Length::Fill, Length::Shrink).into(),
-            alpha.into(),
             version.into(),
+            Space::new(Length::Fill, Length::Shrink).into(),
         ])
         .width(Length::Fill);
 
@@ -458,7 +451,7 @@ impl Controls {
                 i18n.get_msg("main-login-server_version"),
                 mismatched_version,
                 i18n.get_msg("main-login-client_version"),
-                *common::util::GIT_HASH
+                *common::util::TERSE_VERSION
             ))
             .size(self.fonts.cyri.scale(18))
             .color(iced::Color::from_rgb(1.0, 0.0, 0.0))

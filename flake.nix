@@ -29,11 +29,9 @@
 
     git = let
       sourceInfo = inp.self.sourceInfo;
-      dateTimeFormat = import ./nix/dateTimeFormat.nix;
-      dateTime = dateTimeFormat sourceInfo.lastModified;
       shortRev = lib.strings.concatStrings (lib.lists.take 8 (lib.strings.stringToCharacters (sourceInfo.rev or sourceInfo.dirtyRev)));
     in {
-      version = "/" + shortRev + "/" + dateTime;
+      version = "/" + shortRev + "/" + toString sourceInfo.lastModified;
     };
 
     filteredSource = let

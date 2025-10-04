@@ -1,6 +1,8 @@
-use common::{comp::Player, util::GIT_DATE_TIMESTAMP};
+use common::{
+    comp::Player,
+    util::{GIT_HASH, GIT_TIMESTAMP},
+};
 use common_ecs::{Origin, Phase, System};
-use lazy_static::lazy_static;
 use specs::{Join, Read, ReadStorage};
 use tracing::warn;
 use veloren_query_server::proto::ServerInfo;
@@ -9,11 +11,6 @@ use crate::{Settings, Tick, client::Client};
 
 // Update the server stats every 60 ticks
 const INFO_SEND_INTERVAL: u64 = 60;
-
-lazy_static! {
-    pub static ref GIT_HASH: u32 =
-        u32::from_str_radix(&common::util::GIT_HASH[..8], 16).expect("Invalid git hash");
-}
 
 #[derive(Default)]
 pub struct Sys;
@@ -47,7 +44,7 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(u16::MAX);
             if let Err(e) = sender.send(ServerInfo {
                 git_hash: *GIT_HASH,
-                git_timestamp: *GIT_DATE_TIMESTAMP,
+                git_timestamp: *GIT_TIMESTAMP,
                 players_count: count,
                 player_cap: settings.max_players,
                 battlemode: settings.gameplay.battle_mode.into(),

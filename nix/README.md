@@ -47,7 +47,7 @@ To install the game into your user profile:
 # Voxygen:
 nix profile install gitlab:veloren/veloren
 # Server CLI:
-nix profile install giltab:veloren/veloren#veloren-server-cli
+nix profile install gitlab:veloren/veloren#veloren-server-cli
 # or if you have a local repo:
 nix profile install
 nix profile install .#veloren-server-cli

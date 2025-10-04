@@ -240,8 +240,6 @@ pub struct Controls {
     i18n: LocalizationHandle,
     // Voxygen version
     version: String,
-    // Alpha disclaimer
-    alpha: String,
     credits: Credits,
 
     // If a server address was provided via cli argument we hide the server list button and replace
@@ -302,8 +300,7 @@ impl Controls {
         settings: &Settings,
         server: Option<String>,
     ) -> Self {
-        let version = common::util::DISPLAY_VERSION_LONG.clone();
-        let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
+        let version = common::util::DISPLAY_VERSION.clone();
 
         let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 
@@ -342,7 +339,6 @@ impl Controls {
             bg_img,
             i18n,
             version,
-            alpha,
             credits,
 
             server_field_locked,
@@ -373,24 +369,15 @@ impl Controls {
             .text_color(TEXT_COLOR)
             .disabled_text_color(DISABLED_TEXT_COLOR);
 
-        let alpha = iced::Text::new(&self.alpha)
+        let version = iced::Text::new(&self.version)
             .size(self.fonts.cyri.scale(12))
             .width(Length::Fill)
             .horizontal_alignment(HorizontalAlignment::Center);
 
         let top_text = Row::with_children(vec![
             Space::new(Length::Fill, Length::Shrink).into(),
-            alpha.into(),
-            if matches!(&self.screen, Screen::Login { .. }) {
-                // Login screen shows the Velroen logo over the version
-                Space::new(Length::Fill, Length::Shrink).into()
-            } else {
-                iced::Text::new(&self.version)
-                    .size(self.fonts.cyri.scale(15))
-                    .width(Length::Fill)
-                    .horizontal_alignment(HorizontalAlignment::Right)
-                    .into()
-            },
+            version.into(),
+            Space::new(Length::Fill, Length::Shrink).into(),
         ])
         .padding(3)
         .width(Length::Fill);
@@ -422,7 +409,6 @@ impl Controls {
                 self.selected_language_index,
                 &language_metadatas,
                 button_style,
-                &self.version,
             ),
             Screen::Servers { screen } => screen.view(
                 &self.fonts,

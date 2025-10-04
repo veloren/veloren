@@ -1516,7 +1516,7 @@ impl Hud {
         self.pulse += dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
-        let version = common::util::DISPLAY_VERSION_LONG.clone();
+        let version = common::util::DISPLAY_VERSION.clone();
         let i18n = &global_state.i18n.read();
 
         if self.show.ingame {
@@ -1610,9 +1610,9 @@ impl Hud {
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
                 // Alpha Disclaimer
-                Text::new(&format!("Veloren {}", &version))
+                Text::new(&version)
                     .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(10))
+                    .font_size(self.fonts.cyri.scale(11))
                     .color(TEXT_COLOR)
                     .mid_top_with_margin_on(ui_widgets.window, 2.0)
                     .set(self.ids.alpha_text, ui_widgets);
