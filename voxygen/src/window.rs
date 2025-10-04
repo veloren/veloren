@@ -182,6 +182,12 @@ impl KeyMouse {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum LastInput {
+    KeyboardMouse,
+    Controller,
+}
+
 pub struct Window {
     renderer: Renderer,
     window: Arc<winit::window::Window>,
@@ -206,6 +212,7 @@ pub struct Window {
     pub controller_modifiers: Vec<Button>,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
+    last_input: LastInput,
     // Currently used to send and receive screenshot result messages
     message_sender: channel::Sender<String>,
     message_receiver: channel::Receiver<String>,
@@ -310,6 +317,7 @@ impl Window {
             controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
+            last_input: LastInput::KeyboardMouse,
             // Currently used to send and receive screenshot result messages
             message_sender,
             message_receiver,
@@ -415,7 +423,11 @@ impl Window {
                     events: &mut Vec<Event>,
                     button: &Button,
                     is_pressed: bool,
+                    last_input: &mut LastInput,
                 ) {
+                    // update last input to be controller if button was pressed
+                    *last_input = LastInput::Controller;
+
                     if settings.modifier_buttons.contains(button) {
                         if is_pressed {
                             modifiers.push(*button);
@@ -475,6 +487,7 @@ impl Window {
                             &mut self.events,
                             &Button::from((button, code)),
                             true,
+                            &mut self.last_input,
                         );
                     },
                     EventType::ButtonReleased(button, code) => {
@@ -484,6 +497,7 @@ impl Window {
                             &mut self.events,
                             &Button::from((button, code)),
                             false,
+                            &mut self.last_input,
                         );
                     },
                     EventType::ButtonChanged(button, _value, code) => {
@@ -523,6 +537,11 @@ impl Window {
                         let value = self
                             .controller_settings
                             .apply_axis_deadzone(&Axis::from((axis, code)), value);
+
+                        // update last input to be controller if axis was moved
+                        if value.abs() > 0.0001 {
+                            self.last_input = LastInput::Controller;
+                        }
 
                         if self.cursor_grabbed {
                             if let Some(actions) = self
@@ -665,6 +684,9 @@ impl Window {
             DeviceEvent::MouseMotion {
                 delta: (dx, dy), ..
             } if self.focused => {
+                // update last input to be Keyboard/Mouse if motion was made
+                self.last_input = LastInput::KeyboardMouse;
+
                 let delta = Vec2::new(
                     dx as f32 * (self.pan_sensitivity as f32 / 100.0),
                     dy as f32 * (self.pan_sensitivity as f32 * mouse_y_inversion / 100.0),
@@ -712,6 +734,7 @@ impl Window {
                             KeyMouse::Mouse(button),
                             controls,
                             &mut self.remapping_keybindings,
+                            &mut self.last_input,
                         ),
                     )
                 {
@@ -754,6 +777,7 @@ impl Window {
                     KeyMouse::Key(event.logical_key),
                     controls,
                     &mut self.remapping_keybindings,
+                    &mut self.last_input,
                 ) {
                     for game_input in game_inputs {
                         match game_input {
@@ -1190,8 +1214,12 @@ impl Window {
         key_mouse: KeyMouse,
         controls: &'a mut ControlSettings,
         remapping: &mut Option<GameInput>,
+        last_input: &mut LastInput,
     ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
         let key_mouse = key_mouse.into_upper();
+
+        // update last input to be Keyboard/Mouse if button was pressed
+        *last_input = LastInput::KeyboardMouse;
 
         match *remapping {
             // TODO: save settings
@@ -1215,6 +1243,8 @@ impl Window {
     pub fn modifiers(&self) -> winit::keyboard::ModifiersState { self.modifiers }
 
     pub fn scale_factor(&self) -> f64 { self.scale_factor }
+
+    pub fn last_input(&self) -> LastInput { self.last_input }
 }
 
 #[derive(Default, Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
