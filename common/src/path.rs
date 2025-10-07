@@ -13,7 +13,7 @@ use kiddo::{SquaredEuclidean, float::kdtree::KdTree, nearest_neighbour::NearestN
 use rand::{Rng, rng};
 #[cfg(feature = "rrt_pathfinding")]
 use rand::{
-    distributions::{Distribution, Uniform},
+    distr::{Distribution, Uniform},
     prelude::IteratorRandom,
 };
 #[cfg(feature = "rrt_pathfinding")]
@@ -1350,7 +1350,7 @@ pub fn point_on_prolate_spheroid(
 ) -> Vec3<f32> {
     let mut rng = rng();
     // Uniform distribution
-    let range = Uniform::from(0.0..1.0);
+    let range = Uniform::new(0.0, 1.0).unwrap();
 
     // Midpoint is used as the local origin
     let midpoint = 0.5 * (focus1 + focus2);
