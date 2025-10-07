@@ -177,3 +177,6 @@ hud-settings-rain_ambience = Volume de la pluie
 hud-settings-sfx_channels_low = Basse
 hud-settings-sfx_channels_med = Moyenne
 hud-settings-sfx_channels_high = Haute
+hud-settings-minimap = Mini-carte
+hud-settings-minimap_scale = Échelle
+hud-settings-colored_player_marker = Marqueur de joueur coloré

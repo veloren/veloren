@@ -95,3 +95,4 @@ gamepad-unknown = Inconnu
 gameinput-giveup = Abandonner
 gameinput-crawl = Ramper
 gameinput-inventory = Inventaire
+gameinput-walljump = Saut mural
