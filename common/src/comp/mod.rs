@@ -37,6 +37,8 @@ pub mod skillset;
 mod stats;
 pub mod teleport;
 pub mod visual;
+pub mod summoned_mount;
+
 
 // Reexports
 pub use self::{
