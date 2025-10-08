@@ -32,7 +32,11 @@ hud-temp_quest_text =
     Dès que vous vous sentez prêt, essayez d'obtenir un équipement encore meilleur grâce aux nombreux défis marqués sur votre carte !
 hud-spell = Sorts
 hud-diary = Journal
-hud-free_look_indicator = Vue libre active. Appuyez sur { $key } pour la désactiver.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] Vue libre active. Appuyez sur { $key } pour la désactiver.
+       *[other] Vue libre active. Relâchez { $key } pour la désactiver.
+    }
 hud-camera_clamp_indicator = Limitation verticale de la caméra active. Appuyez sur { $key } pour la désactiver.
 hud-auto_walk_indicator = Marche/Nage automatique active
 hud-zoom_lock_indicator-remind = Zoom verrouillé

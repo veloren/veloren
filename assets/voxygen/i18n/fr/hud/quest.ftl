@@ -6,3 +6,4 @@ hud-quest-reward = Je vous récompenserai avec :
 hud-quest-accept = Accepter
 hud-quest-decline = Refuser
 hud-dialogue = Dialogue
+hud-dialogue-ack = Appuyez sur [{ $key }] pour accepter
