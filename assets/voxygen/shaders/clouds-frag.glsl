@@ -139,7 +139,6 @@ void main() {
                     dir = refr_dir;
                 }
             #endif
-                {
                 cloud_blend = 1.0 - color.a;
 
                 #if (FLUID_MODE >= FLUID_MODE_MEDIUM || REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
@@ -254,7 +253,6 @@ void main() {
                 #endif
                     cloud_blend = 1;
                 }
-            }
         }
         color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, dist, 1.0), cloud_blend);
 
