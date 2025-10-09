@@ -1,7 +1,8 @@
-#[cfg(feature = "worldgen")] use std::sync::Arc;
+#[cfg(feature = "worldgen")]
+use std::sync::Arc;
 
 use common::{
-    comp::{self, Agent, CharacterActivity, pet::is_mountable},
+    comp::{self, Agent, CharacterActivity, pet::is_mountable, EphemeralMount}, // Added EphemeralMount
     consts::{MAX_MOUNT_RANGE, MAX_SPRITE_MOUNT_RANGE},
     event::MountEvent,
     link::Is,
@@ -51,19 +52,19 @@ fn handle_mount_entity(server: &mut Server, rider: EcsEntity, mount: EcsEntity) 
             let is_pet_of = |mount, rider_uid| {
                 matches!(
                     state
-                        .ecs()
-                        .read_storage::<comp::Alignment>()
-                        .get(mount),
+                       .ecs()
+                       .read_storage::<comp::Alignment>()
+                       .get(mount),
                     Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
                 )
             };
 
             let can_ride = state
-                .ecs()
-                .read_storage()
-                .get(mount)
-                .zip(state.ecs().read_storage().get(mount))
-                .is_some_and(|(mount_body, mount_mass)| {
+               .ecs()
+               .read_storage()
+               .get(mount)
+               .zip(state.ecs().read_storage().get(mount))
+               .is_some_and(|(mount_body, mount_mass)| {
                     is_mountable(
                         mount_body,
                         mount_mass,
@@ -72,20 +73,22 @@ fn handle_mount_entity(server: &mut Server, rider: EcsEntity, mount: EcsEntity) 
                     )
                 });
 
-            if (is_pet_of(mount, rider_uid) || is_pet_of(rider, mount_uid)) && can_ride {
+            if (is_pet_of(mount, rider_uid) |
+
+| is_pet_of(rider, mount_uid)) && can_ride {
                 drop(uids);
 
                 state
-                    .ecs()
-                    .write_storage::<CharacterActivity>()
-                    .get_mut(mount)
-                    .map(|mut activity| activity.is_pet_staying = false);
+                   .ecs()
+                   .write_storage::<CharacterActivity>()
+                   .get_mut(mount)
+                   .map(|mut activity| activity.is_pet_staying = false);
 
                 state
-                    .ecs()
-                    .write_storage::<Agent>()
-                    .get_mut(mount)
-                    .map(|agent| agent.stay_pos = None);
+                   .ecs()
+                   .write_storage::<Agent>()
+                   .get_mut(mount)
+                   .map(|agent| agent.stay_pos = None);
 
                 let _ = state.link(Mounting {
                     mount: mount_uid,
@@ -102,12 +105,13 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
     let mount_mat = volume_pos.get_mount_mat(
         &state.terrain(),
         &state.ecs().read_resource(),
-        |e| {
+
+|e| {
             state
-                .read_storage()
-                .get(e)
-                .copied()
-                .zip(state.read_storage().get(e).copied())
+               .read_storage()
+               .get(e)
+               .copied()
+               .zip(state.read_storage().get(e).copied())
         },
         &state.read_storage(),
     );
@@ -127,12 +131,12 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
             && within_range
         {
             let _link_successful = state
-                .link(VolumeMounting {
+               .link(VolumeMounting {
                     pos: volume_pos,
                     block,
                     rider: rider_uid,
                 })
-                .is_ok();
+               .is_ok();
             #[cfg(feature = "worldgen")]
             if _link_successful {
                 let uid_allocator = state.ecs().read_resource::<IdMaps>();
@@ -144,14 +148,14 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
                     })
                 {
                     state
-                        .ecs()
-                        .write_resource::<RtSim>()
-                        .hook_character_mount_volume(
+                       .ecs()
+                       .write_resource::<RtSim>()
+                       .hook_character_mount_volume(
                             &state.ecs().read_resource::<Arc<world::World>>(),
                             state
-                                .ecs()
-                                .read_resource::<world::IndexOwned>()
-                                .as_index_ref(),
+                               .ecs()
+                               .read_resource::<world::IndexOwned>()
+                               .as_index_ref(),
                             volume_pos,
                             rider_actor,
                         );
@@ -161,8 +165,32 @@ fn handle_mount_volume(server: &mut Server, rider: EcsEntity, volume_pos: Volume
     }
 }
 
+// --- MODIFIED FUNCTION ---
 fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
-    state.ecs().write_storage::<Is<Rider>>().remove(rider);
-    state.ecs().write_storage::<Is<VolumeRider>>().remove(rider);
+    let ecs = state.ecs();
+
+    // Find the entity being ridden *before* removing the Rider component.
+    let mount_to_check = ecs
+       .read_storage::<Is<Rider>>()
+       .get(rider)
+       .and_then(|is_rider| ecs.entity_from_uid(is_rider.mount));
+
+    // Now get mutable access to the ECS to perform removals.
+    let ecs_mut = state.ecs_mut();
+
+    // Original logic: remove the rider components to sever the link.
+    ecs_mut.write_storage::<Is<Rider>>().remove(rider);
+    ecs_mut.write_storage::<Is<VolumeRider>>().remove(rider);
+
+    // --- START: CUSTOM LOGIC FOR EPHEMERAL MOUNT ---
+    if let Some(mount_entity) = mount_to_check {
+        let ephemeral_mounts = ecs_mut.read_storage::<comp::EphemeralMount>();
+        if ephemeral_mounts.contains(mount_entity) {
+            // If the mount has our tag, delete it from the world.
+            // The `let _ =...` is to handle the Result from delete_entity.
+            let _ = ecs_mut.delete_entity(mount_entity);
+        }
+    }
+    // --- END: CUSTOM LOGIC ---
 }

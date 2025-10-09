@@ -37,7 +37,7 @@ pub mod skillset;
 mod stats;
 pub mod teleport;
 pub mod visual;
-pub mod summoned_mount;
+pub mod ephemeral_mount;
 
 
 // Reexports
@@ -115,3 +115,5 @@ pub use self::{
 pub use common_i18n::{Content, LocalizationArg};
 
 pub use health::{Health, HealthChange, is_downed, is_downed_or_dead};
+
+pub use ephemeral_mount::EphemeralMount;

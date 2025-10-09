@@ -1,0 +1,13 @@
+BasicSummon(
+    buildup_duration: 0.5,
+    cast_duration: 1.0,
+    recover_duration: 0.5,
+    summon_info: (
+        // This is our unique identifier for this specific summon action
+        kind: Npc("ephemeral_antelope_summon"),
+        amount: 1,
+        // Other fields like duration, position, etc., can be set here if needed
+    ),
+    // This meta field is important for many abilities
+    meta: (),
+)

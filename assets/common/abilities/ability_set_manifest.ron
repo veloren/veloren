@@ -995,6 +995,11 @@
         secondary: Simple(None, "common.abilities.music.flute"),
         abilities: [],
     ),
+    Custom("SummonEphemeralAntelope"): (
+        primary: Simple(None, "common.abilities.summoning.summon_antelope"),
+        secondary: Simple(None, "common.abilities.summoning.summon_antelope"),
+        abilities:,
+    ),
     Custom("GlassFlute"): (
         primary: Simple(None, "common.abilities.music.glass_flute"),
         secondary: Simple(None, "common.abilities.music.glass_flute"),

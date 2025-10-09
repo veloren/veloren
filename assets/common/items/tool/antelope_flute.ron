@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Whistle of the Swift",
+    legacy_description: "Summons a swift antelope you instantly ride. Disappears when you dismount.",
+    kind: Tool((
+        kind: Instrument,
+        hands: One,
+    )),
+    quality: Legendary,
+    tags: [Utility],
+    // This is the critical link to our custom server-side logic
+    ability_spec: Some(Custom("SummonEphemeralAntelope")),
+)

@@ -133,13 +133,13 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         rider,
     } = ev.npc;
     let entity = server
-        .state
-        .create_npc(
+      .state
+      .create_npc(
             ev.pos, ev.ori, stats, skill_set, health, poise, inventory, body, scale,
         )
-        .maybe_with(heads)
-        .maybe_with(death_effects)
-        .maybe_with(rider_effects);
+      .maybe_with(heads)
+      .maybe_with(death_effects)
+      .maybe_with(rider_effects);
 
     if let Some(agent) = &mut agent
         && let Alignment::Owned(_) = &alignment
@@ -187,14 +187,55 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
 
     if let Some(rtsim_entity) = rtsim_entity {
         server
-            .state()
-            .ecs()
-            .write_resource::<IdMaps>()
-            .add_rtsim(rtsim_entity, new_entity);
+          .state()
+          .ecs()
+          .write_resource::<IdMaps>()
+          .add_rtsim(rtsim_entity, new_entity);
     }
 
     // Add to group system if a pet
     if let comp::Alignment::Owned(owner_uid) = alignment {
+        // --- START: CUSTOM LOGIC FOR EPHEMERAL MOUNT ---
+        if let Some(owner_entity) = server.state.ecs().entity_from_uid(owner_uid) {
+            let ecs = server.state.ecs();
+            let inventories = ecs.read_storage::<comp::Inventory>();
+            let is_our_summon = if let Some(inventory) = inventories.get(owner_entity) {
+                // Check if the summoner is holding the flute
+                let is_holding_flute = inventory
+                  .equipped(comp::inventory::slot::EquipSlot::ActiveMainhand)
+                  .map_or(false, |item| {
+                        item.ability_spec() == Some(&comp::inventory::item::tool::AbilitySpec::Custom("SummonEphemeralAntelope".to_string()))
+                    });
+
+                // Check if the NPC being created is an Antelope
+                let is_antelope = matches!(body, comp::Body::QuadrupedMedium(
+                    comp::quadruped_medium::Body {
+                        species: comp::quadruped_medium::Species::Antelope,
+                      ..
+                    }
+                ));
+
+                is_holding_flute && is_antelope
+            } else {
+                false
+            };
+
+            if is_our_summon {
+                // 1. TAG IT
+                // Note: You will need to add `EphemeralMount` to the world's components
+                // and potentially add `WriteStorage<EphemeralMount>` to the system's data dependencies.
+                let mut ephemeral_mounts = ecs.write_storage::<comp::EphemeralMount>();
+                ephemeral_mounts.insert(new_entity, comp::EphemeralMount).unwrap();
+
+                // 2. MOUNT IT (from `/mount` command logic)
+                let uids = ecs.read_storage::<Uid>();
+                if let Some(mount_uid) = uids.get(new_entity) {
+                    server.state.link(common::mounting::Mounting { mount: *mount_uid, rider: owner_uid }).unwrap();
+                }
+            }
+        }
+        // --- END: CUSTOM LOGIC ---
+
         let state = server.state();
         let uids = state.ecs().read_storage::<Uid>();
         let clients = state.ecs().read_storage::<Client>();
@@ -210,13 +251,13 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
                 &uids,
                 &mut |entity, group_change| {
                     clients
-                        .get(entity)
-                        .and_then(|c| {
+                      .get(entity)
+                      .and_then(|c| {
                             group_change
-                                .try_map_ref(|e| uids.get(*e).copied())
-                                .map(|g| (g, c))
+                              .try_map_ref(|e| uids.get(*e).copied())
+                              .map(|g| (g, c))
                         })
-                        .map(|(g, c)| {
+                      .map(|(g, c)| {
                             // Might be unnecessary, but maybe pets can somehow have map
                             // markers in the future
                             update_map_markers(&map_markers, &uids, c, &group_change);
@@ -242,9 +283,9 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         };
         drop(uids);
         server
-            .state
-            .link(link)
-            .expect("We just created these entities");
+          .state
+          .link(link)
+          .expect("We just created these entities");
     }
 
     for (pet, offset) in pets {
