@@ -24,7 +24,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.
-    float atmosphere_alt = CLOUD_AVG_ALT + 40000.0;
+    float atmosphere_alt = cloud_avg_alt() + 40000.0;
     // Veloren's world is flat. This is, to put it mildly, somewhat non-physical. With the earth as an infinitely-big
     // plane, the atmosphere is therefore capable of scattering 100% of any light source at the horizon, no matter how
     // bright, because it has to travel through an infinite amount of atmosphere. This doesn't happen in reality
@@ -44,7 +44,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
     const float MIST_FADE_HEIGHT = 1000;
     float mist = 0.01 * pow(clamp(1.0 - (pos.z - mist_min_alt) / MIST_FADE_HEIGHT, 0.0, 1), 10.0) * flat_earth_hack;
 
-    vec3 wind_pos = vec3(pos.xy + wind_offset, pos.z + noise_2d(pos.xy / 20000) * 500);
+    vec3 wind_pos = vec3(pos.xy + wind_offset(), pos.z + noise_2d(pos.xy / 20000) * 500);
 
     // Clouds
     float cloud_tendency = cloud_tendency_at(pos.xy);
@@ -71,7 +71,7 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
     float cloud_moon_access = 0.0;
 
     // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
-    if ((pos.z < CLOUD_AVG_ALT + 8000.0 && cloud_tendency > 0.0)) {
+    if ((pos.z < cloud_avg_alt() + 8000.0 && cloud_tendency > 0.0)) {
         // Turbulence (small variations in clouds/mist)
         const float turb_speed = -1.0; // Turbulence goes the opposite way
         vec3 turb_offset = vec3(1, 1, 0) * time_of_day.x * turb_speed;
@@ -95,8 +95,8 @@ vec4 cloud_at(vec3 pos, float dist, vec3 dir, out vec3 emission, out float not_u
         ;
 
         // Sample twice to allow for self-shadowing
-        float cloud_p0 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 - sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
-        float cloud_p1 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 + sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale * 20000.0));
+        float cloud_p0 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 - sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale() * 20000.0));
+        float cloud_p1 = noise_3d((wind_pos + vec3(0, 0, small_nz) * 150 + sun_dir.xyz * 150) * vec3(0.55, 0.55, 1) / (cloud_scale() * 20000.0));
 
         float cloud_factor = pow(max(((cloud_p0 + cloud_p1) * 0.5
             - 0.5

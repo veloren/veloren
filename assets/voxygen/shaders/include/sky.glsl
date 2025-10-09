@@ -91,12 +91,12 @@ vec3 glow_light(vec3 pos) {
 //    return normalize(-vec3(sin(moon_angle_rad), 0.0, cos(moon_angle_rad) - 0.5));
 //}
 
-float CLOUD_AVG_ALT = view_distance.z + (view_distance.w - view_distance.z) * 1.25;
+float cloud_avg_alt() { return view_distance.z + (view_distance.w - view_distance.z) * 1.25; }
 
 const float wind_speed = 0.25;
-vec2 wind_offset = vec2(time_of_day.y * wind_speed * (3600.0 * 24.0));
+vec2 wind_offset() { return vec2(time_of_day.y * wind_speed * (3600.0 * 24.0)); }
 
-float cloud_scale = view_distance.z / 150.0;
+float cloud_scale() { return view_distance.z / 150.0; }
 
 layout(set = 0, binding = 5) uniform texture2D t_alt;
 layout(set = 0, binding = 6) uniform sampler s_alt;
@@ -129,7 +129,7 @@ float cloud_shadow(vec3 pos, vec3 light_dir) {
     #if (CLOUD_MODE <= CLOUD_MODE_MINIMAL)
         return 1.0;
     #else
-        vec2 xy_offset = light_dir.xy * ((CLOUD_AVG_ALT - pos.z) / -light_dir.z);
+        vec2 xy_offset = light_dir.xy * ((cloud_avg_alt() - pos.z) / -light_dir.z);
 
         // Fade out shadow if the sun angle is too steep (simulates a widening penumbra with distance)
         const vec2 FADE_RANGE = vec2(1500, 10000);
