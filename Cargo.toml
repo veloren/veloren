@@ -98,23 +98,23 @@ debug = false
 panic = "abort"          # don't need unwinding so we can skip including the landing pads for that
 # line tables so we can have useful backtraces for in-house crates
 [profile.release.package."veloren-network"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-network-protocol"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-common"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-common-systems"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-client"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-server"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-server-cli"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-voxygen"]
-debug = 1
+debug = "line-tables-only"
 [profile.release.package."veloren-world"]
-debug = 1
+debug = "line-tables-only"
 
 [profile.release-thinlto]
 inherits = 'release'
