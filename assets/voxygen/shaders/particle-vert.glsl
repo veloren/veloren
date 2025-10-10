@@ -126,7 +126,7 @@ struct Attr {
     mat4 rot;
 };
 
-float lifetime = time_since(inst_time);
+float lifetime() { return time_since(inst_time); }
 
 // Retrieves inst_time, repeating over a period. This will be consistent
 // over a time overflow.
@@ -139,29 +139,29 @@ float loop_inst_time(float period, float scale) {
 }
 
 vec3 linear_motion(vec3 init_offs, vec3 vel) {
-    return init_offs + vel * lifetime;
+    return init_offs + vel * lifetime();
 }
 
 vec3 quadratic_bezier_motion(vec3 start, vec3 ctrl0, vec3 end) {
-    float t = lifetime;
-    float u = 1 - lifetime;
+    float t = lifetime();
+    float u = 1 - lifetime();
     return u*u*start + t*u*ctrl0 + t*t*end;
 }
 
 vec3 grav_vel(float grav) {
-    return vec3(0, 0, -grav * lifetime);
+    return vec3(0, 0, -grav * lifetime());
 }
 
 float exp_scale(float factor) {
-    return 1 / (1 - lifetime * factor);
+    return 1 / (1 - lifetime() * factor);
 }
 
 float linear_scale(float factor) {
-    return lifetime * factor;
+    return lifetime() * factor;
 }
 
 float percent() {
-    return lifetime / inst_lifespan;
+    return lifetime() / inst_lifespan;
 }
 
 float slow_end(float factor) {
@@ -173,7 +173,7 @@ float slow_start(float factor) {
 }
 
 float start_end(float from, float to) {
-    return mix(from, to, lifetime / inst_lifespan);
+    return mix(from, to, lifetime() / inst_lifespan);
 }
 
 mat4 spin_in_axis(vec3 axis, float angle)
@@ -239,8 +239,8 @@ vec3 spiral_motion(vec3 line, float radius, float time_function, float frequency
 vec3 blown_by_wind(float mass, float drift_factor) {
     float factor = pow(percent(), mass) * drift_factor;
     float rand = hash(vec4(inst_entropy + 45));
-    return vec3(inst_start_wind_vel * lifetime * factor, 0.0)
-        + sin(tick_loop(2.0 * PI, vec3(0.25), vec3(0.0, 10.0, 20.0) + lifetime * (1.0 + rand * factor)))
+    return vec3(inst_start_wind_vel * lifetime() * factor, 0.0)
+        + sin(tick_loop(2.0 * PI, vec3(0.25), vec3(0.0, 10.0, 20.0) + lifetime() * (1.0 + rand * factor)))
             * sin(tick_loop(2.0 * PI, 0.9 * vec3(1.0, 1.1, 1.2), vec3(0.0)))
             * length(inst_start_wind_vel)
             * factor;
@@ -272,7 +272,7 @@ void main() {
                 ) + blown_by_wind(1.0, 0.25),
                 vec3(linear_scale(0.5)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 2.5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 2.5)
             );
             break;
         case BLACK_SMOKE:
@@ -283,7 +283,7 @@ void main() {
                 ) + blown_by_wind(7.0, 0.5),
                 vec3(linear_scale(0.5)),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 0.5)
             );
             break;
         case FIRE:
@@ -422,11 +422,11 @@ void main() {
                     vec3(0),
                     vec3(0, 0, -2)
                 )
-                    + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0
+                    + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 2.0
                     + blown_by_wind(1.0, 1.0),
                 vec3(4),
                 vec4(vec3(0.2 + rand7 * 0.2, 0.2 + (0.25 + rand6 * 0.5) * 0.3, 0) * (0.75 + rand1 * 0.5), 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case SNOW:
@@ -434,42 +434,42 @@ void main() {
             vec3 offset = linear_motion(vec3(0), vec3(inst_start_wind_vel, 0.0));
             float end_alt = alt_at(start_pos.xy + offset.xy);
             attr = Attr(
-                offset + vec3(0, 0, end_alt - start_pos.z + height) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 3,
+                offset + vec3(0, 0, end_alt - start_pos.z + height) + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 3,
                 vec3(mix(4, 0, pow(start_end(1, 0), 4))),
                 vec4(1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case FIREFLY:
-            float raise = pow(sin(3.1416 * lifetime / inst_lifespan), 0.2);
+            float raise = pow(sin(3.1416 * lifetime() / inst_lifespan), 0.2);
             attr = Attr(
                 vec3(0, 0, raise * 5.0) + vec3(
-                    sin(lifetime * 1.0 + rand0) + sin(lifetime * 7.0 + rand3) * 0.3,
-                    sin(lifetime * 3.0 + rand1) + sin(lifetime * 8.0 + rand4) * 0.3,
-                    sin(lifetime * 2.0 + rand2) + sin(lifetime * 9.0 + rand5) * 0.3
+                    sin(lifetime() * 1.0 + rand0) + sin(lifetime() * 7.0 + rand3) * 0.3,
+                    sin(lifetime() * 3.0 + rand1) + sin(lifetime() * 8.0 + rand4) * 0.3,
+                    sin(lifetime() * 2.0 + rand2) + sin(lifetime() * 9.0 + rand5) * 0.3
                 ),
                 vec3(raise),
                 vec4(vec3(10.3, 9, 1.5), 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case BEE:
-            float lower = pow(sin(3.1416 * lifetime / inst_lifespan), 0.2);
+            float lower = pow(sin(3.1416 * lifetime() / inst_lifespan), 0.2);
             attr = Attr(
                 vec3(0, 0, lower * -0.5) + vec3(
-                    sin(lifetime * 2.0 + rand0) + sin(lifetime * 9.0 + rand3) * 0.3,
-                    sin(lifetime * 3.0 + rand1) + sin(lifetime * 10.0 + rand4) * 0.3,
-                    sin(lifetime * 4.0 + rand2) + sin(lifetime * 11.0 + rand5) * 0.3
+                    sin(lifetime() * 2.0 + rand0) + sin(lifetime() * 9.0 + rand3) * 0.3,
+                    sin(lifetime() * 3.0 + rand1) + sin(lifetime() * 10.0 + rand4) * 0.3,
+                    sin(lifetime() * 4.0 + rand2) + sin(lifetime() * 11.0 + rand5) * 0.3
                 ) * 0.5,
                 vec3(lower),
                 vec4(vec3(1, 0.7, 0), 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case GROUND_SHOCKWAVE:
             attr = Attr(
                 vec3(0.0),
-                vec3(11.0, 11.0, (33.0 * rand0 * sin(2.0 * lifetime * 3.14 * 2.0))) / 3,
+                vec3(11.0, 11.0, (33.0 * rand0 * sin(2.0 * lifetime() * 3.14 * 2.0))) / 3,
                 vec4(vec3(0.32 + (rand0 * 0.04), 0.22 + (rand1 * 0.03), 0.05 + (rand2 * 0.01)), 1),
                 spin_in_axis(vec3(1,0,0),0)
             );
@@ -478,7 +478,7 @@ void main() {
             f_reflect = 0.0;
             float spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
             attr = Attr(
-                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime(), abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
                 vec4(vec3(0, 1.7, 0.7) * 3, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
@@ -486,12 +486,12 @@ void main() {
             break;
         case LIFESTEAL_BEAM:
             f_reflect = 0.0;
-            float green_col = 0.8 + 0.8 * sin(tick_loop(2 * PI, 5, lifetime * 5));
+            float green_col = 0.8 + 0.8 * sin(tick_loop(2 * PI, 5, lifetime() * 5));
             float purple_col = 0.6 + 0.5 * sin(loop_inst_time(2 * PI, 4)) - min(max(green_col - 1, 0), 0.3);
             float red_col = 1.15 + 0.1 * sin(loop_inst_time(2 * PI, 3)) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
             attr = Attr(
-                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, loop_inst_time(2.0 * PI, 1.0)),
-                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick_loop(2 * PI, 10, -lifetime * 4)))),
+                spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime() / inst_lifespan, 10.0, loop_inst_time(2.0 * PI, 1.0)),
+                vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick_loop(2 * PI, 10, -lifetime() * 4)))),
                 vec4(vec3(red_col + purple_col * 0.6, green_col + purple_col * 0.35, purple_col), 1),
                 spin_in_axis(inst_dir, tick_loop(2 * PI))
             );
@@ -500,7 +500,7 @@ void main() {
             f_reflect = 0.0;
             spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
             attr = Attr(
-                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime(), abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
                 vec4(vec3(0, 1.7, 1.3), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
@@ -537,7 +537,7 @@ void main() {
         case FIRE_SHOCKWAVE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             attr = Attr(
-                vec3(rand0, rand1, lifetime * 10 + rand2),
+                vec3(rand0, rand1, lifetime() * 10 + rand2),
                 vec3((5 * (1 - slow_start(0.5)))),
                 vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
                 spin_in_axis(vec3(rand3, rand4, rand5), rand6)
@@ -672,7 +672,7 @@ void main() {
             f_reflect = 0.0;
             spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
             attr = Attr(
-                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime(), abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
                 vec4(vec3(1.4), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
@@ -755,9 +755,9 @@ void main() {
         case PORTAL_FIZZ:
             attr = Attr(
                 inst_dir * (0.7 + pow(percent(), 5)) + vec3(
-                    sin(lifetime * 1.25 + rand0 * 10) + sin(lifetime * 1.3 + rand3 * 10),
-                    sin(lifetime * 1.2 + rand1 * 10) + sin(lifetime * 1.4 + rand4 * 10),
-                    sin(lifetime * 5 + rand2)
+                    sin(lifetime() * 1.25 + rand0 * 10) + sin(lifetime() * 1.3 + rand3 * 10),
+                    sin(lifetime() * 1.2 + rand1 * 10) + sin(lifetime() * 1.4 + rand4 * 10),
+                    sin(lifetime() * 5 + rand2)
                 ) * 0.03,
                 vec3(pow(1.0 - abs(percent() - 0.5) * 2.0, 0.2)),
                 mix(
@@ -766,7 +766,7 @@ void main() {
                     clamp((dot(normalize(focus_pos.xyz - start_pos), inst_dir) - 0.25) * 3.0, 0.0, 1.0)
                 ),
                 /* vec4(vec3(1.8 - percent() * 2, 0.4 + percent() * 2, 5.0 + rand6), 1), */
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case INK:
@@ -807,7 +807,7 @@ void main() {
                         )
                     ),
                     fiery_radius,
-                    lifetime,
+                    lifetime(),
                     max(0.1, step(0.6, percent())) * 3.0 * abs(rand0),
                     rand1 * 2.0 * PI) + vec3(0.0, 0.0, rand2),
                 vec3(6.0 * abs(rand4) * (1.0 - slow_start(2.0)) * pow(fiery_radius / length(inst_dir), 0.5)),
@@ -972,7 +972,7 @@ void main() {
             float fiery_b = 1.5;
             spiral_radius = length(inst_dir);
             attr = Attr(
-                spiral_motion(vec3(0.0, 0.0, 0.01), spiral_radius + abs(rand1), lifetime / 0.5, abs(rand0), rand1 * 2.0 * PI) + vec3(0.0, 0.0, rand2),
+                spiral_motion(vec3(0.0, 0.0, 0.01), spiral_radius + abs(rand1), lifetime() / 0.5, abs(rand0), rand1 * 2.0 * PI) + vec3(0.0, 0.0, rand2),
                 vec3(6.0 * abs(rand4) * (1 - slow_start(2.0))),
                 vec4(vec3(fiery_r, fiery_g, fiery_b), 1.0),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3.0)
@@ -987,7 +987,7 @@ void main() {
             vec3 factor_rand = vec3((rand0 * 0.2) * (rand5 * 0.1) + rand6 * 0.9, (rand1 * 0.2) * (rand4 * 0.1) + rand7 * 0.9, (rand2 * 0.2) * (rand3 * 0.1) + rand8 * 0.9);
             start_pos += factor_rand + normalize(inst_dir) * 0.6;
             attr = Attr(
-                spiral_motion(inst_dir - factor_rand * 0.4, 0.3 * ((rand2 + 0.5) * 5.5) * (1.0 - min(linear_scale(1.5), 1.0)), lifetime / inst_lifespan, 24.0, -inst_time * 8.0),
+                spiral_motion(inst_dir - factor_rand * 0.4, 0.3 * ((rand2 + 0.5) * 5.5) * (1.0 - min(linear_scale(1.5), 1.0)), lifetime() / inst_lifespan, 24.0, -inst_time * 8.0),
                 vec3((2.5 * (1 - slow_start(0.2)))),
                 vec4(beam_r, beam_g, beam_b, 1.0),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10.0 + 3.0 * rand9)
@@ -1058,10 +1058,10 @@ void main() {
                 linear_motion(
                     vec3(0),
                     vec3(0, 0, -1.1)
-                ) + vec3(sin((lifetime + rand9 * 0.1) * 0.5) * 3.0, sin((lifetime+ rand8 * 0.1) * 0.5) * 3.0, sin(lifetime * 0.5) * 1.5),
-                vec3(0.4 + 0.4 * abs(sin(lifetime))),
+                ) + vec3(sin((lifetime() + rand9 * 0.1) * 0.5) * 3.0, sin((lifetime() + rand8 * 0.1) * 0.5) * 3.0, sin(lifetime() * 0.5) * 1.5),
+                vec3(0.4 + 0.4 * abs(sin(lifetime()))),
                 vec4(vec3(0.8, 6.0 + rand6 * 1.75, 7.5 + (1.75 + rand5 * 0.5)), 1),
-                spin_in_axis(vec3(rand1, rand2, rand3), rand4 * 1.5 + lifetime)
+                spin_in_axis(vec3(rand1, rand2, rand3), rand4 * 1.5 + lifetime())
             );
             break;
         case SURPRISE_EGG:
@@ -1144,10 +1144,10 @@ void main() {
                 linear_motion(
                     vec3(0),
                     vec3(0, 0, -2)
-                ) + vec3(sin(lifetime), sin(lifetime + 0.7), sin(lifetime * 0.5)) * 2.0,
+                ) + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 2.0,
                 vec3(4),
                 vec4(vec3(0.1 + rand1 * 0.1, 0.1 + rand1 * 0.1, 0.1 + rand1 * 0.1), 1),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 5)
             );
             break;
         case FIRE_GIGAS_WHIRLWIND:
@@ -1203,15 +1203,15 @@ void main() {
                 ) + blown_by_wind(2.0, 0.1),
                 vec3(1.0 - slow_start(0.01)) * 0.5,
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 0.5)
             );
             break;
         case TRAIN_SMOKE:
             attr = Attr(
-                vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime, 0.5) + blown_by_wind(1.0, 1.0),
-                vec3(mix(15, 20, lifetime)),
+                vec3(rand2 * 4, rand3 * 4, 15 + rand4 * 3) * pow(lifetime(), 0.5) + blown_by_wind(1.0, 1.0),
+                vec3(mix(15, 20, lifetime())),
                 vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
-                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 0.5)
             );
             break;
         case BUBBLE:
@@ -1221,7 +1221,7 @@ void main() {
                     vec3(0),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
                 ),
-                vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime * 20.0) * 0.2 + rand2 * 0.3),
+                vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
                 vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
