@@ -20,9 +20,8 @@
                 // Ingredients
                 (0.75, MultiDrop(Item("common.items.crafting_ing.alkahest"), 1, 3)),
             ])),
-            (0.4, Lottery([
+            (0.3, Lottery([
                 // Recipes
-                (1.0, Item("common.items.recipes.unique.mindflayer_spellbag")),
                 (1.0, Item("common.items.recipes.equipment.advanced")),
                 (1.0, Item("common.items.recipes.lanterns")),
             ])),

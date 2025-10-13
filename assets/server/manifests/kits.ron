@@ -1097,9 +1097,6 @@
         (Item("common.items.recipes.equipment.advanced"),1),
         (Item("common.items.recipes.equipment.basic"),1),
         (Item("common.items.recipes.equipment.moderate"),1),
-        // Unique
-        (Item("common.items.recipes.unique.mindflayer_spellbag"),1),
-        (Item("common.items.recipes.unique.winged_coronet"),1),
         // Weapons
         (Item("common.items.recipes.weapons.bamboo"),1),
         (Item("common.items.recipes.weapons.eldwood"),1),

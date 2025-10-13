@@ -11,6 +11,7 @@ ItemDef(
             "ruby_necklace",
             "emerald_ring",
             "emerald_necklace",
+            "mindflayer_spellbag",
             "merchant_turban",
         ],
     ),

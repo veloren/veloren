@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("pangolin"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_low.generic"),
+    loot: LootTable("common.loot_tables.creature.quad_low.pangolin"),
     inventory: (
         loadout: FromBody,
     ),

@@ -116,8 +116,8 @@
     "firework_blue": (
         output: ("common.items.utility.firework_blue", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -128,8 +128,8 @@
     "firework_green": (
         output: ("common.items.utility.firework_green", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -140,8 +140,8 @@
     "firework_purple": (
         output: ("common.items.utility.firework_purple", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -152,8 +152,8 @@
     "firework_red": (
         output: ("common.items.utility.firework_red", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -164,8 +164,8 @@
     "firework_white": (
         output: ("common.items.utility.firework_white", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -176,8 +176,8 @@
     "firework_yellow": (
         output: ("common.items.utility.firework_yellow", 1),
         inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 1, false),
             (Item("common.items.crafting_ing.twigs"), 1, false),
-            (Item("common.items.crafting_ing.stones"), 1, false),
             (Item("common.items.food.coconut"), 1, false),
             (Item("common.items.crafting_ing.living_embers"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 1, false),
@@ -2189,8 +2189,8 @@
     "diamond_necklace": (
         output: ("common.items.armor.misc.neck.diamond", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.gold"), 4, false),
-            (Item("common.items.mineral.gem.diamond"), 6, false),
+            (Item("common.items.mineral.ingot.gold"), 2, false),
+            (Item("common.items.mineral.gem.diamond"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2206,8 +2206,8 @@
     "ruby_necklace": (
         output: ("common.items.armor.misc.neck.ruby", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.silver"), 4, false),
-            (Item("common.items.mineral.gem.ruby"), 6, false),
+            (Item("common.items.mineral.ingot.silver"), 2, false),
+            (Item("common.items.mineral.gem.ruby"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -2223,8 +2223,8 @@
     "emerald_necklace": (
         output: ("common.items.armor.misc.neck.emerald", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.cobalt"), 4, false),
-            (Item("common.items.mineral.gem.emerald"), 6, false),
+            (Item("common.items.mineral.ingot.cobalt"), 2, false),
+            (Item("common.items.mineral.gem.emerald"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,

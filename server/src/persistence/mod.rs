@@ -2,7 +2,7 @@
 
 // Touch this comment if changes only include .sql files and no .rs so that
 // migration happens.
-// meow~
+// nya~
 
 pub(in crate::persistence) mod character;
 pub mod character_loader;

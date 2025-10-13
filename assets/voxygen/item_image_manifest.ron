@@ -1845,14 +1845,6 @@
         "voxel.item.recipe.recipe_leatherworking",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
     ),
-    Simple("common.items.recipes.unique.mindflayer_spellbag"): VoxTrans(
-        "voxel.item.recipe.recipe_leatherworking",
-        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
-    ),
-    Simple("common.items.recipes.unique.winged_coronet"): VoxTrans(
-        "voxel.item.recipe.recipe_leatherworking",
-        (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,
-    ),
     Simple("common.items.recipes.armor.woolen"): VoxTrans(
         "voxel.item.recipe.recipe_weaving",
         (1.0, 0.0, 20.0), (30.0, 45.0, 120.0), 1.0,

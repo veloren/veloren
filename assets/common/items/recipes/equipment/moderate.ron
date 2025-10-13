@@ -15,6 +15,7 @@ ItemDef(
             "traveler_backpack",
             "sturdy_red_backpack",
             "troll_hide_pack",
+            "winged_coronet",
         ],
     ),
     quality: High,
