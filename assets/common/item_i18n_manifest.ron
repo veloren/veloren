@@ -7563,8 +7563,6 @@
         Simple("common.items.recipes.equipment.basic"): "recipe-equipment-basic",
         Simple("common.items.recipes.equipment.moderate"): "recipe-equipment-moderate",
         Simple("common.items.recipes.equipment.advanced"): "recipe-equipment-advanced",
-        Simple("common.items.recipes.unique.mindflayer_spellbag"): "recipe-unique-mindflayer_spellbag",
-        Simple("common.items.recipes.unique.winged_coronet"): "recipe-unique-winged_coronet",
         Simple("common.items.recipes.charms"): "recipe-charms",
         Simple("common.items.recipes.explosives"): "recipe-explosives",
         Simple("common.items.recipes.food"): "recipe-food",

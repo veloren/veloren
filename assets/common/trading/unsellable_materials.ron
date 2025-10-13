@@ -38,6 +38,7 @@
 
     // High tier Mob drops
     (0.005, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),
+    (0.015, Item("common.items.crafting_ing.bloody_tear")),
     (0.025, Item("common.items.crafting_ing.golem_core")),
     (0.025, Item("common.items.crafting_ing.cursed_bead")),
     (0.025, Item("common.items.mineral.ore.ancient_gold")),

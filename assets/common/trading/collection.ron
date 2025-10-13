@@ -22,6 +22,15 @@
     (1.0, Item("common.items.boss_drops.lantern")),
     (1.5, Item("common.items.lantern.blue_0")),
 
+    // Instruments
+    (1.0, Item("common.items.tool.instruments.glass_flute")),
+    (1.0, Item("common.items.tool.instruments.shamisen")),
+    (1.0, Item("common.items.tool.instruments.starlight_conch")),
+    (1.0, Item("common.items.tool.instruments.steeltonguedrum")),
+    (1.0, Item("common.items.tool.instruments.timbrel_of_chaos")),
+    (1.0, Item("common.items.tool.instruments.viola_pizzicato")),
+    (1.0, Item("common.items.tool.instruments.wildskin_drum")),
+
     // Keys
     (15.0, Item("common.items.keys.bone_key")),
     (15.0, Item("common.items.keys.glass_key")),

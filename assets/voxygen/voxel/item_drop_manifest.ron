@@ -453,8 +453,6 @@
     Simple("common.items.recipes.armor.serpentscale"): "voxel.item.recipe.recipe_leatherworking",
     Simple("common.items.recipes.armor.primal"): "voxel.item.recipe.recipe_leatherworking",
     Simple("common.items.recipes.armor.dragonscale"): "voxel.item.recipe.recipe_leatherworking",
-    Simple("common.items.recipes.unique.mindflayer_spellbag"): "voxel.item.recipe.recipe_leatherworking",
-    Simple("common.items.recipes.unique.winged_coronet"): "voxel.item.recipe.recipe_leatherworking",
     Simple("common.items.recipes.armor.woolen"): "voxel.item.recipe.recipe_weaving",
     Simple("common.items.recipes.armor.silken"): "voxel.item.recipe.recipe_weaving",
     Simple("common.items.recipes.armor.druid"): "voxel.item.recipe.recipe_weaving",

@@ -1,5 +1,5 @@
 [
-    (0.5, Item("common.items.crafting_ing.abyssal_heart")),
-    (2.0, Item("common.items.crafting_ing.coral_branch")),
+    (2.5, MultiDrop(Item("common.items.crafting_ing.brinestone"), 3, 5)),
+    (1.3, MultiDrop(Item("common.items.crafting_ing.coral_branch"), 2, 3)),
     (0.2, Item("common.items.tool.instruments.glass_flute")),
 ]

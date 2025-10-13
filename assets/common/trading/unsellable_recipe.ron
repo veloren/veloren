@@ -33,7 +33,4 @@
     (0.25, Item("common.items.recipes.weapons.eldwood")),
     (0.25, Item("common.items.recipes.armor.brinestone")),
     (0.25, Item("common.items.recipes.armor.golemite")),
-    // Unique items
-    (0.6, Item("common.items.recipes.unique.winged_coronet")),
-    (0.25, Item("common.items.recipes.unique.mindflayer_spellbag")),
 ]
