@@ -2,7 +2,6 @@ use super::SessionState;
 use crate::{
     GlobalState,
     audio::SfxChannelSettings,
-    controller::ControllerSettings,
     game_input::GameInput,
     hud::{
         AutoPressBehavior, BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior,
@@ -10,8 +9,8 @@ use crate::{
     },
     render::RenderMode,
     settings::{
-        AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
-        GraphicsSettings, InterfaceSettings, audio::AudioVolume,
+        AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GamepadSettings,
+        GameplaySettings, GraphicsSettings, InterfaceSettings, audio::AudioVolume,
     },
     window::{FullScreenSettings, Window},
 };
@@ -51,9 +50,16 @@ pub enum Chat {
 }
 #[derive(Clone)]
 pub enum Control {
-    ChangeBinding(GameInput),
-    RemoveBinding(GameInput),
-    ResetKeyBindings,
+    // change keyboard bindings
+    ChangeBindingKeyboard(GameInput),
+    RemoveBindingKeyboard(GameInput),
+    ResetKeyBindingsKeyboard,
+
+    // change gamepad button bindings
+    ChangeBindingGamepadButton(GameInput),
+    RemoveBindingGamepadButton(GameInput),
+    ResetKeyBindingsGamepadButton,
+    // Gamepad menu button bindings
 }
 #[derive(Clone)]
 pub enum Gamepad {}
@@ -379,14 +385,25 @@ impl SettingsChange {
                 }
             },
             SettingsChange::Control(control_change) => match control_change {
-                Control::ChangeBinding(game_input) => {
+                Control::ChangeBindingKeyboard(game_input) => {
                     global_state.window.set_keybinding_mode(game_input);
                 },
-                Control::RemoveBinding(game_input) => {
+                Control::RemoveBindingKeyboard(game_input) => {
                     settings.controls.remove_binding(game_input);
                 },
-                Control::ResetKeyBindings => {
+                Control::ResetKeyBindingsKeyboard => {
                     settings.controls = ControlSettings::default();
+                },
+                Control::ChangeBindingGamepadButton(game_input) => {
+                    global_state.window.set_keybinding_mode(game_input);
+                },
+                Control::RemoveBindingGamepadButton(game_input) => {
+                    settings.controller2.remove_button_binding(game_input);
+                },
+                Control::ResetKeyBindingsGamepadButton => {
+                    // Currently resets everything on the controller
+                    // TODO: only reset the button bindings
+                    settings.controller2 = ControllerSettings::default();
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},

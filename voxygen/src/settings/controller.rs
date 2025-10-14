@@ -72,7 +72,8 @@ impl From<ControllerSettings> for ControllerSettingsSerde {
 }
 
 /// Contains all controller related settings and keymaps
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(from = "ControllerSettingsSerde", into = "ControllerSettingsSerde")]
 pub struct ControllerSettings {
     pub game_button_map: HashMap<GameInput, Option<Button>>,
     pub inverse_game_button_map: HashMap<Button, HashSet<GameInput>>,

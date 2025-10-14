@@ -1,9 +1,8 @@
 use crate::{
-    controller::*,
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{ControlSettings, Settings, gamepad::con_settings::LayerEntry},
+    settings::{ControlSettings, Settings, controller::*, gamepad::con_settings::LayerEntry},
     ui,
 };
 use common_base::span;

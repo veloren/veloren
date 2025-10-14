@@ -9,6 +9,7 @@ use tracing::warn;
 pub mod audio;
 pub mod chat;
 pub mod control;
+pub mod controller;
 pub mod gamepad;
 pub mod gameplay;
 pub mod graphics;
@@ -20,6 +21,7 @@ pub mod networking;
 pub use audio::{AudioOutput, AudioSettings};
 pub use chat::ChatSettings;
 pub use control::ControlSettings;
+pub use controller::{Button, ControllerSettings};
 pub use gamepad::GamepadSettings;
 pub use gameplay::GameplaySettings;
 pub use graphics::{Fps, GraphicsSettings, get_fps};
@@ -35,6 +37,7 @@ pub use networking::NetworkingSettings;
 pub struct Settings {
     pub chat: ChatSettings,
     pub controls: ControlSettings,
+    pub controller2: ControllerSettings,
     pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
@@ -72,6 +75,7 @@ impl Default for Settings {
         Settings {
             chat: ChatSettings::default(),
             controls: ControlSettings::default(),
+            controller2: ControllerSettings::default(),
             interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),

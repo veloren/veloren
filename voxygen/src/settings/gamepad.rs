@@ -13,10 +13,10 @@ pub struct GamepadSettings {
     pub game_layer_buttons: con_settings::GameLayerEntries,
     pub pan_sensitivity: u32,
     pub pan_invert_y: bool,
-    pub axis_deadzones: HashMap<crate::controller::Axis, f32>,
-    pub button_deadzones: HashMap<crate::controller::AnalogButton, f32>,
+    pub axis_deadzones: HashMap<crate::settings::controller::Axis, f32>,
+    pub button_deadzones: HashMap<crate::settings::controller::AnalogButton, f32>,
     pub mouse_emulation_sensitivity: u32,
-    pub inverted_axes: Vec<crate::controller::Axis>,
+    pub inverted_axes: Vec<crate::settings::controller::Axis>,
 }
 
 impl Default for GamepadSettings {
@@ -40,7 +40,8 @@ impl Default for GamepadSettings {
 }
 
 pub mod con_settings {
-    use crate::controller::*;
+    //use crate::controller::*;
+    use crate::settings::controller::*;
     use gilrs::{Axis as GilAxis, Button as GilButton};
     use i18n::Localization;
     use serde::{Deserialize, Serialize};
