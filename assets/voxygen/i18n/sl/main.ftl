@@ -1,4 +1,3 @@
-main-usernamevvvv = Uporabniško ime
 main-server = Strežnik
 main-password = Geslo
 main-connecting = Povezujem
@@ -38,10 +37,10 @@ main-singleplayer-day_length = Dan traja
 main-singleplayer-random_seed = Naključno
 main-singleplayer-size_lg = Logaritemska velikost
 main-singleplayer-map_large_warning = Pozor, prvi vstop v velike svetove lahko traja dlje časa.
-main-singleplayer-map_large_extra_warning = 
+main-singleplayer-map_large_extra_warning =
     { $count ->
         [one] To bi zahtevalo približno toliko virov kot generiranje { $count } sveta s privzetimi možnostmi.
-        *[other] To bi zahtevalo približno toliko virov kot generiranje { $count } svetov s privzetimi možnostmi.
+       *[other] To bi zahtevalo približno toliko virov kot generiranje { $count } svetov s privzetimi možnostmi.
     }
 main-singleplayer-world_name = Ime sveta
 main-singleplayer-map_scale = Navpično skaliranje
