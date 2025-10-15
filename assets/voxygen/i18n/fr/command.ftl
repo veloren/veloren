@@ -106,3 +106,4 @@ command-weather_zone-desc = Créer une zone météorologique
 command-make_sprite-desc = Crée un Sprite à votre position, pour définir ses attributs utilisez la syntaxe ron pour un StructureSprite.
 command-permit_build-desc = Octroie au joueur une zone délimitée dans laquelle il est possible de construire
 command-ship-desc = Fait apparaître un navire
+command-whitelist-desc = Ajouter / Retirer un nom d'utilisateur de la whitelist
