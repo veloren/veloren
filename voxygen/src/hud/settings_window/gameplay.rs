@@ -226,7 +226,7 @@ impl Widget for Gameplay<'_> {
 
         if let Some(new_val) = ImageSlider::discrete(
             display_clamp,
-            1,
+            0,
             90,
             self.imgs.slider_indicator,
             self.imgs.slider,
