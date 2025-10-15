@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Barns can spawn some items.
 - Significantly increased the frequency/number of recipes dropped from dungeon chests.
 - More attacks and interactions can be aimed while mounted.
+- Minimum camera clamp angle is now 0 degrees.
 
 ### Removed
 
