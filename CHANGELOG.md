@@ -155,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Npc pathing.
 - More beds heal
 - RTsim airships now stay at flying height except when docking.
+- Adjust airship's propellers and rudder offset
 
 ## [0.17.0] - 2024-12-28
 
