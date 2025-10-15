@@ -107,7 +107,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Train => (0.0, 0.0, 0.0),
             },
             bone1: match body {
-                DefaultAirship => (-13.0, -25.0, 10.0),
+                DefaultAirship => (-13.0, -25.0, 10.5),
                 AirBalloon => (0.0, 0.0, 0.0),
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
@@ -119,7 +119,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Train => (0.0, -3.0, 2.0),
             },
             bone2: match body {
-                DefaultAirship => (13.0, -25.0, 10.0),
+                DefaultAirship => (13.0, -25.0, 10.5),
                 AirBalloon => (0.0, 0.0, 0.0),
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
@@ -131,7 +131,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 Train => (0.0, -9.0, 2.0),
             },
             bone3: match body {
-                DefaultAirship => (0.0, -27.5, 8.5),
+                DefaultAirship => (0.0, -28.0, 8.5),
                 AirBalloon => (0.0, -9.0, 8.0),
                 SailBoat => (0.0, 0.0, 0.0),
                 Galleon => (0.0, 0.0, 0.0),
