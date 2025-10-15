@@ -2646,17 +2646,17 @@ BenchCoastal: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.bench_coastal-0",
-            offset: (-5.5, -3.5, 0.0),
+            offset: (-3.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.furniture.bench_coastal-1",
-            offset: (-5.5, -3.5, 0.0),
+            offset: (-3.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
             model: "voxygen.voxel.sprite.furniture.bench_coastal-2",
-            offset: (-5.5, -3.5, 0.0),
+            offset: (-3.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],

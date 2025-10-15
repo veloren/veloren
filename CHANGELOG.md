@@ -147,7 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Npcs don't get angry if you kill a monster infront of them, and can get happy if you saved them from it.
 - Map markers are kept between character selection screens.
 - Using "/clear" now works when chat is not shown.
-- A server crash when loading some myrmion arenas.
+- A server crash when loading some myrmidon arenas.
 - Fixed agents spamming healing items, causing them not to heal.
 - Fixed agents not picking up their items.
 - Fixed the issue where cliff town airship docks were sometimes missing.
@@ -156,6 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More beds heal
 - RTsim airships now stay at flying height except when docking.
 - Adjust airship's propellers and rudder offset
+- Fix offset of BenchCoastal sprite
 
 ## [0.17.0] - 2024-12-28
 
