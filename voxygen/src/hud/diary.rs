@@ -493,7 +493,7 @@ impl Widget for Diary<'_> {
                     DiarySection::AbilitySelection => self.imgs.spellbook_ico,
                     DiarySection::SkillTrees => self.imgs.skilltree_ico,
                     DiarySection::Character => self.imgs.stats_ico,
-                    DiarySection::Recipes => self.imgs.crafting_icon,
+                    DiarySection::Recipes => self.imgs.crafting_ico,
                 };
 
                 if i == 0 {

@@ -87,6 +87,7 @@ image_ids! {
         spellbook_ico: "voxygen.element.ui.diary.buttons.spellbook",
         spellbook_ico0: "voxygen.element.ui.generic.buttons.spellbook0",
         stats_ico: "voxygen.element.ui.diary.buttons.stats",
+        crafting_ico: "voxygen.element.ui.diary.buttons.crafting",
         lock: "voxygen.element.ui.diary.buttons.lock",
         wpn_icon_border_skills: "voxygen.element.ui.diary.buttons.border_skills",
         wpn_icon_border: "voxygen.element.ui.generic.buttons.border",
