@@ -13,7 +13,7 @@ BasicRanged(
         )),
     ),
     projectile_body: Object(PoisonBall),
-    projectile_speed: 20.0,
+    projectile_speed: 40.0,
     num_projectiles: Value(3),
     projectile_spread: 0.2,
     movement_modifier: (
