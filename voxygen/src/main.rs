@@ -99,9 +99,6 @@ fn main() {
     info!("Using config dir at: {}", config_dir.display());
 
     // Load the settings
-    // Note: This won't log anything due to it being called before
-    // `logging::init`. The issue is we need to read a setting to decide
-    // whether we create a log file or not.
     let mut settings = Settings::load(&config_dir);
     settings.display_warnings();
     // Save settings to add new fields or create the file if it is not already there
