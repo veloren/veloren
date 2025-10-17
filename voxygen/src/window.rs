@@ -2,7 +2,10 @@ use crate::{
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{ControlSettings, Settings, controller::*, gamepad::con_settings::LayerEntry},
+    settings::{
+        ControlSettings, ControllerSettings, Settings, controller::*,
+        gamepad::con_settings::LayerEntry,
+    },
     ui,
 };
 use common_base::span;
@@ -207,7 +210,7 @@ pub struct Window {
     events: Vec<Event>,
     pub focused: bool,
     gilrs: Option<Gilrs>,
-    pub controller_settings: ControllerSettings,
+    //pub controller_settings: ControllerSettings,
     pub controller_modifiers: Vec<Button>,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
@@ -285,7 +288,7 @@ impl Window {
             },
         };
 
-        let controller_settings = ControllerSettings::from(&settings.controller);
+        //let controller_settings = ControllerSettings::from(&settings.controller);
 
         let (message_sender, message_receiver): (
             channel::Sender<String>,
@@ -312,7 +315,7 @@ impl Window {
             events: Vec::new(),
             focused: true,
             gilrs,
-            controller_settings,
+            //controller_settings,
             controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
@@ -352,6 +355,8 @@ impl Window {
     #[expect(clippy::get_first)]
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
+
+        let controller = &mut settings.controller2;
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             let scale_factor = self.window.scale_factor();
@@ -417,7 +422,8 @@ impl Window {
         if let Some(gilrs) = &mut self.gilrs {
             while let Some(event) = gilrs.next_event() {
                 fn handle_buttons(
-                    settings: &ControllerSettings,
+                    settings: &mut ControllerSettings,
+                    remapping: &mut Option<GameInput>,
                     modifiers: &mut Vec<Button>,
                     events: &mut Vec<Event>,
                     button: &Button,
@@ -454,6 +460,20 @@ impl Window {
                         mod2: modifiers.get(0).copied().unwrap_or_default(),
                     };
 
+                    // make sure button is currently not being remapped before being used
+                    if let Some(game_inputs) = Window::map_controller_button_input(
+                        *button, settings, remapping, last_input,
+                    ) {
+                        for game_input in game_inputs {
+                            events.push(Event::InputUpdate(*game_input, is_pressed));
+                        }
+                    }
+                    if let Some(evs) = settings.inverse_menu_button_map.get(button) {
+                        for ev in evs {
+                            events.push(Event::MenuInput(*ev, is_pressed));
+                        }
+                    }
+
                     // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
                     // to RB+LB
                     if let Some(evs) = settings.inverse_layer_button_map.get(&l_entry1) {
@@ -465,23 +485,14 @@ impl Window {
                             events.push(Event::InputUpdate(*ev, is_pressed));
                         }
                     }
-                    if let Some(evs) = settings.inverse_game_button_map.get(button) {
-                        for ev in evs {
-                            events.push(Event::InputUpdate(*ev, is_pressed));
-                        }
-                    }
-                    if let Some(evs) = settings.inverse_menu_button_map.get(button) {
-                        for ev in evs {
-                            events.push(Event::MenuInput(*ev, is_pressed));
-                        }
-                    }
                 }
 
                 match event.event {
                     EventType::ButtonPressed(button, code)
                     | EventType::ButtonRepeated(button, code) => {
                         handle_buttons(
-                            &self.controller_settings,
+                            controller,
+                            &mut self.remapping_keybindings,
                             &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
@@ -491,7 +502,8 @@ impl Window {
                     },
                     EventType::ButtonReleased(button, code) => {
                         handle_buttons(
-                            &self.controller_settings,
+                            controller,
+                            &mut self.remapping_keybindings,
                             &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
@@ -500,8 +512,7 @@ impl Window {
                         );
                     },
                     EventType::ButtonChanged(button, _value, code) => {
-                        if let Some(actions) = self
-                            .controller_settings
+                        if let Some(actions) = controller
                             .inverse_game_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
@@ -510,8 +521,7 @@ impl Window {
                                 match *action {}
                             }
                         }
-                        if let Some(actions) = self
-                            .controller_settings
+                        if let Some(actions) = controller
                             .inverse_menu_analog_button_map
                             .get(&AnalogButton::from((button, code)))
                         {
@@ -523,19 +533,15 @@ impl Window {
                     },
 
                     EventType::AxisChanged(axis, value, code) => {
-                        let value = if self
-                            .controller_settings
-                            .inverted_axes
-                            .contains(&Axis::from((axis, code)))
+                        let value = if controller.inverted_axes.contains(&Axis::from((axis, code)))
                         {
                             -value
                         } else {
                             value
                         };
 
-                        let value = self
-                            .controller_settings
-                            .apply_axis_deadzone(&Axis::from((axis, code)), value);
+                        let value =
+                            controller.apply_axis_deadzone(&Axis::from((axis, code)), value);
 
                         // update last input to be controller if axis was moved
                         if value.abs() > 0.0001 {
@@ -543,8 +549,7 @@ impl Window {
                         }
 
                         if self.cursor_grabbed {
-                            if let Some(actions) = self
-                                .controller_settings
+                            if let Some(actions) = controller
                                 .inverse_game_axis_map
                                 .get(&Axis::from((axis, code)))
                             {
@@ -563,25 +568,21 @@ impl Window {
                                         AxisGameAction::CameraX => {
                                             self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraX(
-                                                    value
-                                                        * self.controller_settings.pan_sensitivity
-                                                            as f32
+                                                    value * controller.pan_sensitivity as f32
                                                         / 100.0,
                                                 ),
                                             ));
                                         },
                                         AxisGameAction::CameraY => {
-                                            let pan_invert_y =
-                                                match self.controller_settings.pan_invert_y {
-                                                    true => -1.0,
-                                                    false => 1.0,
-                                                };
+                                            let pan_invert_y = match controller.pan_invert_y {
+                                                true => -1.0,
+                                                false => 1.0,
+                                            };
 
                                             self.events.push(Event::AnalogGameInput(
                                                 AnalogGameInput::CameraY(
                                                     -value
-                                                        * self.controller_settings.pan_sensitivity
-                                                            as f32
+                                                        * controller.pan_sensitivity as f32
                                                         * pan_invert_y
                                                         / 100.0,
                                                 ),
@@ -590,8 +591,7 @@ impl Window {
                                     }
                                 }
                             }
-                        } else if let Some(actions) = self
-                            .controller_settings
+                        } else if let Some(actions) = controller
                             .inverse_menu_axis_map
                             .get(&Axis::from((axis, code)))
                         {
@@ -662,7 +662,7 @@ impl Window {
                 })
                 .collect();
 
-            let sensitivity = self.controller_settings.mouse_emulation_sensitivity;
+            let sensitivity = controller.mouse_emulation_sensitivity;
             // TODO: make this independent of framerate
             // TODO: consider multiplying by scale factor
             self.offset_cursor(self.mouse_emulation_vec * sensitivity as f32);
@@ -1225,6 +1225,28 @@ impl Window {
             },
             None => controls
                 .get_associated_game_inputs(&key_mouse)
+                .map(|game_inputs| game_inputs.iter()),
+        }
+    }
+
+    // same thing as map_input, but for controller buttons
+    fn map_controller_button_input<'a>(
+        button: Button,
+        controller: &'a mut ControllerSettings,
+        remapping: &mut Option<GameInput>,
+        last_input: &mut LastInput,
+    ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
+        // update last input to be controller
+        *last_input = LastInput::Controller;
+
+        match *remapping {
+            Some(game_input) => {
+                controller.modify_button_binding(game_input, button);
+                *remapping = None;
+                None
+            },
+            None => controller
+                .get_associated_game_button_inputs(&button)
                 .map(|game_inputs| game_inputs.iter()),
         }
     }

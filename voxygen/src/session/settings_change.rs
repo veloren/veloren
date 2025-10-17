@@ -425,7 +425,8 @@ impl SettingsChange {
                         settings.gameplay.walking_speed = speed;
                     },
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
-                        window.controller_settings.pan_invert_y = controller_y_inverted;
+                        settings.controller2.pan_invert_y = controller_y_inverted;
+                        //window.controller_settings.pan_invert_y = controller_y_inverted;
                         settings.controller.pan_invert_y = controller_y_inverted;
                     },
                     Gameplay::ToggleMouseYInvert(mouse_y_inverted) => {
@@ -477,7 +478,9 @@ impl SettingsChange {
                         settings.gameplay = GameplaySettings::default();
                         // Reset Gamepad and Controller Settings
                         settings.controller = GamepadSettings::default();
-                        window.controller_settings = ControllerSettings::from(&settings.controller);
+                        //window.controller_settings =
+                        // ControllerSettings::from(&settings.controller);
+                        settings.controller2 = ControllerSettings::default();
                         // Pan Sensitivity
                         window.pan_sensitivity = settings.gameplay.pan_sensitivity;
                         // Zoom Sensitivity

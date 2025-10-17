@@ -148,7 +148,8 @@ impl Widget for Controls<'_> {
         if let BindingMode::Gamepad = binding_mode {
             match gamepad_binding_option {
                 GamepadBindingOption::GameButtons => {
-                    let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller2;
+                    //let gamepad_controls = &self.global_state.window.controller_settings;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -161,8 +162,14 @@ impl Widget for Controls<'_> {
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
                         let (input_string, input_color) =
-                            // TODO: handle rebind text
-                            if let Some(button) = gamepad_controls.get_game_button_binding(*game_input) {
+                            if self.global_state.window.remapping_keybindings == Some(*game_input) {
+                                (
+                                    self.localized_strings
+                                        .get_msg("hud-settings-awaitingkey")
+                                        .into_owned(),
+                                    TEXT_COLOR,
+                                )
+                            } else if let Some(button) = gamepad_controls.get_game_button_binding(*game_input) {
                                 (
                                     format!(
                                         "{} {}",
@@ -224,7 +231,8 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::GameLayers => {
-                    let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller2;
+                    //let gamepad_controls = &self.global_state.window.controller_settings;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -292,7 +300,8 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::MenuButtons => {
-                    let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller2;
+                    //let gamepad_controls = &self.global_state.window.controller_settings;
 
                     resize_ids(SORTED_MENUINPUTS.len());
 
@@ -463,12 +472,15 @@ impl Widget for Controls<'_> {
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_y(Relative::Scalar(2.0))
                 .set(state.ids.reset_controls_button, ui)
-                .was_clicked() &&
-                // TODO: handle reset button in gamepad mode
-                state.binding_mode != BindingMode::Gamepad
+                .was_clicked()
             {
-                events.push(ResetKeyBindingsKeyboard); // keyboard
-                events.push(ResetKeyBindingsGamepadButton); // gamepad buttons
+                if state.binding_mode != BindingMode::Gamepad {
+                    events.push(ResetKeyBindingsKeyboard);
+                } else {
+                    // resets gamepad buttons no matter which tab you are in: buttons, gamelayer,
+                    // menu
+                    events.push(ResetKeyBindingsGamepadButton);
+                }
             }
             previous_element_id = Some(state.ids.reset_controls_button)
         }

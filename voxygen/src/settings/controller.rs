@@ -8,7 +8,7 @@ use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
+use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Serialize, Deserialize)]
 struct ControllerSettingsSerde {
@@ -158,6 +158,13 @@ impl ControllerSettings {
         self.game_button_map.get(&input).cloned().flatten()
     }
 
+    pub fn get_associated_game_button_inputs(
+        &self,
+        button: &Button,
+    ) -> Option<&HashSet<GameInput>> {
+        self.inverse_game_button_map.get(button)
+    }
+
     pub fn get_menu_button_binding(&self, input: MenuInput) -> Option<Button> {
         self.menu_button_map.get(&input).copied()
     }
@@ -299,6 +306,15 @@ impl ControllerSettings {
         false
     }
 
+    pub fn default_game_axis(game_axis: AxisGameAction) -> Option<Axis> {
+        match game_axis {
+            AxisGameAction::MovementX => Some(Axis::Simple(GilAxis::LeftStickX)),
+            AxisGameAction::MovementY => Some(Axis::Simple(GilAxis::LeftStickY)),
+            AxisGameAction::CameraX => Some(Axis::Simple(GilAxis::RightStickX)),
+            AxisGameAction::CameraY => Some(Axis::Simple(GilAxis::RightStickY)),
+        }
+    }
+
     pub fn default_button_binding(game_input: GameInput) -> Option<Button> {
         match game_input {
             GameInput::Primary => Some(Button::Simple(GilButton::RightTrigger2)),
@@ -410,13 +426,20 @@ impl Default for ControllerSettings {
             mouse_emulation_sensitivity: 12,
             inverted_axes: Vec::new(),
         };
-        // sets the button bindings for those game button inputs
+        // sets the button bindings for game button inputs
         for button_input in GameInput::iter() {
             match ControllerSettings::default_button_binding(button_input) {
                 None => {},
                 Some(default) => {
                     controller_settings.insert_game_button_binding(button_input, default)
                 },
+            };
+        }
+        // sets the axis bindings for game axis inputs
+        for axis_input in AxisGameAction::iter() {
+            match ControllerSettings::default_game_axis(axis_input) {
+                None => {},
+                Some(default) => controller_settings.insert_game_axis_binding(axis_input, default),
             };
         }
         controller_settings
@@ -839,7 +862,7 @@ pub enum AxisMenuAction {
 }
 
 /// All the game actions you can bind to an Axis
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize, EnumIter)]
 pub enum AxisGameAction {
     MovementX,
     MovementY,
