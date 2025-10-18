@@ -1017,7 +1017,7 @@ impl ServerEvent for DestroyEvent {
                                         "Assigned UID {loot_owner:?} as the winner for the loot \
                                          drop"
                                     );
-                                    Some(LootOwner::new(loot_owner, false))
+                                    Some(LootOwner::new(loot_owner, false, false))
                                 } else {
                                     debug!("No loot owner");
                                     None

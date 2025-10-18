@@ -424,7 +424,7 @@ impl ServerEvent for MineBlockEvent {
                         for item in items {
                             let loot_owner = maybe_uid
                                 .map(LootOwnerKind::Player)
-                                .map(|owner| comp::LootOwner::new(owner, false));
+                                .map(|owner| comp::LootOwner::new(owner, false, true));
                             create_item_drop_emitter.emit(CreateItemDropEvent {
                                 pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
                                 vel: comp::Vel(
