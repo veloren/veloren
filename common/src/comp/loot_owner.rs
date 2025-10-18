@@ -24,7 +24,11 @@ const OWNERSHIP_SECS_FAST: u64 = 10;
 
 impl LootOwner {
     pub fn new(kind: LootOwnerKind, soft: bool, fast: bool) -> Self {
-        let duration = if fast {OWNERSHIP_SECS_FAST} else {OWNERSHIP_SECS_SLOW};
+        let duration = if fast {
+            OWNERSHIP_SECS_FAST
+        } else {
+            OWNERSHIP_SECS_SLOW
+        };
         Self {
             expiry: Instant::now().add(Duration::from_secs(duration)),
             owner: kind,

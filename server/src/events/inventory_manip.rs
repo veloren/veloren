@@ -524,7 +524,11 @@ impl ServerEvent for InventoryManipEvent {
                             vel: comp::Vel(Vec3::zero()),
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
                             item: PickupItem::new(item, *data.program_time, true),
-                            loot_owner: Some(LootOwner::new(LootOwnerKind::Player(*uid), false, false)),
+                            loot_owner: Some(LootOwner::new(
+                                LootOwnerKind::Player(*uid),
+                                false,
+                                false,
+                            )),
                         });
                     }
                 },
