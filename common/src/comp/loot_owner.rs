@@ -18,7 +18,8 @@ pub struct LootOwner {
     soft: bool,
 }
 
-// Loot becomes free-for-all after the initial ownership period
+/// Loot becomes free-for-all after the initial ownership period, defined in
+/// seconds by the discriminant values.
 pub enum OwnershipTimeout {
     Slow = 45,
     Fast = 10,
