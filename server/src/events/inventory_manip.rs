@@ -12,7 +12,7 @@ use common::{
         self, InventoryUpdate, LootOwner, PickupItem,
         group::members,
         item::{self, Lantern, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
-        loot_owner::LootOwnerKind,
+        loot_owner::{LootOwnerKind, OwnershipTimeout},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -527,7 +527,7 @@ impl ServerEvent for InventoryManipEvent {
                             loot_owner: Some(LootOwner::new(
                                 LootOwnerKind::Player(*uid),
                                 false,
-                                false,
+                                OwnershipTimeout::Slow,
                             )),
                         });
                     }
@@ -1173,7 +1173,11 @@ impl ServerEvent for InventoryManipEvent {
                 vel: comp::Vel::default(),
                 ori,
                 item,
-                loot_owner: Some(LootOwner::new(LootOwnerKind::Player(owner), true, false)),
+                loot_owner: Some(LootOwner::new(
+                    LootOwnerKind::Player(owner),
+                    true,
+                    OwnershipTimeout::Slow,
+                )),
             })
         }
     }

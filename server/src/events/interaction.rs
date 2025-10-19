@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, ops::Mul};
 
-use common::rtsim::DialogueKind;
+use common::{comp::loot_owner::OwnershipTimeout, rtsim::DialogueKind};
 use common_state::{BlockChange, ScheduledBlockChange};
 use specs::{DispatcherBuilder, Join, ReadExpect, ReadStorage, WriteExpect, WriteStorage};
 use tracing::error;
@@ -422,9 +422,9 @@ impl ServerEvent for MineBlockEvent {
                             }
                         }
                         for item in items {
-                            let loot_owner = maybe_uid
-                                .map(LootOwnerKind::Player)
-                                .map(|owner| comp::LootOwner::new(owner, false, true));
+                            let loot_owner = maybe_uid.map(LootOwnerKind::Player).map(|owner| {
+                                comp::LootOwner::new(owner, false, OwnershipTimeout::Fast)
+                            });
                             create_item_drop_emitter.emit(CreateItemDropEvent {
                                 pos: comp::Pos(ev.pos.map(|e| e as f32) + Vec3::broadcast(0.5)),
                                 vel: comp::Vel(

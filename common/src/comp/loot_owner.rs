@@ -19,18 +19,15 @@ pub struct LootOwner {
 }
 
 // Loot becomes free-for-all after the initial ownership period
-const OWNERSHIP_SECS_SLOW: u64 = 45;
-const OWNERSHIP_SECS_FAST: u64 = 10;
+pub enum OwnershipTimeout {
+    Slow = 45,
+    Fast = 10,
+}
 
 impl LootOwner {
-    pub fn new(kind: LootOwnerKind, soft: bool, fast: bool) -> Self {
-        let duration = if fast {
-            OWNERSHIP_SECS_FAST
-        } else {
-            OWNERSHIP_SECS_SLOW
-        };
+    pub fn new(kind: LootOwnerKind, soft: bool, duration: OwnershipTimeout) -> Self {
         Self {
-            expiry: Instant::now().add(Duration::from_secs(duration)),
+            expiry: Instant::now().add(Duration::from_secs(duration as u64)),
             owner: kind,
             soft,
         }
