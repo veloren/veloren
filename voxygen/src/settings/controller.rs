@@ -1,11 +1,7 @@
 //! Module containing controller-specific abstractions allowing complex
 //! keybindings
 
-use crate::{
-    game_input::GameInput,
-    settings::{GamepadSettings, gamepad::con_settings::LayerEntry},
-    window::MenuInput,
-};
+use crate::{game_input::GameInput, window::MenuInput};
 use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
@@ -21,7 +17,7 @@ struct ControllerSettingsSerde {
     menu_analog_button_map: HashMap<AnalogButtonMenuAction, AnalogButton>,
     game_axis_map: HashMap<AxisGameAction, Axis>,
     menu_axis_map: HashMap<AxisMenuAction, Axis>,
-    layer_button_map: HashMap<GameInput, LayerEntry>,
+    layer_button_map: HashMap<GameInput, Option<LayerEntry>>,
     modifier_buttons: Vec<Button>,
 
     pan_sensitivity: u32,
@@ -34,12 +30,22 @@ struct ControllerSettingsSerde {
 
 impl From<ControllerSettings> for ControllerSettingsSerde {
     fn from(controller_settings: ControllerSettings) -> Self {
-        let mut button_bindings: HashMap<GameInput, Option<Button>> = HashMap::new();
         // Do a delta between default() ControllerSettings and the argument,
         // let buttons be only the custom keybindings chosen by the user
+        //
+        // check game buttons
+        let mut button_bindings: HashMap<GameInput, Option<Button>> = HashMap::new();
         for (k, v) in controller_settings.game_button_map {
             if ControllerSettings::default_button_binding(k) != v {
                 button_bindings.insert(k, v);
+            }
+        }
+
+        // check game layers
+        let mut layer_bindings: HashMap<GameInput, Option<LayerEntry>> = HashMap::new();
+        for (k, v) in controller_settings.layer_button_map {
+            if ControllerSettings::default_layer_binding(k) != v {
+                layer_bindings.insert(k, v);
             }
         }
 
@@ -59,7 +65,7 @@ impl From<ControllerSettings> for ControllerSettingsSerde {
             menu_analog_button_map: HashMap::new(),
             game_axis_map: HashMap::new(),
             menu_axis_map: HashMap::new(),
-            layer_button_map: HashMap::new(),
+            layer_button_map: layer_bindings,
 
             modifier_buttons,
             pan_sensitivity,
@@ -89,7 +95,7 @@ pub struct ControllerSettings {
     pub inverse_game_axis_map: HashMap<Axis, HashSet<AxisGameAction>>,
     pub menu_axis_map: HashMap<AxisMenuAction, Axis>,
     pub inverse_menu_axis_map: HashMap<Axis, HashSet<AxisMenuAction>>,
-    pub layer_button_map: HashMap<GameInput, LayerEntry>,
+    pub layer_button_map: HashMap<GameInput, Option<LayerEntry>>,
     pub inverse_layer_button_map: HashMap<LayerEntry, HashSet<GameInput>>,
 
     pub modifier_buttons: Vec<Button>,
@@ -104,11 +110,20 @@ pub struct ControllerSettings {
 impl From<ControllerSettingsSerde> for ControllerSettings {
     fn from(controller_serde: ControllerSettingsSerde) -> Self {
         let button_bindings = controller_serde.game_button_map;
+        let layer_bindings = controller_serde.layer_button_map;
         let mut controller_settings = ControllerSettings::default();
+        // update button bindings
         for (k, maybe_v) in button_bindings {
             match maybe_v {
                 Some(v) => controller_settings.modify_button_binding(k, v),
                 None => controller_settings.remove_button_binding(k),
+            }
+        }
+        // update layer bindings
+        for (k, maybe_v) in layer_bindings {
+            match maybe_v {
+                Some(v) => controller_settings.modify_layer_binding(k, v),
+                None => controller_settings.remove_layer_binding(k),
             }
         }
         controller_settings
@@ -156,6 +171,17 @@ impl ControllerSettings {
         }
     }
 
+    pub fn remove_layer_binding(&mut self, layer_input: GameInput) {
+        if let Some(inverse) = self
+            .layer_button_map
+            .insert(layer_input, None)
+            .flatten()
+            .and_then(|button| self.inverse_layer_button_map.get_mut(&button))
+        {
+            inverse.remove(&layer_input);
+        }
+    }
+
     pub fn get_game_button_binding(&self, input: GameInput) -> Option<Button> {
         self.game_button_map.get(&input).cloned().flatten()
     }
@@ -167,12 +193,19 @@ impl ControllerSettings {
         self.inverse_game_button_map.get(button)
     }
 
+    pub fn get_associated_game_layer_inputs(
+        &self,
+        layers: &LayerEntry,
+    ) -> Option<&HashSet<GameInput>> {
+        self.inverse_layer_button_map.get(layers)
+    }
+
     pub fn get_menu_button_binding(&self, input: MenuInput) -> Option<Button> {
         self.menu_button_map.get(&input).cloned().flatten()
     }
 
     pub fn get_layer_button_binding(&self, input: GameInput) -> Option<LayerEntry> {
-        self.layer_button_map.get(&input).copied()
+        self.layer_button_map.get(&input).cloned().flatten()
     }
 
     pub fn insert_game_button_binding(&mut self, game_input: GameInput, game_button: Button) {
@@ -219,7 +252,8 @@ impl ControllerSettings {
 
     pub fn insert_layer_button_binding(&mut self, input: GameInput, layer_entry: LayerEntry) {
         if layer_entry != LayerEntry::default() {
-            self.layer_button_map.insert(input, layer_entry);
+            self.layer_button_map
+                .insert(input, Some(layer_entry.clone()));
             self.inverse_layer_button_map
                 .entry(layer_entry)
                 .or_default()
@@ -243,6 +277,24 @@ impl ControllerSettings {
             .insert(game_input);
         // for the GameInput->button hashmap, just overwrite the value
         self.game_button_map.insert(game_input, Some(button));
+    }
+
+    pub fn modify_layer_binding(&mut self, game_input: GameInput, layers: LayerEntry) {
+        // for the LayerEntry->GameInput hashmap, we first need to remove the GameInput
+        // from the old binding
+        if let Some(old_binding) = self.get_layer_button_binding(game_input) {
+            self.inverse_layer_button_map
+                .entry(old_binding)
+                .or_default()
+                .remove(&game_input);
+        }
+        // then we add the GameInput to the proper key
+        self.inverse_layer_button_map
+            .entry(layers.clone())
+            .or_default()
+            .insert(game_input);
+        // for the GameInput->layer hashmap, just overwrite the value
+        self.layer_button_map.insert(game_input, Some(layers));
     }
 
     /// Return true if this button is used for multiple GameInputs that aren't
@@ -411,6 +463,401 @@ impl ControllerSettings {
         }
     }
 
+    pub fn default_layer_binding(layer_input: GameInput) -> Option<LayerEntry> {
+        match layer_input {
+            GameInput::Primary => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Secondary => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Block => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot1 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot2 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot3 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot4 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot5 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot6 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot7 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot8 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot9 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Slot10 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleCursor => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MoveForward => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MoveBack => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MoveLeft => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MoveRight => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Jump => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::WallJump => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Sit => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Crawl => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Dance => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Greet => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Glide => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::SwimUp => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::SwimDown => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Fly => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Sneak => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::CancelClimb => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleLantern => Some(LayerEntry {
+                button: Button::Simple(GilButton::DPadRight),
+                mod1: Button::Simple(GilButton::RightTrigger),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Mount => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::StayFollow => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Chat => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Command => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Escape => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Map => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Inventory => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Trade => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Social => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Crafting => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Diary => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Settings => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Controls => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleInterface => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleDebug => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleEguiDebug => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleChat => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Fullscreen => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Screenshot => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleIngameUi => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Roll => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::GiveUp => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Respawn => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Interact => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleWield => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::SwapLoadout => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::FreeLook => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::AutoWalk => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ZoomIn => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ZoomOut => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ZoomLock => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::CameraClamp => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::CycleCamera => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::Select => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::AcceptGroupInvite => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::DeclineGroupInvite => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MapZoomIn => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MapZoomOut => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MapSetMarker => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::SpectateSpeedBoost => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::SpectateViewpoint => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MuteMaster => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MuteInactiveMaster => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MuteMusic => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MuteSfx => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::MuteAmbience => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::ToggleWalk => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+        }
+    }
+
     pub fn default_menu_button_binding(menu_input: MenuInput) -> Option<Button> {
         match menu_input {
             MenuInput::Up => Some(Button::Simple(GilButton::DPadUp)),
@@ -427,310 +874,6 @@ impl ControllerSettings {
             MenuInput::Back => Some(Button::Simple(GilButton::East)),
             MenuInput::Exit => Some(Button::Simple(GilButton::Mode)),
         }
-    }
-
-    // temp: load game layer bindings from separate GamepadSettings struct in
-    // gamepad.rs
-    pub fn load_layer_inputs(&mut self, gamepad_settings: &GamepadSettings) {
-        self.insert_layer_button_binding(
-            GameInput::Secondary,
-            gamepad_settings.game_layer_buttons.secondary,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Primary,
-            gamepad_settings.game_layer_buttons.primary,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Block,
-            gamepad_settings.game_layer_buttons.block,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot1,
-            gamepad_settings.game_layer_buttons.slot1,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot2,
-            gamepad_settings.game_layer_buttons.slot2,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot3,
-            gamepad_settings.game_layer_buttons.slot3,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot4,
-            gamepad_settings.game_layer_buttons.slot4,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot5,
-            gamepad_settings.game_layer_buttons.slot5,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot6,
-            gamepad_settings.game_layer_buttons.slot6,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot7,
-            gamepad_settings.game_layer_buttons.slot7,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot8,
-            gamepad_settings.game_layer_buttons.slot8,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot9,
-            gamepad_settings.game_layer_buttons.slot9,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Slot10,
-            gamepad_settings.game_layer_buttons.slot10,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleCursor,
-            gamepad_settings.game_layer_buttons.toggle_cursor,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Escape,
-            gamepad_settings.game_layer_buttons.escape,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Chat,
-            gamepad_settings.game_layer_buttons.enter,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Command,
-            gamepad_settings.game_layer_buttons.command,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MoveForward,
-            gamepad_settings.game_layer_buttons.move_forward,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MoveLeft,
-            gamepad_settings.game_layer_buttons.move_left,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MoveBack,
-            gamepad_settings.game_layer_buttons.move_back,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MoveRight,
-            gamepad_settings.game_layer_buttons.move_right,
-        );
-        self.insert_layer_button_binding(GameInput::Jump, gamepad_settings.game_layer_buttons.jump);
-        self.insert_layer_button_binding(GameInput::Sit, gamepad_settings.game_layer_buttons.sit);
-        self.insert_layer_button_binding(
-            GameInput::Dance,
-            gamepad_settings.game_layer_buttons.dance,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Glide,
-            gamepad_settings.game_layer_buttons.glide,
-        );
-        self.insert_layer_button_binding(
-            GameInput::SwimUp,
-            gamepad_settings.game_layer_buttons.swimup,
-        );
-        self.insert_layer_button_binding(
-            GameInput::SwimDown,
-            gamepad_settings.game_layer_buttons.swimdown,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Sneak,
-            gamepad_settings.game_layer_buttons.sneak,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleLantern,
-            gamepad_settings.game_layer_buttons.toggle_lantern,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Mount,
-            gamepad_settings.game_layer_buttons.mount,
-        );
-        self.insert_layer_button_binding(GameInput::Map, gamepad_settings.game_layer_buttons.map);
-        self.insert_layer_button_binding(
-            GameInput::Inventory,
-            gamepad_settings.game_layer_buttons.inventory,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Social,
-            gamepad_settings.game_layer_buttons.social,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Crafting,
-            gamepad_settings.game_layer_buttons.crafting,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Diary,
-            gamepad_settings.game_layer_buttons.diary,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Settings,
-            gamepad_settings.game_layer_buttons.settings,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Controls,
-            gamepad_settings.game_layer_buttons.controls,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleInterface,
-            gamepad_settings.game_layer_buttons.toggle_interface,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleDebug,
-            gamepad_settings.game_layer_buttons.toggle_debug,
-        );
-        #[cfg(feature = "egui-ui")]
-        self.insert_layer_button_binding(
-            GameInput::ToggleEguiDebug,
-            gamepad_settings.game_layer_buttons.toggle_debug,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleChat,
-            gamepad_settings.game_layer_buttons.toggle_chat,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Fullscreen,
-            gamepad_settings.game_layer_buttons.fullscreen,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Screenshot,
-            gamepad_settings.game_layer_buttons.screenshot,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleIngameUi,
-            gamepad_settings.game_layer_buttons.toggle_ingame_ui,
-        );
-        self.insert_layer_button_binding(GameInput::Roll, gamepad_settings.game_layer_buttons.roll);
-        self.insert_layer_button_binding(
-            GameInput::Respawn,
-            gamepad_settings.game_layer_buttons.respawn,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Interact,
-            gamepad_settings.game_layer_buttons.interact,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleWield,
-            gamepad_settings.game_layer_buttons.toggle_wield,
-        );
-        self.insert_layer_button_binding(
-            GameInput::SwapLoadout,
-            gamepad_settings.game_layer_buttons.swap_loadout,
-        );
-        self.insert_layer_button_binding(
-            GameInput::WallJump,
-            gamepad_settings.game_layer_buttons.wall_jump,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Crawl,
-            gamepad_settings.game_layer_buttons.crawl,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Greet,
-            gamepad_settings.game_layer_buttons.greet,
-        );
-        self.insert_layer_button_binding(GameInput::Fly, gamepad_settings.game_layer_buttons.fly);
-        self.insert_layer_button_binding(
-            GameInput::CancelClimb,
-            gamepad_settings.game_layer_buttons.cancel_climb,
-        );
-        self.insert_layer_button_binding(
-            GameInput::StayFollow,
-            gamepad_settings.game_layer_buttons.stayfollow,
-        );
-        self.insert_layer_button_binding(GameInput::Chat, gamepad_settings.game_layer_buttons.chat);
-        self.insert_layer_button_binding(
-            GameInput::Trade,
-            gamepad_settings.game_layer_buttons.trade,
-        );
-        self.insert_layer_button_binding(
-            GameInput::GiveUp,
-            gamepad_settings.game_layer_buttons.give_up,
-        );
-        self.insert_layer_button_binding(
-            GameInput::FreeLook,
-            gamepad_settings.game_layer_buttons.free_look,
-        );
-        self.insert_layer_button_binding(
-            GameInput::AutoWalk,
-            gamepad_settings.game_layer_buttons.auto_walk,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ZoomIn,
-            gamepad_settings.game_layer_buttons.zoom_in,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ZoomOut,
-            gamepad_settings.game_layer_buttons.zoom_out,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ZoomLock,
-            gamepad_settings.game_layer_buttons.zoom_lock,
-        );
-        self.insert_layer_button_binding(
-            GameInput::CameraClamp,
-            gamepad_settings.game_layer_buttons.camera_clamp,
-        );
-        self.insert_layer_button_binding(
-            GameInput::CycleCamera,
-            gamepad_settings.game_layer_buttons.cycle_camera,
-        );
-        self.insert_layer_button_binding(
-            GameInput::Select,
-            gamepad_settings.game_layer_buttons.select,
-        );
-        self.insert_layer_button_binding(
-            GameInput::AcceptGroupInvite,
-            gamepad_settings.game_layer_buttons.accept_group_invite,
-        );
-        self.insert_layer_button_binding(
-            GameInput::DeclineGroupInvite,
-            gamepad_settings.game_layer_buttons.decline_group_invite,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MapZoomIn,
-            gamepad_settings.game_layer_buttons.map_zoom_in,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MapZoomOut,
-            gamepad_settings.game_layer_buttons.map_zoom_out,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MapSetMarker,
-            gamepad_settings.game_layer_buttons.map_set_marker,
-        );
-        self.insert_layer_button_binding(
-            GameInput::SpectateSpeedBoost,
-            gamepad_settings.game_layer_buttons.spectate_speed_boost,
-        );
-        self.insert_layer_button_binding(
-            GameInput::SpectateViewpoint,
-            gamepad_settings.game_layer_buttons.spectate_viewpoint,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MuteMaster,
-            gamepad_settings.game_layer_buttons.mute_master,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MuteInactiveMaster,
-            gamepad_settings.game_layer_buttons.mute_inactive_master,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MuteMusic,
-            gamepad_settings.game_layer_buttons.mute_music,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MuteSfx,
-            gamepad_settings.game_layer_buttons.mute_sfx,
-        );
-        self.insert_layer_button_binding(
-            GameInput::MuteAmbience,
-            gamepad_settings.game_layer_buttons.mute_ambience,
-        );
-        self.insert_layer_button_binding(
-            GameInput::ToggleWalk,
-            gamepad_settings.game_layer_buttons.toggle_walk,
-        );
     }
 }
 
@@ -771,6 +914,15 @@ impl Default for ControllerSettings {
                     controller_settings.insert_game_button_binding(button_input, default)
                 },
             };
+        }
+        // sets the layer bindings for game layer inputs
+        for layer_input in GameInput::iter() {
+            match ControllerSettings::default_layer_binding(layer_input) {
+                Some(default) => {
+                    controller_settings.insert_layer_button_binding(layer_input, default);
+                },
+                None => {},
+            }
         }
         // sets the menu button bindings for game menu button inputs
         for button_input in MenuInput::iter() {
@@ -906,6 +1058,58 @@ impl Button {
         };
 
         Some(button_string.to_owned())
+    }
+}
+
+// represents a controller button to fire a GameInput on
+// includes two modifier buttons to determine what layer is active
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LayerEntry {
+    pub button: Button,
+    pub mod1: Button,
+    pub mod2: Button,
+}
+
+impl Default for LayerEntry {
+    fn default() -> Self {
+        // binding to unknown = getting skipped from processing
+        Self {
+            button: Button::Simple(GilButton::Unknown),
+            mod1: Button::Simple(GilButton::Unknown),
+            mod2: Button::Simple(GilButton::Unknown),
+        }
+    }
+}
+
+impl LayerEntry {
+    pub fn display_string(&self, localized_strings: &Localization) -> String {
+        use self::Button::*;
+
+        let mod1: Option<String> = match self.mod1 {
+            Simple(GilButton::Unknown) => None,
+            _ => self
+                .mod1
+                .try_shortened()
+                .map_or(Some(self.mod1.display_string(localized_strings)), Some),
+        };
+        let mod2: Option<String> = match self.mod2 {
+            Simple(GilButton::Unknown) => None,
+            _ => self
+                .mod2
+                .try_shortened()
+                .map_or(Some(self.mod2.display_string(localized_strings)), Some),
+        };
+
+        format!(
+            "{}{}{} {}",
+            mod1.map_or("".to_owned(), |m1| format!("{} + ", m1)),
+            mod2.map_or("".to_owned(), |m2| format!("{} + ", m2)),
+            self.button.display_string(localized_strings),
+            self.button
+                .try_shortened()
+                .map_or("".to_owned(), |short| format!("({})", short))
+        )
     }
 }
 

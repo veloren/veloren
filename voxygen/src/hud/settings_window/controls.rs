@@ -5,7 +5,7 @@ use crate::{
     game_input::GameInput,
     hud::{ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, img_ids::Imgs},
     session::settings_change::{Control as ControlChange, Control::*},
-    ui::fonts::Fonts,
+    ui::{ToggleButton, fonts::Fonts},
     window::MenuInput,
 };
 use conrod_core::{
@@ -30,6 +30,10 @@ widget_ids! {
         controls_alignment_rectangle,
         controls_texts[],
         controls_buttons[],
+        gamelayer_mod1_checkbox,
+        gamelayer_mod2_checkbox,
+        gamelayer_mod1_text,
+        gamelayer_mod2_text,
     }
 }
 
@@ -148,8 +152,7 @@ impl Widget for Controls<'_> {
         if let BindingMode::Gamepad = binding_mode {
             match gamepad_binding_option {
                 GamepadBindingOption::GameButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
-                    //let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -228,7 +231,7 @@ impl Widget for Controls<'_> {
                             .set(button_id, ui);
 
                         for _ in ui.widget_input(button_id).clicks().left() {
-                            events.push(ChangeBindingGamepadButton(*game_input))
+                            events.push(ChangeBindingGamepadButton(*game_input));
                         }
                         for _ in ui.widget_input(button_id).clicks().right() {
                             events.push(RemoveBindingGamepadButton(*game_input));
@@ -238,8 +241,7 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::GameLayers => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
-                    //let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -251,25 +253,37 @@ impl Widget for Controls<'_> {
                             .iter()
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
-                        let (input_string, input_color) =
-                            // TODO: handle rebind text
-                            if let Some(entry) = gamepad_controls.get_layer_button_binding(*game_input) {
-                                (
-                                    entry.display_string(self.localized_strings),
-                                    if gamepad_controls.layer_entry_has_conflicting_bindings(entry) {
-                                        TEXT_BIND_CONFLICT_COLOR
-                                    } else {
-                                        TEXT_COLOR
-                                    },
-                                )
-                            } else {
-                                (
-                                    self.localized_strings
-                                        .get_msg("hud-settings-unbound")
-                                        .into_owned(),
-                                    ERROR_COLOR,
-                                )
-                            };
+                        let (input_string, input_color) = if self
+                            .global_state
+                            .window
+                            .remapping_keybindings
+                            == Some(*game_input)
+                        {
+                            (
+                                self.localized_strings
+                                    .get_msg("hud-settings-awaitingkey")
+                                    .into_owned(),
+                                TEXT_COLOR,
+                            )
+                        } else if let Some(entry) =
+                            gamepad_controls.get_layer_button_binding(*game_input)
+                        {
+                            (
+                                entry.display_string(self.localized_strings),
+                                if gamepad_controls.layer_entry_has_conflicting_bindings(entry) {
+                                    TEXT_BIND_CONFLICT_COLOR
+                                } else {
+                                    TEXT_COLOR
+                                },
+                            )
+                        } else {
+                            (
+                                self.localized_strings
+                                    .get_msg("hud-settings-unbound")
+                                    .into_owned(),
+                                ERROR_COLOR,
+                            )
+                        };
                         let loc_key = self
                             .localized_strings
                             .get_msg(game_input.get_localization_key());
@@ -295,20 +309,22 @@ impl Widget for Controls<'_> {
                         };
                         let text_width = text_widget.get_w(ui).unwrap_or(0.0);
                         text_widget.set(text_id, ui);
-                        if button_widget
+                        button_widget
                             .right_from(text_id, 350.0 - text_width)
-                            .set(button_id, ui)
-                            .was_clicked()
-                        {
-                            // TODO: handle change and remove binding
+                            .set(button_id, ui);
+
+                        for _ in ui.widget_input(button_id).clicks().left() {
+                            events.push(ChangeBindingGamepadButton(*game_input));
+                        }
+                        for _ in ui.widget_input(button_id).clicks().right() {
+                            events.push(RemoveBindingGamepadButton(*game_input));
                         }
                         // Set the previous id to the current one for the next cycle
                         previous_element_id = Some(text_id);
                     }
                 },
                 GamepadBindingOption::MenuButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
-                    //let gamepad_controls = &self.global_state.window.controller_settings;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_MENUINPUTS.len());
 
@@ -487,7 +503,6 @@ impl Widget for Controls<'_> {
                     // resets all gamepad bindings no matter which tab you are in: buttons,
                     // gamelayer, or menu
                     events.push(ResetKeyBindingsGamepadButton);
-                    events.push(ResetKeyBindingsGamepadGamelayer);
                 }
             }
             previous_element_id = Some(state.ids.reset_controls_button)
@@ -528,7 +543,7 @@ impl Widget for Controls<'_> {
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_font_size(self.fonts.cyri.scale(15))
-            .w(125.0)
+            .w_h(125.0, 35.0)
             .rgba(0.0, 0.0, 0.0, 0.0)
             .border_rgba(0.0, 0.0, 0.0, 255.0)
             .label_y(Relative::Scalar(1.0))
@@ -558,6 +573,53 @@ impl Widget for Controls<'_> {
                     },
                 }
             }
+
+            // game layer mod checkboxes
+            if let GamepadBindingOption::GameLayers = state.gamepad_binding_option {
+                // mod1 checkbox
+                let mod1_text = "RB";
+                let gamelayer_mod1 = ToggleButton::new(
+                    self.global_state.settings.interface.gamelayer_mod1,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .down_from(state.ids.gamepad_option_dropdown, 10.0)
+                .w_h(18.0, 18.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.gamelayer_mod1_checkbox, ui);
+                if self.global_state.settings.interface.gamelayer_mod1 != gamelayer_mod1 {
+                    events.push(GameLayerMod1(gamelayer_mod1));
+                }
+                Text::new(mod1_text)
+                    .right_from(state.ids.gamelayer_mod1_checkbox, 10.0)
+                    .font_size(self.fonts.cyri.scale(15))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.gamelayer_mod1_text, ui);
+
+                //mod2 checkbox
+                let mod2_text = "LB";
+                let gamelayer_mod2 = ToggleButton::new(
+                    self.global_state.settings.interface.gamelayer_mod2,
+                    self.imgs.checkbox,
+                    self.imgs.checkbox_checked,
+                )
+                .down_from(state.ids.gamelayer_mod1_checkbox, 10.0)
+                .w_h(18.0, 18.0)
+                .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+                .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+                .set(state.ids.gamelayer_mod2_checkbox, ui);
+                if self.global_state.settings.interface.gamelayer_mod2 != gamelayer_mod2 {
+                    events.push(GameLayerMod2(gamelayer_mod2));
+                }
+                Text::new(mod2_text)
+                    .right_from(state.ids.gamelayer_mod2_checkbox, 10.0)
+                    .font_size(self.fonts.cyri.scale(15))
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.gamelayer_mod2_text, ui);
+            }
         }
 
         let gamepad = &self.localized_strings.get_msg("hud-settings-gamepad");
@@ -572,7 +634,7 @@ impl Widget for Controls<'_> {
             .label_color(TEXT_COLOR)
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_font_size(self.fonts.cyri.scale(15))
-            .w(125.0)
+            .w_h(125.0, 35.0)
             .rgba(0.0, 0.0, 0.0, 0.0)
             .border_rgba(0.0, 0.0, 0.0, 255.0)
             .label_y(Relative::Scalar(1.0));

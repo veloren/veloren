@@ -10,7 +10,6 @@ pub mod audio;
 pub mod chat;
 pub mod control;
 pub mod controller;
-pub mod gamepad;
 pub mod gameplay;
 pub mod graphics;
 pub mod interface;
@@ -22,7 +21,6 @@ pub use audio::{AudioOutput, AudioSettings};
 pub use chat::ChatSettings;
 pub use control::ControlSettings;
 pub use controller::{Button, ControllerSettings};
-pub use gamepad::GamepadSettings;
 pub use gameplay::GameplaySettings;
 pub use graphics::{Fps, GraphicsSettings, get_fps};
 pub use interface::InterfaceSettings;
@@ -37,7 +35,7 @@ pub use networking::NetworkingSettings;
 pub struct Settings {
     pub chat: ChatSettings,
     pub controls: ControlSettings,
-    pub controller2: ControllerSettings,
+    pub controller: ControllerSettings,
     pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
@@ -49,7 +47,6 @@ pub struct Settings {
     pub logon_commands: Vec<String>,
     pub language: LanguageSettings,
     pub screenshots_path: PathBuf,
-    pub controller: GamepadSettings,
     pub inventory: InventorySettings,
 }
 
@@ -75,7 +72,7 @@ impl Default for Settings {
         Settings {
             chat: ChatSettings::default(),
             controls: ControlSettings::default(),
-            controller2: ControllerSettings::default(),
+            controller: ControllerSettings::default(),
             interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),
@@ -86,7 +83,6 @@ impl Default for Settings {
             logon_commands: Vec::new(),
             language: LanguageSettings::default(),
             screenshots_path,
-            controller: GamepadSettings::default(),
             inventory: InventorySettings::default(),
         }
     }
@@ -128,9 +124,5 @@ impl Settings {
                  broken, or may cause your GPU to explode. You have been warned!"
             );
         }
-    }
-
-    pub fn load_controller_settings(&mut self) {
-        self.controller2.load_layer_inputs(&self.controller);
     }
 }

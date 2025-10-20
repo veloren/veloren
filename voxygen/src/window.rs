@@ -2,15 +2,12 @@ use crate::{
     error::Error,
     game_input::GameInput,
     render::Renderer,
-    settings::{
-        ControlSettings, ControllerSettings, Settings, controller::*,
-        gamepad::con_settings::LayerEntry,
-    },
+    settings::{ControlSettings, ControllerSettings, Settings, controller::*},
     ui,
 };
 use common_base::span;
 use crossbeam_channel as channel;
-use gilrs::{EventType, Gilrs};
+use gilrs::{Button as GilButton, EventType, Gilrs};
 use hashbrown::HashMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -210,8 +207,9 @@ pub struct Window {
     events: Vec<Event>,
     pub focused: bool,
     gilrs: Option<Gilrs>,
-    //pub controller_settings: ControllerSettings,
     pub controller_modifiers: Vec<Button>,
+    pub game_layer_lb: bool,
+    pub game_layer_rb: bool,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     last_input: LastInput,
@@ -288,8 +286,6 @@ impl Window {
             },
         };
 
-        //let controller_settings = ControllerSettings::from(&settings.controller);
-
         let (message_sender, message_receiver): (
             channel::Sender<String>,
             channel::Receiver<String>,
@@ -312,10 +308,11 @@ impl Window {
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
+            game_layer_lb: false,
+            game_layer_rb: true,
             events: Vec::new(),
             focused: true,
             gilrs,
-            //controller_settings,
             controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
@@ -356,7 +353,7 @@ impl Window {
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
 
-        let controller = &mut settings.controller2;
+        let controller = &mut settings.controller;
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             let scale_factor = self.window.scale_factor();
@@ -429,6 +426,8 @@ impl Window {
                     button: &Button,
                     is_pressed: bool,
                     last_input: &mut LastInput,
+                    mod1: bool,
+                    mod2: bool,
                 ) {
                     // update last input to be controller if button was pressed
                     *last_input = LastInput::Controller;
@@ -460,6 +459,23 @@ impl Window {
                         mod2: modifiers.get(0).copied().unwrap_or_default(),
                     };
 
+                    // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
+                    // to RB+LB
+                    // make sure layer is currently not being remapped before being used
+                    if let Some(game_inputs) = Window::map_controller_layer_input(
+                        l_entry1, settings, remapping, last_input, mod1, mod2,
+                    ) {
+                        for game_input in game_inputs {
+                            events.push(Event::InputUpdate(*game_input, is_pressed));
+                        }
+                    } else if let Some(game_inputs) = Window::map_controller_layer_input(
+                        l_entry2, settings, remapping, last_input, mod1, mod2,
+                    ) {
+                        for game_input in game_inputs {
+                            events.push(Event::InputUpdate(*game_input, is_pressed));
+                        }
+                    }
+
                     // make sure button is currently not being remapped before being used
                     if let Some(game_inputs) = Window::map_controller_button_input(
                         *button, settings, remapping, last_input,
@@ -471,18 +487,6 @@ impl Window {
                     if let Some(evs) = settings.inverse_menu_button_map.get(button) {
                         for ev in evs {
                             events.push(Event::MenuInput(*ev, is_pressed));
-                        }
-                    }
-
-                    // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
-                    // to RB+LB
-                    if let Some(evs) = settings.inverse_layer_button_map.get(&l_entry1) {
-                        for ev in evs {
-                            events.push(Event::InputUpdate(*ev, is_pressed));
-                        }
-                    } else if let Some(evs) = settings.inverse_layer_button_map.get(&l_entry2) {
-                        for ev in evs {
-                            events.push(Event::InputUpdate(*ev, is_pressed));
                         }
                     }
                 }
@@ -498,6 +502,8 @@ impl Window {
                             &Button::from((button, code)),
                             true,
                             &mut self.last_input,
+                            settings.interface.gamelayer_mod1,
+                            settings.interface.gamelayer_mod2,
                         );
                     },
                     EventType::ButtonReleased(button, code) => {
@@ -509,6 +515,8 @@ impl Window {
                             &Button::from((button, code)),
                             false,
                             &mut self.last_input,
+                            settings.interface.gamelayer_mod1,
+                            settings.interface.gamelayer_mod2,
                         );
                     },
                     EventType::ButtonChanged(button, _value, code) => {
@@ -1248,6 +1256,47 @@ impl Window {
             None => controller
                 .get_associated_game_button_inputs(&button)
                 .map(|game_inputs| game_inputs.iter()),
+        }
+    }
+
+    // I'll combine all of these eventually
+    fn map_controller_layer_input<'a>(
+        layers: LayerEntry,
+        controller: &'a mut ControllerSettings,
+        remapping: &mut Option<GameInput>,
+        last_input: &mut LastInput,
+        mod1_input: bool,
+        mod2_input: bool,
+    ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
+        // update last input to be controller
+        *last_input = LastInput::Controller;
+
+        match *remapping {
+            Some(game_input) => {
+                // create a new layerentry
+                let new_layer_entry = LayerEntry {
+                    button: layers.button, // use the pressed button
+                    // mod1: Button::Simple(GilButton::RightTrigger),
+                    // mod2: Button::Simple(GilButton::Unknown),
+                    mod1: if mod1_input {
+                        Button::Simple(GilButton::RightTrigger)
+                    } else {
+                        Button::Simple(GilButton::Unknown)
+                    },
+                    mod2: if mod2_input {
+                        Button::Simple(GilButton::LeftTrigger)
+                    } else {
+                        Button::Simple(GilButton::Unknown)
+                    },
+                };
+
+                controller.modify_layer_binding(game_input, new_layer_entry);
+                *remapping = None;
+                None
+            },
+            None => controller
+                .get_associated_game_layer_inputs(&layers)
+                .map(|layer_inputs| layer_inputs.iter()),
         }
     }
 

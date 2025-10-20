@@ -101,8 +101,6 @@ fn main() {
     // Load the settings
     let mut settings = Settings::load(&config_dir);
     settings.display_warnings();
-    // Load game layer settings into ControllerSettings struct
-    settings.load_controller_settings();
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file(&config_dir) {
         panic!("Failed to save settings: {:?}", err);

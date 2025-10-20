@@ -9,8 +9,8 @@ use crate::{
     },
     render::RenderMode,
     settings::{
-        AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GamepadSettings,
-        GameplaySettings, GraphicsSettings, InterfaceSettings, audio::AudioVolume,
+        AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GameplaySettings,
+        GraphicsSettings, InterfaceSettings, audio::AudioVolume,
     },
     window::{FullScreenSettings, Window},
 };
@@ -61,7 +61,11 @@ pub enum Control {
     ResetKeyBindingsGamepadButton,
     // Gamepad menu button bindings
     // Gamelayer button bindings
+    ChangeBindingGamepadLayer(GameInput),
+    RemoveBindingGamepadLayer(GameInput),
     ResetKeyBindingsGamepadGamelayer,
+    GameLayerMod1(bool),
+    GameLayerMod2(bool),
 }
 #[derive(Clone)]
 pub enum Gamepad {}
@@ -400,16 +404,25 @@ impl SettingsChange {
                     global_state.window.set_keybinding_mode(game_input);
                 },
                 Control::RemoveBindingGamepadButton(game_input) => {
-                    settings.controller2.remove_button_binding(game_input);
+                    settings.controller.remove_button_binding(game_input);
                 },
                 Control::ResetKeyBindingsGamepadButton => {
-                    // Currently resets everything on the controller
-                    // TODO: only reset the button bindings
-                    settings.controller2 = ControllerSettings::default();
+                    // Currently resets everything on the controller to the default controls, this
+                    // should be intended behavior
+                    settings.controller = ControllerSettings::default();
                 },
-                Control::ResetKeyBindingsGamepadGamelayer => {
-                    settings.controller = GamepadSettings::default();
-                    settings.load_controller_settings()
+                Control::ChangeBindingGamepadLayer(layer_input) => {
+                    global_state.window.set_keybinding_mode(layer_input);
+                },
+                Control::RemoveBindingGamepadLayer(layer_input) => {
+                    settings.controller.remove_layer_binding(layer_input);
+                },
+                Control::ResetKeyBindingsGamepadGamelayer => {},
+                Control::GameLayerMod1(glm1) => {
+                    settings.interface.gamelayer_mod1 = glm1;
+                },
+                Control::GameLayerMod2(glm2) => {
+                    settings.interface.gamelayer_mod2 = glm2;
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
@@ -431,9 +444,7 @@ impl SettingsChange {
                         settings.gameplay.walking_speed = speed;
                     },
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
-                        settings.controller2.pan_invert_y = controller_y_inverted;
-                        //window.controller_settings.pan_invert_y = controller_y_inverted;
-                        settings.controller2.pan_invert_y = controller_y_inverted;
+                        settings.controller.pan_invert_y = controller_y_inverted;
                     },
                     Gameplay::ToggleMouseYInvert(mouse_y_inverted) => {
                         window.mouse_y_inversion = mouse_y_inverted;
@@ -482,11 +493,8 @@ impl SettingsChange {
                     Gameplay::ResetGameplaySettings => {
                         // Reset Gameplay Settings
                         settings.gameplay = GameplaySettings::default();
-                        // Reset Gamepad and Controller Settings
-                        settings.controller = GamepadSettings::default();
-                        //window.controller_settings =
-                        // ControllerSettings::from(&settings.controller);
-                        settings.controller2 = ControllerSettings::default();
+                        // Reset Controller Settings
+                        settings.controller = ControllerSettings::default();
                         // Pan Sensitivity
                         window.pan_sensitivity = settings.gameplay.pan_sensitivity;
                         // Zoom Sensitivity
