@@ -241,26 +241,40 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         controller_settings
             .insert_game_button_binding(GameInput::MoveRight, settings.game_buttons.move_right);
         controller_settings.insert_game_button_binding(GameInput::Jump, settings.game_buttons.jump);
+        controller_settings
+            .insert_game_button_binding(GameInput::WallJump, settings.game_buttons.wall_jump);
         controller_settings.insert_game_button_binding(GameInput::Sit, settings.game_buttons.sit);
         controller_settings
+            .insert_game_button_binding(GameInput::Crawl, settings.game_buttons.crawl);
+        controller_settings
             .insert_game_button_binding(GameInput::Dance, settings.game_buttons.dance);
+        controller_settings
+            .insert_game_button_binding(GameInput::Greet, settings.game_buttons.greet);
         controller_settings
             .insert_game_button_binding(GameInput::Glide, settings.game_buttons.glide);
         controller_settings
             .insert_game_button_binding(GameInput::SwimUp, settings.game_buttons.swimup);
         controller_settings
             .insert_game_button_binding(GameInput::SwimDown, settings.game_buttons.swimdown);
+        controller_settings.insert_game_button_binding(GameInput::Fly, settings.game_buttons.fly);
         controller_settings
             .insert_game_button_binding(GameInput::Sneak, settings.game_buttons.sneak);
+        controller_settings
+            .insert_game_button_binding(GameInput::CancelClimb, settings.game_buttons.cancel_climb);
         controller_settings.insert_game_button_binding(
             GameInput::ToggleLantern,
             settings.game_buttons.toggle_lantern,
         );
         controller_settings
             .insert_game_button_binding(GameInput::Mount, settings.game_buttons.mount);
+        controller_settings
+            .insert_game_button_binding(GameInput::StayFollow, settings.game_buttons.stayfollow);
+        controller_settings.insert_game_button_binding(GameInput::Chat, settings.game_buttons.chat);
         controller_settings.insert_game_button_binding(GameInput::Map, settings.game_buttons.map);
         controller_settings
-            .insert_game_button_binding(GameInput::Inventory, settings.game_buttons.bag);
+            .insert_game_button_binding(GameInput::Inventory, settings.game_buttons.inventory);
+        controller_settings
+            .insert_game_button_binding(GameInput::Trade, settings.game_buttons.trade);
         controller_settings
             .insert_game_button_binding(GameInput::Social, settings.game_buttons.social);
         controller_settings
@@ -294,6 +308,8 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         );
         controller_settings.insert_game_button_binding(GameInput::Roll, settings.game_buttons.roll);
         controller_settings
+            .insert_game_button_binding(GameInput::GiveUp, settings.game_buttons.give_up);
+        controller_settings
             .insert_game_button_binding(GameInput::Respawn, settings.game_buttons.respawn);
         controller_settings
             .insert_game_button_binding(GameInput::Interact, settings.game_buttons.interact);
@@ -301,6 +317,62 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
             .insert_game_button_binding(GameInput::ToggleWield, settings.game_buttons.toggle_wield);
         controller_settings
             .insert_game_button_binding(GameInput::SwapLoadout, settings.game_buttons.swap_loadout);
+        controller_settings
+            .insert_game_button_binding(GameInput::FreeLook, settings.game_buttons.free_look);
+        controller_settings
+            .insert_game_button_binding(GameInput::AutoWalk, settings.game_buttons.auto_walk);
+        controller_settings
+            .insert_game_button_binding(GameInput::ZoomIn, settings.game_buttons.zoom_in);
+        controller_settings
+            .insert_game_button_binding(GameInput::ZoomOut, settings.game_buttons.zoom_out);
+        controller_settings
+            .insert_game_button_binding(GameInput::ZoomLock, settings.game_buttons.zoom_lock);
+        controller_settings
+            .insert_game_button_binding(GameInput::CameraClamp, settings.game_buttons.camera_clamp);
+        controller_settings
+            .insert_game_button_binding(GameInput::CycleCamera, settings.game_buttons.cycle_camera);
+        controller_settings
+            .insert_game_button_binding(GameInput::Select, settings.game_buttons.select);
+        controller_settings.insert_game_button_binding(
+            GameInput::AcceptGroupInvite,
+            settings.game_buttons.accept_group_invite,
+        );
+        controller_settings.insert_game_button_binding(
+            GameInput::DeclineGroupInvite,
+            settings.game_buttons.decline_group_invite,
+        );
+        controller_settings
+            .insert_game_button_binding(GameInput::MapZoomIn, settings.game_buttons.map_zoom_in);
+        controller_settings
+            .insert_game_button_binding(GameInput::MapZoomOut, settings.game_buttons.map_zoom_out);
+        controller_settings.insert_game_button_binding(
+            GameInput::MapSetMarker,
+            settings.game_buttons.map_set_marker,
+        );
+        controller_settings.insert_game_button_binding(
+            GameInput::SpectateSpeedBoost,
+            settings.game_buttons.spectate_speed_boost,
+        );
+        controller_settings.insert_game_button_binding(
+            GameInput::SpectateViewpoint,
+            settings.game_buttons.spectate_viewpoint,
+        );
+        controller_settings
+            .insert_game_button_binding(GameInput::MuteMaster, settings.game_buttons.mute_master);
+        controller_settings.insert_game_button_binding(
+            GameInput::MuteInactiveMaster,
+            settings.game_buttons.mute_inactive_master,
+        );
+        controller_settings
+            .insert_game_button_binding(GameInput::MuteMusic, settings.game_buttons.mute_music);
+        controller_settings
+            .insert_game_button_binding(GameInput::MuteSfx, settings.game_buttons.mute_sfx);
+        controller_settings.insert_game_button_binding(
+            GameInput::MuteAmbience,
+            settings.game_buttons.mute_ambience,
+        );
+        controller_settings
+            .insert_game_button_binding(GameInput::ToggleWalk, settings.game_buttons.toggle_walk);
 
         controller_settings.insert_menu_button_binding(MenuInput::Up, settings.menu_buttons.up);
         controller_settings.insert_menu_button_binding(MenuInput::Down, settings.menu_buttons.down);
@@ -396,10 +468,18 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         );
         controller_settings
             .insert_layer_button_binding(GameInput::Jump, settings.game_layer_buttons.jump);
+        controller_settings.insert_layer_button_binding(
+            GameInput::WallJump,
+            settings.game_layer_buttons.wall_jump,
+        );
         controller_settings
             .insert_layer_button_binding(GameInput::Sit, settings.game_layer_buttons.sit);
         controller_settings
+            .insert_layer_button_binding(GameInput::Crawl, settings.game_layer_buttons.crawl);
+        controller_settings
             .insert_layer_button_binding(GameInput::Dance, settings.game_layer_buttons.dance);
+        controller_settings
+            .insert_layer_button_binding(GameInput::Greet, settings.game_layer_buttons.greet);
         controller_settings
             .insert_layer_button_binding(GameInput::Glide, settings.game_layer_buttons.glide);
         controller_settings
@@ -407,17 +487,33 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         controller_settings
             .insert_layer_button_binding(GameInput::SwimDown, settings.game_layer_buttons.swimdown);
         controller_settings
+            .insert_layer_button_binding(GameInput::Fly, settings.game_layer_buttons.fly);
+        controller_settings
             .insert_layer_button_binding(GameInput::Sneak, settings.game_layer_buttons.sneak);
+        controller_settings.insert_layer_button_binding(
+            GameInput::CancelClimb,
+            settings.game_layer_buttons.cancel_climb,
+        );
         controller_settings.insert_layer_button_binding(
             GameInput::ToggleLantern,
             settings.game_layer_buttons.toggle_lantern,
         );
         controller_settings
             .insert_layer_button_binding(GameInput::Mount, settings.game_layer_buttons.mount);
+        controller_settings.insert_layer_button_binding(
+            GameInput::StayFollow,
+            settings.game_layer_buttons.stayfollow,
+        );
+        controller_settings
+            .insert_layer_button_binding(GameInput::Chat, settings.game_layer_buttons.chat);
         controller_settings
             .insert_layer_button_binding(GameInput::Map, settings.game_layer_buttons.map);
+        controller_settings.insert_layer_button_binding(
+            GameInput::Inventory,
+            settings.game_layer_buttons.inventory,
+        );
         controller_settings
-            .insert_layer_button_binding(GameInput::Inventory, settings.game_layer_buttons.bag);
+            .insert_layer_button_binding(GameInput::Trade, settings.game_layer_buttons.trade);
         controller_settings
             .insert_layer_button_binding(GameInput::Social, settings.game_layer_buttons.social);
         controller_settings
@@ -460,6 +556,8 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         controller_settings
             .insert_layer_button_binding(GameInput::Roll, settings.game_layer_buttons.roll);
         controller_settings
+            .insert_layer_button_binding(GameInput::GiveUp, settings.game_layer_buttons.give_up);
+        controller_settings
             .insert_layer_button_binding(GameInput::Respawn, settings.game_layer_buttons.respawn);
         controller_settings
             .insert_layer_button_binding(GameInput::Interact, settings.game_layer_buttons.interact);
@@ -470,6 +568,82 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
         controller_settings.insert_layer_button_binding(
             GameInput::SwapLoadout,
             settings.game_layer_buttons.swap_loadout,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::FreeLook,
+            settings.game_layer_buttons.free_look,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::AutoWalk,
+            settings.game_layer_buttons.auto_walk,
+        );
+        controller_settings
+            .insert_layer_button_binding(GameInput::ZoomIn, settings.game_layer_buttons.zoom_in);
+        controller_settings
+            .insert_layer_button_binding(GameInput::ZoomOut, settings.game_layer_buttons.zoom_out);
+        controller_settings.insert_layer_button_binding(
+            GameInput::ZoomLock,
+            settings.game_layer_buttons.zoom_lock,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::CameraClamp,
+            settings.game_layer_buttons.camera_clamp,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::CycleCamera,
+            settings.game_layer_buttons.cycle_camera,
+        );
+        controller_settings
+            .insert_layer_button_binding(GameInput::Select, settings.game_layer_buttons.select);
+        controller_settings.insert_layer_button_binding(
+            GameInput::AcceptGroupInvite,
+            settings.game_layer_buttons.accept_group_invite,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::DeclineGroupInvite,
+            settings.game_layer_buttons.decline_group_invite,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MapZoomIn,
+            settings.game_layer_buttons.map_zoom_in,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MapZoomOut,
+            settings.game_layer_buttons.map_zoom_out,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MapSetMarker,
+            settings.game_layer_buttons.map_set_marker,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::SpectateSpeedBoost,
+            settings.game_layer_buttons.spectate_speed_boost,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::SpectateViewpoint,
+            settings.game_layer_buttons.spectate_viewpoint,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MuteMaster,
+            settings.game_layer_buttons.mute_master,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MuteInactiveMaster,
+            settings.game_layer_buttons.mute_inactive_master,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::MuteMusic,
+            settings.game_layer_buttons.mute_music,
+        );
+        controller_settings
+            .insert_layer_button_binding(GameInput::MuteSfx, settings.game_layer_buttons.mute_sfx);
+        controller_settings.insert_layer_button_binding(
+            GameInput::MuteAmbience,
+            settings.game_layer_buttons.mute_ambience,
+        );
+        controller_settings.insert_layer_button_binding(
+            GameInput::ToggleWalk,
+            settings.game_layer_buttons.toggle_walk,
         );
 
         controller_settings.modifier_buttons = vec![
