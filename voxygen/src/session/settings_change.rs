@@ -12,7 +12,7 @@ use crate::{
         AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GameplaySettings,
         GraphicsSettings, InterfaceSettings, audio::AudioVolume,
     },
-    window::{FullScreenSettings, Window},
+    window::{FullScreenSettings, MenuInput, Window},
 };
 use common::comp::inventory::InventorySortOrder;
 use i18n::{LanguageMetadata, LocalizationHandle};
@@ -55,15 +55,20 @@ pub enum Control {
     RemoveBindingKeyboard(GameInput),
     ResetKeyBindingsKeyboard,
 
+    // reset all gamepad bindings
+    ResetKeyBindingsGamepad,
+
     // change gamepad button bindings
     ChangeBindingGamepadButton(GameInput),
     RemoveBindingGamepadButton(GameInput),
-    ResetKeyBindingsGamepadButton,
-    // Gamepad menu button bindings
-    // Gamelayer button bindings
+
+    // change gamepad menu button bindings
+    ChangeBindingGamepadMenu(MenuInput),
+    RemoveBindingGamepadMenu(MenuInput),
+
+    // change gamepad layer bindings
     ChangeBindingGamepadLayer(GameInput),
     RemoveBindingGamepadLayer(GameInput),
-    ResetKeyBindingsGamepadGamelayer,
     GameLayerMod1(bool),
     GameLayerMod2(bool),
 }
@@ -391,6 +396,7 @@ impl SettingsChange {
                 }
             },
             SettingsChange::Control(control_change) => match control_change {
+                // keyboard
                 Control::ChangeBindingKeyboard(game_input) => {
                     global_state.window.set_keybinding_mode(game_input);
                 },
@@ -400,24 +406,43 @@ impl SettingsChange {
                 Control::ResetKeyBindingsKeyboard => {
                     settings.controls = ControlSettings::default();
                 },
-                Control::ChangeBindingGamepadButton(game_input) => {
-                    global_state.window.set_keybinding_mode(game_input);
-                },
-                Control::RemoveBindingGamepadButton(game_input) => {
-                    settings.controller.remove_button_binding(game_input);
-                },
-                Control::ResetKeyBindingsGamepadButton => {
+
+                // reset gamepad
+                Control::ResetKeyBindingsGamepad => {
                     // Currently resets everything on the controller to the default controls, this
                     // should be intended behavior
                     settings.controller = ControllerSettings::default();
                 },
-                Control::ChangeBindingGamepadLayer(layer_input) => {
-                    global_state.window.set_keybinding_mode(layer_input);
+
+                // change gamepad button bindings
+                Control::ChangeBindingGamepadButton(game_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadButtons(game_input),
+                    );
+                },
+                Control::RemoveBindingGamepadButton(game_input) => {
+                    settings.controller.remove_button_binding(game_input);
+                },
+
+                // change gamepad menu button bindings
+                Control::ChangeBindingGamepadMenu(menu_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadMenu(menu_input),
+                    );
+                },
+                Control::RemoveBindingGamepadMenu(menu_input) => {
+                    settings.controller.remove_menu_binding(menu_input);
+                },
+
+                // change gamepad layer bindings
+                Control::ChangeBindingGamepadLayer(game_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadLayers(game_input),
+                    );
                 },
                 Control::RemoveBindingGamepadLayer(layer_input) => {
                     settings.controller.remove_layer_binding(layer_input);
                 },
-                Control::ResetKeyBindingsGamepadGamelayer => {},
                 Control::GameLayerMod1(glm1) => {
                     settings.interface.gamelayer_mod1 = glm1;
                 },

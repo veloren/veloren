@@ -314,10 +314,10 @@ impl Widget for Controls<'_> {
                             .set(button_id, ui);
 
                         for _ in ui.widget_input(button_id).clicks().left() {
-                            events.push(ChangeBindingGamepadButton(*game_input));
+                            events.push(ChangeBindingGamepadLayer(*game_input));
                         }
                         for _ in ui.widget_input(button_id).clicks().right() {
-                            events.push(RemoveBindingGamepadButton(*game_input));
+                            events.push(RemoveBindingGamepadLayer(*game_input));
                         }
                         // Set the previous id to the current one for the next cycle
                         previous_element_id = Some(text_id);
@@ -385,12 +385,15 @@ impl Widget for Controls<'_> {
                         };
                         let text_width = text_widget.get_w(ui).unwrap_or(0.0);
                         text_widget.set(text_id, ui);
-                        if button_widget
+                        button_widget
                             .right_from(text_id, 350.0 - text_width)
-                            .set(button_id, ui)
-                            .was_clicked()
-                        {
-                            // TODO: handle change and remove binding
+                            .set(button_id, ui);
+
+                        for _ in ui.widget_input(button_id).clicks().left() {
+                            events.push(ChangeBindingGamepadMenu(*menu_input));
+                        }
+                        for _ in ui.widget_input(button_id).clicks().right() {
+                            events.push(RemoveBindingGamepadMenu(*menu_input));
                         }
                         // Set the previous id to the current one for the next cycle
                         previous_element_id = Some(text_id);
@@ -502,7 +505,7 @@ impl Widget for Controls<'_> {
                 } else {
                     // resets all gamepad bindings no matter which tab you are in: buttons,
                     // gamelayer, or menu
-                    events.push(ResetKeyBindingsGamepadButton);
+                    events.push(ResetKeyBindingsGamepad);
                 }
             }
             previous_element_id = Some(state.ids.reset_controls_button)

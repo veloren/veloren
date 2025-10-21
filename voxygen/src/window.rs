@@ -182,6 +182,21 @@ impl KeyMouse {
 }
 
 #[derive(Clone, Copy, Debug)]
+pub enum RemappingMode {
+    RemapKeyboard(GameInput),
+    RemapGamepadButtons(GameInput),
+    RemapGamepadLayers(GameInput),
+    RemapGamepadMenu(MenuInput),
+    None,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum InputType {
+    InputButton(Button),
+    InputLayer(LayerEntry),
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum LastInput {
     KeyboardMouse,
     Controller,
@@ -204,6 +219,7 @@ pub struct Window {
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
+    pub remapping_mode: RemappingMode,
     events: Vec<Event>,
     pub focused: bool,
     gilrs: Option<Gilrs>,
@@ -308,6 +324,7 @@ impl Window {
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
+            remapping_mode: RemappingMode::None,
             game_layer_lb: false,
             game_layer_rb: true,
             events: Vec::new(),
@@ -420,7 +437,7 @@ impl Window {
             while let Some(event) = gilrs.next_event() {
                 fn handle_buttons(
                     settings: &mut ControllerSettings,
-                    remapping: &mut Option<GameInput>,
+                    remapping: &mut RemappingMode,
                     modifiers: &mut Vec<Button>,
                     events: &mut Vec<Event>,
                     button: &Button,
@@ -462,14 +479,24 @@ impl Window {
                     // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
                     // to RB+LB
                     // make sure layer is currently not being remapped before being used
-                    if let Some(game_inputs) = Window::map_controller_layer_input(
-                        l_entry1, settings, remapping, last_input, mod1, mod2,
+                    if let Some(game_inputs) = Window::map_controller_input(
+                        InputType::InputLayer(l_entry1),
+                        settings,
+                        remapping,
+                        last_input,
+                        mod1,
+                        mod2,
                     ) {
                         for game_input in game_inputs {
                             events.push(Event::InputUpdate(*game_input, is_pressed));
                         }
-                    } else if let Some(game_inputs) = Window::map_controller_layer_input(
-                        l_entry2, settings, remapping, last_input, mod1, mod2,
+                    } else if let Some(game_inputs) = Window::map_controller_input(
+                        InputType::InputLayer(l_entry2),
+                        settings,
+                        remapping,
+                        last_input,
+                        mod1,
+                        mod2,
                     ) {
                         for game_input in game_inputs {
                             events.push(Event::InputUpdate(*game_input, is_pressed));
@@ -477,8 +504,13 @@ impl Window {
                     }
 
                     // make sure button is currently not being remapped before being used
-                    if let Some(game_inputs) = Window::map_controller_button_input(
-                        *button, settings, remapping, last_input,
+                    if let Some(game_inputs) = Window::map_controller_input(
+                        InputType::InputButton(*button),
+                        settings,
+                        remapping,
+                        last_input,
+                        mod1,
+                        mod2,
                     ) {
                         for game_input in game_inputs {
                             events.push(Event::InputUpdate(*game_input, is_pressed));
@@ -496,7 +528,7 @@ impl Window {
                     | EventType::ButtonRepeated(button, code) => {
                         handle_buttons(
                             controller,
-                            &mut self.remapping_keybindings,
+                            &mut self.remapping_mode,
                             &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
@@ -509,7 +541,7 @@ impl Window {
                     EventType::ButtonReleased(button, code) => {
                         handle_buttons(
                             controller,
-                            &mut self.remapping_keybindings,
+                            &mut self.remapping_mode,
                             &mut self.controller_modifiers,
                             &mut self.events,
                             &Button::from((button, code)),
@@ -1238,32 +1270,12 @@ impl Window {
     }
 
     // same thing as map_input, but for controller buttons
-    fn map_controller_button_input<'a>(
-        button: Button,
+    fn map_controller_input<'a>(
+        //button: Button,
+        //layers: LayerEntry,
+        input: InputType,
         controller: &'a mut ControllerSettings,
-        remapping: &mut Option<GameInput>,
-        last_input: &mut LastInput,
-    ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
-        // update last input to be controller
-        *last_input = LastInput::Controller;
-
-        match *remapping {
-            Some(game_input) => {
-                controller.modify_button_binding(game_input, button);
-                *remapping = None;
-                None
-            },
-            None => controller
-                .get_associated_game_button_inputs(&button)
-                .map(|game_inputs| game_inputs.iter()),
-        }
-    }
-
-    // I'll combine all of these eventually
-    fn map_controller_layer_input<'a>(
-        layers: LayerEntry,
-        controller: &'a mut ControllerSettings,
-        remapping: &mut Option<GameInput>,
+        remapping: &mut RemappingMode,
         last_input: &mut LastInput,
         mod1_input: bool,
         mod2_input: bool,
@@ -1272,37 +1284,68 @@ impl Window {
         *last_input = LastInput::Controller;
 
         match *remapping {
-            Some(game_input) => {
-                // create a new layerentry
-                let new_layer_entry = LayerEntry {
-                    button: layers.button, // use the pressed button
-                    // mod1: Button::Simple(GilButton::RightTrigger),
-                    // mod2: Button::Simple(GilButton::Unknown),
-                    mod1: if mod1_input {
-                        Button::Simple(GilButton::RightTrigger)
-                    } else {
-                        Button::Simple(GilButton::Unknown)
-                    },
-                    mod2: if mod2_input {
-                        Button::Simple(GilButton::LeftTrigger)
-                    } else {
-                        Button::Simple(GilButton::Unknown)
-                    },
-                };
-
-                controller.modify_layer_binding(game_input, new_layer_entry);
-                *remapping = None;
+            RemappingMode::RemapGamepadLayers(game_input) => {
+                // must match on the input to ensure we get a layer entry
+                if let InputType::InputLayer(layer) = input {
+                    // create a new layer entry
+                    let new_layer_entry = LayerEntry {
+                        button: layer.button,
+                        mod1: if mod1_input {
+                            Button::Simple(GilButton::RightTrigger)
+                        } else {
+                            Button::Simple(GilButton::Unknown)
+                        },
+                        mod2: if mod2_input {
+                            Button::Simple(GilButton::LeftTrigger)
+                        } else {
+                            Button::Simple(GilButton::Unknown)
+                        },
+                    };
+                    controller.modify_layer_binding(game_input, new_layer_entry);
+                    *remapping = RemappingMode::None;
+                    return None;
+                }
+                // if the input is a button, ignore it, as wel only remap layer entry here
                 None
             },
-            None => controller
-                .get_associated_game_layer_inputs(&layers)
-                .map(|layer_inputs| layer_inputs.iter()),
+            RemappingMode::RemapGamepadButtons(game_input) => {
+                // must match on the input to ensure we get a Button
+                if let InputType::InputButton(button) = input {
+                    controller.modify_button_binding(game_input, button);
+                    *remapping = RemappingMode::None;
+                    return None;
+                }
+                // if the input is a LayerEntry, ignore it, as we only remap buttons here
+                None
+            },
+            RemappingMode::RemapGamepadMenu(menu_input) => {
+                // must match on the input to ensure we get a Button
+                if let InputType::InputButton(button) = input {
+                    controller.modify_menu_binding(menu_input, button);
+                    *remapping = RemappingMode::None;
+                    return None;
+                }
+                // if the input is a LayerEntry, ignore it, as wel only remap buttons here
+                None
+            },
+            RemappingMode::None => match input {
+                // TODO: get menu inputs working
+                InputType::InputButton(button) => controller
+                    .get_associated_game_button_inputs(&button)
+                    .map(|game_inputs| game_inputs.iter()),
+                InputType::InputLayer(layers) => controller
+                    .get_associated_game_layer_inputs(&layers)
+                    .map(|game_inputs| game_inputs.iter()),
+            },
+            _ => None,
         }
     }
 
     pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
         self.remapping_keybindings = Some(game_input);
     }
+
+    pub fn set_remapping_mode(&mut self, r_mode: RemappingMode) { self.remapping_mode = r_mode; }
 
     pub fn window(&self) -> &winit::window::Window { &self.window }
 

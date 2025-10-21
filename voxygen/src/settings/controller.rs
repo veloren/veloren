@@ -182,6 +182,17 @@ impl ControllerSettings {
         }
     }
 
+    pub fn remove_menu_binding(&mut self, menu_input: MenuInput) {
+        if let Some(inverse) = self
+            .menu_button_map
+            .insert(menu_input, None)
+            .flatten()
+            .and_then(|button| self.inverse_menu_button_map.get_mut(&button))
+        {
+            inverse.remove(&menu_input);
+        }
+    }
+
     pub fn get_game_button_binding(&self, input: GameInput) -> Option<Button> {
         self.game_button_map.get(&input).cloned().flatten()
     }
@@ -295,6 +306,24 @@ impl ControllerSettings {
             .insert(game_input);
         // for the GameInput->layer hashmap, just overwrite the value
         self.layer_button_map.insert(game_input, Some(layers));
+    }
+
+    pub fn modify_menu_binding(&mut self, menu_input: MenuInput, button: Button) {
+        // for the Button->GameInput hashmap, we first need to remove the GameInput from
+        // the old binding
+        if let Some(old_binding) = self.get_menu_button_binding(menu_input) {
+            self.inverse_menu_button_map
+                .entry(old_binding)
+                .or_default()
+                .remove(&menu_input);
+        }
+        // then we add the GameInput to the proper key
+        self.inverse_menu_button_map
+            .entry(button.clone())
+            .or_default()
+            .insert(menu_input);
+        // for the MenuInput->button hashmap, just overwrite the value
+        self.menu_button_map.insert(menu_input, Some(button));
     }
 
     /// Return true if this button is used for multiple GameInputs that aren't
