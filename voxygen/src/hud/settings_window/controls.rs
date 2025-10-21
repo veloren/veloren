@@ -4,9 +4,9 @@ use crate::{
     GlobalState,
     game_input::GameInput,
     hud::{ERROR_COLOR, TEXT_BIND_CONFLICT_COLOR, TEXT_COLOR, img_ids::Imgs},
-    session::settings_change::{Control as ControlChange, Control::*},
+    session::settings_change::Control::{self as ControlChange, *},
     ui::{ToggleButton, fonts::Fonts},
-    window::MenuInput,
+    window::{MenuInput, RemappingMode},
 };
 use conrod_core::{
     Borderable, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon, color,
@@ -164,43 +164,74 @@ impl Widget for Controls<'_> {
                             .iter()
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
-                        let (input_string, input_color) = if self
-                            .global_state
-                            .window
-                            .remapping_keybindings
-                            == Some(*game_input)
-                        {
-                            (
-                                self.localized_strings
-                                    .get_msg("hud-settings-awaitingkey")
-                                    .into_owned(),
-                                TEXT_COLOR,
-                            )
-                        } else if let Some(button) =
-                            gamepad_controls.get_game_button_binding(*game_input)
-                        {
-                            (
-                                format!(
-                                    "{} {}",
-                                    button.display_string(self.localized_strings),
-                                    button
-                                        .try_shortened()
-                                        .map_or("".to_owned(), |short| format!("({})", short))
-                                ),
-                                if gamepad_controls.game_button_has_conflicting_bindings(button) {
-                                    TEXT_BIND_CONFLICT_COLOR
+                        let (input_string, input_color) =
+                            if let RemappingMode::RemapGamepadButtons(r_input) =
+                                self.global_state.window.remapping_mode
+                            {
+                                if r_input == *game_input {
+                                    (
+                                        self.localized_strings
+                                            .get_msg("hud-settings-awaitingkey")
+                                            .into_owned(),
+                                        TEXT_COLOR,
+                                    )
                                 } else {
-                                    TEXT_COLOR
-                                },
-                            )
-                        } else {
-                            (
-                                self.localized_strings
-                                    .get_msg("hud-settings-unbound")
-                                    .into_owned(),
-                                ERROR_COLOR,
-                            )
-                        };
+                                    // ughh, I need to duplicate this so rust won't complain
+                                    if let Some(button) =
+                                        gamepad_controls.get_game_button_binding(*game_input)
+                                    {
+                                        (
+                                            format!(
+                                                "{} {}",
+                                                button.display_string(self.localized_strings),
+                                                button.try_shortened().map_or(
+                                                    "".to_owned(),
+                                                    |short| format!("({})", short)
+                                                )
+                                            ),
+                                            if gamepad_controls
+                                                .game_button_has_conflicting_bindings(button)
+                                            {
+                                                TEXT_BIND_CONFLICT_COLOR
+                                            } else {
+                                                TEXT_COLOR
+                                            },
+                                        )
+                                    } else {
+                                        (
+                                            self.localized_strings
+                                                .get_msg("hud-settings-unbound")
+                                                .into_owned(),
+                                            ERROR_COLOR,
+                                        )
+                                    }
+                                }
+                            } else if let Some(button) =
+                                gamepad_controls.get_game_button_binding(*game_input)
+                            {
+                                (
+                                    format!(
+                                        "{} {}",
+                                        button.display_string(self.localized_strings),
+                                        button
+                                            .try_shortened()
+                                            .map_or("".to_owned(), |short| format!("({})", short))
+                                    ),
+                                    if gamepad_controls.game_button_has_conflicting_bindings(button)
+                                    {
+                                        TEXT_BIND_CONFLICT_COLOR
+                                    } else {
+                                        TEXT_COLOR
+                                    },
+                                )
+                            } else {
+                                (
+                                    self.localized_strings
+                                        .get_msg("hud-settings-unbound")
+                                        .into_owned(),
+                                    ERROR_COLOR,
+                                )
+                            };
                         let loc_key = self
                             .localized_strings
                             .get_msg(game_input.get_localization_key());
@@ -253,37 +284,61 @@ impl Widget for Controls<'_> {
                             .iter()
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
-                        let (input_string, input_color) = if self
-                            .global_state
-                            .window
-                            .remapping_keybindings
-                            == Some(*game_input)
-                        {
-                            (
-                                self.localized_strings
-                                    .get_msg("hud-settings-awaitingkey")
-                                    .into_owned(),
-                                TEXT_COLOR,
-                            )
-                        } else if let Some(entry) =
-                            gamepad_controls.get_layer_button_binding(*game_input)
-                        {
-                            (
-                                entry.display_string(self.localized_strings),
-                                if gamepad_controls.layer_entry_has_conflicting_bindings(entry) {
-                                    TEXT_BIND_CONFLICT_COLOR
+                        let (input_string, input_color) =
+                            if let RemappingMode::RemapGamepadLayers(r_input) =
+                                self.global_state.window.remapping_mode
+                            {
+                                if r_input == *game_input {
+                                    (
+                                        self.localized_strings
+                                            .get_msg("hud-settings-awaitingkey")
+                                            .into_owned(),
+                                        TEXT_COLOR,
+                                    )
                                 } else {
-                                    TEXT_COLOR
-                                },
-                            )
-                        } else {
-                            (
-                                self.localized_strings
-                                    .get_msg("hud-settings-unbound")
-                                    .into_owned(),
-                                ERROR_COLOR,
-                            )
-                        };
+                                    // ughh, I need to duplicate this so rust won't complain
+                                    if let Some(entry) =
+                                        gamepad_controls.get_layer_button_binding(*game_input)
+                                    {
+                                        (
+                                            entry.display_string(self.localized_strings),
+                                            if gamepad_controls
+                                                .layer_entry_has_conflicting_bindings(entry)
+                                            {
+                                                TEXT_BIND_CONFLICT_COLOR
+                                            } else {
+                                                TEXT_COLOR
+                                            },
+                                        )
+                                    } else {
+                                        (
+                                            self.localized_strings
+                                                .get_msg("hud-settings-unbound")
+                                                .into_owned(),
+                                            ERROR_COLOR,
+                                        )
+                                    }
+                                }
+                            } else if let Some(entry) =
+                                gamepad_controls.get_layer_button_binding(*game_input)
+                            {
+                                (
+                                    entry.display_string(self.localized_strings),
+                                    if gamepad_controls.layer_entry_has_conflicting_bindings(entry)
+                                    {
+                                        TEXT_BIND_CONFLICT_COLOR
+                                    } else {
+                                        TEXT_COLOR
+                                    },
+                                )
+                            } else {
+                                (
+                                    self.localized_strings
+                                        .get_msg("hud-settings-unbound")
+                                        .into_owned(),
+                                    ERROR_COLOR,
+                                )
+                            };
                         let loc_key = self
                             .localized_strings
                             .get_msg(game_input.get_localization_key());
@@ -337,16 +392,60 @@ impl Widget for Controls<'_> {
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
                         let (input_string, input_color) =
-                            // TODO: handle rebind text
-                            if let Some(button) = gamepad_controls.get_menu_button_binding(*menu_input) {
+                            if let RemappingMode::RemapGamepadMenu(r_input) =
+                                self.global_state.window.remapping_mode
+                            {
+                                if r_input == *menu_input {
+                                    (
+                                        self.localized_strings
+                                            .get_msg("hud-settings-awaitingkey")
+                                            .into_owned(),
+                                        TEXT_COLOR,
+                                    )
+                                } else {
+                                    // ughh, I need to duplicate this so rust won't complain
+                                    if let Some(button) =
+                                        gamepad_controls.get_menu_button_binding(*menu_input)
+                                    {
+                                        (
+                                            format!(
+                                                "{} {}",
+                                                button.display_string(self.localized_strings),
+                                                button.try_shortened().map_or(
+                                                    "".to_owned(),
+                                                    |short| format!("({})", short)
+                                                )
+                                            ),
+                                            if gamepad_controls
+                                                .menu_button_has_conflicting_bindings(button)
+                                            {
+                                                TEXT_BIND_CONFLICT_COLOR
+                                            } else {
+                                                TEXT_COLOR
+                                            },
+                                        )
+                                    } else {
+                                        (
+                                            self.localized_strings
+                                                .get_msg("hud-settings-unbound")
+                                                .into_owned(),
+                                            ERROR_COLOR,
+                                        )
+                                    }
+                                }
+                            } else if let Some(button) =
+                                gamepad_controls.get_menu_button_binding(*menu_input)
+                            {
                                 (
                                     format!(
                                         "{} {}",
                                         button.display_string(self.localized_strings),
-                                        button.try_shortened()
+                                        button
+                                            .try_shortened()
                                             .map_or("".to_owned(), |short| format!("({})", short))
                                     ),
-                                    if gamepad_controls.menu_button_has_conflicting_bindings(button) {
+                                    if gamepad_controls.menu_button_has_conflicting_bindings(button)
+                                    {
                                         TEXT_BIND_CONFLICT_COLOR
                                     } else {
                                         TEXT_COLOR
