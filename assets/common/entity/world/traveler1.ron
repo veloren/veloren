@@ -22,8 +22,8 @@
             glider: Item("common.items.glider.leaves"),
         )),
         items: [
-            (25, "common.items.consumable.potion_minor"),
-            (25, "common.items.food.sunflower_icetea"),
+            (3, "common.items.consumable.potion_minor"),
+            (10, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [

@@ -33,8 +33,8 @@
             glider: Item("common.items.glider.butterfly3"),
         )),
         items: [
-            (50, "common.items.consumable.potion_med"),
-            (50, "common.items.food.sunflower_icetea"),
+            (3, "common.items.consumable.potion_med"),
+            (10, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [
