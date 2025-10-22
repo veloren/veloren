@@ -427,7 +427,7 @@ impl SettingsChange {
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
                         settings.controller2.pan_invert_y = controller_y_inverted;
                         //window.controller_settings.pan_invert_y = controller_y_inverted;
-                        settings.controller.pan_invert_y = controller_y_inverted;
+                        settings.controller2.pan_invert_y = controller_y_inverted;
                     },
                     Gameplay::ToggleMouseYInvert(mouse_y_inverted) => {
                         window.mouse_y_inversion = mouse_y_inverted;

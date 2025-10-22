@@ -342,7 +342,7 @@ impl Widget for Gameplay<'_> {
 
         // Controller Y Pan Inversion
         let controller_y_inverted = ToggleButton::new(
-            self.global_state.settings.controller.pan_invert_y,
+            self.global_state.settings.controller2.pan_invert_y,
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
@@ -352,9 +352,9 @@ impl Widget for Gameplay<'_> {
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.controller_y_invert_button, ui);
 
-        if self.global_state.settings.controller.pan_invert_y != controller_y_inverted {
+        if self.global_state.settings.controller2.pan_invert_y != controller_y_inverted {
             events.push(ToggleControllerYInvert(
-                !self.global_state.settings.controller.pan_invert_y,
+                !self.global_state.settings.controller2.pan_invert_y,
             ));
         }
 
