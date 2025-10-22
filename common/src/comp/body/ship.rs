@@ -60,11 +60,11 @@ impl Body {
 
     pub fn random_with(rng: &mut impl rand::Rng) -> Self { *ALL_BODIES.choose(rng).unwrap() }
 
-    pub fn random_airship_with(rng: &mut impl rand::Rng) -> Self {
-        *ALL_AIRSHIPS.choose(rng).unwrap()
-    }
+//    pub fn random_airship_with(rng: &mut impl rand::Rng) -> Self {
+//        *ALL_AIRSHIPS.choose(rng).unwrap()
+//    }
 
-    pub fn random_ship_with(rng: &mut impl rand::Rng) -> Self { *ALL_SHIPS.choose(rng).unwrap() }
+//    pub fn random_ship_with(rng: &mut impl rand::Rng) -> Self { *ALL_SHIPS.choose(rng).unwrap() }
 
     /// Return the structure manifest that this ship uses. `None` means that it
     /// should be derived from the collider.
