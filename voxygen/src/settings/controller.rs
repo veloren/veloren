@@ -221,8 +221,7 @@ impl ControllerSettings {
 
     pub fn insert_game_button_binding(&mut self, game_input: GameInput, game_button: Button) {
         if game_button != Button::default() {
-            self.game_button_map
-                .insert(game_input, Some(game_button.clone()));
+            self.game_button_map.insert(game_input, Some(game_button));
             self.inverse_game_button_map
                 .entry(game_button)
                 .or_default()
@@ -232,8 +231,7 @@ impl ControllerSettings {
 
     pub fn insert_menu_button_binding(&mut self, menu_input: MenuInput, button: Button) {
         if button != Button::default() {
-            self.menu_button_map
-                .insert(menu_input, Some(button.clone()));
+            self.menu_button_map.insert(menu_input, Some(button));
             self.inverse_menu_button_map
                 .entry(button)
                 .or_default()
@@ -263,8 +261,7 @@ impl ControllerSettings {
 
     pub fn insert_layer_button_binding(&mut self, input: GameInput, layer_entry: LayerEntry) {
         if layer_entry != LayerEntry::default() {
-            self.layer_button_map
-                .insert(input, Some(layer_entry.clone()));
+            self.layer_button_map.insert(input, Some(layer_entry));
             self.inverse_layer_button_map
                 .entry(layer_entry)
                 .or_default()
@@ -283,7 +280,7 @@ impl ControllerSettings {
         }
         // then we add the GameInput to the proper key
         self.inverse_game_button_map
-            .entry(button.clone())
+            .entry(button)
             .or_default()
             .insert(game_input);
         // for the GameInput->button hashmap, just overwrite the value
@@ -301,7 +298,7 @@ impl ControllerSettings {
         }
         // then we add the GameInput to the proper key
         self.inverse_layer_button_map
-            .entry(layers.clone())
+            .entry(layers)
             .or_default()
             .insert(game_input);
         // for the GameInput->layer hashmap, just overwrite the value
@@ -319,7 +316,7 @@ impl ControllerSettings {
         }
         // then we add the GameInput to the proper key
         self.inverse_menu_button_map
-            .entry(button.clone())
+            .entry(button)
             .or_default()
             .insert(menu_input);
         // for the MenuInput->button hashmap, just overwrite the value
@@ -724,6 +721,7 @@ impl ControllerSettings {
                 mod1: Button::Simple(GilButton::Unknown),
                 mod2: Button::Simple(GilButton::Unknown),
             }),
+            #[cfg(feature = "egui-ui")]
             GameInput::ToggleEguiDebug => Some(LayerEntry {
                 button: Button::Simple(GilButton::Unknown),
                 mod1: Button::Simple(GilButton::Unknown),
@@ -946,34 +944,26 @@ impl Default for ControllerSettings {
         }
         // sets the layer bindings for game layer inputs
         for layer_input in GameInput::iter() {
-            match ControllerSettings::default_layer_binding(layer_input) {
-                Some(default) => {
-                    controller_settings.insert_layer_button_binding(layer_input, default);
-                },
-                None => {},
-            }
+            if let Some(default) = ControllerSettings::default_layer_binding(layer_input) {
+                controller_settings.insert_layer_button_binding(layer_input, default);
+            };
         }
         // sets the menu button bindings for game menu button inputs
         for button_input in MenuInput::iter() {
-            match ControllerSettings::default_menu_button_binding(button_input) {
-                Some(default) => {
-                    controller_settings.insert_menu_button_binding(button_input, default)
-                },
-                None => {},
+            if let Some(default) = ControllerSettings::default_menu_button_binding(button_input) {
+                controller_settings.insert_menu_button_binding(button_input, default)
             };
         }
         // sets the axis bindings for game axis inputs
         for axis_input in AxisGameAction::iter() {
-            match ControllerSettings::default_game_axis(axis_input) {
-                None => {},
-                Some(default) => controller_settings.insert_game_axis_binding(axis_input, default),
+            if let Some(default) = ControllerSettings::default_game_axis(axis_input) {
+                controller_settings.insert_game_axis_binding(axis_input, default)
             };
         }
         // sets the axis bindings for menu axis inputs
         for axis_input in AxisMenuAction::iter() {
-            match ControllerSettings::default_menu_axis(axis_input) {
-                Some(default) => controller_settings.insert_menu_axis_binding(axis_input, default),
-                None => {},
+            if let Some(default) = ControllerSettings::default_menu_axis(axis_input) {
+                controller_settings.insert_menu_axis_binding(axis_input, default)
             };
         }
         controller_settings
