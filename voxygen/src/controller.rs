@@ -8,11 +8,73 @@ use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
+
+#[derive(Serialize, Deserialize)]
+struct ControllerSettingsSerde {
+    // save as a delta against defaults for efficiency
+    game_button_map: HashMap<GameInput, Option<Button>>,
+    menu_button_map: HashMap<MenuInput, Button>,
+    game_analog_button_map: HashMap<AnalogButtonGameAction, AnalogButton>,
+    menu_analog_button_map: HashMap<AnalogButtonMenuAction, AnalogButton>,
+    game_axis_map: HashMap<AxisGameAction, Axis>,
+    menu_axis_map: HashMap<AxisMenuAction, Axis>,
+    layer_button_map: HashMap<GameInput, LayerEntry>,
+    modifier_buttons: Vec<Button>,
+
+    pan_sensitivity: u32,
+    pan_invert_y: bool,
+    axis_deadzones: HashMap<Axis, f32>,
+    button_deadzones: HashMap<AnalogButton, f32>,
+    mouse_emulation_sensitivity: u32,
+    inverted_axes: Vec<Axis>,
+}
+
+impl From<ControllerSettings> for ControllerSettingsSerde {
+    fn from(controller_settings: ControllerSettings) -> Self {
+        let mut button_bindings: HashMap<GameInput, Option<Button>> = HashMap::new();
+        // Do a delta between default() ControllerSettings and the argument,
+        // let buttons be only the custom keybindings chosen by the user
+        for (k, v) in controller_settings.game_button_map {
+            if ControllerSettings::default_button_binding(k) != v {
+                button_bindings.insert(k, v);
+            }
+        }
+
+        // none hashmap values
+        let modifier_buttons = controller_settings.modifier_buttons;
+        let pan_sensitivity = controller_settings.pan_sensitivity;
+        let pan_invert_y = controller_settings.pan_invert_y;
+        let axis_deadzones = controller_settings.axis_deadzones;
+
+        let mouse_emulation_sensitivity = controller_settings.mouse_emulation_sensitivity;
+        let inverted_axes = controller_settings.inverted_axes;
+
+        ControllerSettingsSerde {
+            game_button_map: button_bindings,
+            menu_button_map: HashMap::new(),
+            game_analog_button_map: HashMap::new(),
+            menu_analog_button_map: HashMap::new(),
+            game_axis_map: HashMap::new(),
+            menu_axis_map: HashMap::new(),
+            layer_button_map: HashMap::new(),
+
+            modifier_buttons,
+            pan_sensitivity,
+            pan_invert_y,
+            axis_deadzones,
+
+            button_deadzones: HashMap::new(),
+            mouse_emulation_sensitivity,
+            inverted_axes,
+        }
+    }
+}
 
 /// Contains all controller related settings and keymaps
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct ControllerSettings {
-    pub game_button_map: HashMap<GameInput, Button>,
+    pub game_button_map: HashMap<GameInput, Option<Button>>,
     pub inverse_game_button_map: HashMap<Button, HashSet<GameInput>>,
     pub menu_button_map: HashMap<MenuInput, Button>,
     pub inverse_menu_button_map: HashMap<Button, HashSet<MenuInput>>,
@@ -26,6 +88,7 @@ pub struct ControllerSettings {
     pub inverse_menu_axis_map: HashMap<Axis, HashSet<AxisMenuAction>>,
     pub layer_button_map: HashMap<GameInput, LayerEntry>,
     pub inverse_layer_button_map: HashMap<LayerEntry, HashSet<GameInput>>,
+
     pub modifier_buttons: Vec<Button>,
     pub pan_sensitivity: u32,
     pub pan_invert_y: bool,
@@ -33,6 +96,20 @@ pub struct ControllerSettings {
     pub button_deadzones: HashMap<AnalogButton, f32>,
     pub mouse_emulation_sensitivity: u32,
     pub inverted_axes: Vec<Axis>,
+}
+
+impl From<ControllerSettingsSerde> for ControllerSettings {
+    fn from(controller_serde: ControllerSettingsSerde) -> Self {
+        let button_bindings = controller_serde.game_button_map;
+        let mut controller_settings = ControllerSettings::default();
+        for (k, maybe_v) in button_bindings {
+            match maybe_v {
+                Some(v) => controller_settings.modify_button_binding(k, v),
+                None => controller_settings.remove_button_binding(k),
+            }
+        }
+        controller_settings
+    }
 }
 
 impl ControllerSettings {
@@ -65,8 +142,19 @@ impl ControllerSettings {
         }
     }
 
+    pub fn remove_button_binding(&mut self, game_input: GameInput) {
+        if let Some(inverse) = self
+            .game_button_map
+            .insert(game_input, None)
+            .flatten()
+            .and_then(|button| self.inverse_game_button_map.get_mut(&button))
+        {
+            inverse.remove(&game_input);
+        }
+    }
+
     pub fn get_game_button_binding(&self, input: GameInput) -> Option<Button> {
-        self.game_button_map.get(&input).copied()
+        self.game_button_map.get(&input).cloned().flatten()
     }
 
     pub fn get_menu_button_binding(&self, input: MenuInput) -> Option<Button> {
@@ -79,7 +167,8 @@ impl ControllerSettings {
 
     pub fn insert_game_button_binding(&mut self, game_input: GameInput, game_button: Button) {
         if game_button != Button::default() {
-            self.game_button_map.insert(game_input, game_button);
+            self.game_button_map
+                .insert(game_input, Some(game_button.clone()));
             self.inverse_game_button_map
                 .entry(game_button)
                 .or_default()
@@ -125,6 +214,24 @@ impl ControllerSettings {
                 .or_default()
                 .insert(input);
         }
+    }
+
+    pub fn modify_button_binding(&mut self, game_input: GameInput, button: Button) {
+        // for the Button->GameInput hashmap, we first need to remove the GameInput from
+        // the old binding
+        if let Some(old_binding) = self.get_game_button_binding(game_input) {
+            self.inverse_game_button_map
+                .entry(old_binding)
+                .or_default()
+                .remove(&game_input);
+        }
+        // then we add the GameInput to the proper key
+        self.inverse_game_button_map
+            .entry(button.clone())
+            .or_default()
+            .insert(game_input);
+        // for the GameInput->button hashmap, just overwrite the value
+        self.game_button_map.insert(game_input, Some(button));
     }
 
     /// Return true if this button is used for multiple GameInputs that aren't
@@ -190,189 +297,243 @@ impl ControllerSettings {
         }
         false
     }
+
+    pub fn default_button_binding(game_input: GameInput) -> Option<Button> {
+        match game_input {
+            GameInput::Primary => Some(Button::Simple(GilButton::RightTrigger2)),
+            GameInput::Secondary => Some(Button::Simple(GilButton::LeftTrigger2)),
+            GameInput::Block => Some(Button::Simple(GilButton::North)),
+            GameInput::Slot1 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot2 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot3 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot4 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot5 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot6 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot7 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot8 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot9 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Slot10 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleCursor => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MoveForward => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MoveBack => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MoveLeft => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MoveRight => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Jump => Some(Button::Simple(GilButton::South)),
+            GameInput::WallJump => Some(Button::Simple(GilButton::South)),
+            GameInput::Sit => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Crawl => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Dance => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Greet => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Glide => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::SwimUp => Some(Button::Simple(GilButton::South)),
+            GameInput::SwimDown => Some(Button::Simple(GilButton::West)),
+            GameInput::Fly => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Sneak => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::CancelClimb => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleLantern => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Mount => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::StayFollow => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Chat => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Command => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Escape => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Map => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Inventory => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Trade => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Social => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Crafting => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Diary => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Settings => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Controls => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleInterface => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleDebug => Some(Button::Simple(GilButton::Unknown)),
+            #[cfg(feature = "egui-ui")]
+            GameInput::ToggleEguiDebug => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleChat => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Fullscreen => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Screenshot => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleIngameUi => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Roll => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::GiveUp => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Respawn => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Interact => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleWield => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::SwapLoadout => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::FreeLook => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::AutoWalk => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ZoomIn => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ZoomOut => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ZoomLock => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::CameraClamp => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::CycleCamera => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::Select => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::AcceptGroupInvite => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::DeclineGroupInvite => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MapZoomIn => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MapZoomOut => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MapSetMarker => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::SpectateSpeedBoost => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::SpectateViewpoint => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MuteMaster => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MuteInactiveMaster => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MuteMusic => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MuteSfx => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::MuteAmbience => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::ToggleWalk => Some(Button::Simple(GilButton::Unknown)),
+        }
+    }
+}
+
+impl Default for ControllerSettings {
+    fn default() -> Self {
+        let mut controller_settings = Self {
+            game_button_map: HashMap::new(),
+            inverse_game_button_map: HashMap::new(),
+            menu_button_map: HashMap::new(),
+            inverse_menu_button_map: HashMap::new(),
+            game_analog_button_map: HashMap::new(),
+            inverse_game_analog_button_map: HashMap::new(),
+            menu_analog_button_map: HashMap::new(),
+            inverse_menu_analog_button_map: HashMap::new(),
+            game_axis_map: HashMap::new(),
+            inverse_game_axis_map: HashMap::new(),
+            menu_axis_map: HashMap::new(),
+            inverse_menu_axis_map: HashMap::new(),
+            layer_button_map: HashMap::new(),
+            inverse_layer_button_map: HashMap::new(),
+
+            modifier_buttons: Vec::new(),
+            pan_sensitivity: 10,
+            pan_invert_y: false,
+            axis_deadzones: HashMap::new(),
+            button_deadzones: HashMap::new(),
+            mouse_emulation_sensitivity: 12,
+            inverted_axes: Vec::new(),
+        };
+        // sets the button bindings for those game button inputs
+        for button_input in GameInput::iter() {
+            match ControllerSettings::default_button_binding(button_input) {
+                None => {},
+                Some(default) => {
+                    controller_settings.insert_game_button_binding(button_input, default)
+                },
+            };
+        }
+        controller_settings
+    }
 }
 
 impl From<&crate::settings::GamepadSettings> for ControllerSettings {
     fn from(settings: &crate::settings::GamepadSettings) -> Self {
         let mut controller_settings: ControllerSettings = ControllerSettings::default();
 
-        controller_settings
-            .insert_game_button_binding(GameInput::Primary, settings.game_buttons.primary);
-        controller_settings
-            .insert_game_button_binding(GameInput::Secondary, settings.game_buttons.secondary);
-        controller_settings
-            .insert_game_button_binding(GameInput::Block, settings.game_buttons.block);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot1, settings.game_buttons.slot1);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot2, settings.game_buttons.slot2);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot3, settings.game_buttons.slot3);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot4, settings.game_buttons.slot4);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot5, settings.game_buttons.slot5);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot6, settings.game_buttons.slot6);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot7, settings.game_buttons.slot7);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot8, settings.game_buttons.slot8);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot9, settings.game_buttons.slot9);
-        controller_settings
-            .insert_game_button_binding(GameInput::Slot10, settings.game_buttons.slot10);
-        controller_settings.insert_game_button_binding(
-            GameInput::ToggleCursor,
-            settings.game_buttons.toggle_cursor,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::Escape, settings.game_buttons.escape);
-        controller_settings
-            .insert_game_button_binding(GameInput::Chat, settings.game_buttons.enter);
-        controller_settings
-            .insert_game_button_binding(GameInput::Command, settings.game_buttons.command);
-        controller_settings
-            .insert_game_button_binding(GameInput::MoveForward, settings.game_buttons.move_forward);
-        controller_settings
-            .insert_game_button_binding(GameInput::MoveLeft, settings.game_buttons.move_left);
-        controller_settings
-            .insert_game_button_binding(GameInput::MoveBack, settings.game_buttons.move_back);
-        controller_settings
-            .insert_game_button_binding(GameInput::MoveRight, settings.game_buttons.move_right);
-        controller_settings.insert_game_button_binding(GameInput::Jump, settings.game_buttons.jump);
-        controller_settings
-            .insert_game_button_binding(GameInput::WallJump, settings.game_buttons.wall_jump);
-        controller_settings.insert_game_button_binding(GameInput::Sit, settings.game_buttons.sit);
-        controller_settings
-            .insert_game_button_binding(GameInput::Crawl, settings.game_buttons.crawl);
-        controller_settings
-            .insert_game_button_binding(GameInput::Dance, settings.game_buttons.dance);
-        controller_settings
-            .insert_game_button_binding(GameInput::Greet, settings.game_buttons.greet);
-        controller_settings
-            .insert_game_button_binding(GameInput::Glide, settings.game_buttons.glide);
-        controller_settings
-            .insert_game_button_binding(GameInput::SwimUp, settings.game_buttons.swimup);
-        controller_settings
-            .insert_game_button_binding(GameInput::SwimDown, settings.game_buttons.swimdown);
-        controller_settings.insert_game_button_binding(GameInput::Fly, settings.game_buttons.fly);
-        controller_settings
-            .insert_game_button_binding(GameInput::Sneak, settings.game_buttons.sneak);
-        controller_settings
-            .insert_game_button_binding(GameInput::CancelClimb, settings.game_buttons.cancel_climb);
-        controller_settings.insert_game_button_binding(
-            GameInput::ToggleLantern,
-            settings.game_buttons.toggle_lantern,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::Mount, settings.game_buttons.mount);
-        controller_settings
-            .insert_game_button_binding(GameInput::StayFollow, settings.game_buttons.stayfollow);
-        controller_settings.insert_game_button_binding(GameInput::Chat, settings.game_buttons.chat);
-        controller_settings.insert_game_button_binding(GameInput::Map, settings.game_buttons.map);
-        controller_settings
-            .insert_game_button_binding(GameInput::Inventory, settings.game_buttons.inventory);
-        controller_settings
-            .insert_game_button_binding(GameInput::Trade, settings.game_buttons.trade);
-        controller_settings
-            .insert_game_button_binding(GameInput::Social, settings.game_buttons.social);
-        controller_settings
-            .insert_game_button_binding(GameInput::Crafting, settings.game_buttons.crafting);
-        controller_settings
-            .insert_game_button_binding(GameInput::Diary, settings.game_buttons.diary);
-        controller_settings
-            .insert_game_button_binding(GameInput::Settings, settings.game_buttons.settings);
-        controller_settings
-            .insert_game_button_binding(GameInput::Controls, settings.game_buttons.controls);
-        controller_settings.insert_game_button_binding(
-            GameInput::ToggleInterface,
-            settings.game_buttons.toggle_interface,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::ToggleDebug, settings.game_buttons.toggle_debug);
-        #[cfg(feature = "egui-ui")]
-        controller_settings.insert_game_button_binding(
-            GameInput::ToggleEguiDebug,
-            settings.game_buttons.toggle_debug,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::ToggleChat, settings.game_buttons.toggle_chat);
-        controller_settings
-            .insert_game_button_binding(GameInput::Fullscreen, settings.game_buttons.fullscreen);
-        controller_settings
-            .insert_game_button_binding(GameInput::Screenshot, settings.game_buttons.screenshot);
-        controller_settings.insert_game_button_binding(
-            GameInput::ToggleIngameUi,
-            settings.game_buttons.toggle_ingame_ui,
-        );
-        controller_settings.insert_game_button_binding(GameInput::Roll, settings.game_buttons.roll);
-        controller_settings
-            .insert_game_button_binding(GameInput::GiveUp, settings.game_buttons.give_up);
-        controller_settings
-            .insert_game_button_binding(GameInput::Respawn, settings.game_buttons.respawn);
-        controller_settings
-            .insert_game_button_binding(GameInput::Interact, settings.game_buttons.interact);
-        controller_settings
-            .insert_game_button_binding(GameInput::ToggleWield, settings.game_buttons.toggle_wield);
-        controller_settings
-            .insert_game_button_binding(GameInput::SwapLoadout, settings.game_buttons.swap_loadout);
-        controller_settings
-            .insert_game_button_binding(GameInput::FreeLook, settings.game_buttons.free_look);
-        controller_settings
-            .insert_game_button_binding(GameInput::AutoWalk, settings.game_buttons.auto_walk);
-        controller_settings
-            .insert_game_button_binding(GameInput::ZoomIn, settings.game_buttons.zoom_in);
-        controller_settings
-            .insert_game_button_binding(GameInput::ZoomOut, settings.game_buttons.zoom_out);
-        controller_settings
-            .insert_game_button_binding(GameInput::ZoomLock, settings.game_buttons.zoom_lock);
-        controller_settings
-            .insert_game_button_binding(GameInput::CameraClamp, settings.game_buttons.camera_clamp);
-        controller_settings
-            .insert_game_button_binding(GameInput::CycleCamera, settings.game_buttons.cycle_camera);
-        controller_settings
-            .insert_game_button_binding(GameInput::Select, settings.game_buttons.select);
-        controller_settings.insert_game_button_binding(
-            GameInput::AcceptGroupInvite,
-            settings.game_buttons.accept_group_invite,
-        );
-        controller_settings.insert_game_button_binding(
-            GameInput::DeclineGroupInvite,
-            settings.game_buttons.decline_group_invite,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::MapZoomIn, settings.game_buttons.map_zoom_in);
-        controller_settings
-            .insert_game_button_binding(GameInput::MapZoomOut, settings.game_buttons.map_zoom_out);
-        controller_settings.insert_game_button_binding(
-            GameInput::MapSetMarker,
-            settings.game_buttons.map_set_marker,
-        );
-        controller_settings.insert_game_button_binding(
-            GameInput::SpectateSpeedBoost,
-            settings.game_buttons.spectate_speed_boost,
-        );
-        controller_settings.insert_game_button_binding(
-            GameInput::SpectateViewpoint,
-            settings.game_buttons.spectate_viewpoint,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::MuteMaster, settings.game_buttons.mute_master);
-        controller_settings.insert_game_button_binding(
-            GameInput::MuteInactiveMaster,
-            settings.game_buttons.mute_inactive_master,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::MuteMusic, settings.game_buttons.mute_music);
-        controller_settings
-            .insert_game_button_binding(GameInput::MuteSfx, settings.game_buttons.mute_sfx);
-        controller_settings.insert_game_button_binding(
-            GameInput::MuteAmbience,
-            settings.game_buttons.mute_ambience,
-        );
-        controller_settings
-            .insert_game_button_binding(GameInput::ToggleWalk, settings.game_buttons.toggle_walk);
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::Primary,
+        // settings.game_buttons.primary); controller_settings
+        //     .insert_game_button_binding(GameInput::Secondary,
+        // settings.game_buttons.secondary); controller_settings
+        //     .insert_game_button_binding(GameInput::Block,
+        // settings.game_buttons.block); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot1,
+        // settings.game_buttons.slot1); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot2,
+        // settings.game_buttons.slot2); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot3,
+        // settings.game_buttons.slot3); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot4,
+        // settings.game_buttons.slot4); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot5,
+        // settings.game_buttons.slot5); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot6,
+        // settings.game_buttons.slot6); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot7,
+        // settings.game_buttons.slot7); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot8,
+        // settings.game_buttons.slot8); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot9,
+        // settings.game_buttons.slot9); controller_settings
+        //     .insert_game_button_binding(GameInput::Slot10,
+        // settings.game_buttons.slot10); controller_settings.
+        // insert_game_button_binding(     GameInput::ToggleCursor,
+        //     settings.game_buttons.toggle_cursor,
+        // );
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::Escape,
+        // settings.game_buttons.escape); controller_settings
+        //     .insert_game_button_binding(GameInput::Chat,
+        // settings.game_buttons.enter); controller_settings
+        //     .insert_game_button_binding(GameInput::Command,
+        // settings.game_buttons.command); controller_settings
+        //     .insert_game_button_binding(GameInput::MoveForward,
+        // settings.game_buttons.move_forward); controller_settings
+        //     .insert_game_button_binding(GameInput::MoveLeft,
+        // settings.game_buttons.move_left); controller_settings
+        //     .insert_game_button_binding(GameInput::MoveBack,
+        // settings.game_buttons.move_back); controller_settings
+        //     .insert_game_button_binding(GameInput::MoveRight,
+        // settings.game_buttons.move_right); controller_settings.
+        // insert_game_button_binding(GameInput::Jump, settings.game_buttons.jump);
+        // controller_settings.insert_game_button_binding(GameInput::Sit,
+        // settings.game_buttons.sit); controller_settings
+        //     .insert_game_button_binding(GameInput::Dance,
+        // settings.game_buttons.dance); controller_settings
+        //     .insert_game_button_binding(GameInput::Glide,
+        // settings.game_buttons.glide); controller_settings
+        //     .insert_game_button_binding(GameInput::SwimUp,
+        // settings.game_buttons.swimup); controller_settings
+        //     .insert_game_button_binding(GameInput::SwimDown,
+        // settings.game_buttons.swimdown); controller_settings
+        //     .insert_game_button_binding(GameInput::Sneak,
+        // settings.game_buttons.sneak); controller_settings.
+        // insert_game_button_binding(     GameInput::ToggleLantern,
+        //     settings.game_buttons.toggle_lantern,
+        // );
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::Mount,
+        // settings.game_buttons.mount); controller_settings.
+        // insert_game_button_binding(GameInput::Map, settings.game_buttons.map);
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::Inventory,
+        // settings.game_buttons.bag); controller_settings
+        //     .insert_game_button_binding(GameInput::Social,
+        // settings.game_buttons.social); controller_settings
+        //     .insert_game_button_binding(GameInput::Crafting,
+        // settings.game_buttons.crafting); controller_settings
+        //     .insert_game_button_binding(GameInput::Diary,
+        // settings.game_buttons.diary); controller_settings
+        //     .insert_game_button_binding(GameInput::Settings,
+        // settings.game_buttons.settings); controller_settings
+        //     .insert_game_button_binding(GameInput::Controls,
+        // settings.game_buttons.controls); controller_settings.
+        // insert_game_button_binding(     GameInput::ToggleInterface,
+        //     settings.game_buttons.toggle_interface,
+        // );
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::ToggleDebug,
+        // settings.game_buttons.toggle_debug); #[cfg(feature = "egui-ui")]
+        // controller_settings.insert_game_button_binding(
+        //     GameInput::ToggleEguiDebug,
+        //     settings.game_buttons.toggle_debug,
+        // );
+        // controller_settings
+        //     .insert_game_button_binding(GameInput::ToggleChat,
+        // settings.game_buttons.toggle_chat); controller_settings
+        //     .insert_game_button_binding(GameInput::Fullscreen,
+        // settings.game_buttons.fullscreen); controller_settings
+        //     .insert_game_button_binding(GameInput::Screenshot,
+        // settings.game_buttons.screenshot); controller_settings.
+        // insert_game_button_binding(     GameInput::ToggleIngameUi,
+        //     settings.game_buttons.toggle_ingame_ui,
+        // );
+        // controller_settings.insert_game_button_binding(GameInput::Roll,
+        // settings.game_buttons.roll); controller_settings
+        //     .insert_game_button_binding(GameInput::Respawn,
+        // settings.game_buttons.respawn); controller_settings
+        //     .insert_game_button_binding(GameInput::Interact,
+        // settings.game_buttons.interact); controller_settings
+        //     .insert_game_button_binding(GameInput::ToggleWield,
+        // settings.game_buttons.toggle_wield); controller_settings
+        //     .insert_game_button_binding(GameInput::SwapLoadout,
+        // settings.game_buttons.swap_loadout);
 
         controller_settings.insert_menu_button_binding(MenuInput::Up, settings.menu_buttons.up);
         controller_settings.insert_menu_button_binding(MenuInput::Down, settings.menu_buttons.down);
