@@ -152,7 +152,7 @@ impl Widget for Controls<'_> {
         if let BindingMode::Gamepad = binding_mode {
             match gamepad_binding_option {
                 GamepadBindingOption::GameButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller;
+                    let gamepad_controls = &self.global_state.settings.controller2;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -272,7 +272,7 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::GameLayers => {
-                    let gamepad_controls = &self.global_state.settings.controller;
+                    let gamepad_controls = &self.global_state.settings.controller2;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -379,7 +379,7 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::MenuButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller;
+                    let gamepad_controls = &self.global_state.settings.controller2;
 
                     resize_ids(SORTED_MENUINPUTS.len());
 
@@ -684,21 +684,25 @@ impl Widget for Controls<'_> {
                         state.update(|s| {
                             s.gamepad_binding_option = GamepadBindingOption::GameButtons
                         });
+                        events.push(ResetBindingMode());
                     },
                     1 => {
                         state.update(|s| {
                             s.gamepad_binding_option = GamepadBindingOption::GameLayers
                         });
+                        events.push(ResetBindingMode());
                     },
                     2 => {
                         state.update(|s| {
                             s.gamepad_binding_option = GamepadBindingOption::MenuButtons
                         });
+                        events.push(ResetBindingMode());
                     },
                     _ => {
                         state.update(|s| {
                             s.gamepad_binding_option = GamepadBindingOption::GameButtons
                         });
+                        events.push(ResetBindingMode());
                     },
                 }
             }
@@ -775,8 +779,10 @@ impl Widget for Controls<'_> {
         {
             if let BindingMode::Keyboard = state.binding_mode {
                 state.update(|s| s.binding_mode = BindingMode::Gamepad);
+                events.push(ResetBindingMode());
             } else {
                 state.update(|s| s.binding_mode = BindingMode::Keyboard);
+                events.push(ResetBindingMode());
             }
         }
 

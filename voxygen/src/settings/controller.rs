@@ -1,6 +1,3 @@
-//! Module containing controller-specific abstractions allowing complex
-//! keybindings
-
 use crate::{game_input::GameInput, window::MenuInput};
 use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::{HashMap, HashSet};
@@ -935,11 +932,8 @@ impl Default for ControllerSettings {
         };
         // sets the button bindings for game button inputs
         for button_input in GameInput::iter() {
-            match ControllerSettings::default_button_binding(button_input) {
-                None => {},
-                Some(default) => {
-                    controller_settings.insert_game_button_binding(button_input, default)
-                },
+            if let Some(default) = ControllerSettings::default_button_binding(button_input) {
+                controller_settings.insert_game_button_binding(button_input, default)
             };
         }
         // sets the layer bindings for game layer inputs

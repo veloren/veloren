@@ -193,7 +193,7 @@ pub enum RemappingMode {
 #[derive(Clone, Copy, Debug)]
 pub enum InputType {
     InputButton(Button),
-    InputLayer(LayerEntry),
+    InputLayer(Button),
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -223,8 +223,6 @@ pub struct Window {
     pub focused: bool,
     gilrs: Option<Gilrs>,
     pub controller_modifiers: Vec<Button>,
-    pub game_layer_lb: bool,
-    pub game_layer_rb: bool,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
     last_input: LastInput,
@@ -327,8 +325,6 @@ impl Window {
             needs_refresh_resize: false,
             keypress_map,
             remapping_mode: RemappingMode::None,
-            game_layer_lb: false,
-            game_layer_rb: true,
             events: Vec::new(),
             focused: true,
             gilrs,
@@ -370,11 +366,10 @@ impl Window {
         }
     }
 
-    #[expect(clippy::get_first)]
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
 
-        let controller = &mut settings.controller;
+        let controller = &mut settings.controller2;
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             let scale_factor = self.window.scale_factor();
@@ -468,31 +463,25 @@ impl Window {
                         }
                     }
 
-                    // have to make two LayerEntries so LB+RB can be treated equivalent to RB+LB
-                    let l_entry1 = LayerEntry {
-                        button: *button,
-                        mod1: modifiers.get(0).copied().unwrap_or_default(),
-                        mod2: modifiers.get(1).copied().unwrap_or_default(),
-                    };
-                    let l_entry2 = LayerEntry {
-                        button: *button,
-                        mod1: modifiers.get(1).copied().unwrap_or_default(),
-                        mod2: modifiers.get(0).copied().unwrap_or_default(),
-                    };
-
                     // a layer entry that is triggered with something like rb + south (A), will
                     // trigger both of the rb and south (A) buttons, this can cause issues when
                     // south (A) is also used for another action. As a quick fix, first check if
                     // layer entry was triggered to avoid triggerent button inputs
                     let mut layer_check = false;
 
-                    // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
-                    // to RB+LB
+                    // if RemappingMode is originally for game layers, we need to store that info
+                    // so button does not execute. This is because remapping will clear
+                    // RemappingMode after it runs, and since button runs after
+                    // layers it will always trigger
+                    let remapping_layers: bool =
+                        matches!(*remapping, RemappingMode::RemapGamepadLayers(_));
+
                     // make sure layer is currently not being remapped before being used
                     if let Some(game_inputs) = Window::map_controller_input(
-                        InputType::InputLayer(l_entry1),
+                        InputType::InputLayer(*button),
                         settings,
                         remapping,
+                        modifiers,
                         last_input,
                         mod1,
                         mod2,
@@ -501,41 +490,32 @@ impl Window {
                             layer_check = true;
                             events.push(Event::InputUpdate(*game_input, is_pressed));
                         }
-                    } else if let Some(game_inputs) = Window::map_controller_input(
-                        InputType::InputLayer(l_entry2),
-                        settings,
-                        remapping,
-                        last_input,
-                        mod1,
-                        mod2,
-                    ) {
-                        for game_input in game_inputs {
-                            layer_check = true;
-                            events.push(Event::InputUpdate(*game_input, is_pressed));
-                        }
-                    }
+                    };
 
-                    // only trigger button press if a layer input did not trigger
-                    if !layer_check {
+                    // only trigger button press if a layer input remap did not trigger
+                    if !layer_check && !remapping_layers {
                         // make sure button is currently not being remapped before being used
                         if let Some(game_inputs) = Window::map_controller_input(
                             InputType::InputButton(*button),
                             settings,
                             remapping,
+                            modifiers,
                             last_input,
                             mod1,
                             mod2,
                         ) {
+                            // honestly, there's an argument for getting rid of solo button presses
+                            // and just using gamelayer (with mod1 and mod2 both empty) instead
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(*game_input, is_pressed));
                             }
-                        }
+                        };
                     }
                     if let Some(evs) = settings.inverse_menu_button_map.get(button) {
                         for ev in evs {
                             events.push(Event::MenuInput(*ev, is_pressed));
                         }
-                    }
+                    };
                 }
 
                 match event.event {
@@ -701,18 +681,22 @@ impl Window {
                         },
                         input => Some(Event::AnalogMenuInput(input)),
                     },
-                    Event::MenuInput(MenuInput::Apply, state) => Some(match state {
-                        true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
-                            conrod_core::input::Button::Mouse(
-                                conrod_core::input::state::mouse::Button::Left,
-                            ),
-                        ))),
-                        false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
-                            conrod_core::input::Button::Mouse(
-                                conrod_core::input::state::mouse::Button::Left,
-                            ),
-                        ))),
-                    }),
+                    Event::MenuInput(menu_input, state) => {
+                        // determine if left mouse or right mouse button
+                        let mouse_button = match menu_input {
+                            MenuInput::Apply => conrod_core::input::state::mouse::Button::Left,
+                            MenuInput::Back => conrod_core::input::state::mouse::Button::Right,
+                            _ => return Some(event),
+                        };
+                        Some(match state {
+                            true => Event::Ui(ui::Event(conrod_core::event::Input::Press(
+                                conrod_core::input::Button::Mouse(mouse_button),
+                            ))),
+                            false => Event::Ui(ui::Event(conrod_core::event::Input::Release(
+                                conrod_core::input::Button::Mouse(mouse_button),
+                            ))),
+                        })
+                    },
                     _ => Some(event),
                 })
                 .collect();
@@ -1285,10 +1269,12 @@ impl Window {
     }
 
     // same thing as map_input, but for controller buttons
+    #[expect(clippy::get_first)]
     fn map_controller_input<'a>(
         input: InputType,
         controller: &'a mut ControllerSettings,
         remapping: &mut RemappingMode,
+        modifiers: &[Button],
         last_input: &mut LastInput,
         mod1_input: bool,
         mod2_input: bool,
@@ -1298,11 +1284,10 @@ impl Window {
 
         match *remapping {
             RemappingMode::RemapGamepadLayers(game_input) => {
-                // must match on the input to ensure we get a layer entry
-                if let InputType::InputLayer(layer) = input {
+                if let InputType::InputLayer(button) = input {
                     // create a new layer entry
                     let new_layer_entry = LayerEntry {
-                        button: layer.button,
+                        button,
                         mod1: if mod1_input {
                             Button::Simple(GilButton::RightTrigger)
                         } else {
@@ -1318,27 +1303,25 @@ impl Window {
                     *remapping = RemappingMode::None;
                     return None;
                 }
-                // if the input is a button, ignore it, as wel only remap layer entry here
+                // if the input is a anything but button, ignore it
                 None
             },
             RemappingMode::RemapGamepadButtons(game_input) => {
-                // must match on the input to ensure we get a Button
                 if let InputType::InputButton(button) = input {
                     controller.modify_button_binding(game_input, button);
                     *remapping = RemappingMode::None;
                     return None;
                 }
-                // if the input is a LayerEntry, ignore it, as we only remap buttons here
+                // if the input is a anything but button, ignore it
                 None
             },
             RemappingMode::RemapGamepadMenu(menu_input) => {
-                // must match on the input to ensure we get a Button
                 if let InputType::InputButton(button) = input {
                     controller.modify_menu_binding(menu_input, button);
                     *remapping = RemappingMode::None;
                     return None;
                 }
-                // if the input is a LayerEntry, ignore it, as wel only remap buttons here
+                // if the input is a anything but button, ignore it
                 None
             },
             RemappingMode::None => match input {
@@ -1346,9 +1329,29 @@ impl Window {
                 InputType::InputButton(button) => controller
                     .get_associated_game_button_inputs(&button)
                     .map(|game_inputs| game_inputs.iter()),
-                InputType::InputLayer(layers) => controller
-                    .get_associated_game_layer_inputs(&layers)
-                    .map(|game_inputs| game_inputs.iter()),
+                InputType::InputLayer(button) => {
+                    // have to check l_entry1 and l_entry2 so LB+RB can be treated equivalent to
+                    // RB+LB
+                    let l_entry1 = LayerEntry {
+                        button,
+                        mod1: modifiers.get(0).copied().unwrap_or_default(),
+                        mod2: modifiers.get(1).copied().unwrap_or_default(),
+                    };
+                    let l_entry2 = LayerEntry {
+                        button,
+                        mod1: modifiers.get(1).copied().unwrap_or_default(),
+                        mod2: modifiers.get(0).copied().unwrap_or_default(),
+                    };
+                    if let Some(game_inputs) =
+                        controller.get_associated_game_layer_inputs(&l_entry1)
+                    {
+                        Some(game_inputs.iter())
+                    } else {
+                        controller
+                            .get_associated_game_layer_inputs(&l_entry2)
+                            .map(|game_inputs| game_inputs.iter())
+                    }
+                },
             },
             _ => None,
         }
