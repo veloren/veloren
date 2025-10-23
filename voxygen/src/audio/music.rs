@@ -48,7 +48,10 @@ use client::Client;
 use common::{
     assets::{Asset, AssetCache, AssetExt, AssetHandle, BoxedError, Ron, SharedString},
     calendar::{Calendar, CalendarEvent},
-    terrain::{BiomeKind, SiteKindMeta},
+    terrain::{
+        BiomeKind, SiteKindMeta,
+        site::{DungeonKindMeta, SettlementKindMeta},
+    },
     weather::WeatherKind,
 };
 use common_state::State;
@@ -454,7 +457,24 @@ impl MusicMgr {
             .filter(|track| &track.music_state == music_state)
             .collect::<Vec<&SoundtrackItem>>();
         if maybe_tracks.is_empty() {
-            let error_string = format!(
+            // If tracklist is empty, it may be that the current site kind does not exist
+            // yet. Use sensible defaults in that case.
+            maybe_tracks =
+                self.soundtrack
+                    .tracks
+                    .iter()
+                    .filter(|track| match &current_site {
+                        SiteKindMeta::Settlement(_) => track.sites.iter().any(|site| {
+                            site == &SiteKindMeta::Settlement(SettlementKindMeta::Default)
+                        }),
+                        SiteKindMeta::Dungeon(_) => track
+                            .sites
+                            .iter()
+                            .any(|site| site == &SiteKindMeta::Dungeon(DungeonKindMeta::Cultist)),
+                        _ => false,
+                    })
+                    .collect::<Vec<&SoundtrackItem>>();
+            let mut error_string = format!(
                 "No tracks for {:?}, {:?}, {:?}, {:?}, {:?}",
                 &current_period_of_day,
                 &current_weather,
@@ -462,7 +482,12 @@ impl MusicMgr {
                 &current_biome,
                 &music_state
             );
-            return Err(error_string);
+            if maybe_tracks.is_empty() {
+                return Err(error_string);
+            } else {
+                error_string.push_str(", using default music for current site.");
+                warn!(error_string);
+            }
         }
         // Second, prevent playing the last track (when not in combat, because then it
         // needs to loop)
