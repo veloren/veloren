@@ -157,7 +157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RTsim airships now stay at flying height except when docking.
 - Adjust airship's propellers and rudder offset
 - Fix offset of BenchCoastal sprite
-- Adjust marine vehicles' center alignment
+- Adjust marine vehicles center alignment
 
 ## [0.17.0] - 2024-12-28
 
