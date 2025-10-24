@@ -7,6 +7,7 @@ mod macros;
 mod option;
 pub mod plane;
 pub mod projection;
+mod ron_recover;
 /// Contains [`SpatialGrid`] which is useful for accelerating queries of nearby
 /// entities
 mod spatial_grid;
@@ -47,4 +48,5 @@ pub use grid_hasher::GridHasher;
 pub use option::either_with;
 pub use plane::Plane;
 pub use projection::Projection;
+pub use ron_recover::ron_from_path_recoverable;
 pub use spatial_grid::SpatialGrid;

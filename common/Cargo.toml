@@ -15,9 +15,9 @@ workspace = true
 no-assets = []
 hot-reloading = ["common-assets/hot-reloading"]
 simd = ["vek/platform_intrinsics"]
-bin_csv = ["ron", "csv", "clap"]
+bin_csv = ["csv", "clap"]
 bin_graphviz = ["petgraph", "clap"]
-bin_asset_migrate = ["ron"]
+bin_asset_migrate = []
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
 plugins = ["common-assets/plugins"]
@@ -54,6 +54,7 @@ num-derive = "0.4.0"
 num-traits = { workspace = true }
 ordered-float = { workspace = true }
 rayon = { workspace = true }
+ron = { workspace = true }
 roots = "0.0.8"
 spin_sleep = "1.0"
 tracing = { workspace = true }
@@ -69,8 +70,6 @@ common-assets = { package = "veloren-common-assets", path = "assets" }
 dot_vox = "5.1"
 serde_repr = "0.1.6"
 
-# csv import
-ron = { workspace = true, optional = true }
 # csv export
 csv = { version = "1.1.3", optional = true }
 # graphviz exporters

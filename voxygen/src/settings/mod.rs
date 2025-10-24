@@ -1,7 +1,7 @@
 use directories_next::UserDirs;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs, io,
+    fs,
     path::{Path, PathBuf},
 };
 use tracing::warn;
@@ -92,66 +92,7 @@ impl Settings {
     pub fn load(config_dir: &Path) -> Self {
         let path = Self::get_path(config_dir);
 
-        if let Ok(file) = fs::File::open(&path) {
-            let settings = match io::read_to_string(file) {
-                Ok(mut settings_string) => match ron::from_str::<Self>(&settings_string) {
-                    Ok(s) => return s,
-                    Err(e) => {
-                        warn!(
-                            ?e,
-                            "Failed to parse settings file! Attempting to recover valid data."
-                        );
-                        let mut span = e.span;
-                        loop {
-                            let start: usize = settings_string
-                                .split_inclusive('\n')
-                                .take(span.start.line - 1)
-                                .map(|s| s.len())
-                                .sum();
-                            let end: usize = settings_string
-                                .split_inclusive('\n')
-                                .take(span.end.line)
-                                .map(|s| s.len())
-                                .sum();
-                            drop(settings_string.drain(start..end));
-
-                            if settings_string.is_empty() {
-                                warn!(
-                                    "Failed to recover anything from settings file! Fallback to \
-                                     default."
-                                );
-                                break Self::default();
-                            }
-
-                            match ron::from_str::<Self>(&settings_string) {
-                                Ok(s) => break s,
-                                Err(e) => span = e.span,
-                            }
-                        }
-                    },
-                },
-                Err(e) => {
-                    warn!(
-                        ?e,
-                        "Failed to read settings file or convert it to string! Fallback to \
-                         default."
-                    );
-                    Self::default()
-                },
-            };
-
-            // Rename the corrupted settings file
-            let mut new_path = path.to_owned();
-            new_path.pop();
-            new_path.push("settings.invalid.ron");
-            if let Err(e) = fs::rename(&path, &new_path) {
-                warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
-            }
-
-            settings
-        } else {
-            Self::default()
-        }
+        common::util::ron_from_path_recoverable::<Self>(&path)
     }
 
     pub fn save_to_file_warn(&self, config_dir: &Path) {
