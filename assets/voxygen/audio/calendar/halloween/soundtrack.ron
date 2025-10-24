@@ -166,6 +166,19 @@
         // Dungeon music
 
         Individual((
+            title: "Still Heart's Coffin",
+            path: "voxygen.audio.soundtrack.dungeon.still_hearts_coffin",
+            length: 199.0,
+            timing: None,
+            weather: None,
+            biomes:[],
+            sites: [
+                Dungeon(VampireCastle),
+            ],
+            music_state: Activity(Explore),
+            artist: ("GeekyGami", "https://geekygami.newgrounds.com/audio/"),
+        )),
+        Individual((
             title: "A Heart's Ice-Cold Protection",
             path: "voxygen.audio.soundtrack.dungeon.a_hearts_ice-cold_protection",
             length: 205.0,
@@ -186,8 +199,8 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Myrmidon),
                 Dungeon(Adlet),
+                Dungeon(SeaChapel),
             ],
             music_state: Activity(Explore),
             artist: ("Tiny", None),
@@ -200,7 +213,8 @@
             weather: None,
             biomes:[],
             sites: [
-                Dungeon(Myrmidon),
+                Dungeon(Haniwa),
+                Dungeon(DwarvenMine),
             ],
             music_state: Activity(Explore),
             artist: ("Crow", None),
@@ -213,7 +227,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Myrmidon),
+                Dungeon(DwarvenMine),
                 Dungeon(Adlet),
             ],
             music_state: Activity(Explore),
@@ -227,8 +241,8 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Myrmidon),
-                Dungeon(Adlet),
+                Dungeon(SeaChapel),
+                Dungeon(Cultist),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -242,6 +256,7 @@
             biomes: [],
             sites: [
                 Dungeon(Myrmidon),
+                Dungeon(VampireCastle),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -255,6 +270,8 @@
             biomes: [],
             sites: [
                 Dungeon(Myrmidon),
+                Dungeon(Sahagin),
+                Dungeon(Cultist),
             ],
             music_state: Activity(Explore),
             artist: ("Aeronic", "https://soundcloud.com/aeronic"),
@@ -281,6 +298,7 @@
             biomes: [],
             sites: [
                 Dungeon(Gnarling),
+                Dungeon(Terracotta)
             ],
             music_state: Activity(Explore),
             artist: ("badbbad", "https://soundcloud.com/tomerbarnea"),
@@ -293,7 +311,7 @@
             weather: None,
             biomes: [],
             sites: [
-                Dungeon(Gnarling),
+                Dungeon(Sahagin),
             ],
             music_state: Activity(Explore),
             artist: ("Jeremiah Sweeney", "https://soundcloud.com/jsweeney743"),
