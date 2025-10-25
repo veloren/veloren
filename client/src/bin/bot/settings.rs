@@ -9,6 +9,7 @@ pub fn data_dir() -> PathBuf {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Settings {
     pub server: String,
     pub bot_logins: Vec<BotCreds>,
@@ -27,27 +28,10 @@ impl Settings {
     pub fn load() -> Self {
         let path = Self::get_settings_path();
 
-        if let Ok(file) = fs::File::open(&path) {
-            match ron::de::from_reader(file) {
-                Ok(s) => return s,
-                Err(e) => {
-                    warn!(?e, "Failed to parse setting file! Fallback to default.");
-                    // Rename the corrupted settings file
-                    let mut new_path = path.to_owned();
-                    new_path.pop();
-                    new_path.push("settings.invalid.ron");
-                    if let Err(e) = fs::rename(&path, &new_path) {
-                        warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
-                    }
-                },
-            }
-        }
-        // This is reached if either:
-        // - The file can't be opened (presumably it doesn't exist)
-        // - Or there was an error parsing the file
-        let default_settings = Self::default();
-        default_settings.save_to_file_warn();
-        default_settings
+        let settings = common::util::ron_from_path_recoverable::<Self>(&path);
+        // Save settings to add new fields or create the file if it is not already there
+        settings.save_to_file_warn();
+        settings
     }
 
     pub fn save_to_file_warn(&self) {

@@ -92,7 +92,10 @@ impl Settings {
     pub fn load(config_dir: &Path) -> Self {
         let path = Self::get_path(config_dir);
 
-        common::util::ron_from_path_recoverable::<Self>(&path)
+        let settings = common::util::ron_from_path_recoverable::<Self>(&path);
+        // Save settings to add new fields or create the file if it is not already there
+        settings.save_to_file_warn(config_dir);
+        settings
     }
 
     pub fn save_to_file_warn(&self, config_dir: &Path) {
