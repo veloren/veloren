@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::{
     fs,
     net::{Ipv4Addr, SocketAddr},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
-use tracing::warn;
+use tracing::{error, warn};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[expect(clippy::upper_case_acronyms)]
@@ -58,51 +58,58 @@ impl Default for Settings {
 }
 
 impl Settings {
-    pub fn load() -> Self {
-        let path = Self::get_settings_path();
+    const FILENAME: &str = "settings.ron";
 
-        if let Ok(file) = fs::File::open(&path) {
+    pub fn load() -> Option<Self> {
+        let path = Self::get_settings_path();
+        let template_path = path.with_extension("template.ron");
+
+        let settings = if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
-                Ok(s) => return s,
+                Ok(s) => return Some(s),
                 Err(e) => {
-                    warn!(?e, "Failed to parse setting file! Fallback to default.");
-                    // Rename the corrupted settings file
-                    let mut new_path = path.to_owned();
-                    new_path.pop();
-                    new_path.push("settings.invalid.ron");
-                    if let Err(e) = fs::rename(&path, &new_path) {
-                        warn!(?e, ?path, ?new_path, "Failed to rename settings file.");
-                    }
+                    error!(
+                        ?e,
+                        "FATAL: Failed to parse setting file! Creating a template file for you to \
+                         migrate your current settings file: {}",
+                        template_path.display()
+                    );
+                    None
                 },
             }
-        }
+        } else {
+            warn!(
+                "Settings file not found! Creating a template file: {} — If you wish to change \
+                 any settings, copy/move the template to {} and edit the fields as you wish.",
+                template_path.display(),
+                Self::FILENAME
+            );
+            Some(Self::default())
+        };
+
         // This is reached if either:
         // - The file can't be opened (presumably it doesn't exist)
         // - Or there was an error parsing the file
-        let default_settings = Self::default();
-        default_settings.save_to_file_warn();
-        default_settings
-    }
-
-    fn save_to_file_warn(&self) {
-        if let Err(e) = self.save_to_file() {
-            warn!(?e, "Failed to save settings");
+        if let Err(e) = Self::save_template(&template_path) {
+            error!(?e, "Failed to create template settings file!");
         }
+
+        settings
     }
 
-    fn save_to_file(&self) -> std::io::Result<()> {
-        let path = Self::get_settings_path();
+    fn save_template(path: &Path) -> std::io::Result<()> {
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
 
-        let ron = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
+        let ron = ron::ser::to_string_pretty(&Self::default(), ron::ser::PrettyConfig::default())
+            .unwrap();
         fs::write(path, ron.as_bytes())
     }
 
     pub fn get_settings_path() -> PathBuf {
         let mut path = data_dir();
-        path.push("settings.ron");
+        path.push(Self::FILENAME);
         path
     }
 }

@@ -72,7 +72,7 @@ fn main() -> io::Result<()> {
     };
 
     // Load settings
-    let settings = settings::Settings::load();
+    let settings = settings::Settings::load().ok_or(io::ErrorKind::Other)?;
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
