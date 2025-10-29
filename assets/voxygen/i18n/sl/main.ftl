@@ -28,7 +28,7 @@ main-login_process =
 
     Račun lahko ustvariš tukaj:
     https://veloren.net/account/
-main-singleplayer-new = Novo
+main-singleplayer-new = Nov
 main-singleplayer-delete = Izbriši
 main-singleplayer-regenerate = Ponovno generiraj
 main-singleplayer-create_custom = Ustvari po meri
@@ -93,7 +93,7 @@ main-credits-created_by = , avtor je
 main-credits-music = Glasba
 main-credits-fonts = Pisave
 main-credits-other_art = Druga umetniška dela
-main-credits-contributors = Prispevali so
+main-credits-contributors = Zasluge
 loading-tips =
     .a0 = Svojo svetilko lahko prižgeš s pritiskom na '{ $gameinput-togglelantern }'.
     .a1 = Če pritisneš '{ $gameinput-controls }', si lahko ogledaš, kaj privzeto počne kakšna tipka.
@@ -117,3 +117,4 @@ loading-tips =
     .a19 = S pritiskom na '{ $gameinput-roll }' narediš preval. Prevali ti omogočajo hitrejše premikanje in izmikanje sovražnikovim napadom.
     .a20 = Se morda sprašuješ, kaj lahko sestaviš z določenim predmetom? V meni za sestavljanje vpiši poizvedbo 'input:<ime predmeta>'.
     .a21 = S pritiskom na '{ $gameinput-screenshot }' lahko zajameš posnetek zaslona.
+main-username = Uporabniško ime

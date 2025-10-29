@@ -57,3 +57,4 @@ dialogue-question-quest_req =
     .a1 = Est-ce qu'il y a des missions disponibles ?
 dialogue-question-quest-escort-where = Où allons-nous ?
 dialogue-question-quest-slay-claim = Le monstre a été vaincu !
+dialogue-question-quest-slay-where = Je chasse { $body }, sauriez-vous où chercher ?
