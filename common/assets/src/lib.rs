@@ -125,7 +125,7 @@ impl<T: Asset> AssetExt for T {
 /// Extension to AssetExt to combine Ron files from filesystem and plugins
 pub trait AssetCombined: AssetExt {
     fn load_and_combine(
-        reloading_cache: &'static AssetCache,
+        cache: &'static AssetCache,
         specifier: &str,
     ) -> Result<AssetHandle<Self>, Error>;
 
@@ -133,7 +133,7 @@ pub trait AssetCombined: AssetExt {
     fn load_and_combine_static(specifier: &str) -> Result<AssetHandle<Self>, Error> {
         #[cfg(feature = "plugins")]
         {
-            Self::load_and_combine(ASSETS.non_reloading_cache(), specifier)
+            ASSETS.no_record(|| Self::load_and_combine(ASSETS.as_cache(), specifier))
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -142,12 +142,9 @@ pub trait AssetCombined: AssetExt {
     }
 
     #[track_caller]
-    fn load_expect_combined(
-        reloading_cache: &'static AssetCache,
-        specifier: &str,
-    ) -> AssetHandle<Self> {
+    fn load_expect_combined(cache: &'static AssetCache, specifier: &str) -> AssetHandle<Self> {
         // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
-        match Self::load_and_combine(reloading_cache, specifier) {
+        match Self::load_and_combine(cache, specifier) {
             Ok(handle) => handle,
             Err(err) => {
                 panic!("Failed loading essential combined asset: {specifier} (error={err:?})")
@@ -160,7 +157,7 @@ pub trait AssetCombined: AssetExt {
     fn load_expect_combined_static(specifier: &str) -> AssetHandle<Self> {
         #[cfg(feature = "plugins")]
         {
-            Self::load_expect_combined(ASSETS.non_reloading_cache(), specifier)
+            ASSETS.no_record(|| Self::load_expect_combined(ASSETS.as_cache(), specifier))
         }
         #[cfg(not(feature = "plugins"))]
         {
@@ -171,10 +168,10 @@ pub trait AssetCombined: AssetExt {
 
 impl<T: Asset + Concatenate> AssetCombined for T {
     fn load_and_combine(
-        reloading_cache: &'static AssetCache,
+        cache: &'static AssetCache,
         specifier: &str,
     ) -> Result<AssetHandle<Self>, Error> {
-        reloading_cache.load_and_combine(specifier)
+        cache.load_and_combine(specifier)
     }
 }
 

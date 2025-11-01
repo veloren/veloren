@@ -26,14 +26,14 @@ struct SourceAndContents<'a>(AssetSource, FileContent<'a>);
 ///
 /// A load will search through all sources and warn about unhandled duplicates.
 pub struct CombinedSource {
-    fs: AssetCache,
+    fs: FileSystem,
     plugin_list: RwLock<Vec<PluginEntry>>,
 }
 
 impl CombinedSource {
     pub fn new() -> std::io::Result<Self> {
         Ok(Self {
-            fs: AssetCache::with_source(FileSystem::new()?),
+            fs: FileSystem::new()?,
             plugin_list: RwLock::new(Vec::new()),
         })
     }
@@ -43,12 +43,7 @@ impl CombinedSource {
     /// Look for an asset in all known sources
     fn read_multiple(&self, id: &str, ext: &str) -> Vec<SourceAndContents<'_>> {
         let mut result = Vec::new();
-        if let Ok(file_entry) = self
-            .fs
-            .downcast_raw_source::<FileSystem>()
-            .unwrap()
-            .read(id, ext)
-        {
+        if let Ok(file_entry) = self.fs.read(id, ext) {
             result.push(SourceAndContents(AssetSource::FileSystem, file_entry));
         }
         for (n, p) in self.plugin_list.read().unwrap().iter().enumerate() {
@@ -106,11 +101,11 @@ impl Source for CombinedSource {
         f: &mut dyn FnMut(assets_manager::source::DirEntry),
     ) -> std::io::Result<()> {
         // TODO: We should combine the sources, but this isn't used in veloren
-        self.fs.source().read_dir(id, f)
+        self.fs.read_dir(id, f)
     }
 
     fn exists(&self, entry: assets_manager::source::DirEntry) -> bool {
-        self.fs.source().exists(entry)
+        self.fs.exists(entry)
             || self
                 .plugin_list
                 .read()
@@ -121,7 +116,7 @@ impl Source for CombinedSource {
 
     // TODO: Enable hot reloading for plugins
     fn configure_hot_reloading(&self, events: EventSender) -> Result<(), BoxedError> {
-        self.fs.source().configure_hot_reloading(events)
+        self.fs.configure_hot_reloading(events)
     }
 }
 
@@ -133,21 +128,16 @@ impl CombinedCache {
         CombinedSource::new().map(|combined_source| Self(AssetCache::with_source(combined_source)))
     }
 
-    #[doc(hidden)]
-    // Provide a cache to the "combine_static" functions as they omit
-    // wrapping in an Asset (which enables hot-reload)
-    pub(crate) fn non_reloading_cache(&self) -> &AssetCache {
-        &self.0.downcast_raw_source::<CombinedSource>().unwrap().fs
-    }
+    pub fn as_cache(&self) -> &AssetCache { &self.0 }
 
     /// Combine objects from filesystem and plugins
     pub fn combine<T: Concatenate>(
         &self,
         // this cache registers with hot reloading
-        reloading_cache: &AssetCache,
+        cache: &AssetCache,
         mut load_from: impl FnMut(&AssetCache) -> Result<T, assets_manager::Error>,
     ) -> Result<T, assets_manager::Error> {
-        let mut result = load_from(reloading_cache);
+        let mut result = load_from(cache);
         // Report a severe error from the filesystem asset even if later overwritten by
         // an Ok value from a plugin
         if let Err(ref fs_error) = result {
@@ -210,6 +200,8 @@ impl CombinedCache {
             .push(PluginEntry { path, cache });
         Ok(())
     }
+
+    pub fn no_record<T>(&self, f: impl FnOnce() -> T) -> T { self.0.no_record(f) }
 
     // Just forward these methods to the cache
     #[inline]
