@@ -10,7 +10,7 @@
             scale_ratio: 1.0,
         ),
         "cyri": Font (
-            asset_key: "voxygen.font.haxrcorp_4089_cyrillic_altgr_extended",
+            asset_key: "voxygen.font.EnterCommand",
             scale_ratio: 1.0,
         ),
     }
