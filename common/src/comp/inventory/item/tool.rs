@@ -16,7 +16,10 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
+use std::{
+    mem,
+    ops::{Add, AddAssign, Div, Mul, MulAssign, Sub},
+};
 use strum::EnumIter;
 
 #[derive(
@@ -309,9 +312,10 @@ impl Tool {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilitySet<T> {
+    pub inherit: Option<AbilitySpec>,
     pub guard: Option<AbilityKind<T>>,
-    pub primary: AbilityKind<T>,
-    pub secondary: AbilityKind<T>,
+    pub primary: Option<AbilityKind<T>>,
+    pub secondary: Option<AbilityKind<T>>,
     pub abilities: Vec<AbilityKind<T>>,
 }
 
@@ -472,18 +476,20 @@ impl AbilitySet<AbilityItem> {
 impl<T> AbilitySet<T> {
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
+            inherit: self.inherit,
             guard: self.guard.map(|g| g.map(&mut f)),
-            primary: self.primary.map(&mut f),
-            secondary: self.secondary.map(&mut f),
+            primary: self.primary.map(|p| p.map(&mut f)),
+            secondary: self.secondary.map(|s| s.map(&mut f)),
             abilities: self.abilities.into_iter().map(|x| x.map(&mut f)).collect(),
         }
     }
 
     pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilitySet<U> {
         AbilitySet {
+            inherit: self.inherit.clone(),
             guard: self.guard.as_ref().map(|g| g.map_ref(&mut f)),
-            primary: self.primary.map_ref(&mut f),
-            secondary: self.secondary.map_ref(&mut f),
+            primary: self.primary.as_ref().map(|p| p.map_ref(&mut f)),
+            secondary: self.secondary.as_ref().map(|s| s.map_ref(&mut f)),
             abilities: self.abilities.iter().map(|x| x.map_ref(&mut f)).collect(),
         }
     }
@@ -503,7 +509,7 @@ impl<T> AbilitySet<T> {
         skillset: Option<&SkillSet>,
         context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
-        self.primary.ability(skillset, context)
+        self.primary.as_ref()?.ability(skillset, context)
     }
 
     pub fn secondary(
@@ -511,7 +517,7 @@ impl<T> AbilitySet<T> {
         skillset: Option<&SkillSet>,
         context: &AbilityContext,
     ) -> Option<(&T, Option<ContextualIndex>)> {
-        self.secondary.ability(skillset, context)
+        self.secondary.as_ref()?.ability(skillset, context)
     }
 
     pub fn auxiliary(
@@ -529,15 +535,10 @@ impl<T> AbilitySet<T> {
 impl Default for AbilitySet<AbilityItem> {
     fn default() -> Self {
         AbilitySet {
+            inherit: None,
             guard: None,
-            primary: AbilityKind::Simple(None, AbilityItem {
-                id: String::new(),
-                ability: CharacterAbility::default(),
-            }),
-            secondary: AbilityKind::Simple(None, AbilityItem {
-                id: String::new(),
-                ability: CharacterAbility::default(),
-            }),
+            primary: None,
+            secondary: None,
             abilities: Vec::new(),
         }
     }
@@ -572,26 +573,55 @@ impl Asset for AbilityMap {
     fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
         let manifest = cache.load::<Ron<AbilityMap<String>>>(specifier)?.read();
 
-        Ok(AbilityMap(
-            manifest
-                .0
-                .0
+        let mut ability_map = manifest
+            .0
+            .0
+            .iter()
+            .map(|(kind, set)| {
+                (
+                    kind.clone(),
+                    // expect cannot fail because CharacterAbility always
+                    // provides a default value in case of failure
+                    set.map_ref(|s| AbilityItem {
+                        id: s.clone(),
+                        ability: cache
+                            .load_expect::<Ron<CharacterAbility>>(s)
+                            .cloned()
+                            .into_inner(),
+                    }),
+                )
+            })
+            .collect::<HashMap<_, _>>();
+
+        // Find child ability sets and insert inherited abilities
+        while let Some((spec, mut ability_set)) = {
+            let spec = ability_map
                 .iter()
-                .map(|(kind, set)| {
-                    (
-                        kind.clone(),
-                        // expect cannot fail because CharacterAbility always
-                        // provides a default value in case of failure
-                        set.map_ref(|s| AbilityItem {
-                            id: s.clone(),
-                            ability: cache
-                                .load_expect::<Ron<CharacterAbility>>(s)
-                                .cloned()
-                                .into_inner(),
-                        }),
-                    )
-                })
-                .collect(),
-        ))
+                .find(|(_, ability_set)| ability_set.inherit.is_some())
+                .map(|(spec, _)| spec.clone());
+
+            spec.and_then(|spec| ability_map.remove_entry(&spec))
+        } {
+            let inherit = mem::take(&mut ability_set.inherit);
+            if let Some(parent) = inherit.and_then(|inherit| ability_map.get(&inherit)) {
+                // Allow inheritence chains
+                ability_set.inherit = parent.inherit.clone();
+
+                if ability_set.guard.is_none() {
+                    ability_set.guard = parent.guard.clone();
+                }
+                if ability_set.primary.is_none() {
+                    ability_set.primary = parent.primary.clone();
+                }
+                if ability_set.secondary.is_none() {
+                    ability_set.secondary = parent.secondary.clone();
+                }
+                ability_set.abilities.extend_from_slice(&parent.abilities);
+            }
+
+            ability_map.insert(spec, ability_set);
+        }
+
+        Ok(AbilityMap(ability_map))
     }
 }
