@@ -1,93 +1,106 @@
-use std::num::NonZeroU8;
-
 use crate::vol::FilledVox;
+use serde::{Deserialize, Serialize};
 use vek::*;
 
-const GLOWY: u8 = 1 << 1;
-const SHINY: u8 = 1 << 2;
-const HOLLOW: u8 = 1 << 3;
-const NOT_OVERRIDABLE: u8 = 1 << 4;
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-// 1 = glowy, 2 = shiny, 3 = hollow, 4 = not overridable
-pub struct CellAttr(NonZeroU8);
-
-impl CellAttr {
-    pub fn new(glowy: bool, shiny: bool, hollow: bool, ignore_hollow: bool) -> Self {
-        Self(
-            NonZeroU8::new(
-                1 + glowy as u8 * GLOWY
-                    + shiny as u8 * SHINY
-                    + hollow as u8 * HOLLOW
-                    + ignore_hollow as u8 * NOT_OVERRIDABLE,
-            )
-            .expect("At least 1"),
-        )
-    }
-
-    pub fn from_index(index: u8) -> CellAttr {
-        Self::new(
-            (13..16).contains(&index), // Glow
-            (8..13).contains(&index),  // Shiny
-            index == 16,               // Hollow
-            (17..22).contains(&index), // Not overridable
-        )
-    }
-
-    pub fn empty() -> Self { Self(NonZeroU8::new(1).expect("Not zero")) }
-
-    pub fn is_glowy(&self) -> bool { self.0.get() & GLOWY != 0 }
-
-    pub fn is_shiny(&self) -> bool { self.0.get() & SHINY != 0 }
-
-    pub fn is_hollow(&self) -> bool { self.0.get() & HOLLOW != 0 }
-
-    pub fn is_not_overridable(&self) -> bool { self.0.get() & NOT_OVERRIDABLE != 0 }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct CellData {
-    pub col: Rgb<u8>,
-    pub attr: CellAttr,
-}
-
-impl CellData {
-    pub(super) fn new(col: Rgb<u8>, attr: CellAttr) -> Self { CellData { col, attr } }
-}
-
-impl Default for CellData {
-    fn default() -> Self { Self::new(Rgb::broadcast(255), CellAttr::empty()) }
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CellSurface {
+    Matte = 0,
+    Glowy = 1,
+    Shiny = 2,
+    Fire = 3,
 }
 
 /// A type representing a single voxel in a figure.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Cell {
-    Filled(CellData),
-    Empty,
+    /// `hollowing` determines whether this cell should hollow out others during
+    /// masking operations.
+    Empty {
+        #[serde(default)]
+        hollowing: bool,
+    },
+    Filled {
+        #[serde(default)]
+        col: Rgb<u8>,
+        surf: CellSurface,
+        #[serde(default)]
+        override_hollow: bool,
+    },
 }
 
 impl Cell {
-    pub fn new(col: Rgb<u8>, attr: CellAttr) -> Self { Cell::Filled(CellData::new(col, attr)) }
+    pub fn empty() -> Self { Self::Empty { hollowing: false } }
 
-    pub fn get_color(&self) -> Option<Rgb<u8>> {
-        match self {
-            Cell::Filled(data) => Some(data.col),
-            Cell::Empty => None,
+    pub fn filled(col: Rgb<u8>, surf: CellSurface) -> Self {
+        Self::Filled {
+            col,
+            surf,
+            override_hollow: false,
         }
     }
 
-    pub fn attr(&self) -> CellAttr {
+    pub fn from_index(index: u8, col: Rgb<u8>) -> Cell {
+        match index {
+            8..13 => Self::Filled {
+                col,
+                surf: CellSurface::Shiny,
+                override_hollow: false,
+            },
+            13..16 => Self::Filled {
+                col,
+                surf: CellSurface::Glowy,
+                override_hollow: false,
+            },
+            16 => Self::Empty { hollowing: true },
+            17..22 => Self::Filled {
+                col,
+                surf: CellSurface::Matte,
+                override_hollow: true,
+            },
+            _ => Self::Filled {
+                col,
+                surf: CellSurface::Matte,
+                override_hollow: false,
+            },
+        }
+    }
+
+    pub fn get_color(&self) -> Option<Rgb<u8>> {
         match self {
-            Cell::Filled(data) => data.attr,
-            Cell::Empty => CellAttr::empty(),
+            Cell::Filled { col, .. } => Some(*col),
+            Cell::Empty { .. } => None,
+        }
+    }
+
+    pub fn surf(&self) -> Option<CellSurface> {
+        match self {
+            Cell::Filled { surf, .. } => Some(*surf),
+            Cell::Empty { .. } => None,
+        }
+    }
+
+    /// Transform cell colors
+    #[must_use]
+    pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
+        match self {
+            Self::Filled {
+                col,
+                surf,
+                override_hollow,
+            } => Self::Filled {
+                col: transform(col),
+                surf,
+                override_hollow,
+            },
+            this => this,
         }
     }
 }
 
 impl FilledVox for Cell {
-    fn default_non_filled() -> Self { Cell::Empty }
+    fn default_non_filled() -> Self { Cell::empty() }
 
-    fn is_filled(&self) -> bool { matches!(self, Cell::Filled(_)) }
+    fn is_filled(&self) -> bool { matches!(self, Cell::Filled { .. }) }
 }
 
 #[cfg(test)]

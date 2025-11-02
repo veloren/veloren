@@ -8,7 +8,7 @@ use crate::{
     scene::math,
 };
 use common::{
-    figure::Cell,
+    figure::{Cell, CellSurface},
     terrain::Block,
     vol::{BaseVol, FilledVox, ReadVol, SizedVol},
 };
@@ -63,7 +63,7 @@ where
         |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox).copied().unwrap_or(Cell::Empty)
+            vol.get(vox).copied().unwrap_or_else(|_| Cell::empty())
         })
     };
     let create_opaque = |atlas_pos, pos, norm| {
@@ -93,13 +93,13 @@ where
         },
         make_face_texel: |col_light: &mut [u8; 4], vol: &mut V, pos, light, _, _| {
             let cell = vol.get(pos).ok();
-            let (glowy, shiny) = cell
-                .map(|c| (c.attr().is_glowy(), c.attr().is_shiny()))
-                .unwrap_or_default();
             let col = cell
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
-            *col_light = TerrainVertex::make_col_light_figure(light, glowy, shiny, col);
+            let surf = cell
+                .and_then(|vox| vox.surf())
+                .unwrap_or(CellSurface::Matte);
+            *col_light = TerrainVertex::make_col_light_figure(light, col, surf);
         },
     });
     let bounds = math::Aabb {
@@ -200,11 +200,15 @@ where
         },
         make_face_texel: |col_light: &mut [u8; 4], vol: &mut V, pos, light, _, _| {
             let block = vol.get(pos).ok();
-            let glowy = block.map(|c| c.get_glow().is_some()).unwrap_or_default();
             let col = block
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
-            *col_light = TerrainVertex::make_col_light_figure(light, glowy, false, col);
+            let surf = if block.map_or(false, |c| c.get_glow().is_some()) {
+                CellSurface::Glowy
+            } else {
+                CellSurface::Matte
+            };
+            *col_light = TerrainVertex::make_col_light_figure(light, col, surf);
         },
     });
     let bounds = math::Aabb {
@@ -262,13 +266,13 @@ where
     let (flat, flat_get) = {
         let (w, h, d) = (greedy_size + 2).into_tuple();
         let flat = {
-            let mut flat = vec![Cell::Empty; (w * h * d) as usize];
+            let mut flat = vec![Cell::empty(); (w * h * d) as usize];
             let mut i = 0;
             for x in -1..greedy_size.x + 1 {
                 for y in -1..greedy_size.y + 1 {
                     for z in -1..greedy_size.z + 1 {
                         let wpos = lower_bound + Vec3::new(x, y, z);
-                        let block = vol.get(wpos).copied().unwrap_or(Cell::Empty);
+                        let block = vol.get(wpos).copied().unwrap_or_else(|_| Cell::empty());
                         flat[i] = block;
                         i += 1;
                     }
@@ -335,9 +339,8 @@ where
         },
         make_face_texel: move |col_light: &mut [u8; 4], flat: &mut _, pos, light, _glow, _ao| {
             let cell = flat_get(flat, pos);
-            let (glowy, shiny) = (cell.attr().is_glowy(), cell.attr().is_shiny());
-            *col_light =
-                TerrainVertex::make_col_light_figure(light, glowy, shiny, get_color(flat, pos));
+            let surf = cell.surf().unwrap_or(CellSurface::Matte);
+            *col_light = TerrainVertex::make_col_light_figure(light, get_color(flat, pos), surf);
         },
     });
 
@@ -392,7 +395,7 @@ where
         |vol: &mut V, pos: Vec3<i32>| vol.get(pos).map_or(true, |vox| !vox.is_filled());
     let should_draw = |vol: &mut V, pos: Vec3<i32>, delta: Vec3<i32>, uv| {
         should_draw_greedy(pos, delta, uv, |vox| {
-            vol.get(vox).copied().unwrap_or(Cell::Empty)
+            vol.get(vox).copied().unwrap_or_else(|_| Cell::empty())
         })
     };
     let create_opaque = |_atlas_pos, pos: Vec3<f32>, norm| ParticleVertex::new(pos, norm);
@@ -419,8 +422,12 @@ where
                 |atlas_pos, pos, norm, &_meta| create_opaque(atlas_pos, pos, norm),
             ));
         },
-        make_face_texel: move |col_light: &mut [u8; 4], vol: &mut V, pos, light, glow, ao| {
-            *col_light = TerrainVertex::make_col_light(light, glow, get_color(vol, pos), ao);
+        make_face_texel: move |col_light: &mut [u8; 4], vol: &mut V, pos, light, _glow, _ao| {
+            *col_light = TerrainVertex::make_col_light_figure(
+                light,
+                get_color(vol, pos),
+                CellSurface::Matte,
+            );
         },
     });
 

@@ -1,11 +1,10 @@
 pub mod cell;
 pub mod mat_cell;
-use cell::CellAttr;
 pub use mat_cell::Material;
 
 // Reexport
 pub use self::{
-    cell::{Cell, CellData},
+    cell::{Cell, CellSurface},
     mat_cell::MatCell,
 };
 
@@ -15,6 +14,7 @@ use crate::{
     volumes::dyna::Dyna,
 };
 use dot_vox::DotVoxData;
+use hashbrown::HashMap;
 use vek::*;
 
 pub type TerrainSegment = Dyna<Block, ()>;
@@ -22,15 +22,14 @@ pub type TerrainSegment = Dyna<Block, ()>;
 impl From<Segment> for TerrainSegment {
     fn from(value: Segment) -> Self {
         TerrainSegment::from_fn(value.sz, (), |pos| match value.get(pos) {
-            Err(_) | Ok(Cell::Empty) => Block::air(SpriteKind::Empty),
-            Ok(cell) => {
-                if cell.attr().is_hollow() {
-                    Block::air(SpriteKind::Empty)
-                } else if cell.attr().is_glowy() {
-                    Block::new(BlockKind::GlowingRock, cell.get_color().unwrap())
-                } else {
-                    Block::new(BlockKind::Misc, cell.get_color().unwrap())
-                }
+            Err(_) | Ok(Cell::Empty { .. }) => Block::air(SpriteKind::Empty),
+            Ok(Cell::Filled { col, surf, .. }) => {
+                let kind = match surf {
+                    CellSurface::Glowy => BlockKind::GlowingRock,
+                    CellSurface::Fire => BlockKind::Lava,
+                    CellSurface::Matte | CellSurface::Shiny => BlockKind::Misc,
+                };
+                Block::new(kind, *col)
             },
         })
     }
@@ -47,16 +46,25 @@ impl Segment {
     pub fn from_voxes(data: &[(&DotVoxData, Vec3<i32>, bool)]) -> (Self, Vec3<i32>) {
         let mut union = DynaUnionizer::new();
         for (datum, offset, xmirror) in data.iter() {
-            union = union.add(Segment::from_vox(datum, *xmirror, 0), *offset);
+            union = union.add(Segment::from_vox(datum, *xmirror, 0, None), *offset);
         }
         union.unify()
     }
 
-    pub fn from_vox_model_index(dot_vox_data: &DotVoxData, model_index: usize) -> Self {
-        Self::from_vox(dot_vox_data, false, model_index)
+    pub fn from_vox_model_index(
+        dot_vox_data: &DotVoxData,
+        model_index: usize,
+        custom_indices: Option<&HashMap<u8, Cell>>,
+    ) -> Self {
+        Self::from_vox(dot_vox_data, false, model_index, custom_indices)
     }
 
-    pub fn from_vox(dot_vox_data: &DotVoxData, flipped: bool, model_index: usize) -> Self {
+    pub fn from_vox(
+        dot_vox_data: &DotVoxData,
+        flipped: bool,
+        model_index: usize,
+        custom_indices: Option<&HashMap<u8, Cell>>,
+    ) -> Self {
         if let Some(model) = dot_vox_data.models.get(model_index) {
             let palette = dot_vox_data
                 .palette
@@ -66,9 +74,18 @@ impl Segment {
 
             let mut segment = Segment::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                Cell::Empty,
+                Cell::empty(),
                 (),
             );
+
+            // Set up the index lookup table
+            let mut indices = [Cell::empty(); 256];
+            for i in 0..=255 {
+                indices[i as usize] = Cell::from_index(i, Rgb::zero());
+            }
+            for (i, cell) in custom_indices.iter().flat_map(|x| x.iter()) {
+                indices[*i as usize] = *cell;
+            }
 
             for voxel in &model.voxels {
                 if let Some(&color) = palette.get(voxel.i as usize) {
@@ -84,7 +101,7 @@ impl Segment {
                                 voxel.z,
                             )
                             .map(i32::from),
-                            Cell::new(color, CellAttr::from_index(voxel.i)),
+                            indices[voxel.i as usize].map_rgb(|_| color),
                         )
                         .unwrap();
                 };
@@ -92,7 +109,7 @@ impl Segment {
 
             segment
         } else {
-            Segment::filled(Vec3::zero(), Cell::Empty, ())
+            Segment::filled(Vec3::zero(), Cell::empty(), ())
         }
     }
 
@@ -111,10 +128,7 @@ impl Segment {
     /// Transform cell colors
     #[must_use]
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
-        self.map(|cell| {
-            cell.get_color()
-                .map(|rgb| Cell::new(transform(rgb), cell.attr()))
-        })
+        self.map(|cell| Some(cell.map_rgb(&transform)))
     }
 }
 
@@ -184,14 +198,13 @@ pub type MatSegment = Dyna<MatCell, ()>;
 
 impl MatSegment {
     pub fn to_segment(&self, map: impl Fn(Material) -> Rgb<u8>) -> Segment {
-        let mut vol = Dyna::filled(self.size(), Cell::Empty, ());
+        let mut vol = Dyna::filled(self.size(), Cell::empty(), ());
         for (pos, vox) in self.full_vol_iter() {
-            let data = match vox {
-                MatCell::None => continue,
-                MatCell::Mat(mat) => CellData::new(map(*mat), CellAttr::empty()),
-                MatCell::Normal(data) => *data,
+            let cell = match vox {
+                MatCell::Mat(mat) => Cell::filled(map(*mat), CellSurface::Matte),
+                MatCell::Normal(cell) => *cell,
             };
-            vol.set(pos, Cell::Filled(data)).unwrap();
+            vol.set(pos, cell).unwrap();
         }
         vol
     }
@@ -212,10 +225,7 @@ impl MatSegment {
     #[must_use]
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| match cell {
-            MatCell::Normal(data) => Some(MatCell::Normal(CellData {
-                col: transform(data.col),
-                ..data
-            })),
+            MatCell::Normal(cell) => Some(MatCell::Normal(cell.map_rgb(&transform))),
             _ => None,
         })
     }
@@ -234,7 +244,7 @@ impl MatSegment {
 
             let mut vol = Dyna::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                MatCell::None,
+                MatCell::Normal(Cell::empty()),
                 (),
             );
 
@@ -253,7 +263,7 @@ impl MatSegment {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        MatCell::Normal(CellData::new(color, CellAttr::from_index(index)))
+                        MatCell::Normal(Cell::from_index(index, color))
                     },
                 };
 
@@ -275,7 +285,7 @@ impl MatSegment {
 
             vol
         } else {
-            Dyna::filled(Vec3::zero(), MatCell::None, ())
+            Dyna::filled(Vec3::zero(), MatCell::Normal(Cell::empty()), ())
         }
     }
 }

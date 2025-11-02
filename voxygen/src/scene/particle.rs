@@ -3787,7 +3787,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
         let mut greedy = GreedyMesh::new(max_size, crate::mesh::greedy::general_config());
 
-        let segment = Segment::from_vox_model_index(&vox.read().0, 0);
+        let segment = Segment::from_vox_model_index(&vox.read().0, 0, None);
         let segment_size = segment.size();
         let mut mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
         // Center particle vertices around origin

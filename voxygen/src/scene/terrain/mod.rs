@@ -491,6 +491,7 @@ impl SpriteRenderContext {
                     model,
                     offset,
                     lod_axes,
+                    custom_indices,
                 } = sprite_model_config;
                 let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
                 let offset = Vec3::from(*offset);
@@ -529,7 +530,8 @@ impl SpriteRenderContext {
                     // Mesh generation exclusively acts using side effects; it
                     // has no interesting return value, but updates the mesh.
                     generate_mesh_base_vol_sprite(
-                        Segment::from_vox_model_index(model, 0).scaled_by(lod_scale),
+                        Segment::from_vox_model_index(model, 0, Some(custom_indices))
+                            .scaled_by(lod_scale),
                         (&mut greedy, &mut sprite_mesh, false),
                         offset.map(|e: f32| e.floor()) * lod_scale,
                     );
@@ -565,6 +567,7 @@ impl SpriteRenderContext {
                     model: "voxygen.voxel.not_found".into(),
                     offset: (-5.5, -5.5, 0.0),
                     lod_axes: (1.0, 1.0, 1.0),
+                    custom_indices: HashMap::default(),
                 })]
                 .into(),
                 wind_sway: 1.0,

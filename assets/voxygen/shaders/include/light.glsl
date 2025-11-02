@@ -3,6 +3,7 @@
 
 #include <srgb.glsl>
 #include <shadows.glsl>
+#include <random.glsl>
 
 struct Light {
     vec4 light_pos;
@@ -253,6 +254,32 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
 // Same as lights_at, but with no assumed attenuation due to fluid.
 float lights_at(vec3 wpos, vec3 wnorm, vec3 view_dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light) {
     return lights_at(wpos, wnorm, view_dir, vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, wnorm, 1.0, emitted_light, reflected_light);
+}
+
+void apply_cell_material(
+    uint material,
+    in vec3 f_pos,
+    in vec3 f_norm,
+    in vec3 surf_color,
+    out vec3 emitted_light
+) {
+    // Apply material surface properties
+    switch (material & 31u) {
+        // Glowy
+        case 1:
+            emitted_light += 20 * surf_color;
+            break;
+        // Shiny
+        case 2:
+            // TODO
+            break;
+        // Fire
+        case 3:
+            vec3 wpos = f_pos + focus_off.xyz;
+            emitted_light += surf_color * 4.0 * (0.2 + pow(noise_3d(vec3(wpos.xy, wpos.z + time_of_day.x * 0.025) * 0.1), 2.0));
+            break;
+        default: break;
+    }
 }
 
 #endif

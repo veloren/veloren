@@ -3,6 +3,7 @@ use std::ops::Range;
 use super::SPRITE_LOD_LEVELS;
 use common::{
     assets::{BoxedError, FileAsset, load_ron},
+    figure::Cell,
     terrain::{
         Block, SpriteKind,
         sprite::{self, RelativeNeighborPosition},
@@ -24,6 +25,9 @@ pub(super) struct SpriteModelConfig {
     /// LOD axes (how LOD gets applied along each axis, when we switch
     /// to an LOD model).
     pub lod_axes: (f32, f32, f32),
+    /// Custom overrides for index to `Cell` mapping.
+    #[serde(default)]
+    pub custom_indices: HashMap<u8, Cell>,
 }
 
 macro_rules! impl_sprite_attribute_filter {

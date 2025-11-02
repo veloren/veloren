@@ -140,11 +140,8 @@ void main() {
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
 
-    // Apply emissive glow
-    // For now, just make glowing material light be the same colour as the surface
-    // TODO: Add a way to control this better outside the shaders
-    if ((material & (1u << 0u)) > 0u) {
-        emitted_light += 20 * surf_color;
+    if ((material & 31u) != 0) {
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light);
     }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);

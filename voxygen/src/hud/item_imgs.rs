@@ -185,7 +185,7 @@ fn graceful_load_segment_no_skin(
     model_index: u32,
     color: Option<[u8; 3]>,
 ) -> Arc<Segment> {
-    use common::figure::{MatSegment, mat_cell::MatCell};
+    use common::figure::{MatSegment, cell::Cell, mat_cell::MatCell};
     let mut mat_seg = MatSegment::from_vox_model_index(
         &graceful_load_vox(specifier).read().0,
         model_index as usize,
@@ -198,9 +198,11 @@ fn graceful_load_segment_no_skin(
 
     let seg = mat_seg
         .map(|mat_cell| match mat_cell {
-            MatCell::None => None,
-            MatCell::Mat(_) => Some(MatCell::None),
-            MatCell::Normal(data) => data.attr.is_hollow().then_some(MatCell::None),
+            // Skin and hollow cells are replaced with empty
+            MatCell::Mat(_) | MatCell::Normal(Cell::Empty { hollowing: true }) => {
+                Some(MatCell::Normal(Cell::empty()))
+            },
+            _ => None,
         })
         .to_segment(|_| Default::default());
     Arc::new(seg)

@@ -3,6 +3,7 @@ use super::{
     AtlasData,
 };
 use bytemuck::{Pod, Zeroable};
+use common::figure::CellSurface;
 use std::mem;
 use vek::*;
 
@@ -101,14 +102,13 @@ impl Vertex {
     pub fn make_col_light_figure(
         // 0 to 31
         light: u8,
-        glowy: bool,
-        shiny: bool,
         col: Rgb<u8>,
+        surf: CellSurface,
     ) -> [u8; 4] {
-        let attr = 0 | ((glowy as u8) << 0) | ((shiny as u8) << 1);
+        debug_assert!((surf as u8) < 32);
         [
             (light.min(31) << 3) | ((col.r >> 1) & 0b111),
-            (attr.min(31) << 3) | ((col.b >> 1) & 0b111),
+            ((surf as u8) << 3) | ((col.b >> 1) & 0b111),
             (col.r & 0b11110000) | (col.b >> 4),
             col.g, // Green is lucky, it remains unscathed
         ]
