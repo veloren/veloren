@@ -203,7 +203,7 @@ where
             let col = block
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
-            let surf = if block.map_or(false, |c| c.get_glow().is_some()) {
+            let surf = if block.is_some_and(|c| c.get_glow().is_some()) {
                 CellSurface::Glowy
             } else {
                 CellSurface::Matte

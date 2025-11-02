@@ -73,6 +73,17 @@ fn graceful_load_segment(mesh_name: &str, model_index: u32) -> Segment {
         None,
     )
 }
+fn graceful_load_segment_custom_indices(
+    mesh_name: &str,
+    model_index: u32,
+    custom_indices: &HashMap<u8, Cell>,
+) -> Segment {
+    Segment::from_vox_model_index(
+        &graceful_load_vox(mesh_name).read().0,
+        model_index as usize,
+        Some(custom_indices),
+    )
+}
 fn graceful_load_segment_fullspec(full_specifier: &str, model_index: u32) -> Segment {
     Segment::from_vox_model_index(
         &graceful_load_vox_fullspec(full_specifier).read().0,
@@ -5977,6 +5988,8 @@ struct ObjectCentralSubSpec {
     central: VoxSimple,
     #[serde(default)]
     model_index: u32,
+    #[serde(default)]
+    custom_indices: HashMap<u8, Cell>,
 }
 
 make_vox_spec!(
@@ -6015,7 +6028,11 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone0.central.0, spec.bone0.model_index);
+        let central = graceful_load_segment_custom_indices(
+            &spec.bone0.central.0,
+            spec.bone0.model_index,
+            &spec.bone0.custom_indices,
+        );
 
         (central, Vec3::from(spec.bone0.offset))
     }
@@ -6028,7 +6045,11 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone1.central.0, spec.bone1.model_index);
+        let central = graceful_load_segment_custom_indices(
+            &spec.bone1.central.0,
+            spec.bone1.model_index,
+            &spec.bone1.custom_indices,
+        );
 
         (central, Vec3::from(spec.bone1.offset))
     }

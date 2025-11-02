@@ -281,9 +281,11 @@ void main() {
     float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
+    
+    float render_alpha = 1.0;
 
     if ((material & 31u) != 0) {
-        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light);
+        apply_cell_material(material, m_pos, f_norm, surf_color, emitted_light, render_alpha);
     }
 
     /* reflected_light *= cloud_shadow(f_pos); */
@@ -315,7 +317,7 @@ void main() {
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
 
-    tgt_color = vec4(surf_color, 1.0);
+    tgt_color = vec4(surf_color, render_alpha);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
 #endif
 }
