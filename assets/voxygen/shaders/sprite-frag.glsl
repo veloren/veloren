@@ -141,7 +141,7 @@ void main() {
     emitted_light *= point_shadow;
 
     if ((material & 31u) != 0) {
-        apply_cell_material(material, f_pos + focus_off.xyz, f_norm, surf_color, emitted_light, render_alpha);
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha);
     }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);

@@ -258,13 +258,14 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 view_dir, vec3 k_a, vec3 k_d, vec3 k
 
 void apply_cell_material(
     uint material,
-    in vec3 m_pos,
+    in vec3 f_pos,
     in vec3 f_norm,
     in vec3 surf_color,
     inout vec3 emitted_light,
     // Mostly used to communicate reflectivity
     inout float render_alpha
 ) {
+    vec3 wpos = f_pos + focus_off.xyz;
     // Apply material surface properties
     switch (material & 31u) {
         // Glowy
@@ -277,7 +278,8 @@ void apply_cell_material(
             break;
         // Fire
         case 3:
-            emitted_light += surf_color * 16.0 * (0.02 + pow(noise_3d(vec3(m_pos.xy, 100000.0 - m_pos.z + time_of_day.x * 0.025) * 0.1), 3.0));
+            emitted_light += surf_color * 5.0;
+            emitted_light *= 32.0 * (0.02 + pow(noise_3d(vec3(wpos.xy, 100000.0 - wpos.z + tick.x * 1.5) * 0.1), 3.0));
             break;
         default: break;
     }

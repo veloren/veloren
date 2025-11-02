@@ -285,7 +285,7 @@ void main() {
     float render_alpha = 1.0;
 
     if ((material & 31u) != 0) {
-        apply_cell_material(material, m_pos, f_norm, surf_color, emitted_light, render_alpha);
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha);
     }
 
     /* reflected_light *= cloud_shadow(f_pos); */
