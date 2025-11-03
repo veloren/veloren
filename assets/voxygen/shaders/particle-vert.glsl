@@ -512,7 +512,7 @@ void main() {
             attr = Attr(
                 (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1 + blown_by_wind(1.0, 0.1) * 2.5,
                 vec3((2.5 * (1 - slow_start(0.2)))),
-                vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1),
+                vec4(6, 3 + rand5 * 0.6 - 0.8 * percent(), 0.4, 1) * start_end(1.0, 0.0),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
@@ -521,7 +521,7 @@ void main() {
             attr = Attr(
                 inst_dir * ((rand0+1.0)/2 + 0.4) * slow_end(0.25) + 0.3 * grav_vel(earth_gravity),
                 vec3((3 * (1 - slow_start(0.1)))),
-                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
+                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1) * start_end(3.0, 0.0),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
