@@ -1022,15 +1022,19 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = rand::rng();
 
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(25)) {
             self.particles.push(Particle::new(
-                Duration::from_millis(250),
+                Duration::from_millis(800),
                 time,
                 ParticleMode::CampfireFire,
-                pos,
+                pos + Vec2::broadcast(())
+                    .map(|_| rand::rng().random_range(-0.3..0.3))
+                    .with_z(0.1),
                 scene_data,
             ));
+        }
 
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
             self.particles.push(Particle::new(
                 Duration::from_secs(10),
                 time,
@@ -2911,8 +2915,8 @@ impl ParticleMgr {
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fires),
                 range: 2,
-                rate: 20.0,
-                lifetime: 0.25,
+                rate: 50.0,
+                lifetime: 0.5,
                 mode: ParticleMode::CampfireFire,
                 cond: |_| true,
             },

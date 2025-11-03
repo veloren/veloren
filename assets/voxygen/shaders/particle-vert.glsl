@@ -40,7 +40,7 @@ const float SCALE = 1.0 / 11.0;
 
 // Modes
 const int SMOKE = 0;
-const int FIRE = 1;
+const int CAMPFIRE = 1;
 const int GUN_POWDER_SPARK = 2;
 const int SHRAPNEL = 3;
 const int FIREWORK_BLUE = 4;
@@ -287,15 +287,15 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime() * 0.5)
             );
             break;
-        case FIRE:
+        case CAMPFIRE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
             attr = Attr(
                 linear_motion(
                     vec3(0.0),
-                    vec3(rand2 * 0.1, rand3 * 0.1, 2.0 + rand4 * 1.0)
-                ),
-                vec3(1.0),
-                vec4(6, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1),
+                    vec3(rand2 * 0.1, rand3 * 0.1, 1.25 + rand4 * 0.2)
+                ) + vec3(sin(vec2(1.3, 1.7) * lifetime * 10.0) * 0.05, 0.0),
+                vec3(1.0 - slow_start(0.5)) * pow(percent(), 0.25) * 1.5,
+                vec4(10, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1) * start_end(1.5, 0.1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
             );
             break;

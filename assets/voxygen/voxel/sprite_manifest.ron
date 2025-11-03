@@ -1492,7 +1492,7 @@ Ember: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.ember.1",
-            offset: (-5.5, -5.5, -2.9),
+            offset: (-5.5, -5.5, -2.0),
             lod_axes: (1.0, 1.0, 0.0),
             custom_indices: {
                 13: Filled(surf: Fire),
