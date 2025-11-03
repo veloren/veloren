@@ -6,19 +6,18 @@ use core::hash::Hash;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, Entity, FlaggedStorage, VecStorage};
-use std::fmt;
+use std::{fmt, num::NonZeroU64};
 use tracing::error;
 
-// TODO: could we switch this to `NonZeroU64`?
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub struct Uid(pub u64);
+pub struct Uid(pub NonZeroU64);
 
-impl From<Uid> for u64 {
-    fn from(uid: Uid) -> u64 { uid.0 }
+impl From<Uid> for NonZeroU64 {
+    fn from(uid: Uid) -> NonZeroU64 { uid.0 }
 }
 
-impl From<u64> for Uid {
-    fn from(uid: u64) -> Self { Self(uid) }
+impl From<NonZeroU64> for Uid {
+    fn from(uid: NonZeroU64) -> Self { Self(uid) }
 }
 
 impl fmt::Display for Uid {
@@ -36,12 +35,12 @@ struct UidAllocator {
 }
 
 impl UidAllocator {
-    fn new() -> Self { Self { next_uid: 0 } }
+    fn new() -> Self { Self { next_uid: 1 } }
 
     fn allocate(&mut self) -> Uid {
         let id = self.next_uid;
         self.next_uid += 1;
-        Uid(id)
+        Uid(NonZeroU64::new(id).expect("Uid cannot be zero"))
     }
 }
 

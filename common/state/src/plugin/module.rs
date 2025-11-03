@@ -1,5 +1,6 @@
 use std::{
     io,
+    num::NonZeroU64,
     pin::Pin,
     sync::{Arc, Mutex},
     task::{Context, Poll},
@@ -225,7 +226,7 @@ impl information::HostEntity for WasiHostCtx {
         self.ctx()
             .table
             .push(Entity {
-                uid: common::uid::Uid(uid),
+                uid: common::uid::Uid(NonZeroU64::new(uid).ok_or(types::Error::RuntimeError)?),
             })
             .map_err(|_err| types::Error::RuntimeError)
     }
@@ -448,10 +449,12 @@ impl PluginModule {
             return Err(CommandResults::UnknownCommand);
         }
         self.ecs.execute_with(ecs, || {
-            match self
-                .plugin
-                .command_event(self.store.get_mut().unwrap(), name, args, player.0)
-            {
+            match self.plugin.command_event(
+                self.store.get_mut().unwrap(),
+                name,
+                args,
+                player.0.into(),
+            ) {
                 Err(err) => Err(CommandResults::HostError(err)),
                 Ok(result) => result.map_err(CommandResults::PluginError),
             }

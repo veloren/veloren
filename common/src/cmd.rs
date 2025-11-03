@@ -10,6 +10,7 @@ use crate::{
     recipe::RecipeBookManifest,
     spot::Spot,
     terrain,
+    uid::Uid,
 };
 use common_i18n::Content;
 use hashbrown::{HashMap, HashSet};
@@ -17,6 +18,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Display},
+    num::NonZeroU64,
     str::FromStr,
 };
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, VariantNames};
@@ -331,13 +333,14 @@ impl FromStr for EntityTarget {
                 "rtsim" => Ok(EntityTarget::RtsimNpc(u64::from_str(data).map_err(
                     |_| format!("Expected a valid number after 'rtsim@' but found {data}."),
                 )?)),
-                "uid" => Ok(EntityTarget::Uid(
-                    u64::from_str(data)
-                        .map_err(|_| {
-                            format!("Expected a valid number after 'uid@' but found {data}.")
-                        })?
-                        .into(),
-                )),
+                "uid" => {
+                    let raw = u64::from_str(data).map_err(|_| {
+                        format!("Expected a valid number after 'uid@' but found {data}.")
+                    })?;
+                    let nz =
+                        NonZeroU64::new(raw).ok_or_else(|| "Uid cannot be zero".to_string())?;
+                    Ok(EntityTarget::Uid(Uid(nz)))
+                },
                 _ => Err(format!(
                     "Expected either 'rtsim' or 'uid' before '@' but found '{spec}'"
                 )),

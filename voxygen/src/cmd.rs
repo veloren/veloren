@@ -10,7 +10,7 @@
 //! The command system allows players to interact with the game through text
 //! commands prefixed with a slash (e.g., /help, /wiki).
 
-use std::str::FromStr;
+use std::{num::NonZeroU64, str::FromStr};
 
 use crate::{
     GlobalState,
@@ -366,7 +366,7 @@ fn preproccess_command(
             };
 
             // Convert the target to a UID string format
-            let uid = u64::from(uid);
+            let uid = NonZeroU64::from(uid);
             *arg = format!("uid@{uid}");
         }
     }
@@ -785,28 +785,21 @@ impl TabComplete for ArgumentSpec {
                             .collect(),
                         // If it's "@uid", complete with actual UIDs from the ECS
                         "uid" => {
-                            // Try to parse the number after "@uid" or default to 0 if empty
-                            if let Some(end) =
-                                u64::from_str(end).ok().or(end.is_empty().then_some(0))
-                            {
-                                // Find UIDs greater than the parsed number
-                                client
-                                    .state()
-                                    .ecs()
-                                    .read_storage::<Uid>()
-                                    .join()
-                                    .filter_map(|uid| {
-                                        let uid = u64::from(*uid);
-                                        if end < uid {
-                                            Some(format!("uid@{uid}"))
-                                        } else {
-                                            None
-                                        }
-                                    })
-                                    .collect()
-                            } else {
-                                vec![]
-                            }
+                            let end_res = end.trim().parse().map_err(|_| Vec::<String>::new());
+                            client
+                                .state()
+                                .ecs()
+                                .read_storage::<Uid>()
+                                .join()
+                                .filter_map(|uid: &Uid| {
+                                    let u = uid.0;
+                                    match end_res {
+                                        Ok(e) if u > e => Some(format!("uid@{}", u.get())),
+                                        Ok(_) => None,
+                                        Err(_) => None,
+                                    }
+                                })
+                                .collect()
                         },
                         _ => vec![],
                     }
