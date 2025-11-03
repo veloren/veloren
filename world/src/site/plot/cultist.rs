@@ -749,6 +749,49 @@ impl Structure for Cultist {
                 }
             }
         }
+        // floor entrances to rooms
+        for s in 1..floors {
+            let room_base = base - (s * (2 * room_size));
+            let passage_height = room_base - room_size - 1;
+
+            painter
+                .cylinder(Aabb {
+                    min: (center - 22).with_z(passage_height - 4),
+                    max: (center + 23).with_z(passage_height - 1),
+                })
+                .fill(rock_broken.clone());
+
+            for dir in DIAGONALS {
+                let clear_pos = center + dir * 30;
+                painter
+                    .line(
+                        center.with_z(passage_height),
+                        clear_pos.with_z(passage_height),
+                        5.0,
+                    )
+                    .fill(rock_broken.clone());
+                painter
+                    .line(
+                        center.with_z(passage_height + 2),
+                        clear_pos.with_z(passage_height + 2),
+                        5.0,
+                    )
+                    .clear();
+            }
+
+            painter
+                .cylinder(Aabb {
+                    min: (center - 15).with_z(passage_height - 4),
+                    max: (center + 16).with_z(passage_height + 1),
+                })
+                .clear();
+
+            let magic_circle_passage = painter.cylinder(Aabb {
+                min: (center - 15).with_z(passage_height - 3),
+                max: (center + 16).with_z(passage_height - 2),
+            });
+            star_positions.push((magic_circle_passage, center));
+        }
         // random_npcs around upper entrance and bottom portal
         for s in 0..=1 {
             let radius = 62.0 - (s * 50) as f32;
