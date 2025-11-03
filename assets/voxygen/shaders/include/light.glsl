@@ -279,7 +279,7 @@ void apply_cell_material(
         // Fire
         case 3:
             emitted_light += surf_color * 5.0;
-            emitted_light *= 32.0 * (0.02 + pow(noise_3d(vec3(wpos.xy, 100000.0 - wpos.z + tick.x * 1.5) * 0.1), 3.0));
+            emitted_light *= 32.0 * (0.02 + pow(noise_3d(vec3(wpos.xy * 2.0, 100000.0 - wpos.z * 2.0 + tick.x * 5.0) * 0.1), 3.0));
             break;
         default: break;
     }

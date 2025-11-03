@@ -262,6 +262,11 @@ LanternpostWoodLantern: [(
             model: "voxygen.voxel.sprite.lantern.lanternpost_wood_lantern_on",
             offset: (-9.5, -2.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                13: (attr: Fire),
+                14: (attr: Fire),
+                15: (attr: Fire),
+            },
         ),
     ],
     wind_sway: 0,
