@@ -2314,7 +2314,10 @@ fn handle_spawn(
                         client,
                         ServerGeneral::server_msg(
                             ChatType::CommandInfo,
-                            Content::localized_with_args("command-spawned-entity", [("id", uid.0)]),
+                            Content::localized_with_args("command-spawned-entity", [(
+                                "id",
+                                uid.0.get(),
+                            )]),
                         ),
                     );
                 }

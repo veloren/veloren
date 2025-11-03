@@ -16,7 +16,7 @@ mod tests {
     use common_state::State;
     use rand::rng;
     use specs::{Builder, Entity, WorldExt};
-    use std::{sync::Arc, time::Duration};
+    use std::{num::NonZeroU64, sync::Arc, time::Duration};
     use vek::{Vec2, Vec3, approx::AbsDiffEq};
     use veloren_common_systems::character_behavior;
 
@@ -71,7 +71,7 @@ mod tests {
             .with(skill_set)
             .with(PhysicsState::default())
             .with(Stats::empty(body))
-            .with(Uid(1))
+            .with(Uid(NonZeroU64::new(1).unwrap()))
             .build()
     }
 

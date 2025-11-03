@@ -6,6 +6,7 @@ use std::{
     convert::{TryFrom, TryInto},
     fmt::Debug,
     marker::PhantomData,
+    num::NonZeroU64,
 };
 use tracing::error;
 
@@ -133,7 +134,7 @@ impl EntitySyncPackage {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CompSyncPackage<P: CompPacket> {
     // TODO: this can be made to take less space by clumping updates for the same entity together
-    pub comp_updates: Vec<(u64, CompUpdateKind<P>)>,
+    pub comp_updates: Vec<(NonZeroU64, CompUpdateKind<P>)>,
 }
 
 impl<P: CompPacket> CompSyncPackage<P> {
@@ -165,7 +166,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         P::Phantom: From<PhantomData<C>>,
     {
         self.comp_updates
-            .push((uid.into(), CompUpdateKind::Removed(PhantomData::<C>.into())));
+            .push((uid.0, CompUpdateKind::Removed(PhantomData::<C>.into())));
     }
 
     pub fn add_component_updates<'a, C>(
@@ -190,7 +191,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
         &mut self,
         tracker: &UpdateTracker<C>,
         storage: &ReadStorage<'_, C>,
-        uid: u64,
+        uid: NonZeroU64,
         entity: Entity,
         force_sync: bool,
     ) where

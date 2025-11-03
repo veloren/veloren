@@ -4,6 +4,7 @@ use specs::{BitSet, Component, Entity, Join, ReadStorage, World, WorldExt};
 use std::{
     convert::{TryFrom, TryInto},
     marker::PhantomData,
+    num::NonZeroU64,
 };
 
 pub struct UpdateTracker<C: Component> {
@@ -89,7 +90,7 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
         uids: &ReadStorage<'_, Uid>,
         storage: &ReadStorage<'_, C>,
         entity_filter: impl Join + Copy,
-        buf: &mut Vec<(u64, CompUpdateKind<P>)>,
+        buf: &mut Vec<(NonZeroU64, CompUpdateKind<P>)>,
     ) where
         P: CompPacket,
         P: From<C>,

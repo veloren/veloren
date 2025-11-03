@@ -278,6 +278,7 @@ mod tests {
         resources::Time,
         uid::Uid,
     };
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_change_by_negative_health_change_adds_to_damage_contributors() {
@@ -285,7 +286,7 @@ mod tests {
         health.current = 100 * Health::SCALING_FACTOR_INT;
         health.maximum = health.current;
 
-        let damage_contrib = DamageContributor::Solo(Uid(0));
+        let damage_contrib = DamageContributor::Solo(Uid(NonZeroU64::new(1).unwrap()));
         let health_change = HealthChange {
             amount: -5.0,
             time: Time(123.0),
@@ -312,7 +313,7 @@ mod tests {
         health.maximum = 100 * Health::SCALING_FACTOR_INT;
         health.current = (health.maximum as f32 * 0.5) as u32;
 
-        let damage_contrib = DamageContributor::Solo(Uid(0));
+        let damage_contrib = DamageContributor::Solo(Uid(NonZeroU64::new(1).unwrap()));
         let health_change = HealthChange {
             amount: 20.0,
             time: Time(123.0),
@@ -333,7 +334,7 @@ mod tests {
         health.current = 100 * Health::SCALING_FACTOR_INT;
         health.maximum = health.current;
 
-        let damage_contrib = DamageContributor::Solo(Uid(0));
+        let damage_contrib = DamageContributor::Solo(Uid(NonZeroU64::new(1).unwrap()));
         let health_change = HealthChange {
             amount: -5.0,
             time: Time(123.0),
@@ -360,7 +361,7 @@ mod tests {
         health.current = 100 * Health::SCALING_FACTOR_INT;
         health.maximum = health.current;
 
-        let damage_contrib1 = DamageContributor::Solo(Uid(0));
+        let damage_contrib1 = DamageContributor::Solo(Uid(NonZeroU64::new(1).unwrap()));
         let health_change = HealthChange {
             amount: -5.0,
             time: Time(10.0),
@@ -371,7 +372,7 @@ mod tests {
         };
         health.change_by(health_change);
 
-        let damage_contrib2 = DamageContributor::Solo(Uid(1));
+        let damage_contrib2 = DamageContributor::Solo(Uid(NonZeroU64::new(2).unwrap()));
         let health_change = HealthChange {
             amount: -5.0,
             time: Time(100.0),
