@@ -72,6 +72,7 @@ impl Default for ChatFilter {
 #[serde(default)]
 pub struct ChatSettings {
     pub chat_opacity: f32,
+    pub lock_chat: bool,
     pub chat_character_name: bool,
     pub chat_tabs: Vec<ChatTab>,
     pub chat_tab_index: Option<usize>,
@@ -86,6 +87,7 @@ impl Default for ChatSettings {
     fn default() -> Self {
         Self {
             chat_opacity: 0.4,
+            lock_chat: false,
             chat_character_name: true,
             chat_tabs: vec![ChatTab::default()],
             chat_tab_index: Some(0),

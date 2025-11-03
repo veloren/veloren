@@ -311,44 +311,46 @@ impl Widget for Chat<'_> {
 
         let chat_in_screen_upper = chat_pos.y > ui.win_h / 2.0;
 
-        let pos_delta: Vec2<f64> = ui
-            .widget_input(state.ids.draggable_area)
-            .drags()
-            .left()
-            .map(|drag| Vec2::<f64>::from(drag.delta_xy))
-            .sum();
-        let new_pos = (chat_pos + pos_delta).map(|e| e.max(0.)).map2(
-            self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
-                - Vec2::unit_y() * CHAT_TAB_HEIGHT
-                - chat_size,
-            |e, bounds| e.min(bounds),
-        );
-        if new_pos.abs_diff_ne(&chat_pos, f64::EPSILON) {
-            events.push(Event::MoveChat(new_pos));
-        }
-        let size_delta: Vec2<f64> = ui
-            .widget_input(state.ids.draggable_area)
-            .drags()
-            .right()
-            .map(|drag| Vec2::<f64>::from(drag.delta_xy))
-            .sum();
-        let new_size = (chat_size + size_delta)
-            .map3(
-                self.scale.scale_point(MIN_DIMENSION),
-                self.scale.scale_point(MAX_DIMENSION),
-                |sz, min, max| sz.clamp(min, max),
-            )
-            .map2(
+        if !chat_settings.lock_chat {
+            let pos_delta: Vec2<f64> = ui
+                .widget_input(state.ids.draggable_area)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+            let new_pos = (chat_pos + pos_delta).map(|e| e.max(0.)).map2(
                 self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
                     - Vec2::unit_y() * CHAT_TAB_HEIGHT
-                    - new_pos,
+                    - chat_size,
                 |e, bounds| e.min(bounds),
             );
-        if new_size.abs_diff_ne(&chat_size, f64::EPSILON) {
-            events.push(Event::ResizeChat(new_size));
+            if new_pos.abs_diff_ne(&chat_pos, f64::EPSILON) {
+                events.push(Event::MoveChat(new_pos));
+            }
+            let size_delta: Vec2<f64> = ui
+                .widget_input(state.ids.draggable_area)
+                .drags()
+                .right()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+            let new_size = (chat_size + size_delta)
+                .map3(
+                    self.scale.scale_point(MIN_DIMENSION),
+                    self.scale.scale_point(MAX_DIMENSION),
+                    |sz, min, max| sz.clamp(min, max),
+                )
+                .map2(
+                    self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
+                        - Vec2::unit_y() * CHAT_TAB_HEIGHT
+                        - new_pos,
+                    |e, bounds| e.min(bounds),
+                );
+            if new_size.abs_diff_ne(&chat_size, f64::EPSILON) {
+                events.push(Event::ResizeChat(new_size));
+            }
         }
 
-        // Maintain scrolling //
+        // Maintain scrolling
         if !self.new_messages.is_empty() {
             for message in self.new_messages.iter() {
                 // Log the output of commands since the ingame terminal doesn't support copying
@@ -357,7 +359,7 @@ impl Widget for Chat<'_> {
                     tracing::info!("Chat command info: {:?}", message.content());
                 }
             }
-            //new messages - update chat w/ them & scroll down if at bottom of chat
+            // new messages - update chat w/ them & scroll down if at bottom of chat
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             // Prevent automatic scroll upon new messages if not already scrolled to bottom
             if Self::scrolled_to_bottom(state, ui) {
