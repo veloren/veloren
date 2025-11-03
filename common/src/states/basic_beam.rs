@@ -10,6 +10,7 @@ use crate::{
         body::{biped_large, bird_large, golem},
         character_state::OutputEvents,
         object::Body::{Flamethrower, Lavathrower},
+        quadruped_medium,
     },
     event::LocalEvent,
     outcome::Outcome,
@@ -262,6 +263,10 @@ fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Opt
             biped_large::Species::Gigasfire => body.height() * 0.18,
             _ => body.height() * 0.5,
         },
+        Body::QuadrupedMedium(b) => match b.species {
+            quadruped_medium::Species::Elephant => body.height() * 0.4,
+            _ => body.height() * 0.5,
+        },
         _ => body.height() * 0.5,
     }
 }
@@ -276,12 +281,19 @@ pub fn beam_offsets(
     let dim = body.dimensions();
     // The width (shoulder to shoulder) and length (nose to tail)
     let (width, length) = (dim.x, dim.y);
-    let body_radius = if length > width {
-        // Dachshund-like
-        body.max_radius()
-    } else {
-        // Cyclops-like
-        body.min_radius()
+    let body_radius = match body {
+        Body::QuadrupedMedium(b) if matches!(b.species, quadruped_medium::Species::Elephant) => {
+            body.max_radius() * 1.4
+        },
+        _ => {
+            if length > width {
+                // Dachshund-like
+                body.max_radius()
+            } else {
+                // Cyclops-like
+                body.min_radius()
+            }
+        },
     };
     let body_offsets_z = height_offset(body, look_dir, velocity, on_ground);
     Vec3::new(

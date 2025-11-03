@@ -115,6 +115,7 @@ const int FIRE_LOW_SHOCKWAVE = 73;
 const int PIPE_SMOKE = 74;
 const int TRAIN_SMOKE = 75;
 const int BUBBLE = 76;
+const int ELEPHANT_VACUUM = 77;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1224,6 +1225,15 @@ void main() {
                 vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
                 vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
+            );
+            break;
+        case ELEPHANT_VACUUM:
+            float vacuum_particle_size = 4.0 * (1 - slow_start(0.1)) * slow_end(0.15);
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1,
+                vec3(vacuum_particle_size),
+                vec4(0.4, 0.4, 0.4, 0.1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
             break;
         default:

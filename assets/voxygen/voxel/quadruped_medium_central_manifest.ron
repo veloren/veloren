@@ -1859,6 +1859,66 @@
             central: ("npc.mammoth.male.tail"),
         ),
     ),
+    (Elephant, Male): (
+        head: (
+            offset: (-15.0, -1.0, -9.0),
+            central: ("npc.elephant.male.head"),
+        ),
+        neck: (
+            offset: (-5.0, -2.5, -8.5),
+            central: ("npc.elephant.male.neck"),
+        ),
+        jaw: (
+            offset: (-3.0, -1.0, -9.5),
+            central: ("npc.elephant.male.trunk_jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -14.0, -13.0),
+            central: ("npc.elephant.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -15.0, -10.5),
+            central: ("npc.elephant.male.torso_back"),
+        ),
+        ears: (
+            offset: (-2.0, -2.0, -15.5),
+            central: ("npc.elephant.male.trunk_end"),
+        ),
+        tail: (
+            offset: (-2.0, -7.0, -12.0),
+            central: ("npc.elephant.male.tail"),
+        ),
+    ),
+    (Elephant, Female): (
+        head: (
+            offset: (-15.0, -1.0, -9.0),
+            central: ("npc.elephant.male.head"),
+        ),
+        neck: (
+            offset: (-5.0, -2.5, -8.5),
+            central: ("npc.elephant.male.neck"),
+        ),
+        jaw: (
+            offset: (-3.0, -1.0, -9.5),
+            central: ("npc.elephant.male.trunk_jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -14.0, -13.0),
+            central: ("npc.elephant.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -15.0, -10.5),
+            central: ("npc.elephant.male.torso_back"),
+        ),
+        ears: (
+            offset: (-2.0, -2.0, -15.5),
+            central: ("npc.elephant.male.trunk_end"),
+        ),
+        tail: (
+            offset: (-2.0, -7.0, -12.0),
+            central: ("npc.elephant.male.tail"),
+        ),
+    ),
     (Ngoubou, Male): (
         head: (
             offset: (-9.5, 0.0, -9.0),

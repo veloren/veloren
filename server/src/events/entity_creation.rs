@@ -6,8 +6,8 @@ use common::{
     CachedSpatialGrid,
     combat::AttackTarget,
     comp::{
-        self, Alignment, BehaviorCapability, Body, Inventory, ItemDrops, LightEmitter, Object, Ori,
-        Pos, ThrownItem, TradingBehavior, Vel, WaypointArea,
+        self, Alignment, BehaviorCapability, Body, Group, Inventory, ItemDrops, LightEmitter,
+        Object, Ori, Pos, ThrownItem, TradingBehavior, Vel, WaypointArea,
         aura::{Aura, AuraKind, AuraTarget},
         body,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
@@ -17,10 +17,10 @@ use common::{
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateObjectEvent,
-        CreateShipEvent, CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent,
-        InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent, SummonBeamPillarsEvent,
-        ThrowEvent, UpdateCharacterDataEvent,
+        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
+        CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent, EventBus,
+        InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent,
+        SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -258,6 +258,41 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
     }
 
     new_entity
+}
+
+pub fn handle_create_npc_group(server: &mut Server, ev: CreateNpcGroupEvent) {
+    let mut npcs = ev
+        .npcs
+        .into_iter()
+        .map(|ev| handle_create_npc(server, ev))
+        .collect::<Vec<_>>()
+        .into_iter();
+    let Some(leader) = npcs.next() else {
+        return;
+    };
+
+    let ecs = server.state().ecs();
+    let entities = ecs.entities();
+    let uids = ecs.read_storage::<Uid>();
+    let alignments = ecs.read_storage::<Alignment>();
+    let mut groups = ecs.write_storage::<Group>();
+    let mut group_manager = ecs.write_resource::<comp::group::GroupManager>();
+
+    if groups.get(leader).is_some() {
+        return;
+    }
+
+    for entity in npcs {
+        group_manager.add_group_member(
+            leader,
+            entity,
+            &entities,
+            &mut groups,
+            &alignments,
+            &uids,
+            |_, _| {},
+        );
+    }
 }
 
 pub fn handle_create_ship(server: &mut Server, ev: CreateShipEvent) {

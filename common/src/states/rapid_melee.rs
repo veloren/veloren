@@ -188,4 +188,5 @@ impl CharacterBehavior for Data {
 pub enum FrontendSpecifier {
     CultistVortex,
     IceWhirlwind,
+    ElephantVacuum,
 }

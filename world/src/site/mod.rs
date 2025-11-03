@@ -25,7 +25,7 @@ use common::{
     astar::Astar,
     calendar::Calendar,
     comp::Alignment,
-    generation::EntityInfo,
+    generation::{EntityInfo, EntitySpawn},
     lottery::Lottery,
     map::MarkerKind,
     spiral::Spiral2d,
@@ -3219,11 +3219,11 @@ impl Site {
             }
 
             for entity in entities {
-                canvas.spawn(entity);
+                canvas.spawn(EntitySpawn::Entity(Box::new(entity)));
             }
 
             for entity in entities_from_structure_blocks {
-                canvas.spawn(entity);
+                canvas.spawn(EntitySpawn::Entity(Box::new(entity)));
             }
         }
     }

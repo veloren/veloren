@@ -2,7 +2,7 @@ use crate::{CONFIG, IndexRef, column::ColumnSample, sim::SimChunk, util::close};
 use common::{
     assets::{AssetExt, Ron},
     calendar::{Calendar, CalendarEvent},
-    generation::{ChunkSupplement, EntityInfo},
+    generation::{ChunkSupplement, EntityInfo, EntitySpawn},
     resources::TimeOfDay,
     terrain::{BiomeKind, Block},
     time::DayPeriod,
@@ -10,7 +10,7 @@ use common::{
 };
 use rand::prelude::*;
 use serde::Deserialize;
-use std::f32;
+use std::{f32, iter};
 use vek::*;
 
 type Weight = u32;
@@ -122,7 +122,7 @@ pub enum SpawnMode {
 }
 
 impl Pack {
-    pub fn generate(&self, pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> (EntityInfo, u8) {
+    pub fn generate(&self, pos: Vec3<f32>, dynamic_rng: &mut impl Rng) -> EntitySpawn {
         let (_, (from, to, entity_asset)) = self
             .groups
             .choose_weighted(dynamic_rng, |(p, _group)| *p)
@@ -130,7 +130,13 @@ impl Pack {
         let entity = EntityInfo::at(pos).with_asset_expect(entity_asset, dynamic_rng, None);
         let group_size = dynamic_rng.random_range(*from..=*to);
 
-        (entity, group_size)
+        if group_size > 1 {
+            let group = iter::repeat_n(entity, group_size as usize).collect::<Vec<_>>();
+
+            EntitySpawn::Group(group)
+        } else {
+            EntitySpawn::Entity(Box::new(entity))
+        }
     }
 }
 
@@ -613,17 +619,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                     },
                 };
 
-                let (entity, group_size) = pack.generate(
-                    (wpos2d.map(|e| e as f32) + 0.5).with_z(desired_alt),
-                    dynamic_rng,
-                );
-                for e in 0..group_size {
-                    // Choose a nearby position
-                    let offs_wpos2d = (Vec2::new(
-                        (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).sin(),
-                        (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).cos(),
-                    ) * (5.0 + dynamic_rng.random::<f32>().powf(0.5) * 5.0))
-                        .map(|e| e as i32);
+                let spawn_offset = |offs_wpos2d: Vec2<i32>| {
                     // Clamp position to chunk
                     let offs_wpos2d = (offs + offs_wpos2d)
                         .clamped(Vec2::zero(), vol.size_xy().map(|e| e as i32) - 1)
@@ -644,11 +640,47 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                             })
                         });
 
-                    if let Some(z_offset) = z_offset {
-                        let mut entity = entity.clone();
-                        entity.pos += offs_wpos2d.with_z(z_offset).map(|e| e as f32);
-                        supplement.add_entity(entity);
-                    }
+                    z_offset.map(|z_offset| offs_wpos2d.with_z(z_offset).map(|e| e as f32))
+                };
+
+                let mut entity_spawn = pack.generate(
+                    (wpos2d.map(|e| e as f32) + 0.5).with_z(desired_alt),
+                    dynamic_rng,
+                );
+                match entity_spawn {
+                    EntitySpawn::Entity(ref mut entity) => {
+                        // Choose a nearby position
+                        let offs_wpos2d = (Vec2::new(0.0, 1.0)
+                            * (5.0 + dynamic_rng.random::<f32>().powf(0.5) * 5.0))
+                            .map(|e| e as i32);
+
+                        if let Some(spawn_offset) = spawn_offset(offs_wpos2d) {
+                            entity.pos += spawn_offset;
+                            supplement.add_entity_spawn(entity_spawn);
+                        }
+                    },
+                    EntitySpawn::Group(ref mut group) => {
+                        let group_size = group.len();
+                        for e in (0..group.len()).rev() {
+                            // Choose a nearby position
+                            let offs_wpos2d = (Vec2::new(
+                                (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).sin(),
+                                (e as f32 / group_size as f32 * 2.0 * f32::consts::PI).cos(),
+                            ) * (5.0
+                                + dynamic_rng.random::<f32>().powf(0.5) * 5.0))
+                                .map(|e| e as i32);
+
+                            if let Some(spawn_offset) = spawn_offset(offs_wpos2d) {
+                                group[e].pos += spawn_offset;
+                            } else {
+                                group.remove(e);
+                            }
+                        }
+
+                        if !group.is_empty() {
+                            supplement.add_entity_spawn(entity_spawn);
+                        }
+                    },
                 }
             }
         }

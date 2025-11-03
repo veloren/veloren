@@ -145,7 +145,9 @@ impl Animation for RunAnimation {
             * Quaternion::rotation_y(tilt * 0.6);
 
         next.ears.position = Vec3::new(0.0, s_a.ears.0, s_a.ears.1);
-        next.ears.orientation = Quaternion::rotation_x(amplitude * shortalt * 0.2 + 0.2);
+        if !s_a.ears_for_trunk {
+            next.ears.orientation = Quaternion::rotation_x(amplitude * shortalt * 0.2 + 0.2);
+        }
 
         next.leg_fl.position = Vec3::new(
             -s_a.leg_f.0,

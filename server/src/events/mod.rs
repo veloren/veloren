@@ -1,6 +1,6 @@
 use std::{marker::PhantomData, sync::Arc};
 
-use crate::{Server, state_ext::StateExt};
+use crate::{Server, events::entity_creation::handle_create_npc_group, state_ext::StateExt};
 use common::event::{
     ChatEvent, ClientDisconnectEvent, ClientDisconnectWithoutPersistenceEvent, CommandEvent,
     EventBus, ExitIngameEvent,
@@ -154,6 +154,7 @@ impl Server {
         self.handle_serial_events(|this, ev| {
             handle_create_npc(this, ev);
         });
+        self.handle_serial_events(handle_create_npc_group);
         self.handle_serial_events(handle_create_ship);
         self.handle_serial_events(handle_shoot);
         self.handle_serial_events(handle_throw);

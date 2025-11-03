@@ -193,6 +193,11 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
     Ok(configs.read().ids().map(|id| id.to_string()).collect())
 }
 
+pub enum EntitySpawn {
+    Entity(Box<EntityInfo>),
+    Group(Vec<EntityInfo>),
+}
+
 #[derive(Clone, Debug)]
 pub enum SpecialEntity {
     Waypoint,
@@ -594,12 +599,14 @@ impl EntityInfo {
 
 #[derive(Default)]
 pub struct ChunkSupplement {
-    pub entities: Vec<EntityInfo>,
+    pub entity_spawns: Vec<EntitySpawn>,
     pub rtsim_max_resources: EnumMap<rtsim::TerrainResource, usize>,
 }
 
 impl ChunkSupplement {
-    pub fn add_entity(&mut self, entity: EntityInfo) { self.entities.push(entity); }
+    pub fn add_entity_spawn(&mut self, entity_spawn: EntitySpawn) {
+        self.entity_spawns.push(entity_spawn);
+    }
 }
 
 #[cfg(test)]

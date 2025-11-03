@@ -8,7 +8,7 @@ use crate::{
 };
 use common::{
     calendar::Calendar,
-    generation::EntityInfo,
+    generation::{EntityInfo, EntitySpawn},
     spot::Spot,
     terrain::{Block, BlockKind, SpriteCfg, Structure, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, WriteVol},
@@ -136,7 +136,7 @@ impl<'a> CanvasInfo<'a> {
 pub struct Canvas<'a> {
     pub(crate) info: CanvasInfo<'a>,
     pub(crate) chunk: &'a mut TerrainChunk,
-    pub(crate) entities: Vec<EntityInfo>,
+    pub(crate) entity_spawns: Vec<EntitySpawn>,
     pub(crate) rtsim_resource_blocks: Vec<Vec3<i32>>,
 }
 
@@ -312,7 +312,9 @@ impl<'a> Canvas<'a> {
             }
         });
         for (pos, spec) in entities.drain(..) {
-            self.spawn(EntityInfo::at(pos).with_asset_expect(&spec, &mut rng, None));
+            self.spawn(EntitySpawn::Entity(Box::new(
+                EntityInfo::at(pos).with_asset_expect(&spec, &mut rng, None),
+            )));
         }
     }
 
@@ -330,7 +332,7 @@ impl<'a> Canvas<'a> {
             .map(|z| wpos.xy().with_z(z))
     }
 
-    pub fn spawn(&mut self, entity: EntityInfo) { self.entities.push(entity); }
+    pub fn spawn(&mut self, entity_spawn: EntitySpawn) { self.entity_spawns.push(entity_spawn); }
 }
 
 impl<'a> Deref for Canvas<'a> {

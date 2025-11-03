@@ -12,6 +12,7 @@ SpawnEntry (
                 (14, (1, 1, "common.entity.wild.peaceful.pangolin")),
                 (4, (1, 1, "common.entity.wild.aggressive.tarantula")),
                 (1, (1, 1, "common.entity.wild.aggressive.ngoubou")),
+                (1, (1, 2, "common.entity.wild.peaceful.elephant")),
             ],
             spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],

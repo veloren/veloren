@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use super::{
     super::{Animation, vek::*},
     QuadrupedMediumSkeleton, SkeletonAttr, quadruped_medium_alpha, quadruped_medium_beta,
@@ -34,6 +36,50 @@ impl Animation for ComboAnimation {
 
         for strike in 0..=current_strike {
             match ability_id {
+                Some("common.abilities.custom.elephant.gouge") => {
+                    let (move1base, move2base, move3base) = match stage_section {
+                        StageSection::Buildup => (anim_time, 0.0, 0.0),
+                        StageSection::Action => (1.0, anim_time, 0.0),
+                        StageSection::Recover => (1.0, 1.0, anim_time),
+                        _ => (0.0, 0.0, 0.0),
+                    };
+                    let move2pullback = 1.0 - move2base;
+                    let pullback = 1.0 - move3base;
+                    let subtract = global_time - timer;
+                    let check = subtract - subtract.trunc();
+                    let mirror = (check - 0.5).signum();
+                    let move1 = mirror * move1base * pullback;
+                    let move2 = mirror * move2base * pullback;
+                    let move1abs = move1base * pullback;
+                    let move2abs = move2base * pullback;
+
+                    if mirror > 0.0 {
+                        next.leg_fl
+                            .orientation
+                            .rotate_x(-PI / 10.0 * move1base * move2pullback);
+                        next.foot_fl.position +=
+                            Vec3::new(0.0, 0.0, 0.0) * move1base * move2pullback;
+                        next.foot_fl
+                            .orientation
+                            .rotate_x(-PI / 12.0 * move1base * move2pullback);
+                    } else {
+                        next.leg_fr
+                            .orientation
+                            .rotate_x(-PI / 10.0 * move1base * move2pullback);
+                        next.foot_fr.position +=
+                            Vec3::new(0.0, 0.0, 0.0) * move1base * move2pullback;
+                        next.foot_fr
+                            .orientation
+                            .rotate_x(-PI / 12.0 * move1base * move2pullback);
+                    }
+                    next.head.orientation.rotate_x(-PI / 5.0 * move1abs);
+                    next.head.orientation.rotate_y(PI / 8.0 * move1);
+
+                    next.head.orientation.rotate_x(PI / 3.0 * move2abs);
+                    next.head.orientation.rotate_z(-PI / 3.0 * move2);
+                    next.jaw.orientation.rotate_x(PI / 3.0 * move2abs);
+                    next.ears.orientation.rotate_x(PI / 6.0 * move2abs);
+                },
                 Some(
                     "common.abilities.custom.frostfang.singlestrike"
                     | "common.abilities.custom.frostfang.triplestrike",

@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use common::{
-    generation::EntityInfo,
+    generation::{EntityInfo, EntitySpawn},
     terrain::{
         Block, BlockKind, CoordinateConversions, SpriteKind, TerrainChunkSize,
         quadratic_nearest_point, river_spline_coeffs, sprite::SpriteCfg,
@@ -1922,11 +1922,9 @@ fn apply_entity_spawns<R: Rng>(canvas: &mut Canvas, wpos: Vec3<i32>, biome: &Bio
         .ok()
         .and_then(|s| s.0)
     {
-        canvas.spawn(EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(
-            entity_asset,
-            rng,
-            None,
-        ));
+        canvas.spawn(EntitySpawn::Entity(Box::new(
+            EntityInfo::at(wpos.map(|e| e as f32)).with_asset_expect(entity_asset, rng, None),
+        )));
     }
 
     // FIXME: Add back waypoints once caves are not impossible to escape.

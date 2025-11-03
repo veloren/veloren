@@ -550,6 +550,15 @@
         secondary: Simple(None, "common.abilities.custom.quadlowbasic.singlestrike"),
         abilities: [],
     ),
+    Custom("Elephant"): (
+        primary: Simple(None, "common.abilities.custom.elephant.gouge"),
+        secondary: Simple(None, "common.abilities.custom.elephant.dash"),
+        abilities: [
+            Simple(None, "common.abilities.custom.elephant.stomp"),
+            Simple(None, "common.abilities.custom.elephant.water"),
+            Simple(None, "common.abilities.custom.elephant.vacuum"),
+        ],
+    ),
     Custom("Rocksnapper"): (
         primary: Simple(None, "common.abilities.custom.rocksnapper.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.rocksnapper.dash"),

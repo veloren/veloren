@@ -49,7 +49,7 @@ use common::{
     assets::{self, BoxedError, FileAsset, load_ron},
     calendar::Calendar,
     comp::Content,
-    generation::{ChunkSupplement, EntityInfo, SpecialEntity},
+    generation::{ChunkSupplement, EntityInfo, EntitySpawn, SpecialEntity},
     lod,
     map::{Marker, MarkerKind},
     resources::TimeOfDay,
@@ -471,7 +471,7 @@ impl World {
                 calendar,
             },
             chunk: &mut chunk,
-            entities: Vec::new(),
+            entity_spawns: Vec::new(),
             rtsim_resource_blocks: Vec::new(),
         };
 
@@ -513,7 +513,7 @@ impl World {
 
         let mut rtsim_resource_blocks = std::mem::take(&mut canvas.rtsim_resource_blocks);
         let mut supplement = ChunkSupplement {
-            entities: std::mem::take(&mut canvas.entities),
+            entity_spawns: std::mem::take(&mut canvas.entity_spawns),
             rtsim_max_resources: Default::default(),
         };
         drop(canvas);
@@ -543,8 +543,9 @@ impl World {
                 .fold(SpawnRules::default(), |a, b| a.combine(b))
                 .waypoints
             {
-                supplement
-                    .add_entity(EntityInfo::at(waypoint_pos).into_special(SpecialEntity::Waypoint));
+                supplement.add_entity_spawn(EntitySpawn::Entity(Box::new(
+                    EntityInfo::at(waypoint_pos).into_special(SpecialEntity::Waypoint),
+                )));
             }
         }
 

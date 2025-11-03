@@ -1,3 +1,4 @@
+pub mod beam;
 pub mod combomelee;
 pub mod dash;
 pub mod feed;
@@ -5,15 +6,17 @@ pub mod hoof;
 pub mod idle;
 pub mod jump;
 pub mod leapmelee;
+pub mod rapid_melee;
 pub mod run;
 pub mod shockwave;
 pub mod stunned;
 
 // Reexports
 pub use self::{
-    combomelee::ComboAnimation, dash::DashAnimation, feed::FeedAnimation, hoof::HoofAnimation,
-    idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, stunned::StunnedAnimation,
+    beam::BeamAnimation, combomelee::ComboAnimation, dash::DashAnimation, feed::FeedAnimation,
+    hoof::HoofAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapMeleeAnimation,
+    rapid_melee::RapidMeleeAnimation, run::RunAnimation, shockwave::ShockwaveAnimation,
+    stunned::StunnedAnimation,
 };
 
 use super::{FigureBoneData, Skeleton, vek::*};
@@ -63,7 +66,8 @@ impl Skeleton for QuadrupedMediumSkeleton {
         buf: &mut [FigureBoneData; super::MAX_BONE_COUNT],
         body: Self::Body,
     ) -> Self::ComputedSkeleton {
-        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+        let s_a = SkeletonAttr::from(&body);
+        let base_mat = base_mat * Mat4::scaling_3d(s_a.scaler / 11.0);
 
         let torso_front_mat = base_mat * Mat4::<f32>::from(self.torso_front);
         let torso_back_mat = torso_front_mat * Mat4::<f32>::from(self.torso_back);
@@ -73,6 +77,11 @@ impl Skeleton for QuadrupedMediumSkeleton {
         let leg_bl_mat = torso_back_mat * Mat4::<f32>::from(self.leg_bl);
         let leg_br_mat = torso_back_mat * Mat4::<f32>::from(self.leg_br);
         let head_mat = neck_mat * Mat4::<f32>::from(self.head);
+        let ears_mat = if s_a.ears_for_trunk {
+            head_mat * Mat4::<f32>::from(self.jaw) * Mat4::<f32>::from(self.ears)
+        } else {
+            head_mat * Mat4::<f32>::from(self.ears)
+        };
 
         let computed_skeleton = ComputedQuadrupedMediumSkeleton {
             head: head_mat,
@@ -81,7 +90,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
             tail: torso_back_mat * Mat4::<f32>::from(self.tail),
             torso_front: torso_front_mat,
             torso_back: torso_back_mat,
-            ears: head_mat * Mat4::<f32>::from(self.ears),
+            ears: ears_mat,
             leg_fl: leg_fl_mat,
             leg_fr: leg_fr_mat,
             leg_bl: leg_bl_mat,
@@ -114,6 +123,7 @@ pub struct SkeletonAttr {
     tempo: f32,
     spring: f32,
     feed: (bool, f32),
+    ears_for_trunk: bool,
 }
 
 impl<'a> TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -146,6 +156,7 @@ impl Default for SkeletonAttr {
             tempo: 0.0,
             spring: 0.0,
             feed: (false, 0.0),
+            ears_for_trunk: false,
         }
     }
 }
@@ -190,6 +201,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, Female) => (3.5, 0.5),
                 (Snowleopard, _) => (1.5, 0.5),
                 (Mammoth, _) => (0.5, -1.5),
+                (Elephant, _) => (0.5, -1.5),
                 (Ngoubou, _) => (0.5, -2.5),
                 (Llama, _) => (0.5, 10.0),
                 (Alpaca, _) => (0.5, 7.5),
@@ -231,6 +243,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (-0.5, 0.5),
                 (Snowleopard, _) => (0.0, 1.5),
                 (Mammoth, _) => (0.5, -0.5),
+                (Elephant, _) => (0.5, -0.5),
                 (Ngoubou, _) => (2.0, 1.0),
                 (Llama, _) => (2.5, 4.5),
                 (Alpaca, _) => (-1.5, 3.0),
@@ -273,6 +286,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, Female) => (6.0, -2.5),
                 (Snowleopard, _) => (3.0, -3.0),
                 (Mammoth, _) => (9.5, -3.0),
+                (Elephant, _) => (9.5, -3.0),
                 (Ngoubou, _) => (1.5, -4.0),
                 (Llama, _) => (4.0, -1.0),
                 (Alpaca, _) => (3.0, -2.5),
@@ -314,6 +328,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (-12.5, 3.5),
                 (Snowleopard, _) => (-10.5, 3.0),
                 (Mammoth, _) => (-13.0, -1.5),
+                (Elephant, _) => (-13.0, -1.5),
                 (Ngoubou, _) => (-12.0, 5.5),
                 (Llama, _) => (-9.0, 6.0),
                 (Alpaca, _) => (-8.5, 3.5),
@@ -355,6 +370,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (1.5, 19.5),
                 (Snowleopard, _) => (1.5, 13.0),
                 (Mammoth, _) => (11.5, 20.5),
+                (Elephant, _) => (11.5, 20.5),
                 (Ngoubou, _) => (9.5, 16.5),
                 (Llama, _) => (7.0, 15.0),
                 (Alpaca, _) => (7.0, 11.5),
@@ -396,6 +412,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (-10.0, -1.0),
                 (Snowleopard, _) => (-11.0, 0.0),
                 (Mammoth, _) => (-13.0, -2.5),
+                (Elephant, _) => (-13.0, -2.5),
                 (Ngoubou, _) => (-8.0, -2.0),
                 (Llama, _) => (-8.0, 0.0),
                 (Alpaca, _) => (-6.0, 0.0),
@@ -438,6 +455,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, Female) => (2.0, 4.5),
                 (Snowleopard, _) => (1.5, 3.0),
                 (Mammoth, _) => (12.0, -3.0),
+                (Elephant, _) => (0.0, 0.0),
                 (Ngoubou, _) => (12.0, -3.0),
                 (Llama, _) => (1.0, 3.5),
                 (Alpaca, _) => (1.0, 2.0),
@@ -479,6 +497,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (5.5, -4.0, 1.0),
                 (Snowleopard, _) => (6.5, -4.0, -2.5),
                 (Mammoth, _) => (10.0, -5.0, -5.0),
+                (Elephant, _) => (10.0, -5.0, -5.0),
                 (Ngoubou, _) => (7.5, -4.0, -1.5),
                 (Llama, _) => (5.0, -1.5, -1.0),
                 (Alpaca, _) => (3.5, -2.5, -0.5),
@@ -520,6 +539,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (4.5, -10.0, -2.0),
                 (Snowleopard, _) => (5.5, -5.0, -1.5),
                 (Mammoth, _) => (7.5, -7.0, -5.0),
+                (Elephant, _) => (7.5, -7.0, -5.0),
                 (Ngoubou, _) => (4.5, -9.5, 0.0),
                 (Llama, _) => (5.0, -7.0, -2.0),
                 (Alpaca, _) => (3.5, -7.0, 0.0),
@@ -561,6 +581,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (-1.0, 1.5, -9.5),
                 (Snowleopard, _) => (0.5, 0.5, -4.5),
                 (Mammoth, _) => (-0.5, -0.5, -6.0),
+                (Elephant, _) => (-0.5, -0.5, -6.0),
                 (Ngoubou, _) => (-1.0, 0.5, -6.0),
                 (Llama, _) => (-0.5, 0.5, -6.0),
                 (Alpaca, _) => (0.0, -0.5, -5.0),
@@ -602,6 +623,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => (-1.0, 0.0, -6.5),
                 (Snowleopard, _) => (0.5, 0.5, -5.5),
                 (Mammoth, _) => (0.5, -0.5, -4.5),
+                (Elephant, _) => (0.5, -0.5, -4.5),
                 (Ngoubou, _) => (0.5, 1.0, -5.5),
                 (Llama, _) => (0.5, -1.5, -3.5),
                 (Alpaca, _) => (-0.5, -0.5, -5.5),
@@ -634,6 +656,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Moose, _) => 0.95,
                 (Snowleopard, _) => 0.95,
                 (Mammoth, _) => 3.0,
+                (Elephant, _) => 3.0,
                 (Ngoubou, _) => 1.2,
                 (Akhlut, _) => 1.4,
                 (Bristleback, _) => 1.1,
@@ -717,6 +740,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Horse, _) => (true, 0.85),
                 _ => (false, 0.0),
             },
+            ears_for_trunk: matches!(body.species, Elephant),
         }
     }
 }
@@ -803,6 +827,7 @@ pub fn mount_transform(
         (Moose, _) => (0.0, -9.0, 7.0),
         (Snowleopard, _) => (0.0, -9.0, 5.0),
         (Mammoth, _) => (0.0, 5.0, 8.0),
+        (Elephant, _) => (0.0, 5.0, 8.0),
         (Ngoubou, _) => (0.0, -7.5, 7.5),
         (Llama, _) => (0.0, -6.0, 5.0),
         (Alpaca, _) => (0.0, -9.0, 4.0),
@@ -872,7 +897,9 @@ pub fn quadruped_medium_alpha(
     next.torso_back.orientation = Quaternion::rotation_y(movement1 * 0.25 + movement1 * -0.25)
         * Quaternion::rotation_z(movement1 * -0.4 + movement2 * 0.65);
 
-    next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    if !s_a.ears_for_trunk {
+        next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    }
     if speed < 0.5 {
         next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
             * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)
@@ -950,7 +977,9 @@ pub fn quadruped_medium_beta(
     next.torso_back.orientation = Quaternion::rotation_y(movement1 * 0.25 + movement1 * -0.25)
         * Quaternion::rotation_z(movement1 * -0.4 + movement2 * 0.65);
 
-    next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    if !s_a.ears_for_trunk {
+        next.ears.orientation = Quaternion::rotation_x(twitchmovement * 0.2);
+    }
     if speed < 0.5 {
         next.leg_fl.orientation = Quaternion::rotation_x(movement1abs * 0.8 + movement2abs * -0.6)
             * Quaternion::rotation_y(movement1 * -0.3 + movement2 * 0.3)

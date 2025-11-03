@@ -99,6 +99,7 @@ impl Body {
                 quadruped_medium::Species::Moose => 105.0,
                 quadruped_medium::Species::Snowleopard => 115.0,
                 quadruped_medium::Species::Mammoth => 75.0,
+                quadruped_medium::Species::Elephant => 75.0,
                 quadruped_medium::Species::Ngoubou => 95.0,
                 quadruped_medium::Species::Llama => 100.0,
                 quadruped_medium::Species::Alpaca => 100.0,
