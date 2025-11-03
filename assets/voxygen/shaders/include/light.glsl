@@ -274,7 +274,7 @@ void apply_cell_material(
             break;
         // Shiny
         case 2:
-            render_alpha = 0.6;
+            render_alpha = 0.2;
             break;
         // Fire
         case 3:

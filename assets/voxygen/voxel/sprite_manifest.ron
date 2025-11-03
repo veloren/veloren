@@ -2849,6 +2849,11 @@ Anvil: [(
             model: "voxygen.voxel.sprite.crafting_station.anvil",
             offset: (-5.5, -7.0, 0.0),
             lod_axes: (0.0, 0.0, 0.0),
+            custom_indices: {
+                112: (attr: Shiny),
+                113: (attr: Shiny),
+                114: (attr: Shiny),
+            },
         ),
     ],
     wind_sway: 0.0,

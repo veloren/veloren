@@ -193,7 +193,13 @@ void main() {
                             }
                         #endif
 
+                        // For 'generic' reflective options, smearing is generally a sensible strategy
+                        // For fluids (large reflective bodies) specifically, it can look strange - so don't enable it by default
                         #ifdef EXPERIMENTAL_SMEARREFLECTIONS
+                            if (true) {
+                        #else
+                            if (mat.a != MAT_FLUID) {
+                        #endif
                             const float SMEAR_FRAC = 0.2;
                             vec2 anew_uv = abs(new_uv - 0.5) * 2;
                             new_uv = mix(
@@ -201,9 +207,9 @@ void main() {
                                 1.0 - SMEAR_FRAC + (1.0 - 1.0 / (1.0 + (anew_uv - 1.0 + SMEAR_FRAC))) * SMEAR_FRAC,
                                 lessThan(vec2(1.0 - SMEAR_FRAC), anew_uv)
                             ) * sign(new_uv - 0.5) * 0.5 + 0.5;
-                        #else
+                        } else {
                             new_uv = clamp(new_uv, vec2(0), vec2(1));
-                        #endif
+                        }
 
                         vec3 new_wpos = wpos_at(new_uv);
                         float new_dist = distance(new_wpos, cam_pos.xyz);

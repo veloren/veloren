@@ -125,7 +125,7 @@ void main() {
     float f_ao;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
-
+    
 #ifdef EXPERIMENTAL_BAREMINIMUM
     tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
 #else

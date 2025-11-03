@@ -29,9 +29,10 @@ layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
 layout(location = 4) in vec2 f_inst_light;
+layout(location = 5) in vec3 m_pos;
 
 #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-layout(location = 5) flat in uint f_inst_idx;
+layout(location = 6) flat in uint f_inst_idx;
 #endif
 
 layout(set = 2, binding = 0)
@@ -49,10 +50,9 @@ layout(location = 1) out uvec4 tgt_mat;
 const float FADE_DIST = 32.0;
 
 void main() {
-    float render_alpha = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
-
     #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-        if (dither(gl_FragCoord.xy, render_alpha, f_inst_idx)) {
+        float dither_factor = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
+        if (dither(gl_FragCoord.xy, dither_factor, f_inst_idx)) {
             discard;
         }
     #endif
@@ -60,7 +60,7 @@ void main() {
     float f_ao;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
-
+    
 #ifdef EXPERIMENTAL_BAREMINIMUM
     tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
 #else
@@ -140,6 +140,8 @@ void main() {
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
 
+    float render_alpha = 1.0;
+    
     if ((material & 31u) != 0) {
         apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha);
     }
