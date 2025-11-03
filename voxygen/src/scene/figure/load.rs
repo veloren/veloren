@@ -32,7 +32,7 @@ use common::{
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
     terrain::Block,
-    vol::{IntoFullPosIterator, ReadVol},
+    vol::{FilledVox, IntoFullPosIterator, ReadVol},
     volumes::dyna::Dyna,
 };
 use hashbrown::HashMap;
@@ -400,13 +400,14 @@ impl HumHeadSpec {
             .maybe_add(beard)
             .maybe_add(accessory)
             .maybe_add(helmet)
-            .unify_with(|v, old_v| match old_v {
-                Cell::Filled {
-                    override_hollow: true,
-                    ..
-                } => old_v,
-                Cell::Empty { hollowing: true } => Cell::empty(),
-                _ => v,
+            .unify_with(|v, old_v| {
+                if old_v.is_override_hollow() {
+                    old_v
+                } else if old_v.is_hollowing() {
+                    Cell::empty()
+                } else {
+                    v
+                }
             });
         (
             head,
@@ -6145,7 +6146,8 @@ impl ItemCentralSpec {
                 )
                 .map(|mat_cell| match mat_cell {
                     // Skin and hollowing cells get set to empty
-                    MatCell::Mat(_) | MatCell::Normal(Cell::Empty { hollowing: true }) => {
+                    MatCell::Mat(_) => Some(MatCell::Normal(Cell::empty())),
+                    MatCell::Normal(cell) if cell.is_hollowing() => {
                         Some(MatCell::Normal(Cell::empty()))
                     },
                     _ => None,
@@ -6177,7 +6179,9 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
-        if let Ok(Cell::Filled { .. }) = segment.get(pos) {
+        if let Ok(cell) = segment.get(pos)
+            && cell.is_filled()
+        {
             if pos.x < x_min {
                 x_min = pos.x;
             } else if pos.x > x_max {

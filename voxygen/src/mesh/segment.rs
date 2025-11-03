@@ -97,7 +97,7 @@ where
                 .and_then(|vox| vox.get_color())
                 .unwrap_or_else(Rgb::zero);
             let surf = cell
-                .and_then(|vox| vox.surf())
+                .and_then(|vox| vox.get_surf())
                 .unwrap_or(CellSurface::Matte);
             *col_light = TerrainVertex::make_col_light_figure(light, col, surf);
         },
@@ -339,7 +339,7 @@ where
         },
         make_face_texel: move |col_light: &mut [u8; 4], flat: &mut _, pos, light, _glow, _ao| {
             let cell = flat_get(flat, pos);
-            let surf = cell.surf().unwrap_or(CellSurface::Matte);
+            let surf = cell.get_surf().unwrap_or(CellSurface::Matte);
             *col_light = TerrainVertex::make_col_light_figure(light, get_color(flat, pos), surf);
         },
     });

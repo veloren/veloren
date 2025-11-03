@@ -154,11 +154,11 @@
             offset: (-9.0, -10.0, 0.0),
             central: ("object.campfire_lit"),
             custom_indices: {
-                14: Filled(surf: Fire),
-                15: Filled(surf: Fire),
-                16: Filled(surf: Fire),
-                129: Filled(surf: Fire),
-                130: Filled(surf: Fire),
+                14: (attr: Fire),
+                15: (attr: Fire),
+                16: (attr: Fire),
+                129: (attr: Fire),
+                130: (attr: Fire),
             },
         ),
         bone1: (

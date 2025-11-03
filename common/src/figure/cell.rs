@@ -1,8 +1,10 @@
 use crate::vol::FilledVox;
+use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, num_derive::FromPrimitive)]
+#[repr(u8)]
 pub enum CellSurface {
     Matte = 0,
     Glowy = 1,
@@ -10,106 +12,141 @@ pub enum CellSurface {
     Fire = 3,
 }
 
-/// A type representing a single voxel in a figure.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Cell {
-    /// `hollowing` determines whether this cell should hollow out others during
-    /// masking operations.
-    Empty {
-        #[serde(default)]
-        hollowing: bool,
-    },
-    Filled {
-        #[serde(default)]
-        col: Rgb<u8>,
-        surf: CellSurface,
-        #[serde(default)]
-        override_hollow: bool,
-    },
+#[serde(from = "CellSurface")]
+// Bits
+// 0..5 = CellSurface
+// 5..7 = Fill (0 = empty, 1 = hollow, 2 = filled, 3 = override hollow)
+pub struct CellAttr(u8);
+
+impl From<CellSurface> for CellAttr {
+    fn from(surf: CellSurface) -> Self { Self::filled(surf, false) }
 }
 
-impl Cell {
-    pub fn empty() -> Self { Self::Empty { hollowing: false } }
+impl CellAttr {
+    const EMPTY: u8 = 0 << 5;
+    const FILLED: u8 = 2 << 5;
+    const FILL_MASK: u8 = 0b11 << 5;
+    const HOLLOW: u8 = 1 << 5;
+    const OVERRIDE: u8 = 3 << 5;
 
-    pub fn filled(col: Rgb<u8>, surf: CellSurface) -> Self {
-        Self::Filled {
-            col,
-            surf,
-            override_hollow: false,
+    #[inline]
+    fn empty(is_hollow: bool) -> Self { Self(if is_hollow { Self::HOLLOW } else { Self::EMPTY }) }
+
+    #[inline]
+    fn filled(surf: CellSurface, is_override: bool) -> Self {
+        Self(
+            surf as u8
+                | if is_override {
+                    Self::OVERRIDE
+                } else {
+                    Self::FILLED
+                },
+        )
+    }
+
+    #[inline]
+    pub fn get_surf(&self) -> Option<CellSurface> {
+        if self.is_filled() {
+            CellSurface::from_u8(self.0 & 0b11111)
+        } else {
+            None
         }
     }
 
+    #[inline]
+    pub fn is_filled(&self) -> bool {
+        matches!(self.0 & Self::FILL_MASK, Self::FILLED | Self::OVERRIDE)
+    }
+
+    #[inline]
+    fn is_override_hollow(&self) -> bool { self.0 & Self::FILL_MASK == Self::OVERRIDE }
+
+    #[inline]
+    fn is_hollowing(&self) -> bool { self.0 & Self::FILL_MASK == Self::HOLLOW }
+}
+
+/// A type representing a single voxel in a figure.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Cell {
+    attr: CellAttr,
+    #[serde(default)]
+    col: Rgb<u8>,
+}
+
+const _: () = assert!(4 == std::mem::size_of::<Cell>());
+const _: () = assert!(1 == std::mem::align_of::<Cell>());
+
+impl Cell {
+    #[inline]
+    pub fn empty() -> Self {
+        Self {
+            col: Rgb::zero(),
+            attr: CellAttr::empty(false),
+        }
+    }
+
+    #[inline]
+    pub fn filled(col: Rgb<u8>, surf: CellSurface) -> Self {
+        Self {
+            col,
+            attr: CellAttr::filled(surf, false),
+        }
+    }
+
+    #[inline]
     pub fn from_index(index: u8, col: Rgb<u8>) -> Cell {
         match index {
-            8..13 => Self::Filled {
+            8..13 => Self::filled(col, CellSurface::Shiny),
+            13..16 => Self::filled(col, CellSurface::Glowy),
+            16 => Self {
                 col,
-                surf: CellSurface::Shiny,
-                override_hollow: false,
+                attr: CellAttr::empty(true),
             },
-            13..16 => Self::Filled {
+            17..22 => Self {
                 col,
-                surf: CellSurface::Glowy,
-                override_hollow: false,
+                attr: CellAttr::filled(CellSurface::Matte, true),
             },
-            16 => Self::Empty { hollowing: true },
-            17..22 => Self::Filled {
-                col,
-                surf: CellSurface::Matte,
-                override_hollow: true,
-            },
-            _ => Self::Filled {
-                col,
-                surf: CellSurface::Matte,
-                override_hollow: false,
-            },
+            _ => Self::filled(col, CellSurface::Matte),
         }
     }
 
+    #[inline]
     pub fn get_color(&self) -> Option<Rgb<u8>> {
-        match self {
-            Cell::Filled { col, .. } => Some(*col),
-            Cell::Empty { .. } => None,
+        if self.is_filled() {
+            Some(self.col)
+        } else {
+            None
         }
     }
 
-    pub fn surf(&self) -> Option<CellSurface> {
-        match self {
-            Cell::Filled { surf, .. } => Some(*surf),
-            Cell::Empty { .. } => None,
-        }
-    }
+    #[inline]
+    pub fn get_surf(&self) -> Option<CellSurface> { self.attr.get_surf() }
+
+    #[inline]
+    pub fn is_override_hollow(&self) -> bool { self.attr.is_override_hollow() }
+
+    #[inline]
+    pub fn is_hollowing(&self) -> bool { self.attr.is_hollowing() }
 
     /// Transform cell colors
     #[must_use]
-    pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
-        match self {
-            Self::Filled {
-                col,
-                surf,
-                override_hollow,
-            } => Self::Filled {
-                col: transform(col),
-                surf,
-                override_hollow,
-            },
-            this => this,
-        }
+    pub fn map_rgb(mut self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
+        self.col = transform(self.col);
+        self
     }
+}
+
+impl core::ops::Deref for Cell {
+    type Target = CellAttr;
+
+    fn deref(&self) -> &Self::Target { &self.attr }
 }
 
 impl FilledVox for Cell {
+    #[inline]
     fn default_non_filled() -> Self { Cell::empty() }
 
-    fn is_filled(&self) -> bool { matches!(self, Cell::Filled { .. }) }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn cell_size() {
-        assert_eq!(4, std::mem::size_of::<Cell>());
-        assert_eq!(1, std::mem::align_of::<Cell>());
-    }
+    #[inline]
+    fn is_filled(&self) -> bool { self.attr.is_filled() }
 }

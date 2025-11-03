@@ -199,9 +199,8 @@ fn graceful_load_segment_no_skin(
     let seg = mat_seg
         .map(|mat_cell| match mat_cell {
             // Skin and hollow cells are replaced with empty
-            MatCell::Mat(_) | MatCell::Normal(Cell::Empty { hollowing: true }) => {
-                Some(MatCell::Normal(Cell::empty()))
-            },
+            MatCell::Mat(_) => Some(MatCell::Normal(Cell::empty())),
+            MatCell::Normal(cell) if cell.is_hollowing() => Some(MatCell::Normal(Cell::empty())),
             _ => None,
         })
         .to_segment(|_| Default::default());

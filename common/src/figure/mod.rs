@@ -22,14 +22,15 @@ pub type TerrainSegment = Dyna<Block, ()>;
 impl From<Segment> for TerrainSegment {
     fn from(value: Segment) -> Self {
         TerrainSegment::from_fn(value.sz, (), |pos| match value.get(pos) {
-            Err(_) | Ok(Cell::Empty { .. }) => Block::air(SpriteKind::Empty),
-            Ok(Cell::Filled { col, surf, .. }) => {
-                let kind = match surf {
+            Err(_) => Block::air(SpriteKind::Empty),
+            Ok(cell) if !cell.is_filled() => Block::air(SpriteKind::Empty),
+            Ok(cell) => {
+                let kind = match cell.get_surf().unwrap_or(CellSurface::Matte) {
                     CellSurface::Glowy => BlockKind::GlowingRock,
                     CellSurface::Fire => BlockKind::Lava,
                     CellSurface::Matte | CellSurface::Shiny => BlockKind::Misc,
                 };
-                Block::new(kind, *col)
+                Block::new(kind, cell.get_color().unwrap_or_default())
             },
         })
     }
