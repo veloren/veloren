@@ -141,9 +141,10 @@ void main() {
     emitted_light *= point_shadow;
 
     float render_alpha = 1.0;
+    uint render_mat = MAT_FIGURE;
     
     if ((material & 31u) != 0) {
-        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha);
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha, render_mat);
     }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
@@ -156,7 +157,7 @@ void main() {
         tgt_color = vec4(surf_color, render_alpha);
     #endif
 
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), render_mat);
     //tgt_color = vec4(-f_norm, 1.0);
 #endif
 }

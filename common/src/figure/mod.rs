@@ -28,6 +28,7 @@ impl From<Segment> for TerrainSegment {
                 let kind = match cell.get_surf().unwrap_or(CellSurface::Matte) {
                     CellSurface::Glowy => BlockKind::GlowingRock,
                     CellSurface::Fire => BlockKind::Lava,
+                    CellSurface::Water => BlockKind::Water,
                     CellSurface::Matte | CellSurface::Shiny => BlockKind::Misc,
                 };
                 Block::new(kind, cell.get_color().unwrap_or_default())

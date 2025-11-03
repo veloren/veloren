@@ -118,7 +118,7 @@ void main() {
     const int WATER_FOAM = 64;
 
     if (f_mode == WATER_FOAM) {
-        material = MAT_FLUID;
+        material = MAT_WATER;
     }
 
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), material);

@@ -278,7 +278,7 @@ void main() {
                         alpha = mix(1.0, 0.2, puddle);
                         f_col.rgb *= mix(1.0, 0.7, puddle);
                         k_s = mix(k_s, vec3(0.7, 0.7, 1.0), puddle);
-                        f_mat = MAT_FLUID;
+                        f_mat = MAT_PUDDLE;
                     }
                 #endif
 

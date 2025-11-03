@@ -363,7 +363,7 @@ void main() {
     // exponent is an integer.
     vec3 water_col_diff = f_col_raw - vec3(0.02, 0.06, 0.22);
     if (dot(water_col_diff * water_col_diff, vec3(1)) < 0.01 && dot(vec3(0, 0, 1), f_norm) > 0.9) {
-        mat = MAT_FLUID;
+        mat = MAT_WATER;
         vec3 reflect_ray = cam_to_frag * vec3(1, 1, -1);
         #if (FLUID_MODE >= FLUID_MODE_MEDIUM)
             vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;

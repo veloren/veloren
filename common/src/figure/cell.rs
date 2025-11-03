@@ -10,6 +10,7 @@ pub enum CellSurface {
     Glowy = 1,
     Shiny = 2,
     Fire = 3,
+    Water = 4,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -60,10 +61,10 @@ impl CellAttr {
     }
 
     #[inline]
-    fn is_override_hollow(&self) -> bool { self.0 & Self::FILL_MASK == Self::OVERRIDE }
+    pub fn is_override_hollow(&self) -> bool { self.0 & Self::FILL_MASK == Self::OVERRIDE }
 
     #[inline]
-    fn is_hollowing(&self) -> bool { self.0 & Self::FILL_MASK == Self::HOLLOW }
+    pub fn is_hollowing(&self) -> bool { self.0 & Self::FILL_MASK == Self::HOLLOW }
 }
 
 /// A type representing a single voxel in a figure.
@@ -119,15 +120,6 @@ impl Cell {
             None
         }
     }
-
-    #[inline]
-    pub fn get_surf(&self) -> Option<CellSurface> { self.attr.get_surf() }
-
-    #[inline]
-    pub fn is_override_hollow(&self) -> bool { self.attr.is_override_hollow() }
-
-    #[inline]
-    pub fn is_hollowing(&self) -> bool { self.attr.is_hollowing() }
 
     /// Transform cell colors
     #[must_use]

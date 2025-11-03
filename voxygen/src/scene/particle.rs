@@ -1093,7 +1093,8 @@ impl ParticleMgr {
                 Duration::from_millis(500),
                 time,
                 ParticleMode::CampfireFire,
-                pos,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
                 scene_data,
             ));
             self.particles.push(Particle::new(

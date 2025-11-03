@@ -459,6 +459,6 @@ void main() {
     vec4 color = mix(vec4(reflect_color, 1.0), vec4(vec3(0), 1.0 / (1.0 + diffuse_light * 0.25)), passthrough); */
 
     tgt_color = color;
-    tgt_mat = uvec4(uvec3((norm + 1.0) * 127.0), MAT_FLUID);
+    tgt_mat = uvec4(uvec3((norm + 1.0) * 127.0), MAT_WATER);
 #endif
 }

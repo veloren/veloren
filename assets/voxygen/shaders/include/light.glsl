@@ -263,7 +263,8 @@ void apply_cell_material(
     in vec3 surf_color,
     inout vec3 emitted_light,
     // Mostly used to communicate reflectivity
-    inout float render_alpha
+    inout float render_alpha,
+    inout uint render_mat
 ) {
     vec3 wpos = f_pos + focus_off.xyz;
     // Apply material surface properties
@@ -274,12 +275,17 @@ void apply_cell_material(
             break;
         // Shiny
         case 2:
-            render_alpha = 0.2;
+            render_alpha = 0.1;
             break;
         // Fire
         case 3:
             emitted_light += surf_color * 5.0;
             emitted_light *= 32.0 * (0.02 + pow(noise_3d(vec3(wpos.xy * 2.0, 100000.0 - wpos.z * 2.0 + tick.x * 5.0) * 0.1), 3.0));
+            break;
+        // Water
+        case 4:
+            render_alpha = 0.2;
+            render_mat = MAT_PUDDLE;
             break;
         default: break;
     }

@@ -200,6 +200,17 @@
         bone0: (
             offset: (-3.0, -5.5, -3.0),
             central: ("weapon.projectile.fire-bolt-0"),
+            custom_indices: {
+                104: (attr: Fire),
+                105: (attr: Fire),
+                106: (attr: Fire),
+                107: (attr: Fire),
+                108: (attr: Fire),
+                109: (attr: Fire),
+                110: (attr: Fire),
+                111: (attr: Fire),
+                119: (attr: Fire),
+            },
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
@@ -622,6 +633,15 @@
         bone0: (
             offset: (-3.5, -3.5, -3.5),
             central: ("weapon.projectile.bubble_bomb"),
+            custom_indices: {
+                81: (attr: Water),
+                82: (attr: Water),
+                83: (attr: Water),
+                84: (attr: Water),
+                85: (attr: Water),
+                86: (attr: Water),
+                87: (attr: Water),
+            },
         ),
         bone1: (
             offset: (0.0, 0.0, 0.0),
