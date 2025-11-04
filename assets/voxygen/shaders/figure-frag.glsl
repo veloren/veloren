@@ -266,7 +266,7 @@ void main() {
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
     // Apply baked lighting from emissive blocks
-    float glow_mag = length(model_glow.xyz);
+    float glow_mag = length(model_glow.xyz) + 0.001;
     vec3 glow = pow(model_glow.w, 2) * 4
         * glow_light(f_pos)
         * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));

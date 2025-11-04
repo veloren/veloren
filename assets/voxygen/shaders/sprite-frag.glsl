@@ -28,11 +28,12 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
-layout(location = 4) in vec2 f_inst_light;
-layout(location = 5) in vec3 m_pos;
+layout(location = 4) in vec4 f_inst_glow;
+layout(location = 5) in float f_inst_light;
+layout(location = 6) in vec3 m_pos;
 
 #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-layout(location = 6) flat in uint f_inst_idx;
+layout(location = 7) flat in uint f_inst_idx;
 #endif
 
 layout(set = 2, binding = 0)
@@ -102,8 +103,8 @@ void main() {
     vec3 reflected_light = vec3(1);
 
     // Make voxel shadows block the sun and moon
-    sun_info.block = f_inst_light.x;
-    moon_info.block = f_inst_light.x;
+    sun_info.block = f_inst_light;
+    moon_info.block = f_inst_light;
 
     float max_light = 0.0;
 
@@ -129,7 +130,11 @@ void main() {
     // TODO: Hack to add a small amount of underground ambient light to the scene
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
-    vec3 glow = pow(f_inst_light.y, 3) * 4 * glow_light(f_pos);
+    // Apply baked lighting from emissive blocks
+    float glow_mag = length(f_inst_glow.xyz) + 0.001;
+    vec3 glow = pow(f_inst_glow.w, 2) * 4
+        * glow_light(f_pos)
+        * (max(dot(f_norm, f_inst_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
     emitted_light += glow * cam_attenuation;
 
     float ao = f_ao;

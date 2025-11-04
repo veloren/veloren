@@ -203,7 +203,7 @@ void main() {
                         #ifdef EXPERIMENTAL_SMEARREFLECTIONS
                             if (true) {
                         #else
-                            if (mat.a != MAT_WATER) {
+                            if (mat.a != MAT_WATER && surf_norm.z < 0.1) {
                         #endif
                             const float SMEAR_FRAC = 0.2;
                             vec2 anew_uv = abs(new_uv - 0.5) * 2;

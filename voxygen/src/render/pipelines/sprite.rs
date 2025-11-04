@@ -97,10 +97,10 @@ pub struct Instance {
     inst_mat1: [f32; 4],
     inst_mat2: [f32; 4],
     inst_mat3: [f32; 4],
+    inst_glow: [f32; 4],
     pos_meta: u32,
     inst_vert_page: u32,
     inst_light: f32,
-    inst_glow: f32,
     model_wind_sway: f32,
     model_z_scale: f32,
 }
@@ -112,7 +112,7 @@ impl Instance {
         z_scale: f32,
         pos: Vec3<i32>,
         light: f32,
-        glow: f32,
+        glow: (Vec3<f32>, f32),
         vert_page: u32,
         is_door: bool,
         is_mirrored: bool,
@@ -125,6 +125,7 @@ impl Instance {
             inst_mat1: mat_arr[1],
             inst_mat2: mat_arr[2],
             inst_mat3: mat_arr[3],
+            inst_glow: [glow.0.x, glow.0.y, glow.0.z, glow.1],
             pos_meta: ((pos.x as u32) & 0x003F)
                 | (((pos.y as u32) & 0x003F) << 6)
                 | ((((pos.z + EXTRA_NEG_Z).clamp(0, 1 << 16) as u32) & 0xFFFF) << 12)
@@ -132,7 +133,6 @@ impl Instance {
                 | ((u32::from(is_mirrored) & 1) << 29),
             inst_vert_page: vert_page,
             inst_light: light,
-            inst_glow: glow,
             model_wind_sway: wind_sway,
             model_z_scale: z_scale,
         }
@@ -144,9 +144,9 @@ impl Instance {
             1 => Float32x4,
             2 => Float32x4,
             3 => Float32x4,
-            4 => Uint32,
+            4 => Float32x4,
             5 => Uint32,
-            6 => Float32,
+            6 => Uint32,
             7 => Float32,
             8 => Float32,
             9 => Float32,
@@ -167,7 +167,7 @@ impl Default for Instance {
             0.0,
             Vec3::zero(),
             1.0,
-            0.0,
+            (Vec3::zero(), 0.0),
             0,
             false,
             false,

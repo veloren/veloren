@@ -862,7 +862,7 @@ where
                                 block_iter.clone().map(|(pos, block)| (pos.as_() + *offset, block)),
                                 |p| p.as_(),
                                 |_| 1.0,
-                                |pos| dyna.get(pos).ok().and_then(|block| block.get_glow()).map(|glow| glow as f32 / 255.0).unwrap_or(0.0),
+                                |pos| (Vec3::zero(), dyna.get(pos).ok().and_then(|block| block.get_glow()).map(|glow| glow as f32 / 255.0).unwrap_or(0.0)),
                                 &sprite_render_state.sprite_data,
                                 &sprite_render_state.missing_sprite_placeholder,
                             );
