@@ -8,7 +8,7 @@ use crate::{
     mesh::{
         greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
-        terrain::{SUNLIGHT, SUNLIGHT_INV, generate_mesh},
+        terrain::{SUNLIGHT_INV, generate_mesh},
     },
     render::{
         AltIndices, CullingMode, FigureSpriteAtlasData, FirstPassDrawer, FluidVertex, GlobalModel,
@@ -355,6 +355,9 @@ fn mesh_worker(
                 light_map,
                 |wpos| {
                     glow_normal_at_wpos_inner(
+                        // TODO: It is bad and incorrect that we can't fetch the BoIs of chunks
+                        // in the local neighbourhood, it can make sprite lighting incorrect on
+                        // chunk borders!!!
                         |key| Some(&blocks_of_interest).filter(|_| key == pos),
                         |key| Some(glow_map).filter(|_| key == pos),
                         wpos.map(|e| e as f32 + 0.5),
@@ -1779,43 +1782,53 @@ fn glow_normal_at_wpos_inner<'a>(
         (e.floor() as i32).div_euclid(sz as i32)
     });
 
-    let (bias, total) = Spiral2d::new()
-        .take(9)
-        .flat_map(|rpos| {
-            let chunk_pos = chunk_key + rpos;
-            let chunk_wpos =
-                Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
-            chunk_boi(chunk_pos)
-                .into_iter()
-                .flat_map(|c| c.lights.iter())
-                .filter_map(move |(light_pos, level)| {
-                    let light_wpos = (chunk_wpos + *light_pos).map(|e| e as f32 + 0.5);
-                    // Skip lights not in range
-                    if (light_wpos - wpos).map(|e| e.abs()).reduce_partial_min()
-                        < SUNLIGHT as f32 + 2.0
-                    {
-                        Some((light_wpos, level))
-                    } else {
-                        None
-                    }
-                })
-        })
-        .fold(
-            (Vec3::broadcast(0.0), 0.0),
-            |(bias, total), (light_wpos, level)| {
-                let rpos = light_wpos - wpos;
-                let level = (*level as f32 - rpos.magnitude()).max(0.0) * SUNLIGHT_INV;
-                (
-                    bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
-                    total + level,
-                )
-            },
-        );
+    let lights = Spiral2d::new().take(9).flat_map(|rpos| {
+        let chunk_pos = chunk_key + rpos;
+        chunk_boi(chunk_pos)
+            .into_iter()
+            .flat_map(|c| c.lights.iter())
+            .filter_map(move |(light_pos, level)| {
+                let chunk_wpos =
+                    Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                let light_wpos = (chunk_wpos + *light_pos).map(|e| e as f32 + 0.5);
+                let diff = light_wpos - wpos;
+                let effect = ((*level as f32 - diff.map(|e| e.abs()).sum()).max(0.0)
+                    * SUNLIGHT_INV)
+                    .powf(0.5);
+                if effect > 0.0 {
+                    Some((effect, diff))
+                } else {
+                    None
+                }
+            })
+    });
+    let (bias, total) = lights.clone().fold(
+        (Vec3::broadcast(0.0), 0.0),
+        |(bias, total), (effect, diff)| {
+            (
+                bias + diff.try_normalized().unwrap_or_else(Vec3::zero) * effect,
+                total + effect,
+            )
+        },
+    );
+    let bias = bias * (1.0 - AMBIANCE) / total.max(0.001);
 
-    let bias_factor = bias.magnitude() * (1.0 - AMBIANCE) / total.max(0.001);
+    let bias_norm = bias.try_normalized().unwrap_or_else(Vec3::zero);
+    let (weight, total) = lights.fold((0.0, 0.0), |(weight, total), (effect, diff)| {
+        (
+            weight
+                + diff
+                    .try_normalized()
+                    .unwrap_or_else(Vec3::zero)
+                    .dot(bias_norm)
+                    * effect,
+            total + effect,
+        )
+    });
+    let weight = weight / total.max(0.001);
 
     (
-        bias.try_normalized().unwrap_or_else(Vec3::zero) * bias_factor.powf(0.5),
+        bias * weight,
         glow_at_wpos_inner(chunk_glow_map, wpos.map(|e| e.floor() as i32)),
     )
 }

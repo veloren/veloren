@@ -198,9 +198,9 @@ fn calc_light<
         let (w, h, _) = min_bounds.clone().size().into_tuple();
         move |x, y, z| (w * h * z + h * x + y) as usize
     };
-    for x in 0..min_bounds.size().w {
-        for y in 0..min_bounds.size().h {
-            for z in 0..min_bounds.size().d {
+    for z in 0..min_bounds.size().d {
+        for x in 0..min_bounds.size().w {
+            for y in 0..min_bounds.size().h {
                 let off = min_bounds.min - outer.min;
                 light_map2[lm_idx2(x, y, z)] = light_map[lm_idx(x + off.x, y + off.y, z + off.z)];
             }

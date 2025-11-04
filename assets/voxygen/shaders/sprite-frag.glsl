@@ -132,10 +132,14 @@ void main() {
 
     // Apply baked lighting from emissive blocks
     float glow_mag = length(f_inst_glow.xyz) + 0.001;
-    vec3 glow = pow(f_inst_glow.w, 2) * 4
+    vec3 glow = pow(f_inst_glow.w, 3.0) * 6.0
         * glow_light(f_pos)
-        * (max(dot(f_norm, f_inst_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
+        * mix((max(dot(f_norm, f_inst_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0)), 1.0, 1.0 / (1.0 + glow_mag * 10.0));
     emitted_light += glow * cam_attenuation;
+    // Highlight sprites with incorrect lighting due to chunk border issues
+    // if (glow_mag < 0.01 && f_inst_glow.w > 0.05) {
+    //     emitted_light += 100;
+    // }
 
     float ao = f_ao;
     reflected_light *= ao;

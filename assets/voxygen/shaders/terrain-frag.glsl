@@ -67,6 +67,10 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
+float vmin(vec2 v) {
+    return min(v.x, v.y);
+}
+
 void main() {
     /*
     float nz = abs(hash(vec4(floor((f_pos + focus_off.xyz) * 5.0), 0)));
@@ -565,6 +569,13 @@ void main() {
 
     float f_select = (select_pos.w > 0 && select_pos.xyz == floor(f_pos - f_norm * 0.5)) ? 1.0 : 0.0;
     surf_color += f_select * (surf_color + 0.1) * vec3(0.5, 0.5, 0.5);
+    
+    #ifdef EXPERIMENTAL_SHOWCHUNKBORDERS
+    float border_scale = 0.0001 * distance(cam_pos.xyz, f_pos);
+    if (vmin(fract((f_pos.xy + focus_off.xy) / 32.0 + 1024) - border_scale * 0.5) < border_scale && f_norm.z > 0.5) {
+        surf_color = vec3(1.0, 0.0, 0.0);
+    }
+    #endif
 
     tgt_color = vec4(surf_color, f_alpha);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), f_mat);
