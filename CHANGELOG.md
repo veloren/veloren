@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quest: Slay a monster
 - Add separate wall jump button
 - Added elephants
+- More and improved fire particle effects
 
 ### Changed
 
@@ -113,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly increased the frequency/number of recipes dropped from dungeon chests.
 - More attacks and interactions can be aimed while mounted.
 - Minimum camera clamp angle is now 0 degrees.
+- Sprite and entity materials have been overhauled and improved
 
 ### Removed
 
@@ -159,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjust airship's propellers and rudder offset
 - Fix offset of BenchCoastal sprite
 - Adjust marine vehicles center alignment
+- Various sprite lighting issues
 
 ## [0.17.0] - 2024-12-28
 
