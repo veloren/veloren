@@ -293,7 +293,7 @@ void main() {
                 linear_motion(
                     vec3(0.0),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.25 + rand4 * 0.2)
-                ) + vec3(sin(vec2(1.3, 1.7) * lifetime * 10.0) * 0.05, 0.0),
+                ) + vec3(sin(vec2(1.3, 1.7) * lifetime() * 10.0) * 0.05, 0.0),
                 vec3(1.0 - slow_start(0.5)) * pow(percent(), 0.25) * 1.5,
                 vec4(10, 3 + rand5 * 0.3 - 0.8 * percent(), 0.4, 1) * start_end(1.5, 0.1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
