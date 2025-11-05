@@ -54,9 +54,10 @@
 
 #define MAT_SKY 0
 #define MAT_BLOCK 1
-#define MAT_FLUID 2
+#define MAT_WATER 2
 #define MAT_FIGURE 3
 #define MAT_LOD 4
+#define MAT_PUDDLE 5
 
 #define BLOCK_SNOW 0x21
 #define BLOCK_ART_SNOW 0x22

@@ -237,7 +237,6 @@ impl BlocksOfInterest {
                                 interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                             },
                             SpriteKind::Cauldron => {
-                                fires.push(pos);
                                 interactables.push((pos, Interaction::Craft(CraftingTab::Potion)))
                             },
                             SpriteKind::Anvil => {
@@ -247,11 +246,8 @@ impl BlocksOfInterest {
                                 fires.push(pos);
                                 interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
                             },
-                            SpriteKind::DismantlingBench => {
-                                fires.push(pos);
-                                interactables
-                                    .push((pos, Interaction::Craft(CraftingTab::Dismantle)))
-                            },
+                            SpriteKind::DismantlingBench => interactables
+                                .push((pos, Interaction::Craft(CraftingTab::Dismantle))),
                             SpriteKind::RepairBench => {
                                 interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                             },

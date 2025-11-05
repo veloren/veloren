@@ -241,6 +241,6 @@ void main() {
     vec4 color = vec4(surf_color, opacity);
 
     tgt_color = color;
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FLUID);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_WATER);
 #endif
 }

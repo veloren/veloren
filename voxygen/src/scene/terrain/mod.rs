@@ -8,7 +8,7 @@ use crate::{
     mesh::{
         greedy::{GreedyMesh, SpriteAtlasAllocator},
         segment::generate_mesh_base_vol_sprite,
-        terrain::{SUNLIGHT, SUNLIGHT_INV, generate_mesh},
+        terrain::{SUNLIGHT_INV, generate_mesh},
     },
     render::{
         AltIndices, CullingMode, FigureSpriteAtlasData, FirstPassDrawer, FluidVertex, GlobalModel,
@@ -159,7 +159,7 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
     blocks: impl Iterator<Item = (Vec3<f32>, Block)>,
     mut to_wpos: impl FnMut(Vec3<f32>) -> Vec3<i32>,
     mut light_map: impl FnMut(Vec3<i32>) -> f32,
-    mut glow_map: impl FnMut(Vec3<i32>) -> f32,
+    mut glow_normal_at_wpos: impl FnMut(Vec3<i32>) -> (Vec3<f32>, f32),
     sprite_data: &HashMap<SpriteKind, FilteredSpriteData>,
     missing_sprite_placeholder: &SpriteData,
 ) {
@@ -209,7 +209,7 @@ pub(super) fn get_sprite_instances<'a, I: 'a>(
         let variant = &data.variations[variation];
 
         let light = light_map(wpos);
-        let glow = glow_map(wpos);
+        let glow = glow_normal_at_wpos(wpos);
 
         for (lod_level, model_data) in lod_levels.iter_mut().zip(variant) {
             // TODO: worth precomputing the constant parts of this?
@@ -271,7 +271,7 @@ fn mesh_worker(
     let mesh;
     let (light_map, glow_map) = if let Some((light_map, glow_map)) = &skip_remesh {
         mesh = None;
-        (&**light_map, &**glow_map)
+        (&**light_map, glow_map)
     } else {
         let (
             opaque_mesh,
@@ -308,7 +308,7 @@ fn mesh_worker(
         });
         // Pointer juggling so borrows work out.
         let mesh = mesh.as_ref().unwrap();
-        (&*mesh.light_map, &*mesh.glow_map)
+        (&*mesh.light_map, &mesh.glow_map)
     };
     let to_wpos = |rel_pos: Vec3<f32>| {
         Vec3::from(pos * TerrainChunk::RECT_SIZE.map(|e: u32| e as i32)) + rel_pos.as_()
@@ -353,7 +353,16 @@ fn mesh_worker(
                     .filter_map(|rel_pos| Some((rel_pos, *volume.get(to_wpos(rel_pos)).ok()?))),
                 to_wpos,
                 light_map,
-                glow_map,
+                |wpos| {
+                    glow_normal_at_wpos_inner(
+                        // TODO: It is bad and incorrect that we can't fetch the BoIs of chunks
+                        // in the local neighbourhood, it can make sprite lighting incorrect on
+                        // chunk borders!!!
+                        |key| Some(&blocks_of_interest).filter(|_| key == pos),
+                        |key| Some(glow_map).filter(|_| key == pos),
+                        wpos.map(|e| e as f32 + 0.5),
+                    )
+                },
                 &sprite_render_state.sprite_data,
                 &sprite_render_state.missing_sprite_placeholder,
             );
@@ -491,6 +500,7 @@ impl SpriteRenderContext {
                     model,
                     offset,
                     lod_axes,
+                    custom_indices,
                 } = sprite_model_config;
                 let scaled = [1.0, 0.8, 0.6, 0.4, 0.2];
                 let offset = Vec3::from(*offset);
@@ -529,7 +539,8 @@ impl SpriteRenderContext {
                     // Mesh generation exclusively acts using side effects; it
                     // has no interesting return value, but updates the mesh.
                     generate_mesh_base_vol_sprite(
-                        Segment::from_vox_model_index(model, 0).scaled_by(lod_scale),
+                        Segment::from_vox_model_index(model, 0, Some(custom_indices))
+                            .scaled_by(lod_scale),
                         (&mut greedy, &mut sprite_mesh, false),
                         offset.map(|e: f32| e.floor()) * lod_scale,
                     );
@@ -565,6 +576,7 @@ impl SpriteRenderContext {
                     model: "voxygen.voxel.not_found".into(),
                     offset: (-5.5, -5.5, 0.0),
                     lod_axes: (1.0, 1.0, 1.0),
+                    custom_indices: HashMap::default(),
                 })]
                 .into(),
                 wind_sway: 1.0,
@@ -797,61 +809,17 @@ impl<V: RectRasterableVol> Terrain<V> {
 
     /// Find the glow level (light from lamps) at the given world position.
     pub fn glow_at_wpos(&self, wpos: Vec3<i32>) -> f32 {
-        let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
-            e.div_euclid(sz as i32)
-        });
-        self.chunks
-            .get(&chunk_pos)
-            .map(|c| (c.glow_map)(wpos))
-            .unwrap_or(0.0)
+        glow_at_wpos_inner(
+            |chunk_pos| self.chunks.get(&chunk_pos).map(|c| &c.glow_map),
+            wpos,
+        )
     }
 
     pub fn glow_normal_at_wpos(&self, wpos: Vec3<f32>) -> (Vec3<f32>, f32) {
-        let wpos_chunk = wpos.xy().map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
-            (e as i32).div_euclid(sz as i32)
-        });
-
-        const AMBIANCE: f32 = 0.15; // 0-1, the proportion of light that should illuminate the rear of an object
-
-        let (bias, total) = Spiral2d::new()
-            .take(9)
-            .flat_map(|rpos| {
-                let chunk_pos = wpos_chunk + rpos;
-                self.chunks
-                    .get(&chunk_pos)
-                    .into_iter()
-                    .flat_map(|c| c.blocks_of_interest.lights.iter())
-                    .filter_map(move |(lpos, level)| {
-                        if (*lpos - wpos_chunk).map(|e| e.abs()).reduce_min() < SUNLIGHT as i32 + 2
-                        {
-                            Some((
-                                Vec3::<i32>::from(
-                                    chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
-                                ) + *lpos,
-                                level,
-                            ))
-                        } else {
-                            None
-                        }
-                    })
-            })
-            .fold(
-                (Vec3::broadcast(0.001), 0.0),
-                |(bias, total), (lpos, level)| {
-                    let rpos = lpos.map(|e| e as f32 + 0.5) - wpos;
-                    let level = (*level as f32 - rpos.magnitude()).max(0.0) * SUNLIGHT_INV;
-                    (
-                        bias + rpos.try_normalized().unwrap_or_else(Vec3::zero) * level,
-                        total + level,
-                    )
-                },
-            );
-
-        let bias_factor = bias.magnitude() * (1.0 - AMBIANCE) / total.max(0.001);
-
-        (
-            bias.try_normalized().unwrap_or_else(Vec3::zero) * bias_factor.powf(0.5),
-            self.glow_at_wpos(wpos.map(|e| e.floor() as i32)),
+        glow_normal_at_wpos_inner(
+            |chunk_pos| self.chunks.get(&chunk_pos).map(|c| &c.blocks_of_interest),
+            |chunk_pos| self.chunks.get(&chunk_pos).map(|c| &c.glow_map),
+            wpos,
         )
     }
 
@@ -1792,4 +1760,75 @@ impl<V: RectRasterableVol> Terrain<V> {
         drop(fluid_drawer);
         drop(guard);
     }
+}
+/// Find the glow level (light from lamps) at the given world position.
+fn glow_at_wpos_inner<'a>(
+    chunk_glow_map: impl Fn(Vec2<i32>) -> Option<&'a LightMapFn>,
+    wpos: Vec3<i32>,
+) -> f32 {
+    let chunk_pos = Vec2::from(wpos).map2(TerrainChunk::RECT_SIZE, |e: i32, sz| {
+        e.div_euclid(sz as i32)
+    });
+    chunk_glow_map(chunk_pos).map_or(0.0, |gmap| gmap(wpos))
+}
+
+fn glow_normal_at_wpos_inner<'a>(
+    chunk_boi: impl Fn(Vec2<i32>) -> Option<&'a BlocksOfInterest>,
+    chunk_glow_map: impl Fn(Vec2<i32>) -> Option<&'a LightMapFn>,
+    wpos: Vec3<f32>,
+) -> (Vec3<f32>, f32) {
+    const AMBIANCE: f32 = 0.15; // 0-1, the proportion of light that should illuminate the rear of an object
+    let chunk_key = wpos.xy().map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+        (e.floor() as i32).div_euclid(sz as i32)
+    });
+
+    let lights = Spiral2d::new().take(9).flat_map(|rpos| {
+        let chunk_pos = chunk_key + rpos;
+        chunk_boi(chunk_pos)
+            .into_iter()
+            .flat_map(|c| c.lights.iter())
+            .filter_map(move |(light_pos, level)| {
+                let chunk_wpos =
+                    Vec3::<i32>::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                let light_wpos = (chunk_wpos + *light_pos).map(|e| e as f32 + 0.5);
+                let diff = light_wpos - wpos;
+                let effect = ((*level as f32 - diff.map(|e| e.abs()).sum()).max(0.0)
+                    * SUNLIGHT_INV)
+                    .powf(0.5);
+                if effect > 0.0 {
+                    Some((effect, diff))
+                } else {
+                    None
+                }
+            })
+    });
+    let (bias, total) = lights.clone().fold(
+        (Vec3::broadcast(0.0), 0.0),
+        |(bias, total), (effect, diff)| {
+            (
+                bias + diff.try_normalized().unwrap_or_else(Vec3::zero) * effect,
+                total + effect,
+            )
+        },
+    );
+    let bias = bias * (1.0 - AMBIANCE) / total.max(0.001);
+
+    let bias_norm = bias.try_normalized().unwrap_or_else(Vec3::zero);
+    let (weight, total) = lights.fold((0.0, 0.0), |(weight, total), (effect, diff)| {
+        (
+            weight
+                + diff
+                    .try_normalized()
+                    .unwrap_or_else(Vec3::zero)
+                    .dot(bias_norm)
+                    * effect,
+            total + effect,
+        )
+    });
+    let weight = weight / total.max(0.001);
+
+    (
+        bias * weight,
+        glow_at_wpos_inner(chunk_glow_map, wpos.map(|e| e.floor() as i32)),
+    )
 }

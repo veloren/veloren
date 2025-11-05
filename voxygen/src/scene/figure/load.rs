@@ -32,7 +32,7 @@ use common::{
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
     terrain::Block,
-    vol::{IntoFullPosIterator, ReadVol},
+    vol::{FilledVox, IntoFullPosIterator, ReadVol},
     volumes::dyna::Dyna,
 };
 use hashbrown::HashMap;
@@ -50,6 +50,7 @@ fn load_segment(mesh_name: &str) -> Segment {
     Segment::from_vox_model_index(
         &DotVox::load_expect(&full_specifier).read().0,
         DEFAULT_INDEX as usize,
+        None,
     )
 }
 fn graceful_load_vox(mesh_name: &str) -> AssetHandle<DotVox> {
@@ -66,12 +67,28 @@ fn graceful_load_vox_fullspec(full_specifier: &str) -> AssetHandle<DotVox> {
     }
 }
 fn graceful_load_segment(mesh_name: &str, model_index: u32) -> Segment {
-    Segment::from_vox_model_index(&graceful_load_vox(mesh_name).read().0, model_index as usize)
+    Segment::from_vox_model_index(
+        &graceful_load_vox(mesh_name).read().0,
+        model_index as usize,
+        None,
+    )
+}
+fn graceful_load_segment_custom_indices(
+    mesh_name: &str,
+    model_index: u32,
+    custom_indices: &HashMap<u8, Cell>,
+) -> Segment {
+    Segment::from_vox_model_index(
+        &graceful_load_vox(mesh_name).read().0,
+        model_index as usize,
+        Some(custom_indices),
+    )
 }
 fn graceful_load_segment_fullspec(full_specifier: &str, model_index: u32) -> Segment {
     Segment::from_vox_model_index(
         &graceful_load_vox_fullspec(full_specifier).read().0,
         model_index as usize,
+        None,
     )
 }
 fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool, model_index: u32) -> Segment {
@@ -79,6 +96,7 @@ fn graceful_load_segment_flipped(mesh_name: &str, flipped: bool, model_index: u3
         &graceful_load_vox(mesh_name).read().0,
         flipped,
         model_index as usize,
+        None,
     )
 }
 fn graceful_load_mat_segment(mesh_name: &str, model_index: u32) -> MatSegment {
@@ -383,10 +401,10 @@ impl HumHeadSpec {
             .maybe_add(accessory)
             .maybe_add(helmet)
             .unify_with(|v, old_v| {
-                if old_v.attr().is_not_overridable() {
+                if old_v.is_override_hollow() {
                     old_v
-                } else if v.attr().is_hollow() {
-                    Cell::Empty
+                } else if old_v.is_hollowing() {
+                    Cell::empty()
                 } else {
                     v
                 }
@@ -5971,6 +5989,8 @@ struct ObjectCentralSubSpec {
     central: VoxSimple,
     #[serde(default)]
     model_index: u32,
+    #[serde(default)]
+    custom_indices: HashMap<u8, Cell>,
 }
 
 make_vox_spec!(
@@ -6009,7 +6029,11 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone0.central.0, spec.bone0.model_index);
+        let central = graceful_load_segment_custom_indices(
+            &spec.bone0.central.0,
+            spec.bone0.model_index,
+            &spec.bone0.custom_indices,
+        );
 
         (central, Vec3::from(spec.bone0.offset))
     }
@@ -6022,7 +6046,11 @@ impl ObjectCentralSpec {
                 return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             },
         };
-        let central = graceful_load_segment(&spec.bone1.central.0, spec.bone1.model_index);
+        let central = graceful_load_segment_custom_indices(
+            &spec.bone1.central.0,
+            spec.bone1.model_index,
+            &spec.bone1.custom_indices,
+        );
 
         (central, Vec3::from(spec.bone1.offset))
     }
@@ -6117,9 +6145,12 @@ impl ItemCentralSpec {
                     spec.1 as usize,
                 )
                 .map(|mat_cell| match mat_cell {
-                    MatCell::None => None,
-                    MatCell::Mat(_) => Some(MatCell::None),
-                    MatCell::Normal(data) => data.attr.is_hollow().then_some(MatCell::None),
+                    // Skin and hollowing cells get set to empty
+                    MatCell::Mat(_) => Some(MatCell::Normal(Cell::empty())),
+                    MatCell::Normal(cell) if cell.is_hollowing() => {
+                        Some(MatCell::Normal(Cell::empty()))
+                    },
+                    _ => None,
                 })
                 .to_segment(|_| Default::default()),
                 _ => graceful_load_segment_fullspec(&full_spec, spec.1),
@@ -6148,8 +6179,8 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
-        if let Ok(Cell::Filled(data)) = segment.get(pos)
-            && !data.attr.is_hollow()
+        if let Ok(cell) = segment.get(pos)
+            && cell.is_filled()
         {
             if pos.x < x_min {
                 x_min = pos.x;

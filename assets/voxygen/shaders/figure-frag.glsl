@@ -125,7 +125,7 @@ void main() {
     float f_ao;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
-
+    
 #ifdef EXPERIMENTAL_BAREMINIMUM
     tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
 #else
@@ -266,10 +266,10 @@ void main() {
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
     // Apply baked lighting from emissive blocks
-    float glow_mag = length(model_glow.xyz);
-    vec3 glow = pow(model_glow.w, 2) * 4
+    float glow_mag = length(model_glow.xyz) + 0.001;
+    vec3 glow = pow(model_glow.w, 3.0) * 6.0
         * glow_light(f_pos)
-        * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
+        * mix((max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0)), 1.0, 1.0 / (1.0 + glow_mag * 10.0));
     emitted_light += glow * cam_attenuation;
 
     // Apply baked AO
@@ -281,12 +281,12 @@ void main() {
     float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
+    
+    float render_alpha = 1.0;
+    uint render_mat = MAT_FIGURE;
 
-    // Apply emissive glow
-    // For now, just make glowing material light be the same colour as the surface
-    // TODO: Add a way to control this better outside the shaders
-    if ((material & (1u << 0u)) > 0u) {
-        emitted_light += 20 * surf_color;
+    if ((material & 31u) != 0) {
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha, render_mat);
     }
 
     /* reflected_light *= cloud_shadow(f_pos); */
@@ -318,7 +318,7 @@ void main() {
 
     surf_color = illuminate(max_light, view_dir, mix(surf_color * emitted_light, reflect_color, reflectance), mix(surf_color * reflected_light, reflect_color, reflectance)) * highlight_col.rgb;
 
-    tgt_color = vec4(surf_color, 1.0);
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
+    tgt_color = vec4(surf_color, render_alpha);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), render_mat);
 #endif
 }

@@ -1022,15 +1022,19 @@ impl ParticleMgr {
         let dt = scene_data.state.get_delta_time();
         let mut rng = rand::rng();
 
-        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(25)) {
             self.particles.push(Particle::new(
-                Duration::from_millis(250),
+                Duration::from_millis(800),
                 time,
                 ParticleMode::CampfireFire,
-                pos,
+                pos + Vec2::broadcast(())
+                    .map(|_| rand::rng().random_range(-0.3..0.3))
+                    .with_z(0.1),
                 scene_data,
             ));
+        }
 
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
             self.particles.push(Particle::new(
                 Duration::from_secs(10),
                 time,
@@ -1089,7 +1093,8 @@ impl ParticleMgr {
                 Duration::from_millis(500),
                 time,
                 ParticleMode::CampfireFire,
-                pos,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
                 scene_data,
             ));
             self.particles.push(Particle::new(
@@ -2911,8 +2916,8 @@ impl ParticleMgr {
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fires),
                 range: 2,
-                rate: 20.0,
-                lifetime: 0.25,
+                rate: 50.0,
+                lifetime: 0.5,
                 mode: ParticleMode::CampfireFire,
                 cond: |_| true,
             },
@@ -3787,7 +3792,7 @@ fn default_cache(renderer: &mut Renderer) -> HashMap<&'static str, Model<Particl
         let max_size = Vec2::from(u16::try_from(max_texture_size).unwrap_or(u16::MAX));
         let mut greedy = GreedyMesh::new(max_size, crate::mesh::greedy::general_config());
 
-        let segment = Segment::from_vox_model_index(&vox.read().0, 0);
+        let segment = Segment::from_vox_model_index(&vox.read().0, 0, None);
         let segment_size = segment.size();
         let mut mesh = generate_mesh_base_vol_particle(segment, &mut greedy).0;
         // Center particle vertices around origin

@@ -37,7 +37,7 @@ pub enum VoxelPixArtGraphic {}
 
 fn load_segment(specifier: &str) -> Result<Arc<Segment>, Error> {
     let dot_vox = DotVox::load(specifier)?;
-    let seg = Segment::from_vox_model_index(&dot_vox.read().0, 0);
+    let seg = Segment::from_vox_model_index(&dot_vox.read().0, 0, None);
     Ok(Arc::new(seg))
 }
 

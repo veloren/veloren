@@ -86,14 +86,15 @@ void main() {
     #ifdef EXPERIMENTAL_VIEWNORMALS
         tgt_color = vec4(vec3(mat.xyz) / 255.0, 1);
     #elif defined(EXPERIMENTAL_VIEWMATERIALS)
-        const vec3 mat_colors[5] = vec3[](
+        const vec3 mat_colors[6] = vec3[](
             vec3(0, 1, 1), // MAT_SKY
             vec3(1, 1, 0), // MAT_BLOCK
-            vec3(0, 0, 1), // MAT_FLUID
+            vec3(0, 0, 1), // MAT_WATER
             vec3(1, 0, 1), // MAT_FIGURE
             vec3(0.5, 1, 0) // MAT_LOD
+            vec3(0, 0.5, 1) // MAT_PUDDLE
         );
-        tgt_color = vec4(mat_colors[mat.a % 5u], 1);
+        tgt_color = vec4(mat_colors[mat.a % 6u], 1);
     #elif defined(EXPERIMENTAL_VIEWDEPTH)
         tgt_color = vec4(vec3(pow(clamp(depth_at(uv) / 524288.0, 0, 1), 0.3)), 1);
     #else
@@ -108,10 +109,6 @@ void main() {
             vec2 nz = vec2(0);
             uvec2 col_sz = textureSize(sampler2D(t_src_color, s_src_color), 0);
             #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
-                nz = (vec2(
-                    noise_3d(vec3((wpos.xy + focus_off.xy) * 0.1, tick.x * 0.2 + wpos.x * 0.01)),
-                    noise_3d(vec3((wpos.yx + focus_off.yx) * 0.1, tick.x * 0.2 + wpos.y * 0.01))
-                ) - 0.5) * (dir.z < 0.0 ? color.a : 1.0);
 
                 const float n2 = 1.3325;
                 vec3 refr_dir;
@@ -120,7 +117,15 @@ void main() {
                 //     vec3 surf_norm = normalize(vec3(nz * 0.03 / (1.0 + dist * 0.1), 1));
                 //     refr_dir = refract(dir, surf_norm * -sign(dir.z), 1.0 / n2);
                 // } else {
-                    if (mat.a == MAT_FLUID) {
+                    if (mat.a == MAT_WATER || mat.a == MAT_PUDDLE) {
+                        // Water has larger ripples than puddles
+                        const float distort = (mat.a == MAT_WATER) ? 0.5 : 0.1;
+                        const float scale = (mat.a == MAT_WATER) ? 0.1 : 0.5;
+                        nz = (vec2(
+                            noise_3d(vec3((wpos.xy + focus_off.xy) * scale, tick.x * 0.2 + wpos.x * 0.01)),
+                            noise_3d(vec3((wpos.yx + focus_off.yx) * scale, tick.x * 0.2 + wpos.y * 0.01))
+                        ) - 0.5) * (dir.z < 0.0 ? distort : 1.0);
+                        
                         refr_dir = normalize(dir + vec3(nz * 1.5 / dist, 0.0));
                     } else {
                         refr_dir = dir;
@@ -193,7 +198,13 @@ void main() {
                             }
                         #endif
 
+                        // For 'generic' reflective options, smearing is generally a sensible strategy
+                        // For fluids (large reflective bodies) specifically, it can look strange - so don't enable it by default
                         #ifdef EXPERIMENTAL_SMEARREFLECTIONS
+                            if (true) {
+                        #else
+                            if (mat.a != MAT_WATER && surf_norm.z < 0.1) {
+                        #endif
                             const float SMEAR_FRAC = 0.2;
                             vec2 anew_uv = abs(new_uv - 0.5) * 2;
                             new_uv = mix(
@@ -201,9 +212,9 @@ void main() {
                                 1.0 - SMEAR_FRAC + (1.0 - 1.0 / (1.0 + (anew_uv - 1.0 + SMEAR_FRAC))) * SMEAR_FRAC,
                                 lessThan(vec2(1.0 - SMEAR_FRAC), anew_uv)
                             ) * sign(new_uv - 0.5) * 0.5 + 0.5;
-                        #else
+                        } else {
                             new_uv = clamp(new_uv, vec2(0), vec2(1));
-                        #endif
+                        }
 
                         vec3 new_wpos = wpos_at(new_uv);
                         float new_dist = distance(new_wpos, cam_pos.xyz);

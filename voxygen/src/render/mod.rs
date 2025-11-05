@@ -580,4 +580,6 @@ pub enum ExperimentalShader {
     DisableShadercOptimization,
     /// Switches some transparency rendering to use discarding.
     DiscardTransparency,
+    /// Display chunk borders for easier debugging.
+    ShowChunkBorders,
 }

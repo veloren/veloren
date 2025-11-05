@@ -21,12 +21,11 @@ layout(location = 0) in vec4 inst_mat0;
 layout(location = 1) in vec4 inst_mat1;
 layout(location = 2) in vec4 inst_mat2;
 layout(location = 3) in vec4 inst_mat3;
+layout(location = 4) in vec4 inst_glow;
 // TODO: is there a better way to pack the various vertex attributes?
-layout(location = 4) in uint inst_pos_meta;
-layout(location = 5) in uint inst_vert_page; // NOTE: this could fit in less bits
-// TODO: do we need this many bits for light and glow?
-layout(location = 6) in float inst_light;
-layout(location = 7) in float inst_glow;
+layout(location = 5) in uint inst_pos_meta;
+layout(location = 6) in uint inst_vert_page; // NOTE: this could fit in less bits
+layout(location = 7) in float inst_light;
 layout(location = 8) in float model_wind_sway; // NOTE: this only varies per model
 layout(location = 9) in float model_z_scale; // NOTE: this only varies per model
 
@@ -46,9 +45,11 @@ layout(location = 0) out vec3 f_pos;
 layout(location = 1) flat out vec3 f_norm;
 layout(location = 2) flat out float f_select;
 layout(location = 3) out vec2 f_uv_pos;
-layout(location = 4) out vec2 f_inst_light;
+layout(location = 4) out vec4 f_inst_glow;
+layout(location = 5) out float f_inst_light;
+layout(location = 6) out vec3 m_pos;
 #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-layout(location = 5) flat out uint f_inst_idx;
+layout(location = 7) flat out uint f_inst_idx;
 #endif
 
 const float SCALE = 1.0 / 11.0;
@@ -91,7 +92,8 @@ void main() {
     // Worldpos of the chunk that this sprite is in
     vec3 chunk_offs = -focus_off.xyz;
 
-    f_inst_light = vec2(inst_light, inst_glow);
+    f_inst_glow = inst_glow;
+    f_inst_light = inst_light;
 
     uint vert_page_index = uint(gl_VertexIndex) & VERT_PAGE_SIZE_BITS;
 
@@ -120,6 +122,35 @@ void main() {
     // Position of the sprite block in the chunk
     // Used for highlighting the selected sprite, and for opening doors
     vec3 sprite_pos = inst_mat[3].xyz + chunk_offs;
+    
+    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
+    #else
+        const float FADE_DIST = 12.0;
+        float vanish = 1.0 - clamp((distance(focus_pos.xy, sprite_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
+        if (vanish < 1.0) {
+            // 'Vanish' away the sprite
+            v_pos *= 0.0;
+        }
+    #endif
+    
+    m_pos = v_pos;
+
+    // Determine normal
+    // TODO: do changes here effect perf on vulkan
+    // TODO: dx12 doesn't like dynamic index
+    // TODO: use mix?
+    // Shader@0x000001AABD89BEE0(112,43-53): error X4576: Input array signature parameter  cannot be indexed dynamically.
+    //vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
+    uint index = v_pos_norm >> 30u & 3u;
+    vec3 norm;
+    if (index == 0) {
+        norm = (inst_mat[0].xyz);
+    } else if (index == 1) {
+        norm = (inst_mat[1].xyz);
+    } else {
+        norm = (inst_mat[2].xyz);
+    }
+    f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
         if ((inst_pos_meta & (1 << 28)) != 0) {
@@ -141,6 +172,7 @@ void main() {
 
                 vec3 delta = vec3(5.5, 0, 0);
                 v_pos = (rot_z * (v_pos + delta)) - delta;
+                f_norm = rot_z * f_norm;
             }
         }
     #endif
@@ -184,24 +216,6 @@ void main() {
             f_pos.xy += normalize(center - min_entity.xy) * v_pos.z * model_z_scale * SCALE_FACTOR * PUSH_FACTOR * push_dist;
         }
     #endif
-
-    // Determine normal
-    // TODO: do changes here effect perf on vulkan
-    // TODO: dx12 doesn't like dynamic index
-    // TODO: use mix?
-    // Shader@0x000001AABD89BEE0(112,43-53): error X4576: Input array signature parameter  cannot be indexed dynamically.
-    //vec3 norm = (inst_mat[(v_pos_norm >> 30u) & 3u].xyz);
-    uint index = v_pos_norm >> 30u & 3u;
-    vec3 norm;
-    if (index == 0) {
-        norm = (inst_mat[0].xyz);
-    } else if (index == 1) {
-        norm = (inst_mat[1].xyz);
-    } else {
-        norm = (inst_mat[2].xyz);
-    }
-
-    f_norm = normalize(mix(-norm, norm, v_pos_norm >> 29u & 1u));
 
     // Expand atlas tex coords to floats
     // NOTE: Could defer to fragment shader if we are vert heavy

@@ -1,4 +1,4 @@
-use super::cell::CellData;
+use super::cell::Cell;
 use crate::vol::FilledVox;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -17,15 +17,19 @@ pub enum Material {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum MatCell {
-    None,
     Mat(Material),
-    Normal(CellData),
+    Normal(Cell),
 }
 
 impl FilledVox for MatCell {
-    fn default_non_filled() -> Self { MatCell::None }
+    fn default_non_filled() -> Self { MatCell::Normal(Cell::empty()) }
 
-    fn is_filled(&self) -> bool { !matches!(self, MatCell::None) }
+    fn is_filled(&self) -> bool {
+        match self {
+            Self::Mat(_) => true,
+            Self::Normal(c) => c.is_filled(),
+        }
+    }
 }
 
 #[cfg(test)]

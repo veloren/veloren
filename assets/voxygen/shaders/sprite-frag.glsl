@@ -28,10 +28,12 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) flat in float f_select;
 layout(location = 3) in vec2 f_uv_pos;
-layout(location = 4) in vec2 f_inst_light;
+layout(location = 4) in vec4 f_inst_glow;
+layout(location = 5) in float f_inst_light;
+layout(location = 6) in vec3 m_pos;
 
 #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-layout(location = 5) flat in uint f_inst_idx;
+layout(location = 7) flat in uint f_inst_idx;
 #endif
 
 layout(set = 2, binding = 0)
@@ -49,10 +51,9 @@ layout(location = 1) out uvec4 tgt_mat;
 const float FADE_DIST = 32.0;
 
 void main() {
-    float render_alpha = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
-
     #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-        if (dither(gl_FragCoord.xy, render_alpha, f_inst_idx)) {
+        float dither_factor = 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (sprite_render_distance - FADE_DIST)) / FADE_DIST, 0, 1);
+        if (dither(gl_FragCoord.xy, dither_factor, f_inst_idx)) {
             discard;
         }
     #endif
@@ -60,7 +61,7 @@ void main() {
     float f_ao;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_figure(t_col_light, s_col_light, f_uv_pos, f_ao, material);
-
+    
 #ifdef EXPERIMENTAL_BAREMINIMUM
     tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_ao), 1);
 #else
@@ -102,8 +103,8 @@ void main() {
     vec3 reflected_light = vec3(1);
 
     // Make voxel shadows block the sun and moon
-    sun_info.block = f_inst_light.x;
-    moon_info.block = f_inst_light.x;
+    sun_info.block = f_inst_light;
+    moon_info.block = f_inst_light;
 
     float max_light = 0.0;
 
@@ -129,8 +130,16 @@ void main() {
     // TODO: Hack to add a small amount of underground ambient light to the scene
     reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
 
-    vec3 glow = pow(f_inst_light.y, 3) * 4 * glow_light(f_pos);
+    // Apply baked lighting from emissive blocks
+    float glow_mag = length(f_inst_glow.xyz) + 0.001;
+    vec3 glow = pow(f_inst_glow.w, 3.0) * 6.0
+        * glow_light(f_pos)
+        * mix((max(dot(f_norm, f_inst_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0)), 1.0, 1.0 / (1.0 + glow_mag * 10.0));
     emitted_light += glow * cam_attenuation;
+    // Highlight sprites with incorrect lighting due to chunk border issues
+    // if (glow_mag < 0.01 && f_inst_glow.w > 0.05) {
+    //     emitted_light += 100;
+    // }
 
     float ao = f_ao;
     reflected_light *= ao;
@@ -140,11 +149,11 @@ void main() {
     reflected_light *= point_shadow;
     emitted_light *= point_shadow;
 
-    // Apply emissive glow
-    // For now, just make glowing material light be the same colour as the surface
-    // TODO: Add a way to control this better outside the shaders
-    if ((material & (1u << 0u)) > 0u) {
-        emitted_light += 20 * surf_color;
+    float render_alpha = 1.0;
+    uint render_mat = MAT_FIGURE;
+    
+    if ((material & 31u) != 0) {
+        apply_cell_material(material, f_pos, f_norm, surf_color, emitted_light, render_alpha, render_mat);
     }
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
@@ -157,7 +166,7 @@ void main() {
         tgt_color = vec4(surf_color, render_alpha);
     #endif
 
-    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), MAT_FIGURE);
+    tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), render_mat);
     //tgt_color = vec4(-f_norm, 1.0);
 #endif
 }
