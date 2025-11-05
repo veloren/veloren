@@ -1,5 +1,5 @@
-gameinput-primary = Attaque Basique
-gameinput-secondary = Attaque Secondaire/Bloquer/Viser
+gameinput-primary = Attaque basique
+gameinput-secondary = Attaque secondaire/Bloquer/Viser
 gameinput-block = Parer
 gameinput-slot1 = Emplacement rapide 1
 gameinput-slot2 = Emplacement rapide 2

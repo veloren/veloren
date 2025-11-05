@@ -1,7 +1,7 @@
 hud-chat-all = 全部
 hud-chat-chat_tab_hover_tooltip = 右键单击设置
-hud-chat-online_msg = { "[" }{ $name }] 上线了.
-hud-chat-offline_msg = { "[" }{ $name }] 下线了.
+hud-chat-online_msg = { "[" }{ $name }] 上线了。
+hud-chat-offline_msg = { "[" }{ $name }] 下线了。
 hud-chat-default_death_msg = { "[" }{ $name }]死了
 hud-chat-fall_kill_msg = { "[" }{ $name }]因摔落伤害而死亡
 hud-chat-suicide_msg = { "[" }{ $name }]因自伤而死亡
@@ -41,5 +41,5 @@ hud-loot-pickup-msg =
         [one] { $item }
        *[other] { $amount } x { $item }
     }
-hud-chat-goodbye = 再见!
-hud-chat-connection_lost = 连接已断开. { $time }秒内将被踢出.
+hud-chat-goodbye = 再见！
+hud-chat-connection_lost = 连接中断。{ $time }秒后将被踢出。

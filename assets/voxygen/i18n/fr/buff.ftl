@@ -129,7 +129,7 @@ buff-ensnared = Piégé(e)
 
 ## Fortitude
 
-buff-fortitude = Courage
+buff-fortitude = Fortitude
     .desc = Vous pouvez résister aux étourdissements, et plus vous prenez de dégâts, plus vous étourdissez les autres facilement.
 
 ## Paré
