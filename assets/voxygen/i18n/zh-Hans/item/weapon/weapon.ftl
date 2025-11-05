@@ -1,5 +1,5 @@
-weapon-shield-wood-0 = 破烂的目标
-    .desc = 应该还能再承受几次打击，希望吧...
+weapon-shield-wood-0 = 破烂的圆盾
+    .desc = 应该还能再抗几下，希望吧...
 weapon-dagger-dagger_basic-0 = 可疑的裁纸刀
     .desc = 快速打开信件。
 weapon-dagger-dagger_cult-0 = 邪教徒魔匕
@@ -62,3 +62,5 @@ weapon-hammer-2hhammer_starter = 坚固的旧锤子
     .desc = “...... 的财产” ，其余的部分缺失了。
 weapon-hammer-craftsman = 工匠锤
     .desc = 用于制作各种物品。
+weapon-shield-starter = 木盾
+    .desc = 应该不防火。

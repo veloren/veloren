@@ -14,7 +14,7 @@ sprite-food-meat-beast_large_cooked = Tranche de viande cuite
     .desc = Moyennement saignant.
 sprite-food-meat-beast_large_raw = Morceau de viande crue
     .desc = Morceau de viande animale bestiale, meilleur après cuisson.
-sprite-food-meat-beast_small_cooked = Fine tranche de viande cuite
+sprite-food-meat-beast_small_cooked = Tranche fine de viande cuite
     .desc = Moyennement saignant.
 sprite-food-meat-bird_cooked = Viande d'oiseau cuite
     .desc = A déguster de préférence avec un dans chaque main.
@@ -30,7 +30,7 @@ sprite-food-meat-fish_raw = Poisson cru
     .desc = Un steak découpé dans un poisson, à consommer de préférence après cuisson.
 sprite-food-meat-tough_cooked = Viande dure cuite
     .desc = Goût exotique.
-sprite-food-meat-tough_raw = Viande crue et coriace
+sprite-food-meat-tough_raw = Morceau de viande crue et coriace
     .desc = Morceau de viande particulier, meilleur après cuisson.
 object-apple_half = Pomme
     .desc = Rouge et juteuse.
@@ -55,11 +55,11 @@ sprite-spore-corruption_spore = Spore de corruption
         Vous sentez une force maléfique palpiter en vous.
 
         Il n'est peut-être pas prudent de s'y accrocher trop longtemps...
-sprite-food-meat-beast_small_raw = Morceau de viande crue
+sprite-food-meat-beast_small_raw = Morceau fin de viande crue
     .desc = Petit morceau de viande animale bestiale, meilleur après cuisson.
 object-sunflower_ice_tea = Thé glacé au tournesol
     .desc = Infusion de graines de tournesol fraîchement décortiquées.
-object-apple_stick = Bâton de pomme
+object-apple_stick = Brochette de pommes
     .desc = Le bâton facilite le transport !
 sprite-lettuce-lettuce = Laitue
     .desc = Un légume feuillus d'un vert éclatant. La laitue permet de préparer des salades !

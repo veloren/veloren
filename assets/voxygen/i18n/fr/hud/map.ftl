@@ -21,8 +21,8 @@ hud-map-difficulty_dungeon =
 
     du Donjon : { $difficulty }
 hud-map-drag = Déplacer
-hud-map-zoom = Zoomer
-hud-map-mid_click = Ajouter un repère
+hud-map-zoom = Zoom
+hud-map-mid_click = Ajouter Repère
 hud-map-recenter = Recentrer
 hud-map-marked_location = Endroit marqué
 hud-map-marked_location_remove = Cliquer pour retirer

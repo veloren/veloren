@@ -6,14 +6,14 @@ common-abilities-staff-fireshockwave = Anneau de feu
     .desc = Enflamme le sol avec une onde de choc ardente.
 common-abilities-sceptre-wardingaura = Aura de protection
     .desc = Protège vos alliés contre les attaques ennemies.
-common-abilities-sword-crippling_gouge = Gouge
+common-abilities-sword-crippling_gouge = Saignée
     .desc =
         Infligez une blessure profonde qui continuera de saigner.
         Entrez en Posture incapacitante.
-common-abilities-sword-heavy_fortitude = Force d'âme
+common-abilities-sword-heavy_fortitude = Fortitude
     .desc =
         Augmente la résistance à l'étourdissement et plus vous subissez de dégâts, plus vos attaques sont étourdissantes.
-        Nécessite une position lourde.
+        Nécessite d'être en Posture lourde.
 veloren-core-pseudo_abilities-sword-cleaving_stance = Posture tranchante
     .desc = Les attaques avec cette posture peuvent toucher plusieurs ennemis.
 veloren-core-pseudo_abilities-sword-crippling_stance = Posture incapacitante
@@ -210,7 +210,9 @@ common-abilities-axe-adrenaline_rush = Montée d'adrénaline
 common-abilities-hammer-dual_upheaval = Soulèvement
     .desc = Enfonce ton marteau dans l'ennemi, le soulevant dans les airs et le laissant dans un état d'étourdissement.
 common-abilities-hammer-vigorous_bash = Coup énergique
-    .desc = Utilise la tête de votre marteau pour frapper rapidement vos ennemis, donnant une poussée d’adrénaline si la cible est déséquilibrée.
+    .desc =
+        Utilisez la tête de votre marteau pour frapper rapidement vos ennemis.
+        Octroie 4 combo supplémentaires si votre ennemi est étourdi.
 common-abilities-hammer-dual_heavy_whorl = Tourbillon lourd
     .desc = Vous frappez tous les ennemis avoisinants avec votre marteau.
 common-abilities-hammer-spine_cracker = Rupture de colonne vertébrale
@@ -232,7 +234,7 @@ common-abilities-hammer-intercept = Interception
 common-abilities-hammer-dual_intercept = Interception
     .desc = Charge avant avec ton marteau, le poussant avec ton poids.
 common-abilities-hammer-retaliate = Riposter
-    .desc = Après avoir bloqué une attaque, riposter avec un coup lourd.
+    .desc = Bloquez et contrez l'attaque de l'ennemi en un seul mouvement !
 common-abilities-hammer-pile_driver = Enfonce-pieux
     .desc = Frappe votre ennemi en l'enterrant dans le sol, arrêtant son mouvement jusqu’à ce qu’il libère ses jambes.
 common-abilities-hammer-helm_crusher = Broyeur de casque
@@ -245,8 +247,11 @@ common-abilities-hammer-tenacity = Ténacité
     .desc = Maintenir sa force face aux slaves d'attaque, en continuant d'attaquer sans interruption.
 common-abilities-hammer-thunderclap = Coup de tonnerre
     .desc = Lance une attaque aérienne dévastatrice et pleine d'adrénaline contre votre ennemi.
-common-abilities-hammer-earthshaker = Tremblement de terre
-    .desc = Enfonce la tête de votre marteau trempé de sang dans le sol, libérant une onde de choc qui assomme tout le monde autour de vous.
+common-abilities-hammer-earthshaker = Tremble-Terre
+    .desc =
+        Frappez le sol avec votre marteau pour libérer une onde de choc autour de vous.
+        Réduis la vitesse de mouvement et les regain d'énergie de vos ennemis.
+        Requiert { $min_combo } combo pour être utilisé.
 common-abilities-hammer-judgement = Jugement
     .desc = Amène votre marteau sur votre ennemi avec tout votre poids, les tuant directement s’ils sont titubants.
 common-abilities-sword-heavy_dual_cross_cut = Coup croix lourd
@@ -265,3 +270,67 @@ veloren-core-pseudo_abilities-sword-finisher = Coup de grâce
         Cette compétence change en fonction de la Posture adoptée.
 common-abilities-sword-agile_dual_cross_cut = Coup croix agile
     .desc = Un rapide coup simultané à droite et gauche.
+common-abilities-sword-heavy_sweep = Balayette lourde
+    .desc =
+        Un coup balayant, lourd et large, infligeant plus de dégâts à un ennemi étourdi.
+        Entrez en Posture lourde.
+common-abilities-sword-heavy_pommel_strike = Coup de pommeau
+    .desc =
+        Frappez votre adversaire avec un coup contondant à la tête, étourdissant davantage si l'ennemi bloque.
+        Entrez en Posture lourde.
+common-abilities-sword-agile_quick_draw = Dégainage rapide
+    .desc =
+        Ruez-vous vers l'avant en sortant votre lame pour une attaque rapide.
+        Entrez en Posture agile.
+common-abilities-sword-agile_feint = Feinte
+    .desc =
+        Faites un pas de côté puis replacez-vous avant de frapper.
+        Entrez en Posture agile.
+common-abilities-sword-defensive_riposte = Riposte
+    .desc =
+        Parez une attaque avant d'immédiatement contre-attaquer.
+        Entrez en Posture défensive.
+common-abilities-sword-crippling_hamstring = Coupe-jarret
+    .desc =
+        Blessez les tendons de votre ennemi, le rendant moins agile.
+        Entrez en Posture incapacitante.
+common-abilities-sword-cleaving_whirlwind_slice = Tornade acérée
+    .desc =
+        Frappez tous les ennemis proches avec des attaques circulaires.
+        Entrez en Posture tranchante.
+common-abilities-sword-cleaving_dual_whirlwind_slice = Tornade acérée
+    .desc =
+        Frappez tous les ennemis proches avec des attaques circulaires utilisant vos deux lames.
+        Entrez en Posture tranchante.
+common-abilities-sword-cleaving_earth_splitter = Déchire-Terre
+    .desc =
+        Fracturez le sol, avec un impact bien plus puissant si utilisé lors d'une chute.
+        Entrez en Posture tranchante.
+common-abilities-sword-heavy_pillar_thrust = Estoc plongeant
+    .desc =
+        Plongez votre lame vers le bas au travers de l'ennemi, jusqu'au sol, plus puissant si utilisé lors d'une chute.
+        Nécessite d'être en Posture lourde.
+common-abilities-sword-agile_dancing_edge = Fil dansant
+    .desc =
+        Déplacez-vous et attaquez plus rapidement.
+        Nécessite d'être en Posture agile.
+common-abilities-sword-defensive_stalwart_sword = Lame vaillante
+    .desc =
+        Encaissez une partie de l'impact des attaques, les dégâts reçus sont réduits.
+        Nécessite d'être en Posture défensive.
+common-abilities-sword-defensive_deflect = Déflexion
+    .desc =
+        Une manœuvre suffisamment vive pour bloquer même les projectiles.
+        Nécessite d'être en Posture défensive.
+common-abilities-sword-crippling_bloody_gash = Saillie sanglante
+    .desc =
+        Frappez cruellement une blessure déjà ouverte, infligeant davantage de dégâts aux ennemis en train de saigner.
+        Nécessite d'être en Posture incapacitante.
+common-abilities-sword-cleaving_blade_fever = Fièvre des lames
+    .desc =
+        Attaquez avec férocité, augmentant la force de vos coups tout en vous laissant plus vulnérable aux attaques.
+        Nécessite d'être en Posture tranchante.
+common-abilities-sword-cleaving_sky_splitter = Perce-Ciel
+    .desc =
+        Un coup puissant qui pourrait percer même les cieux, mais perce surtout à travers vos ennemis.
+        Nécessite d'être en Posture tranchante.
