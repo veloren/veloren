@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add separate wall jump button
 - Added elephants
 - More and improved fire particle effects
+- Added Cloth Armor Lineage helmets and new Cotton Armor Set.
+- New glider for Fire Gigas crafting drop.
 
 ### Changed
 
@@ -115,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More attacks and interactions can be aimed while mounted.
 - Minimum camera clamp angle is now 0 degrees.
 - Sprite and entity materials have been overhauled and improved
+- Cloth Armor Lineage model updates.
 
 ### Removed
 

@@ -12,6 +12,7 @@ ItemDef(
             "moonlit_love_glider",
             "horizon_glider",
             "winter_wings",
+            "tephras",
         ],
     ),
     quality: Moderate,

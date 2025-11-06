@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Cotton Bycoket",
+    legacy_description: "Padded to allow for easier movement amidst the harsh wild.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.222)),
+            energy_max: Some(6.666),
+            energy_reward: Some(0.06666),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        Material(Cotton),
+        SalvageInto(Cotton, 1),
+    ],
+)

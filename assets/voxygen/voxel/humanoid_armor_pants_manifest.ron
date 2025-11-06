@@ -177,27 +177,31 @@
             color: None
         ),
         "common.items.armor.cloth.linen.pants": (
-            vox_spec: ("armor.cloth.linen.pants", (-5.0, -3.5, 0.0)),
+            vox_spec: ("armor.cloth.linen", (-5.0, -3.5, 0.0), 6),
+            color: None
+        ),
+        "common.items.armor.cloth.cotton.pants": (
+            vox_spec: ("armor.cloth.cotton", (-5.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cloth.woolen.pants": (
-            vox_spec: ("armor.cloth.woolen.pants", (-6.0, -4.5, 1.0)),
+            vox_spec: ("armor.cloth.woolen", (-6.0, -4.5, 1.0), 6),
             color: None
         ),
         "common.items.armor.cloth.silken.pants": (
-            vox_spec: ("armor.cloth.silken.pants", (-5.0, -3.5, 0.0)),
+            vox_spec: ("armor.cloth.silken", (-5.0, -3.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cloth.druid.pants": (
-            vox_spec: ("armor.cloth.druid.pants", (-5.0, -3.5, -1.0)),
+            vox_spec: ("armor.cloth.druid", (-5.0, -3.5, -1.0), 6),
             color: None
         ),
         "common.items.armor.cloth.moonweave.pants": (
-            vox_spec: ("armor.cloth.moonweave.pants", (-6.0, -4.5, 0.0)),
+            vox_spec: ("armor.cloth.moonweave", (-6.0, -4.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.cloth.sunsilk.pants": (
-            vox_spec: ("armor.cloth.sunsilk.pants", (-6.0, -4.5, 0.0)),
+            vox_spec: ("armor.cloth.sunsilk", (-6.0, -4.5, 0.0), 6),
             color: None
         ),
         "common.items.armor.mail.bronze.pants": (

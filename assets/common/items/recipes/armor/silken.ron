@@ -11,6 +11,7 @@ ItemDef(
             "silken_hands",
             "silken_pants",
             "silken_shoulder",
+            "silken_head",
         ],
     ),
     quality: Moderate,

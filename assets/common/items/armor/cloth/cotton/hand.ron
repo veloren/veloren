@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Cotton Wraps",
+    legacy_description: "Padded to allow for easier movement amidst the harsh wild.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Wool"),
+    )),
+    quality: Common,
+    tags: [
+        Material(Cotton),
+        SalvageInto(Cotton, 1),
+    ],
+)

@@ -11,6 +11,7 @@ ItemDef(
             "sunsilk_hands",
             "sunsilk_pants",
             "sunsilk_shoulder",
+            "sunsilk_head",
         ],
     ),
     quality: Legendary,

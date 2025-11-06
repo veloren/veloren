@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Sunsilk Houkan",
+    legacy_description: "A shining depiction of your might.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(4.0)),
+            energy_max: Some(10.0),
+            energy_reward: Some(0.1),
+        )),
+    )),
+    quality: Legendary,
+    tags: [
+        Material(Sunsilk),
+        SalvageInto(Sunsilk, 1),
+    ],
+)

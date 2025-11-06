@@ -129,27 +129,31 @@
             color: None
         ),
         "common.items.armor.cloth.linen.foot": (
-            vox_spec: ("armor.cloth.linen.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.linen", (-2.5, -3.5, -2.0), 2),
+            color: None
+        ),
+        "common.items.armor.cloth.cotton.foot": (
+            vox_spec: ("armor.cloth.cotton", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.woolen.foot": (
-            vox_spec: ("armor.cloth.woolen.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.woolen", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.silken.foot": (
-            vox_spec: ("armor.cloth.silken.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.silken", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.druid.foot": (
-            vox_spec: ("armor.cloth.druid.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.druid", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.moonweave.foot": (
-            vox_spec: ("armor.cloth.moonweave.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.moonweave", (-2.5, -3.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.cloth.sunsilk.foot": (
-            vox_spec: ("armor.cloth.sunsilk.foot", (-2.5, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.sunsilk", (-2.5, -4.5, -2.0), 2),
             color: None
         ),
         "common.items.armor.mail.bronze.foot": (

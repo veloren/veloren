@@ -17,6 +17,7 @@
             (10, "common.items.food.plainsalad"),
             (1, "common.items.recipes.food"),
             (1, "common.items.recipes.armor.woolen"),
+            (1, "common.items.recipes.armor.cotton"),
         ],
     ),
     meta: [],

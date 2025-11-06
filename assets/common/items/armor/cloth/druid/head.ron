@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Druid Wreath",
+    legacy_description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(3.4666)),
+            energy_max: Some(9.0),
+            energy_reward: Some(0.09),
+        )),
+    )),
+    quality: High,
+    tags: [
+        Material(Lifecloth),
+        SalvageInto(Lifecloth, 1),
+    ],
+)

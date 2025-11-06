@@ -145,6 +145,7 @@ pub enum Material {
     Velorite,
     Linen,
     RedLinen,
+    Cotton,
     Wool,
     Silk,
     Lifecloth,
@@ -193,6 +194,7 @@ impl Material {
             | Material::Velorite => MaterialKind::Stone,
             Material::Linen
             | Material::RedLinen
+            | Material::Cotton
             | Material::Wool
             | Material::Silk
             | Material::Lifecloth
@@ -241,6 +243,7 @@ impl Material {
             | Material::Velorite => None,
             Material::Linen => Some("common.items.crafting_ing.cloth.linen"),
             Material::RedLinen => Some("common.items.crafting_ing.cloth.linen_red"),
+            Material::Cotton => Some("common.items.crafting_ing.cloth.cotton"),
             Material::Wool => Some("common.items.crafting_ing.cloth.wool"),
             Material::Silk => Some("common.items.crafting_ing.cloth.silk"),
             Material::Lifecloth => Some("common.items.crafting_ing.cloth.lifecloth"),

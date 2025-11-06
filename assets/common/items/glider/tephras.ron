@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Tephras",
+    legacy_description: "Searing heat makes it difficult to hold on for long periods of time.",
+    kind: Glider,
+    quality: Legendary,
+    tags: [],
+)

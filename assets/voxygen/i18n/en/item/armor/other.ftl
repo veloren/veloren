@@ -76,6 +76,9 @@ glider-sunset = Horizon
 glider-winter_wings = Wings of Winter
     .desc = Sparkles brilliantly and cooly even under the warm sun.
 
+glider-tephras = Tephras
+    .desc = Searing heat makes it difficult to hold on for long periods of time.
+
 glider-woodraptor = Wood Raptor Wings
     .desc = Take flight with the wings of a stealthy predator.
 

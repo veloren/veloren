@@ -3,7 +3,6 @@ ItemDef(
     legacy_description: "",
     kind: RecipeGroup(
         recipes: [
-            "cotton",
             "woolen_back",
             "woolen_belt",
             "woolen_chest",
@@ -11,6 +10,7 @@ ItemDef(
             "woolen_hands",
             "woolen_pants",
             "woolen_shoulder",
+            "woolen_head",
         ],
     ),
     quality: Common,

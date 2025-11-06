@@ -302,61 +302,71 @@
         ),
         "common.items.armor.cloth.linen.hand": (
             left: (
-                vox_spec: ("armor.cloth.linen.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.linen", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.linen.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.linen", (-1.5, -1.5, -2.5), 3),
+                color: None
+            )
+        ),
+        "common.items.armor.cloth.cotton.hand": (
+            left: (
+                vox_spec: ("armor.cloth.cotton", (-1.5, -1.5, -2.5), 3),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.cloth.cotton", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.cloth.woolen.hand": (
             left: (
-                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -2.5)),
+                vox_spec: ("armor.cloth.woolen", (-2.5, -2.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.woolen.hand", (-2.5, -2.5, -2.5)),
+                vox_spec: ("armor.cloth.woolen", (-2.5, -2.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.cloth.silken.hand": (
             left: (
-                vox_spec: ("armor.cloth.silken.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.silken", (-2.5, -2.5, -3.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.silken.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.silken", (-1.5, -2.5, -3.5), 3),
                 color: None
             )
         ),
         "common.items.armor.cloth.druid.hand": (
             left: (
-                vox_spec: ("armor.cloth.druid.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.druid", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.druid.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.druid", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.cloth.moonweave.hand": (
             left: (
-                vox_spec: ("armor.cloth.moonweave.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.moonweave", (-1.5, -1.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.moonweave.hand", (-1.5, -1.5, -2.5)),
+                vox_spec: ("armor.cloth.moonweave", (-1.5, -1.5, -2.5), 3),
                 color: None
             )
         ),
         "common.items.armor.cloth.sunsilk.hand": (
             left: (
-                vox_spec: ("armor.cloth.sunsilk.hand", (-2.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.sunsilk", (-2.5, -2.5, -2.5), 3),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.cloth.sunsilk.hand", (-1.5, -2.5, -3.5)),
+                vox_spec: ("armor.cloth.sunsilk", (-1.5, -2.5, -2.5), 3),
                 color: None
             )
         ),
