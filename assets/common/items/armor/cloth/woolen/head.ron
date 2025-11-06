@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Woolen Ushanka",
+    legacy_description: "Thick and ready for the snow.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.222)),
+            energy_max: Some(6.666),
+            energy_reward: Some(0.06666),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        Material(Wool),
+        SalvageInto(Wool, 1),
+    ],
+)

@@ -182,6 +182,8 @@
             energy_max: Some(45.0),
             energy_reward: Some(0.45),
         ),
+        // Note that T2 and under horizontal sets are identical stat wise and only deviate through armor set perks.
+        // As such, Cotton Armor uses the stats from Wool (no need to make another identical, renamed value).
         "Wool": (
             protection: Some(Normal(20.0)),
             energy_max: Some(60.0),

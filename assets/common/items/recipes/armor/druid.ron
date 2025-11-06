@@ -11,6 +11,7 @@ ItemDef(
             "druid_hands",
             "druid_pants",
             "druid_shoulder",
+            "druid_head",
         ],
     ),
     quality: High,

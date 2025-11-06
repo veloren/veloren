@@ -566,6 +566,17 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+    "tephras": (
+        output: ("common.items.glider.tephras", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.molten_core"), 6, false),
+            (Item("common.items.crafting_ing.living_embers"), 32, false),
+            (Item("common.items.mineral.gem.ruby"), 18, false),
+            (Item("common.items.tool.craftsman_hammer"), 0, false),
+        ],
+        craft_sprite: Some(CraftingBench),
+        is_recycling: false,
+    ),
     "healing_sceptre": (
         output: ("common.items.weapons.sceptre.starter_sceptre", 1),
         inputs: [
@@ -1119,12 +1130,98 @@
         ],
         craft_sprite: Some(Loom),
     ),
+    "linen_head": (
+        output: ("common.items.armor.cloth.linen.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen"), 3, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    //ARMOR/CLOTH/COTTON
+    "cotton_back": (
+        output: ("common.items.armor.cloth.cotton.back", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 3, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_belt": (
+        output: ("common.items.armor.cloth.cotton.belt", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 1, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_chest": (
+        output: ("common.items.armor.cloth.cotton.chest", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 8, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 4, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_feet": (
+        output: ("common.items.armor.cloth.cotton.foot", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_hands": (
+        output: ("common.items.armor.cloth.cotton.hand", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
+            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_pants": (
+        output: ("common.items.armor.cloth.cotton.pants", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 6, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 3, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_shoulder": (
+        output: ("common.items.armor.cloth.cotton.shoulder", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 6, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "cotton_head": (
+        output: ("common.items.armor.cloth.cotton.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.cotton"), 3, false),
+            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
     //ARMOR/CLOTH/WOOLEN
     "woolen_back": (
         output: ("common.items.armor.cloth.woolen.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 3, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1134,7 +1231,6 @@
         output: ("common.items.armor.cloth.woolen.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 1, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 1, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1144,7 +1240,6 @@
         output: ("common.items.armor.cloth.woolen.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 8, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1154,7 +1249,6 @@
         output: ("common.items.armor.cloth.woolen.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 2, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 1, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1164,7 +1258,6 @@
         output: ("common.items.armor.cloth.woolen.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 2, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 1, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1174,7 +1267,6 @@
         output: ("common.items.armor.cloth.woolen.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 6, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1184,7 +1276,15 @@
         output: ("common.items.armor.cloth.woolen.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.wool"), 6, false),
-            (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
+            (Item("common.items.crafting_ing.animal_misc.fur"), 2, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "woolen_head": (
+        output: ("common.items.armor.cloth.woolen.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.wool"), 3, false),
             (Item("common.items.crafting_ing.animal_misc.fur"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
@@ -1250,6 +1350,16 @@
         ],
         craft_sprite: Some(Loom),
     ),
+    "silken_head": (
+        output: ("common.items.armor.cloth.silken.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.silk"), 3, false),
+            (Item("common.items.mineral.gem.amethyst"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 1, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
     //ARMOR/CLOTH/DRUID
     "druid_back": (
         output: ("common.items.armor.cloth.druid.back", 1),
@@ -1310,6 +1420,16 @@
         inputs: [
             (Item("common.items.crafting_ing.cloth.lifecloth"), 8, false),
             (Item("common.items.mineral.ore.veloritefrag"), 2, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "druid_head": (
+        output: ("common.items.armor.cloth.druid.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.lifecloth"), 3, false),
+            (Item("common.items.mineral.ore.veloritefrag"), 2, false),
+            (Item("common.items.crafting_ing.twigs"), 4, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1387,6 +1507,16 @@
         ],
         craft_sprite: Some(Loom),
     ),
+    "moonweave_head": (
+        output: ("common.items.armor.cloth.moonweave.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.moonweave"), 3, false),
+            (Item("common.items.mineral.gem.sapphire"), 1, false),
+            (Item("common.items.mineral.ingot.silver"), 3, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
     //ARMOR/CLOTH/SUNSILK
     "sunsilk_back": (
         output: ("common.items.armor.cloth.sunsilk.back", 1),
@@ -1449,6 +1579,17 @@
         inputs: [
             (Item("common.items.crafting_ing.cloth.sunsilk"), 8, false),
             (Item("common.items.mineral.ingot.gold"), 3, false),
+            (Item("common.items.crafting_tools.sewing_set"), 0, false),
+        ],
+        craft_sprite: Some(Loom),
+    ),
+    "sunsilk_head": (
+        output: ("common.items.armor.cloth.sunsilk.head", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 3, false),
+            (Item("common.items.mineral.ingot.gold"), 3, false),
+            (Item("common.items.mineral.gem.ruby"), 1, false),
+            (Item("common.items.crafting_ing.animal_misc.phoenix_feather"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),

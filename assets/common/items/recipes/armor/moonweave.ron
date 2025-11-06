@@ -11,6 +11,7 @@ ItemDef(
             "moonweave_hands",
             "moonweave_pants",
             "moonweave_shoulder",
+            "moonweave_head",
         ],
     ),
     quality: Epic,

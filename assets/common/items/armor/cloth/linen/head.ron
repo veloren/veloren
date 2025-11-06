@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Linen Headwrap",
+    legacy_description: "Roughly stitched, but it seems to hold.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(1.333)),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.05),
+        )),
+    )),
+    quality: Low,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)

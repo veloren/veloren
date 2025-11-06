@@ -11,6 +11,7 @@
     (1.0, Item("common.items.recipes.potions")),
     (1.0, Item("common.items.recipes.explosives")),
     (1.0, Item("common.items.recipes.metal.iron")),
+    (1.0, Item("common.items.recipes.armor.cotton")),
     (1.0, Item("common.items.recipes.armor.woolen")),
     (1.0, Item("common.items.recipes.armor.leather")),
     (1.0, Item("common.items.recipes.weapons.bamboo")),

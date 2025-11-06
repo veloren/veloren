@@ -211,27 +211,31 @@
             color: None
         ),
         "common.items.armor.cloth.linen.chest": (
-            vox_spec: ("armor.cloth.linen.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.linen", (-7.0, -3.5, 2.0), 7),
+            color: None
+        ),
+        "common.items.armor.cloth.cotton.chest": (
+            vox_spec: ("armor.cloth.cotton", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.cloth.woolen.chest": (
-            vox_spec: ("armor.cloth.woolen.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.woolen", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.cloth.silken.chest": (
-            vox_spec: ("armor.cloth.silken.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.silken", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.cloth.druid.chest": (
-            vox_spec: ("armor.cloth.druid.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.druid", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.cloth.moonweave.chest": (
-            vox_spec: ("armor.cloth.moonweave.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.moonweave", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.cloth.sunsilk.chest": (
-            vox_spec: ("armor.cloth.sunsilk.chest", (-7.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.sunsilk", (-7.0, -3.5, 2.0), 7),
             color: None
         ),
         "common.items.armor.mail.bronze.chest": (

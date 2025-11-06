@@ -1,0 +1,17 @@
+ItemDef(
+    legacy_name: "Moonweave Diadem",
+    legacy_description: "The fabric dances silently, like moonlight.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(3.822)),
+            energy_max: Some(9.666),
+            energy_reward: Some(0.09666),
+        )),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+        SalvageInto(Moonweave, 1),
+    ],
+)

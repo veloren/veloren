@@ -283,6 +283,7 @@
         (Item("common.items.armor.hide.leather.shoulder"), 1),
 
         // Cloth
+        // Woolen
         (Item("common.items.armor.cloth.woolen.back"), 1),
         (Item("common.items.armor.cloth.woolen.belt"), 1),
         (Item("common.items.armor.cloth.woolen.chest"), 1),
@@ -290,6 +291,16 @@
         (Item("common.items.armor.cloth.woolen.hand"), 1),
         (Item("common.items.armor.cloth.woolen.pants"), 1),
         (Item("common.items.armor.cloth.woolen.shoulder"), 1),
+        (Item("common.items.armor.cloth.woolen.head"), 1),
+        // Cotton
+        (Item("common.items.armor.cloth.cotton.back"), 1),
+        (Item("common.items.armor.cloth.cotton.belt"), 1),
+        (Item("common.items.armor.cloth.cotton.chest"), 1),
+        (Item("common.items.armor.cloth.cotton.foot"), 1),
+        (Item("common.items.armor.cloth.cotton.hand"), 1),
+        (Item("common.items.armor.cloth.cotton.pants"), 1),
+        (Item("common.items.armor.cloth.cotton.shoulder"), 1),
+        (Item("common.items.armor.cloth.cotton.head"), 1),
 
         // Mail
         (Item("common.items.armor.mail.iron.back"), 1),
@@ -566,6 +577,17 @@
         (Item("common.items.armor.cloth.linen.hand"), 1),
         (Item("common.items.armor.cloth.linen.pants"), 1),
         (Item("common.items.armor.cloth.linen.shoulder"), 1),
+        (Item("common.items.armor.cloth.linen.head"), 1),
+    ],
+    "cotton": [
+        (Item("common.items.armor.cloth.cotton.back"), 1),
+        (Item("common.items.armor.cloth.cotton.belt"), 1),
+        (Item("common.items.armor.cloth.cotton.chest"), 1),
+        (Item("common.items.armor.cloth.cotton.foot"), 1),
+        (Item("common.items.armor.cloth.cotton.hand"), 1),
+        (Item("common.items.armor.cloth.cotton.pants"), 1),
+        (Item("common.items.armor.cloth.cotton.shoulder"), 1),
+        (Item("common.items.armor.cloth.cotton.head"), 1),
     ],
     "woolen": [
         (Item("common.items.armor.cloth.woolen.back"), 1),
@@ -575,6 +597,7 @@
         (Item("common.items.armor.cloth.woolen.hand"), 1),
         (Item("common.items.armor.cloth.woolen.pants"), 1),
         (Item("common.items.armor.cloth.woolen.shoulder"), 1),
+        (Item("common.items.armor.cloth.woolen.head"), 1),
     ],
     "silken": [
         (Item("common.items.armor.cloth.silken.back"), 1),
@@ -584,6 +607,7 @@
         (Item("common.items.armor.cloth.silken.hand"), 1),
         (Item("common.items.armor.cloth.silken.pants"), 1),
         (Item("common.items.armor.cloth.silken.shoulder"), 1),
+        (Item("common.items.armor.cloth.silken.head"), 1),
     ],
     "druid": [
         (Item("common.items.armor.cloth.druid.back"), 1),
@@ -593,6 +617,7 @@
         (Item("common.items.armor.cloth.druid.hand"), 1),
         (Item("common.items.armor.cloth.druid.pants"), 1),
         (Item("common.items.armor.cloth.druid.shoulder"), 1),
+        (Item("common.items.armor.cloth.druid.head"), 1),
     ],
     "moonweave": [
         (Item("common.items.armor.cloth.moonweave.back"), 1),
@@ -602,6 +627,7 @@
         (Item("common.items.armor.cloth.moonweave.hand"), 1),
         (Item("common.items.armor.cloth.moonweave.pants"), 1),
         (Item("common.items.armor.cloth.moonweave.shoulder"), 1),
+        (Item("common.items.armor.cloth.moonweave.head"), 1),
     ],
     "sunsilk": [
         (Item("common.items.armor.cloth.sunsilk.back"), 1),
@@ -611,6 +637,7 @@
         (Item("common.items.armor.cloth.sunsilk.hand"), 1),
         (Item("common.items.armor.cloth.sunsilk.pants"), 1),
         (Item("common.items.armor.cloth.sunsilk.shoulder"), 1),
+        (Item("common.items.armor.cloth.sunsilk.head"), 1),
     ],
     "bronze": [
         (Item("common.items.armor.mail.bronze.back"), 1),
@@ -1052,6 +1079,7 @@
         (Item("common.items.glider.sunset"),1),
         (Item("common.items.glider.butterfly3"),1),
         (Item("common.items.glider.winter_wings"),1),
+        (Item("common.items.glider.tephras"),1),
         (Item("common.items.glider.moth"),1),
         (Item("common.items.glider.morpho"),1),
         (Item("common.items.glider.monarch"),1),
@@ -1092,6 +1120,7 @@
         (Item("common.items.recipes.armor.silken"),1),
         (Item("common.items.recipes.armor.sunsilk"),1),
         (Item("common.items.recipes.armor.woolen"),1),
+        (Item("common.items.recipes.armor.cotton"),1),
         (Item("common.items.recipes.armor.golemite"),1),
         // Equipment
         (Item("common.items.recipes.equipment.advanced"),1),

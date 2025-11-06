@@ -68,6 +68,10 @@
             vox_spec: ("glider.winter_wings", (-26.0, -26.0, 0.0)),
             color: None
         ),
+        "common.items.glider.tephras": (
+            vox_spec: ("glider.tephras", (-20.0, -18.0, 0.0)),
+            color: None
+        ),
         "common.items.debug.glider": (
             vox_spec: ("glider.vroom", (-13.5, -16.0, 2.0)),
             color: None

@@ -2131,6 +2131,9 @@
             "common.items.armor.cloth.moonweave.shoulder",
         ): "armor-cloth-moonweave-shoulder",
         Simple(
+            "common.items.armor.cloth.moonweave.head",
+        ): "armor-cloth-moonweave-head",
+        Simple(
             "common.items.armor.cloth.linen.back",
         ): "armor-cloth-linen-back",
         Simple(
@@ -2151,6 +2154,9 @@
         Simple(
             "common.items.armor.cloth.linen.shoulder",
         ): "armor-cloth-linen-shoulder",
+        Simple(
+            "common.items.armor.cloth.linen.head",
+        ): "armor-cloth-linen-head",
         Simple(
             "common.items.armor.cloth.sunsilk.back",
         ): "armor-cloth-sunsilk-back",
@@ -2173,6 +2179,33 @@
             "common.items.armor.cloth.sunsilk.shoulder",
         ): "armor-cloth-sunsilk-shoulder",
         Simple(
+            "common.items.armor.cloth.sunsilk.head",
+        ): "armor-cloth-sunsilk-head",
+        Simple(
+            "common.items.armor.cloth.cotton.back",
+        ): "armor-cloth-cotton-back",
+        Simple(
+            "common.items.armor.cloth.cotton.belt",
+        ): "armor-cloth-cotton-belt",
+        Simple(
+            "common.items.armor.cloth.cotton.chest",
+        ): "armor-cloth-cotton-chest",
+        Simple(
+            "common.items.armor.cloth.cotton.foot",
+        ): "armor-cloth-cotton-foot",
+        Simple(
+            "common.items.armor.cloth.cotton.hand",
+        ): "armor-cloth-cotton-hand",
+        Simple(
+            "common.items.armor.cloth.cotton.pants",
+        ): "armor-cloth-cotton-pants",
+        Simple(
+            "common.items.armor.cloth.cotton.shoulder",
+        ): "armor-cloth-cotton-shoulder",
+        Simple(
+            "common.items.armor.cloth.cotton.head",
+        ): "armor-cloth-cotton-head",
+        Simple(
             "common.items.armor.cloth.woolen.back",
         ): "armor-cloth-woolen-back",
         Simple(
@@ -2193,6 +2226,9 @@
         Simple(
             "common.items.armor.cloth.woolen.shoulder",
         ): "armor-cloth-woolen-shoulder",
+        Simple(
+            "common.items.armor.cloth.woolen.head",
+        ): "armor-cloth-woolen-head",
         Simple(
             "common.items.armor.cloth.silken.back",
         ): "armor-cloth-silken-back",
@@ -2215,6 +2251,9 @@
             "common.items.armor.cloth.silken.shoulder",
         ): "armor-cloth-silken-shoulder",
         Simple(
+            "common.items.armor.cloth.silken.head",
+        ): "armor-cloth-silken-head",
+        Simple(
             "common.items.armor.cloth.druid.back",
         ): "armor-cloth-druid-back",
         Simple(
@@ -2235,6 +2274,9 @@
         Simple(
             "common.items.armor.cloth.druid.shoulder",
         ): "armor-cloth-druid-shoulder",
+        Simple(
+            "common.items.armor.cloth.druid.head",
+        ): "armor-cloth-druid-head",
         Simple(
             "common.items.armor.ferocious.back",
         ): "armor-ferocious-back",
@@ -2609,6 +2651,9 @@
         Simple(
             "common.items.glider.winter_wings",
         ): "glider-winter_wings",
+        Simple(
+            "common.items.glider.tephras",
+        ): "glider-tephras",
         Simple(
             "common.items.glider.woodraptor",
         ): "glider-woodraptor",
@@ -7561,6 +7606,7 @@
         Simple("common.items.recipes.armor.scale"): "recipe-armor-scale",
         Simple("common.items.recipes.armor.silken"): "recipe-armor-silken",
         Simple("common.items.recipes.armor.sunsilk"): "recipe-armor-sunsilk",
+        Simple("common.items.recipes.armor.cotton"): "recipe-armor-cotton",
         Simple("common.items.recipes.armor.woolen"): "recipe-armor-woolen",
         Simple("common.items.recipes.armor.golemite"): "recipe-armor-golemite",
         Simple("common.items.recipes.equipment.basic"): "recipe-equipment-basic",

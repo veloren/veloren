@@ -141,27 +141,31 @@
             color: None
         ),
         "common.items.armor.cloth.linen.belt":(
-            vox_spec: ("armor.cloth.linen.belt", (-4.0, -3.5, 0.0)),
+            vox_spec: ("armor.cloth.linen", (-4.0, -3.5, 0.0), 5),
+            color: None
+        ),
+        "common.items.armor.cloth.cotton.belt":(
+            vox_spec: ("armor.cloth.cotton", (-4.0, -3.5, 0.0), 5),
             color: None
         ),
         "common.items.armor.cloth.woolen.belt":(
-            vox_spec: ("armor.cloth.woolen.belt", (-4.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.woolen", (-4.0, -3.5, 2.0), 5),
             color: None
         ),
         "common.items.armor.cloth.silken.belt":(
-            vox_spec: ("armor.cloth.silken.belt", (-4.0, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.silken", (-4.0, -3.5, -2.0), 5),
             color: None
         ),
         "common.items.armor.cloth.druid.belt":(
-            vox_spec: ("armor.cloth.druid.belt", (-4.0, -3.5, -1.0)),
+            vox_spec: ("armor.cloth.druid", (-4.0, -3.5, -1.0), 5),
             color: None
         ),
         "common.items.armor.cloth.moonweave.belt":(
-            vox_spec: ("armor.cloth.moonweave.belt", (-4.0, -3.5, 2.0)),
+            vox_spec: ("armor.cloth.moonweave", (-4.0, -3.5, 2.0), 5),
             color: None
         ),
         "common.items.armor.cloth.sunsilk.belt":(
-            vox_spec: ("armor.cloth.sunsilk.belt", (-4.0, -3.5, -2.0)),
+            vox_spec: ("armor.cloth.sunsilk", (-4.0, -3.5, -2.0), 5),
             color: None
         ),
         "common.items.armor.mail.bronze.belt":(
