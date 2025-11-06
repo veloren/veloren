@@ -183,12 +183,10 @@ impl<V: FilledVox + Copy> DynaUnionizer<V> {
         let origin = min_point.map(|e| -e);
         for (dyna, offset) in self.0 {
             for (pos, vox) in dyna.full_vol_iter() {
-                if vox.is_filled() {
-                    let cell_pos = origin + offset + pos;
-                    let old_vox = *combined.get(cell_pos).unwrap();
-                    let new_vox = f(*vox, old_vox);
-                    combined.set(cell_pos, new_vox).unwrap();
-                }
+                let cell_pos = origin + offset + pos;
+                let old_vox = *combined.get(cell_pos).unwrap();
+                let new_vox = f(*vox, old_vox);
+                combined.set(cell_pos, new_vox).unwrap();
             }
         }
 

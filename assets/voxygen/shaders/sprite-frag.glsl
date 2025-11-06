@@ -160,11 +160,7 @@ void main() {
 
     surf_color += f_select * (surf_color + 0.1) * vec3(0.15, 0.15, 0.15);
 
-    #ifdef EXPERIMENTAL_DISCARDTRANSPARENCY
-        tgt_color = vec4(surf_color, 1.0);
-    #else
-        tgt_color = vec4(surf_color, render_alpha);
-    #endif
+    tgt_color = vec4(surf_color, render_alpha);
 
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), render_mat);
     //tgt_color = vec4(-f_norm, 1.0);
