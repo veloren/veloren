@@ -2556,9 +2556,6 @@ WallLamp: [(
             model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
             offset: (-10.5, -12.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
-            custom_indices: {
-                15: (attr: Glowy),
-            },
         ),
     ],
     wind_sway: 0.0,
@@ -2583,9 +2580,6 @@ WallLampWizard: [(
             model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
             offset: (-5.5, 0.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
-            custom_indices: {
-                15: (attr: Glowy),
-            },
         ),
     ],
     wind_sway: 0.0,
