@@ -402,11 +402,16 @@ impl HumHeadSpec {
             .maybe_add(helmet)
             .unify_with(|v, old_v| {
                 if old_v.is_override_hollow() {
+                    // Prevent hollowing
                     old_v
-                } else if old_v.is_hollowing() {
+                } else if v.is_hollowing() && !old_v.is_override_hollow() {
+                    // Hollow the voxel
                     Cell::empty()
-                } else {
+                } else if v.is_filled() {
+                    // Preference goes to new voxel
                     v
+                } else {
+                    old_v
                 }
             });
         (
