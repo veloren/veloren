@@ -160,7 +160,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float strength = 3.0 / (5 + distance_2);
         // Directional light
         if (L.light_dir.w < 1.0) {
-            strength *= clamp((dot(normalize(-difference), L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5, 0.01, 1.0);
+            strength *= clamp((dot(normalize(-difference), L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5, 0.1 * (1.0 - L.light_dir.w), 1.0);
         }
 
         // Multiply the vec3 only once
@@ -207,7 +207,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float ambiance = 0.0;
         #ifndef EXPERIMENTAL_PHOTOREALISTIC
             // Non-physically emulate ambient light nearby
-            ambiance = mix(0.05, 0.5, (dot(wnorm, direct_light_dir) + 1.0) * 0.5) * strength;
+            ambiance = pow(dot(wnorm, direct_light_dir) * 0.5 + 0.5, 2.0) * strength;
             #ifdef FIGURE_SHADER
                 // Non-physical hack. Subtle, but allows lanterns to glow nicely
                 // TODO: Make lanterns use glowing cells instead

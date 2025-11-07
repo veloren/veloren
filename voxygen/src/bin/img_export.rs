@@ -422,6 +422,7 @@ fn load_npc_bones(
                     hands,
                     anim::vek::Vec3::<f32>::unit_y(),
                     anim::vek::Vec3::<f32>::unit_y(),
+                    anim::vek::Vec3::<f32>::unit_y(),
                     time,
                     Vec3::zero(),
                 ),
