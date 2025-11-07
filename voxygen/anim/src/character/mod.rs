@@ -454,23 +454,30 @@ impl CharacterSkeleton {
         self.hold.scale = Vec3::one() * 0.0;
 
         if self.holding_lantern {
-            let pitch = look_dir.unwrap_or_default().z.sin() * align_with_cam;
+            let pitch = look_dir.unwrap_or_default().z * align_with_cam;
+            let yaw = look_dir.zip(last_ori).map_or(0.0, |(l, o)| {
+                l.xy().angle_between(o.xy()).min(0.75)
+                    * l.xy().determine_side(Vec2::zero(), o.xy()).signum()
+            });
 
             self.hand_r.position = Vec3::new(
-                s_a.hand.0 + 1.0,
-                s_a.hand.1 + 2.0 - impact * 0.2 - pitch * 3.0,
-                s_a.hand.2 + 12.0 + impact * -0.1 + pitch * 3.0,
+                s_a.hand.0 + 2.0 - yaw * 3.5,
+                s_a.hand.1 + 2.0 - impact * 0.2 - pitch * 3.0 + yaw * 3.0,
+                s_a.hand.2 + 8.0 + impact * -0.1 + pitch * 3.0,
             );
-            self.hand_r.orientation =
-                Quaternion::rotation_x(2.25 + pitch) * Quaternion::rotation_z(0.9);
-            self.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 + 2.0);
+            self.hand_r.orientation = Quaternion::rotation_z(yaw * 1.5)
+                * Quaternion::rotation_x(2.25 + pitch)
+                * Quaternion::rotation_z(0.9);
+            self.shoulder_r.orientation =
+                Quaternion::rotation_z(yaw) * Quaternion::rotation_x(short * -0.15 + 2.25);
 
             // head  + look_dir.z * align_with_cam
 
             let fast = (anim_time * 8.0).sin();
             let fast2 = (anim_time * 6.0 + 8.0).sin();
 
-            self.head.orientation = self.head.orientation * Quaternion::rotation_x(pitch);
+            self.head.orientation =
+                self.head.orientation * Quaternion::rotation_z(yaw) * Quaternion::rotation_x(pitch);
 
             self.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
             self.lantern.orientation = self.hand_r.orientation.inverse()
@@ -481,11 +488,17 @@ impl CharacterSkeleton {
                         + pitch,
                 )
                 * Quaternion::rotation_y(tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25)
+                * Quaternion::rotation_z(yaw)
                 * Quaternion::slerp(Default::default(), self.chest.orientation, 0.3);
         } else {
             self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-            self.lantern.orientation = Quaternion::rotation_x(shorte * 0.7 * speednorm.powi(2))
-                * Quaternion::rotation_y(shorte * 0.4 * speednorm.powi(2) - 0.3);
+            self.lantern.orientation =
+                Quaternion::slerp(
+                    Default::default(),
+                    self.chest.orientation.inverse() * self.shorts.orientation.inverse(),
+                    0.75,
+                ) * Quaternion::rotation_x(shorte * 0.0 * speednorm.powi(2) + 0.25)
+                    * Quaternion::rotation_y(shorte * 0.2 * speednorm.powi(2) - 0.3);
         }
     }
 }
