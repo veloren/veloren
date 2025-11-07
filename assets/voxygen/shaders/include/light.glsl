@@ -160,7 +160,13 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float strength = 3.0 / (5 + distance_2);
         // Directional light
         if (L.light_dir.w < 1.0) {
-            strength *= clamp((dot(normalize(-difference), L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5, 0.1 * (1.0 - L.light_dir.w), 1.0);
+            strength *= clamp(
+                // Stength increases toward light direction past the light fov threshold...
+                (dot(normalize(-difference), L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5,
+                // ...but is clamped to minimum and maximum brightness
+                0.1 * (1.0 - L.light_dir.w),
+                1.0
+            );
         }
 
         // Multiply the vec3 only once
@@ -207,11 +213,11 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float ambiance = 0.0;
         #ifndef EXPERIMENTAL_PHOTOREALISTIC
             // Non-physically emulate ambient light nearby
-            ambiance = pow(dot(wnorm, direct_light_dir) * 0.3 + 0.7, 2.0) * strength;
+            ambiance = pow(dot(wnorm, direct_light_dir) * 0.4 + 0.6, 2.0) * strength;
             #ifdef FIGURE_SHADER
                 // Non-physical hack. Subtle, but allows lanterns to glow nicely
                 // TODO: Make lanterns use glowing cells instead
-                ambiance += 250.0 * strength * pow(clamp(2.0 - distance_2 * 100.0, 0.0, 1.0), 5.0);
+                ambiance += 100.0 * strength * pow(clamp(2.0 - distance_2 * 100.0, 0.0, 1.0), 5.0);
             #endif
         #endif
         directed_light += (is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light : vec3(0.0)) + ambiance * color;

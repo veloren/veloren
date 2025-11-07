@@ -23,6 +23,10 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
     float strength = 0.0;
     // Directional lights
     if (L.light_dir.w < 1.0) {
+        // Base ambient light
+        strength += pow(attenuation_strength_real(difference), spread)
+            // A more focussed beam means less ambiance
+            * (1.0 - L.light_dir.w);
         // Compute intersection of directional ray with light cone
         const vec3 ldir = L.light_dir.xyz;
         const vec3 beam_origin = light_pos - ldir * 0.1;
@@ -40,13 +44,14 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
                 if (dot(nearest - beam_origin, ldir) > 0.0) {
                     difference = light_pos - nearest;
                     float power = clamp(pow(abs(t0 - t1), 2.5) / length(difference), 0.0, 1.0);
-                    strength = pow(attenuation_strength_real(difference), spread)
+                    strength += pow(attenuation_strength_real(difference), spread)
                         * (2.0 + dot(ldir, -dir))
                         * power;
                 }
             }
         }
     } else {
+        // Regular lights
         strength = pow(attenuation_strength_real(difference), spread);
     }
 

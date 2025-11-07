@@ -476,7 +476,7 @@ impl CharacterSkeleton {
             self.lantern.orientation = self.hand_r.orientation.inverse()
                 * self.chest.orientation.inverse()
                 * Quaternion::rotation_x(
-                    (fast + 0.5) * 0.3 * speednorm
+                    (fast + 0.5) * 0.1 * speednorm
                         + (tilt.abs() * 2.0).min(PI * 0.5) * (0.25 + speednorm)
                         + pitch,
                 )
