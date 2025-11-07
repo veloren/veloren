@@ -19,6 +19,7 @@ use common::{
     },
     figure::Segment,
     generation::{EntityInfo, try_all_entity_configs},
+    util::Dir,
 };
 use image::RgbaImage;
 use rand::{Rng, SeedableRng};
@@ -422,7 +423,7 @@ fn load_npc_bones(
                     hands,
                     anim::vek::Vec3::<f32>::unit_y(),
                     anim::vek::Vec3::<f32>::unit_y(),
-                    anim::vek::Vec3::<f32>::unit_y(),
+                    Dir::new(Vec3::unit_y()),
                     time,
                     Vec3::zero(),
                 ),

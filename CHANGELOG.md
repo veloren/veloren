@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More and improved fire particle effects
 - Added Cloth Armor Lineage helmets and new Cotton Armor Set.
 - New glider for Fire Gigas crafting drop.
+- Support for directional lanterns
 
 ### Changed
 
