@@ -136,7 +136,7 @@ impl Animation for JumpAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt);
+        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt, None, None);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.torso.orientation = Quaternion::rotation_x(0.0);

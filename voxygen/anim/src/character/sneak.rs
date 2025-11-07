@@ -8,7 +8,14 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct SneakAnimation;
 
 impl Animation for SneakAnimation {
-    type Dependency<'a> = (Option<ToolKind>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
+    type Dependency<'a> = (
+        Option<ToolKind>,
+        Vec3<f32>,
+        Vec3<f32>,
+        Vec3<f32>,
+        Vec3<f32>,
+        f32,
+    );
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +24,7 @@ impl Animation for SneakAnimation {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_sneak"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, velocity, orientation, last_ori, global_time): Self::Dependency<'_>,
+        (_active_tool_kind, velocity, orientation, last_ori, look_dir, global_time): Self::Dependency<'_>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -60,15 +67,17 @@ impl Animation for SneakAnimation {
         );
 
         let orientation: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = if vek::Vec2::new(orientation, last_ori)
+        let tilt = if vek::Vec2::new(orientation, last_ori.xy())
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && orientation.angle_between(last_ori).is_finite()
+            && orientation.angle_between(last_ori.xy()).is_finite()
         {
-            orientation.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), orientation).signum()
+            orientation.angle_between(last_ori.xy()).min(0.2)
+                * last_ori
+                    .xy()
+                    .determine_side(Vec2::zero(), orientation)
+                    .signum()
         } else {
             0.0
         } * 1.3;
@@ -158,7 +167,16 @@ impl Animation for SneakAnimation {
             next.foot_r.position = Vec3::new(s_a.foot.0, 4.0 + s_a.foot.1, s_a.foot.2);
         }
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speed / 10.0, 0.0, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            anim_time,
+            speed / 10.0,
+            0.0,
+            tilt,
+            Some(last_ori),
+            Some(look_dir),
+        );
 
         next
     }

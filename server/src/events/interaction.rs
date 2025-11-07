@@ -73,24 +73,20 @@ impl ServerEvent for SetLanternEvent {
                 }
                 // Only enable lantern if entity is alive
                 else if healths.get(entity).is_none_or(|h| !h.is_dead) {
-                    let lantern_info = inventories
+                    inventories
                         .get(entity)
                         .and_then(|inventory| inventory.equipped(EquipSlot::Lantern))
-                        .and_then(|item| {
+                        .map(|item| {
                             if let comp::item::ItemKind::Lantern(l) = &*item.kind() {
-                                Some((l.color(), l.strength(), l.flicker()))
-                            } else {
-                                None
+                                let _ = light_emitters.insert(entity, comp::LightEmitter {
+                                    col: l.color(),
+                                    strength: l.strength(),
+                                    flicker: l.flicker(),
+                                    animated: true,
+                                    dir: l.dir,
+                                });
                             }
                         });
-                    if let Some((col, strength, flicker)) = lantern_info {
-                        let _ = light_emitters.insert(entity, comp::LightEmitter {
-                            col,
-                            strength,
-                            flicker,
-                            animated: true,
-                        });
-                    }
                 }
             }
         }

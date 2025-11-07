@@ -84,6 +84,7 @@ const _: () = assert!(core::mem::size_of::<Globals>().is_multiple_of(16));
 pub struct Light {
     pub pos: [f32; 4],
     pub col: [f32; 4],
+    pub dir: [f32; 4],
 }
 
 #[repr(C)]
@@ -236,7 +237,13 @@ impl Light {
             pos: Vec4::from(pos).into_array(),
             col: (Rgba::new(linearized_col.r, linearized_col.g, linearized_col.b, 0.0) * strength)
                 .into_array(),
+            dir: [0.0, 0.0, 0.0, 10.0],
         }
+    }
+
+    pub fn with_dir(mut self, dir: Vec3<f32>, fov: f32) -> Self {
+        self.dir = dir.normalized().with_w(fov).into_array();
+        self
     }
 
     pub fn get_pos(&self) -> Vec3<f32> { Vec3::new(self.pos[0], self.pos[1], self.pos[2]) }

@@ -8,18 +8,21 @@ pub struct LightEmitter {
     pub strength: f32,
     pub flicker: f32,
     pub animated: bool,
+    // (direction, fov)
+    pub dir: Option<(Vec3<f32>, f32)>,
 }
 
-impl Default for LightEmitter {
-    fn default() -> Self {
-        Self {
-            col: Rgb::one(),
-            strength: 1.0,
-            flicker: 0.0,
-            animated: false,
-        }
-    }
-}
+// impl Default for LightEmitter {
+//     fn default() -> Self {
+//         Self {
+//             col: Rgb::one(),
+//             strength: 1.0,
+//             flicker: 0.0,
+//             animated: false,
+//             dir: None,
+//         }
+//     }
+// }
 
 impl Component for LightEmitter {
     type Storage = DerefFlaggedStorage<Self, DenseVecStorage<Self>>;
@@ -30,17 +33,20 @@ pub struct LightAnimation {
     pub offset: Vec3<f32>,
     pub col: Rgb<f32>,
     pub strength: f32,
+    // (direction, fov)
+    pub dir: Option<(Vec3<f32>, f32)>,
 }
 
-impl Default for LightAnimation {
-    fn default() -> Self {
-        Self {
-            offset: Vec3::zero(),
-            col: Rgb::zero(),
-            strength: 0.0,
-        }
-    }
-}
+// impl Default for LightAnimation {
+//     fn default() -> Self {
+//         Self {
+//             offset: Vec3::zero(),
+//             col: Rgb::zero(),
+//             strength: 0.0,
+//             dir: None,
+//         }
+//     }
+// }
 
 impl Component for LightAnimation {
     type Storage = DenseVecStorage<Self>;

@@ -30,7 +30,7 @@ use specs::{Component, DenseVecStorage, DerefFlaggedStorage};
 use std::{borrow::Cow, collections::hash_map::DefaultHasher, fmt, sync::Arc};
 use strum::{EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
 use tracing::error;
-use vek::Rgb;
+use vek::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, strum::EnumString)]
 pub enum Reagent {
@@ -51,12 +51,13 @@ pub enum Utility {
     Key,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Lantern {
     color: Rgb<u32>,
     strength_thousandths: u32,
     flicker_thousandths: u32,
+    pub dir: Option<(Vec3<f32>, f32)>,
 }
 
 impl Lantern {

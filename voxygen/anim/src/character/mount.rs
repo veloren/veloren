@@ -17,6 +17,7 @@ impl Animation for MountAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
+        Vec3<f32>,
     );
     type Skeleton = CharacterSkeleton;
 
@@ -35,6 +36,7 @@ impl Animation for MountAnimation {
             avg_vel,
             orientation,
             last_ori,
+            look_dir,
         ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
@@ -56,18 +58,17 @@ impl Animation for MountAnimation {
         );
 
         let ori: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         let canceler = (speed / 24.0).powf(0.6);
         let _x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
-        let tilt = if vek::Vec2::new(ori, last_ori)
+        let tilt = if vek::Vec2::new(ori, last_ori.xy())
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
+            && ori.angle_between(last_ori.xy()).is_finite()
         {
-            ori.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
+            ori.angle_between(last_ori.xy()).min(0.2)
+                * last_ori.xy().determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
         } * 1.3;
@@ -140,7 +141,16 @@ impl Animation for MountAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
 
-        next.do_hold_lantern(s_a, anim_time, 0.0, speed * 0.1 + 0.1, 0.0, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            0.0,
+            speed * 0.1 + 0.1,
+            0.0,
+            tilt,
+            Some(last_ori),
+            Some(look_dir),
+        );
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;

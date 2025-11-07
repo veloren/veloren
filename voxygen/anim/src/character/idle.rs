@@ -87,7 +87,7 @@ impl Animation for IdleAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, 0.0, 0.0);
+        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, 0.0, 0.0, None, None);
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 

@@ -137,7 +137,16 @@ impl Animation for CrawlAnimation {
             next.shoulder_r.orientation = Quaternion::rotation_x(2.2);
         }
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speed / 10.0, 0.0, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            anim_time,
+            speed / 10.0,
+            0.0,
+            tilt,
+            None,
+            None,
+        );
 
         next
     }

@@ -45,7 +45,7 @@
           color: None
       ),
       "common.items.lantern.delvers_lamp": (
-          vox_spec: ("lantern.delvers_lamp", (-3.5, -4.0, -8.5)),
+          vox_spec: ("lantern.delvers_lamp", (-2.5, -3.0, -8.5)),
           color: None
       ),
     },

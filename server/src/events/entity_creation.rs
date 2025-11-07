@@ -520,6 +520,7 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                     strength: 5.0,
                     flicker: 1.0,
                     animated: true,
+                    dir: None,
                 })
                 .with(WaypointArea::default())
                 .with(comp::Immovable)

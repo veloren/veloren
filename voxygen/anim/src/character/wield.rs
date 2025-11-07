@@ -68,15 +68,14 @@ impl Animation for WieldAnimation {
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
 
         let ori: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = (if vek::Vec2::new(ori, last_ori)
+        let tilt = (if vek::Vec2::new(ori, last_ori.xy())
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
+            && ori.angle_between(last_ori.xy()).is_finite()
         {
-            ori.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
+            ori.angle_between(last_ori.xy()).min(0.2)
+                * last_ori.xy().determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
         } * 1.25)
@@ -616,7 +615,16 @@ impl Animation for WieldAnimation {
             next.second = next.main;
         }
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            anim_time,
+            speednorm,
+            0.0,
+            tilt,
+            Some(last_ori),
+            Some(*look_dir),
+        );
 
         next
     }

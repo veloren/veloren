@@ -435,7 +435,13 @@ impl CharacterSkeleton {
         speednorm: f32,
         impact: f32,
         tilt: f32,
+        last_ori: Option<Vec3<f32>>,
+        look_dir: Option<Vec3<f32>>,
     ) {
+        let align_with_cam = look_dir.zip(last_ori).map_or(0.0, |(l, o)| {
+            l.xy().normalized().dot(o.xy().normalized()).max(0.0)
+        });
+
         let lab = 2.0 / s_a.scaler;
 
         let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6 + PI * 0.5).sin()).powi(2))).sqrt())
@@ -444,30 +450,42 @@ impl CharacterSkeleton {
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
 
-        self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
-        self.lantern.orientation = Quaternion::rotation_x(shorte * 0.7 * speednorm.powi(2) + 0.4)
-            * Quaternion::rotation_y(shorte * 0.4 * speednorm.powi(2));
         self.lantern.scale = Vec3::one() * 0.65;
         self.hold.scale = Vec3::one() * 0.0;
 
         if self.holding_lantern {
+            let pitch = look_dir.unwrap_or_default().z.sin() * align_with_cam;
+
             self.hand_r.position = Vec3::new(
                 s_a.hand.0 + 1.0,
-                s_a.hand.1 + 2.0 - impact * 0.2,
-                s_a.hand.2 + 12.0 + impact * -0.1,
+                s_a.hand.1 + 2.0 - impact * 0.2 - pitch * 3.0,
+                s_a.hand.2 + 12.0 + impact * -0.1 + pitch * 3.0,
             );
-            self.hand_r.orientation = Quaternion::rotation_x(2.25) * Quaternion::rotation_z(0.9);
+            self.hand_r.orientation =
+                Quaternion::rotation_x(2.25 + pitch) * Quaternion::rotation_z(0.9);
             self.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 + 2.0);
+
+            // head  + look_dir.z * align_with_cam
 
             let fast = (anim_time * 8.0).sin();
             let fast2 = (anim_time * 6.0 + 8.0).sin();
 
+            self.head.orientation = self.head.orientation * Quaternion::rotation_x(pitch);
+
             self.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
             self.lantern.orientation = self.hand_r.orientation.inverse()
+                * self.chest.orientation.inverse()
                 * Quaternion::rotation_x(
-                    (fast + 0.5) * 1.0 * speednorm + (tilt.abs() * 2.0).min(PI * 0.5),
+                    (fast + 0.5) * 0.3 * speednorm
+                        + (tilt.abs() * 2.0).min(PI * 0.5) * (0.25 + speednorm)
+                        + pitch,
                 )
-                * Quaternion::rotation_y(tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25);
+                * Quaternion::rotation_y(tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25)
+                * Quaternion::slerp(Default::default(), self.chest.orientation, 0.3);
+        } else {
+            self.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
+            self.lantern.orientation = Quaternion::rotation_x(shorte * 0.7 * speednorm.powi(2))
+                * Quaternion::rotation_y(shorte * 0.4 * speednorm.powi(2) - 0.3);
         }
     }
 }

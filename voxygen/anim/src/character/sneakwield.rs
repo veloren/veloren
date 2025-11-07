@@ -15,6 +15,7 @@ impl Animation for SneakWieldAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
+        Vec3<f32>,
         f32,
     );
     type Skeleton = CharacterSkeleton;
@@ -32,6 +33,7 @@ impl Animation for SneakWieldAnimation {
             velocity,
             orientation,
             last_ori,
+            look_dir,
             global_time,
         ): Self::Dependency<'_>,
         anim_time: f32,
@@ -74,15 +76,17 @@ impl Animation for SneakWieldAnimation {
         );
 
         let orientation: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = if vek::Vec2::new(orientation, last_ori)
+        let tilt = if vek::Vec2::new(orientation, last_ori.xy())
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && orientation.angle_between(last_ori).is_finite()
+            && orientation.angle_between(last_ori.xy()).is_finite()
         {
-            orientation.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), orientation).signum()
+            orientation.angle_between(last_ori.xy()).min(0.2)
+                * last_ori
+                    .xy()
+                    .determine_side(Vec2::zero(), orientation)
+                    .signum()
         } else {
             0.0
         } * 1.3;
@@ -360,7 +364,16 @@ impl Animation for SneakWieldAnimation {
             next.second = next.main;
         }
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            anim_time,
+            speednorm,
+            0.0,
+            tilt,
+            Some(last_ori),
+            Some(look_dir),
+        );
 
         next
     }

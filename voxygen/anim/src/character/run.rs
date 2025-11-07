@@ -14,6 +14,7 @@ type RunAnimationDependency = (
     Vec3<f32>,
     Vec3<f32>,
     Vec3<f32>,
+    Vec3<f32>,
     f32,
     Vec3<f32>,
     f32,
@@ -37,6 +38,7 @@ impl Animation for RunAnimation {
             velocity,
             orientation,
             last_ori,
+            look_dir,
             global_time,
             avg_vel,
             acc_vel,
@@ -109,15 +111,14 @@ impl Animation for RunAnimation {
             (velocity.x * -0.098 * orientation.y + velocity.y * 0.098 * orientation.x) * -1.0;
         let sideabs = side.abs();
         let ori: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = if vek::Vec2::new(ori, last_ori)
+        let tilt = if vek::Vec2::new(ori, last_ori.xy())
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
+            && ori.angle_between(last_ori.xy()).is_finite()
         {
-            ori.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
+            ori.angle_between(last_ori.xy()).min(0.2)
+                * last_ori.xy().determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
         } * 1.3;
@@ -229,7 +230,16 @@ impl Animation for RunAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.do_hold_lantern(s_a, anim_time, acc_vel, speednorm, impact, tilt);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            acc_vel,
+            speednorm,
+            impact,
+            tilt,
+            Some(last_ori),
+            Some(look_dir),
+        );
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
