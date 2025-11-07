@@ -127,9 +127,6 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
-    // TODO: Hack to add a small amount of underground ambient light to the scene
-    reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
-
     // Apply baked lighting from emissive blocks
     float glow_mag = length(f_inst_glow.xyz) + 0.001;
     vec3 glow = pow(f_inst_glow.w, 3.0) * 6.0

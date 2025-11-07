@@ -187,9 +187,6 @@ void main() {
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
-    // TODO: Hack to add a small amount of underground ambient light to the scene
-    reflected_light += vec3(0.01, 0.02, 0.03) * (1.0 - not_underground);
-
     // Apply baked AO
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
     reflected_light *= ao;

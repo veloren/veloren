@@ -207,7 +207,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float ambiance = 0.0;
         #ifndef EXPERIMENTAL_PHOTOREALISTIC
             // Non-physically emulate ambient light nearby
-            ambiance = pow(dot(wnorm, direct_light_dir) * 0.5 + 0.5, 2.0) * strength;
+            ambiance = pow(dot(wnorm, direct_light_dir) * 0.3 + 0.7, 2.0) * strength;
             #ifdef FIGURE_SHADER
                 // Non-physical hack. Subtle, but allows lanterns to glow nicely
                 // TODO: Make lanterns use glowing cells instead
