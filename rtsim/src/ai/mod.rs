@@ -3,12 +3,9 @@ pub mod predicate;
 use predicate::Predicate;
 use rand::Rng;
 
-use crate::{
-    RtState,
-    data::{
-        ReportId, Sentiments,
-        npc::{Controller, Npc, NpcId},
-    },
+use crate::data::{
+    Data, ReportId, Sentiments,
+    npc::{Controller, Npc, NpcId},
 };
 use common::{
     comp::{self, gizmos::RtsimGizmos},
@@ -62,7 +59,7 @@ impl<T> std::ops::DerefMut for Resettable<T> {
 /// be possible to access any and all important information about the game world
 /// through this struct.
 pub struct NpcCtx<'a, 'd> {
-    pub state: &'a RtState,
+    pub data: &'a Data,
     pub world: &'a World,
     pub index: IndexRef<'a>,
 
@@ -72,7 +69,6 @@ pub struct NpcCtx<'a, 'd> {
     pub npc_id: NpcId,
     pub npc: &'a Npc,
     pub controller: &'a mut Controller,
-    pub npc_dialogue: &'a mut VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
     pub inbox: &'a mut VecDeque<NpcInput>, // TODO: Allow more inbox items
     pub sentiments: &'a mut Sentiments,
     pub known_reports: &'a mut HashSet<ReportId>,
@@ -82,6 +78,11 @@ pub struct NpcCtx<'a, 'd> {
     pub dt: f32,
     pub rng: ChaChaRng,
     pub system_data: &'a NpcSystemData<'d>,
+
+    /// Used to determine the current action priority. Lower priority actions
+    /// may be overridden by higher priority actions in a different part of
+    /// the behaviour tree.
+    pub current_action_priority: u32,
 }
 
 fn discrete_chance(dt: f64, chance_per_second: f64) -> f64 {
@@ -146,31 +147,6 @@ pub struct NpcSystemData<'a> {
 /// If you find yourself wanting to implement it, please discuss with the core
 /// dev team first.
 pub trait Action<S = (), R = ()>: Any + Send + Sync {
-    /// Returns `true` if the action should be considered the 'same' (i.e:
-    /// achieving the same objective) as another. In general, the AI system
-    /// will try to avoid switching (and therefore restarting) tasks when the
-    /// new task is the 'same' as the old one.
-    // TODO: Figure out a way to compare actions based on their 'intention': i.e:
-    // two pathing actions should be considered equivalent if their destination
-    // is the same regardless of the progress they've each made.
-    fn is_same(&self, other: &Self) -> bool
-    where
-        Self: Sized;
-
-    /// Like [`Action::is_same`], but allows for dynamic dispatch.
-    fn dyn_is_same_sized(&self, other: &dyn Action<S, R>) -> bool
-    where
-        Self: Sized,
-    {
-        match (other as &dyn Any).downcast_ref::<Self>() {
-            Some(other) => self.is_same(other),
-            None => false,
-        }
-    }
-
-    /// Like [`Action::is_same`], but allows for dynamic dispatch.
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool;
-
     /// Generate a backtrace for the action. The action should recursively push
     /// all of the tasks it is currently performing.
     fn backtrace(&self, bt: &mut Vec<String>);
@@ -423,18 +399,30 @@ pub trait Action<S = (), R = ()>: Any + Send + Sync {
     {
         Either::Right(self)
     }
+
+    /// Specify that the given action has at least the provided priority over
+    /// others, preventing actions with a lower priority from overriding it
+    /// in certain cases.
+    #[must_use]
+    fn with_priority(self, priority: u32) -> WithPriority<Self>
+    where
+        Self: Sized,
+    {
+        WithPriority(self, priority)
+    }
+
+    /// Specify that the given action has important priority. See
+    /// [`Action::with_priority`].
+    #[must_use]
+    fn with_important_priority(self) -> WithPriority<Self>
+    where
+        Self: Sized,
+    {
+        self.with_priority(PRIORITY_IMPORTANT)
+    }
 }
 
 impl<S: State, R: 'static> Action<S, R> for Box<dyn Action<S, R>> {
-    fn is_same(&self, other: &Self) -> bool { (**self).dyn_is_same(&**other) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool {
-        match (other as &dyn Any).downcast_ref::<Self>() {
-            Some(other) => self.is_same(other),
-            None => false,
-        }
-    }
-
     fn backtrace(&self, bt: &mut Vec<String>) { (**self).backtrace(bt) }
 
     fn reset(&mut self) { (**self).reset(); }
@@ -447,16 +435,6 @@ impl<S: State, R: 'static> Action<S, R> for Box<dyn Action<S, R>> {
 }
 
 impl<S: State, R: 'static, A: Action<S, R>, B: Action<S, R>> Action<S, R> for Either<A, B> {
-    fn is_same(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Either::Left(x), Either::Left(y)) => x.is_same(y),
-            (Either::Right(x), Either::Right(y)) => x.is_same(y),
-            _ => false,
-        }
-    }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         match self {
             Either::Left(x) => x.backtrace(bt),
@@ -499,11 +477,6 @@ impl<
     A: Action<S, R>,
 > Action<S, R> for Now<F, A>
 {
-    // TODO: This doesn't compare?!
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(action) = &self.1 {
             action.backtrace(bt);
@@ -558,11 +531,6 @@ impl<
     R1: Send + Sync + 'static,
 > Action<S, R1> for Until<F, A, R, R1>
 {
-    // TODO: This doesn't compare?!
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(action) = &self.1 {
             action.backtrace(bt);
@@ -614,10 +582,6 @@ pub struct Just<F, R = ()>(F, PhantomData<R>);
 impl<S: State, R: Send + Sync + 'static, F: Fn(&mut NpcCtx, &mut S) -> R + Send + Sync + 'static>
     Action<S, R> for Just<F, R>
 {
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, _bt: &mut Vec<String>) {}
 
     fn reset(&mut self) {}
@@ -654,10 +618,6 @@ where
 pub struct Finish;
 
 impl<S: State> Action<S, ()> for Finish {
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, ()>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, _bt: &mut Vec<String>) {}
 
     fn reset(&mut self) {}
@@ -692,78 +652,88 @@ pub fn finish() -> Finish { Finish }
 
 // Tree
 
-pub type Priority = usize;
-
-pub const URGENT: Priority = 0;
-pub const IMPORTANT: Priority = 1;
-pub const CASUAL: Priority = 2;
-
-pub struct Node<S, R>(Box<dyn Action<S, R>>, Priority);
-
-/// Perform an action with [`URGENT`] priority (see [`choose`]).
-#[must_use]
-pub fn urgent<S, A: Action<S, R>, R>(a: A) -> Node<S, R> { Node(Box::new(a), URGENT) }
-
-/// Perform an action with [`IMPORTANT`] priority (see [`choose`]).
-#[must_use]
-pub fn important<S, A: Action<S, R>, R>(a: A) -> Node<S, R> { Node(Box::new(a), IMPORTANT) }
-
-/// Perform an action with [`CASUAL`] priority (see [`choose`]).
-#[must_use]
-pub fn casual<S, A: Action<S, R>, R>(a: A) -> Node<S, R> { Node(Box::new(a), CASUAL) }
+const PRIORITY_URGENT: u32 = 100;
+const PRIORITY_IMPORTANT: u32 = 50;
+const PRIORITY_CASUAL: u32 = 0;
 
 /// See [`choose`] and [`watch`].
 pub struct Tree<S, F, R> {
     next: F,
-    prev: Option<Node<S, R>>,
-    interrupt: bool,
+    current: Option<(Box<dyn Action<S, R>>, u32, u32)>,
 }
 
-impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static, R: 'static>
+pub struct Consider<'a, S, R> {
+    current: &'a mut Option<(Box<dyn Action<S, R>>, u32, u32)>,
+    to_cancel: &'a mut Vec<Box<dyn Action<S, R>>>,
+}
+
+impl<'a, S: State, R: 'static> Consider<'a, S, R> {
+    pub fn action(&mut self, priority: u32, action: impl Action<S, R>) {
+        // Replace the current action, unless the current action has a >= priority
+        if !matches!(&mut self.current, Some((_, base_priority, override_priority)) if (*base_priority).max(*override_priority) >= priority)
+            && let Some((old, _, _)) = self.current.replace((Box::new(action), priority, 0))
+        {
+            self.to_cancel.push(old);
+        }
+    }
+
+    pub fn urgent(&mut self, action: impl Action<S, R>) { self.action(PRIORITY_URGENT, action); }
+
+    pub fn important(&mut self, action: impl Action<S, R>) {
+        self.action(PRIORITY_IMPORTANT, action);
+    }
+
+    pub fn casual(&mut self, action: impl Action<S, R>) { self.action(PRIORITY_CASUAL, action); }
+}
+
+impl<S: State, F: Fn(&mut NpcCtx, &mut S, &mut Consider<S, R>) + Send + Sync + 'static, R: 'static>
     Action<S, R> for Tree<S, F, R>
 {
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
-        if let Some(prev) = &self.prev {
-            prev.0.backtrace(bt);
+        if let Some((current, _, _)) = &self.current {
+            current.backtrace(bt);
         } else {
             bt.push("<thinking>".to_string());
         }
     }
 
-    fn reset(&mut self) { self.prev = None; }
+    fn reset(&mut self) { self.current = None; }
 
     fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) {
-        if let Some(x) = &mut self.prev {
-            x.0.on_cancel(ctx, state);
+        if let Some((current, _, _)) = &mut self.current {
+            current.on_cancel(ctx, state);
         }
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
-        let new = (self.next)(ctx, state);
+        let mut to_cancel = Vec::new();
+        (self.next)(ctx, state, &mut Consider {
+            current: &mut self.current,
+            to_cancel: &mut to_cancel,
+        });
+        for mut to_cancel in to_cancel {
+            to_cancel.on_cancel(ctx, state);
+        }
 
-        let prev = match &mut self.prev {
-            Some(prev) if prev.1 <= new.1 && (prev.0.dyn_is_same(&*new.0) || !self.interrupt) => {
-                prev
-            },
-            _ => {
-                if let Some(mut prev) = self.prev.take() {
-                    prev.0.on_cancel(ctx, state);
-                }
-                self.prev.insert(new)
-            },
+        let Some((current, _, override_priority)) = self.current.as_mut() else {
+            // If no action is available to perform, do nothing
+            return ControlFlow::Continue(());
         };
 
-        match prev.0.tick(ctx, state) {
-            ControlFlow::Continue(()) => ControlFlow::Continue(()),
+        let old_priority = ctx.current_action_priority;
+        ctx.current_action_priority = 0;
+        let ret = match current.tick(ctx, state) {
+            ControlFlow::Continue(()) => {
+                *override_priority = ctx.current_action_priority;
+                ControlFlow::Continue(())
+            },
             ControlFlow::Break(r) => {
-                self.prev = None;
+                self.current = None;
                 ControlFlow::Break(r)
             },
-        }
+        };
+        ctx.current_action_priority = old_priority;
+        ret
     }
 }
 
@@ -774,8 +744,7 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
 /// action is chosen, it will be performed until completed *UNLESS* an action
 /// with a more urgent priority is chosen in a subsequent tick. [`choose`] tries
 /// to commit to actions when it can: only more urgent actions will interrupt an
-/// action that's currently being performed. If you want something that's more
-/// eager to switch actions, see [`watch`].
+/// action that's currently being performed.
 ///
 /// # Example
 ///
@@ -791,49 +760,32 @@ impl<S: State, F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
 /// })
 /// ```
 #[must_use]
-pub fn choose<S: State, R: 'static, F>(f: F) -> impl Action<S, R>
+pub fn choose<S: State, R: 'static, F>(f: F) -> Tree<S, F, R>
 where
-    F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
+    F: Fn(&mut NpcCtx, &mut S, &mut Consider<S, R>) + Send + Sync + 'static,
 {
     Tree {
         next: f,
-        prev: None,
-        interrupt: false,
+        current: None,
     }
 }
 
-/// An action that allows implementing a decision tree, with action
-/// prioritisation.
-///
-/// The inner function will be run every tick to decide on an action. When an
-/// action is chosen, it will be performed until completed unless a different
-/// action of the same or higher priority is chosen in a subsequent tick.
-/// [`watch`] is very unfocused and will happily switch between actions
-/// rapidly between ticks if conditions change. If you want something that
-/// tends to commit to actions until they are completed, see [`choose`].
-///
-/// # Example
-///
-/// ```ignore
-/// watch(|ctx| {
-///     if ctx.npc.is_being_attacked() {
-///         urgent(combat()) // If we're in danger, do something!
-///     } else if ctx.npc.is_hungry() {
-///         important(eat()) // If we're hungry, eat
-///     } else {
-///         casual(idle()) // Otherwise, do nothing
-///     }
-/// })
-/// ```
-#[must_use]
-pub fn watch<S: State, R: 'static, F>(f: F) -> impl Action<S, R>
-where
-    F: Fn(&mut NpcCtx, &mut S) -> Node<S, R> + Send + Sync + 'static,
-{
-    Tree {
-        next: f,
-        prev: None,
-        interrupt: true,
+// WithPriority
+
+/// See [`Action::with_priority`].
+#[derive(Copy, Clone)]
+pub struct WithPriority<A>(A, u32);
+
+impl<S: State, R: Send + Sync + 'static, A: Action<S, R>> Action<S, R> for WithPriority<A> {
+    fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
+
+    fn reset(&mut self) { self.0.reset(); }
+
+    fn on_cancel(&mut self, ctx: &mut NpcCtx, state: &mut S) { self.0.on_cancel(ctx, state); }
+
+    fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R> {
+        ctx.current_action_priority = ctx.current_action_priority.max(self.1);
+        self.0.tick(ctx, state)
     }
 }
 
@@ -856,12 +808,6 @@ impl<
     R1: Send + Sync + 'static,
 > Action<S, R1> for Then<A0, A1, R0>
 {
-    fn is_same(&self, other: &Self) -> bool {
-        self.a0.is_same(&other.a0) && self.a1.is_same(&other.a1)
-    }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if self.a0_finished {
             self.a1.backtrace(bt);
@@ -915,16 +861,6 @@ impl<
     F: FnOnce(R0) -> A1 + Clone + Send + Sync + 'static,
 > Action<S, R1> for AndThen<A0, F, A1, R0>
 {
-    fn is_same(&self, other: &Self) -> bool {
-        self.a0.is_same(&other.a0)
-            && match (&self.a1, &other.a1) {
-                (Some(a1_0), Some(a1_1)) => a1_0.is_same(a1_1),
-                _ => true,
-            }
-    }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(a1) = &self.a1 {
             a1.backtrace(bt);
@@ -978,10 +914,6 @@ impl<
     R1: Send + Sync + 'static,
 > Action<S, R0> for InterruptWith<A0, F, A1, R1>
 {
-    fn is_same(&self, other: &Self) -> bool { self.a0.is_same(&other.a0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R0>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(a1) = &self.a1 {
             // TODO: Find a way to represent interrupts in backtraces
@@ -1005,8 +937,8 @@ impl<
     }
 
     fn tick(&mut self, ctx: &mut NpcCtx, state: &mut S) -> ControlFlow<R0> {
-        if let Some(new_a1) = (self.f)(ctx, state)
-            && self.a1.as_ref().is_none_or(|a1| !a1.is_same(&new_a1))
+        if self.a1.is_none()
+            && let Some(new_a1) = (self.f)(ctx, state)
         {
             self.a1 = Some(new_a1);
         }
@@ -1029,10 +961,6 @@ impl<
 pub struct Repeat<A, R = ()>(A, PhantomData<R>);
 
 impl<S: State, R: Send + Sync + 'static, A: Action<S, R>> Action<S, !> for Repeat<A, R> {
-    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, !>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) { self.0.reset(); }
@@ -1063,10 +991,6 @@ impl<
     A: Action<S, R>,
 > Action<S, ()> for Sequence<I, A, R>
 {
-    fn is_same(&self, _other: &Self) -> bool { true }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, ()>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         if let Some(action) = &self.1 {
             action.backtrace(bt);
@@ -1140,12 +1064,6 @@ pub struct StopIf<A, P>(A, Resettable<P>);
 impl<S: State, A: Action<S, R>, P: Predicate + Clone + Send + Sync + 'static, R>
     Action<S, Option<R>> for StopIf<A, P>
 {
-    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, Option<R>>) -> bool {
-        self.dyn_is_same_sized(other)
-    }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) {
@@ -1174,10 +1092,6 @@ pub struct WhenCancelled<A, F>(A, F);
 impl<S: State, A: Action<S, R>, F: Fn(&mut NpcCtx) + Clone + Send + Sync + 'static, R> Action<S, R>
     for WhenCancelled<A, F>
 {
-    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) { self.0.reset(); }
@@ -1206,10 +1120,6 @@ impl<
     R1,
 > Action<S, R1> for Map<A, F, R>
 {
-    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R1>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt); }
 
     fn reset(&mut self) { self.0.reset(); }
@@ -1235,10 +1145,6 @@ impl<
     T: Send + Sync + std::fmt::Display + 'static,
 > Action<S, R> for Debug<A, F, T>
 {
-    fn is_same(&self, other: &Self) -> bool { self.0.is_same(&other.0) }
-
-    fn dyn_is_same(&self, other: &dyn Action<S, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) {
         bt.push((self.1)().to_string());
         self.0.backtrace(bt);
@@ -1257,15 +1163,6 @@ impl<
 pub struct WithState<A, S, S0>(A, Resettable<S>, PhantomData<S0>);
 
 impl<S0: State, S: State, R, A: Action<S, R>> Action<S0, R> for WithState<A, S, S0> {
-    fn is_same(&self, other: &Self) -> bool
-    where
-        Self: Sized,
-    {
-        self.0.is_same(&other.0)
-    }
-
-    fn dyn_is_same(&self, other: &dyn Action<S0, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt) }
 
     fn reset(&mut self) {
@@ -1288,15 +1185,6 @@ pub struct MapState<A, F, S, S0>(A, F, PhantomData<(S, S0)>);
 impl<S0: State, S: State, R, A: Action<S, R>, F: Fn(&mut S0) -> &mut S + Send + Sync + 'static>
     Action<S0, R> for MapState<A, F, S, S0>
 {
-    fn is_same(&self, other: &Self) -> bool
-    where
-        Self: Sized,
-    {
-        self.0.is_same(&other.0)
-    }
-
-    fn dyn_is_same(&self, other: &dyn Action<S0, R>) -> bool { self.dyn_is_same_sized(other) }
-
     fn backtrace(&self, bt: &mut Vec<String>) { self.0.backtrace(bt) }
 
     fn reset(&mut self) { self.0.reset(); }

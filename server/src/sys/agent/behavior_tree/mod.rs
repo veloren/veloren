@@ -655,6 +655,7 @@ fn handle_rtsim_actions(bdata: &mut BehaviorData) -> bool {
                     warn!("NPC dialogue sent to non-existent target entity");
                 }
             },
+            NpcAction::Msg { .. } => {},
         }
         true
     } else {

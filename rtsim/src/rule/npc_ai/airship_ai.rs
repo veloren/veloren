@@ -614,7 +614,7 @@ fn fly_airship_inner(
                     let my_distance_to_docking_target = mypos.xy().distance_squared(current_approach.airship_pos.xy());
 
                     let (next_pilot_wpos, next_pilot_dist_trend) = if let Some(next_pilot_rate_tracker) = &mut airship_context.next_pilot_rate_tracker_
-                        && let Some(next_pilot) = ctx.state.data().npcs.get(airship_context.next_pilot_id)
+                        && let Some(next_pilot) = ctx.data.npcs.get(airship_context.next_pilot_id)
                     {
                         let next_rate = next_pilot_rate_tracker.update(next_pilot.wpos.xy(), ctx.time.0 as f32);
 
@@ -933,7 +933,7 @@ fn approach_target_pos(
 pub fn pilot_airship<S: State>() -> impl Action<S> {
     now(move |ctx, route_context: &mut AirshipRouteContext| {
         // get the assigned route and start leg indexes
-        if let Some((route_index, start_leg_index)) = ctx.state.data().airship_sim.assigned_routes.get(&ctx.npc_id)
+        if let Some((route_index, start_leg_index)) = ctx.data.airship_sim.assigned_routes.get(&ctx.npc_id)
         {
             // ----- Server startup processing -----
             // If route_context.route_index is the default value (usize::MAX) it means the server has just started.
@@ -943,15 +943,15 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                 // Set up the route context fixed values.
                 route_context.route_index = *route_index;
                 route_context.next_leg = *start_leg_index;
-                if let Some (next_pilot) = ctx.state.data().airship_sim.next_pilot(*route_index, ctx.npc_id) {
+                if let Some (next_pilot) = ctx.data.airship_sim.next_pilot(*route_index, ctx.npc_id) {
                     route_context.next_pilot_id = next_pilot;
                 } else {
                     route_context.next_pilot_id = NpcId::default();
                 }
                 let (max_speed, reference_area, thrust) =
-                    ctx.state.data().npcs.mounts.get_mount_link(ctx.npc_id)
+                    ctx.data.npcs.mounts.get_mount_link(ctx.npc_id)
                         .map(|mount_link|
-                            ctx.state.data().npcs.get(mount_link.mount)
+                            ctx.data.npcs.get(mount_link.mount)
                                 .map(|airship| {
                                     (airship.body.max_speed_approx(),
                                      airship.body.parasite_drag(1.0),
@@ -1181,13 +1181,9 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                             let next_site_name = ctx.index.sites.get(next_approach.site_id).name();
                             ctx.controller.say(
                                 None,
-                                Content::localized_with_args("npc-speech-pilot-announce_next", [
-                                (
-                                    "dir",
-                                    Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc(),
-                                ),
-                                ("dst", Content::Plain(next_site_name.unwrap_or("unknown").to_string())),
-                                ]),
+                                Content::localized("npc-speech-pilot-announce_next")
+                                    .with_arg("dir", Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc())
+                                    .with_arg("dst", next_site_name.unwrap_or("unknown")),
                             );
                         })
                     )
@@ -1198,11 +1194,10 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
                 // Announce takeoff
                 just(move |ctx, route_context:&mut AirshipRouteContext| {
                     ctx.controller.say(
-                    None,
-                        Content::localized_with_args("npc-speech-pilot-takeoff", [
-                            ("src", Content::Plain(ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown").to_string())),
-                            ("dst", Content::Plain(ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown").to_string())),
-                        ]),
+                        None,
+                        Content::localized("npc-speech-pilot-takeoff")
+                            .with_arg("src", ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown"))
+                            .with_arg("dst", ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown")),
                     );
                     // This is when the airship target docking position changes to the next approach.
                     // Reset the next pilot distance trend tracker.

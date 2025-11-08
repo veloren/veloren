@@ -33,9 +33,8 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             },
         }
 
-        for quest_id in ctx.state.data().quests.related_to(ctx.npc_id) {
-            let data = ctx.state.data();
-            let Some(quest) = data.quests.get(quest_id) else {
+        for quest_id in ctx.data.quests.related_to(ctx.npc_id) {
+            let Some(quest) = ctx.data.quests.get(quest_id) else {
                 continue;
             };
             match &quest.kind {
@@ -47,8 +46,7 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                     let to_name =
                         util::site_name(ctx, *to).unwrap_or_else(|| "<unknown>".to_string());
                     let dst_wpos = ctx
-                        .state
-                        .data()
+                        .data
                         .sites
                         .get(*to)
                         .map_or(Vec2::zero(), |s| s.wpos.as_());
@@ -70,10 +68,12 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                                     )
                                     .with_quest_flag(true),
                             )
-                            .then(session.say_statement(Content::localized_with_args(
-                                "npc-response-quest-escort-where",
-                                [("dst", to_name)],
-                            )))
+                            .then(
+                                session.say_statement(
+                                    Content::localized("npc-response-quest-escort-where")
+                                        .with_arg("dst", to_name),
+                                ),
+                            )
                             .boxed(),
                     ));
                 },
@@ -85,7 +85,7 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                         continue;
                     };
                     // Is the monster dead?
-                    if let Some(target_npc) = data.npcs.get(*target_npc_id) {
+                    if let Some(target_npc) = ctx.data.npcs.get(*target_npc_id) {
                         responses.push((
                             Response::from(
                                 Content::localized("dialogue-question-quest-slay-where")
@@ -178,14 +178,13 @@ fn about_site<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         if let Some(site_name) = util::site_name(ctx, ctx.npc.current_site) {
             let mut action = session
-                .say_statement(Content::localized_with_args("npc-info-current_site", [(
-                    "site",
-                    Content::Plain(site_name),
-                )]))
+                .say_statement(
+                    Content::localized("npc-info-current_site").with_arg("site", site_name),
+                )
                 .boxed();
 
             if let Some(current_site) = ctx.npc.current_site
-                && let Some(current_site) = ctx.state.data().sites.get(current_site)
+                && let Some(current_site) = ctx.data.sites.get(current_site)
             {
                 for mention_site in &current_site.nearby_sites_by_size {
                     if ctx.rng.random_bool(0.5)
@@ -227,16 +226,11 @@ fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
                 Profession::Herbalist => "noun-role-herbalist",
                 Profession::Captain => "noun-role-captain",
             })
-            .map(|p| {
-                Content::localized_with_args("npc-info-role", [("role", Content::localized(p))])
-            })
+            .map(|p| Content::localized("npc-info-role").with_arg("role", Content::localized(p)))
             .unwrap_or_else(|| Content::localized("noun-role-none"));
 
         let home = if let Some(site_name) = util::site_name(ctx, ctx.npc.home) {
-            Content::localized_with_args("npc-info-self_home", [(
-                "site",
-                Content::Plain(site_name),
-            )])
+            Content::localized("npc-info-self_home").with_arg("site", site_name)
         } else {
             Content::localized("npc-info-self_homeless")
         };
@@ -325,9 +319,7 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
     now(move |ctx, _| {
         let mut responses = Vec::new();
 
-        for actor in ctx
-            .state
-            .data()
+        for actor in ctx.data
             .quests
             .related_actors(session.target)
             .filter(|actor| *actor != Actor::Npc(ctx.npc_id))
@@ -357,7 +349,7 @@ fn directions<S: State>(session: DialogueSession) -> impl Action<S> {
         }
 
         if let Some(current_site) = ctx.npc.current_site
-            && let Some(ws_id) = ctx.state.data().sites[current_site].world_site
+            && let Some(ws_id) = ctx.data.sites[current_site].world_site
         {
             let direction_to_nearest =
                 |f: fn(&&world::site::Plot) -> bool,

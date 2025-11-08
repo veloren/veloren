@@ -12,7 +12,7 @@ use common::{
     resources::Time,
     rtsim::{
         Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
-        Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
+        NpcMsg, Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
     },
     store::Id,
     terrain::CoordinateConversions,
@@ -62,7 +62,6 @@ pub struct PathingMemory {
 
 #[derive(Default)]
 pub struct Controller {
-    pub npc_actions: Vec<(NpcId, Box<dyn Action<(), ()>>)>,
     pub actions: Vec<NpcAction>,
     pub activity: Option<NpcActivity>,
     pub new_home: Option<Option<SiteId>>,
@@ -124,22 +123,6 @@ impl Controller {
         self.actions.push(NpcAction::Say(target.into(), content));
     }
 
-    pub fn npc_dialogue(
-        &mut self,
-        target: NpcId,
-        content: impl Into<Option<comp::Content>>,
-        response: impl Action<(), ()>,
-    ) {
-        if let Some(content) = content.into() {
-            self.say(Actor::Npc(target), content);
-        }
-        self.npc_action(target, response);
-    }
-
-    pub fn npc_action(&mut self, target: NpcId, response: impl Action<(), ()>) {
-        self.npc_actions.push((target, Box::new(response)));
-    }
-
     pub fn attack(&mut self, target: impl Into<Actor>) {
         self.actions.push(NpcAction::Attack(target.into()));
     }
@@ -162,6 +145,10 @@ impl Controller {
         if matches!(self.job, Some(Job::Quest(..))) {
             self.job = None;
         }
+    }
+
+    pub fn send_msg(&mut self, to: impl Into<Actor>, msg: NpcMsg) {
+        self.actions.push(NpcAction::Msg { to: to.into(), msg });
     }
 
     /// Start a new dialogue.
@@ -326,9 +313,6 @@ pub struct Npc {
 
     #[serde(skip)]
     pub brain: Option<Brain>,
-
-    #[serde(skip)]
-    pub npc_dialogue: VecDeque<(NpcId, Box<dyn Action<(), ()>>)>,
 }
 
 /// A job is a long-running, persistent, non-stackable occupation that an NPC
@@ -366,7 +350,6 @@ impl Clone for Npc {
             inbox: Default::default(),
             mode: Default::default(),
             brain: Default::default(),
-            npc_dialogue: Default::default(),
         }
     }
 }
@@ -397,7 +380,6 @@ impl Npc {
             inbox: Default::default(),
             mode: SimulationMode::Simulated,
             brain: None,
-            npc_dialogue: Default::default(),
         }
     }
 

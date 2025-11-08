@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{self, Body, agent::FlightMode},
     mounting::{Volume, VolumePos},
-    rtsim::{Actor, NpcAction, NpcActivity},
+    rtsim::{Actor, NpcAction, NpcActivity, NpcInput},
     terrain::{CoordinateConversions, TerrainChunkSize},
     vol::RectVolSize,
 };
@@ -115,17 +115,29 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
         }
     }
 
-    for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead()) {
-        if matches!(npc.mode, SimulationMode::Simulated) {
-            // Consume NPC actions
-            for action in std::mem::take(&mut npc.controller.actions) {
-                match action {
-                    NpcAction::Say(_, _) => {}, // Currently, just swallow interactions
-                    NpcAction::Attack(_) => {}, // TODO: Implement simulated combat
-                    NpcAction::Dialogue(_, _) => {},
-                }
-            }
+    let mut npc_inputs = Vec::new();
 
+    for (npc_id, npc) in data.npcs.npcs.iter_mut().filter(|(_, npc)| !npc.is_dead()) {
+        npc.controller.actions.retain(|action| match action {
+            // NPC-to-NPC messages never leave rtsim
+            NpcAction::Msg { to, msg } => {
+                if let Actor::Npc(to) = to {
+                    npc_inputs.push((*to, NpcInput::Msg {
+                        from: npc_id.into(),
+                        msg: msg.clone(),
+                    }));
+                } else {
+                    // TODO: Send to players?
+                }
+                false
+            },
+            // All other cases are handled by the game when loaded
+            NpcAction::Say(_, _) | NpcAction::Attack(_) | NpcAction::Dialogue(_, _) => {
+                matches!(npc.mode, SimulationMode::Loaded)
+            },
+        });
+
+        if matches!(npc.mode, SimulationMode::Simulated) {
             let activity = if data.npcs.mounts.get_mount_link(npc_id).is_some() {
                 // We are riding, nothing to do.
                 continue;
@@ -338,5 +350,11 @@ fn on_tick(ctx: EventCtx<SimulateNpcs, OnTick>) {
 
         // Set job status
         npc.job = npc.controller.job.clone();
+    }
+
+    for (npc_id, input) in npc_inputs {
+        if let Some(npc) = data.npcs.get_mut(npc_id) {
+            npc.inbox.push_back(input);
+        }
     }
 }

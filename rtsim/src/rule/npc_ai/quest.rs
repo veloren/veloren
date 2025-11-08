@@ -61,8 +61,7 @@ pub fn resolve_take_deposit(
     success: bool,
 ) -> Result<Option<(Arc<ItemDef>, u32)>, ()> {
     if let Some(outcome) = ctx
-        .state
-        .data()
+        .data
         .quests
         .get(quest_id)
         .and_then(|q| q.resolve(ctx.npc_id, success))
@@ -106,7 +105,7 @@ pub fn resolve_take_deposit(
 /// rtsim tick (for reasons related to parallelism).
 pub fn create_quest<S: State>(quest: Quest) -> impl Action<S, QuestId> {
     just(move |ctx, _| {
-        let quest_id = ctx.state.data().quests.register();
+        let quest_id = ctx.data.quests.register();
         ctx.controller
             .quests_to_create
             .push((quest_id, quest.clone()));
@@ -125,9 +124,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             // They must be a merchant
             && matches!(ctx.npc.profession(), Some(Profession::Merchant))
             // Choose an appropriate target site
-            && let Some((dst_site_id, dst_site, dist)) = ctx
-                .state
-                .data()
+            && let Some((dst_site_id, dst_site, dist)) = ctx.data
                 .sites
                 .iter()
                 // Find the distance to the site
@@ -200,15 +197,13 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
 
         // Kill monster quest
         const SLAY_REWARD_ITEM: ItemResource = ItemResource::Coin;
-        if let Some((monster_id, monster)) = ctx
-            .state
-            .data()
+        if let Some((monster_id, monster)) = ctx.data
             .npcs
             .iter()
             // Ensure the NPC is a monster
             .filter(|(_, npc)| matches!(&npc.role, Role::Monster))
             // Try to filter out monsters that are tied up in another quest (imperfect: race conditions)
-            .filter(|(id, _)| ctx.state.data().quests.related_to(*id).count() == 0)
+            .filter(|(id, _)| ctx.data.quests.related_to(*id).count() == 0)
             // Filter out monsters that are too far away
             .filter(|(_, npc)| npc.wpos.xy().distance(ctx.npc.wpos.xy()) < 2500.0)
             // Find the closest
@@ -282,9 +277,8 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
 }
 
 pub fn check_for_timeouts<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
-    let data = ctx.state.data();
-    for quest_id in data.quests.related_to(ctx.npc_id) {
-        let Some(quest) = data.quests.get(quest_id) else {
+    for quest_id in ctx.data.quests.related_to(ctx.npc_id) {
+        let Some(quest) = ctx.data.quests.get(quest_id) else {
             continue;
         };
         if let Some(timeout) = quest.timeout
@@ -329,8 +323,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
                     .say(None, Content::localized("npc-speech-wait_for_me"));
             }
             // Stop if we've reached the destination site
-            ctx.state
-                .data()
+            ctx.data
                 .sites
                 .get(dst_site)
                 .is_none_or(|site| site.wpos.as_().distance_squared(ctx.npc.wpos.xy()) < 150.0f32.powi(2))
@@ -350,8 +343,7 @@ pub fn escorted<S: State>(quest_id: QuestId, escorter: Actor, dst_site: SiteId) 
         }))
         .stop_if(move |ctx: &mut NpcCtx| {
             // Cancel performing the quest if it's been resolved
-            ctx.state
-                .data()
+            ctx.data
                 .quests
                 .get(quest_id)
                 .is_none_or(|q| q.resolution().is_some())
