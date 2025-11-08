@@ -766,7 +766,7 @@ impl Window {
                 // when the window is about to close
                 if matches!(event, winit::event::KeyEvent {
                     state: winit::event::ElementState::Pressed,
-                    logical_key: winit::keyboard::Key::Named(winit::keyboard::NamedKey::Tab),
+                    logical_key: winit::keyboard::Key::Named(winit::keyboard::NamedKey::F4),
                     ..
                 }) && self.modifiers.alt_key()
                 {
