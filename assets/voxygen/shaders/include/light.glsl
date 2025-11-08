@@ -154,20 +154,12 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         if (distance_2 > 10000.0) {
             continue;
         }
-
+        
         // float strength = attenuation_strength(difference);// pow(attenuation_strength(difference), 0.6);
         // NOTE: This normalizes strength to 0.25 at the center of the point source.
-        float strength = 3.0 / (5 + distance_2);
-        // Directional light
-        if (L.light_dir.w < 1.0) {
-            strength *= clamp(
-                // Stength increases toward light direction past the light fov threshold...
-                (dot(normalize(-difference), L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5,
-                // ...but is clamped to minimum and maximum brightness
-                0.1 * (1.0 - L.light_dir.w),
-                1.0
-            );
-        }
+        float dist_strength = 3.0 / (5 + distance_2);
+
+        float strength = dist_strength;
 
         // Multiply the vec3 only once
         const float PI = 3.1415926535897932384626433832795;
@@ -193,10 +185,24 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float light_distance = sqrt(distance_2);
         vec3 light_dir = -difference / light_distance; // normalize(-difference);
         // light_dir = faceforward(light_dir, wnorm, light_dir);
-        bool is_direct = dot(difference, wnorm) > 0.0;
+        bool is_direct = true;//dot(difference, wnorm) > 0.0;
         // reflected_light += color * (distance_2 == 0.0 ? vec3(1.0) : light_reflection_factor(wnorm, cam_to_frag, light_dir, k_d, k_s, alpha));
         vec3 direct_light_dir = is_direct ? light_dir : -light_dir;
         // vec3 direct_norm_dir = is_direct ? wnorm : -wnorm;
+        
+        // Directional light
+        if (L.light_dir.w < 1.0) {
+            strength *= clamp(
+                // Stength increases toward light direction past the light fov threshold...
+                (dot(light_dir, L.light_dir.xyz) - L.light_dir.w) / (1.0 - L.light_dir.w) * 8 + 2.5,
+                // ...but is clamped to minimum and maximum brightness
+                0.1 * (1.0 - L.light_dir.w),
+                1.0
+            );
+            // Ambient strength also decays for directional lights, but less severely than the beam
+            dist_strength *= pow(dot(L.light_dir.xyz, light_dir) * 0.5 + 0.5, L.light_dir.w * 10.0);
+        }
+        
         // Compute attenuation due to fluid.
         // Default is light_pos, so we take the whole segment length for this beam if it never intersects the surface, unlesss the beam itself
         // is above the surface, in which case we take zero (wpos).
@@ -213,11 +219,11 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         float ambiance = 0.0;
         #ifndef EXPERIMENTAL_PHOTOREALISTIC
             // Non-physically emulate ambient light nearby
-            ambiance = pow(dot(wnorm, direct_light_dir) * 0.4 + 0.6, 2.0) * strength;
+            ambiance = 0.25 * (dot(wnorm, direct_light_dir) * 0.3 + 0.7) * dist_strength;
             #ifdef FIGURE_SHADER
                 // Non-physical hack. Subtle, but allows lanterns to glow nicely
                 // TODO: Make lanterns use glowing cells instead
-                ambiance += 100.0 * strength * pow(clamp(2.0 - distance_2 * 100.0, 0.0, 1.0), 5.0);
+                ambiance += 0.25 * dist_strength / (0.001 + pow(distance_2 * 10.0, 1.5));
             #endif
         #endif
         directed_light += (is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light : vec3(0.0)) + ambiance * color;

@@ -898,7 +898,7 @@ impl FigureMgr {
             let lantern_mat = self
                 .lantern_mat(entity)
                 .or_else(|| Some(ori?.to_quat().into()));
-            let (target_col, target_strength, flicker, animated) =
+            let (target_col, target_strength, flicker, animated, clamp) =
                 if let Some(emitter) = light_emitter_opt {
                     // Transform light direction to lantern direction
                     light_anim.dir = emitter
@@ -915,9 +915,10 @@ impl FigureMgr {
                         },
                         emitter.flicker,
                         emitter.animated,
+                        true,
                     )
                 } else {
-                    (Rgb::zero(), 0.0, 0.0, true)
+                    (Rgb::zero(), 0.0, 0.0, true, false)
                 };
             let lantern_offset = match body {
                 Some(Body::Humanoid(_)) => {
@@ -949,7 +950,11 @@ impl FigureMgr {
                 let delta = 0.05_f32.powf(dt);
                 light_anim.strength =
                     light_anim.strength * delta + (target_strength + flicker) * (1.0 - delta);
-                light_anim.col = light_anim.col * delta + target_col * (1.0 - delta)
+                light_anim.col = light_anim.col * delta + target_col * (1.0 - delta);
+                if clamp {
+                    light_anim.strength = light_anim.strength.min(target_strength);
+                    light_anim.col = Rgb::partial_min(light_anim.col, target_col);
+                }
             } else {
                 light_anim.strength = target_strength;
                 light_anim.col = target_col;
