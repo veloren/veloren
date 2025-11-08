@@ -438,14 +438,11 @@ impl CharacterSkeleton {
         last_ori: Option<Vec3<f32>>,
         look_dir: Option<Vec3<f32>>,
     ) {
-        let align_with_cam = look_dir.zip(last_ori).map_or(0.0, |(l, o)| {
-            l.xy().normalized().dot(o.xy().normalized()).max(0.0)
-        });
+        let align_with_cam = look_dir
+            .zip(last_ori)
+            .map_or(0.0, |(l, o)| (l.xy().dot(o.xy()) * 0.5 + 0.5).max(0.0));
 
         let lab = 2.0 / s_a.scaler;
-
-        let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6 + PI * 0.5).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab * 1.6 + PI * 0.5).sin());
 
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
@@ -454,30 +451,35 @@ impl CharacterSkeleton {
         self.hold.scale = Vec3::one() * 0.0;
 
         if self.holding_lantern {
-            let pitch = look_dir.unwrap_or_default().z * align_with_cam;
+            let pitch =
+                look_dir.unwrap_or_default().z.clamp(-1.0, 1.0) * (align_with_cam * 5.0).min(1.0);
             let yaw = look_dir.zip(last_ori).map_or(0.0, |(l, o)| {
-                l.xy().angle_between(o.xy()).min(0.75)
+                l.xy().angle_between(o.xy()).min(1.0)
                     * l.xy().determine_side(Vec2::zero(), o.xy()).signum()
-            });
-
-            self.hand_r.position = Vec3::new(
-                s_a.hand.0 + 2.0 - yaw * 3.5,
-                s_a.hand.1 + 2.0 - impact * 0.2 - pitch * 3.0 + yaw * 3.0,
-                s_a.hand.2 + 8.0 + impact * -0.1 + pitch * 3.0,
-            );
-            self.hand_r.orientation = Quaternion::rotation_z(yaw * 1.5)
-                * Quaternion::rotation_x(2.25 + pitch)
-                * Quaternion::rotation_z(0.9);
-            self.shoulder_r.orientation =
-                Quaternion::rotation_z(yaw) * Quaternion::rotation_x(short * -0.15 + 2.25);
-
-            // head  + look_dir.z * align_with_cam
+            }) * (align_with_cam * 15.0).min(1.0);
 
             let fast = (anim_time * 8.0).sin();
             let fast2 = (anim_time * 6.0 + 8.0).sin();
+            let breathe = anim_time.sin();
 
-            self.head.orientation =
-                self.head.orientation * Quaternion::rotation_z(yaw) * Quaternion::rotation_x(pitch);
+            self.hand_r.position = Vec3::new(
+                s_a.hand.0 + 0.5 - yaw * 4.0,
+                s_a.hand.1 + 3.0 - impact * 0.2 - pitch * 3.0 + yaw * 3.0 - breathe * 1.0,
+                s_a.hand.2 + 8.0 + impact * -0.1 + pitch * 3.0 + breathe * 0.5,
+            );
+            self.hand_r.orientation = Quaternion::rotation_z(yaw * 1.0)
+                * Quaternion::rotation_x(2.25 + pitch + breathe * 0.2)
+                * Quaternion::rotation_z(0.9);
+            self.shoulder_r.orientation =
+                Quaternion::rotation_z(yaw) * Quaternion::rotation_x(2.25 + breathe * 0.25);
+
+            self.head.position.y -= pitch;
+            self.head.orientation = self.head.orientation
+                * Quaternion::rotation_z(yaw)
+                * Quaternion::rotation_x(pitch * 0.6);
+
+            self.chest.position.y += pitch;
+            self.chest.orientation = self.chest.orientation * Quaternion::rotation_x(pitch * 0.3);
 
             self.lantern.position = Vec3::new(-0.5, -0.5, -2.5);
             self.lantern.orientation = self.hand_r.orientation.inverse()
@@ -485,7 +487,8 @@ impl CharacterSkeleton {
                 * Quaternion::rotation_x(
                     (fast + 0.5) * 0.1 * speednorm
                         + (tilt.abs() * 2.0).min(PI * 0.5) * (0.25 + speednorm)
-                        + pitch,
+                        + pitch
+                        + breathe * 0.05,
                 )
                 * Quaternion::rotation_y(tilt * 1.0 * fast + tilt * 1.0 + fast2 * speednorm * 0.25)
                 * Quaternion::rotation_z(yaw)

@@ -1615,7 +1615,13 @@ impl FigureMgr {
                                 },
                                 _ => anim::character::SitAnimation::update_skeleton(
                                     &base,
-                                    (active_tool_kind, second_tool_kind, time),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        look_dir,
+                                        time,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -2093,7 +2099,13 @@ impl FigureMgr {
                     },
                     CharacterState::Sit => anim::character::SitAnimation::update_skeleton(
                         &target_base,
-                        (active_tool_kind, second_tool_kind, time),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            look_dir,
+                            time,
+                        ),
                         state.state_time,
                         &mut state_animation_rate,
                         skeleton_attr,
