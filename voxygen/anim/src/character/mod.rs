@@ -473,7 +473,8 @@ impl CharacterSkeleton {
             self.shoulder_r.orientation =
                 Quaternion::rotation_z(yaw) * Quaternion::rotation_x(2.25 + breathe * 0.25);
 
-            self.head.position.y -= pitch;
+            self.head.position.x += yaw;
+            self.head.position.y -= pitch.min(0.0) * 1.5 - yaw.abs();
             self.head.orientation = self.head.orientation
                 * Quaternion::rotation_z(yaw)
                 * Quaternion::rotation_x(pitch * 0.6);
