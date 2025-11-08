@@ -287,9 +287,7 @@ impl Settings {
         let ron = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default())
             .expect("Failed serialize settings.");
 
-        fs::write(path, ron.as_bytes())?;
-
-        Ok(())
+        fs::write(path, ron.as_bytes())
     }
 
     /// path: Directory that contains the server config directory

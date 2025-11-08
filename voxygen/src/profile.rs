@@ -4,7 +4,6 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::Write,
     path::{Path, PathBuf},
 };
 use tracing::warn;
@@ -75,29 +74,10 @@ impl Profile {
     pub fn load(config_dir: &Path) -> Self {
         let path = Profile::get_path(config_dir);
 
-        if let Ok(file) = fs::File::open(&path) {
-            match ron::de::from_reader(file) {
-                Ok(profile) => return profile,
-                Err(e) => {
-                    warn!(
-                        ?e,
-                        ?path,
-                        "Failed to parse profile file! Falling back to default."
-                    );
-                    // Rename the corrupted profile file.
-                    let new_path = path.with_extension("invalid.ron");
-                    if let Err(e) = fs::rename(path.clone(), new_path.clone()) {
-                        warn!(?e, ?path, ?new_path, "Failed to rename profile file.");
-                    }
-                },
-            }
-        }
-        // This is reached if either:
-        // - The file can't be opened (presumably it doesn't exist)
-        // - Or there was an error parsing the file
-        let default_profile = Self::default();
-        default_profile.save_to_file_warn(config_dir);
-        default_profile
+        let profile = common::util::ron_from_path_recoverable::<Self>(&path);
+        // Save profile to add new fields or create the file if it is not already there
+        profile.save_to_file_warn(config_dir);
+        profile
     }
 
     /// Save the current profile to disk, warn on failure.
@@ -235,15 +215,13 @@ impl Profile {
 
     /// Save the current profile to disk.
     fn save_to_file(&self, config_dir: &Path) -> std::io::Result<()> {
-        let path = Profile::get_path(config_dir);
+        let path = Self::get_path(config_dir);
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
-        let mut config_file = fs::File::create(path)?;
 
-        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
-        config_file.write_all(s.as_bytes()).unwrap();
-        Ok(())
+        let ron = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
+        fs::write(path, ron.as_bytes())
     }
 
     fn get_path(config_dir: &Path) -> PathBuf { config_dir.join("profile.ron") }
