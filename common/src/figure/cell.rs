@@ -11,6 +11,7 @@ pub enum CellSurface {
     Shiny = 2,
     Fire = 3,
     Water = 4,
+    MagicCrystal = 5,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

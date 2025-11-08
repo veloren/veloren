@@ -260,6 +260,7 @@ sprites! {
         RakeWoodWoodland = 0xCB,
         FenceWoodGateWoodland = 0xCC,
         Hay = 0xCD,
+        CrystalBall = 0xCE,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered, Collectable {
@@ -742,7 +743,8 @@ impl SpriteKind {
             | SpriteKind::DoorBars
             | SpriteKind::KeyholeBars
             | SpriteKind::WoodBarricades
-            | SpriteKind::DiamondLight => 1.0,
+            | SpriteKind::DiamondLight
+            | SpriteKind::CrystalBall => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
