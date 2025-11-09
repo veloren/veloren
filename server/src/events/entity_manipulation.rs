@@ -35,7 +35,7 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::{AbilityMap, MaterialStatManifest},
         item::flatten_counted_items,
-        loot_owner::{LootOwnerKind, OwnershipTimeout},
+        loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_SLOW},
         projectile::{ProjectileAttack, ProjectileConstructorKind},
     },
     consts::TELEPORTER_RADIUS,
@@ -1017,7 +1017,7 @@ impl ServerEvent for DestroyEvent {
                                         "Assigned UID {loot_owner:?} as the winner for the loot \
                                          drop"
                                     );
-                                    Some(LootOwner::new(loot_owner, false, OwnershipTimeout::Slow))
+                                    Some(LootOwner::new(loot_owner, false, ONWERSHIP_TIMEOUT_SLOW))
                                 } else {
                                     debug!("No loot owner");
                                     None

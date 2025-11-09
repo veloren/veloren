@@ -12,7 +12,7 @@ use common::{
         self, InventoryUpdate, LootOwner, PickupItem,
         group::members,
         item::{self, Lantern, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
-        loot_owner::{LootOwnerKind, OwnershipTimeout},
+        loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_FAST, ONWERSHIP_TIMEOUT_SLOW},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -527,7 +527,7 @@ impl ServerEvent for InventoryManipEvent {
                             loot_owner: Some(LootOwner::new(
                                 LootOwnerKind::Player(*uid),
                                 false,
-                                OwnershipTimeout::Slow,
+                                ONWERSHIP_TIMEOUT_FAST,
                             )),
                         });
                     }
@@ -1176,7 +1176,7 @@ impl ServerEvent for InventoryManipEvent {
                 loot_owner: Some(LootOwner::new(
                     LootOwnerKind::Player(owner),
                     true,
-                    OwnershipTimeout::Slow,
+                    ONWERSHIP_TIMEOUT_SLOW,
                 )),
             })
         }
