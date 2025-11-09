@@ -41,16 +41,13 @@ pub fn is_tameable(body: &Body) -> bool {
     // on the pets feature (allowing larger animals to be tamed will
     // require balance issues to be addressed).
     match body {
-        Body::QuadrupedMedium(quad_med) =>
-        {
-            !matches!(
-                quad_med.species,
-                quadruped_medium::Species::Catoblepas
-                    | quadruped_medium::Species::Mammoth
-                    | quadruped_medium::Species::Elephant
-                    | quadruped_medium::Species::Hirdrasil
-            )
-        },
+        Body::QuadrupedMedium(quad_med) => !matches!(
+            quad_med.species,
+            quadruped_medium::Species::Catoblepas
+                | quadruped_medium::Species::Mammoth
+                | quadruped_medium::Species::Elephant
+                | quadruped_medium::Species::Hirdrasil
+        ),
         Body::QuadrupedLow(_)
         | Body::QuadrupedSmall(_)
         | Body::BirdMedium(_)
