@@ -2,7 +2,10 @@ use super::{
     super::{Animation, vek::*},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
+use common::{
+    comp::item::{Hands, ToolKind},
+    util::Dir,
+};
 
 pub struct JumpAnimation;
 impl Animation for JumpAnimation {
@@ -13,6 +16,7 @@ impl Animation for JumpAnimation {
         Vec3<f32>,
         Vec3<f32>,
         Vec3<f32>,
+        Dir,
         f32,
     );
     type Skeleton = CharacterSkeleton;
@@ -23,7 +27,16 @@ impl Animation for JumpAnimation {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_jump"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (active_tool_kind, second_tool_kind, hands, velocity, orientation, last_ori, global_time): Self::Dependency<'_>,
+        (
+            active_tool_kind,
+            second_tool_kind,
+            hands,
+            velocity,
+            orientation,
+            last_ori,
+            look_dir,
+            global_time,
+        ): Self::Dependency<'_>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -40,15 +53,15 @@ impl Animation for JumpAnimation {
         let speednorm = (speed / 10.0).min(1.0);
 
         let ori: Vec2<f32> = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-        let tilt = if vek::Vec2::new(ori, last_ori)
+        let last_ori_xy = Vec2::from(last_ori);
+        let tilt = if vek::Vec2::new(ori, last_ori_xy)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
+            && ori.angle_between(last_ori_xy).is_finite()
         {
-            ori.angle_between(last_ori).min(0.2)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
+            ori.angle_between(last_ori_xy).min(0.2)
+                * last_ori_xy.determine_side(Vec2::zero(), ori).signum()
         } else {
             0.0
         } * 1.3;
@@ -136,7 +149,16 @@ impl Animation for JumpAnimation {
 
         next.do_tools_on_back(hands, active_tool_kind, second_tool_kind);
 
-        next.do_hold_lantern(s_a, anim_time, anim_time, speednorm, 0.0, tilt, None, None);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            anim_time,
+            speednorm,
+            0.0,
+            tilt,
+            Some(last_ori),
+            Some(*look_dir),
+        );
 
         next.torso.position = Vec3::new(0.0, 0.0, 0.0);
         next.torso.orientation = Quaternion::rotation_x(0.0);
