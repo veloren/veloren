@@ -345,6 +345,7 @@ impl<'a> System<'a> for Sys {
                                         flicker: 2.0,
                                         strength: 2.0,
                                         col: Rgb::new(1.0, 1.0, 0.0),
+                                        dir: None,
                                     }),
                                     projectile: Projectile {
                                         hit_solid: Vec::new(),

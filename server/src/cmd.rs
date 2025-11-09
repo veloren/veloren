@@ -3673,7 +3673,13 @@ fn handle_light(
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
         parse_cmd_args!(args, f32, f32, f32, f32, f32, f32, f32);
 
-    let mut light_emitter = LightEmitter::default();
+    let mut light_emitter = LightEmitter {
+        col: Rgb::zero(),
+        strength: 0.0,
+        flicker: 0.0,
+        animated: false,
+        dir: None,
+    };
     let mut light_offset_opt = None;
 
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
@@ -3693,6 +3699,7 @@ fn handle_light(
             offset: Vec3::new(x, y, z),
             col: light_emitter.col,
             strength: 0.0,
+            dir: None,
         })
     };
     if let Some(s) = opt_s {

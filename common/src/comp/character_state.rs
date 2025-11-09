@@ -101,7 +101,6 @@ impl From<&JoinData<'_>> for StateUpdate {
         }
     }
 }
-#[expect(clippy::large_enum_variant)] // TODO: evaluate Boxing some
 #[derive(Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
     Idle(idle::Data),

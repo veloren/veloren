@@ -20,7 +20,41 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
         const float spread = 1.0;
     #endif
 
-    float strength = pow(attenuation_strength_real(difference), spread);
+    float strength = 0.0;
+    // Directional lights
+    if (L.light_dir.w < 1.0) {
+        // Base ambient light
+        strength += pow(attenuation_strength_real(difference), spread)
+            // A more focussed beam means less ambiance
+            * (1.0 - L.light_dir.w);
+        // Compute intersection of directional ray with light cone
+        // Adapted from: https://www.geometrictools.com/Documentation/IntersectionLineCone.pdf
+        const vec3 ldir = L.light_dir.xyz;
+        const vec3 beam_origin = light_pos - ldir * 0.1;
+        const float y2 = L.light_dir.w * L.light_dir.w;
+        const float c2 = pow(dot(ldir, dir), 2.0) - y2 * dot(dir, dir);
+        const float c1 = dot(ldir, dir) * dot(ldir, wpos - beam_origin) - y2 * dot(dir, wpos - beam_origin);
+        const float c0 = pow(dot(ldir, wpos - beam_origin), 2.0) - y2 * dot(wpos - beam_origin, wpos - beam_origin);
+        const float roots = c1 * c1 - c0 * c2;
+        if (roots >= 0) {
+            const float t0 = ((-c1 + sqrt(roots)) / c2);
+            const float t1 = ((-c1 - sqrt(roots)) / c2);
+            const float t = min(dot(dir, ldir) < 0.0 ? t1 : t0, max_dist);
+            if (t > 0.0 && dot(normalize(wpos + dir * t - beam_origin), ldir) + 0.01 > L.light_dir.w) {
+                nearest = wpos + dir * t;
+                if (dot(nearest - beam_origin, ldir) > 0.0) {
+                    difference = light_pos - nearest;
+                    float power = clamp(pow(abs(t0 - t1), 2.5) / length(difference), 0.0, 1.0);
+                    strength += pow(attenuation_strength_real(difference), spread)
+                        * (2.0 + dot(ldir, -dir))
+                        * power;
+                }
+            }
+        }
+    } else {
+        // Regular lights
+        strength = pow(attenuation_strength_real(difference), spread);
+    }
 
     #ifdef EXPERIMENTAL_LOWGLOWNEARCAMERA
         vec3 cam_wpos = cam_pos.xyz + focus_pos.xyz + focus_off.xyz;
@@ -57,7 +91,13 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
             float time_since_lightning = time_since(last_lightning.w);
             if (time_since_lightning < MAX_LIGHTNING_PERIOD) {
                 // Apply lightning
-                apply_point_glow_light(Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1)), wpos, dir, max_dist, color);
+                apply_point_glow_light(
+                    Light(last_lightning.xyzw + vec4(0, 0, LIGHTNING_HEIGHT, 0), vec4(vec3(0.2, 0.4, 1) * lightning_intensity() * 0.003, 1), vec4(vec3(0.0), 10.0)),
+                    wpos,
+                    dir,
+                    max_dist,
+                    color
+                );
             }
         #endif
         return color;

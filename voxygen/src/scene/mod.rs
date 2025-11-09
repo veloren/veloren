@@ -800,7 +800,12 @@ impl Scene {
                 .map(|(pos, interpolated, light_anim, _)| {
                     // Use interpolated values if they are available
                     let pos = interpolated.map_or(pos.0, |i| i.pos);
-                    Light::new(pos + light_anim.offset, light_anim.col, light_anim.strength)
+                    let mut light =
+                        Light::new(pos + light_anim.offset, light_anim.col, light_anim.strength);
+                    if let Some((dir, fov)) = light_anim.dir {
+                        light = light.with_dir(dir, fov);
+                    }
+                    light
                 })
                 .chain(
                     self.event_lights

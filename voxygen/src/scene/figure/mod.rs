@@ -876,25 +876,36 @@ impl FigureMgr {
                         .map(|b| b.default_light_offset())
                         .unwrap_or_else(Vec3::zero),
                     col: light_emitter.col,
-                    strength: 0.0,
+                    strength: light_emitter.strength,
+                    dir: light_emitter.dir,
                 };
                 let _ = anim_storage.insert(entity, anim);
             }
         }
         let dt = ecs.fetch::<DeltaTime>().0;
         let updater = ecs.read_resource::<LazyUpdate>();
-        for (entity, light_emitter_opt, interpolated, pos, body, light_anim) in (
+        for (entity, light_emitter_opt, interpolated, pos, ori, body, light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<LightEmitter>().maybe(),
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Ori>().maybe(),
             ecs.read_storage::<Body>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
         )
             .join()
         {
-            let (target_col, target_strength, flicker, animated) =
+            let lantern_mat = self
+                .lantern_mat(entity)
+                .or_else(|| Some(ori?.to_quat().into()));
+            let (target_col, target_strength, flicker, animated, clamp) =
                 if let Some(emitter) = light_emitter_opt {
+                    // Transform light direction to lantern direction
+                    light_anim.dir = emitter
+                        .dir
+                        .zip(lantern_mat)
+                        .map(|((dir, fov), m)| (m.mul_direction(dir), fov))
+                        .or(emitter.dir);
                     (
                         emitter.col,
                         if emitter.strength.is_normal() {
@@ -904,11 +915,18 @@ impl FigureMgr {
                         },
                         emitter.flicker,
                         emitter.animated,
+                        true,
                     )
                 } else {
-                    (Rgb::zero(), 0.0, 0.0, true)
+                    (Rgb::zero(), 0.0, 0.0, true, false)
                 };
-            let lantern_offset = self.lantern_offset(scene_data, entity);
+            let lantern_offset = match body {
+                Some(Body::Humanoid(_)) => {
+                    lantern_mat.map(|m| m.mul_point(Vec3::new(0.0, 0.5, -6.0)))
+                },
+                Some(Body::Item(_)) => lantern_mat.map(|m| m.mul_point(Vec3::new(0.0, 0.0, 3.5))),
+                _ => None,
+            };
             if let Some(lantern_offset) = body
                 .and_then(|body| self.states.get_mut(body, &entity))
                 .and_then(|state| {
@@ -932,7 +950,11 @@ impl FigureMgr {
                 let delta = 0.05_f32.powf(dt);
                 light_anim.strength =
                     light_anim.strength * delta + (target_strength + flicker) * (1.0 - delta);
-                light_anim.col = light_anim.col * delta + target_col * (1.0 - delta)
+                light_anim.col = light_anim.col * delta + target_col * (1.0 - delta);
+                if clamp {
+                    light_anim.strength = light_anim.strength.min(target_strength);
+                    light_anim.col = Rgb::partial_min(light_anim.col, target_col);
+                }
             } else {
                 light_anim.strength = target_strength;
                 light_anim.col = target_col;
@@ -1480,6 +1502,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                look_dir,
                                 time,
                                 rel_avg_vel,
                             ),
@@ -1500,6 +1523,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                *look_dir,
                                 time,
                                 rel_avg_vel,
                                 state.acc_vel,
@@ -1522,6 +1546,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                look_dir,
                                 time,
                             ),
                             state.state_time,
@@ -1561,6 +1586,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                *look_dir,
                             ),
                             state.state_time,
                             &mut state_animation_rate,
@@ -1595,7 +1621,13 @@ impl FigureMgr {
                                 },
                                 _ => anim::character::SitAnimation::update_skeleton(
                                     &base,
-                                    (active_tool_kind, second_tool_kind, time),
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        look_dir,
+                                        time,
+                                    ),
                                     state.state_time,
                                     &mut state_animation_rate,
                                     skeleton_attr,
@@ -1819,6 +1851,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                *look_dir,
                                 time,
                             ),
                             state.state_time,
@@ -2017,6 +2050,7 @@ impl FigureMgr {
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    *look_dir,
                                     time,
                                 ),
                                 state.state_time,
@@ -2071,7 +2105,13 @@ impl FigureMgr {
                     },
                     CharacterState::Sit => anim::character::SitAnimation::update_skeleton(
                         &target_base,
-                        (active_tool_kind, second_tool_kind, time),
+                        (
+                            active_tool_kind,
+                            second_tool_kind,
+                            state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                            look_dir,
+                            time,
+                        ),
                         state.state_time,
                         &mut state_animation_rate,
                         skeleton_attr,
@@ -7766,27 +7806,11 @@ impl FigureMgr {
             .unwrap_or_else(Vec3::zero)
     }
 
-    pub fn lantern_offset(&self, scene_data: &SceneData, entity: EcsEntity) -> Option<Vec3<f32>> {
-        scene_data
-            .state
-            .ecs()
-            .read_storage::<Body>()
-            .get(entity)
-            .and_then(|b| match b {
-                Body::Humanoid(_) => self.states.character_states.get(&entity).map(|state| {
-                    state
-                        .computed_skeleton
-                        .lantern
-                        .mul_point(Vec3::new(0.0, 0.5, -6.0))
-                }),
-                Body::Item(_) => self.states.item_states.get(&entity).map(|state| {
-                    state
-                        .computed_skeleton
-                        .bone0
-                        .mul_point(Vec3::new(0.0, 0.0, 3.5))
-                }),
-                _ => None,
-            })
+    pub fn lantern_mat(&self, entity: EcsEntity) -> Option<Mat4<f32>> {
+        self.states
+            .character_states
+            .get(&entity)
+            .map(|state| state.computed_skeleton.lantern)
     }
 
     pub fn mount_transform(

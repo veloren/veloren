@@ -8,17 +8,8 @@ pub struct LightEmitter {
     pub strength: f32,
     pub flicker: f32,
     pub animated: bool,
-}
-
-impl Default for LightEmitter {
-    fn default() -> Self {
-        Self {
-            col: Rgb::one(),
-            strength: 1.0,
-            flicker: 0.0,
-            animated: false,
-        }
-    }
+    // (direction, +cos(beam_angle))
+    pub dir: Option<(Vec3<f32>, f32)>,
 }
 
 impl Component for LightEmitter {
@@ -30,16 +21,8 @@ pub struct LightAnimation {
     pub offset: Vec3<f32>,
     pub col: Rgb<f32>,
     pub strength: f32,
-}
-
-impl Default for LightAnimation {
-    fn default() -> Self {
-        Self {
-            offset: Vec3::zero(),
-            col: Rgb::zero(),
-            strength: 0.0,
-        }
-    }
+    // (direction, +cos(beam_angle))
+    pub dir: Option<(Vec3<f32>, f32)>,
 }
 
 impl Component for LightAnimation {

@@ -2,13 +2,13 @@ use super::{
     super::{Animation, vek::*},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::ToolKind;
+use common::{comp::item::ToolKind, util::Dir};
 use std::{f32::consts::PI, ops::Mul};
 
 pub struct SitAnimation;
 
 impl Animation for SitAnimation {
-    type Dependency<'a> = (Option<ToolKind>, Option<ToolKind>, f32);
+    type Dependency<'a> = (Option<ToolKind>, Option<ToolKind>, Vec3<f32>, Dir, f32);
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -17,7 +17,9 @@ impl Animation for SitAnimation {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "character_sit"))]
     fn update_skeleton_inner(
         skeleton: &Self::Skeleton,
-        (_active_tool_kind, _second_tool_kind, global_time): Self::Dependency<'_>,
+        (_active_tool_kind, _second_tool_kind, last_ori, look_dir, global_time): Self::Dependency<
+            '_,
+        >,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -89,7 +91,16 @@ impl Animation for SitAnimation {
 
         next.torso.position = Vec3::new(0.0, -2.2, stop * -1.76);
 
-        next.do_hold_lantern(s_a, anim_time, 0.0, 0.0, 0.0, 0.0);
+        next.do_hold_lantern(
+            s_a,
+            anim_time,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            Some(last_ori),
+            Some(*look_dir),
+        );
 
         next
     }

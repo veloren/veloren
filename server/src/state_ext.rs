@@ -291,6 +291,7 @@ impl StateExt for State {
                 strength: lantern.strength(),
                 flicker: lantern.flicker(),
                 animated: true,
+                dir: lantern.dir,
             }),
             _ => None,
         };
@@ -450,6 +451,7 @@ impl StateExt for State {
                 strength: 2.0,
                 flicker: 1.0,
                 animated: true,
+                dir: None,
             })
     }
 
