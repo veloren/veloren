@@ -28,6 +28,7 @@ void apply_point_glow_light(Light L, vec3 wpos, vec3 dir, float max_dist, inout 
             // A more focussed beam means less ambiance
             * (1.0 - L.light_dir.w);
         // Compute intersection of directional ray with light cone
+        // Adapted from: https://www.geometrictools.com/Documentation/IntersectionLineCone.pdf
         const vec3 ldir = L.light_dir.xyz;
         const vec3 beam_origin = light_pos - ldir * 0.1;
         const float y2 = L.light_dir.w * L.light_dir.w;
