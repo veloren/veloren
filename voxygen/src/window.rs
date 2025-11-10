@@ -753,20 +753,16 @@ impl Window {
                 is_synthetic,
                 ..
             } => {
-                // Ignore synthetic tab presses so that we don't get tabs when alt-tabbing back
-                // into the window
-                if matches!(
-                    event.logical_key,
-                    winit::keyboard::Key::Named(winit::keyboard::NamedKey::Tab)
-                ) && is_synthetic
-                {
+                // Ignore synthetic keydown events so that we don't e.g. get tabs when
+                // alt-tabbing back into the window
+                if matches!(event.state, winit::event::ElementState::Pressed) && is_synthetic {
                     return;
                 }
                 // Ignore Alt-F4 so we don't try to do anything heavy like take a screenshot
                 // when the window is about to close
                 if matches!(event, winit::event::KeyEvent {
                     state: winit::event::ElementState::Pressed,
-                    logical_key: winit::keyboard::Key::Named(winit::keyboard::NamedKey::Tab),
+                    logical_key: winit::keyboard::Key::Named(winit::keyboard::NamedKey::F4),
                     ..
                 }) && self.modifiers.alt_key()
                 {
