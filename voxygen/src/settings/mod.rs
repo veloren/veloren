@@ -129,4 +129,8 @@ impl Settings {
             );
         }
     }
+
+    pub fn load_controller_settings(&mut self) {
+        self.controller2.load_layer_inputs(&self.controller);
+    }
 }

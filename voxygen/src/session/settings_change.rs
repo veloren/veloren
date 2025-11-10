@@ -60,6 +60,8 @@ pub enum Control {
     RemoveBindingGamepadButton(GameInput),
     ResetKeyBindingsGamepadButton,
     // Gamepad menu button bindings
+    // Gamelayer button bindings
+    ResetKeyBindingsGamepadGamelayer,
 }
 #[derive(Clone)]
 pub enum Gamepad {}
@@ -404,6 +406,10 @@ impl SettingsChange {
                     // Currently resets everything on the controller
                     // TODO: only reset the button bindings
                     settings.controller2 = ControllerSettings::default();
+                },
+                Control::ResetKeyBindingsGamepadGamelayer => {
+                    settings.controller = GamepadSettings::default();
+                    settings.load_controller_settings()
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},

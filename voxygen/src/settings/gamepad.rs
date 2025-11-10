@@ -271,7 +271,7 @@ pub mod con_settings {
                 stayfollow: LayerEntry::default(),
                 chat: LayerEntry::default(),
                 map: LayerEntry {
-                    button: Button::Simple(GilButton::DPadLeft),
+                    button: Button::Simple(GilButton::Unknown),
                     mod1: Button::Simple(GilButton::Unknown),
                     mod2: Button::Simple(GilButton::Unknown),
                 },
@@ -341,11 +341,11 @@ pub mod con_settings {
                 map_set_marker: LayerEntry::default(),
                 spectate_speed_boost: LayerEntry::default(),
                 spectate_viewpoint: LayerEntry::default(),
-                mute_master: LayerEntry::default(),
+                mute_ambience: LayerEntry::default(),
                 mute_inactive_master: LayerEntry::default(),
+                mute_master: LayerEntry::default(),
                 mute_music: LayerEntry::default(),
                 mute_sfx: LayerEntry::default(),
-                mute_ambience: LayerEntry::default(),
                 toggle_walk: LayerEntry::default(),
             }
         }

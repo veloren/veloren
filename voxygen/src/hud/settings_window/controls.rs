@@ -161,36 +161,43 @@ impl Widget for Controls<'_> {
                             .iter()
                             .zip(state.ids.controls_buttons.iter()),
                     ) {
-                        let (input_string, input_color) =
-                            if self.global_state.window.remapping_keybindings == Some(*game_input) {
-                                (
-                                    self.localized_strings
-                                        .get_msg("hud-settings-awaitingkey")
-                                        .into_owned(),
-                                    TEXT_COLOR,
-                                )
-                            } else if let Some(button) = gamepad_controls.get_game_button_binding(*game_input) {
-                                (
-                                    format!(
-                                        "{} {}",
-                                        button.display_string(self.localized_strings),
-                                        button.try_shortened()
-                                            .map_or("".to_owned(), |short| format!("({})", short))
-                                    ),
-                                    if gamepad_controls.game_button_has_conflicting_bindings(button) {
-                                        TEXT_BIND_CONFLICT_COLOR
-                                    } else {
-                                        TEXT_COLOR
-                                    },
-                                )
-                            } else {
-                                (
-                                    self.localized_strings
-                                        .get_msg("hud-settings-unbound")
-                                        .into_owned(),
-                                    ERROR_COLOR,
-                                )
-                            };
+                        let (input_string, input_color) = if self
+                            .global_state
+                            .window
+                            .remapping_keybindings
+                            == Some(*game_input)
+                        {
+                            (
+                                self.localized_strings
+                                    .get_msg("hud-settings-awaitingkey")
+                                    .into_owned(),
+                                TEXT_COLOR,
+                            )
+                        } else if let Some(button) =
+                            gamepad_controls.get_game_button_binding(*game_input)
+                        {
+                            (
+                                format!(
+                                    "{} {}",
+                                    button.display_string(self.localized_strings),
+                                    button
+                                        .try_shortened()
+                                        .map_or("".to_owned(), |short| format!("({})", short))
+                                ),
+                                if gamepad_controls.game_button_has_conflicting_bindings(button) {
+                                    TEXT_BIND_CONFLICT_COLOR
+                                } else {
+                                    TEXT_COLOR
+                                },
+                            )
+                        } else {
+                            (
+                                self.localized_strings
+                                    .get_msg("hud-settings-unbound")
+                                    .into_owned(),
+                                ERROR_COLOR,
+                            )
+                        };
                         let loc_key = self
                             .localized_strings
                             .get_msg(game_input.get_localization_key());
@@ -477,9 +484,10 @@ impl Widget for Controls<'_> {
                 if state.binding_mode != BindingMode::Gamepad {
                     events.push(ResetKeyBindingsKeyboard);
                 } else {
-                    // resets gamepad buttons no matter which tab you are in: buttons, gamelayer,
-                    // menu
+                    // resets all gamepad bindings no matter which tab you are in: buttons,
+                    // gamelayer, or menu
                     events.push(ResetKeyBindingsGamepadButton);
+                    events.push(ResetKeyBindingsGamepadGamelayer);
                 }
             }
             previous_element_id = Some(state.ids.reset_controls_button)

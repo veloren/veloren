@@ -2,7 +2,9 @@
 //! keybindings
 
 use crate::{
-    game_input::GameInput, settings::gamepad::con_settings::LayerEntry, window::MenuInput,
+    game_input::GameInput,
+    settings::{GamepadSettings, gamepad::con_settings::LayerEntry},
+    window::MenuInput,
 };
 use gilrs::{Axis as GilAxis, Button as GilButton, ev::Code as GilCode};
 use hashbrown::{HashMap, HashSet};
@@ -14,7 +16,7 @@ use strum::{EnumIter, IntoEnumIterator};
 struct ControllerSettingsSerde {
     // save as a delta against defaults for efficiency
     game_button_map: HashMap<GameInput, Option<Button>>,
-    menu_button_map: HashMap<MenuInput, Button>,
+    menu_button_map: HashMap<MenuInput, Option<Button>>,
     game_analog_button_map: HashMap<AnalogButtonGameAction, AnalogButton>,
     menu_analog_button_map: HashMap<AnalogButtonMenuAction, AnalogButton>,
     game_axis_map: HashMap<AxisGameAction, Axis>,
@@ -77,7 +79,7 @@ impl From<ControllerSettings> for ControllerSettingsSerde {
 pub struct ControllerSettings {
     pub game_button_map: HashMap<GameInput, Option<Button>>,
     pub inverse_game_button_map: HashMap<Button, HashSet<GameInput>>,
-    pub menu_button_map: HashMap<MenuInput, Button>,
+    pub menu_button_map: HashMap<MenuInput, Option<Button>>,
     pub inverse_menu_button_map: HashMap<Button, HashSet<MenuInput>>,
     pub game_analog_button_map: HashMap<AnalogButtonGameAction, AnalogButton>,
     pub inverse_game_analog_button_map: HashMap<AnalogButton, HashSet<AnalogButtonGameAction>>,
@@ -166,7 +168,7 @@ impl ControllerSettings {
     }
 
     pub fn get_menu_button_binding(&self, input: MenuInput) -> Option<Button> {
-        self.menu_button_map.get(&input).copied()
+        self.menu_button_map.get(&input).cloned().flatten()
     }
 
     pub fn get_layer_button_binding(&self, input: GameInput) -> Option<LayerEntry> {
@@ -186,7 +188,8 @@ impl ControllerSettings {
 
     pub fn insert_menu_button_binding(&mut self, menu_input: MenuInput, button: Button) {
         if button != Button::default() {
-            self.menu_button_map.insert(menu_input, button);
+            self.menu_button_map
+                .insert(menu_input, Some(button.clone()));
             self.inverse_menu_button_map
                 .entry(button)
                 .or_default()
@@ -315,6 +318,15 @@ impl ControllerSettings {
         }
     }
 
+    pub fn default_menu_axis(menu_axis: AxisMenuAction) -> Option<Axis> {
+        match menu_axis {
+            AxisMenuAction::MoveX => Some(Axis::Simple(GilAxis::LeftStickX)),
+            AxisMenuAction::MoveY => Some(Axis::Simple(GilAxis::LeftStickY)),
+            AxisMenuAction::ScrollX => Some(Axis::Simple(GilAxis::RightStickX)),
+            AxisMenuAction::ScrollY => Some(Axis::Simple(GilAxis::RightStickY)),
+        }
+    }
+
     pub fn default_button_binding(game_input: GameInput) -> Option<Button> {
         match game_input {
             GameInput::Primary => Some(Button::Simple(GilButton::RightTrigger2)),
@@ -398,6 +410,328 @@ impl ControllerSettings {
             GameInput::ToggleWalk => Some(Button::Simple(GilButton::Unknown)),
         }
     }
+
+    pub fn default_menu_button_binding(menu_input: MenuInput) -> Option<Button> {
+        match menu_input {
+            MenuInput::Up => Some(Button::Simple(GilButton::DPadUp)),
+            MenuInput::Down => Some(Button::Simple(GilButton::DPadDown)),
+            MenuInput::Left => Some(Button::Simple(GilButton::DPadLeft)),
+            MenuInput::Right => Some(Button::Simple(GilButton::DPadRight)),
+            MenuInput::ScrollUp => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::ScrollDown => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::ScrollLeft => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::ScrollRight => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::Home => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::End => Some(Button::Simple(GilButton::Unknown)),
+            MenuInput::Apply => Some(Button::Simple(GilButton::South)),
+            MenuInput::Back => Some(Button::Simple(GilButton::East)),
+            MenuInput::Exit => Some(Button::Simple(GilButton::Mode)),
+        }
+    }
+
+    // temp: load game layer bindings from separate GamepadSettings struct in
+    // gamepad.rs
+    pub fn load_layer_inputs(&mut self, gamepad_settings: &GamepadSettings) {
+        self.insert_layer_button_binding(
+            GameInput::Secondary,
+            gamepad_settings.game_layer_buttons.secondary,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Primary,
+            gamepad_settings.game_layer_buttons.primary,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Block,
+            gamepad_settings.game_layer_buttons.block,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot1,
+            gamepad_settings.game_layer_buttons.slot1,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot2,
+            gamepad_settings.game_layer_buttons.slot2,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot3,
+            gamepad_settings.game_layer_buttons.slot3,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot4,
+            gamepad_settings.game_layer_buttons.slot4,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot5,
+            gamepad_settings.game_layer_buttons.slot5,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot6,
+            gamepad_settings.game_layer_buttons.slot6,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot7,
+            gamepad_settings.game_layer_buttons.slot7,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot8,
+            gamepad_settings.game_layer_buttons.slot8,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot9,
+            gamepad_settings.game_layer_buttons.slot9,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Slot10,
+            gamepad_settings.game_layer_buttons.slot10,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleCursor,
+            gamepad_settings.game_layer_buttons.toggle_cursor,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Escape,
+            gamepad_settings.game_layer_buttons.escape,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Chat,
+            gamepad_settings.game_layer_buttons.enter,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Command,
+            gamepad_settings.game_layer_buttons.command,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MoveForward,
+            gamepad_settings.game_layer_buttons.move_forward,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MoveLeft,
+            gamepad_settings.game_layer_buttons.move_left,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MoveBack,
+            gamepad_settings.game_layer_buttons.move_back,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MoveRight,
+            gamepad_settings.game_layer_buttons.move_right,
+        );
+        self.insert_layer_button_binding(GameInput::Jump, gamepad_settings.game_layer_buttons.jump);
+        self.insert_layer_button_binding(GameInput::Sit, gamepad_settings.game_layer_buttons.sit);
+        self.insert_layer_button_binding(
+            GameInput::Dance,
+            gamepad_settings.game_layer_buttons.dance,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Glide,
+            gamepad_settings.game_layer_buttons.glide,
+        );
+        self.insert_layer_button_binding(
+            GameInput::SwimUp,
+            gamepad_settings.game_layer_buttons.swimup,
+        );
+        self.insert_layer_button_binding(
+            GameInput::SwimDown,
+            gamepad_settings.game_layer_buttons.swimdown,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Sneak,
+            gamepad_settings.game_layer_buttons.sneak,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleLantern,
+            gamepad_settings.game_layer_buttons.toggle_lantern,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Mount,
+            gamepad_settings.game_layer_buttons.mount,
+        );
+        self.insert_layer_button_binding(GameInput::Map, gamepad_settings.game_layer_buttons.map);
+        self.insert_layer_button_binding(
+            GameInput::Inventory,
+            gamepad_settings.game_layer_buttons.inventory,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Social,
+            gamepad_settings.game_layer_buttons.social,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Crafting,
+            gamepad_settings.game_layer_buttons.crafting,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Diary,
+            gamepad_settings.game_layer_buttons.diary,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Settings,
+            gamepad_settings.game_layer_buttons.settings,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Controls,
+            gamepad_settings.game_layer_buttons.controls,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleInterface,
+            gamepad_settings.game_layer_buttons.toggle_interface,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleDebug,
+            gamepad_settings.game_layer_buttons.toggle_debug,
+        );
+        #[cfg(feature = "egui-ui")]
+        self.insert_layer_button_binding(
+            GameInput::ToggleEguiDebug,
+            gamepad_settings.game_layer_buttons.toggle_debug,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleChat,
+            gamepad_settings.game_layer_buttons.toggle_chat,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Fullscreen,
+            gamepad_settings.game_layer_buttons.fullscreen,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Screenshot,
+            gamepad_settings.game_layer_buttons.screenshot,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleIngameUi,
+            gamepad_settings.game_layer_buttons.toggle_ingame_ui,
+        );
+        self.insert_layer_button_binding(GameInput::Roll, gamepad_settings.game_layer_buttons.roll);
+        self.insert_layer_button_binding(
+            GameInput::Respawn,
+            gamepad_settings.game_layer_buttons.respawn,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Interact,
+            gamepad_settings.game_layer_buttons.interact,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleWield,
+            gamepad_settings.game_layer_buttons.toggle_wield,
+        );
+        self.insert_layer_button_binding(
+            GameInput::SwapLoadout,
+            gamepad_settings.game_layer_buttons.swap_loadout,
+        );
+        self.insert_layer_button_binding(
+            GameInput::WallJump,
+            gamepad_settings.game_layer_buttons.wall_jump,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Crawl,
+            gamepad_settings.game_layer_buttons.crawl,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Greet,
+            gamepad_settings.game_layer_buttons.greet,
+        );
+        self.insert_layer_button_binding(GameInput::Fly, gamepad_settings.game_layer_buttons.fly);
+        self.insert_layer_button_binding(
+            GameInput::CancelClimb,
+            gamepad_settings.game_layer_buttons.cancel_climb,
+        );
+        self.insert_layer_button_binding(
+            GameInput::StayFollow,
+            gamepad_settings.game_layer_buttons.stayfollow,
+        );
+        self.insert_layer_button_binding(GameInput::Chat, gamepad_settings.game_layer_buttons.chat);
+        self.insert_layer_button_binding(
+            GameInput::Trade,
+            gamepad_settings.game_layer_buttons.trade,
+        );
+        self.insert_layer_button_binding(
+            GameInput::GiveUp,
+            gamepad_settings.game_layer_buttons.give_up,
+        );
+        self.insert_layer_button_binding(
+            GameInput::FreeLook,
+            gamepad_settings.game_layer_buttons.free_look,
+        );
+        self.insert_layer_button_binding(
+            GameInput::AutoWalk,
+            gamepad_settings.game_layer_buttons.auto_walk,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ZoomIn,
+            gamepad_settings.game_layer_buttons.zoom_in,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ZoomOut,
+            gamepad_settings.game_layer_buttons.zoom_out,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ZoomLock,
+            gamepad_settings.game_layer_buttons.zoom_lock,
+        );
+        self.insert_layer_button_binding(
+            GameInput::CameraClamp,
+            gamepad_settings.game_layer_buttons.camera_clamp,
+        );
+        self.insert_layer_button_binding(
+            GameInput::CycleCamera,
+            gamepad_settings.game_layer_buttons.cycle_camera,
+        );
+        self.insert_layer_button_binding(
+            GameInput::Select,
+            gamepad_settings.game_layer_buttons.select,
+        );
+        self.insert_layer_button_binding(
+            GameInput::AcceptGroupInvite,
+            gamepad_settings.game_layer_buttons.accept_group_invite,
+        );
+        self.insert_layer_button_binding(
+            GameInput::DeclineGroupInvite,
+            gamepad_settings.game_layer_buttons.decline_group_invite,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MapZoomIn,
+            gamepad_settings.game_layer_buttons.map_zoom_in,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MapZoomOut,
+            gamepad_settings.game_layer_buttons.map_zoom_out,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MapSetMarker,
+            gamepad_settings.game_layer_buttons.map_set_marker,
+        );
+        self.insert_layer_button_binding(
+            GameInput::SpectateSpeedBoost,
+            gamepad_settings.game_layer_buttons.spectate_speed_boost,
+        );
+        self.insert_layer_button_binding(
+            GameInput::SpectateViewpoint,
+            gamepad_settings.game_layer_buttons.spectate_viewpoint,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MuteMaster,
+            gamepad_settings.game_layer_buttons.mute_master,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MuteInactiveMaster,
+            gamepad_settings.game_layer_buttons.mute_inactive_master,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MuteMusic,
+            gamepad_settings.game_layer_buttons.mute_music,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MuteSfx,
+            gamepad_settings.game_layer_buttons.mute_sfx,
+        );
+        self.insert_layer_button_binding(
+            GameInput::MuteAmbience,
+            gamepad_settings.game_layer_buttons.mute_ambience,
+        );
+        self.insert_layer_button_binding(
+            GameInput::ToggleWalk,
+            gamepad_settings.game_layer_buttons.toggle_walk,
+        );
+    }
 }
 
 impl Default for ControllerSettings {
@@ -418,7 +752,10 @@ impl Default for ControllerSettings {
             layer_button_map: HashMap::new(),
             inverse_layer_button_map: HashMap::new(),
 
-            modifier_buttons: Vec::new(),
+            modifier_buttons: vec![
+                Button::Simple(GilButton::RightTrigger),
+                Button::Simple(GilButton::LeftTrigger),
+            ],
             pan_sensitivity: 10,
             pan_invert_y: false,
             axis_deadzones: HashMap::new(),
@@ -435,6 +772,15 @@ impl Default for ControllerSettings {
                 },
             };
         }
+        // sets the menu button bindings for game menu button inputs
+        for button_input in MenuInput::iter() {
+            match ControllerSettings::default_menu_button_binding(button_input) {
+                Some(default) => {
+                    controller_settings.insert_menu_button_binding(button_input, default)
+                },
+                None => {},
+            };
+        }
         // sets the axis bindings for game axis inputs
         for axis_input in AxisGameAction::iter() {
             match ControllerSettings::default_game_axis(axis_input) {
@@ -442,254 +788,19 @@ impl Default for ControllerSettings {
                 Some(default) => controller_settings.insert_game_axis_binding(axis_input, default),
             };
         }
-        controller_settings
-    }
-}
-
-impl From<&crate::settings::GamepadSettings> for ControllerSettings {
-    fn from(settings: &crate::settings::GamepadSettings) -> Self {
-        let mut controller_settings: ControllerSettings = ControllerSettings::default();
-
-        controller_settings.insert_layer_button_binding(
-            GameInput::Secondary,
-            settings.game_layer_buttons.secondary,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Primary, settings.game_layer_buttons.primary);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Block, settings.game_layer_buttons.block);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot1, settings.game_layer_buttons.slot1);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot2, settings.game_layer_buttons.slot2);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot3, settings.game_layer_buttons.slot3);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot4, settings.game_layer_buttons.slot4);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot5, settings.game_layer_buttons.slot5);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot6, settings.game_layer_buttons.slot6);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot7, settings.game_layer_buttons.slot7);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot8, settings.game_layer_buttons.slot8);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot9, settings.game_layer_buttons.slot9);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Slot10, settings.game_layer_buttons.slot10);
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleCursor,
-            settings.game_layer_buttons.toggle_cursor,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Escape, settings.game_layer_buttons.escape);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Chat, settings.game_layer_buttons.enter);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Command, settings.game_layer_buttons.command);
-        controller_settings.insert_layer_button_binding(
-            GameInput::MoveForward,
-            settings.game_layer_buttons.move_forward,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MoveLeft,
-            settings.game_layer_buttons.move_left,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MoveBack,
-            settings.game_layer_buttons.move_back,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MoveRight,
-            settings.game_layer_buttons.move_right,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Jump, settings.game_layer_buttons.jump);
-        controller_settings.insert_layer_button_binding(
-            GameInput::WallJump,
-            settings.game_layer_buttons.wall_jump,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Sit, settings.game_layer_buttons.sit);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Crawl, settings.game_layer_buttons.crawl);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Dance, settings.game_layer_buttons.dance);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Greet, settings.game_layer_buttons.greet);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Glide, settings.game_layer_buttons.glide);
-        controller_settings
-            .insert_layer_button_binding(GameInput::SwimUp, settings.game_layer_buttons.swimup);
-        controller_settings
-            .insert_layer_button_binding(GameInput::SwimDown, settings.game_layer_buttons.swimdown);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Fly, settings.game_layer_buttons.fly);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Sneak, settings.game_layer_buttons.sneak);
-        controller_settings.insert_layer_button_binding(
-            GameInput::CancelClimb,
-            settings.game_layer_buttons.cancel_climb,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleLantern,
-            settings.game_layer_buttons.toggle_lantern,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Mount, settings.game_layer_buttons.mount);
-        controller_settings.insert_layer_button_binding(
-            GameInput::StayFollow,
-            settings.game_layer_buttons.stayfollow,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Chat, settings.game_layer_buttons.chat);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Map, settings.game_layer_buttons.map);
-        controller_settings.insert_layer_button_binding(
-            GameInput::Inventory,
-            settings.game_layer_buttons.inventory,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Trade, settings.game_layer_buttons.trade);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Social, settings.game_layer_buttons.social);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Crafting, settings.game_layer_buttons.crafting);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Diary, settings.game_layer_buttons.diary);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Settings, settings.game_layer_buttons.settings);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Controls, settings.game_layer_buttons.controls);
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleInterface,
-            settings.game_layer_buttons.toggle_interface,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleDebug,
-            settings.game_layer_buttons.toggle_debug,
-        );
-        #[cfg(feature = "egui-ui")]
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleEguiDebug,
-            settings.game_layer_buttons.toggle_debug,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleChat,
-            settings.game_layer_buttons.toggle_chat,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::Fullscreen,
-            settings.game_layer_buttons.fullscreen,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::Screenshot,
-            settings.game_layer_buttons.screenshot,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleIngameUi,
-            settings.game_layer_buttons.toggle_ingame_ui,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Roll, settings.game_layer_buttons.roll);
-        controller_settings
-            .insert_layer_button_binding(GameInput::GiveUp, settings.game_layer_buttons.give_up);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Respawn, settings.game_layer_buttons.respawn);
-        controller_settings
-            .insert_layer_button_binding(GameInput::Interact, settings.game_layer_buttons.interact);
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleWield,
-            settings.game_layer_buttons.toggle_wield,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::SwapLoadout,
-            settings.game_layer_buttons.swap_loadout,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::FreeLook,
-            settings.game_layer_buttons.free_look,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::AutoWalk,
-            settings.game_layer_buttons.auto_walk,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::ZoomIn, settings.game_layer_buttons.zoom_in);
-        controller_settings
-            .insert_layer_button_binding(GameInput::ZoomOut, settings.game_layer_buttons.zoom_out);
-        controller_settings.insert_layer_button_binding(
-            GameInput::ZoomLock,
-            settings.game_layer_buttons.zoom_lock,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::CameraClamp,
-            settings.game_layer_buttons.camera_clamp,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::CycleCamera,
-            settings.game_layer_buttons.cycle_camera,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::Select, settings.game_layer_buttons.select);
-        controller_settings.insert_layer_button_binding(
-            GameInput::AcceptGroupInvite,
-            settings.game_layer_buttons.accept_group_invite,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::DeclineGroupInvite,
-            settings.game_layer_buttons.decline_group_invite,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MapZoomIn,
-            settings.game_layer_buttons.map_zoom_in,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MapZoomOut,
-            settings.game_layer_buttons.map_zoom_out,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MapSetMarker,
-            settings.game_layer_buttons.map_set_marker,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::SpectateSpeedBoost,
-            settings.game_layer_buttons.spectate_speed_boost,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::SpectateViewpoint,
-            settings.game_layer_buttons.spectate_viewpoint,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MuteMaster,
-            settings.game_layer_buttons.mute_master,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MuteInactiveMaster,
-            settings.game_layer_buttons.mute_inactive_master,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::MuteMusic,
-            settings.game_layer_buttons.mute_music,
-        );
-        controller_settings
-            .insert_layer_button_binding(GameInput::MuteSfx, settings.game_layer_buttons.mute_sfx);
-        controller_settings.insert_layer_button_binding(
-            GameInput::MuteAmbience,
-            settings.game_layer_buttons.mute_ambience,
-        );
-        controller_settings.insert_layer_button_binding(
-            GameInput::ToggleWalk,
-            settings.game_layer_buttons.toggle_walk,
-        );
-
+        // sets the axis bindings for menu axis inputs
+        for axis_input in AxisMenuAction::iter() {
+            match ControllerSettings::default_menu_axis(axis_input) {
+                Some(default) => controller_settings.insert_menu_axis_binding(axis_input, default),
+                None => {},
+            };
+        }
         controller_settings
     }
 }
 
 /// All the menu actions you can bind to an Axis
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize, EnumIter)]
 pub enum AxisMenuAction {
     MoveX,
     MoveY,
