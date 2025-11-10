@@ -35,7 +35,7 @@ pub use networking::NetworkingSettings;
 pub struct Settings {
     pub chat: ChatSettings,
     pub controls: ControlSettings,
-    pub controller2: ControllerSettings,
+    pub controller: ControllerSettings,
     pub interface: InterfaceSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
@@ -72,7 +72,7 @@ impl Default for Settings {
         Settings {
             chat: ChatSettings::default(),
             controls: ControlSettings::default(),
-            controller2: ControllerSettings::default(),
+            controller: ControllerSettings::default(),
             interface: InterfaceSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),

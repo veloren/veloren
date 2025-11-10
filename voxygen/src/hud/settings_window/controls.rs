@@ -152,7 +152,7 @@ impl Widget for Controls<'_> {
         if let BindingMode::Gamepad = binding_mode {
             match gamepad_binding_option {
                 GamepadBindingOption::GameButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -272,7 +272,7 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::GameLayers => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_GAMEINPUTS.len());
 
@@ -379,7 +379,7 @@ impl Widget for Controls<'_> {
                     }
                 },
                 GamepadBindingOption::MenuButtons => {
-                    let gamepad_controls = &self.global_state.settings.controller2;
+                    let gamepad_controls = &self.global_state.settings.controller;
 
                     resize_ids(SORTED_MENUINPUTS.len());
 

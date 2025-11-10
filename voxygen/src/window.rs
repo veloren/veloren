@@ -369,7 +369,7 @@ impl Window {
     pub fn fetch_events(&mut self, settings: &mut Settings) -> Vec<Event> {
         span!(_guard, "fetch_events", "Window::fetch_events");
 
-        let controller = &mut settings.controller2;
+        let controller = &mut settings.controller;
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             let scale_factor = self.window.scale_factor();

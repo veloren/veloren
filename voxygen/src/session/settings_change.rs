@@ -416,7 +416,7 @@ impl SettingsChange {
                 Control::ResetKeyBindingsGamepad => {
                     // Currently resets everything on the controller to the default controls, this
                     // should be intended behavior
-                    settings.controller2 = ControllerSettings::default();
+                    settings.controller = ControllerSettings::default();
                 },
 
                 // change gamepad button bindings
@@ -426,7 +426,7 @@ impl SettingsChange {
                     );
                 },
                 Control::RemoveBindingGamepadButton(game_input) => {
-                    settings.controller2.remove_button_binding(game_input);
+                    settings.controller.remove_button_binding(game_input);
                 },
 
                 // change gamepad menu button bindings
@@ -436,7 +436,7 @@ impl SettingsChange {
                     );
                 },
                 Control::RemoveBindingGamepadMenu(menu_input) => {
-                    settings.controller2.remove_menu_binding(menu_input);
+                    settings.controller.remove_menu_binding(menu_input);
                 },
 
                 // change gamepad layer bindings
@@ -446,7 +446,7 @@ impl SettingsChange {
                     );
                 },
                 Control::RemoveBindingGamepadLayer(layer_input) => {
-                    settings.controller2.remove_layer_binding(layer_input);
+                    settings.controller.remove_layer_binding(layer_input);
                 },
                 Control::GameLayerMod1(glm1) => {
                     global_state.window.gamelayer_mod1 = glm1;
@@ -481,7 +481,7 @@ impl SettingsChange {
                         settings.gameplay.walking_speed = speed;
                     },
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
-                        settings.controller2.pan_invert_y = controller_y_inverted;
+                        settings.controller.pan_invert_y = controller_y_inverted;
                     },
                     Gameplay::ToggleMouseYInvert(mouse_y_inverted) => {
                         window.mouse_y_inversion = mouse_y_inverted;
@@ -531,7 +531,7 @@ impl SettingsChange {
                         // Reset Gameplay Settings
                         settings.gameplay = GameplaySettings::default();
                         // Reset Controller Settings
-                        settings.controller2 = ControllerSettings::default();
+                        settings.controller = ControllerSettings::default();
                         // Pan Sensitivity
                         window.pan_sensitivity = settings.gameplay.pan_sensitivity;
                         // Zoom Sensitivity
