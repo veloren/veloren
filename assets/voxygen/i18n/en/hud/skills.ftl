@@ -142,6 +142,13 @@ hud-skill-pick_strike_oregain = Chance to gain extra ore ({ $boost } % per level
 hud-skill-pick_strike_gemgain_title = Pickaxe Strike Gem Yield
 hud-skill-pick_strike_gemgain = Chance to gain extra gems ({ $boost } % per level).{ $SP }
 
+## Sword stances
+hud-skill-sword_stance_cleaving = Cleaving
+hud-skill-sword_stance_agile = Agile
+hud-skill-sword_stance_crippling = Crippling
+hud-skill-sword_stance_heavy = Heavy
+hud-skill-sword_stance_defensive = Defensive
+
 ## Skill tree error dialog
 hud-skill-persistence-hash_mismatch = There was a difference detected in one of your skill groups since you last played.
 hud-skill-persistence-deserialization_failure = There was a error in loading some of your skills from the database.
