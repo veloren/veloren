@@ -44,9 +44,9 @@ use common::{
 use conrod_core::{
     Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
     image,
+    position::Relative,
     widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids,
-    position::Relative,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -1663,95 +1663,144 @@ impl Diary<'_> {
             .set(state.ids.sword_stance_right_align, ui);
 
         // Cleaving
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_cleaving"))
-            .x_y_position_relative_to(
-                state.ids.sword_stance_cleaving_text,
-                Relative::Scalar(2.5),
-                Relative::Scalar(-2.5)
-            ).font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(color::BLACK)
-            .set(state.ids.sword_stance_cleaving_shadow, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_cleaving"),
+        )
+        .mid_top_with_margin_on(state.ids.sword_stance_left_align, -7.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(Color::Rgba(0.94, 0.54, 0.07, 1.0))
+        .set(state.ids.sword_stance_cleaving_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_cleaving"))
-            .mid_top_with_margin_on(state.ids.sword_stance_left_align, -7.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(Color::Rgba(0.94, 0.54, 0.07, 1.0))
-            .set(state.ids.sword_stance_cleaving_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_cleaving"),
+        )
+        .x_y_position_relative_to(
+            state.ids.sword_stance_cleaving_text,
+            Relative::Scalar(2.5),
+            Relative::Scalar(-2.5),
+        )
+        .depth(1.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(color::BLACK)
+        .set(state.ids.sword_stance_cleaving_shadow, ui);
 
         // Agile
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_agile"))
-            .x_y_position_relative_to(
-                state.ids.sword_stance_agile_text,
-                Relative::Scalar(2.5),
-                Relative::Scalar(-2.5)
-            ).font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(color::BLACK)
-            .set(state.ids.sword_stance_agile_shadow, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_agile"),
+        )
+        .mid_top_with_margin_on(state.ids.sword_bg, -7.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(Color::Rgba(0.81, 0.70, 0.08, 1.0))
+        .set(state.ids.sword_stance_agile_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_agile"))
-            .mid_top_with_margin_on(state.ids.sword_bg, -7.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(Color::Rgba(0.81, 0.70, 0.08, 1.0))
-            .set(state.ids.sword_stance_agile_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_agile"),
+        )
+        .x_y_position_relative_to(
+            state.ids.sword_stance_agile_text,
+            Relative::Scalar(2.5),
+            Relative::Scalar(-2.5),
+        )
+        .depth(1.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(color::BLACK)
+        .set(state.ids.sword_stance_agile_shadow, ui);
 
         // Crippling
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_crippling"))
-            .x_y_position_relative_to(
-                state.ids.sword_stance_crippling_text,
-                Relative::Scalar(2.5),
-                Relative::Scalar(-2.5)
-            ).font_id(self.fonts.cyri.conrod_id)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(color::BLACK)
-            .set(state.ids.sword_stance_crippling_shadow, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_crippling"),
+        )
+        .mid_top_with_margin_on(state.ids.sword_stance_right_align, -7.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(Color::Rgba(0.0, 0.52, 0.0, 1.0))
+        .set(state.ids.sword_stance_crippling_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_crippling"))
-            .mid_top_with_margin_on(state.ids.sword_stance_right_align, -7.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(Color::Rgba(0.0, 0.52, 0.0, 1.0))
-            .set(state.ids.sword_stance_crippling_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_crippling"),
+        )
+        .x_y_position_relative_to(
+            state.ids.sword_stance_crippling_text,
+            Relative::Scalar(2.5),
+            Relative::Scalar(-2.5),
+        )
+        .depth(1.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(color::BLACK)
+        .set(state.ids.sword_stance_crippling_shadow, ui);
 
         // Heavy
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_heavy"))
-            .x_y_position_relative_to(
-                state.ids.sword_stance_heavy_text,
-                Relative::Scalar(2.5),
-                Relative::Scalar(-2.5)
-            ).font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(color::BLACK)
-            .set(state.ids.sword_stance_heavy_shadow, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_heavy"),
+        )
+        .mid_bottom_with_margin_on(state.ids.sword_stance_left_align, 272.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(Color::Rgba(0.67, 0.0, 0.0, 1.0))
+        .set(state.ids.sword_stance_heavy_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_heavy"))
-            .mid_bottom_with_margin_on(state.ids.sword_stance_left_align, 272.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(Color::Rgba(0.67, 0.0, 0.0, 1.0))
-            .set(state.ids.sword_stance_heavy_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_heavy"),
+        )
+        .x_y_position_relative_to(
+            state.ids.sword_stance_heavy_text,
+            Relative::Scalar(2.5),
+            Relative::Scalar(-2.5),
+        )
+        .depth(1.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(color::BLACK)
+        .set(state.ids.sword_stance_heavy_shadow, ui);
 
         // Defensive
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_defensive"))
-            .x_y_position_relative_to(
-                state.ids.sword_stance_defensive_text,
-                Relative::Scalar(2.5),
-                Relative::Scalar(-2.5)
-            ).font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(color::BLACK)
-            .set(state.ids.sword_stance_defensive_shadow, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_defensive"),
+        )
+        .mid_bottom_with_margin_on(state.ids.sword_stance_right_align, 272.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(Color::Rgba(0.10, 0.40, 0.82, 1.0))
+        .set(state.ids.sword_stance_defensive_text, ui);
 
-        Text::new(&self.localized_strings.get_msg("hud-skill-sword_stance_defensive"))
-            .mid_bottom_with_margin_on(state.ids.sword_stance_right_align, 272.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(Color::Rgba(0.10, 0.40, 0.82, 1.0))
-            .set(state.ids.sword_stance_defensive_text, ui);
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-skill-sword_stance_defensive"),
+        )
+        .x_y_position_relative_to(
+            state.ids.sword_stance_defensive_text,
+            Relative::Scalar(2.5),
+            Relative::Scalar(-2.5),
+        )
+        .depth(1.0)
+        .font_id(self.fonts.cyri.conrod_id)
+        .font_size(self.fonts.cyri.scale(34))
+        .color(color::BLACK)
+        .set(state.ids.sword_stance_defensive_shadow, ui);
 
         use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
