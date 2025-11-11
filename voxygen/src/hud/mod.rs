@@ -2698,32 +2698,46 @@ impl Hud {
 
             const V_PAD: f64 = 5.0;
             const H_PAD: f64 = 5.0;
+            const FONT_SCALE: u32 = 14;
+            let mut largest_str_len: usize = 0;
+            let mut debug_msg_line_count: usize = 0;
 
             // Alpha Version
             Text::new(&version)
                 .top_left_with_margins_on(self.ids.debug_bg, V_PAD, H_PAD)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, version.len());
+            debug_msg_line_count += 1;
+
             // Ticks per second
-            Text::new(&format!(
+            let debug_msg_ticks_per_sec = format!(
                 "FPS: {:.0} ({}ms)",
                 debug_info.tps,
                 debug_info.frame_time.as_millis()
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.version, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.fps_counter, ui_widgets);
+            );
+            Text::new(&debug_msg_ticks_per_sec)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.version, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.fps_counter, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_ticks_per_sec.len());
+            debug_msg_line_count += 1;
+
             // Ping
-            Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
+            let debug_msg_ping = format!("Ping: {:.0}ms", debug_info.ping_ms);
+            Text::new(&debug_msg_ping)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.ping, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_ping.len());
+            debug_msg_line_count += 1;
+
             // Player's position
             let coordinates_text = match debug_info.coordinates {
                 Some(coordinates) => format!(
@@ -2736,8 +2750,11 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .down_from(self.ids.ping, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.coordinates, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, coordinates_text.len());
+            debug_msg_line_count += 1;
+
             // Player's velocity
             let (velocity_text, glide_ratio_text) = match debug_info.velocity {
                 Some(velocity) => {
@@ -2769,14 +2786,20 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .down_from(self.ids.coordinates, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.velocity, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, velocity_text.len());
+            debug_msg_line_count += 1;
+
             Text::new(&glide_ratio_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.velocity, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.glide_ratio, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, glide_ratio_text.len());
+            debug_msg_line_count += 1;
+
             // Glide Angle of Attack
             let glide_angle_text = angle_of_attack_text(
                 debug_info.in_fluid,
@@ -2787,16 +2810,22 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .down_from(self.ids.glide_ratio, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.glide_aoe, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, glide_angle_text.len());
+            debug_msg_line_count += 1;
+
             // Air velocity
             let air_vel_text = air_velocity(debug_info.in_fluid);
             Text::new(&air_vel_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.glide_aoe, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.air_vel, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, air_vel_text.len());
+            debug_msg_line_count += 1;
+
             // Player's orientation vector
             let orientation_text = match debug_info.ori {
                 Some(ori) => {
@@ -2812,8 +2841,11 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .down_from(self.ids.air_vel, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.orientation, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, orientation_text.len());
+            debug_msg_line_count += 1;
+
             let look_dir_text = {
                 let look_vec = debug_info.look_dir.to_vec();
 
@@ -2826,19 +2858,26 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .down_from(self.ids.orientation, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.look_direction, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, look_dir_text.len());
+            debug_msg_line_count += 1;
+
             // Loaded distance
-            Text::new(&format!(
+            let debug_msg_loaded_distance = format!(
                 "View distance: {:.2} blocks ({:.2} chunks)",
                 client.loaded_distance(),
                 client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.look_direction, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.loaded_distance, ui_widgets);
+            );
+            Text::new(&debug_msg_loaded_distance)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.look_direction, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.loaded_distance, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_loaded_distance.len());
+            debug_msg_line_count += 1;
+
             // Time
             let time_in_seconds = client.state().get_time_of_day();
             let current_time = NaiveTime::from_num_seconds_from_midnight_opt(
@@ -2847,15 +2886,19 @@ impl Hud {
                 0,
             )
             .expect("time always valid");
-            Text::new(&format!("Time: {}", current_time.format("%H:%M")))
+            let debug_msg_time = format!("Time: {}", current_time.format("%H:%M"));
+            Text::new(&debug_msg_time)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.loaded_distance, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.time, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_time.len());
+            debug_msg_line_count += 1;
+
             // Weather
             let weather = client.weather_at_player();
-            Text::new(&format!(
+            let debug_msg_weather = format!(
                 "Weather({kind}): {{cloud: {cloud:.2}, rain: {rain:.2}, wind: <{wind_x:.0}, \
                  {wind_y:.0}>}}",
                 kind = weather.get_kind(),
@@ -2863,116 +2906,149 @@ impl Hud {
                 rain = weather.rain,
                 wind_x = weather.wind.x,
                 wind_y = weather.wind.y
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.time, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.weather, ui_widgets);
+            );
+            Text::new(&debug_msg_weather)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.time, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.weather, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_weather.len());
+            debug_msg_line_count += 1;
 
             // Number of entities
             let entity_count = client.state().ecs().entities().join().count();
-            Text::new(&format!("Entity count: {}", entity_count))
+            let debug_msg_entity_count = format!("Entity count: {}", entity_count);
+            Text::new(&debug_msg_entity_count)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.weather, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.entity_count, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_entity_count.len());
+            debug_msg_line_count += 1;
 
             // Number of chunks
-            Text::new(&format!(
+            let debug_msg_num_chunks = format!(
                 "Chunks: {} ({} visible) & {} (shadow)",
                 debug_info.num_chunks, debug_info.num_visible_chunks, debug_info.num_shadow_chunks,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.entity_count, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.num_chunks, ui_widgets);
+            );
+            Text::new(&debug_msg_num_chunks)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.entity_count, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.num_chunks, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_num_chunks.len());
+            debug_msg_line_count += 1;
 
             // Type of biome
-            Text::new(&format!("Biome: {:?}", client.current_biome()))
+            let debug_msg_biome_type = format!("Biome: {:?}", client.current_biome());
+            Text::new(&debug_msg_biome_type)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.num_chunks, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.current_biome, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_biome_type.len());
+            debug_msg_line_count += 1;
 
             // Type of site
-            Text::new(&format!("Site: {:?}", client.current_site()))
+            let debug_msg_site_type = format!("Site: {:?}", client.current_site());
+            Text::new(&debug_msg_site_type)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.current_biome, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.current_site, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_site_type.len());
+            debug_msg_line_count += 1;
 
             // Current song info
-            Text::new(&format!(
+            let debug_msg_current_song = format!(
                 "Now playing: {} [{}]",
                 debug_info.current_track, debug_info.current_artist,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.current_site, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.song_info, ui_widgets);
-            Text::new(&format!(
+            );
+            Text::new(&debug_msg_current_song)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.current_site, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.song_info, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_current_song.len());
+            debug_msg_line_count += 1;
+
+            let debug_msg_active_channels = format!(
                 "Active channels: M{}, A{}, S{}, U{}, CPU: {:2.0}%",
                 debug_info.active_channels.music,
                 debug_info.active_channels.ambience,
                 debug_info.active_channels.sfx,
                 debug_info.active_channels.ui,
                 debug_info.audio_cpu_usage * 100.0,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.song_info, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.active_channels, ui_widgets);
+            );
+            Text::new(&debug_msg_active_channels)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.song_info, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.active_channels, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_active_channels.len());
+            debug_msg_line_count += 1;
 
             // Number of lights
-            Text::new(&format!("Lights: {}", debug_info.num_lights,))
+            let debug_msg_num_lights = format!("Lights: {}", debug_info.num_lights,);
+            Text::new(&debug_msg_num_lights)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.active_channels, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.num_lights, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_num_lights.len());
+            debug_msg_line_count += 1;
 
             // Number of figures
-            Text::new(&format!(
+            let debug_msg_num_figures = format!(
                 "Figures: {} ({} visible)",
                 debug_info.num_figures, debug_info.num_figures_visible,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.num_lights, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.num_figures, ui_widgets);
+            );
+            Text::new(&debug_msg_num_figures)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_lights, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.num_figures, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_num_figures.len());
+            debug_msg_line_count += 1;
 
             // Number of particles
-            Text::new(&format!(
+            let debug_msg_num_particles = format!(
                 "Particles: {} ({} visible)",
                 debug_info.num_particles, debug_info.num_particles_visible,
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.num_figures, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.num_particles, ui_widgets);
+            );
+            Text::new(&debug_msg_num_particles)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_figures, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.num_particles, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_num_particles.len());
+            debug_msg_line_count += 1;
 
             // Graphics backend
-            Text::new(&format!(
+            let debug_msg_graphics_backend = format!(
                 "Graphics backend: {}",
                 global_state.window.renderer().graphics_backend(),
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.num_particles, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.graphics_backend, ui_widgets);
+            );
+            Text::new(&debug_msg_graphics_backend)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.num_particles, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(FONT_SCALE))
+                .set(self.ids.graphics_backend, ui_widgets);
+            largest_str_len = usize::max(largest_str_len, debug_msg_graphics_backend.len());
+            debug_msg_line_count += 1;
 
             let gpu_timings = global_state.window.renderer().timings();
-            let mut timings_height = 0.0;
 
             // GPU timing for different pipelines
             if !gpu_timings.is_empty() {
@@ -3002,19 +3078,23 @@ impl Hud {
                             )),
                         )
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(14));
+                        .font_size(self.fonts.cyri.scale(FONT_SCALE));
 
-                    // Calculate timings height
-                    timings_height += timings_widget.get_h(ui_widgets).unwrap_or(0.0) + V_PAD;
+                    largest_str_len = usize::max(largest_str_len, timings_text.len());
+                    debug_msg_line_count += 1;
 
                     timings_widget.set(self.ids.gpu_timings[i], ui_widgets);
                 }
             }
 
-            // Set debug box dimensions, only timings height is dynamic
-            // TODO: Make the background box size fully dynamic
-
-            let debug_bg_size = [375.0, 405.0 + timings_height];
+            // TODO: Use a more accurate method for calculating background width from text
+            // content/length. Multiplying by font scale then dividing by 2.0 is
+            // only an ad-hoc approach.
+            let debug_bg_width =
+                (H_PAD * 2.0) + (largest_str_len as f64) * (FONT_SCALE as f64) / 2.0;
+            let debug_bg_height =
+                (V_PAD * 2.0) + (debug_msg_line_count as f64) * ((FONT_SCALE as f64) + V_PAD);
+            let debug_bg_size = [debug_bg_width, debug_bg_height];
 
             Rectangle::fill(debug_bg_size)
                 .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)
