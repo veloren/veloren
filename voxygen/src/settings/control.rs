@@ -10,6 +10,7 @@ use winit::{
 // ControlSetting-like struct used by Serde, to handle not serializing/building
 // post-deserializing the inverse_keybindings hashmap
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 struct ControlSettingsSerde {
     keybindings: HashMap<GameInput, Option<KeyMouse>>,
 }
@@ -29,6 +30,10 @@ impl From<ControlSettings> for ControlSettingsSerde {
             keybindings: user_bindings,
         }
     }
+}
+
+impl Default for ControlSettingsSerde {
+    fn default() -> Self { ControlSettings::default().into() }
 }
 
 /// `ControlSettings` contains keybindings.

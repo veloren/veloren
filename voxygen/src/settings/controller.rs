@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 struct ControllerSettingsSerde {
     // save as a delta against defaults for efficiency
     game_button_map: HashMap<GameInput, Option<Button>>,
@@ -74,6 +75,10 @@ impl From<ControllerSettings> for ControllerSettingsSerde {
             inverted_axes,
         }
     }
+}
+
+impl Default for ControllerSettingsSerde {
+    fn default() -> Self { ControllerSettings::default().into() }
 }
 
 /// Contains all controller related settings and keymaps
