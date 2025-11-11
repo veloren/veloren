@@ -12,7 +12,7 @@ use common::{
         self, InventoryUpdate, LootOwner, PickupItem,
         group::members,
         item::{self, Lantern, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
-        loot_owner::LootOwnerKind,
+        loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_FAST, ONWERSHIP_TIMEOUT_SLOW},
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
@@ -524,7 +524,11 @@ impl ServerEvent for InventoryManipEvent {
                             vel: comp::Vel(Vec3::zero()),
                             ori: data.orientations.get(entity).copied().unwrap_or_default(),
                             item: PickupItem::new(item, *data.program_time, true),
-                            loot_owner: Some(LootOwner::new(LootOwnerKind::Player(*uid), false)),
+                            loot_owner: Some(LootOwner::new(
+                                LootOwnerKind::Player(*uid),
+                                false,
+                                ONWERSHIP_TIMEOUT_FAST,
+                            )),
                         });
                     }
                 },
@@ -1169,7 +1173,11 @@ impl ServerEvent for InventoryManipEvent {
                 vel: comp::Vel::default(),
                 ori,
                 item,
-                loot_owner: Some(LootOwner::new(LootOwnerKind::Player(owner), true)),
+                loot_owner: Some(LootOwner::new(
+                    LootOwnerKind::Player(owner),
+                    true,
+                    ONWERSHIP_TIMEOUT_SLOW,
+                )),
             })
         }
     }

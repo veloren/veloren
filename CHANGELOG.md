@@ -119,6 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimum camera clamp angle is now 0 degrees.
 - Sprite and entity materials have been overhauled and improved
 - Cloth Armor Lineage model updates.
+- Removed bloodsteel ingots from Vampire Castle mini-boss loot.
+- Chest and mining drops now have a shorter ownership timeout.
 
 ### Removed
 

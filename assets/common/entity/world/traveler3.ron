@@ -34,8 +34,8 @@
             glider: Item("common.items.glider.sunset"),
         )),
         items: [
-            (50, "common.items.consumable.potion_big"),
-            (50, "common.items.food.sunflower_icetea"),
+            (5, "common.items.consumable.potion_med"),
+            (10, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [

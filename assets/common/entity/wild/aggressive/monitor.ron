@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("monitor"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_low.generic"),
+    loot: LootTable("common.loot_tables.creature.quad_low.monitor"),
     inventory: (
         loadout: FromBody,
     ),

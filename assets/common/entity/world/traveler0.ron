@@ -22,7 +22,7 @@
             glider: Item("common.items.glider.basic_white"),
         )),
         items: [
-            (5, "common.items.consumable.potion_minor"),
+            (2, "common.items.consumable.potion_minor"),
             (5, "common.items.food.sunflower_icetea"),
         ],
     ),

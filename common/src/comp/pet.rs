@@ -41,19 +41,13 @@ pub fn is_tameable(body: &Body) -> bool {
     // on the pets feature (allowing larger animals to be tamed will
     // require balance issues to be addressed).
     match body {
-        Body::QuadrupedMedium(quad_med) =>
-        // NOTE: the reason we ban mammoth from being tameable even though they're
-        // agressive anyway, is that UncomfySilence is going to make them
-        // peaceful after this MR gets merged. Please, remove this note in your MR,
-        // UncomfySilence!
-        {
-            !matches!(
-                quad_med.species,
-                quadruped_medium::Species::Catoblepas
-                    | quadruped_medium::Species::Mammoth
-                    | quadruped_medium::Species::Hirdrasil
-            )
-        },
+        Body::QuadrupedMedium(quad_med) => !matches!(
+            quad_med.species,
+            quadruped_medium::Species::Catoblepas
+                | quadruped_medium::Species::Mammoth
+                | quadruped_medium::Species::Elephant
+                | quadruped_medium::Species::Hirdrasil
+        ),
         Body::QuadrupedLow(_)
         | Body::QuadrupedSmall(_)
         | Body::BirdMedium(_)

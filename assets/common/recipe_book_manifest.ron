@@ -1142,8 +1142,7 @@
         output: ("common.items.armor.cloth.cotton.back", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 3, false),
-            (Item("common.items.crafting_ing.resin"), 1, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1152,8 +1151,7 @@
         output: ("common.items.armor.cloth.cotton.belt", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 1, false),
-            (Item("common.items.crafting_ing.resin"), 1, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1162,8 +1160,7 @@
         output: ("common.items.armor.cloth.cotton.chest", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 8, false),
-            (Item("common.items.crafting_ing.resin"), 2, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 4, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1172,8 +1169,7 @@
         output: ("common.items.armor.cloth.cotton.foot", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
-            (Item("common.items.crafting_ing.resin"), 1, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
+            (Item("common.items.flowers.plant_fiber"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1182,7 +1178,7 @@
         output: ("common.items.armor.cloth.cotton.hand", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 2, false),
-            (Item("common.items.crafting_ing.resin"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 1, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1191,8 +1187,7 @@
         output: ("common.items.armor.cloth.cotton.pants", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 6, false),
-            (Item("common.items.crafting_ing.resin"), 2, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 3, false),
+            (Item("common.items.flowers.plant_fiber"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1201,7 +1196,7 @@
         output: ("common.items.armor.cloth.cotton.shoulder", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 6, false),
-            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.flowers.plant_fiber"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),
@@ -1210,9 +1205,8 @@
         output: ("common.items.armor.cloth.cotton.head", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.cotton"), 3, false),
-            (Item("common.items.crafting_ing.resin"), 2, false),
+            (Item("common.items.flowers.plant_fiber"), 2, false),
             (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 1, false),
-            (Item("common.items.crafting_ing.animal_misc.viscous_ooze"), 2, false),
             (Item("common.items.crafting_tools.sewing_set"), 0, false),
         ],
         craft_sprite: Some(Loom),

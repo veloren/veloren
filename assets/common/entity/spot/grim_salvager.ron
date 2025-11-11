@@ -8,7 +8,7 @@
         loadout: Inline((
             inherit: Asset("common.loadout.spots.dwarf_graverobber"),
             active_hands: InHands((
-                ModularWeapon(tool: Hammer, material: Steel, hands: Two),
+                ModularWeapon(tool: Hammer, material: Bronze, hands: One),
                 None
             )),
         )),

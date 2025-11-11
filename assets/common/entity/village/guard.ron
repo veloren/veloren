@@ -14,8 +14,8 @@
             ]), None)),
         )),
         items: [
-            (25, "common.items.consumable.potion_big"),
-            (25, "common.items.food.sunflower_icetea"),
+            (5, "common.items.consumable.potion_med"),
+            (15, "common.items.food.sunflower_icetea"),
         ],
     ),
     meta: [
