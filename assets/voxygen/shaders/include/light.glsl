@@ -287,10 +287,8 @@ void apply_cell_material(
             render_alpha = 0.2;
             render_mat = MAT_PUDDLE;
             break;
-        // Water
+        // SwirlyCrystal
         case 5:
-            // render_alpha = 0.3;
-            // render_mat = MAT_PUDDLE;
             vec3 dpos = vec3(1000.0) - wpos;
             emitted_light = mix(
                 pow(mix(vec3(1.0, 1.2, 1.5), vec3(0.5, 0.3, 1.0), sin(tick.x * 0.1) * 0.5 + 0.5), vec3(7.0)),

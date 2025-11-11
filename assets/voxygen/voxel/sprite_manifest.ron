@@ -260,7 +260,7 @@ CrystalBall: [(
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
             custom_indices: {
-                182: (attr: MagicCrystal),
+                182: (attr: SwirlyCrystal),
             },
         ),
     ],

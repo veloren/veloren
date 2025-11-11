@@ -29,7 +29,7 @@ impl From<Segment> for TerrainSegment {
                     CellSurface::Glowy => BlockKind::GlowingRock,
                     CellSurface::Fire => BlockKind::Lava,
                     CellSurface::Water => BlockKind::Water,
-                    CellSurface::MagicCrystal => BlockKind::GlowingRock,
+                    CellSurface::SwirlyCrystal => BlockKind::GlowingRock,
                     CellSurface::Matte | CellSurface::Shiny => BlockKind::Misc,
                 };
                 Block::new(kind, cell.get_color().unwrap_or_default())
