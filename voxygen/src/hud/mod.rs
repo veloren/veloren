@@ -3766,6 +3766,10 @@ impl Hud {
                     settings_window::Event::SettingsChange(settings_change) => {
                         events.push(Event::SettingsChange(settings_change));
                     },
+                    settings_window::Event::ResetBindingMode => {
+                        // Disables gamepad mapping mode to avoid issues
+                        global_state.window.reset_mapping_mode();
+                    },
                 }
             }
         }

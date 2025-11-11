@@ -101,10 +101,6 @@ fn main() {
     // Load the settings
     let mut settings = Settings::load(&config_dir);
     settings.display_warnings();
-    // Save settings to add new fields or create the file if it is not already there
-    if let Err(err) = settings.save_to_file(&config_dir) {
-        panic!("Failed to save settings: {:?}", err);
-    }
 
     panic_handler::set_panic_hook(log_filename, logs_dir);
 

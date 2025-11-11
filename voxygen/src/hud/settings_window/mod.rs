@@ -136,6 +136,7 @@ pub enum Event {
     Close,
     SettingsChange(SettingsChange),
     ChangeChatSettingsTab(Option<usize>),
+    ResetBindingMode,
 }
 
 #[derive(Clone)]
@@ -217,6 +218,7 @@ impl Widget for SettingsWindow<'_> {
             .was_clicked()
         {
             events.push(Event::Close);
+            events.push(Event::ResetBindingMode); // stop input mapping if window closed
         }
 
         // Tabs
@@ -251,6 +253,7 @@ impl Widget for SettingsWindow<'_> {
 
             if button.set(state.ids.tabs[i], ui).was_clicked() {
                 events.push(Event::ChangeTab(settings_tab));
+                events.push(Event::ResetBindingMode); // stop input mapping if tab changed
             }
         }
 

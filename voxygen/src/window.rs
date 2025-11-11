@@ -1359,6 +1359,8 @@ impl Window {
 
     pub fn set_remapping_mode(&mut self, r_mode: RemappingMode) { self.remapping_mode = r_mode; }
 
+    pub fn reset_mapping_mode(&mut self) { self.remapping_mode = RemappingMode::None; }
+
     pub fn window(&self) -> &winit::window::Window { &self.window }
 
     pub fn modifiers(&self) -> winit::keyboard::ModifiersState { self.modifiers }

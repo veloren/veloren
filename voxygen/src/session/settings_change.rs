@@ -73,7 +73,7 @@ pub enum Control {
     GameLayerMod2(bool),
 
     // reset binding mode
-    ResetBindingMode(),
+    ResetBindingMode,
 }
 #[derive(Clone)]
 pub enum Gamepad {}
@@ -456,10 +456,8 @@ impl SettingsChange {
                 },
 
                 // resets remapping mode (useful if user leaves without actually remapping)
-                Control::ResetBindingMode() => {
-                    global_state
-                        .window
-                        .set_remapping_mode(crate::window::RemappingMode::None);
+                Control::ResetBindingMode => {
+                    global_state.window.reset_mapping_mode();
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
