@@ -304,6 +304,15 @@ void apply_cell_material(
             render_alpha = 0.2;
             render_mat = MAT_PUDDLE;
             break;
+        // SwirlyCrystal
+        case 5:
+            vec3 dpos = vec3(1000.0) - wpos;
+            emitted_light = mix(
+                pow(mix(vec3(1.0, 1.2, 1.5), vec3(0.5, 0.3, 1.0), sin(tick.x * 0.1) * 0.5 + 0.5), vec3(7.0)),
+                pow(mix(vec3(0.5, 1.0, 1.0), vec3(0.8, 0.5, 1.0), sin(tick.x * 0.13) * 0.5 + 0.5), vec3(7.0)),
+                dot(sin(tick.xxx * 2.3 + dpos.zxy * vec3(30.0, 6.0, 6.0) + sin(dpos.zxy + sin(tick.x * 1.7 - dpos.z * 12.0) * 1.1) * 2.0) * 0.5 + 0.5, vec3(1.0)) / 3.0
+            ) * 2.5 * (sin(tick.x * 3.0) * 0.4 + 1.0);
+            break;
         default: break;
     }
 }

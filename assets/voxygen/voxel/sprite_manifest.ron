@@ -253,6 +253,19 @@ CrateBlock: [(
     ],
     wind_sway: 0.0,
 )],
+CrystalBall: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.crystal_ball",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                182: (attr: SwirlyCrystal),
+            },
+        ),
+    ],
+    wind_sway: 0.0,
+)],
 BarrelWoodWater: [(
     variations: [
         (
