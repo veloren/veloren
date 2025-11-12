@@ -1,7 +1,7 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 1.0,
-    recover_duration: 1.35,
+    buildup_duration: 0.45,
+    recover_duration: 1.25,
     projectile: (
         kind: Explosive(
             radius: 5,
@@ -21,7 +21,7 @@ BasicRanged(
         )),
     ),
     projectile_body: Object(BoltFire),
-    projectile_speed: 60.0,
+    projectile_speed: 30.0,
     num_projectiles: Value(1),
     projectile_spread: 0.0,
     movement_modifier: (

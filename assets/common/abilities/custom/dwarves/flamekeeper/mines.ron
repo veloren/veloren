@@ -1,6 +1,6 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 1.75,
+    buildup_duration: 1.5,
     recover_duration: 1.75,
     projectile: (
         kind: ExplosiveHazard(
@@ -16,11 +16,11 @@ BasicRanged(
     ),
     projectile_body: Object(Mine),
     projectile_light: None,
-    projectile_speed: 30.0,
-    num_projectiles: Value(12),
+    projectile_speed: 20.0,
+    num_projectiles: Value(6),
     projectile_spread: 0.6,
     movement_modifier: (
-        buildup: Some(0.8),
+        buildup: Some(0.5),
         recover: Some(0.8),
     ),
 )

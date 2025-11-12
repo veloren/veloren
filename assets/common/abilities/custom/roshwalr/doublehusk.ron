@@ -12,7 +12,7 @@ ComboMelee2(
                 angle: 75.0,
             ),
             buildup_duration: 1.1,
-            swing_duration: 0.25,
+            swing_duration: 0.3,
             hit_timing: 0.4,
             recover_duration: 0.3,
             movement: (
