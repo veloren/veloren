@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cloth Armor Lineage model updates.
 - Removed bloodsteel ingots from Vampire Castle mini-boss loot.
 - Chest and mining drops now have a shorter ownership timeout.
+- Tweaked attack timings and orientation rates for a variety of entities.
 
 ### Removed
 
