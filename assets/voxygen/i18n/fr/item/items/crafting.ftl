@@ -159,9 +159,9 @@ sprite-mineral-ingot-steel = Lingot d'acier
         Un alliage de fer et de charbon qui est beaucoup plus résistant que ses composants.
 
         Peut être utilisé lors de la fabrication d'armes ou d'armures.
-sprite-flowers-flower_red-4 = Fleur Rouge
+sprite-flowers-flower_red-4 = Fleur rouge
     .desc = Peut être utilisée en tant que colorant.
-sprite-flowers-flax = Lin Sauvage
+sprite-flowers-flax = Lin sauvage
     .desc = Pourrait être utilisé pour filer un simple tissu.
 object-sewing_set = Set de couture
     .desc = Utilisé pour fabriquer divers objets.
@@ -181,7 +181,7 @@ sprite-mineral-ore-iron = Minerai de fer
     .desc = Un métal commun mais incroyablement polyvalent.
 sprite-mineral-gem-amethystgem = Améthyste
     .desc = Pierre précieuse de couleur pourpre.
-sprite-flowers-yellow = Fleur Jaune
+sprite-flowers-yellow = Fleur jaune
     .desc = Brille comme le soleil.
 object-training_dummy = Mannequin d'entraînement
     .desc = Il s'appelle William. Feu à volonté.

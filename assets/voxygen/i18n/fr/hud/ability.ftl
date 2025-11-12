@@ -251,7 +251,7 @@ common-abilities-hammer-earthshaker = Tremble-Terre
     .desc =
         Frappez le sol avec votre marteau pour libérer une onde de choc autour de vous.
         Réduis la vitesse de mouvement et les regain d'énergie de vos ennemis.
-        Requiert { $min_combo } combo pour être utilisé.
+        Nécessite { $min_combo } combo pour être utilisé.
 common-abilities-hammer-judgement = Jugement
     .desc = Amène votre marteau sur votre ennemi avec tout votre poids, les tuant directement s’ils sont titubants.
 common-abilities-sword-heavy_dual_cross_cut = Coup croix lourd

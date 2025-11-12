@@ -69,11 +69,11 @@ command-mount-desc = Monter une entité
 command-outcome-desc = Créer un revenu
 command-players-desc = Lister les joueurs actuellement en ligne
 command-portal-desc = Faire apparaître un portail
-command-reload_chunks-desc = Recharger les segments chargés sur le serveur
+command-reload_chunks-desc = Recharger les chunks chargés sur le serveur
 command-remove_lights-desc = Retirer toutes les lumières posées par les joueurs
 command-repair_equipment-desc = Réparer tous les équipements équipés
 command-reset_recipes-desc = Réinitialiser votre livre de recettes
-command-respawn-desc = Téléporter à votre point de passage
+command-respawn-desc = Vous téléporte à votre Repère
 command-revoke_build_all-desc = Révoque toutes les permission de construire pour le joueur
 command-safezone-desc = Créer une zone sans danger
 command-object-desc = Faire apparaître un objet
@@ -93,10 +93,10 @@ command-world-desc = Envoyer des messages à tout le monde sur le serveur
 players-list-header =
     { $count ->
         [1]
-            { $count } joueur en ligne 
+            { $count } joueur en ligne
             { $player_list }
        *[other]
-            { $count } joueurs en ligne 
+            { $count } joueurs en ligne
             { $player_list }
     }
 command-say-desc = Envoyer un message à toutes les personnes à portée de cri
@@ -107,3 +107,15 @@ command-make_sprite-desc = Crée un Sprite à votre position, pour définir ses 
 command-permit_build-desc = Octroie au joueur une zone délimitée dans laquelle il est possible de construire
 command-ship-desc = Fait apparaître un navire
 command-whitelist-desc = Ajouter / Retirer un nom d'utilisateur de la whitelist
+command-set-waypoint-desc = Définissez un Repère à votre position actuelle.
+command-tp-desc = Se téléporter à une autre entité
+command-waypoint-desc = Affiche l'emplacement du Repère actuel
+command-set-waypoint-result = Repère défini !
+command-rtsim_chunk-desc = Afficher les informations à propos du chunk actuel depuis rtsim
+command-group-join = Veuillez d'abord créer un groupe
+command-respawn-no-waypoint = Pas de Repère défini
+command-waypoint-result = Votre Repère actuel se trouve à { $waypoint };
+command-chunk-not-loaded = Le chunk en { $x }, { $y } n'est pas chargé
+command-chunk-out-of-bounds = Le chunk en { $x }, { $y } n'est pas dans les limite de la carte
+command-reloaded-chunks = { $reloaded } chunks rechargés
+command-set-build-mode-on-unpersistent = Mode de construction activé. Les modifications ne seront pas conservées lors du déchargement d'un chunk.
