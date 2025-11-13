@@ -86,6 +86,11 @@
     - export MACOSX_DEPLOYMENT_TARGET="10.15";
     - export VELOREN_USERDATA_STRATEGY=executable;
     - cargo build --profile ${PROFILE} --no-default-features --features default-publish --target ${RUST_TARGET};
+    # compress debuginfos via zlib, which reduces the size by 50% while still beeing supported by most tools
+    - objcopy --compress-debug-sections=zlib target/${RUST_TARGET}/${PROFILE}/veloren-server-cli target/${RUST_TARGET}/${PROFILE}/veloren-server-cli-compressed
+    - objcopy --compress-debug-sections=zlib target/${RUST_TARGET}/${PROFILE}/veloren-voxygen target/${RUST_TARGET}/${PROFILE}/veloren-voxygen-compressed
+    - mv target/${RUST_TARGET}/${PROFILE}/veloren-server-cli-compressed target/${RUST_TARGET}/${PROFILE}/veloren-server-cli
+    - mv target/${RUST_TARGET}/${PROFILE}/veloren-voxygen-compressed target/${RUST_TARGET}/${PROFILE}/veloren-voxygen
     - cp -r target/${RUST_TARGET}/${PROFILE}/veloren-server-cli ${CI_PROJECT_DIR};
     - cp -r target/${RUST_TARGET}/${PROFILE}/veloren-voxygen ${CI_PROJECT_DIR};
   artifacts:
