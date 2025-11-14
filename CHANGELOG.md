@@ -122,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed bloodsteel ingots from Vampire Castle mini-boss loot.
 - Chest and mining drops now have a shorter ownership timeout.
 - Tweaked attack timings and orientation rates for a variety of entities.
-- Builds are now with compressed debuginfo, this should reduce the size of the game on disk.
+- Builds for Linux are now with compressed debuginfo, this should reduce the size of the game on disk.
 
 ### Removed
 
