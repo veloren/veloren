@@ -218,7 +218,6 @@ pub struct Window {
     scale_factor: f64,
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
-    pub remapping_keybindings: Option<GameInput>,
     pub remapping_mode: RemappingMode,
     events: Vec<Event>,
     pub focused: bool,
@@ -235,6 +234,10 @@ pub struct Window {
     // Used for screenshots & fullscreen toggle to deduplicate/postpone to after event handler
     take_screenshot: bool,
     toggle_fullscreen: bool,
+    // Used for storing the state of checkboxes on controls>gamepad>gamelayers, does not need to be
+    // saved to file, so initialized here
+    pub gamelayer_mod1: bool,
+    pub gamelayer_mod2: bool,
 }
 
 impl Window {
@@ -323,7 +326,6 @@ impl Window {
             resized: false,
             needs_refresh_resize: false,
             keypress_map,
-            remapping_keybindings: None,
             remapping_mode: RemappingMode::None,
             game_layer_lb: false,
             game_layer_rb: true,
@@ -339,6 +341,8 @@ impl Window {
             message_receiver,
             take_screenshot: false,
             toggle_fullscreen: false,
+            gamelayer_mod1: true,
+            gamelayer_mod2: false,
         };
 
         this.set_fullscreen_mode(settings.graphics.fullscreen);
@@ -476,6 +480,12 @@ impl Window {
                         mod2: modifiers.get(0).copied().unwrap_or_default(),
                     };
 
+                    // a layer entry that is triggered with something like rb + south (A), will
+                    // trigger both of the rb and south (A) buttons, this can cause issues when
+                    // south (A) is also used for another action. As a quick fix, first check if
+                    // layer entry was triggered to avoid triggerent button inputs
+                    let mut layer_check = false;
+
                     // have to check l_entry1 and then l_entry2 so LB+RB can be treated equivalent
                     // to RB+LB
                     // make sure layer is currently not being remapped before being used
@@ -488,6 +498,7 @@ impl Window {
                         mod2,
                     ) {
                         for game_input in game_inputs {
+                            layer_check = true;
                             events.push(Event::InputUpdate(*game_input, is_pressed));
                         }
                     } else if let Some(game_inputs) = Window::map_controller_input(
@@ -499,21 +510,25 @@ impl Window {
                         mod2,
                     ) {
                         for game_input in game_inputs {
+                            layer_check = true;
                             events.push(Event::InputUpdate(*game_input, is_pressed));
                         }
                     }
 
-                    // make sure button is currently not being remapped before being used
-                    if let Some(game_inputs) = Window::map_controller_input(
-                        InputType::InputButton(*button),
-                        settings,
-                        remapping,
-                        last_input,
-                        mod1,
-                        mod2,
-                    ) {
-                        for game_input in game_inputs {
-                            events.push(Event::InputUpdate(*game_input, is_pressed));
+                    // only trigger button press if a layer input did not trigger
+                    if !layer_check {
+                        // make sure button is currently not being remapped before being used
+                        if let Some(game_inputs) = Window::map_controller_input(
+                            InputType::InputButton(*button),
+                            settings,
+                            remapping,
+                            last_input,
+                            mod1,
+                            mod2,
+                        ) {
+                            for game_input in game_inputs {
+                                events.push(Event::InputUpdate(*game_input, is_pressed));
+                            }
                         }
                     }
                     if let Some(evs) = settings.inverse_menu_button_map.get(button) {
@@ -534,8 +549,8 @@ impl Window {
                             &Button::from((button, code)),
                             true,
                             &mut self.last_input,
-                            settings.interface.gamelayer_mod1,
-                            settings.interface.gamelayer_mod2,
+                            self.gamelayer_mod1,
+                            self.gamelayer_mod2,
                         );
                     },
                     EventType::ButtonReleased(button, code) => {
@@ -547,8 +562,8 @@ impl Window {
                             &Button::from((button, code)),
                             false,
                             &mut self.last_input,
-                            settings.interface.gamelayer_mod1,
-                            settings.interface.gamelayer_mod2,
+                            self.gamelayer_mod1,
+                            self.gamelayer_mod2,
                         );
                     },
                     EventType::ButtonChanged(button, _value, code) => {
@@ -772,7 +787,7 @@ impl Window {
                         Window::map_input(
                             KeyMouse::Mouse(button),
                             controls,
-                            &mut self.remapping_keybindings,
+                            &mut self.remapping_mode,
                             &mut self.last_input,
                         ),
                     )
@@ -811,7 +826,7 @@ impl Window {
                 if let Some(game_inputs) = Window::map_input(
                     KeyMouse::Key(event.logical_key),
                     controls,
-                    &mut self.remapping_keybindings,
+                    &mut self.remapping_mode,
                     &mut self.last_input,
                 ) {
                     for game_input in game_inputs {
@@ -1248,7 +1263,7 @@ impl Window {
     fn map_input<'a>(
         key_mouse: KeyMouse,
         controls: &'a mut ControlSettings,
-        remapping: &mut Option<GameInput>,
+        remapping: &mut RemappingMode,
         last_input: &mut LastInput,
     ) -> Option<impl Iterator<Item = &'a GameInput> + use<'a>> {
         let key_mouse = key_mouse.into_upper();
@@ -1257,22 +1272,20 @@ impl Window {
         *last_input = LastInput::KeyboardMouse;
 
         match *remapping {
-            // TODO: save settings
-            Some(game_input) => {
+            RemappingMode::RemapKeyboard(game_input) => {
                 controls.modify_binding(game_input, key_mouse);
-                *remapping = None;
+                *remapping = RemappingMode::None;
                 None
             },
-            None => controls
+            RemappingMode::None => controls
                 .get_associated_game_inputs(&key_mouse)
                 .map(|game_inputs| game_inputs.iter()),
+            _ => None,
         }
     }
 
     // same thing as map_input, but for controller buttons
     fn map_controller_input<'a>(
-        //button: Button,
-        //layers: LayerEntry,
         input: InputType,
         controller: &'a mut ControllerSettings,
         remapping: &mut RemappingMode,
@@ -1339,10 +1352,6 @@ impl Window {
             },
             _ => None,
         }
-    }
-
-    pub fn set_keybinding_mode(&mut self, game_input: GameInput) {
-        self.remapping_keybindings = Some(game_input);
     }
 
     pub fn set_remapping_mode(&mut self, r_mode: RemappingMode) { self.remapping_mode = r_mode; }

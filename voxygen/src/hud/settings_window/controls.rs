@@ -512,36 +512,63 @@ impl Widget for Controls<'_> {
                     .iter()
                     .zip(state.ids.controls_buttons.iter()),
             ) {
-                let (key_string, key_color) =
-                    if self.global_state.window.remapping_keybindings == Some(*game_input) {
+                let (key_string, key_color) = if let RemappingMode::RemapKeyboard(r_input) =
+                    self.global_state.window.remapping_mode
+                {
+                    if r_input == *game_input {
                         (
                             self.localized_strings
                                 .get_msg("hud-settings-awaitingkey")
                                 .into_owned(),
                             TEXT_COLOR,
                         )
-                    } else if let Some(key) = controls.get_binding(*game_input) {
-                        (
-                            format!(
-                                "{} {}",
-                                key.display_string(),
-                                key.try_shortened()
-                                    .map_or("".to_owned(), |short| format!("({})", short))
-                            ),
-                            if controls.has_conflicting_bindings(key) {
-                                TEXT_BIND_CONFLICT_COLOR
-                            } else {
-                                TEXT_COLOR
-                            },
-                        )
                     } else {
-                        (
-                            self.localized_strings
-                                .get_msg("hud-settings-unbound")
-                                .into_owned(),
-                            ERROR_COLOR,
-                        )
-                    };
+                        // ughh, I need to duplicate this so rust won't complain
+                        if let Some(key) = controls.get_binding(*game_input) {
+                            (
+                                format!(
+                                    "{} {}",
+                                    key.display_string(),
+                                    key.try_shortened()
+                                        .map_or("".to_owned(), |short| format!("({})", short))
+                                ),
+                                if controls.has_conflicting_bindings(key) {
+                                    TEXT_BIND_CONFLICT_COLOR
+                                } else {
+                                    TEXT_COLOR
+                                },
+                            )
+                        } else {
+                            (
+                                self.localized_strings
+                                    .get_msg("hud-settings-unbound")
+                                    .into_owned(),
+                                ERROR_COLOR,
+                            )
+                        }
+                    }
+                } else if let Some(key) = controls.get_binding(*game_input) {
+                    (
+                        format!(
+                            "{} {}",
+                            key.display_string(),
+                            key.try_shortened()
+                                .map_or("".to_owned(), |short| format!("({})", short))
+                        ),
+                        if controls.has_conflicting_bindings(key) {
+                            TEXT_BIND_CONFLICT_COLOR
+                        } else {
+                            TEXT_COLOR
+                        },
+                    )
+                } else {
+                    (
+                        self.localized_strings
+                            .get_msg("hud-settings-unbound")
+                            .into_owned(),
+                        ERROR_COLOR,
+                    )
+                };
                 let loc_key = self
                     .localized_strings
                     .get_msg(game_input.get_localization_key());
@@ -681,7 +708,7 @@ impl Widget for Controls<'_> {
                 // mod1 checkbox
                 let mod1_text = "RB";
                 let gamelayer_mod1 = ToggleButton::new(
-                    self.global_state.settings.interface.gamelayer_mod1,
+                    self.global_state.window.gamelayer_mod1,
                     self.imgs.checkbox,
                     self.imgs.checkbox_checked,
                 )
@@ -690,7 +717,7 @@ impl Widget for Controls<'_> {
                 .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.gamelayer_mod1_checkbox, ui);
-                if self.global_state.settings.interface.gamelayer_mod1 != gamelayer_mod1 {
+                if self.global_state.window.gamelayer_mod1 != gamelayer_mod1 {
                     events.push(GameLayerMod1(gamelayer_mod1));
                 }
                 Text::new(mod1_text)
@@ -703,7 +730,7 @@ impl Widget for Controls<'_> {
                 //mod2 checkbox
                 let mod2_text = "LB";
                 let gamelayer_mod2 = ToggleButton::new(
-                    self.global_state.settings.interface.gamelayer_mod2,
+                    self.global_state.window.gamelayer_mod2,
                     self.imgs.checkbox,
                     self.imgs.checkbox_checked,
                 )
@@ -712,7 +739,7 @@ impl Widget for Controls<'_> {
                 .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
                 .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
                 .set(state.ids.gamelayer_mod2_checkbox, ui);
-                if self.global_state.settings.interface.gamelayer_mod2 != gamelayer_mod2 {
+                if self.global_state.window.gamelayer_mod2 != gamelayer_mod2 {
                     events.push(GameLayerMod2(gamelayer_mod2));
                 }
                 Text::new(mod2_text)

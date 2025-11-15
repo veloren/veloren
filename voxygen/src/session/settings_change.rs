@@ -398,7 +398,9 @@ impl SettingsChange {
             SettingsChange::Control(control_change) => match control_change {
                 // keyboard
                 Control::ChangeBindingKeyboard(game_input) => {
-                    global_state.window.set_keybinding_mode(game_input);
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapKeyboard(game_input),
+                    );
                 },
                 Control::RemoveBindingKeyboard(game_input) => {
                     settings.controls.remove_binding(game_input);
@@ -444,10 +446,10 @@ impl SettingsChange {
                     settings.controller.remove_layer_binding(layer_input);
                 },
                 Control::GameLayerMod1(glm1) => {
-                    settings.interface.gamelayer_mod1 = glm1;
+                    global_state.window.gamelayer_mod1 = glm1;
                 },
                 Control::GameLayerMod2(glm2) => {
-                    settings.interface.gamelayer_mod2 = glm2;
+                    global_state.window.gamelayer_mod2 = glm2;
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
