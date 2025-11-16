@@ -1356,27 +1356,6 @@ impl Server {
 
     pub fn notify_players(&mut self, msg: ServerGeneral) { self.state.notify_players(msg); }
 
-    pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
-        let ecs = self.state.ecs();
-        let slow_jobs = ecs.read_resource::<SlowJobPool>();
-        #[cfg(feature = "worldgen")]
-        let rtsim = ecs.read_resource::<rtsim::RtSim>();
-        #[cfg(not(feature = "worldgen"))]
-        let rtsim = ();
-        ecs.write_resource::<ChunkGenerator>().generate_chunk(
-            Some(entity),
-            key,
-            &slow_jobs,
-            Arc::clone(&self.world),
-            &rtsim,
-            self.index.clone(),
-            (
-                *ecs.read_resource::<TimeOfDay>(),
-                (*ecs.read_resource::<Calendar>()).clone(),
-            ),
-        );
-    }
-
     fn process_command(&mut self, entity: EcsEntity, name: String, args: Vec<String>) {
         // Find the command object and run its handler.
         if let Ok(command) = name.parse::<ServerChatCommand>() {

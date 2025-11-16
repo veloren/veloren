@@ -13,8 +13,8 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage};
 use std::sync::Arc;
 #[cfg(feature = "worldgen")] use world::World;
 
-/// This systems sends new chunks to clients as well as changes to existing
-/// chunks
+/// This systems sends modified chunks (existing chunks that had a new chunk
+/// generated) to clients as well as block modifications in existing chunks.
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
