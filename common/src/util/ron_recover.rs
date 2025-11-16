@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::{fs, io, path::Path};
 use tracing::warn;
 
-/// Load settings from ron in a recoverable manner. Works best with
+/// Load settings from ron in a recoverable manner. Requires
 /// `#[serde(default)]`.
 ///
 /// Lines with parse errors are deleted and parsing is attempted again; this is

@@ -14,7 +14,6 @@ pub mod ui;
 pub mod audio;
 pub mod cli;
 pub mod cmd;
-pub mod controller;
 mod credits;
 #[cfg(feature = "discord")] pub mod discord;
 mod ecs;

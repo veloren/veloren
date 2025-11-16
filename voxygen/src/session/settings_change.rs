@@ -2,7 +2,6 @@ use super::SessionState;
 use crate::{
     GlobalState,
     audio::SfxChannelSettings,
-    controller::ControllerSettings,
     game_input::GameInput,
     hud::{
         AutoPressBehavior, BarNumbers, BuffPosition, ChatTab, CrosshairType, Intro, PressBehavior,
@@ -10,10 +9,10 @@ use crate::{
     },
     render::RenderMode,
     settings::{
-        AudioSettings, ChatSettings, ControlSettings, Fps, GamepadSettings, GameplaySettings,
+        AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GameplaySettings,
         GraphicsSettings, InterfaceSettings, audio::AudioVolume,
     },
-    window::{FullScreenSettings, Window},
+    window::{FullScreenSettings, MenuInput, Window},
 };
 use common::comp::inventory::InventorySortOrder;
 use i18n::{LanguageMetadata, LocalizationHandle};
@@ -51,9 +50,30 @@ pub enum Chat {
 }
 #[derive(Clone)]
 pub enum Control {
-    ChangeBinding(GameInput),
-    RemoveBinding(GameInput),
-    ResetKeyBindings,
+    // change keyboard bindings
+    ChangeBindingKeyboard(GameInput),
+    RemoveBindingKeyboard(GameInput),
+    ResetKeyBindingsKeyboard,
+
+    // reset all gamepad bindings
+    ResetKeyBindingsGamepad,
+
+    // change gamepad button bindings
+    ChangeBindingGamepadButton(GameInput),
+    RemoveBindingGamepadButton(GameInput),
+
+    // change gamepad menu button bindings
+    ChangeBindingGamepadMenu(MenuInput),
+    RemoveBindingGamepadMenu(MenuInput),
+
+    // change gamepad layer bindings
+    ChangeBindingGamepadLayer(GameInput),
+    RemoveBindingGamepadLayer(GameInput),
+    GameLayerMod1(bool),
+    GameLayerMod2(bool),
+
+    // reset binding mode
+    ResetBindingMode,
 }
 #[derive(Clone)]
 pub enum Gamepad {}
@@ -379,14 +399,65 @@ impl SettingsChange {
                 }
             },
             SettingsChange::Control(control_change) => match control_change {
-                Control::ChangeBinding(game_input) => {
-                    global_state.window.set_keybinding_mode(game_input);
+                // keyboard
+                Control::ChangeBindingKeyboard(game_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapKeyboard(game_input),
+                    );
                 },
-                Control::RemoveBinding(game_input) => {
+                Control::RemoveBindingKeyboard(game_input) => {
                     settings.controls.remove_binding(game_input);
                 },
-                Control::ResetKeyBindings => {
+                Control::ResetKeyBindingsKeyboard => {
                     settings.controls = ControlSettings::default();
+                },
+
+                // reset gamepad
+                Control::ResetKeyBindingsGamepad => {
+                    // Currently resets everything on the controller to the default controls, this
+                    // should be intended behavior
+                    settings.controller = ControllerSettings::default();
+                },
+
+                // change gamepad button bindings
+                Control::ChangeBindingGamepadButton(game_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadButtons(game_input),
+                    );
+                },
+                Control::RemoveBindingGamepadButton(game_input) => {
+                    settings.controller.remove_button_binding(game_input);
+                },
+
+                // change gamepad menu button bindings
+                Control::ChangeBindingGamepadMenu(menu_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadMenu(menu_input),
+                    );
+                },
+                Control::RemoveBindingGamepadMenu(menu_input) => {
+                    settings.controller.remove_menu_binding(menu_input);
+                },
+
+                // change gamepad layer bindings
+                Control::ChangeBindingGamepadLayer(game_input) => {
+                    global_state.window.set_remapping_mode(
+                        crate::window::RemappingMode::RemapGamepadLayers(game_input),
+                    );
+                },
+                Control::RemoveBindingGamepadLayer(layer_input) => {
+                    settings.controller.remove_layer_binding(layer_input);
+                },
+                Control::GameLayerMod1(glm1) => {
+                    global_state.window.gamelayer_mod1 = glm1;
+                },
+                Control::GameLayerMod2(glm2) => {
+                    global_state.window.gamelayer_mod2 = glm2;
+                },
+
+                // resets remapping mode (useful if user leaves without actually remapping)
+                Control::ResetBindingMode => {
+                    global_state.window.reset_mapping_mode();
                 },
             },
             SettingsChange::Gamepad(gamepad_change) => match gamepad_change {},
@@ -408,7 +479,6 @@ impl SettingsChange {
                         settings.gameplay.walking_speed = speed;
                     },
                     Gameplay::ToggleControllerYInvert(controller_y_inverted) => {
-                        window.controller_settings.pan_invert_y = controller_y_inverted;
                         settings.controller.pan_invert_y = controller_y_inverted;
                     },
                     Gameplay::ToggleMouseYInvert(mouse_y_inverted) => {
@@ -458,9 +528,8 @@ impl SettingsChange {
                     Gameplay::ResetGameplaySettings => {
                         // Reset Gameplay Settings
                         settings.gameplay = GameplaySettings::default();
-                        // Reset Gamepad and Controller Settings
-                        settings.controller = GamepadSettings::default();
-                        window.controller_settings = ControllerSettings::from(&settings.controller);
+                        // Reset Controller Settings
+                        settings.controller = ControllerSettings::default();
                         // Pan Sensitivity
                         window.pan_sensitivity = settings.gameplay.pan_sensitivity;
                         // Zoom Sensitivity
