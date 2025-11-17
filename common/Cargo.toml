@@ -108,6 +108,9 @@ tracing-subscriber = { version = "0.3.7", default-features = false, features = [
 ] }
 petgraph = "0.8.1"
 
+[build-dependencies]
+regex = "1"
+
 [[bench]]
 name = "chonk_benchmark"
 harness = false

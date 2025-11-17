@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::process::Command;
 
 // Get the current githash+date
@@ -49,7 +50,16 @@ fn get_git_tag() -> Option<String> {
         return None;
     }
 
-    String::from_utf8(output.stdout).ok()
+    let tag = String::from_utf8(output.stdout).ok()?;
+
+    if Regex::new(r"/^v[0-9]+\.[0-9]+\.[0-9]+$/")
+        .unwrap()
+        .is_match(&tag)
+    {
+        Some(tag)
+    } else {
+        None
+    }
 }
 
 fn main() {
