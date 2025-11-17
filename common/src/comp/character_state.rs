@@ -1342,6 +1342,17 @@ impl CharacterState {
             CharacterState::Simple(_) => &[],
         }
     }
+
+    pub fn charge_frac(&self) -> Option<f32> {
+        let charge_frac = match self {
+            CharacterState::ChargedRanged(c) => c.charge_frac(),
+            CharacterState::ChargedMelee(c) => c.charge_frac(),
+            _ => {
+                return None;
+            },
+        };
+        Some(charge_frac)
+    }
 }
 
 #[derive(Default, Copy, Clone)]

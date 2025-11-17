@@ -525,6 +525,16 @@ image_ids! {
         crosshair_bg_press: "voxygen.element.ui.settings.icons.crosshair_bg_press",
         crosshair_bg_pressed: "voxygen.element.ui.settings.icons.crosshair_bg_pressed",
 
+        crosshair_charge_0: "voxygen.element.animation.crosshair_charge.charge_0",
+        crosshair_charge_1: "voxygen.element.animation.crosshair_charge.charge_1",
+        crosshair_charge_2: "voxygen.element.animation.crosshair_charge.charge_2",
+        crosshair_charge_3: "voxygen.element.animation.crosshair_charge.charge_3",
+        crosshair_charge_4: "voxygen.element.animation.crosshair_charge.charge_4",
+        crosshair_charge_5: "voxygen.element.animation.crosshair_charge.charge_5",
+        crosshair_charge_6: "voxygen.element.animation.crosshair_charge.charge_6",
+        crosshair_charge_7: "voxygen.element.animation.crosshair_charge.charge_7",
+        crosshair_charge_8: "voxygen.element.animation.crosshair_charge.charge_8",
+
         // Map
         map_topo: "voxygen.element.ui.map.buttons.topographic",
         map_bg: "voxygen.element.ui.map.map_bg",
