@@ -14,10 +14,22 @@ common-abilities-debug-glide_speeder = Vroom
 
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
-common-abilities-bow-shotgun = Burst
+common-abilities-bow-charged = Charged Shot
+    .desc = Fires a single arrow with damage based on draw time.
+common-abilities-bow-repeater = Repeater
+    .desc = Shoots arrows continuously and faster the longer you fire for.
+common-abilities-bow-shotgun = Shotgun
     .desc = Launches a burst of arrows
-common-abilities-staff-fireshockwave = Ring of Fire
+common-abilities-staff-firebomb = Firebomb
+    .desc = Shoots a fireball that explodes on impact.
+common-abilities-staff-flamethrower = Flamethrower
+    .desc = Sprays fire out in front of you.
+common-abilities-staff-fireshockwave = Shockwave
     .desc = Ignites the ground with fiery shockwave.
+common-abilities-sceptre-lifestealbeam = Lifesteal
+    .desc = Shoots a beam that drains the life from your enemies.
+common-abilities-sceptre-healingaura = Healing Aura
+    .desc = Heals your allies. Requires combo to activate.
 common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
 
@@ -306,7 +318,7 @@ common-abilities-axe-maelstrom = Maelstrom
 common-abilities-axe-rake = Rake
     .desc = Drag your axe across your foe, inducing bleeding.
 common-abilities-axe-bloodfeast = Bloodfeast
-    .desc = 
+    .desc =
         Your axe thirsts for the blood of your enemies, replenishing you with each strike against a bleeding enemy.
         Requires 10 combo to use.
 common-abilities-axe-fierce_raze = Fierce Raze
@@ -385,7 +397,7 @@ common-abilities-hammer-retaliate = Retaliate
         Block and counter your foe's attack in one swift move!
 common-abilities-hammer-spine_cracker = Spine Cracker
     .desc =
-        Get behind your foe and strike them hard in the back! 
+        Get behind your foe and strike them hard in the back!
         Multiplies your damage significantly and lowers the target poise.
         Requires { $min_combo } combo to use.
 common-abilities-hammer-breach = Breach
@@ -426,7 +438,7 @@ common-abilities-hammer-tenacity = Tenacity
     .desc =
         Hold yourself strong as you withstand attack after attack.
         Increases your damage resistance and decreases movement speed.
-        Each hit received boosts your energy. 
+        Each hit received boosts your energy.
 common-abilities-hammer-thunderclap = Thunderclap
     .desc =
         Unleash a devastating, adrenaline-fueled overhead strike against your foe.
