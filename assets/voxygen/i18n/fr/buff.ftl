@@ -50,7 +50,7 @@ buff-increase_max_health = Augmentation de Santé
 ## Augmentation d'Endurance
 
 buff-increase_max_energy = Augmentation d'Endurance
-    .desc = Votre énergie maximale est augmentée
+    .desc = Votre endurance maximale est augmentée
     .stat =
         { $duration ->
             [1]
@@ -60,7 +60,7 @@ buff-increase_max_energy = Augmentation d'Endurance
            *[other]
                 Augmente les points d'endurance max
                 de { $strength }.
-                Dure { $duration } secondess.
+                Dure { $duration } secondes.
         }
 
 ## Invulnérabilité
@@ -180,7 +180,7 @@ buff-fury = Fureur
     .desc = Avec votre fureur, vos coups génèrent plus de combo.
 # Sunderer
 buff-sunderer = Fragmentation
-    .desc = Vos attaques peuvent transpercer les défenses de vos ennemis et vous redonner plus d'énergie.
+    .desc = Vos attaques peuvent transpercer les défenses de vos ennemis et vous redonner plus d'endurance.
 # Berserk
 buff-berserk = Fou furieux
     .desc = Vous êtes dans une rage furieuse, ce qui rend vos attaques plus puissantes et plus rapides. Cependant, cela rend moindre votre capacité défensive.
@@ -206,7 +206,7 @@ buff-agility = Agilité
         }
 # Heatstroke
 buff-heatstroke = Coup de chaleur
-    .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'énergie et vitesse de mouvement sont réduits. Détendez vous.
+    .desc = Vous avez été exposé à la chaleur et vous avez pris un coup de chaud. Votre récupération d'endurance et vitesse de mouvement sont réduits. Détendez vous.
 # Poisoned
 buff-poisoned = Empoisonné(e)
     .desc = Vous sentez votre vitalité vous échapper…
@@ -223,9 +223,9 @@ buff-resting_heal = Repos revigorant
 buff-resilience = Résilience
     .desc = Après avoir subi une attaque débilitante, vous devenez plus résilient aux futurs effets incapacitants.
 buff-winded = Manque de souffle
-    .desc = Vous pouvez à peine respirer, ce qui entrave la quantité d'énergie que vous pouvez récupérer et réduit votre vitesse de déplacement.
+    .desc = Vous pouvez à peine respirer, ce qui entrave la quantité d'endurance que vous pouvez récupérer et réduit votre vitesse de déplacement.
 buff-tenacity = Tenacité
-    .desc = En plus d'être capable d'ignorer les attaques lourdes, elles vous donnent de l’énergie également. Cependant, vous êtes maintenant plus lent.
+    .desc = En plus d'être capable d'ignorer les attaques lourdes, elles vous donnent de l’endurance également. Cependant, vous êtes maintenant plus lent.
 buff-combo_generation = Génération de combo
     .desc = Génère du combo au fil du temps.
     .stat =

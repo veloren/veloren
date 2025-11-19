@@ -8,7 +8,7 @@ sprite-wood-item-hardwood = Bûches de bois dur
     .desc = Bûches très épaisses et robustes. On peut s'en servir pour fabriquer des armes en bois.
 sprite-wood-item-ironwood = Bûches de bois de fer
     .desc = Un bois particulièrement robuste. On peut s'en servir pour fabriquer des armes en bois.
-sprite-wood-item-eldwood = Bûches de bois d'Eld
+sprite-wood-item-eldwood = Bûches de bois ancestral
     .desc = Vieilles bûches qui dégagent de la magie. On peut s'en servir pour fabriquer des armes en bois.
 sprite-crafting_ing-bowl = Bol
     .desc = Un simple bol pour préparer les repas.
@@ -88,9 +88,9 @@ sprite-crafting_ing-hide-carapace = Carapace dure
     .desc = Carapace dure et résistante, un bouclier pour de nombreuses créatures.
 sprite-crafting_ing-hide-animal_hide = Peau d'animal
     .desc = Peau commune de la plupart des animaux. Devient du cuir.
-sprite-crafting_ing-animal_misc-sharp_fang = Dent aiguisée
+sprite-crafting_ing-animal_misc-sharp_fang = Croc aiguisé
     .desc =
-        Une dent d'un animal féreoce, aiguisée comme un rasoir.
+        Un croc d'un animal féroce, aiguisé comme un rasoir.
 
         Les armes conçues avec cet objet auront des effets plus puissants et plus longs.
 sprite-crafting_ing-animal_misc-venom_sac = Sac à venin
@@ -218,7 +218,7 @@ object-elegant_crest = Écusson élégant
     .desc =
         Plumage brillant faisant autrefois partie d'une créature colorée.
 
-        Peut être utilisé pour fabriquer des armes facilement maniables et économes en énergie.
+        Peut être utilisé pour fabriquer des armes facilement maniables et économes en endurance.
 object-long_tusk = Longue défense
     .desc =
         Une défense d'une longueur impressionnante provenant d'une bête fière.

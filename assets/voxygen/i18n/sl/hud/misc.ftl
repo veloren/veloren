@@ -1,6 +1,6 @@
 hud-do_not_show_on_startup = Tega ne pokaži ob zagonu
 hud-show_tips = Pokaži namige
-hud-quests = Poslanstva
+hud-quests = Naloge
 hud-waypoint_saved = Kažipot shranjen
 hud-inventory_full = Inventar je poln
 hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Nastavitve tipk
@@ -91,3 +91,5 @@ hud-init-stage-client-authentication = { "[" }{ -client }]: Overjam ...
 hud-init-stage-client-load-init-data = { "[" }{ -client }]: Nalagam zagonske podatke s trežnika ...
 hud-init-stage-client-starting-client = { "[" }{ -client }]: Pripravljam odjemalca ...
 hud-init-stage-render-pipeline = Sestavljam cevovod upodabljanja ({ $done }/{ $total })
+hud-sp_arrow_txt = TV
+hud-deactivate = Deaktiviraj

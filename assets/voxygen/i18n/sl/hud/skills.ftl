@@ -1,0 +1,13 @@
+hud-skill_tree-general = Splošen spopad
+hud-skill_tree-sword = Meč
+hud-skill_tree-axe = Sekira
+hud-skill_tree-hammer = Kladivo
+hud-skill_tree-bow = Lok
+hud-skill_tree-sceptre = Žezlo
+hud-skill_tree-mining = Rudarjenje
+hud-skill-climbing_title = Plezanje
+hud-skill-swim_title = Plavanje
+hud-skill-sc_lifesteal_damage_title = Škoda
+hud-skill-sc_lifesteal_range_title = Domet
+hud-skill-sc_heal_heal_title = Zdravilstvo
+hud-skill-sc_heal_duration_title = Trajanje

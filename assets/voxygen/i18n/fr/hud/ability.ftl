@@ -45,7 +45,7 @@ common-abilities-sword-defensive_crescent_slash = Coup ascendant défensif
     .desc = Un coup diagonal vers le haut pouvant parer.
 common-abilities-sword-heavy_slam = Frappe lourde
     .desc = Une forte entaille venant d'en haut qui peut être chargée pour être plus étourdissante.
-common-abilities-sword-crippling_double_slash = Double coup paralysant
+common-abilities-sword-crippling_double_slash = Double coup incapacitant
     .desc = Un combo en deux coups qui peut prolonger le saignement d'un ennemi.
 common-abilities-sword-heavy_double_slash = Double coup lourd
     .desc = Un combo plus lent en deux coups pouvant étourdir.
@@ -87,7 +87,7 @@ common-abilities-sword-basic_fell_strike = Frappe tombante basique
     .desc = Un coup basique, fort et rapide.
 common-abilities-sword-defensive_skewer = Embrochage défensif
     .desc = Une parade et un coup de poignard.
-common-abilities-sword-crippling_skewer = Embrochage paralysant
+common-abilities-sword-crippling_skewer = Embrochage incapacitant
     .desc = Une fente poignardante qui peut faire saigner.
 common-abilities-sword-agile_cross_cut = Coup croix agile
     .desc = Un coup rapide à droite et gauche.
@@ -103,13 +103,13 @@ common-abilities-sword-defensive_fell_strike = Frappe tombante defensive
     .desc = Un coup fort, pouvant parer.
 common-abilities-sword-defensive_cascade = Cascade Défensive
     .desc = Un coup aérien parant.
-common-abilities-sword-crippling_cascade = Cascade paralysante
+common-abilities-sword-crippling_cascade = Cascade incapacitante
     .desc = Un coup aérien qui peut faire saigner.
 common-abilities-sword-basic_cross_cut = Coup croix basique
     .desc = Un coup basique à droite et gauche.
 common-abilities-sword-cleaving_fell_strike = Frappe tombante tranchante
     .desc = Un rapide coup fort qui peut trancher au travers des ennemis.
-common-abilities-sword-crippling_fell_strike = Frappe tombante paralysante
+common-abilities-sword-crippling_fell_strike = Frappe tombante incapacitante
     .desc = Un rapide coup fort qui peut faire saigner.
 veloren-core-pseudo_abilities-sword-cross_cut = Coup croix
     .desc =
@@ -199,13 +199,13 @@ common-abilities-sword-agile_dual_flurry = Rafale
         Nécessite d'être en Posture agile.
 common-abilities-sword-crippling_eviscerate = Éviscération
     .desc =
-        Lacère des blessures déjà ouvertes, inflige plus de dégats aux ennemis incapacités.
-        Nécessite d'être en Posture tranchante.
+        Lacère des blessures déjà ouvertes, inflige plus de dégâts aux ennemis incapacités.
+        Nécessite d'être en Posture incapacitante.
 common-abilities-axe-berserk = Berserk
     .desc = Augmente votre force mais vous rend vulnérable.
 common-abilities-axe-adrenaline_rush = Montée d'adrénaline
     .desc =
-        Consomme tout votre combo pour récupérer votre énergie.
+        Consomme tout votre combo pour récupérer votre endurance.
         S'amplifie avec le combo à l'activation, consomme votre combo.
 common-abilities-hammer-dual_upheaval = Soulèvement
     .desc = Enfonce ton marteau dans l'ennemi, le soulevant dans les airs et le laissant dans un état d'étourdissement.
@@ -238,7 +238,9 @@ common-abilities-hammer-retaliate = Riposter
 common-abilities-hammer-pile_driver = Enfonce-pieux
     .desc = Frappe votre ennemi en l'enterrant dans le sol, arrêtant son mouvement jusqu’à ce qu’il libère ses jambes.
 common-abilities-hammer-helm_crusher = Broyeur de casque
-    .desc = Frappe la tête de votre ennemi avec votre marteau, le commotionnant.
+    .desc =
+        Frappe la tête de votre ennemi avec votre marteau, le commotionnant.
+        Nécessite { $min_combo } combo pour être utilisé.
 common-abilities-hammer-iron_tempest = Tempête de fer
     .desc = Balance le marteau aussi vite qu'il en devient une tempête, dispersant vos ennemis.
 common-abilities-hammer-upheaval = Soulèvement
@@ -334,3 +336,70 @@ common-abilities-sword-cleaving_sky_splitter = Perce-Ciel
     .desc =
         Un coup puissant qui pourrait percer même les cieux, mais perce surtout à travers vos ennemis.
         Nécessite d'être en Posture tranchante.
+common-abilities-axe-triple_chop = Triple coupe
+    .desc = Trois coups rapides.
+common-abilities-axe-cleave = Fente
+    .desc = Un coup descendant qui peut engendrer plusieurs combos.
+common-abilities-axe-brutal_swing = Balancement brutal
+    .desc = Vous tournoyez et fendez l'air autour de vous.
+common-abilities-axe-rising_tide = Essor
+    .desc = Une frappe montante qui augmente grandement le combo, d'autant plus si la cible saigne.
+common-abilities-axe-savage_sense = Sens sauvage
+    .desc = Identifiez un point vital sur votre cible, assurant des dégâts critiques sur votre prochaine attaque.
+common-abilities-axe-execute = Exécution
+    .desc =
+        Une frappe dévastatrice pouvant être fatale.
+        Nécessite { $min_combo } combo pour être utilisée.
+        S'améliore automatiquement en Maelstrom à { $min_combo_upg } combo si débloqué.
+common-abilities-axe-maelstrom = Maelstrom
+    .desc =
+        Frappe tous les ennemis dans les environs avec une attaque tournoyante dévastatrice.
+        S'améliore automatiquement depuis Exécution à { $min_combo_upg } combo.
+common-abilities-axe-rake = Ratissage
+    .desc = Lacérez l'ennemi de votre hache, infligeant un saignement.
+common-abilities-axe-lacerate = Lacération
+    .desc =
+        Écorchez votre adversaire, déversant leur sang.
+        Nécessite { $min_combo } combo pour être utilisée.
+        S'améliore automatiquement en Contre-courant à { $min_combo_upg } combo si débloqué.
+common-abilities-axe-riptide = Contre-courant
+    .desc =
+        Écorchez tout ennemi autour de vous, les drainant de leur sang.
+        S'améliore automatiquement depuis Lacération à { $min_combo_upg } combo.
+common-abilities-axe-skull_bash = Éclatement de crâne
+    .desc = Une frappe avec le plat de votre hache pouvant étourdir.
+common-abilities-axe-sunder = Éclater
+    .desc = En changeant votre prise en main, vous devenez capable d'outrepasser l'armure de votre ennemi tout en restaurant votre endurance plus efficacement.
+common-abilities-axe-defiance = Défiance
+    .desc = Regardez la mort dans les yeux plus longtemps pour vous rendre résistant aux étourdissements et à la mort.
+common-abilities-axe-capsize = Renverser
+    .desc =
+        Étourdit les ennemis autour de vous avec une lourde frappe tournoyante.
+        S'améliore automatiquement depuis Impact lourd à { $min_combo_upg } combo.
+common-abilities-hammer-solid_smash = Fracassement ferme
+    .desc = Un fracassement ferme, ça va faire mal
+common-abilities-hammer-wide_wallop = Raclée royale
+    .desc = Retirez-vous et envoyez les valser
+common-abilities-axe-fracture = Fracture
+    .desc =
+        Un coup incapacitant qui entrave les mouvements de votre adversaire.
+        Évolue avec le combo lors de l'activation, consomme la moitié du combo.
+common-abilities-axe-bulkhead = Impact lourd
+    .desc =
+        Un coup si puissant que certains disent qu'il peut étourdir les titans.
+        Requires { $min_combo } combo to use.
+        S'améliore automatiquement en Renverser à { $min_combo_upg } combo si débloqué.
+common-abilities-hammer-lung_pummel = Heurt pulmonaire
+    .desc =
+        Balancez votre marteau dans les flancs de l'ennemi, les laissant sans souffle.
+        Nécessite { $min_combo } combo pour être utilisé.
+common-abilities-axe-bloodfeast = Festin de sang
+    .desc =
+        Votre hache a soif du sang de vos ennemis, vous revigorant avec chaque coup porté contre un ennemi en train de saigner.
+        Nécessite 10 combo pour être utilisé.
+common-abilities-axe-fierce_raze = Fier saccage
+    .desc = Un déluge de coups rapides sur l'ennemi.
+common-abilities-axe-dual_fierce_raze = Fier saccage
+    .desc = Un déluge de coups rapides sur l'ennemi utilisant vos deux haches.
+common-abilities-axe-furor = Fureur
+    .desc = À mesure que votre fureur augmente, vos frappes génèrent davantage de combo.

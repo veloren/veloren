@@ -1,0 +1,17 @@
+hud-bag-inventory = Inventar igralca_ke { $playername }
+hud-bag-glider = Zmaj
+hud-bag-armor = Oklep
+hud-bag-stats = Atributi
+hud-bag-head = Glava
+hud-bag-neck = Vrat
+hud-bag-tabard = Telovnik
+hud-bag-shoulders = Rame
+hud-bag-chest = Prsni koš
+hud-bag-hands = Roke
+hud-bag-lantern = Svetilka
+hud-bag-belt = Pas
+hud-bag-ring = Prstan
+hud-bag-back = Hrbet
+hud-bag-backpack = Nahrbtnik
+hud-bag-legs = Noge
+hud-bag-feet = Stopala
