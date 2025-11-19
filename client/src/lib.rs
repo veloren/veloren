@@ -617,8 +617,8 @@ impl Client {
         {
             warn!(
                 "Server is running {}, you are running {}, versions might be incompatible!",
-                common::util::make_terse_version(server_info.git_hash, server_info.git_timestamp),
-                *common::util::TERSE_VERSION,
+                common::util::make_display_version(server_info.git_hash, server_info.git_timestamp),
+                *common::util::DISPLAY_VERSION,
             );
         }
         // Pass the server info back to the caller to ensure they can access it even

@@ -188,11 +188,16 @@ impl Screen {
             .padding(3)
             .width(Length::Units(230));
 
-        let right_column =
-            Container::new(Column::with_children(vec![v_logo.into()]).align_items(Align::Center))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .align_x(Align::End);
+        let version_stage =
+            Text::new(common::util::VELOREN_VERSION_STAGE).size(fonts.cyri.scale(22));
+
+        let right_column = Container::new(
+            Column::with_children(vec![v_logo.into(), version_stage.into()])
+                .align_items(Align::Center),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(Align::End);
 
         Row::with_children(vec![
             left_column,

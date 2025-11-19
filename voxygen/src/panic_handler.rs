@@ -61,7 +61,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
                 "> Error information\n\nThe information below is intended for developers and \
                  testers.\n\nPanicHookInfo: {} \nGame version: {}",
                 panic_info,
-                *common::util::TERSE_VERSION,
+                *common::util::DISPLAY_VERSION,
             )
             .as_str(),
         );

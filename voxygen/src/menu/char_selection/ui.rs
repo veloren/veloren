@@ -376,7 +376,7 @@ impl Controls {
         let server_mismatched_version = (*common::util::GIT_HASH != server_info.git_hash
             || *common::util::GIT_TIMESTAMP != server_info.git_timestamp)
             .then(|| {
-                common::util::make_terse_version(server_info.git_hash, server_info.git_timestamp)
+                common::util::make_display_version(server_info.git_hash, server_info.git_timestamp)
             });
 
         Self {
@@ -451,7 +451,7 @@ impl Controls {
                 i18n.get_msg("main-login-server_version"),
                 mismatched_version,
                 i18n.get_msg("main-login-client_version"),
-                *common::util::TERSE_VERSION
+                *common::util::DISPLAY_VERSION
             ))
             .size(self.fonts.cyri.scale(18))
             .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
