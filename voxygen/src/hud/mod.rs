@@ -266,8 +266,8 @@ widget_ids! {
         overheads[],
         overitems[],
 
-        // Alpha Disclaimer
-        alpha_text,
+        // Game Version
+        version,
 
         // Debug
         debug_bg,
@@ -294,9 +294,6 @@ widget_ids! {
         weather,
         song_info,
         active_channels,
-
-        // Game Version
-        version,
 
         // Help
         help,
@@ -1516,7 +1513,7 @@ impl Hud {
         self.pulse += dt.as_secs_f32();
         // FPS
         let fps = global_state.clock.stats().average_tps;
-        let version = common::util::DISPLAY_VERSION.clone();
+        let version = format!("Veloren {}", *common::util::DISPLAY_VERSION);
         let i18n = &global_state.i18n.read();
 
         if self.show.ingame {
@@ -1609,13 +1606,13 @@ impl Hud {
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
-                // Alpha Disclaimer
+                // Version info
                 Text::new(&version)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(11))
                     .color(TEXT_COLOR)
                     .mid_top_with_margin_on(ui_widgets.window, 2.0)
-                    .set(self.ids.alpha_text, ui_widgets);
+                    .set(self.ids.version, ui_widgets);
 
                 // Death Frame
                 if health.is_dead {
@@ -2702,16 +2699,6 @@ impl Hud {
             let mut largest_str_len: usize = 0;
             let mut debug_msg_line_count: usize = 0;
 
-            // Alpha Version
-            Text::new(&version)
-                .top_left_with_margins_on(self.ids.debug_bg, V_PAD, H_PAD)
-                .font_size(self.fonts.cyri.scale(FONT_SCALE))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(self.ids.version, ui_widgets);
-            largest_str_len = usize::max(largest_str_len, version.len());
-            debug_msg_line_count += 1;
-
             // Ticks per second
             let debug_msg_ticks_per_sec = format!(
                 "FPS: {:.0} ({}ms)",
@@ -2720,7 +2707,7 @@ impl Hud {
             );
             Text::new(&debug_msg_ticks_per_sec)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.version, V_PAD)
+                .top_left_with_margins_on(self.ids.debug_bg, V_PAD, H_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(FONT_SCALE))
                 .set(self.ids.fps_counter, ui_widgets);
