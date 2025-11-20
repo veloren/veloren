@@ -1,4 +1,5 @@
 ## Buttons
+
 common-singleplayer = Igra za enega
 common-multiplayer = Igra z več igralci
 common-servers = Strežniki
@@ -43,12 +44,14 @@ common-networking_settings = Omrežne nastavitve
 common-accessibility_settings = Nastavitve dostopnosti
 
 ## Messages
+
 common-connection_lost =
     Povezava prekinjena!
     Ali se je strežnik ponovno zagnal?
     Ali je odjemalec posodobljen?
 
 ## Species
+
 common-species-orc = Ork
 common-species-human = Človek
 common-species-dwarf = Škrat
@@ -57,6 +60,7 @@ common-species-draugr = Draugar
 common-species-danari = Danarec
 
 ## Tools
+
 common-weapons-axe = Sekira
 common-weapons-dagger = Bodalo
 common-weapons-greatsword = Veliki meč
@@ -76,6 +80,7 @@ common-tool-mining = Izkopavanje
 common-tool-instrument = Glasbilo
 
 ## Item Kinds
+
 common-kind-modular_component = Sestavni del
 common-kind-modular_component_partial = Prvina
 common-kind-glider = Zmaj
@@ -88,10 +93,12 @@ common-hands-one = Enoročno
 common-hands-two = Dvoročno
 
 ## Character Generation
+
 common-rand_appearance = Naključen videz
 common-rand_name = Naključno ime
 
 ## Stats
+
 common-stats-power = Moč
 common-stats-speed = Hitrost
 common-stats-effect-power = Moč učinka
@@ -108,6 +115,7 @@ common-stats-slots = Polja
 common-stats-durability = Trpežnost
 
 ## Material names
+
 common-material-metal = Kovina
 common-material-wood = Les
 common-material-stone = Kamen
@@ -115,15 +123,19 @@ common-material-cloth = Blago
 common-material-hide = Kožuhovina
 
 ## Sprites
+
 common-sprite-chest = Skrinja
 common-sprite-mud = Blato
 common-sprite-grave = Grob
 common-sprite-crate = Zaboj
 
 ## Diary section titles
+
 hud-diary-sections-skill_trees-title = Drevesa veščin
 hud-diary-sections-abilities-title = Sposobnosti
 hud-diary-sections-character-title = Lik
 hud-diary-sections-recipes-title = Recepti
 hud-battle-mode = Bojni način
 hud-waypoint = Kažipot
+common-tool-debug = Razhroščevanje
+common-tool-throwable = Zalučano

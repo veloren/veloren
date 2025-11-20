@@ -1,5 +1,5 @@
 armor-tabard_admin = 管理员战袍
-    .desc = 权力越大，责任越大。
+    .desc = 能力越大，责任越大。
 armor-misc-back-admin = 管理员斗篷
     .desc = 欲戴皇冠，必承其重。
 armor-tabard-admin_tabard = 管理员战袍
@@ -22,8 +22,8 @@ armor-velorite-legs = 丝绒裙
     .desc = { "" }
 armor-velorite-shoulder = 丝绒斗篷
     .desc = { "" }
-object-item_cheese = 金色宝箱
-    .desc = 据说神吃了它就能永葆青春。
+object-item_cheese = 黄金奶酪
+    .desc = 据说神明食用它以获得永恒的青春。
 weapon-tool-broom_belzeshrub_purple = 扫帚神伯尔塞舒鲁
     .desc = 每当你重重地摔倒在地时，你都能听到他咯咯的笑声……
 weapon-sword-frost-admin_sword = 管理员大剑

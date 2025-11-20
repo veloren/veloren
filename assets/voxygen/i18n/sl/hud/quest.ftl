@@ -1,0 +1,9 @@
+hud-quest = Naloga
+hud-quest-intro = Bogdaj, { $playername }!
+hud-quest-desc-fetch = Prosim, pomagaj mi najti:
+hud-quest-desc-kill = Ali mi lahko pomagaš ubiti
+hud-quest-reward = Nagradim te lahko z:
+hud-quest-accept = Sprejmi
+hud-quest-decline = Odkloni
+hud-dialogue = Dialog
+hud-dialogue-ack = Pritisni [{ $key }], da potrdiš

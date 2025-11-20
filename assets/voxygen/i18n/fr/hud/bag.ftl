@@ -34,7 +34,7 @@ hud-bag-combat_rating_desc =
 hud-bag-protection_desc = Réduction des dégâts de votre armure.
 hud-bag-stun_res_desc =
     Résistance à l'étourdissement par des coups consécutifs.
-    Se régénère comme l'Endurance.
+    Se régénère comme l'endurance.
 hud-bag-sort_by_name = Trier par Nom
 hud-bag-sort_by_quality = Trier par Qualité
 hud-bag-sort_by_category = Trier par Catégorie

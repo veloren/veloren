@@ -81,4 +81,6 @@ armor-misc-bag-soulkeeper_cursed = Le gardien d'âmes maudit
 lantern-bloodmoon_relic = Relique Lune de sang
     .desc = Le parfum envoûtant du sang agit à la fois comme un piège et une source de lumière pour traquer les créatures de la nuit.
 lantern-crux = Noyau artériel
-    .desc = La chaleur intenable n'est qu'un maigre échantillon des braises de l'origine impitoyable du Gigas.
+    .desc = La chaleur intenable n'est qu'un maigre échantillon des braises de l'origine impitoyable du Géant.
+glider-tephras = Tephras
+    .desc = Sa chaleur intense le rend difficile à garder longtemps en main.
