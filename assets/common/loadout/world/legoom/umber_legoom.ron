@@ -1,0 +1,9 @@
+#![enable(implicit_some)]
+(
+    head: Item("common.items.npc_armor.biped_small.umber_legoom.head.umber_legoom"),
+    chest: Item("common.items.npc_armor.biped_small.umber_legoom.chest.umber_legoom"),
+    gloves: Item("common.items.npc_armor.biped_small.umber_legoom.hand.umber_legoom"),
+    legs: Item("common.items.npc_armor.biped_small.umber_legoom.pants.umber_legoom"),
+    feet: Item("common.items.npc_armor.biped_small.umber_legoom.foot.umber_legoom"),
+    active_hands: InHands((Item("common.items.npc_weapons.unique.umber_legoom_hook"), None)),
+)

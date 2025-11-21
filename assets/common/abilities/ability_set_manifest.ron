@@ -1438,4 +1438,9 @@
         secondary: Simple(None, "common.abilities.custom.red_legoom.doublestrike"),
         abilities: [],
     )),
+    Custom("Umber Legoom"): AbilitySet((
+        primary: Simple(None, "common.abilities.custom.umber_legoom.doublestrike"),
+        secondary: Simple(None, "common.abilities.custom.umber_legoom.doublestrike"),
+        abilities: [],
+    )),
 })

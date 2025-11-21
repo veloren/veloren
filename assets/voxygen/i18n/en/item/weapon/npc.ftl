@@ -95,13 +95,16 @@ common-items-npc_weapons-unique-green_legoom_rake = Green Legoom Rake
     .desc = {""}
     
 common-items-npc_weapons-unique-ochre_legoom_spade = Ochre Legoom Spade
-    .desc = {""} 
+    .desc = {""}
 
 common-items-npc_weapons-unique-purple_legoom_pitchfork = Purple Legoom Pitchfork
-    .desc = {""} 
+    .desc = {""}
     
 common-items-npc_weapons-unique-red_legoom_hoe = Red Legoom Hoe
-    .desc = {""}                      
+    .desc = {""}
+
+common-items-npc_weapons-unique-umber_legoom_hook = Umber Legoom Hook
+    .desc = {""}
 
 common-items-npc_weapons-bow-bipedlarge-velorite = Giant Velorite Bow
     .desc = Infused with Velorite power.

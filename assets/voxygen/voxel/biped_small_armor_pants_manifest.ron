@@ -128,6 +128,9 @@
         ),
         "common.items.npc_armor.biped_small.red_legoom.pants.red_legoom": (
             vox_spec: ("npc.red_legoom.pants", (-3.0, -3.0, -1.0)),
-        ),                                
+        ),
+        "common.items.npc_armor.biped_small.umber_legoom.pants.umber_legoom": (
+            vox_spec: ("npc.umber_legoom.pants", (-3.0, -3.0, -1.0)),
+        ),
     },
 ))

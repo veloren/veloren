@@ -713,6 +713,21 @@ common-items-npc_armor-biped_small-red_legoom-hand-red_legoom = Red Legoom
     .desc = Ceremonial attire used by members.
 
 common-items-npc_armor-biped_small-red_legoom-foot-red_legoom = Red Legoom
+    .desc = Ceremonial attire used by members.  
+
+common-items-npc_armor-biped_small-umber_legoom-head-umber_legoom = Umber Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-umber_legoom-chest-umber_legoom = Umber Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-umber_legoom-pants-umber_legoom = Umber Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-umber_legoom-hand-umber_legoom = Umber Legoom
+    .desc = Ceremonial attire used by members.
+
+common-items-npc_armor-biped_small-umber_legoom-foot-umber_legoom = Umber Legoom
     .desc = Ceremonial attire used by members.                
 
 common-items-npc_armor-crustacean-karkatha = Karkatha's Armor

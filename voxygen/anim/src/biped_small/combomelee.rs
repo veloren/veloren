@@ -115,6 +115,7 @@ impl Animation for ComboAnimation {
                     | "common.abilities.custom.goblin_thug.doublestrike"
                     | "common.abilities.custom.green_legoom.doublestrike"
                     | "common.abilities.custom.red_legoom.doublestrike"
+                    | "common.abilities.custom.umber_legoom.doublestrike"
                     | "common.abilities.vampire.bloodservant.doublestrike"
                     | "common.abilities.custom.boreal_warrior.hammer.singlestrike",
                 ) => {

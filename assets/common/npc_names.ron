@@ -1304,7 +1304,11 @@
             red_legoom: (
                 keyword: "red_legoom",
                 generic: "name-body-biped_small-red_legoom",
-            ),                                                             
+            ),
+            umber_legoom: (
+                keyword: "umber_legoom",
+                generic: "name-body-biped_small-umber_legoom",
+            ),
         )
     ),
     fish_small: (

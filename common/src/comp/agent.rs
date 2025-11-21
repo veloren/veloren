@@ -385,6 +385,7 @@ impl<'a> From<&'a Body> for Psyche {
                     | biped_small::Species::OchreLegoom
                     | biped_small::Species::PurpleLegoom
                     | biped_small::Species::RedLegoom
+                    | biped_small::Species::UmberLegoom
                     | biped_small::Species::ShamanicSpirit
                     | biped_small::Species::Jiangshi
                     | biped_small::Species::Bushly
