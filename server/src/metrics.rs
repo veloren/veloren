@@ -346,8 +346,11 @@ impl TickMetrics {
             "entity_count",
             "number of all entities currently active on the server",
         ))?;
-        let opts = Opts::new("veloren_build_info", "Build information")
-            .const_label("version", common::util::DISPLAY_VERSION.clone());
+        let mut opts = Opts::new("veloren_build_info", "Build information")
+            .const_label("hash", format!("{:x}", *common::util::GIT_HASH));
+        if !common::util::GIT_TAG.is_empty() {
+            opts = opts.const_label("tag", *common::util::GIT_TAG);
+        }
         let build_info = IntGauge::with_opts(opts)?;
         let start_time = IntGauge::with_opts(Opts::new(
             "veloren_start_time",
