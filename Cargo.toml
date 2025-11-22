@@ -191,7 +191,7 @@ rand_chacha = { version = "0.9" }
 rayon = { version = "1.5" }
 ron = { version = "0.11", default-features = false }
 rustls = { version = "0.23", default-features = false, features = ["std"] }
-rusqlite = { version = "0.31", features = [
+rusqlite = { version = "0.37", features = [
     "array",
     "vtab",
     "bundled",
