@@ -108,7 +108,7 @@ clap = { workspace = true }
 # Utility
 backtrace = "0.3.40"
 chrono = { workspace = true }
-chumsky = "0.10"
+chumsky = "0.11"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 directories-next = "2.0"
@@ -131,7 +131,7 @@ rand_chacha = { workspace = true }
 rayon = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
-serde_with = { version = "3.11.0", features = ["hashbrown_0_15"] }
+serde_with = { version = "3", features = ["hashbrown_0_16"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }

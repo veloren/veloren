@@ -164,7 +164,7 @@ crossbeam-utils = { version = "0.8.7" }
 enum-map = { version = "2.4" }
 futures-util = { version = "0.3.7", default-features = false }
 fxhash = { version = "0.2.1" }
-hashbrown = { version = "0.15", default-features = false, features = [
+hashbrown = { version = "0.16", default-features = false, features = [
     "rayon",
     "serde",
     "nightly",
@@ -189,7 +189,7 @@ regex = { version = "1.11" }
 rand = { version = "0.9", features = ["alloc"] }
 rand_chacha = { version = "0.9" }
 rayon = { version = "1.5" }
-ron = { version = "0.11", default-features = false }
+ron = { version = "0.12", default-features = false, features = ["std"] }
 rustls = { version = "0.23", default-features = false, features = ["std"] }
 rusqlite = { version = "0.31", features = [
     "array",
