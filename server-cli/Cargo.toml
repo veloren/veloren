@@ -64,8 +64,4 @@ prometheus = { workspace = true }
 chrono = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
-# Pinned due to a memory leak on Windows occuring in versions 0.1.44
-# to 0.1.46 of mimalloc and versions 0.1.40 to 0.1.42 of libmimalloc-sys
-# respectively.
-mimalloc = "=0.1.43"
-libmimalloc-sys = "=0.1.39"
+mimalloc = { workspace = true }

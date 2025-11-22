@@ -179,6 +179,7 @@ itertools = { version = "0.14" }
 # TODO: Fix LTO on linux with newer kiddo versions
 kiddo = "=4.2.0"
 lazy_static = "1.4.0"
+mimalloc = "0.1"
 noise = { version = "0.9", default-features = false }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
