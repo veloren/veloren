@@ -1386,6 +1386,16 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
+    // No effect items should be repaired for free
+    ItemDefId("common.items.armor.misc.back.backpack"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.armor.misc.head.exclamation"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.armor.misc.head.pipe"): (
+        inputs: [],
+    ),
 },
 fallback: (
     inputs: [
