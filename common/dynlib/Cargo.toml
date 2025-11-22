@@ -9,6 +9,6 @@ workspace = true
 
 [dependencies]
 find_folder = {version = "0.3.0"}
-libloading = {version = "0.8"}
+libloading = {version = "0.9"}
 notify = {version = "8.0.0"}
 tracing = { workspace = true }
