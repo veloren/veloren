@@ -35,7 +35,7 @@ wasmtime::component::bindgen!({
     world: "plugin",
     with: {
         "veloren:plugin/types@0.0.1": types_mod::veloren::plugin::types,
-        "veloren:plugin/information@0.0.1/entity": Entity,
+        "veloren:plugin/information@0.0.1.entity": Entity,
     },
 });
 
@@ -55,7 +55,7 @@ mod server_plugin {
         world: "server-plugin",
         with: {
             "veloren:plugin/types@0.0.1": super::types_mod::veloren::plugin::types,
-            "veloren:plugin/information@0.0.1/entity": super::Entity,
+            "veloren:plugin/information@0.0.1.entity": super::Entity,
         },
     });
 }
