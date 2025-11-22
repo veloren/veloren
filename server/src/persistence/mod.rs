@@ -15,13 +15,15 @@ mod models;
 use crate::persistence::character_updater::PetPersistenceData;
 use common::comp;
 use refinery::Report;
-use rusqlite::{Connection, OpenFlags};
+use rusqlite::{
+    Connection, OpenFlags,
+    trace::{TraceEvent, TraceEventCodes},
+};
 use std::{
     fs,
     ops::Deref,
     path::PathBuf,
     sync::{Arc, RwLock},
-    time::Duration,
 };
 use tracing::info;
 
@@ -92,18 +94,21 @@ impl Deref for VelorenConnection {
 }
 
 fn set_log_mode(connection: &mut Connection, sql_log_mode: SqlLogMode) {
-    // Rusqlite's trace and profile logging are mutually exclusive and cannot be
-    // used together
     match sql_log_mode {
         SqlLogMode::Trace => {
-            connection.trace(Some(rusqlite_trace_callback));
+            connection.trace_v2(
+                TraceEventCodes::SQLITE_TRACE_STMT,
+                Some(rusqlite_trace_callback),
+            );
         },
         SqlLogMode::Profile => {
-            connection.profile(Some(rusqlite_profile_callback));
+            connection.trace_v2(
+                TraceEventCodes::SQLITE_TRACE_PROFILE,
+                Some(rusqlite_trace_callback),
+            );
         },
         SqlLogMode::Disabled => {
-            connection.trace(None);
-            connection.profile(None);
+            connection.trace_v2(TraceEventCodes::empty(), None);
         },
     };
 }
@@ -189,15 +194,16 @@ pub fn vacuum_database(settings: &DatabaseSettings) {
     info!("Database vacuumed");
 }
 
-// These callbacks use info logging because they are never enabled by default,
+// This callback uses info logging because it is never enabled by default,
 // only when explicitly turned on via CLI arguments or interactive CLI commands.
-// Setting them to anything other than info would remove the ability to get SQL
+// Setting it to anything other than info would remove the ability to get SQL
 // logging from a running server that wasn't started at higher than info.
-fn rusqlite_trace_callback(log_message: &str) {
-    info!("{}", log_message);
-}
-fn rusqlite_profile_callback(log_message: &str, dur: Duration) {
-    info!("{} Duration: {:?}", log_message, dur);
+fn rusqlite_trace_callback(event: TraceEvent<'_>) {
+    match event {
+        TraceEvent::Stmt(_, msg) => info!("{}", msg),
+        TraceEvent::Profile(stmt, dur) => info!("{} Duration: {:?}", stmt.sql(), dur),
+        _ => (),
+    }
 }
 
 pub(crate) fn establish_connection(

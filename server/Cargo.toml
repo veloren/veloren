@@ -75,6 +75,6 @@ noise = { workspace = true }
 censor = "0.3"
 
 rusqlite = { workspace = true }
-refinery = { version = "0.8.14", features = ["rusqlite"] }
+refinery = { version = "0.9", features = ["rusqlite"] }
 
 schnellru = "0.2.1"
