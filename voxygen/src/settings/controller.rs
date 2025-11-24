@@ -422,6 +422,9 @@ impl ControllerSettings {
             GameInput::Slot8 => Some(Button::Simple(GilButton::Unknown)),
             GameInput::Slot9 => Some(Button::Simple(GilButton::Unknown)),
             GameInput::Slot10 => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::PreviousSlot => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::NextSlot => Some(Button::Simple(GilButton::Unknown)),
+            GameInput::CurrentSlot => Some(Button::Simple(GilButton::North)),
             GameInput::ToggleCursor => Some(Button::Simple(GilButton::Unknown)),
             GameInput::MoveForward => Some(Button::Simple(GilButton::Unknown)),
             GameInput::MoveBack => Some(Button::Simple(GilButton::Unknown)),
@@ -554,6 +557,21 @@ impl ControllerSettings {
                 mod2: Button::Simple(GilButton::Unknown),
             }),
             GameInput::Slot10 => Some(LayerEntry {
+                button: Button::Simple(GilButton::Unknown),
+                mod1: Button::Simple(GilButton::Unknown),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::PreviousSlot => Some(LayerEntry {
+                button: Button::Simple(GilButton::West),
+                mod1: Button::Simple(GilButton::RightTrigger),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::NextSlot => Some(LayerEntry {
+                button: Button::Simple(GilButton::East),
+                mod1: Button::Simple(GilButton::RightTrigger),
+                mod2: Button::Simple(GilButton::Unknown),
+            }),
+            GameInput::CurrentSlot => Some(LayerEntry {
                 button: Button::Simple(GilButton::Unknown),
                 mod1: Button::Simple(GilButton::Unknown),
                 mod2: Button::Simple(GilButton::Unknown),

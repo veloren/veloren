@@ -543,6 +543,7 @@ impl SessionState {
                 | GameInput::Slot8
                 | GameInput::Slot9
                 | GameInput::Slot10
+                | GameInput::CurrentSlot
                 | GameInput::SpectateViewpoint
                 | GameInput::SpectateSpeedBoost => return true,
                 _ => (),
