@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New glider for Fire Gigas crafting drop.
 - Support for directional lanterns
 - Rebind controller buttons in-game.
+- Adds a cyclable hotbar for improved controller support.
 
 ### Changed
 

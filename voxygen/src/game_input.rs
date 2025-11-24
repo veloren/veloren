@@ -45,6 +45,12 @@ pub enum GameInput {
     Slot9,
     #[strum(serialize = "gameinput-slot10")]
     Slot10,
+    #[strum(serialize = "gameinput-nextslot")]
+    NextSlot,
+    #[strum(serialize = "gameinput-previousslot")]
+    PreviousSlot,
+    #[strum(serialize = "gameinput-currentslot")]
+    CurrentSlot,
     #[strum(serialize = "gameinput-togglecursor")]
     ToggleCursor,
     #[strum(serialize = "gameinput-moveforward")]

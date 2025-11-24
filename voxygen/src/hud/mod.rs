@@ -5077,6 +5077,26 @@ impl Hud {
                             false
                         }
                     },
+                    GameInput::CurrentSlot => {
+                        let current_slot = self.hotbar.currently_selected_slot;
+                        handle_slot(
+                            current_slot,
+                            state,
+                            &mut self.events,
+                            &mut self.slot_manager,
+                            &mut self.hotbar,
+                            client_inventory,
+                        );
+                        true
+                    },
+                    GameInput::NextSlot if state => {
+                        self.hotbar.currently_selected_slot.next_slot();
+                        true
+                    },
+                    GameInput::PreviousSlot if state => {
+                        self.hotbar.currently_selected_slot.previous_slot();
+                        true
+                    },
                     // Skillbar
                     input => {
                         if let Some(slot) = try_hotbar_slot_from_input(input) {
