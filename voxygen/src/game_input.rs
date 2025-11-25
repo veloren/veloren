@@ -25,6 +25,92 @@ pub enum GameInput {
     Secondary,
     #[strum(serialize = "gameinput-block")]
     Block,
+    #[strum(serialize = "gameinput-roll")]
+    Roll,
+    #[strum(serialize = "gameinput-moveforward")]
+    MoveForward,
+    #[strum(serialize = "gameinput-moveback")]
+    MoveBack,
+    #[strum(serialize = "gameinput-moveleft")]
+    MoveLeft,
+    #[strum(serialize = "gameinput-moveright")]
+    MoveRight,
+    #[strum(serialize = "gameinput-swimup")]
+    SwimUp,
+    #[strum(serialize = "gameinput-swimdown")]
+    SwimDown,
+    #[strum(serialize = "gameinput-jump")]
+    Jump,
+    #[strum(serialize = "gameinput-walljump")]
+    WallJump,
+    #[strum(serialize = "gameinput-cancelclimb")]
+    CancelClimb,
+    #[strum(serialize = "gameinput-interact")]
+    Interact,
+    #[strum(serialize = "gameinput-trade")]
+    Trade,
+    #[strum(serialize = "gameinput-glide")]
+    Glide,
+    #[strum(serialize = "gameinput-togglelantern")]
+    ToggleLantern,
+    #[strum(serialize = "gameinput-swaploadout")]
+    SwapLoadout,
+    #[strum(serialize = "gameinput-togglewield")]
+    ToggleWield,
+    #[strum(serialize = "gameinput-sneak")]
+    Sneak,
+    #[strum(serialize = "gameinput-sit")]
+    Sit,
+    #[strum(serialize = "gameinput-crawl")]
+    Crawl,
+    #[strum(serialize = "gameinput-dance")]
+    Dance,
+    #[strum(serialize = "gameinput-greet")]
+    Greet,
+    #[strum(serialize = "gameinput-mount")]
+    Mount,
+    #[strum(serialize = "gameinput-stayfollow")]
+    StayFollow,
+    #[strum(serialize = "gameinput-togglewalk")]
+    ToggleWalk,
+    #[strum(serialize = "gameinput-autowalk")]
+    AutoWalk,
+    #[strum(serialize = "gameinput-freelook")]
+    FreeLook,
+    #[strum(serialize = "gameinput-giveup")]
+    GiveUp,
+    #[strum(serialize = "gameinput-respawn")]
+    Respawn,
+    #[strum(serialize = "gameinput-inventory")]
+    Inventory,
+    #[strum(serialize = "gameinput-map")]
+    Map,
+    #[strum(serialize = "gameinput-settings")]
+    Settings,
+    #[strum(serialize = "gameinput-crafting")]
+    Crafting,
+    #[strum(serialize = "gameinput-diary")]
+    Diary,
+    #[strum(serialize = "gameinput-chat")]
+    Chat,
+    #[strum(serialize = "gameinput-social")]
+    Social,
+    #[strum(serialize = "gameinput-escape")]
+    Escape,
+    #[strum(serialize = "gameinput-controls")]
+    Controls,
+    #[strum(serialize = "gameinput-select")]
+    Select,
+    #[strum(serialize = "gameinput-acceptgroupinvite")]
+    AcceptGroupInvite,
+    #[strum(serialize = "gameinput-declinegroupinvite")]
+    DeclineGroupInvite,
+    #[strum(serialize = "gameinput-previousslot")]
+    PreviousSlot,
+    #[strum(serialize = "gameinput-nextslot")]
+    NextSlot,
+    #[strum(serialize = "gameinput-currentslot")]
+    CurrentSlot,
     #[strum(serialize = "gameinput-slot1")]
     Slot1,
     #[strum(serialize = "gameinput-slot2")]
@@ -45,74 +131,28 @@ pub enum GameInput {
     Slot9,
     #[strum(serialize = "gameinput-slot10")]
     Slot10,
-    #[strum(serialize = "gameinput-nextslot")]
-    NextSlot,
-    #[strum(serialize = "gameinput-previousslot")]
-    PreviousSlot,
-    #[strum(serialize = "gameinput-currentslot")]
-    CurrentSlot,
+    #[strum(serialize = "gameinput-zoomin")]
+    ZoomIn,
+    #[strum(serialize = "gameinput-zoomout")]
+    ZoomOut,
     #[strum(serialize = "gameinput-togglecursor")]
     ToggleCursor,
-    #[strum(serialize = "gameinput-moveforward")]
-    MoveForward,
-    #[strum(serialize = "gameinput-moveback")]
-    MoveBack,
-    #[strum(serialize = "gameinput-moveleft")]
-    MoveLeft,
-    #[strum(serialize = "gameinput-moveright")]
-    MoveRight,
-    #[strum(serialize = "gameinput-jump")]
-    Jump,
-    #[strum(serialize = "gameinput-walljump")]
-    WallJump,
-    #[strum(serialize = "gameinput-sit")]
-    Sit,
-    #[strum(serialize = "gameinput-crawl")]
-    Crawl,
-    #[strum(serialize = "gameinput-dance")]
-    Dance,
-    #[strum(serialize = "gameinput-greet")]
-    Greet,
-    #[strum(serialize = "gameinput-glide")]
-    Glide,
-    #[strum(serialize = "gameinput-swimup")]
-    SwimUp,
-    #[strum(serialize = "gameinput-swimdown")]
-    SwimDown,
-    #[strum(serialize = "gameinput-fly")]
-    Fly,
-    #[strum(serialize = "gameinput-sneak")]
-    Sneak,
-    #[strum(serialize = "gameinput-cancelclimb")]
-    CancelClimb,
-    #[strum(serialize = "gameinput-togglelantern")]
-    ToggleLantern,
-    #[strum(serialize = "gameinput-mount")]
-    Mount,
-    #[strum(serialize = "gameinput-stayfollow")]
-    StayFollow,
-    #[strum(serialize = "gameinput-chat")]
-    Chat,
+    #[strum(serialize = "gameinput-zoomlock")]
+    ZoomLock,
+    #[strum(serialize = "gameinput-mapzoomin")]
+    MapZoomIn,
+    #[strum(serialize = "gameinput-mapzoomout")]
+    MapZoomOut,
+    #[strum(serialize = "gameinput-map-locationmarkerbutton")]
+    MapSetMarker,
+    #[strum(serialize = "gameinput-fullscreen")]
+    Fullscreen,
+    #[strum(serialize = "gameinput-screenshot")]
+    Screenshot,
     #[strum(serialize = "gameinput-command")]
     Command,
-    #[strum(serialize = "gameinput-escape")]
-    Escape,
-    #[strum(serialize = "gameinput-map")]
-    Map,
-    #[strum(serialize = "gameinput-inventory")]
-    Inventory,
-    #[strum(serialize = "gameinput-trade")]
-    Trade,
-    #[strum(serialize = "gameinput-social")]
-    Social,
-    #[strum(serialize = "gameinput-crafting")]
-    Crafting,
-    #[strum(serialize = "gameinput-diary")]
-    Diary,
-    #[strum(serialize = "gameinput-settings")]
-    Settings,
-    #[strum(serialize = "gameinput-controls")]
-    Controls,
+    #[strum(serialize = "gameinput-fly")]
+    Fly,
     #[strum(serialize = "gameinput-toggleinterface")]
     ToggleInterface,
     #[strum(serialize = "gameinput-toggledebug")]
@@ -122,50 +162,12 @@ pub enum GameInput {
     ToggleEguiDebug,
     #[strum(serialize = "gameinput-togglechat")]
     ToggleChat,
-    #[strum(serialize = "gameinput-fullscreen")]
-    Fullscreen,
-    #[strum(serialize = "gameinput-screenshot")]
-    Screenshot,
     #[strum(serialize = "gameinput-toggleingameui")]
     ToggleIngameUi,
-    #[strum(serialize = "gameinput-roll")]
-    Roll,
-    #[strum(serialize = "gameinput-giveup")]
-    GiveUp,
-    #[strum(serialize = "gameinput-respawn")]
-    Respawn,
-    #[strum(serialize = "gameinput-interact")]
-    Interact,
-    #[strum(serialize = "gameinput-togglewield")]
-    ToggleWield,
-    #[strum(serialize = "gameinput-swaploadout")]
-    SwapLoadout,
-    #[strum(serialize = "gameinput-freelook")]
-    FreeLook,
-    #[strum(serialize = "gameinput-autowalk")]
-    AutoWalk,
-    #[strum(serialize = "gameinput-zoomin")]
-    ZoomIn,
-    #[strum(serialize = "gameinput-zoomout")]
-    ZoomOut,
-    #[strum(serialize = "gameinput-zoomlock")]
-    ZoomLock,
     #[strum(serialize = "gameinput-cameraclamp")]
     CameraClamp,
     #[strum(serialize = "gameinput-cyclecamera")]
     CycleCamera,
-    #[strum(serialize = "gameinput-select")]
-    Select,
-    #[strum(serialize = "gameinput-acceptgroupinvite")]
-    AcceptGroupInvite,
-    #[strum(serialize = "gameinput-declinegroupinvite")]
-    DeclineGroupInvite,
-    #[strum(serialize = "gameinput-mapzoomin")]
-    MapZoomIn,
-    #[strum(serialize = "gameinput-mapzoomout")]
-    MapZoomOut,
-    #[strum(serialize = "gameinput-map-locationmarkerbutton")]
-    MapSetMarker,
     #[strum(serialize = "gameinput-spectatespeedboost")]
     SpectateSpeedBoost,
     #[strum(serialize = "gameinput-spectateviewpoint")]
@@ -180,8 +182,6 @@ pub enum GameInput {
     MuteSfx,
     #[strum(serialize = "gameinput-muteambience")]
     MuteAmbience,
-    #[strum(serialize = "gameinput-togglewalk")]
-    ToggleWalk,
 }
 
 impl GameInput {
