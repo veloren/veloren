@@ -76,10 +76,7 @@ fn main() {
                      game from the cloned git repository with the git command available in order \
                      to give Veloren access to proper versioning information."
                 );
-                println!(
-                    "cargo::rustc-env=VELOREN_GIT_VERSION={}/0/0",
-                    env!("CARGO_PKG_VERSION")
-                );
+                println!("cargo::rustc-env=VELOREN_GIT_VERSION=/0/0");
                 return;
             },
         };
