@@ -23,3 +23,4 @@ char_selection-version_mismatch = ATTENTION ! Ce serveur fonctionne sur une vers
 char_selection-rules = Règles
 char_selection-hardcore = Hardcore
 char_selection-hardcore_tooltip = Les personnages hardcore seront supprimés à leur mort, sans autre changement de difficulté
+char_selection-editing_character = Sauvegarde du personnage...
