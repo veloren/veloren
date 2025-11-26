@@ -1,10 +1,10 @@
 use regex::Regex;
 use std::process::Command;
 
-// Get the current githash+date
+// Get the current githash+timestamp
 // Note: It will compare commits. As long as the commits do not diverge from the
 // server no version change will be detected.
-fn get_git_version() -> Result<String, String> {
+fn get_git_hash_timestamp() -> Result<String, String> {
     let output = Command::new("git")
         .args(["log", "-n", "1", "--pretty=format:%h/%ct", "--abbrev=8"])
         .output()
@@ -17,9 +17,9 @@ fn get_git_version() -> Result<String, String> {
         ));
     }
 
-    let version = String::from_utf8(output.stdout)
+    let hash_timestamp = String::from_utf8(output.stdout)
         .map_err(|e| format!("Git version command output isn't valid UTF-8: {}", e))?;
-    let hash = version
+    let hash = hash_timestamp
         .split('/')
         .next()
         .ok_or("Git hash not found".to_string())?;
@@ -29,13 +29,13 @@ fn get_git_version() -> Result<String, String> {
             "{}/{}",
             hash.get(..8)
                 .ok_or("Git hash not long enough".to_string())?,
-            version
+            hash_timestamp
                 .split('/')
                 .nth(1)
                 .ok_or("Git timestamp not found".to_string())?
         ))
     } else {
-        Ok(version)
+        Ok(hash_timestamp)
     }
 }
 
@@ -65,8 +65,8 @@ fn get_git_tag() -> Option<String> {
 fn main() {
     // If this env var exists, it'll be used instead
     if option_env!("VELOREN_GIT_VERSION").is_none() {
-        let version = match get_git_version() {
-            Ok(version) => version,
+        let hash_timestamp = match get_git_hash_timestamp() {
+            Ok(hash_timestamp) => hash_timestamp,
             Err(e) => {
                 println!("cargo::warning={}", e);
                 println!(
@@ -86,6 +86,10 @@ fn main() {
 
         let tag = get_git_tag().unwrap_or("".to_string());
 
-        println!("cargo::rustc-env=VELOREN_GIT_VERSION={}/{}", &tag, &version);
+        // Format: <git-tag?>/<git-hash>/<git-timestamp>
+        println!(
+            "cargo::rustc-env=VELOREN_GIT_VERSION={}/{}",
+            &tag, &hash_timestamp
+        );
     }
 }
