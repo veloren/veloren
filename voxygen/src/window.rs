@@ -241,6 +241,7 @@ impl Window {
 
         let window = settings.graphics.window;
 
+        #[allow(unused_mut)] //ensure no weird issues on different platforms
         let mut attributes = winit::window::Window::default_attributes()
             .with_title("Veloren")
             .with_inner_size(winit::dpi::LogicalSize::new(
