@@ -1,5 +1,6 @@
 #![enable(implicit_some)]
 (
+    inherit: Asset("common.loadout.village.basic"),
     head: Seasonal([
         (Some(Christmas), Choice([
             (3, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
