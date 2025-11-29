@@ -68,15 +68,20 @@ fn main() {
         let hash_timestamp = match get_git_hash_timestamp() {
             Ok(hash_timestamp) => hash_timestamp,
             Err(e) => {
-                println!("cargo::warning={}", e);
+                println!("cargo::error={}", e);
                 println!(
-                    "cargo::warning=Veloren will be compiled with git hash and timestamp set to \
-                     0, which will cause version mismatch warnings where applicable, whether the \
-                     version is actually mismatched or not. It is highly recommended to build the \
-                     game from the cloned git repository with the git command available in order \
-                     to give Veloren access to proper versioning information."
+                    "cargo::error=It is highly recommended to build Veloren from the cloned git \
+                     repository with the git command available in order to give the game access \
+                     to proper versioning information."
                 );
-                println!("cargo::rustc-env=VELOREN_GIT_VERSION=/0/0");
+                println!(
+                    "cargo::error=However, if you wish to proceed building Veloren anyway, you \
+                     can set the environment variable \"VELOREN_GIT_VERSION\" to \"/0/0\" before \
+                     re-running the given cargo command (the specific procedure for this will \
+                     depend on your shell). Note that this will compile the game with git commit \
+                     hash and commit timestamp set to 0, which will cause version mismatch \
+                     warnings where applicable, whether the version is actually mismatched or not."
+                );
                 return;
             },
         };
