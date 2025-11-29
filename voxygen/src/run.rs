@@ -42,8 +42,11 @@ pub fn run(
 
             // Only send events to the egui UI when it is being displayed.
             if enabled_for_current_state && global_state.settings.interface.egui_enabled() {
-                global_state.egui_state.platform.handle_event(event);
-                if global_state.egui_state.platform.captures_event(event) {
+                let response = global_state
+                    .egui_state
+                    .winit_state
+                    .on_window_event(global_state.window.window(), event);
+                if response.consumed {
                     return;
                 }
             }
@@ -216,6 +219,9 @@ fn handle_main_events_cleared(
 
         span!(guard, "Render");
 
+        #[cfg(feature = "egui-ui")]
+        let mut platform_output = None;
+
         // Render the screen using the global renderer
         if let Some(mut drawer) = global_state
             .window
@@ -231,9 +237,19 @@ fn handle_main_events_cleared(
 
             #[cfg(feature = "egui-ui")]
             if last.egui_enabled() && global_state.settings.interface.egui_enabled() {
-                drawer.draw_egui(&mut global_state.egui_state.platform, scale_factor);
+                platform_output =
+                    Some(drawer.draw_egui(&mut global_state.egui_state.winit_state, scale_factor));
             }
         };
+
+        #[cfg(feature = "egui-ui")]
+        if let Some(output) = platform_output {
+            global_state
+                .egui_state
+                .winit_state
+                .handle_platform_output(global_state.window.window(), output);
+        }
+
         if global_state.clear_shadows_next_frame {
             global_state.clear_shadows_next_frame = false;
         }

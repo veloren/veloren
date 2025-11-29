@@ -1,7 +1,4 @@
 #![feature(stmt_expr_attributes)]
-#![expect(
-    clippy::needless_pass_by_ref_mut //until we find a better way for specs
-)]
 
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
@@ -19,7 +16,7 @@ use common::{
     resources::Time,
 };
 use core::mem;
-use egui::{CollapsingHeader, Color32, Grid, Pos2, ScrollArea, Slider, Ui, Window};
+use egui::{CollapsingHeader, Color32, Context, Grid, Pos2, ScrollArea, Slider, Ui, Window};
 use egui_plot::{Line, Plot, PlotPoints};
 
 use crate::{
@@ -30,8 +27,9 @@ use common::comp::{
     Body, Fluid,
     aura::AuraKind::{Buff, ForcePvP, FriendlyFire},
 };
-use egui_winit_platform::Platform;
+use egui_winit::State as WinitState;
 use std::time::Duration;
+use winit::window::Window as WinitWindow;
 #[cfg(feature = "use-dyn-lib")]
 use {
     common_dynlib::LoadedLib, lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc,
@@ -159,9 +157,10 @@ pub struct EguiActions {
 pub fn init() { lazy_static::initialize(&LIB); }
 
 pub fn maintain(
-    platform: &mut Platform,
+    winit_state: &mut WinitState,
     egui_state: &mut EguiInnerState,
     client: &Client,
+    winit_window: &WinitWindow,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
     experimental_shaders: Vec<(String, bool)>,
@@ -169,9 +168,10 @@ pub fn maintain(
     #[cfg(not(feature = "use-dyn-lib"))]
     {
         maintain_egui_inner(
-            platform,
+            winit_state,
             egui_state,
             client,
+            winit_window,
             debug_info,
             added_cylinder_shape_id,
             experimental_shaders,
@@ -185,9 +185,10 @@ pub fn maintain(
 
         let maintain_fn: common_dynlib::Symbol<
             fn(
-                &mut Platform,
+                &mut WinitState,
                 &mut EguiInnerState,
                 &Client,
+                &WinitWindow,
                 Option<EguiDebugInfo>,
                 Option<u64>,
                 Vec<(String, bool)>,
@@ -204,9 +205,10 @@ pub fn maintain(
         });
 
         maintain_fn(
-            platform,
+            winit_state,
             egui_state,
             client,
+            winit_window,
             debug_info,
             added_cylinder_shape_id,
             experimental_shaders,
@@ -216,15 +218,17 @@ pub fn maintain(
 
 #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "maintain_egui_inner"))]
 pub fn maintain_egui_inner(
-    platform: &mut Platform,
+    winit_state: &mut WinitState,
     egui_state: &mut EguiInnerState,
     client: &Client,
+    winit_window: &WinitWindow,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
     experimental_shaders: Vec<(String, bool)>,
 ) -> EguiActions {
-    platform.begin_pass();
-    let ctx = &platform.context();
+    let raw_input = winit_state.take_egui_input(winit_window);
+    let ctx = winit_state.egui_ctx();
+    ctx.begin_pass(raw_input);
 
     let mut egui_actions = EguiActions::default();
     let mut previous_selected_entity: Option<SelectedEntityInfo> = None;
@@ -255,7 +259,7 @@ pub fn maintain_egui_inner(
         .default_pos(start_pos)
         .default_width(200.0)
         .default_height(200.0)
-        .show(&platform.context(), |ui| {
+        .show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(format!(
                     "Ping: {:.1}ms",
@@ -475,7 +479,7 @@ pub fn maintain_egui_inner(
             if !selected_entity.r#gen().is_alive() {
                 previous_selected_entity = mem::take(&mut egui_state.selected_entity_info);
             } else {
-                selected_entity_window(platform, ecs, selected_entity_info, &mut egui_actions);
+                selected_entity_window(ctx, ecs, selected_entity_info, &mut egui_actions);
             }
         }
     }
@@ -535,7 +539,7 @@ pub fn maintain_egui_inner(
 }
 
 fn selected_entity_window(
-    platform: &mut Platform,
+    ctx: &Context,
     ecs: &World,
     selected_entity_info: &mut SelectedEntityInfo,
     egui_actions: &mut EguiActions,
@@ -598,7 +602,7 @@ fn selected_entity_window(
         Window::new("Selected Entity")
             .default_width(300.0)
             .default_height(200.0)
-            .show(&platform.context(), |ui| {
+            .show(ctx, |ui| {
                 ui.vertical(|ui| {
                     CollapsingHeader::new("General").default_open(true).show(ui, |ui| {
                         Grid::new("selected_entity_general_grid")

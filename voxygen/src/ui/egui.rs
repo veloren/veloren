@@ -5,29 +5,30 @@ use crate::{
     window::Window,
 };
 use client::Client;
-use egui::FontDefinitions;
-use egui_winit_platform::{Platform, PlatformDescriptor};
+use egui::{Context, ViewportId};
+use egui_winit::State as WinitState;
 use voxygen_egui::{EguiAction, EguiDebugInfo, EguiDebugShapeAction, EguiInnerState};
 
 pub struct EguiState {
-    pub platform: Platform,
+    pub winit_state: WinitState,
     egui_inner_state: EguiInnerState,
     new_debug_shape_id: Option<u64>,
 }
 
 impl EguiState {
     pub fn new(window: &Window) -> Self {
-        let inner_size = window.window().inner_size();
-        let platform = Platform::new(PlatformDescriptor {
-            physical_width: inner_size.width,
-            physical_height: inner_size.height,
-            scale_factor: window.scale_factor(),
-            font_definitions: FontDefinitions::default(),
-            style: Default::default(),
-        });
+        let egui_ctx = Context::default();
+        let winit_state = WinitState::new(
+            egui_ctx,
+            ViewportId::ROOT,
+            window.window(),
+            Some(window.scale_factor() as f32),
+            None,
+            None,
+        );
 
         Self {
-            platform,
+            winit_state,
             egui_inner_state: EguiInnerState::default(),
             new_debug_shape_id: None,
         }
@@ -37,6 +38,7 @@ impl EguiState {
         &mut self,
         client: &mut Client,
         scene: &mut Scene,
+        window: &winit::window::Window,
         debug_info: Option<EguiDebugInfo>,
         settings: &Settings,
     ) -> Option<SettingsChange> {
@@ -56,9 +58,10 @@ impl EguiState {
             .collect();
 
         let egui_actions = voxygen_egui::maintain(
-            &mut self.platform,
+            &mut self.winit_state,
             &mut self.egui_inner_state,
             client,
+            window,
             debug_info,
             self.new_debug_shape_id.take(),
             experimental_shaders,
