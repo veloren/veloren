@@ -305,7 +305,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             biped_small::Species::GreenLegoom
             | biped_small::Species::OchreLegoom
             | biped_small::Species::PurpleLegoom
-            | biped_small::Species::RedLegoom 
+            | biped_small::Species::RedLegoom
             | biped_small::Species::UmberLegoom => VoiceKind::Legoom,
             _ => return None,
         },
