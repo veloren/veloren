@@ -727,6 +727,21 @@
             "common.items.npc_armor.biped_small.red_legoom.pants.red_legoom",
         ): "common-items-npc_armor-biped_small-red_legoom-pants-red_legoom",
         Simple(
+            "common.items.npc_armor.biped_small.umber_legoom.chest.umber_legoom",
+        ): "common-items-npc_armor-biped_small-umber_legoom-chest-umber_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.umber_legoom.foot.umber_legoom",
+        ): "common-items-npc_armor-biped_small-umber_legoom-foot-umber_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.umber_legoom.hand.umber_legoom",
+        ): "common-items-npc_armor-biped_small-umber_legoom-hand-umber_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.umber_legoom.head.umber_legoom",
+        ): "common-items-npc_armor-biped_small-umber_legoom-head-umber_legoom",
+        Simple(
+            "common.items.npc_armor.biped_small.umber_legoom.pants.umber_legoom",
+        ): "common-items-npc_armor-biped_small-umber_legoom-pants-umber_legoom",        
+        Simple(
             "common.items.npc_armor.crustacean.karkatha",
         ): "common-items-npc_armor-crustacean-karkatha",
         Simple(
@@ -2862,6 +2877,9 @@
         Simple(
             "common.items.npc_weapons.unique.red_legoom_hoe",
         ): "common-items-npc_weapons-unique-red_legoom_hoe",
+        Simple(
+            "common.items.npc_weapons.unique.umber_legoom_hook",
+        ): "common-items-npc_weapons-unique-umber_legoom_hook",        
         Simple(
             "common.items.npc_weapons.bow.bipedlarge-velorite",
         ): "common-items-npc_weapons-bow-bipedlarge-velorite",
