@@ -1,5 +1,6 @@
 #![enable(implicit_some)]
 (
+    inherit: Asset("common.loadout.village.basic"),
     head: Item("common.items.armor.chef.hat"),
     chest: Item("common.items.armor.chef.chest"),
     gloves: Item("common.items.armor.cloth.linen.hand"),

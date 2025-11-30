@@ -1,0 +1,6 @@
+#![enable(implicit_some)]
+// basic safety gear, light if dark, fly is scared of heights
+(
+    lantern: Item("common.items.lantern.black_0"),
+    glider: Item("common.items.glider.basic_white"),
+)
