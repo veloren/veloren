@@ -126,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tweaked attack timings and orientation rates for a variety of entities.
 - Builds for Linux are now with compressed debuginfo, this should reduce the size of the game on disk.
 - Changed default controller controls.
+- Re-ordered controls list to group related actions.
 
 ### Removed
 
