@@ -22,5 +22,5 @@ object-potion_curious = Nyfiken Dryck
     .desc = Undrar vad det här gör...
 object-potion_freezing = Frysande Dryck
     .desc = Fryser användarens hjärna.
-object-potion_trans = Hastened Reformation Tincture
+object-potion_trans = Påskyndad Reformationstinktur
     .desc = Ändrar din kroppstyp permanent.
