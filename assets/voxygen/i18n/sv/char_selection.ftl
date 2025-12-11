@@ -23,3 +23,4 @@ char_selection-version_mismatch = VARNING! Den här servern kör en annorlunda, 
 char_selection-rules = Regler
 char_selection-hardcore = Hardcore
 char_selection-hardcore_tooltip = Hardcore-karaktärer kommer raderas vid död, inga andra ändringar i svårighet
+char_selection-editing_character = Sparar karaktär...

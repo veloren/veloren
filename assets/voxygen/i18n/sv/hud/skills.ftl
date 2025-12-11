@@ -154,3 +154,5 @@ hud-skill_tree-staff = Eldstav
 # Skill tree UI
 hud-skill_tree-sceptre = Spira
 hud-skill_tree-mining = Grävning
+hud-skill-sword_stance_heavy = Tung
+hud-skill-sword_stance_defensive = Defensiv

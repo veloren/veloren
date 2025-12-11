@@ -129,3 +129,4 @@ hud-skill-pick_strike_oregain_title = Resa materiali grezzi picconata
 hud-skill-pick_strike_oregain = Possibilità di ottenere materiale grezzo extra del ({ $boost }% per livello){ $SP }
 hud-skill-pick_strike_gemgain_title = Resa gemme picconata
 hud-skill-pick_strike_gemgain = Possibilità di ottenere gemme extra del ({ $boost }% per livello){ $SP }
+hud-skill_tree-sword = Spada
