@@ -347,23 +347,7 @@ impl SessionState {
                         let sfx_trigger_item =
                             sfx_triggers.0.get_key_value(&SfxEvent::from(&inv_event));
 
-                        match inv_event {
-                            InventoryUpdateEvent::Dropped
-                            | InventoryUpdateEvent::Swapped
-                            | InventoryUpdateEvent::Given
-                            | InventoryUpdateEvent::Collected(_)
-                            | InventoryUpdateEvent::EntityCollectFailed { .. }
-                            | InventoryUpdateEvent::BlockCollectFailed { .. }
-                            | InventoryUpdateEvent::Craft => {
-                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
-                            },
-                            _ => global_state.audio.emit_sfx(
-                                sfx_trigger_item,
-                                client.position().unwrap_or_default(),
-                                None,
-                                pos,
-                            ),
-                        }
+                        global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
 
                         match inv_event {
                             InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {

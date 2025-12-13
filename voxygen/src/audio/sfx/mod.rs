@@ -441,9 +441,11 @@ impl SfxMgr {
             audio.set_sfx_master_filter(20000);
         }
 
+        let player_pos = client.position().unwrap_or_default();
+
         // Update continuing sounds with player position
         if let Some(inner) = audio.inner.as_mut() {
-            let player_pos = client.position().unwrap_or_default();
+            inner.player_pos = player_pos;
             inner.channels.sfx.iter_mut().for_each(|c| {
                 if !c.is_done() {
                     c.update(player_pos)
@@ -474,19 +476,13 @@ impl SfxMgr {
         }
         let triggers = self.triggers.read();
         let uids = client.state().ecs().read_storage::<Uid>();
-        let player_pos = client.position().unwrap_or_default();
         if audio.get_listener().is_none() {
             return;
         }
         match outcome {
             Outcome::Explosion { pos, power, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Explosion);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    *pos,
-                    Some((power.abs() / 2.5).min(1.5)),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, *pos, Some((power.abs() / 2.5).min(1.5)));
             },
             Outcome::Lightning { pos } => {
                 let distance = pos.distance(audio.get_listener_pos());
@@ -505,56 +501,56 @@ impl SfxMgr {
             },
             Outcome::GroundSlam { pos, .. } | Outcome::ClayGolemDash { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GroundSlam);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::SurpriseEgg { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SurpriseEgg);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::Transformation { pos, .. } => {
                 // TODO: Give this a sound
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Transformation);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::LaserBeam { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::LaserBeam);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::CyclopsCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::CyclopsCharge);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FlamethrowerCharge { pos, .. }
             | Outcome::TerracottaStatueCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::CyclopsCharge);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FuseCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FuseCharge);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::Charge { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::CyclopsCharge);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FlashFreeze { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FlashFreeze);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::SummonedCreature { pos, body, .. } => {
                 match body {
                     Body::BipedSmall(body) => match body.species {
                         biped_small::Species::IronDwarf => {
                             let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Bleep);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         biped_small::Species::Boreal | biped_small::Species::Ashen => {
                             let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GigaRoar);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         biped_small::Species::ShamanicSpirit | biped_small::Species::Jiangshi => {
                             let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Klonk);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         _ => {},
                     },
@@ -562,7 +558,7 @@ impl SfxMgr {
                         biped_large::Species::TerracottaBesieger
                         | biped_large::Species::TerracottaPursuer => {
                             let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Klonk);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         _ => {},
                     },
@@ -570,29 +566,29 @@ impl SfxMgr {
                         bird_medium::Species::Bat => {
                             let sfx_trigger_item =
                                 triggers.0.get_key_value(&SfxEvent::BloodmoonHeiressSummon);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         _ => {},
                     },
                     Body::Crustacean(body) => match body.species {
                         crustacean::Species::SoldierCrab => {
                             let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Hiss);
-                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                            audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                         },
                         _ => {},
                     },
                     Body::Object(object::Body::Lavathrower) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::DeepLaugh);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     },
                     Body::Object(object::Body::SeaLantern) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::LongHiss);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     },
                     Body::Object(object::Body::Tornado)
                     | Body::Object(object::Body::FieryTornado) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Swoosh);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     },
                     _ => { // not mapped to sfx file
                     },
@@ -600,35 +596,35 @@ impl SfxMgr {
             },
             Outcome::GroundDig { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GroundDig);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::PortalActivated { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::PortalActivated);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::TeleportedByPortal { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::TeleportedByPortal);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::IceSpikes { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::IceSpikes);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::IceCrack { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::IceCrack);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::Steam { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Steam);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FireShockwave { pos, .. } | Outcome::FireLowShockwave { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FlameThrower);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FromTheAshes { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FromTheAshes);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::ProjectileShot { pos, body, .. } => {
                 match body {
@@ -644,7 +640,7 @@ impl SfxMgr {
                         | object::Body::SpectralSwordLarge,
                     ) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::ArrowShot);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(
                         object::Body::BoltFire
@@ -656,7 +652,7 @@ impl SfxMgr {
                         | object::Body::SpitPoison,
                     ) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FireShot);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(
                         object::Body::IronPikeBomb
@@ -665,7 +661,7 @@ impl SfxMgr {
                         | object::Body::Pebble,
                     ) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Whoosh);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(
                         object::Body::LaserBeam
@@ -673,17 +669,17 @@ impl SfxMgr {
                         | object::Body::LightningBolt,
                     ) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::LaserBeam);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(
                         object::Body::AdletTrap | object::Body::BorealTrap | object::Body::Mine,
                     ) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Yeet);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(object::Body::StrigoiHead) => {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::StrigoiHead);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     _ => {
                         // not mapped to sfx file
@@ -711,18 +707,17 @@ impl SfxMgr {
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::ArrowMiss);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     } else if *source == client.uid() {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::ArrowHit);
                         audio.emit_sfx(
                             sfx_trigger_item,
                             client.position().unwrap_or(*pos),
                             Some(2.0),
-                            player_pos,
                         );
                     } else {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::ArrowHit);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     }
                 },
                 Body::Object(
@@ -733,18 +728,17 @@ impl SfxMgr {
                 ) => {
                     if target.is_none() {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Klonk);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     } else if *source == client.uid() {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SmashKlonk);
                         audio.emit_sfx(
                             sfx_trigger_item,
                             client.position().unwrap_or(*pos),
                             Some(2.0),
-                            player_pos,
                         );
                     } else {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SmashKlonk);
-                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0), player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     }
                 },
                 _ => {},
@@ -767,7 +761,7 @@ impl SfxMgr {
                 | beam::FrontendSpecifier::Bubbles => {
                     if rand::rng().random_bool(0.5) {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SceptreBeam);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     };
                 },
                 beam::FrontendSpecifier::Flamethrower
@@ -777,13 +771,13 @@ impl SfxMgr {
                 | beam::FrontendSpecifier::FirePillar => {
                     if rand::rng().random_bool(0.5) {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FlameThrower);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     }
                 },
                 beam::FrontendSpecifier::FlameWallPillar => {
                     if rand::rng().random_bool(0.02) {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FlameThrower);
-                        audio.emit_sfx(sfx_trigger_item, *pos, None, player_pos);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
                     }
                 },
                 beam::FrontendSpecifier::Gravewarden | beam::FrontendSpecifier::WebStrand => {},
@@ -791,22 +785,12 @@ impl SfxMgr {
             Outcome::SpriteUnlocked { pos } => {
                 // TODO: Dedicated sound effect!
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GliderOpen);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e as f32 + 0.5),
-                    Some(2.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(2.0));
             },
             Outcome::FailedSpriteUnlock { pos } => {
                 // TODO: Dedicated sound effect!
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::BreakBlock);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e as f32 + 0.5),
-                    Some(2.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(2.0));
             },
             Outcome::BreakBlock { pos, tool, .. } => {
                 let sfx_trigger_item =
@@ -817,12 +801,7 @@ impl SfxMgr {
                         } else {
                             SfxEvent::BreakBlock
                         });
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e as f32 + 0.5),
-                    Some(3.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(3.0));
             },
             Outcome::DamagedBlock {
                 pos,
@@ -842,7 +821,6 @@ impl SfxMgr {
                     sfx_trigger_item,
                     pos.map(|e| e as f32 + 0.5),
                     Some(if *stage_changed { 3.0 } else { 2.0 }),
-                    player_pos,
                 );
             },
             Outcome::HealthChange { pos, info, .. } => {
@@ -851,20 +829,20 @@ impl SfxMgr {
                     && !matches!(info.cause, Some(DamageSource::Buff(_)))
                 {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Damage);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 }
             },
             Outcome::Death { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Death);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
             },
             Outcome::Block { pos, parry, .. } => {
                 if *parry {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Parry);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 } else {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Block);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 }
             },
             Outcome::PoiseChange {
@@ -877,25 +855,25 @@ impl SfxMgr {
                     let sfx_trigger_item = triggers
                         .0
                         .get_key_value(&SfxEvent::PoiseChange(PoiseState::Interrupted));
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 },
                 PoiseState::Stunned => {
                     let sfx_trigger_item = triggers
                         .0
                         .get_key_value(&SfxEvent::PoiseChange(PoiseState::Stunned));
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 },
                 PoiseState::Dazed => {
                     let sfx_trigger_item = triggers
                         .0
                         .get_key_value(&SfxEvent::PoiseChange(PoiseState::Dazed));
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 },
                 PoiseState::KnockedDown => {
                     let sfx_trigger_item = triggers
                         .0
                         .get_key_value(&SfxEvent::PoiseChange(PoiseState::KnockedDown));
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5));
                 },
             },
             Outcome::Utterance { pos, kind, body } => {
@@ -903,7 +881,7 @@ impl SfxMgr {
                     let sfx_trigger_item =
                         triggers.0.get_key_value(&SfxEvent::Utterance(*kind, voice));
                     if let Some(sfx_trigger_item) = sfx_trigger_item {
-                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(1.5), player_pos);
+                        audio.emit_sfx(Some(sfx_trigger_item), *pos, Some(1.5));
                     } else {
                         debug!(
                             "No utterance sound effect exists for ({:?}, {:?})",
@@ -915,10 +893,10 @@ impl SfxMgr {
             Outcome::Glider { pos, wielded } => {
                 if *wielded {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GliderOpen);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0));
                 } else {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::GliderClose);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0));
                 }
             },
             Outcome::SpriteDelete {
@@ -930,48 +908,23 @@ impl SfxMgr {
                     .max(0.0)
                     .powi(7);
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Explosion);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos,
-                    Some((power.abs() / 2.5).min(0.3)),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos, Some((power.abs() / 2.5).min(0.3)));
             },
             Outcome::Whoosh { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Whoosh);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e + 0.5),
-                    Some(3.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e + 0.5), Some(3.0));
             },
             Outcome::Swoosh { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Swoosh);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e + 0.5),
-                    Some(3.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e + 0.5), Some(3.0));
             },
             Outcome::Slash { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SmashKlonk);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e + 0.5),
-                    Some(3.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e + 0.5), Some(3.0));
             },
             Outcome::Bleep { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Bleep);
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e + 0.5),
-                    Some(3.0),
-                    player_pos,
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e + 0.5), Some(3.0));
             },
             Outcome::HeadLost { uid, .. } => {
                 let positions = client.state().ecs().read_storage::<common::comp::Pos>();
@@ -983,7 +936,7 @@ impl SfxMgr {
                     .and_then(|entity| positions.get(entity))
                 {
                     let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Death);
-                    audio.emit_sfx(sfx_trigger_item, pos.0, Some(2.0), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, Some(2.0));
                 } else {
                     error!("Couldn't get position of entity that lost head");
                 }
@@ -1001,7 +954,7 @@ impl SfxMgr {
                         (SfxEvent::SplashBig, (energy / 100.0).sqrt() + 0.5)
                     };
                     let sfx_trigger_item = triggers.0.get_key_value(&sfx);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume.min(2.0)), player_pos);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume.min(2.0)));
                 }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},

@@ -60,113 +60,101 @@ impl EventMapper for VehicleEventMapper {
 
         let cam_pos = camera.get_pos_with_focus();
 
-        if let Some(player_pos) = state.read_component_copied::<Pos>(player_entity) {
-            for (entity, body, pos, vel) in (
-                &ecs.entities(),
-                &ecs.read_storage::<Body>(),
-                &ecs.read_storage::<Pos>(),
-                &ecs.read_storage::<Vel>(),
-            )
-                .join()
-                .filter(|(_, _, e_pos, _)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
-            {
-                if let Body::Ship(ship::Body::Train) = body {
-                    let internal_state = self.event_history.entry(entity).or_default();
+        for (entity, body, pos, vel) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Vel>(),
+        )
+            .join()
+            .filter(|(_, _, e_pos, _)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
+        {
+            if let Body::Ship(ship::Body::Train) = body {
+                let internal_state = self.event_history.entry(entity).or_default();
 
-                    let speed = vel.0.magnitude();
+                let speed = vel.0.magnitude();
 
-                    // Determines whether we play low-speed chuggs or high-speed chugging
-                    let chugg_lerp = ((speed - 20.0) / 25.0).clamp(0.0, 1.0);
+                // Determines whether we play low-speed chuggs or high-speed chugging
+                let chugg_lerp = ((speed - 20.0) / 25.0).clamp(0.0, 1.0);
 
-                    // Low-speed chugging
-                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainChugg)
-                        && internal_state.last_chugg.elapsed().as_secs_f32()
-                            >= 7.5 / speed.min(50.0)
-                        && chugg_lerp < 1.0
+                // Low-speed chugging
+                if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainChugg)
+                    && internal_state.last_chugg.elapsed().as_secs_f32() >= 7.5 / speed.min(50.0)
+                    && chugg_lerp < 1.0
+                {
+                    audio.emit_sfx(
+                        Some((event, item)),
+                        pos.0,
+                        Some(((1.0 - chugg_lerp) * 4.0).min(3.0)),
+                    );
+                    internal_state.last_chugg = Instant::now();
+                }
+                // Steam release
+                if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainChuggSteam)
+                    && internal_state.last_chugg_steam.elapsed().as_secs_f32()
+                        >= 10.0 / speed.min(50.0)
+                    && chugg_lerp < 1.0
+                {
+                    audio.emit_sfx(Some((event, item)), pos.0, Some((1.0 - chugg_lerp) * 4.0));
+                    internal_state.last_chugg_steam = Instant::now();
+                }
+                // High-speed chugging
+                if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainSpeed) {
+                    let volume = chugg_lerp * 8.0;
+
+                    if internal_state.last_speed.0.elapsed().as_secs_f32() >= item.threshold
+                        && chugg_lerp > 0.0
                     {
-                        audio.emit_sfx_ext(
-                            Some((event, item)),
-                            pos.0,
-                            Some(((1.0 - chugg_lerp) * 4.0).min(3.0)),
-                            player_pos.0,
+                        internal_state.last_speed = (
+                            Instant::now(),
+                            audio.emit_sfx(Some((event, item)), pos.0, None),
                         );
-                        internal_state.last_chugg = Instant::now();
                     }
-                    // Steam release
-                    if let Some((event, item)) =
-                        triggers.0.get_key_value(&SfxEvent::TrainChuggSteam)
-                        && internal_state.last_chugg_steam.elapsed().as_secs_f32()
-                            >= 10.0 / speed.min(50.0)
-                        && chugg_lerp < 1.0
+
+                    if let Some(chan) = internal_state
+                        .last_speed
+                        .1
+                        .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
                     {
-                        audio.emit_sfx_ext(
-                            Some((event, item)),
-                            pos.0,
-                            Some((1.0 - chugg_lerp) * 4.0),
-                            player_pos.0,
+                        chan.set_volume(volume, Some(0.1));
+                        chan.set_pos(pos.0);
+                    }
+                }
+                // Train ambience
+                if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainAmbience) {
+                    let volume = speed.clamp(20.0, 50.0) / 10.0;
+
+                    if internal_state.last_ambience.0.elapsed().as_secs_f32() >= item.threshold {
+                        internal_state.last_ambience = (
+                            Instant::now(),
+                            audio.emit_sfx(Some((event, item)), pos.0, None),
                         );
-                        internal_state.last_chugg_steam = Instant::now();
                     }
-                    // High-speed chugging
-                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainSpeed) {
-                        let volume = chugg_lerp * 8.0;
 
-                        if internal_state.last_speed.0.elapsed().as_secs_f32() >= item.threshold
-                            && chugg_lerp > 0.0
-                        {
-                            internal_state.last_speed = (
-                                Instant::now(),
-                                audio.emit_sfx_ext(Some((event, item)), pos.0, None, player_pos.0),
-                            );
-                        }
-
-                        if let Some(chan) = internal_state
-                            .last_speed
-                            .1
-                            .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
-                        {
-                            chan.set_volume(volume);
-                            chan.set_pos(pos.0);
-                        }
-                    }
-                    // Train ambience
-                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainAmbience)
+                    if let Some(chan) = internal_state
+                        .last_ambience
+                        .1
+                        .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
                     {
-                        let volume = speed.clamp(20.0, 50.0) / 10.0;
-
-                        if internal_state.last_ambience.0.elapsed().as_secs_f32() >= item.threshold
-                        {
-                            internal_state.last_ambience = (
-                                Instant::now(),
-                                audio.emit_sfx_ext(Some((event, item)), pos.0, None, player_pos.0),
-                            );
-                        }
-
-                        if let Some(chan) = internal_state
-                            .last_ambience
-                            .1
-                            .and_then(|sfx| audio.channels_mut()?.get_sfx_channel(&sfx))
-                        {
-                            chan.set_volume(volume);
-                            chan.set_pos(pos.0);
-                        }
+                        chan.set_volume(volume, Some(0.1));
+                        chan.set_pos(pos.0);
                     }
-                    // Train clack
-                    if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainClack)
-                        && internal_state.last_clack.elapsed().as_secs_f32() >= 48.0 / speed
-                        && speed > 25.0
-                    {
-                        audio.emit_sfx_ext(
-                            Some((event, item)),
-                            pos.0,
-                            Some(speed.clamp(25.0, 50.0) / 18.0),
-                            player_pos.0,
-                        );
-                        internal_state.last_clack = Instant::now();
-                    }
+                }
+                // Train clack
+                if let Some((event, item)) = triggers.0.get_key_value(&SfxEvent::TrainClack)
+                    && internal_state.last_clack.elapsed().as_secs_f32() >= 48.0 / speed
+                    && speed > 25.0
+                {
+                    audio.emit_sfx(
+                        Some((event, item)),
+                        pos.0,
+                        Some(speed.clamp(25.0, 50.0) / 18.0),
+                    );
+                    internal_state.last_clack = Instant::now();
                 }
             }
         }
+
         self.cleanup(player_entity);
     }
 }
