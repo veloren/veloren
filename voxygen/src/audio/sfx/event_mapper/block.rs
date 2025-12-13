@@ -238,7 +238,6 @@ impl EventMapper for BlockEventMapper {
                                         sfx_trigger_item,
                                         block_pos,
                                         Some(sounds.volume),
-                                        player_pos.0,
                                     );
                                 }
                                 internal_state.time = Instant::now();

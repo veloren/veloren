@@ -24,7 +24,7 @@ use kira::{
     clock::{ClockHandle, ClockSpeed, ClockTime},
     effect::filter::{FilterBuilder, FilterHandle},
     listener::ListenerHandle,
-    track::{TrackBuilder, TrackHandle},
+    track::{SpatialTrackBuilder, TrackBuilder, TrackHandle},
 };
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
@@ -39,27 +39,10 @@ use common::{
 };
 use vek::*;
 
-use crate::hud::Subtitle;
-
-// #[derive(Clone)]
-// pub struct Listener {
-//     pub pos: Vec3<f32>,
-//     pub ori: Vec3<f32>,
-
-//     ear_left_rpos: Vec3<f32>,
-//     ear_right_rpos: Vec3<f32>,
-// }
-
-// impl Default for Listener {
-//     fn default() -> Self {
-//         Self {
-//             pos: Default::default(),
-//             ori: Default::default(),
-//             ear_left_rpos: Vec3::unit_x(),
-//             ear_right_rpos: -Vec3::unit_x(),
-//         }
-//     }
-// }
+use crate::{
+    audio::channel::{SFX_DIST_LIMIT, calculate_player_attenuation},
+    hud::Subtitle,
+};
 
 pub fn to_decibels(amplitude: f32) -> Decibels {
     if amplitude <= 0.001 {
@@ -195,6 +178,9 @@ struct AudioFrontendInner {
     effects: Effects,
     channels: Channels,
     listener: ListenerInstance,
+    /// Player position is tracked here for sfx attenutation on top of the
+    /// standard camera-based spacial attenuation.
+    player_pos: Vec3<f32>,
     clock: ClockHandle,
 }
 
@@ -264,11 +250,7 @@ impl AudioFrontendInner {
         let mut channels = Channels::default();
 
         for _ in 0..num_sfx_channels {
-            if let Ok(channel) = SfxChannel::new(&mut tracks.sfx, listener.handle.id()) {
-                channels.sfx.push(channel);
-            } else {
-                warn!("Cannot create sfx channel")
-            }
+            channels.sfx.push(SfxChannel::new());
         }
 
         for _ in 0..num_ui_channels {
@@ -285,6 +267,7 @@ impl AudioFrontendInner {
             effects,
             channels,
             listener,
+            player_pos: Vec3::zero(),
             clock,
         })
     }
@@ -487,11 +470,9 @@ impl AudioFrontend {
         if let Some(inner) = &mut self.inner {
             inner.channels.music.retain(|c| !c.is_done());
             inner.channels.ambience.retain(|c| !c.is_stopped());
-            // Also set any unused sfx channels to 0 volume to prevent popping in some
-            // cases.
             inner.channels.sfx.iter_mut().for_each(|c| {
                 if c.is_done() {
-                    c.set_volume(0.0);
+                    c.drop_track();
                 }
             });
             inner.channels.ui.iter_mut().for_each(|c| {
@@ -640,17 +621,6 @@ impl AudioFrontend {
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         emitter_pos: Vec3<f32>,
         volume: Option<f32>,
-        player_pos: Vec3<f32>,
-    ) {
-        self.emit_sfx_ext(trigger_item, emitter_pos, volume, player_pos);
-    }
-
-    pub fn emit_sfx_ext(
-        &mut self,
-        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
-        emitter_pos: Vec3<f32>,
-        volume: Option<f32>,
-        player_pos: Vec3<f32>,
     ) -> Option<SfxHandle> {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
             self.emit_subtitle(subtitle, Some(emitter_pos), dur);
@@ -659,15 +629,34 @@ impl AudioFrontend {
                 && let Some(inner) = self.inner.as_mut()
                 && let Some((channel_idx, channel)) = inner.channels.get_empty_sfx_channel()
             {
+                let listener_id = inner.listener.handle.id();
                 let sound = load_ogg(sfx_file, false);
                 channel.set_pos(emitter_pos);
-                channel.update(player_pos);
 
-                let source = sound.volume(to_decibels(volume.unwrap_or(1.0) * 5.0));
-                Some(SfxHandle {
-                    channel_idx,
-                    play_id: channel.play(source),
-                })
+                // Initial calculation of player position attenuation to avoid popping
+                let ratio = calculate_player_attenuation(inner.player_pos, emitter_pos);
+
+                let source_volume = volume.unwrap_or(1.0);
+                let source = sound.volume(to_decibels(source_volume * 5.0 * ratio));
+
+                // We build new tracks here because we have to set the emitter position
+                // initially, which isn't possible to synchronize with the start of a new sound.
+                let sfx_track_builder = SpatialTrackBuilder::new()
+                    .distances((1.0, SFX_DIST_LIMIT))
+                    .attenuation_function(Some(kira::Easing::OutPowf(0.66)));
+                if let Ok(track) = inner.tracks.sfx.add_spatial_sub_track(
+                    listener_id,
+                    emitter_pos,
+                    sfx_track_builder,
+                ) {
+                    Some(SfxHandle {
+                        channel_idx,
+                        play_id: channel.play(source, source_volume, track),
+                    })
+                } else {
+                    debug!("Could not add SpacialTrack to play sfx");
+                    None
+                }
             } else {
                 None
             }
@@ -941,13 +930,7 @@ impl AudioFrontend {
         if let Some(inner) = self.inner.as_mut() {
             inner.channels.sfx = Vec::new();
             for _ in 0..channels {
-                if let Ok(channel) =
-                    SfxChannel::new(&mut inner.tracks.sfx, inner.listener.handle.id())
-                {
-                    inner.channels.sfx.push(channel);
-                } else {
-                    warn!("Cannot create sfx channel")
-                }
+                inner.channels.sfx.push(SfxChannel::new());
             }
         }
     }

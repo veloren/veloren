@@ -174,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix offset of BenchCoastal sprite
 - Adjust marine vehicles center alignment
 - Various sprite lighting issues
+- Spatial SFX no longer pop at the very start of their sound.
 
 ## [0.17.0] - 2024-12-28
 
