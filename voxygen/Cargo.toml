@@ -35,7 +35,7 @@ tracy = ["common-frontend/tracy", "client/tracy"]
 tracy-memory = ["tracy"]
 # enables heap profiling with tracy
 plugins = ["client/plugins", "server/plugins", "anim/plugins", "common/plugins"]
-egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
+egui-ui = ["voxygen-egui", "egui", "egui-wgpu", "egui-winit"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_cmd_doc_gen = []
@@ -68,8 +68,8 @@ voxygen-egui = { package = "veloren-voxygen-egui", path = "egui", optional = tru
 
 # Graphics
 winit = { version = "0.30.12", features = ["serde"] }
-wgpu = { version = "26", features = ["spirv", "glsl"] }
-wgpu-profiler = "0.24"
+wgpu = { version = "27", features = ["spirv", "glsl"] }
+wgpu-profiler = "0.25"
 bytemuck = { version = "1.7", features = ["derive"] }
 shaderc = "0.10"
 
@@ -82,10 +82,9 @@ iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag
 window_clipboard = "0.4.1"
 glyph_brush = "0.7.0"
 # EGUI
-egui = { version = "0.32", optional = true }
-# We should probably migrate to the official `egui-wgpu` and `egui-winit`
-egui_wgpu_backend = { version = "0.35", optional = true }
-egui_winit_platform = { version = "0.27", optional = true }
+egui = { version = "0.33", optional = true }
+egui-wgpu = { version = "0.33", optional = true }
+egui-winit = { version = "0.33", optional = true }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }

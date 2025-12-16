@@ -1750,6 +1750,7 @@ impl PlayState for SessionState {
                 let settings_change = global_state.egui_state.maintain(
                     &mut self.client.borrow_mut(),
                     &mut self.scene,
+                    global_state.window.window(),
                     debug_info.map(|debug_info| EguiDebugInfo {
                         frame_time: debug_info.frame_time,
                         ping_ms: debug_info.ping_ms,
