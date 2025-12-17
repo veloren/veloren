@@ -38,3 +38,9 @@ command-give_item-desc = Выдает вам некоторые предметы
 command-goto-desc = Телепортироваться в нужное место
 command-goto-rand = Телепорт к случайной позиции
 command-group-desc = Отправление сообщений вашей группе
+command-set_body_type-desc = Укажите тип телосложения – Мужской или Женский.
+command-set_body_type-not_found =
+    Недопустимый тип фигуры.
+    Попробуйте один из:
+    { $options }
+command-set_body_type-no_body = Не удалось установить тип тела, так как у объекта нет тела.
