@@ -1235,11 +1235,20 @@ impl Renderer {
         }
 
         let texture = match self.surface.get_current_texture() {
-            Ok(texture) => texture,
+            Ok(texture) => {
+                if texture.suboptimal {
+                    warn!("Suboptimal swap chain, recreating");
+                    drop(texture);
+                    self.surface.configure(&self.device, &self.surface_config);
+                    return Ok(None);
+                } else {
+                    texture
+                }
+            },
             // If lost recreate the swap chain
             Err(err @ wgpu::SurfaceError::Lost) => {
                 warn!("{}. Recreating swap chain. A frame will be missed", err);
-                self.on_resize(self.resolution);
+                self.surface.configure(&self.device, &self.surface_config);
                 return Ok(None);
             },
             Err(wgpu::SurfaceError::Timeout) => {
