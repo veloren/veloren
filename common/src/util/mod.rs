@@ -20,6 +20,8 @@ lazy_static::lazy_static! {
     static ref VELOREN_GIT_VERSION: String =
         std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| VELOREN_GIT_VERSION_BUILD.to_string());
     pub static ref GIT_TAG: &'static str = VELOREN_GIT_VERSION.split('/').next().expect("failed to retrieve git_tag!");
+    /// The first 32 bits of the git hash. We don't need more, the non-collision guarantee isn't
+    /// all that important for our purposes.
     pub static ref GIT_HASH: u32 = u32::from_str_radix(VELOREN_GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_hash!"), 16).expect("invalid git_hash!");
     pub static ref GIT_TIMESTAMP: i64 = i64::from_str(VELOREN_GIT_VERSION.split('/').nth(2).expect("failed to retrieve git_timestamp!")).expect("invalid git_timestamp!");
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {

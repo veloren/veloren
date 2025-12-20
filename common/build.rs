@@ -23,7 +23,7 @@ fn get_git_hash_timestamp() -> Result<String, String> {
         .split('/')
         .next()
         .ok_or("Git hash not found".to_string())?;
-    // The non-collision guarantee isn't all that important for our purposes
+    // We only use the first 32 bits of the git hash
     if hash.len() != 8 {
         Ok(format!(
             "{}/{}",
