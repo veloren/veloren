@@ -67,6 +67,8 @@ pub struct Profile {
     /// not be persisted to the disk.
     #[serde(skip)]
     pub transient_character: Option<CharacterProfile>,
+    #[serde(skip)] // TODO: Don't skip once ready
+    pub tutorial: hud::tutorial::TutorialState,
 }
 
 impl Profile {

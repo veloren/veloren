@@ -1,0 +1,19 @@
+tutorial-Move = Try moving around with { $w }, { $a }, { $s }, and { $d }.
+tutorial-Jump = You can make your character jump with { $key }.
+tutorial-OpenInventory = Try opening your inventory with { $key }.
+tutorial-OpenGlider = You can use your glider with { $key }.
+tutorial-Glider = Run toward an edge, jump, and pull out your glider to soar through the sky!
+tutorial-StallGlider = Your glider is stalling! Try nosing down to avoid dropping out of the sky.
+tutorial-Roll = Try rolling with { $key }. You can use it to dodge enemy attacks.
+tutorial-Attacked = You're being attacked! Use { $key } to draw your weapon and fight!
+tutorial-Unwield = You can use { $key } to sheath your weapon after a battle.
+
+achievement-Moved = Walked around
+achievement-Jumped = Jumped
+achievement-OpenInventory = Opened inventory
+achievement-OpenGlider = Opened glider
+achievement-StallGlider = Stall glider
+achievement-Rolled = Rolled
+achievement-Attacked = Attacked by somebody
+achievement-Wield = Draw your weapon
+achievement-Unwield = Sheath your weapon

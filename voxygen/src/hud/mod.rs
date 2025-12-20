@@ -27,6 +27,7 @@ mod trade;
 
 pub mod img_ids;
 pub mod item_imgs;
+pub mod tutorial;
 pub mod util;
 
 pub use chat::MessageBacklog;
@@ -61,6 +62,7 @@ use skillbar::Skillbar;
 use social::Social;
 use subtitles::Subtitles;
 use trade::Trade;
+use tutorial::Tutorial;
 
 use crate::{
     GlobalState,
@@ -333,6 +335,7 @@ widget_ids! {
         small_window,
         social_window,
         quest_window,
+        tutorial_window,
         crafting_window,
         settings_window,
         group_window,
@@ -3815,6 +3818,26 @@ impl Hud {
             false
         };
 
+        match Tutorial::new(
+            &self.show,
+            client,
+            &self.imgs,
+            &self.fonts,
+            i18n,
+            global_state,
+            &self.rot_imgs,
+            tooltip_manager,
+            &self.item_imgs,
+            self.pulse,
+            dt,
+            self.show.esc_menu,
+        )
+        .set(self.ids.tutorial_window, ui_widgets)
+        {
+            Some(tutorial::Event::Close) => {},
+            None => {},
+        }
+
         if !dialogue_open && let Some((sender, _, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {
                 id: dialogue.id,
@@ -4982,6 +5005,7 @@ impl Hud {
                         true
                     },
                     GameInput::Inventory if state => {
+                        global_state.profile.tutorial.event_open_inventory();
                         let state = !self.show.bag;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, state);
                         true
