@@ -410,7 +410,7 @@ impl SessionState {
                     global_state
                         .profile
                         .tutorial
-                        .event_outcome(&*client, &outcome);
+                        .event_outcome(&client, &outcome);
                     outcomes.push(outcome);
                 },
                 client::Event::CharacterCreated(_) => {},
@@ -894,10 +894,8 @@ impl PlayState for SessionState {
                             GameInput::Respawn => {
                                 self.walking_speed = false;
                                 self.stop_auto_walk();
-                                if state {
-                                    if self.client.borrow_mut().respawn() {
-                                        global_state.profile.tutorial.event_respawn();
-                                    }
+                                if state && self.client.borrow_mut().respawn() {
+                                    global_state.profile.tutorial.event_respawn();
                                 }
                             },
                             GameInput::Jump => {
@@ -1028,6 +1026,7 @@ impl PlayState for SessionState {
                                 if client.is_lantern_enabled() {
                                     client.disable_lantern();
                                 } else {
+                                    global_state.profile.tutorial.event_lantern();
                                     client.enable_lantern();
                                 }
                             },

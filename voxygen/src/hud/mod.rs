@@ -2011,6 +2011,7 @@ impl Hud {
 
             // Push speech bubbles
             for msg in self.new_messages.iter() {
+                global_state.profile.tutorial.event_chat_msg(msg);
                 if let Some((bubble, uid)) = msg.to_bubble() {
                     self.speech_bubbles.insert(uid, bubble);
                 }

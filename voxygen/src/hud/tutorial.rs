@@ -7,6 +7,8 @@ use client::Client;
 use common::{
     DamageSource,
     comp::{self, Vel},
+    resources::TimeOfDay,
+    terrain::SiteKindMeta,
 };
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
@@ -16,6 +18,7 @@ use conrod_core::{
 use i18n::Localization;
 use inline_tweak::*;
 use serde::{Deserialize, Serialize};
+use specs::WorldExt;
 use std::{borrow::Cow, time::Duration};
 use vek::*;
 
@@ -44,6 +47,11 @@ pub enum Hint {
     RespawnDurability,
     RecipeAvailable,
     EnergyLow,
+    Chat,
+    Sneak,
+    Lantern,
+    Zoom,
+    Swim,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -64,6 +72,11 @@ pub enum Achievement {
     RecipeAvailable,
     OpenCrafting,
     EnergyLow,
+    ReceivedChatMsg,
+    NearEnemies,
+    InDark,
+    UsedLantern,
+    Swim,
 }
 
 impl Hint {
@@ -85,7 +98,7 @@ impl Hint {
                 "s" => get_key(GameInput::MoveBack),
                 "d" => get_key(GameInput::MoveRight),
             }),
-            Self::Jump => i18n.get_msg_ctx(&key, &i18n::fluent_args! {
+            Self::Jump => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "key" => get_key(GameInput::Jump),
             }),
             Self::OpenInventory => i18n.get_msg_ctx(key, &i18n::fluent_args! {
@@ -111,6 +124,23 @@ impl Hint {
             }),
             Self::RecipeAvailable => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "key" => get_key(GameInput::Crafting),
+            }),
+            Self::Chat => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Chat),
+            }),
+            Self::Sneak => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Sneak),
+            }),
+            Self::Lantern => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::ToggleLantern),
+            }),
+            Self::Zoom => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "in" => get_key(GameInput::ZoomIn),
+                "out" => get_key(GameInput::ZoomOut),
+            }),
+            Self::Swim => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "down" => get_key(GameInput::SwimDown),
+                "up" => get_key(GameInput::SwimUp),
             }),
             _ => i18n.get_msg(key),
         }
@@ -143,6 +173,7 @@ impl Default for TutorialState {
             done: Default::default(),
         };
         this.add_hinted_goal(Hint::Move, Achievement::Moved, Duration::from_secs(10));
+        this.show_hint(Hint::Zoom, Duration::from_mins(3));
         this
     }
 }
@@ -206,7 +237,7 @@ impl TutorialState {
         if let Some(comp::CharacterState::Glide(glide)) = client.current::<comp::CharacterState>()
             && glide.ori.look_dir().z > 0.5
             && let Some(vel) = client.current::<Vel>()
-            && vel.0.z.powi(2) < -vel.0.xy().magnitude_squared()
+            && vel.0.z < -vel.0.xy().magnitude()
             && self.earn_achievement(Achievement::StallGlider)
         {
             self.show_hint(Hint::StallGlider, Duration::ZERO);
@@ -222,20 +253,25 @@ impl TutorialState {
             }
         }
 
+        if let Some(ps) = client.current::<comp::PhysicsState>()
+            && ps.in_liquid().is_some()
+            && self.earn_achievement(Achievement::Swim)
+        {
+            self.show_hint(Hint::Swim, Duration::from_secs(3));
+        }
+
         if let Some(inv) = client.current::<comp::Inventory>()
             && inv.free_slots() == 0
+            && self.earn_achievement(Achievement::FullInventory)
         {
-            if self.earn_achievement(Achievement::FullInventory) {
-                self.show_hint(Hint::FullInventory, Duration::from_secs(2));
-            }
+            self.show_hint(Hint::FullInventory, Duration::from_secs(2));
         }
 
         if let Some(energy) = client.current::<comp::Energy>()
             && energy.fraction() < 0.25
+            && self.earn_achievement(Achievement::EnergyLow)
         {
-            if self.earn_achievement(Achievement::EnergyLow) {
-                self.show_hint(Hint::EnergyLow, Duration::ZERO);
-            }
+            self.show_hint(Hint::EnergyLow, Duration::ZERO);
         }
 
         if !self.done(Achievement::RecipeAvailable) && !client.available_recipes().is_empty() {
@@ -246,16 +282,44 @@ impl TutorialState {
                 Duration::from_secs(1),
             );
         }
+
+        if let Some(chunk) = client.current_chunk()
+            && let Some(pos) = client.current::<comp::Pos>()
+            && let in_cave = pos.0.z < chunk.meta().alt() - 20.0
+            && let near_enemies = matches!(
+                chunk.meta().site(),
+                Some(SiteKindMeta::Dungeon(_) | SiteKindMeta::Cave)
+            )
+            && (in_cave || near_enemies)
+            && self.earn_achievement(Achievement::NearEnemies)
+        {
+            self.show_hint(Hint::Sneak, Duration::ZERO);
+        }
+
+        if client
+            .state()
+            .ecs()
+            .read_resource::<TimeOfDay>()
+            .day_period()
+            .is_dark()
+            && self.earn_achievement(Achievement::InDark)
+        {
+            self.add_hinted_goal(
+                Hint::Lantern,
+                Achievement::UsedLantern,
+                Duration::from_secs(10),
+            );
+        }
     }
 
     pub(crate) fn event_move(&mut self) {
         self.earn_achievement(Achievement::Moved);
-        self.add_hinted_goal(Hint::Jump, Achievement::Jumped, Duration::from_secs(10));
+        self.add_hinted_goal(Hint::Jump, Achievement::Jumped, Duration::from_secs(15));
     }
 
     pub(crate) fn event_jump(&mut self) {
         self.earn_achievement(Achievement::Jumped);
-        self.add_hinted_goal(Hint::Roll, Achievement::Rolled, Duration::from_secs(15));
+        self.add_hinted_goal(Hint::Roll, Achievement::Rolled, Duration::from_secs(30));
     }
 
     pub(crate) fn event_roll(&mut self) {
@@ -263,7 +327,7 @@ impl TutorialState {
         self.add_hinted_goal(
             Hint::OpenGlider,
             Achievement::OpenGlider,
-            Duration::from_secs(20),
+            Duration::from_mins(2),
         );
     }
 
@@ -271,7 +335,7 @@ impl TutorialState {
         self.add_hinted_goal(
             Hint::OpenInventory,
             Achievement::OpenInventory,
-            Duration::from_secs(2),
+            Duration::from_secs(1),
         );
     }
 
@@ -290,6 +354,8 @@ impl TutorialState {
     pub(crate) fn event_open_crafting(&mut self) {
         self.earn_achievement(Achievement::OpenCrafting);
     }
+
+    pub(crate) fn event_lantern(&mut self) { self.earn_achievement(Achievement::UsedLantern); }
 
     pub(crate) fn event_outcome(&mut self, client: &Client, outcome: &Outcome) {
         match outcome {
@@ -328,6 +394,7 @@ impl TutorialState {
     }
 
     pub(crate) fn event_find_interactable(&mut self, inter: &Interactable) {
+        #[allow(clippy::single_match)]
         match inter {
             Interactable::Entity {
                 interaction: EntityInteraction::CampfireSit,
@@ -342,12 +409,19 @@ impl TutorialState {
     }
 
     pub(crate) fn event_notification(&mut self, notif: &UserNotification) {
+        #[allow(clippy::single_match)]
         match notif {
             UserNotification::WaypointUpdated => {
                 if self.earn_achievement(Achievement::SetWaypoint) {
                     self.show_hint(Hint::Waypoint, Duration::from_secs(1));
                 }
             },
+        }
+    }
+
+    pub(crate) fn event_chat_msg(&mut self, msg: &comp::ChatMsg) {
+        if msg.chat_type.is_player_msg() && self.earn_achievement(Achievement::ReceivedChatMsg) {
+            self.show_hint(Hint::Chat, Duration::from_secs(2));
         }
     }
 }
