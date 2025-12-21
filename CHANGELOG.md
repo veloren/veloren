@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rebind controller buttons in-game.
 - Adds a cyclable hotbar for improved controller support.
 - Close button for dialogues.
+- A new tutorial system that introduces mechanics during gameplay without breaking immersion
 
 ### Changed
 
@@ -135,6 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NPCs will no longer randomly ambush players.
 - Combat music temporarily removed.
+- Hotkey hints
 
 ### Fixed
 

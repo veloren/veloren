@@ -299,9 +299,7 @@ widget_ids! {
 
         // Help
         help,
-        help_info,
         debug_info,
-        lantern_info,
 
         // Window Frames
         window_frame_0,
@@ -3091,45 +3089,6 @@ impl Hud {
                 .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)
                 .top_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
                 .set(self.ids.debug_bg, ui_widgets);
-        }
-
-        if global_state.settings.interface.toggle_hotkey_hints {
-            // Controls, Keybindings
-            if let Some(help_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Controls)
-            {
-                Text::new(&i18n.get_msg_ctx(
-                    "hud-press_key_to_show_keybindings_fmt",
-                    &i18n::fluent_args! {
-                        "key" => help_key.display_string(),
-                    },
-                ))
-                .color(TEXT_COLOR)
-                .bottom_left_with_margins_on(ui_widgets.window, 210.0, 10.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(12))
-                .set(self.ids.help_info, ui_widgets);
-            }
-            // Lantern Key
-            if let Some(toggle_lantern_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::ToggleLantern)
-            {
-                Text::new(&i18n.get_msg_ctx(
-                    "hud-press_key_to_toggle_lantern_fmt",
-                    &i18n::fluent_args! {
-                        "key" => toggle_lantern_key.display_string(),
-                    },
-                ))
-                .color(TEXT_COLOR)
-                .up_from(self.ids.help_info, 2.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(12))
-                .set(self.ids.lantern_info, ui_widgets);
-            }
         }
 
         // Bag button and nearby icons
