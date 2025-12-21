@@ -402,6 +402,7 @@ impl SessionState {
                         }));
                 },
                 client::Event::Notification(n) => {
+                    global_state.profile.tutorial.event_notification(&n);
                     self.hud.new_notification(n);
                 },
                 client::Event::SetViewDistance(_vd) => {},
@@ -696,6 +697,10 @@ impl PlayState for SessionState {
                 &self.scene,
             ) {
                 Ok(input_map) => {
+                    for (_, inter) in input_map.values() {
+                        global_state.profile.tutorial.event_find_interactable(inter);
+                    }
+
                     let entities = input_map
                         .values()
                         .filter_map(|(_, interactable)| {
@@ -890,7 +895,9 @@ impl PlayState for SessionState {
                                 self.walking_speed = false;
                                 self.stop_auto_walk();
                                 if state {
-                                    self.client.borrow_mut().respawn();
+                                    if self.client.borrow_mut().respawn() {
+                                        global_state.profile.tutorial.event_respawn();
+                                    }
                                 }
                             },
                             GameInput::Jump => {

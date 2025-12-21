@@ -1,31 +1,26 @@
 use crate::{
     GlobalState, Settings,
+    session::interactable::{EntityInteraction, Interactable},
     ui::{TooltipManager, fonts::Fonts},
 };
 use client::Client;
 use common::{
     DamageSource,
-    comp::{self, CharacterState, ItemKey, Vel},
-    rtsim,
+    comp::{self, Vel},
 };
 use conrod_core::{
-    Borderable, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, color,
-    widget::{self, Button, Image, Rectangle, RoundedRectangle, Scrollbar, Text},
+    Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
+    widget::{self, Image, Rectangle, RoundedRectangle, Scrollbar, Text},
     widget_ids,
 };
-use hashbrown::HashSet;
 use i18n::Localization;
 use inline_tweak::*;
 use serde::{Deserialize, Serialize};
-use specs::WorldExt;
-use std::{
-    borrow::Cow,
-    time::{Duration, Instant},
-};
+use std::{borrow::Cow, time::Duration};
 use vek::*;
 
 use super::{
-    GameInput, Outcome, Show, TEXT_COLOR, animate_by_pulse,
+    GameInput, Outcome, Show, TEXT_COLOR, UserNotification,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
 };
@@ -35,12 +30,20 @@ pub enum Hint {
     Move,
     Jump,
     OpenInventory,
+    FallDamage,
     OpenGlider,
     Glider,
     StallGlider,
     Roll,
     Attacked,
     Unwield,
+    Campfire,
+    Waypoint,
+    OpenDiary,
+    FullInventory,
+    RespawnDurability,
+    RecipeAvailable,
+    EnergyLow,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -53,6 +56,14 @@ pub enum Achievement {
     Rolled,
     Wield,
     Unwield,
+    FindCampfire,
+    SetWaypoint,
+    OpenDiary,
+    FullInventory,
+    Respawned,
+    RecipeAvailable,
+    OpenCrafting,
+    EnergyLow,
 }
 
 impl Hint {
@@ -80,7 +91,7 @@ impl Hint {
             Self::OpenInventory => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "key" => get_key(GameInput::Inventory),
             }),
-            Self::OpenGlider => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+            Self::FallDamage | Self::OpenGlider => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "key" => get_key(GameInput::Glide),
             }),
             Self::Roll => i18n.get_msg_ctx(key, &i18n::fluent_args! {
@@ -92,13 +103,22 @@ impl Hint {
             Self::Unwield => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "key" => get_key(GameInput::ToggleWield),
             }),
+            Self::Campfire => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Sit),
+            }),
+            Self::OpenDiary => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Diary),
+            }),
+            Self::RecipeAvailable => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Crafting),
+            }),
             _ => i18n.get_msg(key),
         }
     }
 }
 
 impl Achievement {
-    fn get_msg<'a>(&self, settings: &Settings, i18n: &'a Localization) -> Cow<'a, str> {
+    fn get_msg<'a>(&self, _settings: &Settings, i18n: &'a Localization) -> Cow<'a, str> {
         i18n.get_msg(&format!("achievement-{self:?}"))
     }
 }
@@ -108,7 +128,7 @@ pub struct TutorialState {
     // (_, time_since_active)
     current: Option<(Hint, Option<Achievement>, Duration)>,
     // (_, cancel if achieved, time until display)
-    pending: Vec<(Hint, Achievement, Duration)>,
+    pending: Vec<(Hint, Option<Achievement>, Duration)>,
 
     goals: Vec<Achievement>,
     done: Vec<Achievement>,
@@ -140,9 +160,11 @@ impl TutorialState {
         }
         self.pending.retain(|(hint, achievement, dur)| {
             if dur.is_zero() && self.current.is_none() {
-                self.current = Some((*hint, Some(*achievement), Duration::ZERO));
+                self.current = Some((*hint, *achievement, Duration::ZERO));
                 false
-            } else if self.done.contains(achievement) {
+            } else if let Some(a) = achievement
+                && self.done.contains(a)
+            {
                 false
             } else {
                 true
@@ -156,7 +178,7 @@ impl TutorialState {
         if !self.done.contains(&achievement) {
             self.done.push(achievement);
             self.goals.retain(|a| a != &achievement);
-            self.pending.retain(|(_, a, _)| a != &achievement);
+            self.pending.retain(|(_, a, _)| a != &Some(achievement));
             true
         } else {
             false
@@ -170,25 +192,27 @@ impl TutorialState {
     }
 
     fn add_hinted_goal(&mut self, hint: Hint, achievement: Achievement, timeout: Duration) {
-        if self.pending.iter().all(|(h, _, _)| h != &hint) {
+        if self.pending.iter().all(|(h, _, _)| h != &hint) && !self.done(achievement) {
             self.add_goal(achievement);
-            self.pending.push((hint, achievement, timeout));
+            self.pending.push((hint, Some(achievement), timeout));
         }
     }
 
-    fn show_hint(&mut self, hint: Hint) { self.current = Some((hint, None, Duration::ZERO)); }
+    fn show_hint(&mut self, hint: Hint, timeout: Duration) {
+        self.pending.push((hint, None, timeout));
+    }
 
     pub(crate) fn event_tick(&mut self, client: &Client) {
-        if let Some(CharacterState::Glide(glide)) = client.current::<CharacterState>()
+        if let Some(comp::CharacterState::Glide(glide)) = client.current::<comp::CharacterState>()
             && glide.ori.look_dir().z > 0.5
             && let Some(vel) = client.current::<Vel>()
-            && vel.0.z < 0.0
+            && vel.0.z.powi(2) < -vel.0.xy().magnitude_squared()
             && self.earn_achievement(Achievement::StallGlider)
         {
-            self.show_hint(Hint::StallGlider);
+            self.show_hint(Hint::StallGlider, Duration::ZERO);
         }
 
-        if let Some(cs) = client.current::<CharacterState>() {
+        if let Some(cs) = client.current::<comp::CharacterState>() {
             if cs.is_wield() && self.earn_achievement(Achievement::Wield) {
                 self.add_hinted_goal(Hint::Unwield, Achievement::Unwield, Duration::from_mins(2));
             }
@@ -196,6 +220,31 @@ impl TutorialState {
             if !cs.is_wield() && self.done(Achievement::Wield) {
                 self.earn_achievement(Achievement::Unwield);
             }
+        }
+
+        if let Some(inv) = client.current::<comp::Inventory>()
+            && inv.free_slots() == 0
+        {
+            if self.earn_achievement(Achievement::FullInventory) {
+                self.show_hint(Hint::FullInventory, Duration::from_secs(2));
+            }
+        }
+
+        if let Some(energy) = client.current::<comp::Energy>()
+            && energy.fraction() < 0.25
+        {
+            if self.earn_achievement(Achievement::EnergyLow) {
+                self.show_hint(Hint::EnergyLow, Duration::ZERO);
+            }
+        }
+
+        if !self.done(Achievement::RecipeAvailable) && !client.available_recipes().is_empty() {
+            self.earn_achievement(Achievement::RecipeAvailable);
+            self.add_hinted_goal(
+                Hint::RecipeAvailable,
+                Achievement::OpenCrafting,
+                Duration::from_secs(1),
+            );
         }
     }
 
@@ -209,7 +258,14 @@ impl TutorialState {
         self.add_hinted_goal(Hint::Roll, Achievement::Rolled, Duration::from_secs(15));
     }
 
-    pub(crate) fn event_roll(&mut self) { self.earn_achievement(Achievement::Rolled); }
+    pub(crate) fn event_roll(&mut self) {
+        self.earn_achievement(Achievement::Rolled);
+        self.add_hinted_goal(
+            Hint::OpenGlider,
+            Achievement::OpenGlider,
+            Duration::from_secs(20),
+        );
+    }
 
     pub(crate) fn event_collect(&mut self) {
         self.add_hinted_goal(
@@ -219,8 +275,20 @@ impl TutorialState {
         );
     }
 
+    pub(crate) fn event_respawn(&mut self) {
+        if self.earn_achievement(Achievement::Respawned) {
+            self.show_hint(Hint::RespawnDurability, Duration::from_secs(5));
+        }
+    }
+
     pub(crate) fn event_open_inventory(&mut self) {
         self.earn_achievement(Achievement::OpenInventory);
+    }
+
+    pub(crate) fn event_open_diary(&mut self) { self.earn_achievement(Achievement::OpenDiary); }
+
+    pub(crate) fn event_open_crafting(&mut self) {
+        self.earn_achievement(Achievement::OpenCrafting);
     }
 
     pub(crate) fn event_outcome(&mut self, client: &Client, outcome: &Outcome) {
@@ -230,16 +298,24 @@ impl TutorialState {
                     && info.cause == Some(DamageSource::Falling) =>
             {
                 self.add_hinted_goal(
-                    Hint::OpenGlider,
+                    Hint::FallDamage,
                     Achievement::OpenGlider,
                     Duration::from_secs(1),
                 );
             },
             Outcome::HealthChange { info, .. }
                 if Some(info.target) == client.uid()
-                    && !matches!(info.cause, Some(DamageSource::Falling)) =>
+                    && !matches!(info.cause, Some(DamageSource::Falling))
+                    && info.amount < 0.0 =>
             {
                 self.add_hinted_goal(Hint::Attacked, Achievement::Wield, Duration::ZERO);
+            },
+            Outcome::SkillPointGain { uid, .. } if Some(*uid) == client.uid() => {
+                self.add_hinted_goal(
+                    Hint::OpenDiary,
+                    Achievement::OpenDiary,
+                    Duration::from_secs(3),
+                );
             },
             _ => {},
         }
@@ -247,7 +323,31 @@ impl TutorialState {
 
     pub(crate) fn event_open_glider(&mut self) {
         if self.earn_achievement(Achievement::OpenGlider) {
-            self.show_hint(Hint::Glider);
+            self.show_hint(Hint::Glider, Duration::from_secs(1));
+        }
+    }
+
+    pub(crate) fn event_find_interactable(&mut self, inter: &Interactable) {
+        match inter {
+            Interactable::Entity {
+                interaction: EntityInteraction::CampfireSit,
+                ..
+            } => {
+                if self.earn_achievement(Achievement::FindCampfire) {
+                    self.show_hint(Hint::Campfire, Duration::from_secs(1));
+                }
+            },
+            _ => {},
+        }
+    }
+
+    pub(crate) fn event_notification(&mut self, notif: &UserNotification) {
+        match notif {
+            UserNotification::WaypointUpdated => {
+                if self.earn_achievement(Achievement::SetWaypoint) {
+                    self.show_hint(Hint::Waypoint, Duration::from_secs(1));
+                }
+            },
         }
     }
 }
@@ -278,7 +378,7 @@ pub struct Tutorial<'a> {
     global_state: &'a mut GlobalState,
     _rot_imgs: &'a ImgsRot,
     _tooltip_manager: &'a mut TooltipManager,
-    item_imgs: &'a ItemImgs,
+    _item_imgs: &'a ItemImgs,
     pulse: f32,
     dt: Duration,
     esc_menu: bool,
@@ -299,7 +399,7 @@ impl<'a> Tutorial<'a> {
         global_state: &'a mut GlobalState,
         _rot_imgs: &'a ImgsRot,
         _tooltip_manager: &'a mut TooltipManager,
-        item_imgs: &'a ItemImgs,
+        _item_imgs: &'a ItemImgs,
         pulse: f32,
         dt: Duration,
         esc_menu: bool,
@@ -313,7 +413,7 @@ impl<'a> Tutorial<'a> {
             localized_strings,
             global_state,
             _tooltip_manager,
-            item_imgs,
+            _item_imgs,
             pulse,
             dt,
             esc_menu,
@@ -342,7 +442,6 @@ impl Widget for Tutorial<'_> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
-        let mut event = None;
 
         self.global_state.profile.tutorial.update(self.dt);
         self.global_state.profile.tutorial.event_tick(self.client);
@@ -429,15 +528,16 @@ impl Widget for Tutorial<'_> {
         if let Some((current, _, anim)) = &mut self.global_state.profile.tutorial.current {
             *anim += self.dt;
 
-            let anim_alpha =
-                (Hint::FADE_TIME - (anim.as_secs_f32() - Hint::FADE_TIME).abs()).clamped(0.0, 1.0);
+            let anim = ((Hint::FADE_TIME - (anim.as_secs_f32() - Hint::FADE_TIME).abs()) * 3.0)
+                .clamped(0.0, 1.0);
+            let anim_movement = anim * (1.0 + (self.pulse * 3.0).sin() * 0.35);
 
             RoundedRectangle::fill_with(
                 [tweak!(130.0), tweak!(100.0)],
                 20.0,
-                BACKGROUND.with_alpha(0.85 * anim_alpha),
+                BACKGROUND.with_alpha(0.85 * anim),
             )
-            .mid_top_with_margin_on(ui.window, 80.0)
+            .mid_top_with_margin_on(ui.window, 80.0 * anim_movement.sqrt() as f64)
             .w_h(750.0, 52.0)
             .set(state.ids.bg, ui);
 
@@ -445,10 +545,10 @@ impl Widget for Tutorial<'_> {
                 .mid_left_with_margin_on(state.ids.bg, MARGIN)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(16))
-                .color(TEXT_COLOR.with_alpha(anim_alpha))
+                .color(TEXT_COLOR.with_alpha(anim))
                 .set(state.ids.text, ui);
         }
 
-        event
+        None
     }
 }

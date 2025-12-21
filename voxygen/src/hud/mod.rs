@@ -5015,10 +5015,12 @@ impl Hud {
                         true
                     },
                     GameInput::Crafting if state => {
+                        global_state.profile.tutorial.event_open_crafting();
                         self.show.toggle_crafting();
                         true
                     },
                     GameInput::Diary if state => {
+                        global_state.profile.tutorial.event_open_diary();
                         self.show.toggle_diary();
                         true
                     },
