@@ -51,6 +51,7 @@ pub enum Hint {
     Sneak,
     Lantern,
     Zoom,
+    FirstPerson,
     Swim,
 }
 
@@ -77,6 +78,7 @@ pub enum Achievement {
     InDark,
     UsedLantern,
     Swim,
+    Zoom,
 }
 
 impl Hint {
@@ -356,6 +358,12 @@ impl TutorialState {
     }
 
     pub(crate) fn event_lantern(&mut self) { self.earn_achievement(Achievement::UsedLantern); }
+
+    pub(crate) fn event_zoom(&mut self, delta: f32) {
+        if delta < 0.0 && self.earn_achievement(Achievement::Zoom) {
+            self.show_hint(Hint::FirstPerson, Duration::from_secs(2));
+        }
+    }
 
     pub(crate) fn event_outcome(&mut self, client: &Client, outcome: &Outcome) {
         match outcome {

@@ -1388,6 +1388,10 @@ impl PlayState for SessionState {
 
                     // Pass all other events to the scene
                     event => {
+                        if let Event::Zoom(delta) = &event {
+                            global_state.profile.tutorial.event_zoom(*delta);
+                        }
+
                         self.scene.handle_input_event(event, &self.client.borrow());
                     }, // TODO: Do something if the event wasn't handled?
                 }

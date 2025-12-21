@@ -19,7 +19,8 @@ tutorial-EnergyLow = Your energy is low, so certain abilities might not work. Wa
 tutorial-Chat = You can use `{ $key }` to open the chat and talk to other players.
 tutorial-Sneak = Sneaking with `{ $key }` will quieten your footsteps and make it harder for enemies to notice you.
 tutorial-Lantern = When it gets dark, use `{ $key }` to turn on your lantern.
-tutorial-Zoom = You can use `{ $in }` and `{ $out }` to zoom the camera closer or further from your character.
+tutorial-Zoom = You can use the mouse wheel to zoom the camera closer or further from your character.
+tutorial-FirstPerson = If you zoom in very close to your character, you can enter first person mode.
 tutorial-Swim = When swimming, use `{ $down }` to dive and `{ $up }` to return to the surface.
 
 achievement-Moved = Walked around
@@ -44,3 +45,4 @@ achievement-NearEnemies = Advance upon enemies
 achievement-InDark = Travel in the dark
 achievement-UsedLantern = Turned on your lantern
 achievement-Swim = Went swimming
+achievement-Zoom = Zoomed the camera
