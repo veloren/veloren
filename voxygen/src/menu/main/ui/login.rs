@@ -50,7 +50,6 @@ impl Screen {
         selected_language_index: Option<usize>,
         language_metadatas: &[LanguageMetadata],
         button_style: style::button::Style,
-        version: &str,
     ) -> Element<'_, Message> {
         let mut buttons = Vec::new();
         // If the server field is locked, we don't want to show the server selection
@@ -189,10 +188,12 @@ impl Screen {
             .padding(3)
             .width(Length::Units(230));
 
-        let version = Text::new(version).size(fonts.cyri.scale(15));
+        let version_stage =
+            Text::new(common::util::VELOREN_VERSION_STAGE).size(fonts.cyri.scale(22));
 
         let right_column = Container::new(
-            Column::with_children(vec![v_logo.into(), version.into()]).align_items(Align::Center),
+            Column::with_children(vec![v_logo.into(), version_stage.into()])
+                .align_items(Align::Center),
         )
         .width(Length::Fill)
         .height(Length::Fill)

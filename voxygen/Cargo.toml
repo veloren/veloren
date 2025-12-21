@@ -1,15 +1,17 @@
 [package]
 name = "veloren-voxygen"
-version = "0.17.0"
-default-run = "veloren-voxygen"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+default-run = "veloren-voxygen"
+# Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
+# Uncomment below and comment out default-run if you want to avoid this
+# autobins = false
+
 authors = [
     "Joshua Barretto <joshua.s.barretto@gmail.com>",
     "Imbris <imbrisf@gmail.com>",
 ]
-# Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
-# Uncomment below and comment out default-run if you want to avoid this
-# autobins = false
 
 [lints]
 workspace = true

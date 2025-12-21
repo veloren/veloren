@@ -1,7 +1,9 @@
 [package]
 name = "veloren-server"
-version = "0.17.0"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [lints]

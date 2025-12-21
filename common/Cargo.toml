@@ -1,7 +1,9 @@
 [package]
 name = "veloren-common"
-version = "0.10.0"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = [
     "Joshua Barretto <joshua.s.barretto@gmail.com>",
     "Luna Ćwięka <luna@lunareclipse.zone>",
@@ -105,6 +107,9 @@ tracing-subscriber = { version = "0.3.7", default-features = false, features = [
     "env-filter",
 ] }
 petgraph = "0.8.1"
+
+[build-dependencies]
+regex = "1"
 
 [[bench]]
 name = "chonk_benchmark"

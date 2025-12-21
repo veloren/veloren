@@ -1,8 +1,9 @@
 [package]
 name = "veloren-common-i18n"
-version = "0.1.0"
 description = "Crate for structs and methods that acknowledge the need for localization of the game"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [lints]
 workspace = true

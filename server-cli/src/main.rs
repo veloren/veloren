@@ -91,7 +91,7 @@ fn main() -> io::Result<()> {
 
     // Determine folder to save server data in
     let server_data_dir = {
-        let mut path = common_base::userdata_dir_workspace!();
+        let mut path = common_base::userdata_dir();
         info!("Using userdata folder at {}", path.display());
         path.push(server::DEFAULT_DATA_DIR_NAME);
         path

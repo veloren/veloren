@@ -1,7 +1,9 @@
 [package]
 name = "veloren-voxygen-egui"
-version = "0.9.0"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["Ben Wallis <atomyc@gmail.com>"]
 
 [lints]

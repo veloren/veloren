@@ -89,7 +89,6 @@ use common::{
     slowjob::SlowJobPool,
     terrain::TerrainChunk,
     uid::Uid,
-    util::GIT_DATE_TIMESTAMP,
     vol::RectRasterableVol,
 };
 use common_base::prof_span;
@@ -640,8 +639,8 @@ impl Server {
 
             let (query_server_info_tx, query_server_info_rx) =
                 tokio::sync::watch::channel(ServerInfo {
-                    git_hash: *sys::server_info::GIT_HASH,
-                    git_timestamp: *GIT_DATE_TIMESTAMP,
+                    git_hash: *common::util::GIT_HASH,
+                    git_timestamp: *common::util::GIT_TIMESTAMP,
                     players_count: 0,
                     player_cap: settings.max_players,
                     battlemode: settings.gameplay.battle_mode.into(),
@@ -701,12 +700,7 @@ impl Server {
 
         debug!(?settings, "created veloren server with");
 
-        let git_hash = *common::util::GIT_HASH;
-        let git_date = common::util::GIT_DATE.clone();
-        let git_time = *common::util::GIT_TIME;
-        let version = common::util::DISPLAY_VERSION_LONG.clone();
-        info!(?version, "Server version");
-        debug!(?git_hash, ?git_date, ?git_time, "detailed Server version");
+        info!("Server version: {}", *common::util::DISPLAY_VERSION);
 
         Ok(this)
     }
@@ -716,8 +710,8 @@ impl Server {
 
         ServerInfo {
             name: settings.server_name.clone(),
-            git_hash: common::util::GIT_HASH.to_string(),
-            git_date: common::util::GIT_DATE.to_string(),
+            git_hash: *common::util::GIT_HASH,
+            git_timestamp: *common::util::GIT_TIMESTAMP,
             auth_provider: settings.auth_server_address.clone(),
         }
     }
