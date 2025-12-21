@@ -22,6 +22,7 @@ tutorial-Lantern = When it gets dark, use `{ $key }` to turn on your lantern.
 tutorial-Zoom = You can use the mouse wheel to zoom the camera closer or further from your character.
 tutorial-FirstPerson = If you zoom in very close to your character, you can enter first person mode.
 tutorial-Swim = When swimming, use `{ $down }` to dive and `{ $up }` to return to the surface.
+tutorial-OpenMap = You can open your map with `{ $key }`.
 
 achievement-Moved = Walked around
 achievement-Jumped = Jumped
@@ -46,3 +47,4 @@ achievement-InDark = Travelled in the dark
 achievement-UsedLantern = Turned on your lantern
 achievement-Swim = Went swimming
 achievement-Zoom = Zoomed the camera
+achievement-OpenMap = Opened the map

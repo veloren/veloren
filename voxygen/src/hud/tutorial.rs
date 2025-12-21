@@ -53,6 +53,7 @@ pub enum Hint {
     Zoom,
     FirstPerson,
     Swim,
+    OpenMap,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -79,6 +80,7 @@ pub enum Achievement {
     UsedLantern,
     Swim,
     Zoom,
+    OpenMap,
 }
 
 impl Hint {
@@ -143,6 +145,9 @@ impl Hint {
             Self::Swim => i18n.get_msg_ctx(key, &i18n::fluent_args! {
                 "down" => get_key(GameInput::SwimDown),
                 "up" => get_key(GameInput::SwimUp),
+            }),
+            Self::OpenMap => i18n.get_msg_ctx(key, &i18n::fluent_args! {
+                "key" => get_key(GameInput::Map),
             }),
             _ => i18n.get_msg(key),
         }
@@ -355,6 +360,12 @@ impl TutorialState {
 
     pub(crate) fn event_open_crafting(&mut self) {
         self.earn_achievement(Achievement::OpenCrafting);
+    }
+
+    pub(crate) fn event_open_map(&mut self) { self.earn_achievement(Achievement::OpenMap); }
+
+    pub(crate) fn event_map_marker(&mut self) {
+        self.add_hinted_goal(Hint::OpenMap, Achievement::OpenMap, Duration::from_secs(1));
     }
 
     pub(crate) fn event_lantern(&mut self) { self.earn_achievement(Achievement::UsedLantern); }

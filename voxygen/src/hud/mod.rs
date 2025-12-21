@@ -1607,6 +1607,7 @@ impl Hud {
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
+
                 // Version info
                 Text::new(&version)
                     .font_id(self.fonts.cyri.conrod_id)
@@ -4702,11 +4703,13 @@ impl Hud {
         sender: EcsEntity,
         player_pos: Vec3<f32>,
         dialogue: rtsim::Dialogue<true>,
+        global_state: &mut GlobalState,
     ) {
         match dialogue.kind {
             rtsim::DialogueKind::Marker(marker) => {
                 // Remove any existing markers with the same ID
                 self.extra_markers.retain(|em| !em.marker.is_same(&marker));
+                global_state.profile.tutorial.event_map_marker();
                 self.extra_markers.push(map::ExtraMarker {
                     recv_pos: player_pos.xy(),
                     marker,
@@ -4961,6 +4964,7 @@ impl Hud {
                         true
                     },
                     GameInput::Map if state => {
+                        global_state.profile.tutorial.event_open_map();
                         self.show.toggle_map();
                         true
                     },
