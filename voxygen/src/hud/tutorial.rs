@@ -54,6 +54,8 @@ pub enum Hint {
     FirstPerson,
     Swim,
     OpenMap,
+    UseItem,
+    Crafting,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -167,6 +169,7 @@ pub struct TutorialState {
     // (_, cancel if achieved, time until display)
     pending: Vec<(Hint, Option<Achievement>, Duration)>,
 
+    time_ingame: Duration,
     goals: Vec<Achievement>,
     done: Vec<Achievement>,
 }
@@ -178,6 +181,7 @@ impl Default for TutorialState {
             pending: Vec::new(),
             goals: Vec::new(),
             done: Default::default(),
+            time_ingame: Duration::ZERO,
         };
         this.add_hinted_goal(Hint::Move, Achievement::Moved, Duration::from_secs(10));
         this.show_hint(Hint::Zoom, Duration::from_mins(3));
@@ -187,6 +191,7 @@ impl Default for TutorialState {
 
 impl TutorialState {
     fn update(&mut self, dt: Duration) {
+        self.time_ingame += dt;
         self.current.take_if(|(_, a, dur)| {
             if a.map_or(false, |a| self.done.contains(&a)) {
                 *dur = (*dur).max(Duration::from_secs_f32(Hint::FADE_TIME * 2.0 - 1.0));
@@ -242,7 +247,7 @@ impl TutorialState {
 
     pub(crate) fn event_tick(&mut self, client: &Client) {
         if let Some(comp::CharacterState::Glide(glide)) = client.current::<comp::CharacterState>()
-            && glide.ori.look_dir().z > 0.5
+            && glide.ori.look_dir().z > 0.4
             && let Some(vel) = client.current::<Vel>()
             && vel.0.z < -vel.0.xy().magnitude()
             && self.earn_achievement(Achievement::StallGlider)
@@ -290,7 +295,8 @@ impl TutorialState {
             );
         }
 
-        if let Some(chunk) = client.current_chunk()
+        if self.time_ingame > Duration::from_mins(10)
+            && let Some(chunk) = client.current_chunk()
             && let Some(pos) = client.current::<comp::Pos>()
             && let in_cave = pos.0.z < chunk.meta().alt() - 20.0
             && let near_enemies = matches!(
@@ -303,12 +309,13 @@ impl TutorialState {
             self.show_hint(Hint::Sneak, Duration::ZERO);
         }
 
-        if client
-            .state()
-            .ecs()
-            .read_resource::<TimeOfDay>()
-            .day_period()
-            .is_dark()
+        if self.time_ingame > Duration::from_mins(3)
+            && client
+                .state()
+                .ecs()
+                .read_resource::<TimeOfDay>()
+                .day_period()
+                .is_dark()
             && self.earn_achievement(Achievement::InDark)
         {
             self.add_hinted_goal(
@@ -353,13 +360,17 @@ impl TutorialState {
     }
 
     pub(crate) fn event_open_inventory(&mut self) {
-        self.earn_achievement(Achievement::OpenInventory);
+        if self.earn_achievement(Achievement::OpenInventory) {
+            self.show_hint(Hint::UseItem, Duration::from_secs(1));
+        }
     }
 
     pub(crate) fn event_open_diary(&mut self) { self.earn_achievement(Achievement::OpenDiary); }
 
     pub(crate) fn event_open_crafting(&mut self) {
-        self.earn_achievement(Achievement::OpenCrafting);
+        if self.earn_achievement(Achievement::OpenCrafting) {
+            self.show_hint(Hint::Crafting, Duration::from_secs(1));
+        }
     }
 
     pub(crate) fn event_open_map(&mut self) { self.earn_achievement(Achievement::OpenMap); }
@@ -371,7 +382,10 @@ impl TutorialState {
     pub(crate) fn event_lantern(&mut self) { self.earn_achievement(Achievement::UsedLantern); }
 
     pub(crate) fn event_zoom(&mut self, delta: f32) {
-        if delta < 0.0 && self.earn_achievement(Achievement::Zoom) {
+        if delta < 0.0
+            && self.time_ingame > Duration::from_mins(15)
+            && self.earn_achievement(Achievement::Zoom)
+        {
             self.show_hint(Hint::FirstPerson, Duration::from_secs(2));
         }
     }
