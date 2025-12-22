@@ -24,7 +24,7 @@ tutorial-FirstPerson = If you zoom in very close to your character, you can ente
 tutorial-Swim = When swimming, use `{ $down }` to dive and `{ $up }` to return to the surface.
 tutorial-OpenMap = You can open your map with `{ $key }`.
 tutorial-UseItem = You can consume or use an item by right-clicking it.
-tutorial-Crafting = Some recipes require a crafting station, but some can be crafted out in the wild.
+tutorial-Crafting = Most recipes require a crafting station, but some can be crafted out in the wild.
 
 achievement-Moved = Walked around
 achievement-Jumped = Jumped

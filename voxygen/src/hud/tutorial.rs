@@ -637,7 +637,7 @@ impl Widget for Tutorial<'_> {
 
             let anim = ((Hint::FADE_TIME - (anim.as_secs_f32() - Hint::FADE_TIME).abs()) * 3.0)
                 .clamped(0.0, 1.0);
-            let anim_movement = anim * (1.0 + (self.pulse * 3.0).sin() * 0.35);
+            let anim_movement = anim * (1.0 - (self.pulse * 3.0).sin().powi(14) * 0.35);
 
             RoundedRectangle::fill_with(
                 [tweak!(130.0), tweak!(100.0)],
