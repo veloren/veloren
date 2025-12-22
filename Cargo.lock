@@ -77,6 +77,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "aligned-vec"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc890384c8602f339876ded803c97ad529f3842aba97f6392b3dba0dd171769b"
+dependencies = [
+ "equator",
+]
+
+[[package]]
+name = "alloca"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5a7d05ea6aea7e9e64d25b9156ba2fee3fdd659e34e41063cd2fc7cd020d7f4"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -300,6 +318,12 @@ dependencies = [
  "quote 1.0.42",
  "syn 1.0.109",
 ]
+
+[[package]]
+name = "array-init"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d62b7694a562cdf5a74227903507c56ab2cc8bdd1f781ed5cb4cf9c9f810bfc"
 
 [[package]]
 name = "arrayref"
@@ -894,9 +918,9 @@ dependencies = [
 
 [[package]]
 name = "chumsky"
-version = "0.11.2"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acc17a6284abccac6e50db35c1cee87f605474a72939b959a3a67d9371800efd"
+checksum = "4ba4a05c9ce83b07de31b31c874e87c069881ac4355db9e752e3a55c11ec75a6"
 dependencies = [
  "hashbrown 0.15.5",
  "regex-automata 0.3.9",
@@ -1030,6 +1054,12 @@ checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
 dependencies = [
  "cc",
 ]
+
+[[package]]
+name = "cmov"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b1dc960ba75d543267db9254da8ec1cb318a037beb3f8d2497520e410096fab"
 
 [[package]]
 name = "cobs"
@@ -1435,10 +1465,11 @@ dependencies = [
 
 [[package]]
 name = "criterion"
-version = "0.7.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c047a62b0cc3e145fa84415a3191f628e980b194c2755aa12300a4e6cbd928"
+checksum = "4d883447757bb0ee46f233e9dc22eb84d93a9508c9b868687b274fc431d886bf"
 dependencies = [
+ "alloca",
  "anes",
  "cast",
  "ciborium",
@@ -1447,6 +1478,7 @@ dependencies = [
  "itertools 0.13.0",
  "num-traits",
  "oorandom",
+ "page_size",
  "rayon",
  "regex",
  "serde",
@@ -1458,9 +1490,9 @@ dependencies = [
 
 [[package]]
 name = "criterion-plot"
-version = "0.6.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b1bcc0dc7dfae599d84ad0b1a55f80cde8af3725da8313b528da95ef783e338"
+checksum = "ed943f81ea2faa8dcecbbfa50164acf95d555afec96a27871663b300e387b2e4"
 dependencies = [
  "cast",
  "itertools 0.13.0",
@@ -1932,12 +1964,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "doc-comment"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
-
-[[package]]
 name = "document-features"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2070,12 +2096,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
-name = "elapsed"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4e5af126dafd0741c2ad62d47f68b28602550102e5f0dd45c8a97fc8b49c29"
-
-[[package]]
 name = "emath"
 version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2200,6 +2220,26 @@ name = "epaint_default_fonts"
 version = "0.33.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad9649446c23368ae138716910e3e28143995691b598fbb9de16b42b0722cbcc"
+
+[[package]]
+name = "equator"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4711b213838dfee0117e3be6ac926007d7f433d7bbe33595975d4190cb07e6fc"
+dependencies = [
+ "equator-macro",
+]
+
+[[package]]
+name = "equator-macro"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44f23cf4b44bfce11a86ace86f8a73ffdec849c9fd00a386a53d278bd9e81fb3"
+dependencies = [
+ "proc-macro2 1.0.101",
+ "quote 1.0.42",
+ "syn 2.0.106",
+]
 
 [[package]]
 name = "equivalent"
@@ -2658,19 +2698,6 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
-]
-
-[[package]]
-name = "generator"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cc16584ff22b460a382b7feec54b23d2908d858152e5739a120b949293bd74e"
-dependencies = [
- "cc",
- "libc",
- "log",
- "rustversion",
- "windows 0.48.0",
 ]
 
 [[package]]
@@ -3471,12 +3498,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4c7245a08504955605670dbf141fceab975f15ca21570696aebe9d2e71576bd"
 
 [[package]]
-name = "init_with"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0175f63815ce00183bf755155ad0cb48c65226c5d17a724e369c25418d2b7699"
-
-[[package]]
 name = "inline_tweak"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3644,15 +3665,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
@@ -3756,25 +3768,22 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "kiddo"
-version = "4.2.0"
+version = "5.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d2f8d9e1bc7c6919ad2cdc83472a9a4b5ed2ea2c5392c9514fdf958a7920f9a"
+checksum = "7722b5b12a2b83342ea1d2c6215915118f4dd5aaed6cab2bf4ce581838275d3c"
 dependencies = [
+ "aligned-vec",
+ "array-init",
  "az",
+ "cmov",
  "divrem",
- "doc-comment",
- "elapsed",
  "fixed",
- "generator 0.7.5",
- "init_with",
- "itertools 0.12.1",
- "log",
+ "generator",
  "num-traits",
- "ordered-float 4.6.0",
+ "ordered-float 5.0.0",
  "sorted-vec",
  "tracing",
  "tracing-subscriber",
- "ubyte",
 ]
 
 [[package]]
@@ -3979,7 +3988,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "419e0dc8046cb947daa77eb95ae174acfbddb7673b4151f56d1eed8e93fbfaca"
 dependencies = [
  "cfg-if 1.0.3",
- "generator 0.8.7",
+ "generator",
  "scoped-tls",
  "tracing",
  "tracing-subscriber",
@@ -5137,15 +5146,6 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "4.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "ordered-float"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
@@ -5160,6 +5160,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36820e9051aca1014ddc75770aab4d68bc1e9e632f0f5627c4086bc216fb583b"
 dependencies = [
  "ttf-parser",
+]
+
+[[package]]
+name = "page_size"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30d5b2194ed13191c1999ae0704b7839fb18384fa22e49b57eeaa97d79ce40da"
+dependencies = [
+ "libc",
+ "winapi",
 ]
 
 [[package]]
@@ -7813,12 +7823,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
-name = "ubyte"
-version = "0.10.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f720def6ce1ee2fc44d40ac9ed6d3a59c361c80a75a7aa8e75bb9baed31cf2ea"
-
-[[package]]
 name = "unic-langid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9670,25 +9674,16 @@ dependencies = [
 
 [[package]]
 name = "window_clipboard"
-version = "0.4.1"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6d692d46038c433f9daee7ad8757e002a4248c20b0a3fbc991d99521d3bcb6d"
+checksum = "d5654226305eaf2dde8853fb482861d28e5dcecbbd40cb88e8393d94bb80d733"
 dependencies = [
  "clipboard-win 5.4.1",
  "clipboard_macos",
  "clipboard_wayland",
  "clipboard_x11",
  "raw-window-handle",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "windows"
-version = "0.48.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
-dependencies = [
- "windows-targets 0.48.5",
+ "thiserror 2.0.17",
 ]
 
 [[package]]

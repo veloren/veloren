@@ -81,7 +81,7 @@ euc = "0.5.3"
 # We should probably migrate to a more recent version at some point, but this is significant amount of work.
 # Note: this does not depend on the version of `winit` anymore, all dependent code was moved into Voxygen
 iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
-window_clipboard = "0.4.1"
+window_clipboard = "0.5"
 glyph_brush = "0.7.0"
 # EGUI
 egui = { version = "0.33", optional = true }
@@ -109,7 +109,7 @@ clap = { workspace = true }
 # Utility
 backtrace = "0.3.40"
 chrono = { workspace = true }
-chumsky = "0.11"
+chumsky = "0.12"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 directories-next = "2.0"

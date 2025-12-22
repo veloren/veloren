@@ -157,7 +157,7 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-criterion = { version = "0.7", default-features = false, features = [
+criterion = { version = "0.8", default-features = false, features = [
     "rayon",
     "cargo_bench_support",
 ] }
@@ -178,8 +178,7 @@ hex = "0.4.3"
 inline_tweak = { version = "1.0.8" }
 image = { version = "0.25", default-features = false, features = ["png"] }
 itertools = { version = "0.14" }
-# TODO: Fix LTO on linux with newer kiddo versions
-kiddo = "=4.2.0"
+kiddo = "5"
 lazy_static = "1.4.0"
 mimalloc = "0.1"
 noise = { version = "0.9", default-features = false }
