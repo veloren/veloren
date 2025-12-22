@@ -671,10 +671,10 @@ impl Widget for Tutorial<'_> {
             .w_h(800.0, 52.0)
             .set(state.ids.bg, ui);
 
-            if Button::image(self.imgs.close_btn)
+            if Button::image(self.imgs.disable_bell_btn)
                 .mid_right_with_margin_on(state.ids.bg, MARGIN)
                 .w_h(20.0, 20.0)
-                .image_color_with_feedback(Color::Rgba(1.0, 1.0, 1.0, 0.25 * anim_alpha))
+                .image_color_with_feedback(Color::Rgba(1.0, 1.0, 1.0, 0.5 * anim_alpha))
                 .with_tooltip(
                     self.tooltip_manager,
                     &self.localized_strings.get_msg("hud-tutorial-disable"),

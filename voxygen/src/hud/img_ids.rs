@@ -637,6 +637,9 @@ image_ids! {
         edit_btn_hover: "voxygen.element.ui.char_select.icons.pen_hover",
         edit_btn_press: "voxygen.element.ui.char_select.icons.pen_press",
 
+        // Disable bell button
+        disable_bell_btn: "voxygen.element.ui.generic.buttons.disable_bell_btn",
+
         // Inventory
         grid_btn: "voxygen.element.ui.bag.buttons.inv_grid",
         grid_btn_hover: "voxygen.element.ui.bag.buttons.inv_grid_hover",
