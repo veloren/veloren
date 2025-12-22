@@ -1,7 +1,7 @@
 use crate::{
     GlobalState, Settings,
     session::interactable::{EntityInteraction, Interactable},
-    ui::{TooltipManager, fonts::Fonts},
+    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
 };
 use client::Client;
 use common::{
@@ -12,7 +12,7 @@ use common::{
 };
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
-    widget::{self, Image, Rectangle, RoundedRectangle, Scrollbar, Text},
+    widget::{self, Button, Image, Rectangle, RoundedRectangle, Scrollbar, Text},
     widget_ids,
 };
 use i18n::Localization;
@@ -172,6 +172,7 @@ pub struct TutorialState {
     time_ingame: Duration,
     goals: Vec<Achievement>,
     done: Vec<Achievement>,
+    disabled: bool,
 }
 
 impl Default for TutorialState {
@@ -182,6 +183,7 @@ impl Default for TutorialState {
             goals: Vec::new(),
             done: Default::default(),
             time_ingame: Duration::ZERO,
+            disabled: false,
         };
         this.add_hinted_goal(Hint::Move, Achievement::Moved, Duration::from_secs(10));
         this.show_hint(Hint::Zoom, Duration::from_mins(3));
@@ -467,6 +469,7 @@ widget_ids! {
     pub struct Ids {
         bg,
         text,
+        close_btn,
         old_frame,
         old_scrollbar,
         old_bg[],
@@ -483,8 +486,8 @@ pub struct Tutorial<'a> {
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
     global_state: &'a mut GlobalState,
-    _rot_imgs: &'a ImgsRot,
-    _tooltip_manager: &'a mut TooltipManager,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
     _item_imgs: &'a ItemImgs,
     pulse: f32,
     dt: Duration,
@@ -504,8 +507,8 @@ impl<'a> Tutorial<'a> {
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
         global_state: &'a mut GlobalState,
-        _rot_imgs: &'a ImgsRot,
-        _tooltip_manager: &'a mut TooltipManager,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
         _item_imgs: &'a ItemImgs,
         pulse: f32,
         dt: Duration,
@@ -515,11 +518,11 @@ impl<'a> Tutorial<'a> {
             _show,
             client,
             imgs,
-            _rot_imgs,
+            rot_imgs,
             fonts,
             localized_strings,
             global_state,
-            _tooltip_manager,
+            tooltip_manager,
             _item_imgs,
             pulse,
             dt,
@@ -529,13 +532,8 @@ impl<'a> Tutorial<'a> {
     }
 }
 
-pub enum Event {
-    #[allow(dead_code)]
-    Close,
-}
-
 impl Widget for Tutorial<'_> {
-    type Event = Option<Event>;
+    type Event = ();
     type State = State;
     type Style = ();
 
@@ -550,11 +548,17 @@ impl Widget for Tutorial<'_> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
+        // Don't render anything if the tutorial was disabled
+        if self.global_state.profile.tutorial.disabled {
+            return;
+        }
+
         self.global_state.profile.tutorial.update(self.dt);
         self.global_state.profile.tutorial.event_tick(self.client);
 
         let mut old = Vec::new();
-        if self.esc_menu {
+        // TODO: Decide on whether viewing achievements is desirable after play-testing
+        if tweak!(false) && self.esc_menu {
             old.extend(
                 self.global_state
                     .profile
@@ -593,7 +597,7 @@ impl Widget for Tutorial<'_> {
             Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
                 .mid_right_with_margin_on(ui.window, 0.0)
                 .scroll_kids_vertically()
-                .w_h(750.0, 350.0)
+                .w_h(800.0, 350.0)
                 .set(state.ids.old_frame, ui);
             Scrollbar::y_axis(state.ids.old_frame)
                 .thickness(5.0)
@@ -602,7 +606,7 @@ impl Widget for Tutorial<'_> {
                 .set(state.ids.old_scrollbar, ui);
         }
 
-        const BACKGROUND: Color = Color::Rgba(0.0, 0.0, 0.0, 0.85);
+        const BACKGROUND: Color = Color::Rgba(0.13, 0.13, 0.13, 0.85);
 
         for (i, (node, is_done)) in old.iter().copied().enumerate() {
             let bg = RoundedRectangle::fill_with([tweak!(230.0), tweak!(100.0)], 20.0, BACKGROUND);
@@ -611,7 +615,7 @@ impl Widget for Tutorial<'_> {
             } else {
                 bg.down_from(state.ids.old_bg[i - 1], 8.0)
             };
-            bg.w_h(750.0, 52.0)
+            bg.w_h(800.0, 52.0)
                 .parent(state.ids.old_frame)
                 .set(state.ids.old_bg[i], ui);
 
@@ -635,27 +639,61 @@ impl Widget for Tutorial<'_> {
         if let Some((current, _, anim)) = &mut self.global_state.profile.tutorial.current {
             *anim += self.dt;
 
-            let anim = ((Hint::FADE_TIME - (anim.as_secs_f32() - Hint::FADE_TIME).abs()) * 3.0)
+            let anim_alpha = ((Hint::FADE_TIME - (anim.as_secs_f32() - Hint::FADE_TIME).abs())
+                * 3.0)
                 .clamped(0.0, 1.0);
-            let anim_movement = anim * (1.0 - (self.pulse * 3.0).sin().powi(14) * 0.35);
+            let anim_movement = anim_alpha * (1.0 - (self.pulse * 3.0).sin().powi(14) * 0.25);
+
+            let close_tooltip = Tooltip::new({
+                // Edge images [t, b, r, l]
+                // Corner images [tr, tl, br, bl]
+                let edge = &self.rot_imgs.tt_side;
+                let corner = &self.rot_imgs.tt_corner;
+                ImageFrame::new(
+                    [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                    [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                    Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                    5.0,
+                )
+            })
+            .title_font_size(self.fonts.cyri.scale(15))
+            .parent(ui.window)
+            .desc_font_size(self.fonts.cyri.scale(12))
+            .font_id(self.fonts.cyri.conrod_id)
+            .desc_text_color(TEXT_COLOR);
 
             RoundedRectangle::fill_with(
-                [tweak!(130.0), tweak!(100.0)],
+                [130.0, 100.0],
                 20.0,
-                BACKGROUND.with_alpha(0.85 * anim),
+                BACKGROUND.with_alpha(0.85 * anim_alpha),
             )
             .mid_top_with_margin_on(ui.window, 80.0 * anim_movement.sqrt() as f64)
-            .w_h(750.0, 52.0)
+            .w_h(800.0, 52.0)
             .set(state.ids.bg, ui);
+
+            if Button::image(self.imgs.close_btn)
+                .mid_right_with_margin_on(state.ids.bg, MARGIN)
+                .w_h(20.0, 20.0)
+                .image_color_with_feedback(Color::Rgba(1.0, 1.0, 1.0, 0.25 * anim_alpha))
+                .with_tooltip(
+                    self.tooltip_manager,
+                    &self.localized_strings.get_msg("hud-tutorial-disable"),
+                    "",
+                    &close_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.ids.close_btn, ui)
+                .was_clicked()
+            {
+                self.global_state.profile.tutorial.disabled = true;
+            }
 
             Text::new(&current.get_msg(&self.global_state.settings, self.localized_strings))
                 .mid_left_with_margin_on(state.ids.bg, MARGIN)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(16))
-                .color(TEXT_COLOR.with_alpha(anim))
+                .color(TEXT_COLOR.with_alpha(anim_alpha))
                 .set(state.ids.text, ui);
         }
-
-        None
     }
 }

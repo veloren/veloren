@@ -3779,7 +3779,7 @@ impl Hud {
             false
         };
 
-        match Tutorial::new(
+        Tutorial::new(
             &self.show,
             client,
             &self.imgs,
@@ -3793,11 +3793,7 @@ impl Hud {
             dt,
             self.show.esc_menu,
         )
-        .set(self.ids.tutorial_window, ui_widgets)
-        {
-            Some(tutorial::Event::Close) => {},
-            None => {},
-        }
+        .set(self.ids.tutorial_window, ui_widgets);
 
         if !dialogue_open && let Some((sender, _, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {
