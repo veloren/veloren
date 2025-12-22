@@ -61,6 +61,8 @@ pub enum ClientChatCommand {
     Waypoint,
     /// Opens the Veloren wiki in a browser
     Wiki,
+    /// Resets the state of the tutorial
+    ResetTutorial,
 }
 
 impl ClientChatCommand {
@@ -112,6 +114,11 @@ impl ClientChatCommand {
                 Content::localized("command-wiki-desc"),
                 None,
             ),
+            ClientChatCommand::ResetTutorial => cmd(
+                vec![],
+                Content::localized("command-reset_tutorial-desc"),
+                None,
+            ),
         }
     }
 
@@ -128,6 +135,7 @@ impl ClientChatCommand {
             ClientChatCommand::Unmute => "unmute",
             ClientChatCommand::Waypoint => "waypoint",
             ClientChatCommand::Wiki => "wiki",
+            ClientChatCommand::ResetTutorial => "reset_tutorial",
         }
     }
 
@@ -464,6 +472,7 @@ fn run_client_command(
         ClientChatCommand::Unmute => handle_unmute,
         ClientChatCommand::Waypoint => handle_waypoint,
         ClientChatCommand::Wiki => handle_wiki,
+        ClientChatCommand::ResetTutorial => handle_reset_tutorial,
     };
 
     command(session_state, global_state, args)
@@ -754,6 +763,18 @@ fn handle_wiki(
                 LocalizationArg::from(e.to_string()),
             )])
         })
+}
+
+/// Handles [`ClientChatCommand::ResetTutorial`]
+///
+/// Useful for debugging the tutorial or showing the tutorial again.
+fn handle_reset_tutorial(
+    _session_state: &mut SessionState,
+    global_state: &mut GlobalState,
+    _args: Vec<String>,
+) -> CommandResult {
+    global_state.profile.tutorial = Default::default();
+    Ok(Some(Content::localized("command-reset_tutorial-success")))
 }
 
 /// Trait for types that can provide tab completion suggestions.
