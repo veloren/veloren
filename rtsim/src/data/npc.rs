@@ -21,7 +21,7 @@ use common::{
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
-use slotmap::HopSlotMap;
+use slotmap::DenseSlotMap;
 use std::{
     collections::VecDeque,
     ops::{Deref, DerefMut},
@@ -476,11 +476,11 @@ struct Riders {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(
-    from = "HopSlotMap<MountId, NpcLink>",
-    into = "HopSlotMap<MountId, NpcLink>"
+    from = "DenseSlotMap<MountId, NpcLink>",
+    into = "DenseSlotMap<MountId, NpcLink>"
 )]
 pub struct NpcLinks {
-    links: HopSlotMap<MountId, NpcLink>,
+    links: DenseSlotMap<MountId, NpcLink>,
     mount_map: slotmap::SecondaryMap<NpcId, Riders>,
     rider_map: HashMap<Actor, MountId>,
 }
@@ -622,8 +622,8 @@ impl NpcLinks {
     pub fn iter_mounts(&self) -> impl Iterator<Item = NpcId> + '_ { self.mount_map.keys() }
 }
 
-impl From<HopSlotMap<MountId, NpcLink>> for NpcLinks {
-    fn from(mut value: HopSlotMap<MountId, NpcLink>) -> Self {
+impl From<DenseSlotMap<MountId, NpcLink>> for NpcLinks {
+    fn from(mut value: DenseSlotMap<MountId, NpcLink>) -> Self {
         let mut from_map = slotmap::SecondaryMap::new();
         let mut to_map = HashMap::with_capacity(value.len());
         let mut delete = Vec::new();
@@ -653,7 +653,7 @@ impl From<HopSlotMap<MountId, NpcLink>> for NpcLinks {
     }
 }
 
-impl From<NpcLinks> for HopSlotMap<MountId, NpcLink> {
+impl From<NpcLinks> for DenseSlotMap<MountId, NpcLink> {
     fn from(other: NpcLinks) -> Self { other.links }
 }
 slotmap::new_key_type! {
@@ -668,7 +668,7 @@ pub struct MountData {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Npcs {
     pub uid_counter: u64,
-    pub npcs: HopSlotMap<NpcId, Npc>,
+    pub npcs: DenseSlotMap<NpcId, Npc>,
     pub mounts: NpcLinks,
     // TODO: This feels like it should be its own rtsim resource
     // TODO: Consider switching to `common::util::SpatialGrid` instead
@@ -757,7 +757,7 @@ impl Npcs {
 }
 
 impl Deref for Npcs {
-    type Target = HopSlotMap<NpcId, Npc>;
+    type Target = DenseSlotMap<NpcId, Npc>;
 
     fn deref(&self) -> &Self::Target { &self.npcs }
 }
