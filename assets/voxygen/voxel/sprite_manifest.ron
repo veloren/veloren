@@ -2711,9 +2711,6 @@ Lantern: [(
             model: "voxygen.voxel.sprite.lantern.mine_lamp",
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (0.5, 0.5, 0.2),
-            custom_indices: {
-                15: (attr: Fire),
-            },
         ),
     ],
     wind_sway: 0.0,
