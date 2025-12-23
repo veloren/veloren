@@ -54,6 +54,8 @@ pub enum ClientChatCommand {
     Mute,
     /// Toggles use of naga for shader processing (change not persisted).
     Naga,
+    /// Resets the state of the tutorial
+    ResetTutorial,
     /// Unmutes a previously muted player
     Unmute,
     /// Displays the name of the site or biome where the current waypoint is
@@ -61,8 +63,6 @@ pub enum ClientChatCommand {
     Waypoint,
     /// Opens the Veloren wiki in a browser
     Wiki,
-    /// Resets the state of the tutorial
-    ResetTutorial,
 }
 
 impl ClientChatCommand {
