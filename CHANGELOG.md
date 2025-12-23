@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for directional lanterns
 - Rebind controller buttons in-game.
 - Adds a cyclable hotbar for improved controller support.
+- Close button for dialogues.
 
 ### Changed
 
