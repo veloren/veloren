@@ -4,7 +4,7 @@ use common::{
     terrain::SpriteKind,
 };
 use serde::{Deserialize, Serialize};
-use slotmap::HopSlotMap;
+use slotmap::DenseSlotMap;
 use std::ops::Deref;
 use vek::*;
 
@@ -64,7 +64,7 @@ pub enum ReportKind {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Reports {
-    pub reports: HopSlotMap<ReportId, Report>,
+    pub reports: DenseSlotMap<ReportId, Report>,
 }
 
 impl Reports {
@@ -80,7 +80,7 @@ impl Reports {
 }
 
 impl Deref for Reports {
-    type Target = HopSlotMap<ReportId, Report>;
+    type Target = DenseSlotMap<ReportId, Report>;
 
     fn deref(&self) -> &Self::Target { &self.reports }
 }
