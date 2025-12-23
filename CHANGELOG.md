@@ -127,6 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Builds for Linux are now with compressed debuginfo, this should reduce the size of the game on disk.
 - Changed default controller controls.
 - Re-ordered controls list to group related actions.
+- Airship movement is according to timing of route schedule, no longer autonomous.
+- Added height to City airship docs located near sloping terrain for airship docking clearance.
 
 ### Removed
 

@@ -571,15 +571,6 @@ npc-speech-pilot-announce_next =
     .a0 = Jump on if you're heading { $dir } to { $dst }!
     .a1 = We sail for { $dst } soon!.
     .a2 = Travelling { $dir }? Jump on!
-npc-speech-pilot-announce_hold =
-    .a0 = Holding here while the dock is cleared.
-    .a1 = We're on hold until the docking position is vacated!
-    .a2 = A short hold is required due to traffic at the dock.
-npc-speech-pilot-continue_hold =
-    .a0 = We have to continue holding!
-    .a1 = Traffic is heavy, we're still on hold!
-    .a2 = Continuing to hold!
-    .a3 = Another ship is loading, we'll be holding for a bit longer.
 
 npc-speech-pirate =
     .a0 = Yarrr!

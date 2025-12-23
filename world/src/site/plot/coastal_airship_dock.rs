@@ -32,9 +32,7 @@ impl CoastalAirshipDock {
         _rng: &mut impl Rng,
         site: &Site,
         door_tile: Vec2<i32>,
-        door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
-        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -42,14 +40,56 @@ impl CoastalAirshipDock {
             max: site.tile_wpos(tile_aabr.max),
         };
         let diameter = (bounds.max.x - bounds.min.x).min(bounds.max.y - bounds.min.y);
-        let alt = alt.unwrap_or_else(|| {
-            land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
-        }) + 2;
+        let center = bounds.center();
+
+        // dock is 5 tiles = 30 blocks in radius
+        // airships are 37 blocks wide = 6 tiles.
+        // distance from the center to the outside edge of the airship when docked is 11
+        // tiles. The area covered by all four airships is a square 22 tiles on
+        // a side.
+
+        // Sample the surface altitude every 4 tiles (= 24 blocks) around the dock
+        // center to find the highest point of terrain surrounding the dock.
+        let mut max_surface_alt = i32::MIN;
+        // -12 -8 -4 0 +4 +8 +12
+        for dx in -3..=3 {
+            for dy in -3..=3 {
+                let pos = center + Vec2::new(dx * 24, dy * 24);
+                let alt = land.get_surface_alt_approx(pos) as i32;
+                if alt > max_surface_alt {
+                    max_surface_alt = alt;
+                }
+            }
+        }
+
+        // The foundation is radius - 6 blocks.
+        // Sample the surface altitude over the foundation area to get the
+        // foundation min alt.
+        let foundation_qtr = diameter / 4;
+        let mut min_foundation_alt = i32::MAX;
+        for dx in -2..=2 {
+            for dy in -2..=2 {
+                let pos = center + Vec2::new(dx * foundation_qtr, dy * foundation_qtr);
+                let alt = land.get_surface_alt_approx(pos) as i32;
+                if alt < min_foundation_alt {
+                    min_foundation_alt = alt;
+                }
+            }
+        }
+
+        let mut alt = min_foundation_alt + 2;
         let size = 20;
         let bldg_height = 12;
-        let base = alt + 1;
-        let center = bounds.center();
-        let top_floor = base + (bldg_height * 6) - 3;
+        let mut base = alt + 1;
+        let mut top_floor = base + (bldg_height * 6) - 3;
+
+        let clearance = top_floor - (max_surface_alt + 6);
+        if clearance < 0 {
+            alt += -clearance;
+            base += -clearance;
+            top_floor += -clearance
+        }
+
         let docking_positions = CARDINALS
             .iter()
             .map(|dir| (center + dir * 31).with_z(top_floor - 1))
