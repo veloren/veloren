@@ -1386,6 +1386,76 @@ recipes: {
             (Item("common.items.mineral.ore.veloritefrag"), 3),
         ],
     ),
+    // No effect items should be repaired for free
+    ItemDefId("common.items.armor.misc.back.backpack"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.armor.misc.head.exclamation"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.armor.misc.head.pipe"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.banjo"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.double_bass"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.flute"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.glass_flute"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.guitar"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.guitar_dark"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.icy_talharpa"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.kora"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.lute"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.melodica"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.oud"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.rhythmo"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.shamisen"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.sitar"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.starlight_conch"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.steeltonguedrum"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.timbrel_of_chaos"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.viola_pizzicato"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.washboard"): (
+        inputs: [],
+    ),
+    ItemDefId("common.items.tool.instruments.wildskin_drum"): (
+        inputs: [],
+    ),
 },
 fallback: (
     inputs: [
