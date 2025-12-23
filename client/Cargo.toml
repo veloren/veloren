@@ -4,8 +4,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
-
 [lints]
 workspace = true
 
@@ -84,7 +82,6 @@ required-features = ["bin_bot"]
 
 [[bin]]
 name = "bot"
-#authors = ["Avi Weinstock <aweinstock314@gmail.com>"]
 required-features = ["bin_bot"]
 
 [[bin]]

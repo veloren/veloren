@@ -5,8 +5,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
-authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Marcel Märtens <marcel.cochem@googlemail.com>"]
-
 [lints]
 workspace = true
 

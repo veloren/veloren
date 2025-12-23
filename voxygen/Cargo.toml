@@ -8,11 +8,6 @@ default-run = "veloren-voxygen"
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
 
-authors = [
-    "Joshua Barretto <joshua.s.barretto@gmail.com>",
-    "Imbris <imbrisf@gmail.com>",
-]
-
 [lints]
 workspace = true
 
