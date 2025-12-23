@@ -190,44 +190,46 @@ impl Widget for Quest<'_> {
         // seems to not propagate scroll events properly!
         Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
             .mid_bottom_with_margin_on(ui.window, 80.0)
-            .w_h(720.0, 234.0)
+            .w_h(749.0, 234.0)
             .set(state.ids.bg, ui);
         // Window frame
         Rectangle::fill_with([tweak!(130.0), tweak!(100.0)], color::TRANSPARENT)
             .middle_of(state.ids.bg)
-            .w_h(720.0, tweak!(234.0))
+            .w_h(749.0, tweak!(234.0))
             .set(state.ids.frame, ui);
-
-        // // X-Button
-        // if Button::image(self.imgs.close_button)
-        //     .w_h(24.0, 25.0)
-        //     .hover_image(self.imgs.close_button_hover)
-        //     .press_image(self.imgs.close_button_press)
-        //     .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
-        //     .set(state.ids.close, ui)
-        //     .was_clicked()
-        // {
-        //     event = Some(Event::Close);
-        // }
 
         const BACKGROUND: Color = Color::Rgba(0.0, 0.0, 0.0, 0.85);
 
         // Content Alignment
         // Text Left
         Rectangle::fill_with([tweak!(429.0), tweak!(200.0)], BACKGROUND)
-            .top_left_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(0.0))
+            .top_left_with_margins_on(state.ids.frame, tweak!(0.0), tweak!(0.0))
             .scroll_kids_vertically()
             .set(state.ids.text_align, ui);
         // Topics Right
-        Rectangle::fill_with([tweak!(286.0), tweak!(200.0)], BACKGROUND)
-            .top_right_with_margins_on(state.ids.frame, tweak!(2.0), tweak!(2.0))
+        Rectangle::fill_with([tweak!(315.0), tweak!(200.0)], BACKGROUND)
+            .top_right_with_margins_on(state.ids.frame, tweak!(0.0), tweak!(2.0))
             .scroll_kids_vertically()
             .set(state.ids.topics_align, ui);
         Scrollbar::y_axis(state.ids.topics_align)
-            .thickness(5.0)
+            .h(tweak!(169.0))
+            .top_right_with_margins(29.0, tweak!(4.0))
+            .thickness(tweak!(23.0))
             .auto_hide(true)
             .rgba(1.0, 1.0, 1.0, 0.2)
             .set(state.ids.scrollbar, ui);
+
+        // Close Button
+        if Button::image(self._imgs.close_btn)
+            .w_h(24.0, 25.0)
+            .hover_image(self._imgs.close_btn_hover)
+            .press_image(self._imgs.close_btn_press)
+            .top_right_with_margins_on(state.ids.frame, 2.0, 4.0)
+            .set(state.ids.quest_close, ui)
+            .was_clicked()
+        {
+            event = Some(Event::Close);
+        }
 
         if let rtsim::DialogueKind::Statement { .. } = &self.dialogue.kind {
             let recv_time = self.recv_time.elapsed().as_secs_f32();
