@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adds a cyclable hotbar for improved controller support.
 - Close button for dialogues.
 - A new tutorial system that introduces mechanics during gameplay without breaking immersion
+- Added more sprite effects
 
 ### Changed
 
@@ -131,6 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-ordered controls list to group related actions.
 - Airship movement is according to timing of route schedule, no longer autonomous.
 - Added height to City airship docs located near sloping terrain for airship docking clearance.
+- Added foot mark dithering on orichalcum armor
 
 ### Removed
 
