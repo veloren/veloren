@@ -1476,17 +1476,17 @@ impl Site {
                     // The area range for the aabr is fixed at size squared (81) since the
                     // dock structure is square.
                     let size = 9u32;
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, _)) = attempt(32, || {
                         site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let airship_dock = plot::AirshipDock::generate(
                             land,
+                            index,
                             &mut reseed(&mut rng),
                             &site,
                             door_tile,
                             door_dir,
                             aabr,
-                            alt,
                         );
                         let airship_dock_alt = airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -1855,7 +1855,7 @@ impl Site {
                     // CliffTownAirshipDock
                     let size = 25u32;
                     generator_stats.attempt(site.name(), GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
+                    if let Some((aabr, door_tile, door_dir, _)) = attempt(32, || {
                         site.find_roadside_aabr(&mut rng, 625..626, Extent2::broadcast(size))
                     }) {
                         let cliff_town_airship_dock = plot::CliffTownAirshipDock::generate(
@@ -1866,7 +1866,6 @@ impl Site {
                             door_tile,
                             door_dir,
                             aabr,
-                            alt,
                         );
                         let cliff_town_airship_dock_alt = cliff_town_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -2004,7 +2003,7 @@ impl Site {
                     // SavannahAirshipDock
                     let size = 9u32;
                     generator_stats.attempt(site.name(), GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(48, || {
+                    if let Some((aabr, door_tile, _, _)) = attempt(48, || {
                         site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let savannah_airship_dock = plot::SavannahAirshipDock::generate(
@@ -2012,9 +2011,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             door_tile,
-                            door_dir,
                             aabr,
-                            alt,
                         );
                         let savannah_airship_dock_alt = savannah_airship_dock.alt;
                         let plot = site.create_plot(Plot {
@@ -2162,7 +2159,7 @@ impl Site {
                     // dock structure is square.
                     let size = 9u32;
                     generator_stats.attempt(site.name(), GenStatPlotKind::AirshipDock);
-                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
+                    if let Some((aabr, door_tile, _, _)) = attempt(32, || {
                         site.find_roadside_aabr(&mut rng, 81..82, Extent2::broadcast(size))
                     }) {
                         let coastal_airship_dock = plot::CoastalAirshipDock::generate(
@@ -2170,9 +2167,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             door_tile,
-                            door_dir,
                             aabr,
-                            alt,
                         );
                         let coastal_airship_dock_alt = coastal_airship_dock.alt;
                         let plot = site.create_plot(Plot {

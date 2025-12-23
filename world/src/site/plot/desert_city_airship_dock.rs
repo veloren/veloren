@@ -47,11 +47,56 @@ impl DesertCityAirshipDock {
             land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32
         });
         let center = bounds.center();
+
+        // dock is 5 tiles = 30 blocks in radius
+        // airships are 37 blocks wide = 6 tiles.
+        // distance from the center to the outside edge of the airship when docked is 11
+        // tiles. The area covered by all four airships is a square 22 tiles on
+        // a side.
+
+        // Sample the surface altitude every 4 tiles (= 24 blocks) around the dock
+        // center to find the highest point of terrain surrounding the dock.
+        let mut max_surface_alt = i32::MIN;
+        // -12 -8 -4 0 +4 +8 +12
+        for dx in -3..=3 {
+            for dy in -3..=3 {
+                let pos = center + Vec2::new(dx * 24, dy * 24);
+                let alt = land.get_surface_alt_approx(pos) as i32;
+                if alt > max_surface_alt {
+                    max_surface_alt = alt;
+                }
+            }
+        }
+
+        // The foundation is the size of the bounds.
+        // Sample the surface altitude over the foundation area to get the
+        // foundation max alt.
+        let foundation_qtr = bounds.size().w / 4;
+        let mut max_foundation_alt = i32::MIN;
+        for dx in -2..=2 {
+            for dy in -2..=2 {
+                let pos = center + Vec2::new(dx * foundation_qtr, dy * foundation_qtr);
+                let alt = land.get_surface_alt_approx(pos) as i32;
+                if alt > max_foundation_alt {
+                    max_foundation_alt = alt;
+                }
+            }
+        }
+
         let length = 14;
         let height = 2 * (length / 3);
         let floors = 4;
-        let base = alt + 1;
-        let top_floor = base + 5 + (height * (floors + 1));
+
+        // The desired base alt is max_foundation_alt + 1.
+        let mut base = max_foundation_alt + 1;
+        let mut top_floor = base + 5 + (height * (floors + 1));
+        // The docking platforms will be at top_floor.
+        let clearance = top_floor - (max_surface_alt + 6);
+        if clearance < 0 {
+            base += -clearance;
+            top_floor += -clearance;
+        }
+
         let docking_positions = CARDINALS
             .iter()
             .map(|dir| (center + dir * 31).with_z(top_floor))

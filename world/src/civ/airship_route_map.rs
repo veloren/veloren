@@ -1,7 +1,7 @@
 use crate::{
     CONFIG, Index, IndexRef,
     civ::airship_travel::{
-        AirshipDockPlatform, AirshipRouteLeg, AirshipSpawningLocation, Airships, DockNode,
+        AirshipDockPlatform, AirshipRoute, AirshipSpawningLocation, Airships, DockNode,
     },
     sim::{WorldSim, get_horizon_map, sample_pos, sample_wpos},
     util::{DHashMap, DHashSet},
@@ -602,7 +602,7 @@ fn dock_sites_optimized_tesselation_map(
 /// coordinates must be converted by inverting the y-axix and scaling to the
 /// pixmap size.
 fn draw_airship_routes(
-    routes: &[Vec<AirshipRouteLeg>],
+    routes: &[AirshipRoute],
     points: &[Vec2<f32>],
     spawning_points: &[Vec<Vec2<f32>>],
     pixmap: &mut Pixmap,
@@ -653,10 +653,10 @@ fn draw_airship_routes(
         let color: [u8; 3] = segment_colors[i % segment_colors.len()];
         paint.set_color_rgba8(color[0], color[1], color[2], 255);
 
-        if route.len() > 1 {
-            let mut prev_leg = &route[route.len() - 1];
+        if route.legs.len() > 1 {
+            let mut prev_leg = &route.legs[route.legs.len() - 1];
             let mut pb = PathBuilder::new();
-            for route_leg in route.iter() {
+            for route_leg in route.legs.iter() {
                 let from_loc = loc_fn(&points[prev_leg.dest_index], &prev_leg.platform);
                 let to_loc = loc_fn(&points[route_leg.dest_index], &route_leg.platform);
                 pb.move_to(from_loc.0, from_loc.1);
@@ -684,12 +684,12 @@ fn draw_airship_routes(
         let id_formatter =
             |c: char| format!("{}_{}", route_color_ids[i % route_color_ids.len()], c);
 
-        if route.len() > 1 {
+        if route.legs.len() > 1 {
             let mut leg_line_number = 1;
-            let mut prev_leg = &route[route.len() - 1];
+            let mut prev_leg = &route.legs[route.legs.len() - 1];
 
             // The leg line numbers are drawn at the destination end of the line.
-            for route_leg in route.iter() {
+            for route_leg in route.legs.iter() {
                 // for j in 0..segment.len() - 1 {
                 let from_loc = loc_fn(&points[prev_leg.dest_index], &prev_leg.platform);
                 let to_loc = loc_fn(&points[route_leg.dest_index], &route_leg.platform);
@@ -764,7 +764,7 @@ fn draw_airship_routes(
 /// where the segments are loops of docking points derived from the
 /// eulerian circuit created from the eulerized tesselation.
 fn airship_routes_map(
-    routes: &[Vec<AirshipRouteLeg>],
+    routes: &[AirshipRoute],
     points: &[Point],
     spawning_locations: Option<&Vec<AirshipSpawningLocation>>,
     image_size: &MapSizeLg,
@@ -857,7 +857,7 @@ pub fn save_airship_routes_triangulation(
 }
 
 pub fn save_airship_route_segments(
-    routes: &[Vec<AirshipRouteLeg>],
+    routes: &[AirshipRoute],
     points: &[Point],
     spawning_locations: &Vec<AirshipSpawningLocation>,
     image_size: &MapSizeLg,

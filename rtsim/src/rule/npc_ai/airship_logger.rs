@@ -1,4 +1,3 @@
-use crate::rule::npc_ai::airship_ai::AirshipFlightPhase;
 use common::rtsim::NpcId;
 use hashbrown::HashMap;
 use once_cell::sync::Lazy;
@@ -9,6 +8,7 @@ use std::{
     sync::{Mutex, MutexGuard, PoisonError},
 };
 use vek::*;
+use world::civ::airship_travel::AirshipFlightPhase;
 
 #[derive(Debug)]
 /// Facilitates logging airship position changes over time to a log file.
@@ -31,9 +31,9 @@ use vek::*;
 /// - AIRSHIP_LOGGER_TGT_NPC_ID: The NpcId of the target NPC, OPTIONAL. If set,
 ///   the log data for this NPC will have true in the Is Target NPC column.
 pub struct AirshipLogger {
-    /// key is NpcId, data is Vec of (flight phase, time, position, is_tgt_npc,
-    /// is_loaded)
-    pub npc_positions: HashMap<NpcId, Vec<(AirshipFlightPhase, f64, Vec3<f32>, bool, bool)>>,
+    /// key is NpcId, data is Vec of (flight phase, route index, time, position,
+    /// is_tgt_npc, is_loaded)
+    pub npc_positions: HashMap<NpcId, Vec<(AirshipFlightPhase, usize, f64, Vec3<f32>, bool, bool)>>,
     /// For tracking when to append the position data to a log file.
     pub start_time: f64,
     /// How often to log the positions, in seconds. Each period, the position
@@ -69,10 +69,13 @@ impl AirshipLogger {
         &mut self,
         npc_id: NpcId,
         seed: u32,
+        route_index: usize,
         phase: &AirshipFlightPhase,
         time: f64,
         position: Vec3<f32>,
         is_loaded: bool,
+        value1: f64,
+        value2: f64,
     ) {
         let is_tgt_npc = {
             let airship_logger_tgt_npc_id = env::var("AIRSHIP_LOGGER_TGT_NPC_ID").ok();
@@ -83,10 +86,14 @@ impl AirshipLogger {
             }
         };
 
-        self.npc_positions
-            .entry(npc_id)
-            .or_default()
-            .push((*phase, time, position, is_tgt_npc, is_loaded));
+        self.npc_positions.entry(npc_id).or_default().push((
+            *phase,
+            route_index,
+            time,
+            position,
+            is_tgt_npc,
+            is_loaded,
+        ));
         if self.start_time == 0.0 {
             self.start_time = time;
         } else if time >= self.start_time + self.interval {
@@ -103,11 +110,21 @@ impl AirshipLogger {
                         .create(true) // Create the file if it doesn't exist
                         .open(file_path).expect("Failed to create airship positions log file");
                     for (npc_id, positions) in current_positions {
-                        for (phase, t, pos, is_tgt, is_loaded) in positions {
+                        for (phase, route_index, t, pos, is_tgt, is_loaded) in positions {
                             writeln!(
                                 file,
-                                "{:?}, {}, {}, {}, {}, {}, {}, {}",
-                                npc_id, phase, t, pos.x, pos.y, pos.z, is_tgt, is_loaded
+                                "{:?}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+                                npc_id,
+                                route_index,
+                                phase,
+                                t,
+                                pos.x,
+                                pos.y,
+                                pos.z,
+                                is_tgt,
+                                is_loaded,
+                                value1,
+                                value2
                             )
                             .expect("Failed to write to airship positions log file");
                         }

@@ -1,11 +1,10 @@
 use crate::data::Npcs;
 use common::rtsim::NpcId;
 use std::cmp::Ordering;
-#[cfg(debug_assertions)] use tracing::debug;
 use vek::*;
 use world::{
     World,
-    civ::airship_travel::{AirshipSpawningLocation, Airships},
+    civ::airship_travel::{AirshipFlightPhase, AirshipSpawningLocation, Airships},
     util::DHashMap,
 };
 
@@ -24,8 +23,15 @@ pub struct AirshipSim {
 
 #[cfg(debug_assertions)]
 macro_rules! debug_airships {
-    ($($arg:tt)*) => {
-        debug!($($arg)*);
+    ($level:expr, $($arg:tt)*) => {
+        match $level {
+            0 => tracing::info!($($arg)*),
+            1 => tracing::warn!($($arg)*),
+            2 => tracing::error!($($arg)*),
+            3 => tracing::debug!($($arg)*),
+            4 => tracing::trace!($($arg)*),
+            _ => tracing::trace!($($arg)*),
+        }
     }
 }
 
@@ -57,14 +63,18 @@ impl AirshipSim {
             "Airship direction {:?} is not normalized",
             location.dir
         );
-        let airship_wpos3d = location.pos.with_z(
-            world
-                .sim()
-                .get_alt_approx(location.pos.map(|e| e as i32))
-                .unwrap_or(0.0)
-                + location.height,
-        );
-
+        let airship_wpos3d = match location.flight_phase {
+            AirshipFlightPhase::DepartureCruise
+            | AirshipFlightPhase::ApproachCruise
+            | AirshipFlightPhase::Transition => location.pos.with_z(
+                world
+                    .sim()
+                    .get_alt_approx(location.pos.map(|e| e as i32))
+                    .unwrap_or(0.0)
+                    + location.height,
+            ),
+            _ => location.pos.with_z(location.height),
+        };
         let airship_mount_offset = if let Some(airship) = npcs.get_mut(airship_id) {
             airship.wpos = airship_wpos3d;
             airship.dir = location.dir;
@@ -89,6 +99,7 @@ impl AirshipSim {
         }
 
         debug_airships!(
+            4,
             "Registering airship {:?}/{:?} for spawning location {:?}",
             airship_id,
             captain_id,
@@ -103,7 +114,7 @@ impl AirshipSim {
     /// pilot" on a route, which is used for deconfliction and
     /// "traffic control" of airships.
     pub fn configure_route_pilots(&mut self, airships: &Airships, npcs: &Npcs) {
-        debug_airships!("Airship Assigned Routes: {:?}", self.assigned_routes);
+        debug_airships!(4, "Airship Assigned Routes: {:?}", self.assigned_routes);
         // for each route index and leg index, find all pilots that are assigned to
         // the route index and leg index. Sort them by their distance to the starting
         // position of the leg. Repeat for all legs of the route, then add the resulting
@@ -135,7 +146,7 @@ impl AirshipSim {
                 }
             }
             if !pilots_on_route.is_empty() {
-                debug_airships!("Route {} pilots: {:?}", route_index, pilots_on_route);
+                debug_airships!(4, "Route {} pilots: {:?}", route_index, pilots_on_route);
                 self.route_pilots.insert(route_index, pilots_on_route);
             }
         }

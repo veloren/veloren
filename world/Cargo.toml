@@ -22,6 +22,11 @@ bin_compression = [
     "cli",
 ]
 cli = ["clap", "signal-hook", "indicatif"]
+# Enable this feature to export images containing maps of airship routes during
+# world generation. This will be useful for evaluating airship route generation
+# during world seed selection. Some world maps and airship docking site placements
+# will be better suited for airship routing than others.
+# See file world/src/civ/airship_travel.rs for map generation details.
 airship_maps = ["dep:tiny-skia"]
 
 default = ["simd"]
