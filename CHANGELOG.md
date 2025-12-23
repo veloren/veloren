@@ -137,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs will no longer randomly ambush players.
 - Combat music temporarily removed.
 - Hotkey hints
+- Bags and other superficial equipment no longer cost resources to repair
 
 ### Fixed
 
