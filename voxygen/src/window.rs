@@ -241,13 +241,20 @@ impl Window {
 
         let window = settings.graphics.window;
 
-        let attributes = winit::window::Window::default_attributes()
+        #[allow(unused_mut)] //ensure no weird issues on different platforms
+        let mut attributes = winit::window::Window::default_attributes()
             .with_title("Veloren")
             .with_inner_size(winit::dpi::LogicalSize::new(
                 window.size[0] as f64,
                 window.size[1] as f64,
             ))
             .with_maximized(window.maximised);
+
+        #[cfg(target_os = "linux")]
+        {
+            use winit::platform::wayland::WindowAttributesExtWayland;
+            attributes = attributes.with_name("net.veloren.veloren", "veloren");
+        }
 
         // Avoid cpal / winit OleInitialize conflict
         // See: https://github.com/rust-windowing/winit/pull/1524

@@ -1,15 +1,17 @@
 [package]
 name = "veloren-voxygen"
-version = "0.17.0"
-default-run = "veloren-voxygen"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+default-run = "veloren-voxygen"
+# Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
+# Uncomment below and comment out default-run if you want to avoid this
+# autobins = false
+
 authors = [
     "Joshua Barretto <joshua.s.barretto@gmail.com>",
     "Imbris <imbrisf@gmail.com>",
 ]
-# Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
-# Uncomment below and comment out default-run if you want to avoid this
-# autobins = false
 
 [lints]
 workspace = true
@@ -35,7 +37,7 @@ tracy = ["common-frontend/tracy", "client/tracy"]
 tracy-memory = ["tracy"]
 # enables heap profiling with tracy
 plugins = ["client/plugins", "server/plugins", "anim/plugins", "common/plugins"]
-egui-ui = ["voxygen-egui", "egui", "egui_wgpu_backend", "egui_winit_platform"]
+egui-ui = ["voxygen-egui", "egui", "egui-wgpu", "egui-winit"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_cmd_doc_gen = []
@@ -68,8 +70,8 @@ voxygen-egui = { package = "veloren-voxygen-egui", path = "egui", optional = tru
 
 # Graphics
 winit = { version = "0.30.12", features = ["serde"] }
-wgpu = { version = "26", features = ["spirv", "glsl"] }
-wgpu-profiler = "0.24"
+wgpu = { version = "27", features = ["spirv", "glsl"] }
+wgpu-profiler = "0.25"
 bytemuck = { version = "1.7", features = ["derive"] }
 shaderc = "0.10"
 
@@ -79,13 +81,12 @@ euc = "0.5.3"
 # We should probably migrate to a more recent version at some point, but this is significant amount of work.
 # Note: this does not depend on the version of `winit` anymore, all dependent code was moved into Voxygen
 iced = { package = "iced_native", git = "https://github.com/Imberflur/iced", tag = "veloren-winit-0.28" }
-window_clipboard = "0.4.1"
+window_clipboard = "0.5"
 glyph_brush = "0.7.0"
 # EGUI
-egui = { version = "0.32", optional = true }
-# We should probably migrate to the official `egui-wgpu` and `egui-winit`
-egui_wgpu_backend = { version = "0.35", optional = true }
-egui_winit_platform = { version = "0.27", optional = true }
+egui = { version = "0.33", optional = true }
+egui-wgpu = { version = "0.33", optional = true }
+egui-winit = { version = "0.33", optional = true }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }
@@ -108,7 +109,7 @@ clap = { workspace = true }
 # Utility
 backtrace = "0.3.40"
 chrono = { workspace = true }
-chumsky = "0.10"
+chumsky = "0.12"
 crossbeam-utils = { workspace = true }
 crossbeam-channel = { workspace = true }
 directories-next = "2.0"
@@ -131,7 +132,7 @@ rand_chacha = { workspace = true }
 rayon = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
-serde_with = { version = "3.11.0", features = ["hashbrown_0_15"] }
+serde_with = { version = "3", features = ["hashbrown_0_16"] }
 slab = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
@@ -156,11 +157,7 @@ dispatch = "0.2"
 winres = "0.1"
 
 [target.'cfg(target_family = "windows")'.dependencies]
-# Pinned due to a memory leak on Windows occuring in versions 0.1.44
-# to 0.1.46 of mimalloc and versions 0.1.40 to 0.1.42 of libmimalloc-sys
-# respectively.
-mimalloc = "=0.1.43"
-libmimalloc-sys = "=0.1.39"
+mimalloc = { workspace = true }
 
 # Mumble
 [target.'cfg(not(target_os="macos"))'.dependencies]

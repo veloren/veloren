@@ -476,6 +476,7 @@ image_ids! {
         m_click_ico: "voxygen.element.ui.generic.icons.m_click",
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
         bag_ico: "voxygen.element.ui.generic.buttons.bag",
+        skillbar_index: "voxygen.element.ui.generic.buttons.hotbar_index",
 
         // Other Icons/Art
         hardcore: "voxygen.element.ui.map.icons.dif_map_icon",

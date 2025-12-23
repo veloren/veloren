@@ -12,9 +12,8 @@
 use kira::{
     Easing, StartTime, Tween,
     clock::ClockTime,
-    listener::ListenerId,
     sound::PlaybackState,
-    track::{SpatialTrackBuilder, SpatialTrackHandle, TrackBuilder, TrackHandle},
+    track::{SpatialTrackHandle, TrackBuilder, TrackHandle},
 };
 use serde::Deserialize;
 use std::time::Duration;
@@ -33,6 +32,12 @@ use super::soundcache::{AnySoundData, AnySoundHandle};
 /// player.
 pub const SFX_DIST_LIMIT: f32 = 200.0;
 pub const SFX_DIST_LIMIT_SQR: f32 = SFX_DIST_LIMIT * SFX_DIST_LIMIT;
+
+pub fn calculate_player_attenuation(player_pos: Vec3<f32>, emitter_pos: Vec3<f32>) -> f32 {
+    1.0 - (player_pos.distance(emitter_pos) * (1.0 / SFX_DIST_LIMIT))
+        .clamp(0.0, 1.0)
+        .sqrt()
+}
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
 /// should transition between two types of in-game music. For example, we
@@ -321,41 +326,60 @@ impl AmbienceChannel {
 /// Note: currently, emitters are static once spawned
 #[derive(Debug)]
 pub struct SfxChannel {
-    track: SpatialTrackHandle,
+    track: Option<SpatialTrackHandle>,
     source: Option<AnySoundHandle>,
+    source_initial_volume: f32,
     pos: Vec3<f32>,
     // Increments every time we play a distinct sound through this channel
     pub play_counter: usize,
 }
 
 impl SfxChannel {
-    pub fn new(
-        route_to: &mut TrackHandle,
-        listener: ListenerId,
-    ) -> Result<Self, kira::ResourceLimitReached> {
-        let sfx_track_builder = SpatialTrackBuilder::new()
-            .distances((1.0, SFX_DIST_LIMIT))
-            .attenuation_function(Some(Easing::OutPowf(0.66)));
-        let track = route_to.add_spatial_sub_track(listener, Vec3::zero(), sfx_track_builder)?;
-        Ok(Self {
-            track,
+    pub fn new() -> Self {
+        Self {
+            track: None,
             source: None,
+            source_initial_volume: 0.0,
             pos: Vec3::zero(),
             play_counter: 0,
-        })
+        }
     }
+
+    pub fn drop_track(&mut self) { self.track = None; }
 
     pub fn set_source(&mut self, source_handle: Option<AnySoundHandle>) {
         self.source = source_handle;
     }
 
-    pub fn play(&mut self, source: AnySoundData) -> usize {
-        match self.track.play(source) {
-            Ok(handle) => self.source = Some(handle),
+    /// Sets the volume of the source, not the track. This is only used to
+    /// change the volume of a sound based on the player's distance from its
+    /// emitter.
+    pub fn set_source_volume(&mut self, volume: f32) {
+        let tween = Tween {
+            duration: Duration::from_secs_f32(0.0),
+            ..Default::default()
+        };
+        if let Some(source) = self.source.as_mut() {
+            source.set_volume(audio::to_decibels(volume), tween);
+        }
+    }
+
+    pub fn play(
+        &mut self,
+        source: AnySoundData,
+        volume: f32,
+        mut track: SpatialTrackHandle,
+    ) -> usize {
+        match track.play(source) {
+            Ok(handle) => {
+                self.source = Some(handle);
+                self.source_initial_volume = volume
+            },
             Err(e) => {
                 warn!(?e, "Cannot play sfx")
             },
         }
+        self.track = Some(track);
         self.play_counter += 1;
         self.play_counter
     }
@@ -366,14 +390,15 @@ impl SfxChannel {
         }
     }
 
-    /// Sets volume of the track, not the source. This is to be used only for
-    /// multiplying the volume post distance calculation.
-    pub fn set_volume(&mut self, volume: f32) {
-        let tween = Tween {
-            duration: Duration::from_secs_f32(0.0),
-            ..Default::default()
-        };
-        self.track.set_volume(audio::to_decibels(volume), tween)
+    /// Sets volume of the track.
+    pub fn set_volume(&mut self, volume: f32, duration: Option<f32>) {
+        if let Some(track) = self.track.as_mut() {
+            let tween = Tween {
+                duration: Duration::from_secs_f32(duration.unwrap_or(0.0)),
+                ..Default::default()
+            };
+            track.set_volume(audio::to_decibels(volume), tween)
+        }
     }
 
     pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
@@ -386,20 +411,23 @@ impl SfxChannel {
 
     /// Update volume of sounds based on position of player
     pub fn update(&mut self, player_pos: Vec3<f32>) {
-        let tween = Tween {
-            duration: Duration::from_secs_f32(0.0),
-            ..Default::default()
-        };
-        self.track.set_position(self.pos, tween);
+        if let Some(track) = self.track.as_mut() {
+            let tween = Tween {
+                duration: Duration::from_secs_f32(0.0),
+                ..Default::default()
+            };
+            track.set_position(self.pos, tween);
+        }
 
         // A multiplier between 0.0 and 1.0, with 0.0 being the furthest away from and
         // 1.0 being closest to the player.
-        let ratio = 1.0
-            - (player_pos.distance(self.pos) * (1.0 / SFX_DIST_LIMIT))
-                .clamp(0.0, 1.0)
-                .sqrt();
-        self.set_volume(ratio);
+        let ratio = calculate_player_attenuation(player_pos, self.pos);
+        self.set_source_volume(self.source_initial_volume * 5.0 * ratio);
     }
+}
+
+impl Default for SfxChannel {
+    fn default() -> Self { Self::new() }
 }
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]

@@ -318,33 +318,32 @@ impl Widget for Chat<'_> {
                 .left()
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
-            let new_pos = (chat_pos + pos_delta).map(|e| e.max(0.)).map2(
-                self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
-                    - Vec2::unit_y() * CHAT_TAB_HEIGHT
-                    - chat_size,
-                |e, bounds| e.min(bounds),
-            );
+
+            let window_clamp =
+                Vec2::new(ui.win_w, ui.win_h) - Vec2::unit_y() * CHAT_TAB_HEIGHT - chat_size;
+
+            let new_pos = (chat_pos + pos_delta)
+                .map(|e| e.max(0.))
+                .map2(window_clamp, |e, bounds| e.min(bounds));
+
             if new_pos.abs_diff_ne(&chat_pos, f64::EPSILON) {
                 events.push(Event::MoveChat(new_pos));
             }
+
             let size_delta: Vec2<f64> = ui
                 .widget_input(state.ids.draggable_area)
                 .drags()
                 .right()
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
+
             let new_size = (chat_size + size_delta)
                 .map3(
                     self.scale.scale_point(MIN_DIMENSION),
                     self.scale.scale_point(MAX_DIMENSION),
                     |sz, min, max| sz.clamp(min, max),
                 )
-                .map2(
-                    self.scale.scale_point(Vec2::new(ui.win_w, ui.win_h))
-                        - Vec2::unit_y() * CHAT_TAB_HEIGHT
-                        - new_pos,
-                    |e, bounds| e.min(bounds),
-                );
+                .map2(window_clamp, |e, bounds| e.min(bounds));
             if new_size.abs_diff_ne(&chat_size, f64::EPSILON) {
                 events.push(Event::ResizeChat(new_size));
             }
@@ -856,6 +855,31 @@ impl Widget for Chat<'_> {
                 .was_clicked()
         {
             ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
+        }
+        // Chat Scroll
+        // If PageUp is pressed: scroll up chat history
+        if ui
+            .widget_input(state.ids.chat_input)
+            .presses()
+            .key()
+            .any(|key_press| {
+                let pressed = matches!(key_press.key, Key::PageUp);
+                pressed
+            })
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, -chat_size.y])
+        }
+        // If PageDown is pressed: scroll down chat history
+        if ui
+            .widget_input(state.ids.chat_input)
+            .presses()
+            .key()
+            .any(|key_press| {
+                let pressed = matches!(key_press.key, Key::PageDown);
+                pressed
+            })
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, chat_size.y])
         }
 
         // We've started a new tab completion. Populate tab completion suggestions.

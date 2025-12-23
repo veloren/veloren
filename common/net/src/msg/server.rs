@@ -31,6 +31,7 @@ use vek::*;
 
 ///This struct contains all messages the server might send (on different
 /// streams though)
+#[expect(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum ServerMsg {
     /// Basic info about server, send ONCE, clients need it to Register
@@ -51,8 +52,8 @@ pub enum ServerMsg {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerInfo {
     pub name: String,
-    pub git_hash: String,
-    pub git_date: String,
+    pub git_hash: u32,
+    pub git_timestamp: i64,
     pub auth_provider: Option<String>,
 }
 

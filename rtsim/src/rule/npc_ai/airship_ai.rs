@@ -1,135 +1,98 @@
 #[cfg(feature = "airship_log")]
 use crate::rule::npc_ai::airship_logger::airship_logger;
+
 use crate::{
-    ai::{Action, NpcCtx, State, finish, just, now, predicate::timeout},
+    ai::{Action, NpcCtx, State, finish, just, now, seq},
     data::npc::SimulationMode,
 };
-
 use common::{
     comp::{
         Content,
         agent::{BrakingMode, FlightMode},
         compass::Direction,
     },
-    consts::AIR_DENSITY,
-    rtsim::NpcId,
     util::Dir,
 };
-use num_traits::cast::FromPrimitive;
 use rand::prelude::*;
-use std::{cmp::Ordering, collections::VecDeque, fmt, time::Duration};
+use std::{cmp::Ordering, collections::VecDeque, time::Duration};
 use vek::*;
-use world::{
-    civ::airship_travel::{AirshipDockingApproach, Airships},
-    util::CARDINALS,
-};
+use world::civ::airship_travel::{AirshipDockingApproach, AirshipFlightPhase};
 
-#[cfg(debug_assertions)] use tracing::debug;
-
-use tracing::warn;
-
-const CLOSE_TO_DOCKING_SITE_DISTANCE_SQR: f32 = 225.0f32 * 225.0f32;
-const VERY_CLOSE_AIRSHIP_DISTANCE_SQR: f32 = 400.0f32 * 400.0f32;
-const CRUISE_CHECKPOINT_DISTANCE: f32 = 800.0;
-const NEXT_PILOT_CRUISE_SPEED_TOLERANCE: f32 = 2.0;
-const MOVING_AVERAGE_SCALE_FACTOR: f64 = 10000.0;
-const NEXT_PILOT_MOVING_VELOCITY_AVERAGE_CAPACITY: usize = 5;
-const NEXT_PILOT_MOVING_VELOCITY_AVERAGE_MIN_SIZE: usize = 3;
-const NEXT_PILOT_MOVING_DIST_AVERAGE_CAPACITY: usize = 3;
-const NEXT_PILOT_MOVING_DIST_AVERAGE_MIN_SIZE: usize = 2;
-const NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD_SQR: usize = 5 * 5;
-const NEXT_PILOT_VELOCITY_RATIO_MIN: f32 = 1.05;
-const NEXT_PILOT_SPACING_THRESHOLD_SQR: f32 = 0.6 * 0.6; // squared because distances are compared while squared;
-const CLOSE_AIRSHIP_SPEED_FACTOR: f32 = 0.9;
-
-/// Airships can slow down or hold position to avoid collisions with other
-/// airships. Stuck mode means the airship was stuck in one position and
-/// is not backing out and climbing to clear the obstacle.
-#[derive(Debug, Copy, Clone, Default, PartialEq)]
-enum AirshipAvoidanceMode {
-    #[default]
-    None,
-    Slow(f32),
-    Hold(Vec3<f32>, Dir),
-    Stuck(Vec3<f32>),
+#[cfg(debug_assertions)]
+macro_rules! debug_airships {
+    ($level:expr, $($arg:tt)*) => {
+        match $level {
+            0 => tracing::error!($($arg)*),
+            1 => tracing::warn!($($arg)*),
+            2 => tracing::info!($($arg)*),
+            3 => tracing::debug!($($arg)*),
+            4 => tracing::trace!($($arg)*),
+            _ => tracing::trace!($($arg)*),
+        }
+    }
 }
+
+#[cfg(not(debug_assertions))]
+macro_rules! debug_airships {
+    ($($arg:tt)*) => {};
+}
+
+const AIRSHIP_PROGRESS_UPDATE_INTERVAL: f32 = 5.0; // seconds
 
 /// The context data for the pilot_airship action.
 #[derive(Debug, Clone)]
 struct AirshipRouteContext {
     /// The route index (index into the outer vec of airships.routes)
     route_index: usize,
-    /// The expected airship speed when simulated.
-    simulated_airship_speed: f32,
     /// The next route leg index.
-    next_leg: usize,
-    /// The NpcId of the captain ahead of this one.
-    next_pilot_id: NpcId,
+    current_leg: usize,
+    /// True for the first leg (initial startup), false otherwise.
+    first_leg: bool,
     /// The current approach.
     current_leg_approach: Option<AirshipDockingApproach>,
-    /// The next approach.
+    /// The direction override for departure and approach phases.
+    cruise_direction: Option<Dir>,
+    /// The next route leg approach.
     next_leg_approach: Option<AirshipDockingApproach>,
-    /// A point short of the approach transition point where the frequency of
-    /// avoidance checks increases.
-    next_leg_cruise_checkpoint_pos: Vec3<f32>,
-    /// Value used to convert a target velocity to a speed factor.
-    speed_factor_conversion_factor: f32,
 
-    // Avoidance Data
+    // Timing
+    /// The context time at the start of the route. All route leg segment
+    /// times are measured relative to this time.
+    route_time_zero: f64,
+    /// Timer used for various periodic countdowns.
+    route_timer: Duration,
+    /// The context time at the beginning of the current route leg.
+    leg_ctx_time_begin: f64,
+
+    // Docking phase
+    /// The times at which announcements are made during docking.
+    announcements: VecDeque<f32>,
+
     /// For tracking the airship's position history to determine if the airship
     /// is stuck.
     my_stuck_tracker: Option<StuckAirshipTracker>,
-    /// For tracking airship velocity towards the approach transition point.
-    my_rate_tracker: Option<RateTracker>,
-    /// For tracking the next pilot's velocity towards the approach transition
-    /// point.
-    next_pilot_rate_tracker_: Option<RateTracker>,
     /// Timer for checking the airship trackers.
-    avoidance_timer: Duration,
+    stuck_timer: Duration,
     /// Timer used when holding, either on approach or at the dock.
-    hold_timer: f32,
-    /// Whether the initial hold message has been sent to the client.
-    hold_announced: bool,
-    /// The moving average of the next pilot's velocity during cruise phase.
-    next_pilot_average_velocity: MovingAverage<
-        i64,
-        NEXT_PILOT_MOVING_VELOCITY_AVERAGE_CAPACITY,
-        NEXT_PILOT_MOVING_VELOCITY_AVERAGE_MIN_SIZE,
-    >,
-    /// The moving average of the next pilot's distance from my current docking
-    /// position target pos.
-    next_pilot_dist_to_my_docking_pos_tracker:
-        DistanceTrendTracker<NEXT_PILOT_MOVING_DIST_TRACKER_THRESHOLD_SQR>,
-    /// The current avoidance mode for the airship.
-    avoid_mode: AirshipAvoidanceMode,
-    /// Whether the airship had to hold during the last flight.
-    did_hold: bool,
-    /// The extra docking time due to holding.
-    extra_hold_dock_time: f32,
+    stuck_backout_pos: Option<Vec3<f32>>,
 }
 
 impl Default for AirshipRouteContext {
     fn default() -> Self {
         Self {
             route_index: usize::MAX,
-            simulated_airship_speed: 0.0,
-            next_leg: 0,
-            next_pilot_id: NpcId::default(),
+            current_leg: 0,
+            first_leg: true,
             current_leg_approach: None,
+            cruise_direction: None,
             next_leg_approach: None,
-            next_leg_cruise_checkpoint_pos: Vec3::default(),
-            speed_factor_conversion_factor: 0.0,
+            route_time_zero: 0.0,
+            route_timer: Duration::default(),
+            leg_ctx_time_begin: 0.0,
+            announcements: VecDeque::new(),
             my_stuck_tracker: None,
-            my_rate_tracker: None,
-            next_pilot_rate_tracker_: None,
-            avoidance_timer: Duration::default(),
-            hold_timer: 0.0,
-            hold_announced: false,
-            next_pilot_average_velocity: MovingAverage::default(),
-            next_pilot_dist_to_my_docking_pos_tracker: DistanceTrendTracker::default(),
-            avoid_mode: AirshipAvoidanceMode::default(),
-            did_hold: false,
-            extra_hold_dock_time: 0.0,
+            stuck_timer: Duration::default(),
+            stuck_backout_pos: None,
         }
     }
 }
@@ -150,7 +113,7 @@ impl StuckAirshipTracker {
     const BACKOUT_DIST: f32 = 100.0;
     /// The tolerance for determining if the airship has reached a backout
     /// position.
-    const BACKOUT_TARGET_DIST: f32 = 50.0;
+    const BACKOUT_TARGET_DIST: f64 = 50.0;
     /// The number of positions to track in the position history.
     const MAX_POS_HISTORY_SIZE: usize = 5;
     /// The height for testing if the airship is near the ground.
@@ -174,7 +137,8 @@ impl StuckAirshipTracker {
         if !self.backout_route.is_empty()
             && let Some(pos) = self.backout_route.first().cloned()
         {
-            if ctx.npc.wpos.distance_squared(pos) < StuckAirshipTracker::BACKOUT_TARGET_DIST.powi(2)
+            if ctx.npc.wpos.as_::<f64>().distance_squared(pos.as_::<f64>())
+                < StuckAirshipTracker::BACKOUT_TARGET_DIST.powi(2)
             {
                 self.backout_route.remove(0);
             }
@@ -214,7 +178,7 @@ impl StuckAirshipTracker {
             if self
                 .pos_history
                 .iter()
-                .all(|pos| pos.distance_squared(*last_pos) < 10.0)
+                .all(|pos| pos.as_::<f64>().distance_squared(last_pos.as_::<f64>()) < 10.0)
             {
                 // Airship is stuck on some obstacle.
 
@@ -239,7 +203,8 @@ impl StuckAirshipTracker {
                     self.backout_route = vec![backout_pos, backout_pos + Vec3::unit_z() * 200.0];
                     // The airship is stuck.
                     #[cfg(debug_assertions)]
-                    debug!(
+                    debug_airships!(
+                        2,
                         "Airship {} Stuck! at {} {} {}, backout_dir:{:?}, backout_pos:{:?}",
                         format!("{:?}", ctx.npc_id),
                         ctx.npc.wpos.x,
@@ -248,6 +213,7 @@ impl StuckAirshipTracker {
                         backout_dir,
                         backout_pos
                     );
+                    self.backout_route = vec![backout_pos, backout_pos + Vec3::unit_z() * 200.0];
                 }
             }
         }
@@ -255,675 +221,850 @@ impl StuckAirshipTracker {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-/// Tracks previous position and time to get a rough estimate of an NPC's
-/// velocity.
-struct RateTracker {
-    /// The previous position of the NPC in the XY plane.
-    last_pos: Option<Vec2<f32>>,
-    /// The game time when the last position was recorded.
-    last_time: f32,
-}
-
-impl RateTracker {
-    /// Calculates the velocity estimate, updates the previous values and
-    /// returns the velocity.
-    fn update(&mut self, current_pos: Vec2<f32>, time: f32) -> f32 {
-        let rate = if let Some(last_pos) = self.last_pos {
-            let dt = time - self.last_time;
-            if dt > 0.0 {
-                current_pos.distance(last_pos) / dt // blocks per second
-            } else {
-                0.0
-            }
-        } else {
-            0.0
-        };
-        self.last_pos = Some(current_pos);
-        self.last_time = time;
-        rate
+#[cfg(debug_assertions)]
+fn check_phase_completion_time(
+    ctx: &mut NpcCtx,
+    airship_context: &mut AirshipRouteContext,
+    leg_index: usize,
+    phase: AirshipFlightPhase,
+) {
+    let route_leg = &ctx.world.civs().airships.routes[airship_context.route_index].legs
+        [airship_context.current_leg];
+    // route time = context time - route time zero
+    let completion_route_time = ctx.time.0 - airship_context.route_time_zero;
+    let time_delta = completion_route_time - route_leg.segments[leg_index].route_time;
+    if time_delta > 10.0 {
+        debug_airships!(
+            4,
+            "Airship {} route {} leg {} completed phase {:?} late by {:.1} seconds, crt {}, \
+             scheduled end time {}",
+            format!("{:?}", ctx.npc_id),
+            airship_context.route_index,
+            airship_context.current_leg,
+            phase,
+            time_delta,
+            completion_route_time,
+            route_leg.segments[leg_index].route_time
+        );
+    } else if time_delta < -10.0 {
+        debug_airships!(
+            4,
+            "Airship {} route {} leg {} completed phase {:?} early by {:.1} seconds, crt {}, \
+             scheduled end time {}",
+            format!("{:?}", ctx.npc_id),
+            airship_context.route_index,
+            airship_context.current_leg,
+            phase,
+            time_delta,
+            completion_route_time,
+            route_leg.segments[leg_index].route_time
+        );
+    } else {
+        debug_airships!(
+            4,
+            "Airship {} route {} leg {} completed phase {:?} on time, crt {}, scheduled end time \
+             {}",
+            format!("{:?}", ctx.npc_id),
+            airship_context.route_index,
+            airship_context.current_leg,
+            phase,
+            completion_route_time,
+            route_leg.segments[leg_index].route_time
+        );
     }
 }
 
-#[derive(Debug, PartialEq)]
-/// The trend of the distance changes. The distance measured could be
-/// between a fixed position and an NPC or between two NPCs.
-enum DistanceTrend {
-    /// The distance is decreasing.
-    Towards,
-    /// The distance is increasing.
-    Away,
-    /// The distance is not changing significantly.
-    Neutral,
-}
-
-/// Tracks airship distance trend from a fixed position. Used for airship
-/// traffic control. The parameter C is the threshold for determining if the
-/// trend is stable (i.e., not increasing or decreasing too much).
-#[derive(Debug, Default, Clone)]
-struct DistanceTrendTracker<const C: usize> {
-    /// The fixed position to track the distance from.
-    fixed_pos: Vec2<f32>,
-    /// A moving average of the distance change rate.
-    avg_rate: MovingAverage<
-        f64,
-        NEXT_PILOT_MOVING_DIST_AVERAGE_CAPACITY,
-        NEXT_PILOT_MOVING_DIST_AVERAGE_MIN_SIZE,
-    >,
-    /// The most recent (previous) distance measurement.
-    prev_dist: Option<f32>,
-    /// The time when the previous distance was measured.
-    prev_time: f64,
-}
-
-impl<const C: usize> DistanceTrendTracker<C> {
-    /// Updates the distance trend based on the current position and time versus
-    /// the previous position and time.
-    fn update(&mut self, pos: Vec2<f32>, time: f64) -> Option<DistanceTrend> {
-        let current_dist = pos.distance(self.fixed_pos);
-        if let Some(prev) = self.prev_dist {
-            // rate is blocks per second
-            // Greater than 0 means the distance is increasing (going away from the target
-            // pos). Near zero means the airship is stationary or moving
-            // perpendicular to the target pos.
-            if time - self.prev_time > f64::EPSILON {
-                let rate = (current_dist - prev) as f64 / (time - self.prev_time);
-                self.prev_dist = Some(current_dist);
-                self.prev_time = time;
-
-                self.avg_rate.add(rate);
-                if let Some(avg) = self.avg_rate.average() {
-                    if avg > C as f64 {
-                        Some(DistanceTrend::Away)
-                    } else if avg < -(C as f64) {
-                        Some(DistanceTrend::Towards)
-                    } else {
-                        Some(DistanceTrend::Neutral)
-                    }
-                } else {
-                    None
-                }
-            } else {
-                // If not enough time has passed, keep the older previous values.
-                None
-            }
-        } else {
-            self.prev_dist = Some(current_dist);
-            self.prev_time = time;
-            None
-        }
-    }
-
-    fn reset(&mut self, pos: Vec2<f32>) {
-        self.fixed_pos = pos;
-        self.avg_rate.reset();
-        self.prev_dist = None;
-    }
-}
-
-/// A moving average of at least N values and at most S values.
-#[derive(Clone, Debug)]
-struct MovingAverage<T, const S: usize, const N: usize>
-where
-    T: Default
-        + FromPrimitive
-        + std::ops::AddAssign
-        + std::ops::Sub<Output = T>
-        + std::ops::Div<Output = T>
-        + Copy,
-{
-    values: VecDeque<T>,
-    sum: T,
-}
-
-impl<T, const S: usize, const N: usize> MovingAverage<T, S, N>
-where
-    T: Default
-        + FromPrimitive
-        + std::ops::AddAssign
-        + std::ops::Sub<Output = T>
-        + std::ops::Div<Output = T>
-        + Copy,
-{
-    /// Add a value to the average. Maintains the sum without needing to iterate
-    /// the values.
-    fn add(&mut self, value: T) {
-        if self.values.len() == S
-            && let Some(old_value) = self.values.pop_front()
-        {
-            self.sum = self.sum - old_value;
-        }
-        self.values.push_back(value);
-        self.sum += value;
-    }
-
-    /// Returns the current average, if enough values have been added.
-    fn average(&self) -> Option<T> {
-        if self.values.len() < N {
-            None
-        } else {
-            Some(self.sum / T::from_u32(self.values.len() as u32).unwrap())
-        }
-    }
-
-    fn reset(&mut self) {
-        self.values.clear();
-        self.sum = T::from_u32(0).unwrap();
-    }
-}
-
-impl<T, const S: usize, const N: usize> Default for MovingAverage<T, S, N>
-where
-    T: Default
-        + FromPrimitive
-        + std::ops::AddAssign
-        + std::ops::Sub<Output = T>
-        + std::ops::Div<Output = T>
-        + Copy,
-{
-    fn default() -> Self {
-        Self {
-            values: VecDeque::with_capacity(S),
-            sum: T::from_u32(0).unwrap(),
-        }
-    }
-}
-
-/// The flight phases of an airship.
-#[derive(Debug, Copy, Clone, PartialEq, Default)]
-pub enum AirshipFlightPhase {
-    Ascent,
-    DepartureCruise,
-    ApproachCruise,
-    Transition,
-    #[default]
-    Docked,
-}
-
-impl fmt::Display for AirshipFlightPhase {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AirshipFlightPhase::Ascent => write!(f, "Ascent"),
-            AirshipFlightPhase::DepartureCruise => write!(f, "DepartureCruise"),
-            AirshipFlightPhase::ApproachCruise => write!(f, "ApproachCruise"),
-            AirshipFlightPhase::Transition => write!(f, "Transition"),
-            AirshipFlightPhase::Docked => write!(f, "Docked"),
-        }
-    }
-}
-
-/// Wrapper for the fly_airship action, so the route context fields can be
-/// reset.
 fn fly_airship(
     phase: AirshipFlightPhase,
-    wpos: Vec3<f32>,
-    goal_dist: f32,
-    initial_speed_factor: f32,
-    height_offset: f32,
-    with_terrain_following: bool,
-    direction_override: Option<Dir>,
-    flight_mode: FlightMode,
-    with_collision_avoidance: bool,
-    radar_interval: Duration,
+    approach: AirshipDockingApproach,
 ) -> impl Action<AirshipRouteContext> {
-    now(move |_, airship_context: &mut AirshipRouteContext| {
-        airship_context.avoidance_timer = radar_interval;
-        airship_context.avoid_mode = AirshipAvoidanceMode::None;
-        if matches!(phase, AirshipFlightPhase::DepartureCruise) {
-            // Reset the stuck tracker.
-            airship_context.my_stuck_tracker = Some(StuckAirshipTracker::default());
+    now(move |ctx, airship_context: &mut AirshipRouteContext| {
+        airship_context.stuck_timer = Duration::from_secs_f32(5.0);
+        airship_context.stuck_backout_pos = None;
+        let route_leg = &ctx.world.civs().airships.routes[airship_context.route_index].legs
+            [airship_context.current_leg];
+        let nominal_speed = ctx.world.civs().airships.nominal_speed;
+        let leg_segment = &route_leg.segments[phase as usize];
+        // The actual leg start time was recorded when the previous leg ended.
+        let leg_ctx_time_begin = airship_context.leg_ctx_time_begin;
+
+        /*
+            Duration:
+            - starting leg: leg segment route time - spawning position route time
+            - all other legs: leg segment duration adjusted for early/late start
+            Distance to fly:
+            - Cruise phases: from the current pos to the leg segment target pos
+            - Descent: two steps, targeting above the dock then to the dock,
+              with random variation.
+            - Ascent: from the current pos to cruise height above the dock
+            - Docked: zero distance
+        */
+
+        let fly_duration = if airship_context.first_leg {
+            /*
+               if this is the very first leg for this airship,
+               then the leg duration is the leg segment (end) route time minus the
+               spawn route time.
+
+               airship_context.route_time_zero =
+                   ctx.time.0 - my_spawn_loc.spawn_route_time;
+               Spawn route time = ctx.time - airship_context.route_time_zero
+               dur = leg_segment.route_time - spawn_route_time
+                   = leg_segment.route_time - (ctx.time.0 - airship_context.route_time_zero)
+            */
+            debug_airships!(
+                4,
+                "Airship {} route {} leg {} first leg phase {} from {},{} dur {:.1}s",
+                format!("{:?}", ctx.npc_id),
+                airship_context.route_index,
+                airship_context.current_leg,
+                phase,
+                ctx.npc.wpos.x,
+                ctx.npc.wpos.y,
+                leg_segment.route_time - (ctx.time.0 - airship_context.route_time_zero)
+            );
+            ((leg_segment.route_time - (ctx.time.0 - airship_context.route_time_zero)) as f32)
+                .max(1.0)
+        } else {
+            // Duration is the leg segment duration adjusted for
+            // early/late starts caused by time errors in the
+            // previous leg.
+            let leg_start_route_time =
+                airship_context.leg_ctx_time_begin - airship_context.route_time_zero;
+            // Adjust the leg duration according to actual route start time vs expected
+            // route start time.
+            let expected_leg_route_start_time =
+                leg_segment.route_time - leg_segment.duration as f64;
+            let route_time_err = (leg_start_route_time - expected_leg_route_start_time) as f32;
+            if route_time_err > 10.0 {
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} starting {} late by {:.1}s, rt {:.2}, expected rt \
+                     {:.2}, leg dur {:.1}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    phase,
+                    route_time_err,
+                    leg_start_route_time,
+                    expected_leg_route_start_time,
+                    leg_segment.duration - route_time_err
+                );
+                leg_segment.duration - route_time_err
+            } else if route_time_err < -10.0 {
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} starting {} early by {:.1}s, rt {:.2}, expected \
+                     rt {:.2}, leg dur {:.1}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    phase,
+                    -route_time_err,
+                    leg_start_route_time,
+                    expected_leg_route_start_time,
+                    leg_segment.duration - route_time_err
+                );
+                leg_segment.duration - route_time_err
+            } else {
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} starting {} on time, leg dur {:.1}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    phase,
+                    leg_segment.duration
+                );
+                leg_segment.duration
+            }
+            .max(1.0)
+        };
+
+        let fly_distance = match phase {
+            AirshipFlightPhase::DepartureCruise
+            | AirshipFlightPhase::ApproachCruise
+            | AirshipFlightPhase::Transition => {
+                ctx.npc.wpos.xy().distance(leg_segment.to_world_pos)
+            },
+            AirshipFlightPhase::Descent => ctx.npc.wpos.z - approach.airship_pos.z,
+            AirshipFlightPhase::Ascent => approach.airship_pos.z + approach.height - ctx.npc.wpos.z,
+            AirshipFlightPhase::Docked => 0.0,
+        };
+
+        let context_end_time = ctx.time.0 + fly_duration as f64;
+
+        match phase {
+            AirshipFlightPhase::DepartureCruise => {
+                airship_context.my_stuck_tracker = Some(StuckAirshipTracker::default());
+                airship_context.route_timer = Duration::from_secs_f32(1.0);
+                airship_context.cruise_direction =
+                    Dir::from_unnormalized((approach.midpoint - ctx.npc.wpos.xy()).with_z(0.0));
+                // v = d/t
+                // speed factor = v/nominal_speed = (d/t)/nominal_speed
+                let speed = (fly_distance / fly_duration) / nominal_speed;
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} DepartureCruise, fly_distance {:.1}, fly_duration \
+                     {:.1}s, speed factor {:.3}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    fly_distance,
+                    fly_duration,
+                    speed
+                );
+                // Fly 2D to approach midpoint
+                fly_airship_inner(
+                    AirshipFlightPhase::DepartureCruise,
+                    ctx.npc.wpos,
+                    leg_segment.to_world_pos.with_z(0.0),
+                    50.0,
+                    leg_ctx_time_begin,
+                    fly_duration,
+                    context_end_time,
+                    speed,
+                    approach.height,
+                    true,
+                    None,
+                    FlightMode::FlyThrough,
+                )
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(
+                        ctx,
+                        airship_context,
+                        0,
+                        AirshipFlightPhase::DepartureCruise,
+                    );
+                }))
+                .map(|_, _| ())
+                .boxed()
+            },
+            AirshipFlightPhase::ApproachCruise => {
+                airship_context.route_timer = Duration::from_secs_f32(1.0);
+                airship_context.cruise_direction = Dir::from_unnormalized(
+                    (approach.approach_transition_pos - approach.midpoint).with_z(0.0),
+                );
+                // v = d/t
+                // speed factor = v/nominal_speed = (d/t)/nominal_speed
+                let speed = (fly_distance / fly_duration) / nominal_speed;
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} ApproachCruise, fly_distance {:.1}, fly_duration \
+                     {:.1}s, speed factor {:.3}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    fly_distance,
+                    fly_duration,
+                    speed
+                );
+                // Fly 2D to transition point
+                fly_airship_inner(
+                    AirshipFlightPhase::ApproachCruise,
+                    ctx.npc.wpos,
+                    leg_segment.to_world_pos.with_z(0.0),
+                    50.0,
+                    leg_ctx_time_begin,
+                    fly_duration,
+                    context_end_time,
+                    speed,
+                    approach.height,
+                    true,
+                    None,
+                    FlightMode::FlyThrough,
+                )
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(
+                        ctx,
+                        airship_context,
+                        1,
+                        AirshipFlightPhase::ApproachCruise,
+                    );
+                }))
+                .map(|_, _| ())
+                .boxed()
+            },
+            AirshipFlightPhase::Transition => {
+                // let phase_duration = get_phase_duration(ctx, airship_context, route_leg, 2,
+                // phase); let context_end_time = ctx.time.0 + phase_duration;
+                airship_context.route_timer = Duration::from_secs_f32(1.0);
+                // v = d/t
+                // speed factor = v/nominal_speed = (d/t)/nominal_speed
+                let speed = (fly_distance / fly_duration) / nominal_speed;
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} Transition, fly_distance {:.1}, fly_duration \
+                     {:.1}s, speed factor {:.3}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    fly_distance,
+                    fly_duration,
+                    speed
+                );
+                // fly 3D to descent point
+                fly_airship_inner(
+                    AirshipFlightPhase::Transition,
+                    ctx.npc.wpos,
+                    leg_segment
+                        .to_world_pos
+                        .with_z(approach.airship_pos.z + approach.height),
+                    20.0,
+                    leg_ctx_time_begin,
+                    fly_duration,
+                    context_end_time,
+                    speed,
+                    approach.height,
+                    true,
+                    Some(approach.airship_direction),
+                    FlightMode::Braking(BrakingMode::Normal),
+                )
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(
+                        ctx,
+                        airship_context,
+                        2,
+                        AirshipFlightPhase::Transition,
+                    );
+                }))
+                .map(|_, _| ())
+                .boxed()
+            },
+            AirshipFlightPhase::Descent => {
+                // Descend and Dock
+                airship_context.route_timer = Duration::from_secs_f32(1.0);
+                // v = d/t
+                // speed factor = v/nominal_speed = (d/t)/nominal_speed
+                /*
+                   Divide the descent into two steps with the 2nd step moving slowly
+                   (so more time and less distance) to give more variation.
+                   The total descent distance is fly_distance and the total duration is
+                   fly_duration. However, we want to stop the descent a bit above the dock
+                   so that any overshoot does not carry the airship much below the dock altitude.
+                   Account for the case that fly_distance <= desired_offset.
+                */
+                let desired_offset = ctx.rng.random_range(4.0..6.0);
+                let descent_offset = if fly_distance > desired_offset {
+                    desired_offset
+                } else {
+                    0.0
+                };
+                let descent_dist = fly_distance - descent_offset;
+                // step 1 dist is 60-80% of the descent distance
+                let step1_dist = descent_dist * ctx.rng.random_range(0.7..0.85);
+                let step1_dur = fly_duration * ctx.rng.random_range(0.4..0.55);
+                // Make loaded airships descend slightly faster
+                let speed_mult = if matches!(ctx.npc.mode, SimulationMode::Loaded) {
+                    ctx.rng.random_range(1.1..1.25)
+                } else {
+                    1.0
+                };
+                let speed1 = (step1_dist / step1_dur) / nominal_speed * speed_mult;
+                let speed2 = ((descent_dist - step1_dist) / (fly_duration - step1_dur))
+                    / nominal_speed
+                    * speed_mult;
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} Descent, fly_distance {:.1}, fly_duration {:.1}s, \
+                     desired_offset {:.1}, descent_offset {:.1}, descent_dist {:.1}, step1_dist \
+                     {:.1}, step1_dur {:.3}s, speedmult {:.1}, speed1 {:.3}, speed2 {:.3}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    fly_distance,
+                    fly_duration,
+                    desired_offset,
+                    descent_offset,
+                    descent_dist,
+                    step1_dist,
+                    step1_dur,
+                    speed_mult,
+                    speed1,
+                    speed2
+                );
+
+                // fly 3D to the intermediate descent point
+                fly_airship_inner(
+                    AirshipFlightPhase::Descent,
+                    ctx.npc.wpos,
+                    ctx.npc.wpos - Vec3::unit_z() * step1_dist,
+                    20.0,
+                    leg_ctx_time_begin,
+                    step1_dur,
+                    context_end_time - step1_dur as f64,
+                    speed1,
+                    0.0,
+                    false,
+                    Some(approach.airship_direction),
+                    FlightMode::Braking(BrakingMode::Normal),
+                )
+                .then (fly_airship_inner(
+                    AirshipFlightPhase::Descent,
+                    ctx.npc.wpos - Vec3::unit_z() * step1_dist,
+                    approach.airship_pos + Vec3::unit_z() * descent_offset,
+                    20.0,
+                    leg_ctx_time_begin + step1_dur as f64,
+                    fly_duration - step1_dur,
+                    context_end_time,
+                    speed2,
+                    0.0,
+                    false,
+                    Some(approach.airship_direction),
+                    FlightMode::Braking(BrakingMode::Precise),
+                ))
+                // Announce arrival
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(ctx, airship_context, 3, AirshipFlightPhase::Descent);
+                    log_airship_position(ctx, airship_context.route_index, &AirshipFlightPhase::Docked);
+                    ctx.controller
+                        .say(None, Content::localized("npc-speech-pilot-landed"));
+                }))
+                .map(|_, _| ()).boxed()
+            },
+            AirshipFlightPhase::Docked => {
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} Docked ctx time {:.1}, \
+                     airship_context.leg_ctx_time_begin {:.1}, docking duration {:.1}s",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    leg_ctx_time_begin,
+                    airship_context.leg_ctx_time_begin,
+                    fly_duration,
+                );
+                /*
+                    Divide up the docking time into intervals of 10 to 16 seconds,
+                    and at each interval make an announcement. Make the last announcement
+                    approximately 10-12 seconds before the end of the docking time.
+                    Make the first announcement 5-8 seconds after starting the docking time.
+                    The minimum annoucment time after the start is 5 seconds, and the
+                    minimum time before departure announcement is 10 seconds.
+                    The minimum interval between announcements is 10 seconds.
+
+                    Docked      Announce        Announce           Announce       Depart
+                    |-----------|---------------|----------------------|--------------|
+                    0         5-8s             ...               duration-10-12s
+                        min 5s        min 10           min 10               min 10s
+
+                    If docking duration is less than 10 seconds, no announcements.
+                */
+                let announcement_times = {
+                    let mut times = Vec::new();
+                    if fly_duration > 10.0 {
+                        let first_time = ctx.rng.random_range(5.0..8.0);
+                        let last_time = fly_duration - ctx.rng.random_range(10.0..12.0);
+                        if first_time + 10.0 > last_time {
+                            // Can't do two, try one.
+                            let mid_time = fly_duration / 2.0;
+                            if mid_time > 5.0 && (fly_duration - mid_time) > 10.0 {
+                                times.push(mid_time);
+                            }
+                        } else {
+                            // use first, then fill forward with random 10..16s intervals
+                            times.push(first_time);
+                            let mut last_time = first_time;
+                            let mut t = first_time + ctx.rng.random_range(10.0..16.0);
+                            while t < fly_duration - 10.0 {
+                                times.push(t);
+                                last_time = t;
+                                t += ctx.rng.random_range(10.0..16.0);
+                            }
+                            if last_time < fly_duration - 22.0 {
+                                // add one last announcement before the final 10s
+                                times.push(last_time + 12.0);
+                            }
+                            times.sort_by(|a, b| {
+                                a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
+                            });
+                        }
+                    }
+                    times
+                };
+                airship_context.announcements = announcement_times.into_iter().collect();
+                now(move |ctx, airship_context: &mut AirshipRouteContext| {
+                    // get next announcement time or the docking end time.
+                    // Don't consume the announcement time yet.
+                    let dock_ctx_end_time = if let Some(at) = airship_context.announcements.front()
+                    {
+                        leg_ctx_time_begin + *at as f64
+                    } else {
+                        context_end_time
+                    };
+                    fly_airship_inner(
+                        AirshipFlightPhase::Docked,
+                        ctx.npc.wpos,
+                        approach.airship_pos,
+                        5.0,
+                        leg_ctx_time_begin,
+                        fly_duration,
+                        dock_ctx_end_time,
+                        0.75,
+                        0.0,
+                        false,
+                        Some(approach.airship_direction),
+                        FlightMode::Braking(BrakingMode::Precise),
+                    )
+                    .then(just(
+                        |ctx, airship_context: &mut AirshipRouteContext| {
+                            // Now consume the announcement time. If there was one, announce the
+                            // next site. If not, we're at the end and
+                            // will be exiting this repeat loop.
+                            if airship_context.announcements.pop_front().is_some() {
+                                // make announcement and log position
+                                let (dst_site_name, dst_site_dir) = if let Some(next_leg_approach) =
+                                    airship_context.next_leg_approach
+                                {
+                                    (
+                                        ctx.index
+                                            .sites
+                                            .get(next_leg_approach.site_id)
+                                            .name()
+                                            .unwrap_or("Unknown Site")
+                                            .to_string(),
+                                        Direction::from_dir(
+                                            next_leg_approach.approach_transition_pos
+                                                - ctx.npc.wpos.xy(),
+                                        )
+                                        .localize_npc(),
+                                    )
+                                } else {
+                                    ("Unknown Site".to_string(), Direction::North.localize_npc())
+                                };
+                                ctx.controller.say(
+                                    None,
+                                    Content::localized("npc-speech-pilot-announce_next")
+                                        .with_arg("dir", dst_site_dir)
+                                        .with_arg("dst", dst_site_name),
+                                );
+                                log_airship_position(
+                                    ctx,
+                                    airship_context.route_index,
+                                    &AirshipFlightPhase::Docked,
+                                );
+                            }
+                        },
+                    ))
+                })
+                .repeat()
+                .stop_if(move |ctx: &mut NpcCtx| ctx.time.0 >= context_end_time)
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(
+                        ctx,
+                        airship_context,
+                        4,
+                        AirshipFlightPhase::Docked,
+                    );
+                    log_airship_position(
+                        ctx,
+                        airship_context.route_index,
+                        &AirshipFlightPhase::Docked,
+                    );
+                }))
+                .map(|_, _| ())
+                .boxed()
+            },
+            AirshipFlightPhase::Ascent => {
+                log_airship_position(
+                    ctx,
+                    airship_context.route_index,
+                    &AirshipFlightPhase::Ascent,
+                );
+                airship_context.route_timer = Duration::from_secs_f32(0.5);
+                // v = d/t
+                let speed = (fly_distance / fly_duration) / nominal_speed;
+                debug_airships!(
+                    4,
+                    "Airship {} route {} leg {} Ascent, fly_distance {:.1}, fly_duration {:.1}s, \
+                     speed factor {:.3}",
+                    format!("{:?}", ctx.npc_id),
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    fly_distance,
+                    fly_duration,
+                    speed
+                );
+                let src_site_name = ctx
+                    .index
+                    .sites
+                    .get(approach.site_id)
+                    .name()
+                    .unwrap_or("Unknown Site")
+                    .to_string();
+                let dst_site_name =
+                    if let Some(next_leg_approach) = airship_context.next_leg_approach {
+                        ctx.index
+                            .sites
+                            .get(next_leg_approach.site_id)
+                            .name()
+                            .unwrap_or("Unknown Site")
+                            .to_string()
+                    } else {
+                        "Unknown Site".to_string()
+                    };
+                ctx.controller.say(
+                    None,
+                    Content::localized("npc-speech-pilot-takeoff")
+                        .with_arg("src", src_site_name)
+                        .with_arg("dst", dst_site_name),
+                );
+                fly_airship_inner(
+                    AirshipFlightPhase::Ascent,
+                    ctx.npc.wpos,
+                    approach.airship_pos + Vec3::unit_z() * approach.height,
+                    20.0,
+                    leg_ctx_time_begin,
+                    fly_duration,
+                    context_end_time,
+                    speed,
+                    0.0,
+                    false,
+                    Some(approach.airship_direction),
+                    FlightMode::Braking(BrakingMode::Normal),
+                )
+                .then(just(|ctx, airship_context: &mut AirshipRouteContext| {
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = false;
+                    #[cfg(debug_assertions)]
+                    check_phase_completion_time(
+                        ctx,
+                        airship_context,
+                        5,
+                        AirshipFlightPhase::Ascent,
+                    );
+                }))
+                .map(|_, _| ())
+                .boxed()
+            },
         }
-        fly_airship_inner(
-            phase,
-            wpos,
-            goal_dist,
-            initial_speed_factor,
-            height_offset,
-            with_terrain_following,
-            direction_override,
-            flight_mode,
-            with_collision_avoidance,
-            radar_interval,
-        )
     })
-}
-
-/// My airship should hold position if the next pilot is moving towards my
-/// docking target and is close to my docking target and my pilot is close to
-/// the next pilot.
-fn should_hold(
-    my_pilot_distance_to_next_pilot: f32,
-    next_pilot_dist_to_docking_target: f32,
-    next_pilot_to_docking_target_trend: &DistanceTrend,
-) -> bool {
-    *next_pilot_to_docking_target_trend == DistanceTrend::Towards
-        && next_pilot_dist_to_docking_target < CLOSE_TO_DOCKING_SITE_DISTANCE_SQR
-        && my_pilot_distance_to_next_pilot < VERY_CLOSE_AIRSHIP_DISTANCE_SQR
-}
-
-/// My pilot should slow down if the pilot ahead is moving towards my target
-/// docking position and the ratio of next pilot velocity over my velocity is
-/// less than a threshold (i.e. the next pilot is moving slower than my pilot),
-/// and the distance between the next pilot and my pilot is less than some
-/// fraction of the standard airship spacing, and the distance between my pilot
-/// and my docking target position is greater than the distance between the next
-/// pilot and my docking target position (i.e. the next pilot is inside my
-/// radius from my target docking position).
-fn should_slow_down(
-    my_pilot_pos: &Vec2<f32>,
-    my_pilot_velocity: f32,
-    my_pilot_dist_to_docking_target: f32,
-    next_pilot_pos: &Vec2<f32>,
-    next_pilot_velocity: f32,
-    next_pilot_dist_to_docking_target: f32,
-    next_pilot_to_docking_target_trend: &DistanceTrend,
-) -> bool {
-    *next_pilot_to_docking_target_trend == DistanceTrend::Towards
-        && next_pilot_velocity / my_pilot_velocity < NEXT_PILOT_VELOCITY_RATIO_MIN
-        && my_pilot_pos.distance_squared(*next_pilot_pos)
-            < Airships::AIRSHIP_SPACING.powi(2) * NEXT_PILOT_SPACING_THRESHOLD_SQR
-        && my_pilot_dist_to_docking_target > next_pilot_dist_to_docking_target
-}
-
-/// The normal controller movement action of the airship. Called from
-/// fly_airship_inner() for cases that do not mean the airship is avoiding the
-/// airship ahead of it on the route.
-fn fly_inner_default_goto(
-    ctx: &mut NpcCtx,
-    wpos: Vec3<f32>,
-    speed_factor: f32,
-    height_offset: f32,
-    with_terrain_following: bool,
-    direction_override: Option<Dir>,
-    flight_mode: FlightMode,
-) {
-    let height_offset_opt = if with_terrain_following {
-        Some(height_offset)
-    } else {
-        None
-    };
-    ctx.controller.do_goto_with_height_and_dir(
-        wpos,
-        speed_factor,
-        height_offset_opt,
-        direction_override,
-        flight_mode,
-    );
 }
 
 /// The action that moves the airship.
 fn fly_airship_inner(
     phase: AirshipFlightPhase,
-    wpos: Vec3<f32>,
+    from: Vec3<f32>,
+    to: Vec3<f32>,
     goal_dist: f32,
-    initial_speed_factor: f32,
+    leg_ctx_time_begin: f64,
+    leg_duration: f32,
+    context_tgt_end_time: f64,
+    speed_factor: f32,
     height_offset: f32,
     with_terrain_following: bool,
     direction_override: Option<Dir>,
     flight_mode: FlightMode,
-    with_collision_avoidance: bool,
-    radar_interval: Duration,
 ) -> impl Action<AirshipRouteContext> {
-    just(
-        move |ctx, airship_context: &mut AirshipRouteContext| {
+    just(move |ctx, airship_context: &mut AirshipRouteContext| {
+        // The target position is used for determining the
+        // reverse direction for 'unsticking' the airship if it gets stuck in
+        // one place.
+        let stuck_tracker_target_loc = to.xy();
 
-            // It's safe to unwrap here, this function is not called if either airship_context.current_leg_approach
-            // or airship_context.next_leg_approach are None. The pos_tracker_target_loc is for determining the reverse
-            // direction for 'unsticking' the airship if it gets stuck in one place; In DepartureCruise phase, it is the
-            // next_leg_cruise_checkpoint_pos and in ApproachCruise phase, it is the transition pos of the current destination.
-            let (current_approach, pos_tracker_target_loc) =
-                match phase {
-                    AirshipFlightPhase::DepartureCruise => (&airship_context.next_leg_approach.unwrap(), airship_context.next_leg_cruise_checkpoint_pos.xy()),
-                    _ => (&airship_context.current_leg_approach.unwrap(), airship_context.current_leg_approach.unwrap().approach_transition_pos.xy()),
+        // Determine where the airship should be.
+        let nominal_pos = match phase {
+            AirshipFlightPhase::DepartureCruise
+            | AirshipFlightPhase::ApproachCruise
+            | AirshipFlightPhase::Transition => {
+                // Flying 2d, compute nominal x,y pos.
+                let route_interpolation_ratio =
+                    ((ctx.time.0 - leg_ctx_time_begin) as f32 / leg_duration).clamp(0.0, 1.0);
+                (from.xy() + (to.xy() - from.xy()) * route_interpolation_ratio).with_z(to.z)
+            },
+            AirshipFlightPhase::Descent | AirshipFlightPhase::Ascent => {
+                // Only Z movement, compute z pos.
+                // Starting altitude is terrain altitude + height offset
+                // Ending altitude is to.z
+                let route_interpolation_ratio =
+                    ((ctx.time.0 - leg_ctx_time_begin) as f32 / leg_duration).clamp(0.0, 1.0);
+                let nominal_z = from.z + (to.z - from.z) * route_interpolation_ratio;
+                to.xy().with_z(nominal_z)
+            },
+            _ => {
+                // docking phase has no movement
+                to
+            },
+        };
+
+        // Periodically check if the airship is stuck.
+        let timer = airship_context
+            .route_timer
+            .checked_sub(Duration::from_secs_f32(ctx.dt));
+        // keep or reset the timer
+        airship_context.route_timer =
+            timer.unwrap_or(Duration::from_secs_f32(AIRSHIP_PROGRESS_UPDATE_INTERVAL));
+        if timer.is_none() {
+            // Timer expired.
+            // log my position
+            #[cfg(feature = "airship_log")]
+            {
+                // Check position error
+                let distance_to_nominal = match phase {
+                    AirshipFlightPhase::DepartureCruise
+                    | AirshipFlightPhase::ApproachCruise
+                    | AirshipFlightPhase::Transition => {
+                        // Flying 2d, compute nominal x,y pos.
+                        ctx.npc
+                            .wpos
+                            .xy()
+                            .as_::<f64>()
+                            .distance(nominal_pos.xy().as_())
+                    },
+                    _ => ctx.npc.wpos.as_::<f64>().distance(nominal_pos.as_()),
                 };
+                log_airship_position_plus(
+                    ctx,
+                    airship_context.route_index,
+                    &phase,
+                    distance_to_nominal,
+                    0.0,
+                );
+            }
 
-            // Decrement the avoidance timer. (the timer is always counting down)..
-            // The collision avoidance checks are not done every tick, only
-            // every 1-5 seconds depending on flight phase.
-            let remaining = airship_context
-                .avoidance_timer
-                .checked_sub(Duration::from_secs_f32(ctx.dt));
-            // If it's time for avoidance checks
-            if remaining.is_none() {
-                // reset the timer
-                airship_context.avoidance_timer = radar_interval;
-
-                #[cfg(feature = "airship_log")]
-                // log my position
-                log_airship_position(ctx, &phase);
-
-                // If actually doing avoidance checks..
-                if with_collision_avoidance
-                    && matches!(phase, AirshipFlightPhase::DepartureCruise | AirshipFlightPhase::ApproachCruise)
+            // If in cruise phase, check if the airship is stuck and reset the cruise
+            // direction.
+            if matches!(
+                phase,
+                AirshipFlightPhase::DepartureCruise | AirshipFlightPhase::ApproachCruise
+            ) {
+                // Check if we're stuck
+                if let Some(stuck_tracker) = &mut airship_context.my_stuck_tracker
+                    && stuck_tracker.is_stuck(ctx, &ctx.npc.wpos, &stuck_tracker_target_loc)
+                    && let Some(backout_pos) = stuck_tracker.current_backout_pos(ctx)
                 {
-                    // This runs every time the avoidance timer counts down (1-5 seconds)
-
-                    // get my velocity (my_rate_tracker)
-                    // get my distance to my docking target position
-                    // get the next pilot's position
-                    // update next_pilot_trend (movement relative to my docking target position)
-                    // update_next_pilot_average_velocity
-                    // get next pilot's distance to my docking target position
-
-                    let mypos = ctx.npc.wpos;
-                    let my_velocity = if let Some(my_rate_tracker) = &mut airship_context.my_rate_tracker {
-                        my_rate_tracker.update(mypos.xy(), ctx.time.0 as f32)
-                    } else {
-                        0.0
-                    };
-                    let my_distance_to_docking_target = mypos.xy().distance_squared(current_approach.airship_pos.xy());
-
-                    let (next_pilot_wpos, next_pilot_dist_trend) = if let Some(next_pilot_rate_tracker) = &mut airship_context.next_pilot_rate_tracker_
-                        && let Some(next_pilot) = ctx.data.npcs.get(airship_context.next_pilot_id)
-                    {
-                        let next_rate = next_pilot_rate_tracker.update(next_pilot.wpos.xy(), ctx.time.0 as f32);
-
-                        // Estimate the distance trend of the next pilot relative to my target docking position.
-                        let next_dist_trend = airship_context
-                            .next_pilot_dist_to_my_docking_pos_tracker.update(next_pilot.wpos.xy(), ctx.time.0)
-                            .unwrap_or(DistanceTrend::Away);
-
-                        // Track the moving average of the velocity of the next pilot ahead of my pilot but only
-                        // if the velocity is greater than the expected simulated cruise speed minus a small tolerance.
-                        // (i.e., when it can be expected that the next pilot is in the cruise phase).
-                        if next_rate > airship_context.simulated_airship_speed - NEXT_PILOT_CRUISE_SPEED_TOLERANCE {
-                            // Scale up the velocity so that the moving average can be done as an integer.
-                            airship_context.next_pilot_average_velocity.add((next_rate as f64 * MOVING_AVERAGE_SCALE_FACTOR) as i64);
-                        }
-
-                        (next_pilot.wpos, next_dist_trend)
-                    } else {
-                        (Vec3::zero(), DistanceTrend::Away)
-                    };
-
-                    let my_pilot_distance_to_next_pilot = mypos.xy().distance_squared(next_pilot_wpos.xy());
-                    let next_pilot_distance_to_docking_target = next_pilot_wpos.xy().distance_squared(current_approach.airship_pos.xy());
-
-                    // What to check is based on the current avoidance mode.
-                    let avoidance = match airship_context.avoid_mode {
-                        AirshipAvoidanceMode::Stuck(..) => {
-                            // currently stuck and backing out.
-                            // Don't change anything until the airship position matches the backout position.
-                            // The current_backout_pos() will return None when the backout position is reached.
-                            if let Some(stuck_tracker) = &mut airship_context.my_stuck_tracker
-                                && stuck_tracker.is_stuck(ctx, &mypos, &pos_tracker_target_loc)
-                                && let Some(backout_pos) = stuck_tracker.current_backout_pos(ctx)
-                            {
-                                AirshipAvoidanceMode::Stuck(backout_pos)
-                            } else {
-                                #[cfg(debug_assertions)]
-                                debug!("{:?} unstuck at pos: {} {}",
-                                    ctx.npc_id,
-                                    mypos.x as i32, mypos.y as i32,
-                                );
-
-                                AirshipAvoidanceMode::None
-                            }
-                        }
-                        AirshipAvoidanceMode::Hold(..) => {
-                            // currently holding position.
-                            // It is assumed that the airship can't get stuck while holding.
-                            // Continue holding until the next pilot is moving away from the docking position.
-                            if next_pilot_dist_trend != DistanceTrend::Away {
-                                airship_context.avoid_mode
-                            } else {
-                                AirshipAvoidanceMode::None
-                            }
-                        }
-                        AirshipAvoidanceMode::Slow(..) => {
-                            // currently slowed down
-                            // My pilot could get stuck or reach the hold criteria while slowed down.
-                            if let Some(stuck_tracker) = &mut airship_context.my_stuck_tracker
-                                && stuck_tracker.is_stuck(ctx, &mypos, &pos_tracker_target_loc)
-                                && let Some(backout_pos) = stuck_tracker.current_backout_pos(ctx)
-                            {
-                                AirshipAvoidanceMode::Stuck(backout_pos)
-                            } else if should_hold(
-                                my_pilot_distance_to_next_pilot,
-                                next_pilot_distance_to_docking_target,
-                                &next_pilot_dist_trend,
-                            ) {
-                                airship_context.did_hold = true;
-                                AirshipAvoidanceMode::Hold(
-                                    mypos,
-                                    // hold with the airship pointing at the dock
-                                    Dir::from_unnormalized((current_approach.dock_center - mypos.xy()).with_z(0.0))
-                                        .unwrap_or_default(),
-                                )
-                            } else {
-                                // Since my pilot is already slowed to slightly slower than the next pilot,
-                                // it's possible that the distance between my pilot and the next pilot could increase
-                                // to above the slow-down threshold, but it's more likely that the next pilot has to dock
-                                // and then start moving away from the docking position before my pilot can
-                                // resume normal speed. If my pilot did not slow down enough, it's possible that the
-                                // next pilot will still be at the dock when my pilot arrives, and that is taken
-                                // care of by the Hold avoidance mode.
-                                // Check if the distance to the next pilot has increased to above Airships::AIRSHIP_SPACING,
-                                // otherwise continue the slow-down until the next pilot is moving away from the docking position.
-                                if next_pilot_dist_trend == DistanceTrend::Away || my_pilot_distance_to_next_pilot > Airships::AIRSHIP_SPACING.powi(2) {
-                                    AirshipAvoidanceMode::None
-                                } else {
-                                    // continue slow down
-                                    airship_context.avoid_mode
-                                }
-                            }
-                        }
-                        AirshipAvoidanceMode::None => {
-                            // not currently avoiding or stuck. Check for all conditions.
-                            let next_pilot_avg_velocity = (airship_context.next_pilot_average_velocity.average().unwrap_or(0) as f64 / MOVING_AVERAGE_SCALE_FACTOR) as f32;
-                            // Check if stuck
-                            if let Some(stuck_tracker) = &mut airship_context.my_stuck_tracker
-                                && stuck_tracker.is_stuck(ctx, &mypos, &pos_tracker_target_loc)
-                                && let Some(backout_pos) = stuck_tracker.current_backout_pos(ctx)
-                            {
-                                #[cfg(debug_assertions)]
-                                debug!("{:?} stuck at pos: {} {}",
-                                    ctx.npc_id,
-                                    mypos.x as i32, mypos.y as i32,
-                                );
-                                AirshipAvoidanceMode::Stuck(backout_pos)
-                                // Check if hold criteria are met.
-                            } else if should_hold(
-                                my_pilot_distance_to_next_pilot,
-                                next_pilot_distance_to_docking_target,
-                                &next_pilot_dist_trend,
-                            ) {
-                                airship_context.did_hold = true;
-                                AirshipAvoidanceMode::Hold(
-                                    mypos,
-                                    Dir::from_unnormalized((current_approach.dock_center - mypos.xy()).with_z(0.0))
-                                        .unwrap_or_default(),
-                                )
-                                // Check if slow down criteria are met.
-                            } else if should_slow_down(
-                                &mypos.xy(),
-                                my_velocity,
-                                my_distance_to_docking_target,
-                                &next_pilot_wpos.xy(),
-                                next_pilot_avg_velocity,
-                                next_pilot_distance_to_docking_target,
-                                &next_pilot_dist_trend
-                            ) {
-                                // My pilot is getting close to the next pilot ahead and should slow down.
-                                // If simulated, slow to CLOSE_AIRSHIP_SPEED_FACTOR.
-                                // If loaded, slow to a percentage of the next pilot's average velocity.
-                                let mut new_speed_factor = if matches!(ctx.npc.mode, SimulationMode::Simulated) {
-                                    // In simulated mode, the next pilot's average velocity is not updated,
-                                    // so we use the simulated airship speed.
-                                    CLOSE_AIRSHIP_SPEED_FACTOR
-                                } else {
-                                    // loaded mode, adjust my speed factor based on a percentage of
-                                    // the next pilot's average velocity.
-                                    let target_velocity: f32 = next_pilot_avg_velocity * CLOSE_AIRSHIP_SPEED_FACTOR;
-
-                                    // TODO: Document the speed factor calculation in the airship evolutions RFC.
-                                    // Set my speed factor according to the target velocity.
-                                    // speed_factor = (0.5 * air_density * velocity ^ 2 * reference_area)/(thrust * 0.9)
-                                    //              = 0.45 * air_density * velocity ^ 2 * reference_area / thrust
-                                    // where:
-                                    //      air_density is a constant
-                                    //      reference_area is a constant per airship model
-                                    //      thrust is a constant per airship model
-                                    // The airship_context.speed_factor_conversion_factor is a constant value equal to
-                                    // 0.45 * air_density * reference_area / thrust
-                                    // and the estimated speed factor is calculated as:
-                                    // speed_factor = airship_context.speed_factor_conversion_factor * target_velocity ^ 2
-                                    let new_sf = airship_context.speed_factor_conversion_factor * target_velocity.powi(2);
-                                    if new_sf > 0.0 {
-                                        #[cfg(debug_assertions)]
-                                        debug!(
-                                            "Pilot {:?}: Adjusting speed factor to {}, next pilot avg velocity: {}, * speed_factor = {}",
-                                            ctx.npc_id,
-                                            new_sf,
-                                            next_pilot_avg_velocity,
-                                            target_velocity,
-                                        );
-                                    }
-                                    new_sf
-                                };
-
-                                if new_speed_factor < 0.05 {
-                                    warn!("Pilot {:?} calculated slow down speed factor is too low, clamping to 0.05", ctx.npc_id);
-                                    new_speed_factor = 0.05;
-                                }
-                                AirshipAvoidanceMode::Slow(
-                                    new_speed_factor
-                                )
-                            } else {
-                                AirshipAvoidanceMode::None
-                            }
-                        }
-                    };
-
-                    // If the avoidance mode has changed, update the airship context.
-                    if avoidance != airship_context.avoid_mode {
-                        airship_context.avoid_mode = avoidance;
-                    }
-                }
+                    airship_context.stuck_backout_pos = Some(backout_pos);
+                } else if airship_context.stuck_backout_pos.is_some() {
+                    #[cfg(debug_assertions)]
+                    debug_airships!(
+                        2,
+                        "{:?} unstuck at pos: {} {}",
+                        ctx.npc_id,
+                        ctx.npc.wpos.x as i32,
+                        ctx.npc.wpos.y as i32,
+                    );
+                    airship_context.stuck_backout_pos = None;
+                };
+                // Reset cruise direction
+                airship_context.cruise_direction =
+                    Dir::from_unnormalized((to.xy() - ctx.npc.wpos.xy()).with_z(0.0));
+            }
+        }
+        // move the airship
+        if let Some(backout_pos) = airship_context.stuck_backout_pos {
+            // Unstick the airship
+            ctx.controller.do_goto_with_height_and_dir(
+                backout_pos,
+                1.5,
+                None,
+                None,
+                FlightMode::Braking(BrakingMode::Normal),
+            );
+        } else {
+            // Normal movement, not stuck.
+            let height_offset_opt = if with_terrain_following {
+                Some(height_offset)
             } else {
-                // counting down
-                airship_context.avoidance_timer = remaining.unwrap_or(radar_interval);
-            }
-
-            // Every time through the loop, move the airship according to the avoidance mode.
-            match airship_context.avoid_mode {
-                AirshipAvoidanceMode::Stuck(backout_pos) => {
-                    // Unstick the airship
-                    ctx.controller.do_goto_with_height_and_dir(
-                        backout_pos,
-                        1.5,
-                        None,
-                        None,
-                        FlightMode::Braking(BrakingMode::Normal),
-                    );
-                }
-                AirshipAvoidanceMode::Hold(hold_pos, hold_dir) => {
-                    // Hold position
-                    airship_context.hold_timer -= ctx.dt;
-                    if airship_context.hold_timer <= 0.0 {
-                        if !airship_context.hold_announced {
-                            airship_context.hold_announced = true;
-                            ctx.controller
-                                .say(None, Content::localized("npc-speech-pilot-announce_hold"));
-                        } else {
-                            ctx.controller
-                                .say(None, Content::localized("npc-speech-pilot-continue_hold"));
-                        }
-                        airship_context.hold_timer = ctx.rng.random_range(10.0..20.0);
-                    }
-                    // Hold position (same idea as holding station at the dock except allow
-                    // oscillations)
-                    let hold_pos = if matches!(ctx.npc.mode, SimulationMode::Simulated) {
-                        hold_pos
-                    } else {
-                        // Airship is loaded, add some randomness to the hold position
-                        // so that the airship doesn't look like it's stuck in one place.
-                        // This also keeps the propellers spinning slowly and somewhat randomly.
-                        hold_pos
-                            + (Vec3::new(0.7, 0.8, 0.9).map(|e| (e * ctx.time.0).sin())
-                                * Vec3::new(5.0, 5.0, 10.0))
-                            .map(|e| e as f32)
-                    };
-
-                    // Holding position
-                    ctx.controller.do_goto_with_height_and_dir(
-                        hold_pos,
-                        0.25,
-                        None,
-                        Some(hold_dir),
-                        FlightMode::Braking(BrakingMode::Normal),
-                    );
-                }
-                AirshipAvoidanceMode::Slow(speed_factor) => {
-                    // Slow down mode. Only change from normal movement is the speed factor.
-                    fly_inner_default_goto(ctx, wpos, speed_factor, height_offset,
-                        with_terrain_following, direction_override, flight_mode,
-                    );
-                }
-                AirshipAvoidanceMode::None => {
-                    // Normal movement, no avoidance.
-                    fly_inner_default_goto(ctx, wpos, initial_speed_factor, height_offset,
-                        with_terrain_following, direction_override, flight_mode,
-                    );
-                }
-            }
-        },
-    )
+                None
+            };
+            // In the long cruise phases, the airship should face the target position.
+            // When the airship is loaded, the movement vector can change dramatically from
+            // velocity differences due to climbing or descending (terrain following), and
+            // due to wind effects. Use a fixed cruise direction that is updated
+            // periodically instead of relying on the action_nodes code that
+            // tries to align the airship direction with the instantaneous
+            // movement vector.
+            let dir_opt = if direction_override.is_some() {
+                direction_override
+            } else if matches!(
+                phase,
+                AirshipFlightPhase::DepartureCruise | AirshipFlightPhase::ApproachCruise
+            ) {
+                airship_context.cruise_direction
+            } else {
+                None
+            };
+            ctx.controller.do_goto_with_height_and_dir(
+                nominal_pos,
+                speed_factor,
+                height_offset_opt,
+                dir_opt,
+                flight_mode,
+            );
+        }
+    })
     .repeat()
     .boxed()
     .stop_if(move |ctx: &mut NpcCtx| {
-        if flight_mode == FlightMode::FlyThrough {
-            // we only care about the xy distance (just get close to the target position)
-            ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2)
-        } else {
-            // Braking mode means the PID controller will be controlling all three axes
-            ctx.npc.wpos.distance_squared(wpos) < goal_dist.powi(2)
+        match phase {
+            AirshipFlightPhase::Descent | AirshipFlightPhase::Ascent => {
+                ctx.time.0 >= context_tgt_end_time
+                    || ctx.npc.wpos.as_::<f64>().distance_squared(to.as_())
+                        < (goal_dist as f64).powi(2)
+            },
+            AirshipFlightPhase::Docked => {
+                // docking phase has no movement, just wait for the duration
+                if ctx.time.0 >= context_tgt_end_time {
+                    debug_airships!(
+                        4,
+                        "Airship {} docking phase complete time now {:.1} >= context_tgt_end_time \
+                         {:.1}",
+                        format!("{:?}", ctx.npc_id),
+                        ctx.time.0,
+                        context_tgt_end_time,
+                    );
+                }
+                ctx.time.0 >= context_tgt_end_time
+            },
+            _ => {
+                if flight_mode == FlightMode::FlyThrough {
+                    // we only care about the xy distance (just get close to the target position)
+                    ctx.npc
+                        .wpos
+                        .xy()
+                        .as_::<f64>()
+                        .distance_squared(to.xy().as_())
+                        < (goal_dist as f64).powi(2)
+                } else {
+                    // Braking mode means the PID controller will be controlling all three axes
+                    ctx.npc.wpos.as_::<f64>().distance_squared(to.as_())
+                        < (goal_dist as f64).powi(2)
+                }
+            },
         }
     })
     .debug(move || {
         format!(
-            "fly airship, phase:{:?}, tgt pos:({}, {}, {}), goal dist:{}, speed:{}, height:{}, \
-             terrain following:{}, FlightMode:{:?}, collision avoidance:{}, radar interval:{}",
+            "fly airship, phase:{:?}, tgt pos:({}, {}, {}), goal dist:{}, leg dur: {}, initial \
+             speed:{}, height:{}, terrain following:{}, FlightMode:{:?}",
             phase,
-            wpos.x,
-            wpos.y,
-            wpos.z,
+            to.x,
+            to.y,
+            to.z,
             goal_dist,
-            initial_speed_factor,
+            leg_duration,
+            speed_factor,
             height_offset,
             with_terrain_following,
             flight_mode,
-            with_collision_avoidance,
-            radar_interval.as_secs_f32()
         )
     })
     .map(|_, _| ())
-}
-
-/// Get the target position for airship movement given the target position, the
-/// default height above terrain, and the height above terrain for the airship
-/// route cruise phase. This samples terrain points aound the target pos to get
-/// the maximum terrain altitude in a 200 block radius of the target position
-/// (only checking 4 cardinal directions). and returns the input approach_pos
-/// with z equal to the maximum terrain alt + height or the default_alt
-/// whichever is greater.
-fn approach_target_pos(
-    ctx: &mut NpcCtx,
-    approach_pos: Vec2<f32>,
-    default_alt: f32,
-    height: f32,
-) -> Vec3<f32> {
-    // sample 4 terrain altitudes around the final approach point and take the max.
-    let max_alt = CARDINALS
-        .iter()
-        .map(|rpos| {
-            ctx.world
-                .sim()
-                .get_surface_alt_approx(approach_pos.as_() + rpos * 200)
-        })
-        .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
-        .unwrap_or(default_alt);
-    approach_pos.with_z(max_alt + height)
 }
 
 /// The NPC is the airship captain. This action defines the flight loop for the
@@ -931,326 +1072,142 @@ fn approach_target_pos(
 /// assigned route. The routes are established and assigned to the captain NPCs
 /// when the world is generated.
 pub fn pilot_airship<S: State>() -> impl Action<S> {
-    now(move |ctx, route_context: &mut AirshipRouteContext| {
+    now(move |ctx, airship_context: &mut AirshipRouteContext| {
         // get the assigned route and start leg indexes
-        if let Some((route_index, start_leg_index)) = ctx.data.airship_sim.assigned_routes.get(&ctx.npc_id)
+        if let Some((route_index, start_leg_index)) =
+            ctx.data.airship_sim.assigned_routes.get(&ctx.npc_id)
         {
-            // ----- Server startup processing -----
-            // If route_context.route_index is the default value (usize::MAX) it means the server has just started.
-
-            if route_context.route_index == usize::MAX {
-                // This block should only run once, when the server starts up.
-                // Set up the route context fixed values.
-                route_context.route_index = *route_index;
-                route_context.next_leg = *start_leg_index;
-                if let Some (next_pilot) = ctx.data.airship_sim.next_pilot(*route_index, ctx.npc_id) {
-                    route_context.next_pilot_id = next_pilot;
+            // If airship_context.route_index is the default value (usize::MAX) it means the
+            // server has just started.
+            let is_initial_startup = airship_context.route_index == usize::MAX;
+            if is_initial_startup {
+                setup_airship_route_context(ctx, airship_context, route_index, start_leg_index);
+            } else {
+                // Increment the leg index with wrap around
+                airship_context.current_leg = ctx
+                    .world
+                    .civs()
+                    .airships
+                    .increment_route_leg(airship_context.route_index, airship_context.current_leg);
+                if airship_context.current_leg == 0 {
+                    // We have wrapped around to the start of the route, add the route duration
+                    // to route_time_zero.
+                    airship_context.route_time_zero +=
+                        ctx.world.civs().airships.routes[airship_context.route_index].total_time;
+                    debug_airships!(
+                        4,
+                        "Airship {} route {} completed full route, route time zero now {:.1}, \
+                         ctx.time.0 - route_time_zero = {:.3}",
+                        format!("{:?}", ctx.npc_id),
+                        airship_context.route_index,
+                        airship_context.route_time_zero,
+                        ctx.time.0 - airship_context.route_time_zero
+                    );
                 } else {
-                    route_context.next_pilot_id = NpcId::default();
-                }
-                let (max_speed, reference_area, thrust) =
-                    ctx.data.npcs.mounts.get_mount_link(ctx.npc_id)
-                        .map(|mount_link|
-                            ctx.data.npcs.get(mount_link.mount)
-                                .map(|airship| {
-                                    (airship.body.max_speed_approx(),
-                                     airship.body.parasite_drag(1.0),
-                                     airship.body.fly_thrust().unwrap_or_default())
-                                })
-                                .unwrap_or_default()
-                        ).or({
-                            // If the mount link is not found, use a default speed.
-                            Some((0.0, 1.0, 1.0))
-                        })
-                        .unwrap_or((0.0, 1.0, 1.0));
-                route_context.simulated_airship_speed = max_speed;
-                route_context.speed_factor_conversion_factor = 0.45 * AIR_DENSITY * reference_area / thrust;
-                route_context.my_rate_tracker = Some(RateTracker::default());
-                route_context.next_pilot_rate_tracker_ = Some(RateTracker::default());
-
-                #[cfg(debug_assertions)]
-                {
-                    let current_approach = ctx.world.civs().airships.approach_for_route_and_leg(
-                        route_context.route_index,
-                        route_context.next_leg,
+                    debug_airships!(
+                        4,
+                        "Airship {} route {} starting next leg {}, current route time {:.1}",
+                        format!("{:?}", ctx.npc_id),
+                        airship_context.route_index,
+                        airship_context.current_leg,
+                        ctx.time.0 - airship_context.route_time_zero
                     );
-                    debug!(
-                        "Server startup, airship pilot {:?} starting on route {} and leg {}, target dock: {} {}, following pilot {:?}",
-                        ctx.npc_id,
-                        route_context.route_index,
-                        route_context.next_leg,
-                        current_approach.airship_pos.x as i32, current_approach.airship_pos.y as i32,
-                        route_context.next_pilot_id
-                    );
-                }
-                if route_context.next_pilot_id == NpcId::default() {
-                    tracing::error!("Pilot {:?} has no next pilot to follow.", ctx.npc_id);
                 }
             }
 
-            // ----- Each time entering pilot_airship -----
-
             // set the approach data for the current leg
             // Needed: docking position and direction.
-            route_context.current_leg_approach = Some(ctx.world.civs().airships.approach_for_route_and_leg(
-                route_context.route_index,
-                route_context.next_leg,
-            ));
-            // Increment the leg index with wrap around
-            route_context.next_leg = ctx.world.civs().airships.increment_route_leg(
-                route_context.route_index,
-                route_context.next_leg,
-            );
-            // set the approach data for the next leg
-            // Needed: transition position for next leg.
-            route_context.next_leg_approach = Some(ctx.world.civs().airships.approach_for_route_and_leg(
-                route_context.route_index,
-                route_context.next_leg,
-            ));
+            airship_context.current_leg_approach =
+                Some(ctx.world.civs().airships.approach_for_route_and_leg(
+                    airship_context.route_index,
+                    airship_context.current_leg,
+                    &ctx.world.sim().map_size_lg(),
+                ));
 
-            if route_context.current_leg_approach.is_none() ||
-                route_context.next_leg_approach.is_none()
-            {
+            if airship_context.current_leg_approach.is_none() {
                 tracing::error!(
-                    "Airship pilot {:?} approaches not found for route {} leg {}, stopping pilot_airship loop.",
+                    "Airship pilot {:?} approach not found for route {} leg {}, stopping \
+                     pilot_airship loop.",
                     ctx.npc_id,
-                    route_context.route_index,
-                    route_context.next_leg
+                    airship_context.route_index,
+                    airship_context.current_leg
                 );
                 return finish().map(|_, _| ()).boxed();
             }
 
-            // unwrap is safe
-            let current_approach = route_context.current_leg_approach.unwrap();
-            let next_approach = route_context.next_leg_approach.unwrap();
+            // Get the next leg index.
+            // The destination of the next leg is needed for announcements while docked.
+            let next_leg_index = ctx
+                .world
+                .civs()
+                .airships
+                .increment_route_leg(airship_context.route_index, airship_context.current_leg);
+            airship_context.next_leg_approach =
+                Some(ctx.world.civs().airships.approach_for_route_and_leg(
+                    airship_context.route_index,
+                    next_leg_index,
+                    &ctx.world.sim().map_size_lg(),
+                ));
+            if airship_context.next_leg_approach.is_none() {
+                tracing::warn!(
+                    "Airship pilot {:?} approach not found for next route {} leg {}",
+                    ctx.npc_id,
+                    airship_context.route_index,
+                    next_leg_index
+                );
+            }
 
-            let next_leg_cruise_dir = (next_approach.approach_transition_pos.xy() - current_approach.airship_pos.xy()).normalized();
-            route_context.next_leg_cruise_checkpoint_pos = (next_approach.approach_transition_pos - next_leg_cruise_dir * CRUISE_CHECKPOINT_DISTANCE).with_z(next_approach.approach_transition_pos.z);
-            // The terrain height at the cruise checkpoint may be different from the terrain height at the docking position.
-            // The approach_target_pos function will sample the terrain around the cruise checkpoint and return the position with z adjusted
-            // to the maximum terrain height around the cruise checkpoint plus the approach cruise height.
-            route_context.next_leg_cruise_checkpoint_pos = approach_target_pos(ctx, route_context.next_leg_cruise_checkpoint_pos.xy(), route_context.next_leg_cruise_checkpoint_pos.z, next_approach.height);
-
-            // Track the next pilot distance trend relative to my current approach docking position.
-            route_context.next_pilot_dist_to_my_docking_pos_tracker.reset(current_approach.airship_pos.xy());
-
-            // Use a function to determine the speed factor based on the simulation mode. The simulation mode
-            // could change at any time as world chunks are loaded or unloaded.
-            let speed_factor_fn = |sim_mode: SimulationMode, speed_factor: f32| {
-                // The speed factor for simulated airships is always 1.0
-                if matches!(sim_mode, SimulationMode::Simulated) {
-                    speed_factor.powf(0.3)
-                } else {
-                    speed_factor
-                }
-            };
-
-            // ----- Phases of flight - One Leg of the Route -----
-
-            // At this point, the airship is somewhere in the cruise phase of the current route leg.
-            // Normally, the airship will be at the cruise checkpoint, fairly close to the docking site.
-            // When the server first starts, the airship will be at its spawn point, somewhere along the route
-            // and heading for the cruise checkpoint.
-
-            // Fly 2D to Destination Transition Point with frequent radar checks
-            fly_airship(
-                AirshipFlightPhase::ApproachCruise,
-                current_approach.approach_transition_pos,
-                50.0,
-                speed_factor_fn(ctx.npc.mode, 1.0),
-                current_approach.height,
-                true,
-                None,
-                FlightMode::FlyThrough,
-                true,
-                Duration::from_secs_f32(1.0),
-            )
-            .then(
-                // Fly 3D to directly above the docking position, full PID control
-                fly_airship(
-                    AirshipFlightPhase::Transition,
-                    current_approach.airship_pos + Vec3::unit_z() * current_approach.height,
-                    20.0,
-                    speed_factor_fn(ctx.npc.mode, 0.4),
-                    current_approach.height,
-                    true,
-                    Some(current_approach.airship_direction),
-                    FlightMode::Braking(BrakingMode::Normal),
-                    false,
-                    Duration::from_secs_f32(2.0),
-            ))
-            // Descend and Dock
-            //    Docking
-            //      Drop to 125 blocks above the dock with slightly looser controller settings
-            //      then to the docking position with full precision control.
-            //      This helps to ensure that the airship docks vertically and avoids collisions
-            //      with other airships and the dock. The speed_factor is high to
-            //      give a strong response to the PID controller. The speed_factor is reduced
-            //      once docked to stop the airship propellers from rotating.
-            //      Vary the timeout to get variation in the docking sequence.
-            .then(
-                just(|ctx: &mut NpcCtx, _| {
-                    log_airship_position(ctx, &AirshipFlightPhase::Transition);
-                }))
-
-            .then(
-                // descend to 125 blocks above the dock
-                just(move |ctx, _| {
-                    ctx.controller
-                        .do_goto_with_height_and_dir(
-                            current_approach.airship_pos + Vec3::unit_z() * 125.0,
-                            speed_factor_fn(ctx.npc.mode, 0.9),
-                            None,
-                            Some(current_approach.airship_direction),
-                            FlightMode::Braking(BrakingMode::Normal),
-                        );
-                })
-                .repeat()
-                .stop_if(timeout(ctx.rng.random_range(12.5..16.0) * (current_approach.height as f64 / Airships::CRUISE_HEIGHTS[0] as f64) * 1.3)))
-            .then(
-                just(|ctx: &mut NpcCtx, _| {
-                    log_airship_position(ctx, &AirshipFlightPhase::Transition);
-                }))
-            .then(
-                // descend to just above the docking position
-                just(move |ctx: &mut NpcCtx, _| {
-                    ctx.controller
-                        .do_goto_with_height_and_dir(
-                            current_approach.airship_pos + Vec3::unit_z() * 20.0,
-                            speed_factor_fn(ctx.npc.mode, 0.9),
-                            None,
-                            Some(current_approach.airship_direction),
-                            FlightMode::Braking(BrakingMode::Precise),
-                        );
-                })
-                .repeat()
-                .stop_if(timeout(ctx.rng.random_range(6.5..8.0))))
-            // Announce arrival
-            .then(just(|ctx: &mut NpcCtx, _| {
-                log_airship_position(ctx, &AirshipFlightPhase::Docked);
-                ctx.controller
-                    .say(None, Content::localized("npc-speech-pilot-landed"));
-            }))
-
-            // Docked - Wait at Dock
-            .then(
-                now(move |ctx, route_context:&mut AirshipRouteContext| {
-                    // The extra time to hold at the dock is a route_context variable.
-                    // Adjust the extra time based on the airship's behavior during the previous
-                    // flight. If the airship had to hold position, add 30 seconds to the dock time.
-                    // If the airship did not hold position, subtract 45 seconds from the dock time
-                    // because we want to reverse the extra penalty faster than building it up in case
-                    // the airship transitions to simulation mode.
-                    // If the airship had to slow down add 15 and if not subtract 20.
-                    if route_context.did_hold {
-                        route_context.extra_hold_dock_time += 30.0;
-                    } else if route_context.extra_hold_dock_time > 45.0 {
-                        route_context.extra_hold_dock_time -= 45.0;
-                    } else {
-                        route_context.extra_hold_dock_time = 0.0;
-                    }
-
-                    let docking_time = route_context.extra_hold_dock_time + Airships::docking_duration();
-                    #[cfg(debug_assertions)]
-                    {
-                        if route_context.did_hold || docking_time > Airships::docking_duration() {
-                            let docked_site_name = ctx.index.sites.get(current_approach.site_id).name();
-                            debug!("{:?}, Docked at {:?}, did_hold:{}, extra_hold_dock_time:{}, docking_time:{}", ctx.npc_id, docked_site_name, route_context.did_hold, route_context.extra_hold_dock_time, docking_time);
-                        }
-                    }
-                    route_context.did_hold = false;
-
-                    just(move |ctx, _| {
-                        ctx.controller
-                        .do_goto_with_height_and_dir(
-                            current_approach.airship_pos,
-                            speed_factor_fn(ctx.npc.mode, 0.75),
-                            None,
-                            Some(current_approach.airship_direction),
-                            FlightMode::Braking(BrakingMode::Precise),
-                        );
-                    })
-                    .repeat()
-                    .stop_if(timeout(ctx.rng.random_range(10.0..16.0)))
-                    // While waiting, every now and then announce where the airship is going next.
-                    .then(
-                        just(move |ctx, _| {
-                            // get the name of the site the airship is going to next.
-                            // The route_context.current_approach_index has not been switched yet,
-                            // so the index is the opposite of the current approach index.
-                            let next_site_name = ctx.index.sites.get(next_approach.site_id).name();
-                            ctx.controller.say(
-                                None,
-                                Content::localized("npc-speech-pilot-announce_next")
-                                    .with_arg("dir", Direction::from_dir((next_approach.approach_transition_pos - ctx.npc.wpos).xy()).localize_npc())
-                                    .with_arg("dst", next_site_name.unwrap_or("unknown")),
-                            );
-                        })
-                    )
-                    .repeat()
-                    .stop_if(timeout(docking_time as f64))
-                })
-            ).then(
-                // Announce takeoff
-                just(move |ctx, route_context:&mut AirshipRouteContext| {
-                    ctx.controller.say(
-                        None,
-                        Content::localized("npc-speech-pilot-takeoff")
-                            .with_arg("src", ctx.index.sites.get(current_approach.site_id).name().unwrap_or("unknown"))
-                            .with_arg("dst", ctx.index.sites.get(next_approach.site_id).name().unwrap_or("unknown")),
+            // The initial flight sequence is used when the server first starts up.
+            if is_initial_startup {
+                // Figure out what flight phase to start with.
+                // Search the route's spawning locations for the one that is
+                // closest to the airship's current position.
+                let my_route = &ctx.world.civs().airships.routes[airship_context.route_index];
+                if let Some(my_spawn_loc) = my_route.spawning_locations.iter().min_by(|a, b| {
+                    let dist_a = ctx.npc.wpos.xy().as_::<f64>().distance_squared(a.pos.as_());
+                    let dist_b = ctx.npc.wpos.xy().as_::<f64>().distance_squared(b.pos.as_());
+                    dist_a.partial_cmp(&dist_b).unwrap_or(Ordering::Equal)
+                }) {
+                    // The airship starts somewhere along the route.
+                    // Adjust the route_zero_time according to the route time in the spawn location
+                    // data. At initialization, the airship is at the spawn
+                    // location and the route time is whatever is in the spawn location data.
+                    airship_context.route_time_zero = ctx.time.0 - my_spawn_loc.spawn_route_time;
+                    airship_context.leg_ctx_time_begin = ctx.time.0;
+                    airship_context.first_leg = true;
+                    debug_airships!(
+                        4,
+                        "Airship {} route {} leg {}, initial start up on phase {:?}, setting \
+                         route_time_zero to {:.1} (ctx.time.0 {} - my_spawn_loc.spawn_route_time \
+                         {})",
+                        format!("{:?}", ctx.npc_id),
+                        airship_context.route_index,
+                        airship_context.current_leg,
+                        my_spawn_loc.flight_phase,
+                        airship_context.route_time_zero,
+                        ctx.time.0,
+                        my_spawn_loc.spawn_route_time,
                     );
-                    // This is when the airship target docking position changes to the next approach.
-                    // Reset the next pilot distance trend tracker.
-                    route_context.next_pilot_dist_to_my_docking_pos_tracker.reset(next_approach.airship_pos.xy());
-                    log_airship_position(ctx, &AirshipFlightPhase::Ascent);
-                })
-            ).then(
-                // Take off, full PID control
-                fly_airship(
-                    AirshipFlightPhase::Ascent,
-                    current_approach.airship_pos + Vec3::unit_z() * 100.0,
-                    20.0,
-                    speed_factor_fn(ctx.npc.mode, 0.2),
-                    0.0,
-                    false,
-                    Some(current_approach.airship_direction),
-                    FlightMode::Braking(BrakingMode::Normal),
-                    false,
-                    Duration::from_secs_f32(120.0),
-                )
-            ).then(
-                // Ascend to Cruise Alt, full PID control
-                fly_airship(
-                    AirshipFlightPhase::Ascent,
-                    current_approach.airship_pos + Vec3::unit_z() * current_approach.height,
-                    20.0,
-                    speed_factor_fn(ctx.npc.mode, 0.4),
-                    0.0,
-                    false,
-                    Some(Dir::from_unnormalized((next_approach.approach_transition_pos - ctx.npc.wpos).xy().with_z(0.0)).unwrap_or_default()),
-                    FlightMode::Braking(BrakingMode::Normal),
-                    false,
-                    Duration::from_secs_f32(120.0),
-                )
-            ).then(
-                // Fly 2D to Destination Cruise Checkpoint with infrequent radar checks
-                fly_airship(
-                    AirshipFlightPhase::DepartureCruise,
-                    route_context.next_leg_cruise_checkpoint_pos,
-                    50.0,
-                    speed_factor_fn(ctx.npc.mode, 1.0),
-                    next_approach.height,
-                    true,
-                    None,
-                    FlightMode::FlyThrough,
-                    true,
-                    Duration::from_secs_f32(5.0),
-                )
-            )
-            .map(|_, _| ()).boxed()
+                    initial_flight_sequence(my_spawn_loc.flight_phase)
+                        .map(|_, _| ())
+                        .boxed()
+                } else {
+                    // No spawning location, should not happen
+                    tracing::error!(
+                        "Airship pilot {:?} spawning location not found for route {} leg {}",
+                        ctx.npc_id,
+                        airship_context.route_index,
+                        next_leg_index
+                    );
+                    finish().map(|_, _| ()).boxed()
+                }
+            } else {
+                nominal_flight_sequence().map(|_, _| ()).boxed()
+            }
         } else {
             //  There are no routes assigned.
-            //  This is unexpected and never happens in testing, just do nothing so the compiler doesn't complain.
+            //  This is unexpected and never happens in testing, just do nothing so the
+            // compiler doesn't complain.
             finish().map(|_, _| ()).boxed()
         }
     })
@@ -1259,209 +1216,127 @@ pub fn pilot_airship<S: State>() -> impl Action<S> {
     .map(|_, _| ())
 }
 
+fn setup_airship_route_context(
+    _ctx: &mut NpcCtx,
+    route_context: &mut AirshipRouteContext,
+    route_index: &usize,
+    leg_index: &usize,
+) {
+    route_context.route_index = *route_index;
+    route_context.current_leg = *leg_index;
+
+    #[cfg(debug_assertions)]
+    {
+        let current_approach = _ctx.world.civs().airships.approach_for_route_and_leg(
+            route_context.route_index,
+            route_context.current_leg,
+            &_ctx.world.sim().map_size_lg(),
+        );
+        debug_airships!(
+            4,
+            "Server startup, airship pilot {:?} starting on route {} leg {}, target dock: {} {}",
+            _ctx.npc_id,
+            route_context.route_index,
+            route_context.current_leg,
+            current_approach.airship_pos.x as i32,
+            current_approach.airship_pos.y as i32,
+        );
+    }
+}
+
+fn initial_flight_sequence(start_phase: AirshipFlightPhase) -> impl Action<AirshipRouteContext> {
+    now(move |_, airship_context: &mut AirshipRouteContext| {
+        let approach = airship_context.current_leg_approach.unwrap();
+        let phases = match start_phase {
+            AirshipFlightPhase::DepartureCruise => vec![
+                (AirshipFlightPhase::DepartureCruise, approach),
+                (AirshipFlightPhase::ApproachCruise, approach),
+                (AirshipFlightPhase::Transition, approach),
+                (AirshipFlightPhase::Descent, approach),
+                (AirshipFlightPhase::Docked, approach),
+                (AirshipFlightPhase::Ascent, approach),
+            ],
+            AirshipFlightPhase::ApproachCruise => vec![
+                (AirshipFlightPhase::ApproachCruise, approach),
+                (AirshipFlightPhase::Transition, approach),
+                (AirshipFlightPhase::Descent, approach),
+                (AirshipFlightPhase::Docked, approach),
+                (AirshipFlightPhase::Ascent, approach),
+            ],
+            AirshipFlightPhase::Transition => vec![
+                (AirshipFlightPhase::Transition, approach),
+                (AirshipFlightPhase::Descent, approach),
+                (AirshipFlightPhase::Docked, approach),
+                (AirshipFlightPhase::Ascent, approach),
+            ],
+            AirshipFlightPhase::Descent => vec![
+                (AirshipFlightPhase::Descent, approach),
+                (AirshipFlightPhase::Docked, approach),
+                (AirshipFlightPhase::Ascent, approach),
+            ],
+            AirshipFlightPhase::Docked => {
+                // Adjust the initial docking time.
+                vec![
+                    (AirshipFlightPhase::Docked, approach),
+                    (AirshipFlightPhase::Ascent, approach),
+                ]
+            },
+            AirshipFlightPhase::Ascent => vec![(AirshipFlightPhase::Ascent, approach)],
+        };
+        seq(phases
+            .into_iter()
+            .map(|(phase, current_approach)| fly_airship(phase, current_approach)))
+    })
+}
+
+fn nominal_flight_sequence() -> impl Action<AirshipRouteContext> {
+    now(move |_, airship_context: &mut AirshipRouteContext| {
+        let approach = airship_context.current_leg_approach.unwrap();
+        let phases = vec![
+            (AirshipFlightPhase::DepartureCruise, approach),
+            (AirshipFlightPhase::ApproachCruise, approach),
+            (AirshipFlightPhase::Transition, approach),
+            (AirshipFlightPhase::Descent, approach),
+            (AirshipFlightPhase::Docked, approach),
+            (AirshipFlightPhase::Ascent, approach),
+        ];
+        seq(phases
+            .into_iter()
+            .map(|(phase, current_approach)| fly_airship(phase, current_approach)))
+    })
+}
+
 #[cfg(feature = "airship_log")]
 /// Get access to the global airship logger and log an airship position.
-fn log_airship_position(ctx: &NpcCtx, phase: &AirshipFlightPhase) {
+fn log_airship_position(ctx: &NpcCtx, route_index: usize, phase: &AirshipFlightPhase) {
+    log_airship_position_plus(ctx, route_index, phase, 0.0, 0.0);
+}
+
+#[cfg(feature = "airship_log")]
+fn log_airship_position_plus(
+    ctx: &NpcCtx,
+    route_index: usize,
+    phase: &AirshipFlightPhase,
+    value1: f64,
+    value2: f64,
+) {
     if let Ok(mut logger) = airship_logger() {
         logger.log_position(
             ctx.npc_id,
             ctx.index.seed,
+            route_index,
             phase,
             ctx.time.0,
             ctx.npc.wpos,
             matches!(ctx.npc.mode, SimulationMode::Loaded),
+            value1,
+            value2,
         );
     } else {
-        warn!("Failed to log airship position for {:?}", ctx.npc_id);
+        tracing::warn!("Failed to log airship position for {:?}", ctx.npc_id);
     }
 }
 
 #[cfg(not(feature = "airship_log"))]
 /// When the logging feature is not enabled, this should become a no-op.
-fn log_airship_position(_: &NpcCtx, _: &AirshipFlightPhase) {}
-
-#[cfg(test)]
-mod tests {
-    use super::{DistanceTrend, DistanceTrendTracker, MovingAverage};
-    use vek::*;
-
-    #[test]
-    fn moving_average_test() {
-        let mut ma: MovingAverage<f32, 5, 3> = MovingAverage::default();
-        ma.add(1.0);
-        ma.add(2.0);
-        ma.add(3.0);
-        ma.add(4.0);
-        ma.add(5.0);
-        assert_eq!(ma.average().unwrap(), 3.0);
-
-        ma.add(6.0); // This will remove the first value (1.0)
-        assert_eq!(ma.average().unwrap(), 4.0);
-
-        ma.add(7.0); // This will remove the second value (2.0)
-        assert_eq!(ma.average().unwrap(), 5.0);
-
-        ma.add(8.0); // This will remove the third value (3.0)
-        assert_eq!(ma.average().unwrap(), 6.0);
-
-        ma.add(9.0); // This will remove the fourth value (4.0)
-        assert_eq!(ma.average().unwrap(), 7.0);
-
-        ma.add(10.0); // This will remove the fifth value (5.0)
-        assert_eq!(ma.average().unwrap(), 8.0);
-
-        let mut ma2: MovingAverage<i64, 5, 3> = MovingAverage::default();
-        ma2.add((1000.0f32 / 1000.0) as i64);
-        ma2.add((2000.0f32 / 1000.0) as i64);
-        ma2.add((3000.0f32 / 1000.0) as i64);
-        ma2.add((4000.0f32 / 1000.0) as i64);
-        ma2.add((5000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 3);
-
-        ma2.add((6000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 4);
-
-        ma2.add((7000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 5);
-
-        ma2.add((8000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 6);
-
-        ma2.add((9000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 7);
-
-        ma2.add((10000.0f32 / 1000.0) as i64);
-        assert_eq!(ma2.average().unwrap(), 8);
-
-        let mut ma3: MovingAverage<i64, 5, 3> = MovingAverage::default();
-        ma3.add((20.99467f32 * 10000.0) as i64);
-        ma3.add((20.987871f32 * 10000.0) as i64);
-        ma3.add((20.69861f32 * 10000.0) as i64);
-        ma3.add((20.268217f32 * 10000.0) as i64);
-        ma3.add((20.230164f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.6358).abs() < 0.0001);
-
-        ma3.add((20.48151f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.5332).abs() < 0.0001);
-
-        ma3.add((20.568598f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.4493).abs() < 0.0001);
-
-        ma3.add((20.909971f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.4916).abs() < 0.0001);
-
-        ma3.add((21.014437f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.6408).abs() < 0.0001);
-
-        ma3.add((20.62308f32 * 10000.0) as i64);
-        assert!((ma3.average().unwrap() as f64 / 10000.0 - 20.7194).abs() < 0.0001);
-    }
-
-    #[test]
-    fn distance_trend_tracker_test() {
-        let mut tracker: DistanceTrendTracker<0> = DistanceTrendTracker::default();
-        tracker.reset(Vec2::new(0.0, 0.0));
-        assert!(tracker.update(Vec2::new(1.0, 0.0), 1.0).is_none());
-        assert!(tracker.update(Vec2::new(2.0, 0.0), 2.0).is_none());
-        assert!(matches!(
-            tracker.update(Vec2::new(3.0, 0.0), 3.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(4.0, 0.0), 4.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(5.0, 0.0), 5.0).unwrap(),
-            DistanceTrend::Away
-        ));
-
-        tracker.reset(Vec2::new(0.0, 0.0));
-        assert!(tracker.update(Vec2::new(5.0, 0.0), 1.0).is_none());
-        assert!(tracker.update(Vec2::new(4.0, 0.0), 2.0).is_none());
-        assert!(matches!(
-            tracker.update(Vec2::new(3.0, 0.0), 3.0).unwrap(),
-            DistanceTrend::Towards
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(2.0, 0.0), 4.0).unwrap(),
-            DistanceTrend::Towards
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(1.0, 0.0), 5.0).unwrap(),
-            DistanceTrend::Towards
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(0.0, 0.0), 6.0).unwrap(),
-            DistanceTrend::Towards
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(-1.0, 0.0), 7.0).unwrap(),
-            DistanceTrend::Towards
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(-2.0, 0.0), 8.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker.update(Vec2::new(-3.0, 0.0), 9.0).unwrap(),
-            DistanceTrend::Away
-        ));
-
-        let mut tracker2: DistanceTrendTracker<5> = DistanceTrendTracker::default();
-        assert!(tracker2.update(Vec2::new(100.0, 100.0), 10.0).is_none());
-        assert!(tracker2.update(Vec2::new(100.0, 200.0), 20.0).is_none());
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 300.0), 30.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 400.0), 40.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 500.0), 50.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 490.0), 60.0).unwrap(),
-            DistanceTrend::Away
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 505.0), 70.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 500.0), 80.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 495.0), 90.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 500.0), 100.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 495.0), 110.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 500.0), 120.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 505.0), 130.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 500.0), 140.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-        assert!(matches!(
-            tracker2.update(Vec2::new(100.0, 505.0), 150.0).unwrap(),
-            DistanceTrend::Neutral
-        ));
-    }
-}
+fn log_airship_position(_: &NpcCtx, _: usize, _: &AirshipFlightPhase) {}

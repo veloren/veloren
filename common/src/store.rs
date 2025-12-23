@@ -12,6 +12,8 @@ pub struct Id<T>(u64, PhantomData<T>);
 
 impl<T> Id<T> {
     pub fn id(&self) -> u64 { self.0 }
+
+    pub fn new(arg: u64) -> Self { Id(arg, PhantomData) }
 }
 
 impl<T> Copy for Id<T> {}

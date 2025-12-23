@@ -6,8 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use super::HudInfo;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Slot {
+    #[default]
     One = 0,
     Two = 1,
     Three = 2,
@@ -30,6 +31,7 @@ pub enum SlotContents {
 pub struct State {
     pub slots: [Option<SlotContents>; 10],
     inputs: [bool; 10],
+    pub currently_selected_slot: Slot,
 }
 
 impl State {
@@ -37,6 +39,7 @@ impl State {
         Self {
             slots,
             inputs: [false; 10],
+            currently_selected_slot: Slot::default(),
         }
     }
 
@@ -101,5 +104,32 @@ impl State {
                 .filter(|slot| matches!(slot, Some(SlotContents::Ability(_))))
                 .for_each(|slot| *slot = None)
         }
+    }
+}
+
+impl Slot {
+    const SLOTS: [Slot; 10] = [
+        Slot::One,
+        Slot::Two,
+        Slot::Three,
+        Slot::Four,
+        Slot::Five,
+        Slot::Six,
+        Slot::Seven,
+        Slot::Eight,
+        Slot::Nine,
+        Slot::Ten,
+    ];
+
+    pub fn next_slot(&mut self) {
+        let current_slot = *self as usize;
+        let next_slot = (current_slot + 1) % 10;
+        *self = Self::SLOTS[next_slot];
+    }
+
+    pub fn previous_slot(&mut self) {
+        let current_slot = *self as usize;
+        let previous_slot = (current_slot + 10 - 1) % 10;
+        *self = Self::SLOTS[previous_slot];
     }
 }

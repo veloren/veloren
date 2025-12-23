@@ -118,3 +118,5 @@ recipe-metal-orichalcum = Recettes d'Armures et d'Armes en Orichalque
     .desc = { "" }
 recipe-metal-steel = Recettes d'Armures et d'Armes en Acier
     .desc = { "" }
+recipe-armor-cotton = Recettes d'Armures en Coton
+    .desc = { "" }

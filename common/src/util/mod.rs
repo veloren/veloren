@@ -12,36 +12,38 @@ mod ron_recover;
 /// entities
 mod spatial_grid;
 
-pub const GIT_VERSION_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
-pub const GIT_TAG_BUILD: &str = include_str!(concat!(env!("OUT_DIR"), "/gittag"));
 pub const VELOREN_VERSION_STAGE: &str = "Pre-Alpha";
+const VELOREN_GIT_VERSION_BUILD: &str = env!("VELOREN_GIT_VERSION");
 
+use std::str::FromStr;
 lazy_static::lazy_static! {
-    pub static ref GIT_VERSION: String =
-        std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| GIT_VERSION_BUILD.to_string());
-    pub static ref GIT_TAG: String =
-        std::env::var("VELOREN_GIT_TAG").unwrap_or_else(|_| GIT_TAG_BUILD.to_string());
-    pub static ref GIT_HASH: &'static str = GIT_VERSION.split('/').next().expect("failed to retrieve git_hash!");
-    static ref GIT_DATETIME: &'static str = GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_datetime!");
-    pub static ref GIT_DATE: String = GIT_DATETIME.split('-').take(3).collect::<Vec<&str>>().join("-");
-    pub static ref GIT_TIME: &'static str = GIT_DATETIME.split('-').nth(3).expect("failed to retrieve git_time!");
-    pub static ref GIT_DATE_TIMESTAMP: i64 =
-        NaiveDateTime::parse_from_str(*GIT_DATETIME, "%Y-%m-%d-%H:%M")
-            .expect("Invalid date")
-            .and_utc().timestamp();
+    static ref VELOREN_GIT_VERSION: String =
+        std::env::var("VELOREN_GIT_VERSION").unwrap_or_else(|_| VELOREN_GIT_VERSION_BUILD.to_string());
+    pub static ref GIT_TAG: &'static str = VELOREN_GIT_VERSION.split('/').next().expect("failed to retrieve git_tag!");
+    /// The first 32 bits of the git hash. We don't need more, the non-collision guarantee isn't
+    /// all that important for our purposes.
+    pub static ref GIT_HASH: u32 = u32::from_str_radix(VELOREN_GIT_VERSION.split('/').nth(1).expect("failed to retrieve git_hash!"), 16).expect("invalid git_hash!");
+    pub static ref GIT_TIMESTAMP: i64 = i64::from_str(VELOREN_GIT_VERSION.split('/').nth(2).expect("failed to retrieve git_timestamp!")).expect("invalid git_timestamp!");
     pub static ref DISPLAY_VERSION: String = if GIT_TAG.is_empty() {
-        format!("{}-{}", VELOREN_VERSION_STAGE, *GIT_DATE)
+        make_display_version(*GIT_HASH, *GIT_TIMESTAMP)
     } else {
-        format!("{}-{}", VELOREN_VERSION_STAGE, GIT_TAG.as_str())
-    };
-    pub static ref DISPLAY_VERSION_LONG: String = if GIT_TAG.is_empty() {
-        format!("{} ({})", DISPLAY_VERSION.as_str(), *GIT_HASH)
-    } else {
-        format!("{} ({})", DISPLAY_VERSION.as_str(), GIT_VERSION.as_str())
+        append_date(*GIT_TAG, *GIT_TIMESTAMP)
     };
 }
 
-use chrono::NaiveDateTime;
+pub fn make_display_version(hash: u32, timestamp: i64) -> String {
+    append_date(&format!("{:x}", hash), timestamp)
+}
+
+fn append_date(version: &str, timestamp: i64) -> String {
+    use chrono::DateTime;
+    if let Some(datetime) = DateTime::from_timestamp_secs(timestamp) {
+        format!("{} [{}]", version, datetime.format("%F"))
+    } else {
+        version.to_owned()
+    }
+}
+
 pub use color::*;
 pub use dir::*;
 pub use grid_hasher::GridHasher;

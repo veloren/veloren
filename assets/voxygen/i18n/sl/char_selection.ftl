@@ -23,3 +23,4 @@ char_selection-starting_site_kind = Vrsta: { $kind }
 char_selection-create_info_name = Tvoj lik potrebuje ime!
 char_selection-version_mismatch = POZOR! Na tem strežniku teče druga, morda nezdružljiva različica igre. Prosim, posodobi svojo igro.
 char_selection-rules = Pravila
+char_selection-editing_character = Shranjujem lik ...

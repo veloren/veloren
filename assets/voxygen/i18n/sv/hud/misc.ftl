@@ -107,3 +107,6 @@ hud-init-stage-server-worldsim-erosion_time_left =
             [one] ~{ $n } sekund kvar
            *[other] ~{ $n } sekunder kvar
         }
+hud-rest = Vila
+hud-steal-consumes = Använd { $item } för att stjäla
+hud-steal-requires = Stjäl med { $item }

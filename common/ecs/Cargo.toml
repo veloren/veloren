@@ -1,7 +1,9 @@
 [package]
 name = "veloren-common-ecs"
-version = "0.10.0"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 
 [lints]

@@ -174,7 +174,7 @@ pub struct Renderer {
     ui_premultiply_uploads: ui::BatchedUploads,
 
     #[cfg(feature = "egui-ui")]
-    egui_renderpass: egui_wgpu_backend::RenderPass,
+    egui_renderer: egui_wgpu::Renderer,
 
     // This checks is added because windows resizes the window to 0,0 when
     // minimizing and this causes a bunch of validation errors
@@ -326,6 +326,7 @@ impl Renderer {
                     | wgpu::Features::PUSH_CONSTANTS
                     | (adapter.features() & wgpu_profiler::GpuProfiler::ALL_WGPU_TIMER_FEATURES),
                 required_limits,
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 memory_hints: wgpu::MemoryHints::Performance,
                 trace: wgpu::Trace::Off,
             }))?;
@@ -333,7 +334,7 @@ impl Renderer {
         // Set error handler for wgpu errors
         // This is better for use than their default because it includes the error in
         // the panic message
-        device.on_uncaptured_error(Box::new(move |error| {
+        device.on_uncaptured_error(Arc::new(move |error| {
             error!("{}", &error);
             panic!(
                 "wgpu error (handling all wgpu errors as fatal):\n{:?}\n{:?}",
@@ -569,7 +570,7 @@ impl Renderer {
             .expect("Error creating profiler");
 
         #[cfg(feature = "egui-ui")]
-        let egui_renderpass = egui_wgpu_backend::RenderPass::new(&device, format, 1);
+        let egui_renderer = egui_wgpu::Renderer::new(&device, format, Default::default());
 
         let present_modes = surface
             .get_capabilities(&adapter)
@@ -614,7 +615,7 @@ impl Renderer {
             ui_premultiply_uploads: Default::default(),
 
             #[cfg(feature = "egui-ui")]
-            egui_renderpass,
+            egui_renderer,
 
             is_minimized: false,
 
@@ -1234,11 +1235,20 @@ impl Renderer {
         }
 
         let texture = match self.surface.get_current_texture() {
-            Ok(texture) => texture,
+            Ok(texture) => {
+                if texture.suboptimal {
+                    warn!("Suboptimal swap chain, recreating");
+                    drop(texture);
+                    self.surface.configure(&self.device, &self.surface_config);
+                    return Ok(None);
+                } else {
+                    texture
+                }
+            },
             // If lost recreate the swap chain
             Err(err @ wgpu::SurfaceError::Lost) => {
                 warn!("{}. Recreating swap chain. A frame will be missed", err);
-                self.on_resize(self.resolution);
+                self.surface.configure(&self.device, &self.surface_config);
                 return Ok(None);
             },
             Err(wgpu::SurfaceError::Timeout) => {

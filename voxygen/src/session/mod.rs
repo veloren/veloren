@@ -347,23 +347,7 @@ impl SessionState {
                         let sfx_trigger_item =
                             sfx_triggers.0.get_key_value(&SfxEvent::from(&inv_event));
 
-                        match inv_event {
-                            InventoryUpdateEvent::Dropped
-                            | InventoryUpdateEvent::Swapped
-                            | InventoryUpdateEvent::Given
-                            | InventoryUpdateEvent::Collected(_)
-                            | InventoryUpdateEvent::EntityCollectFailed { .. }
-                            | InventoryUpdateEvent::BlockCollectFailed { .. }
-                            | InventoryUpdateEvent::Craft => {
-                                global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
-                            },
-                            _ => global_state.audio.emit_sfx(
-                                sfx_trigger_item,
-                                client.position().unwrap_or_default(),
-                                None,
-                                pos,
-                            ),
-                        }
+                        global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
 
                         match inv_event {
                             InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
@@ -543,6 +527,7 @@ impl SessionState {
                 | GameInput::Slot8
                 | GameInput::Slot9
                 | GameInput::Slot10
+                | GameInput::CurrentSlot
                 | GameInput::SpectateViewpoint
                 | GameInput::SpectateSpeedBoost => return true,
                 _ => (),
@@ -1765,6 +1750,7 @@ impl PlayState for SessionState {
                 let settings_change = global_state.egui_state.maintain(
                     &mut self.client.borrow_mut(),
                     &mut self.scene,
+                    global_state.window.window(),
                     debug_info.map(|debug_info| EguiDebugInfo {
                         frame_time: debug_info.frame_time,
                         ping_ms: debug_info.ping_ms,

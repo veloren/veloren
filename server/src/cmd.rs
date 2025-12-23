@@ -4916,10 +4916,10 @@ fn handle_version(
         client,
         ServerGeneral::server_msg(
             ChatType::CommandInfo,
-            Content::localized_with_args("command-version-current", [
-                ("hash", (*common::util::GIT_HASH).to_owned()),
-                ("date", (*common::util::GIT_DATE).to_owned()),
-            ]),
+            Content::localized_with_args("command-version-current", [(
+                "version",
+                (*common::util::DISPLAY_VERSION).to_owned(),
+            )]),
         ),
     );
     Ok(())

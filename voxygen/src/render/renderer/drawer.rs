@@ -21,7 +21,7 @@ use std::sync::Arc;
 use vek::Aabr;
 use wgpu_profiler::{OwningScope, Scope};
 #[cfg(feature = "egui-ui")]
-use {common_base::span, egui_wgpu_backend::ScreenDescriptor, egui_winit_platform::Platform};
+use {common_base::span, egui_wgpu::ScreenDescriptor};
 
 /// Gpu timing label prefix associated with the UI alpha premultiplication pass.
 pub const UI_PREMULTIPLY_PASS: &str = "ui_premultiply_pass";
@@ -156,7 +156,7 @@ struct RendererBorrow<'frame> {
     quad_index_buffer_u32: &'frame Buffer<u32>,
     ui_premultiply_uploads: &'frame mut ui::BatchedUploads,
     #[cfg(feature = "egui-ui")]
-    egui_render_pass: &'frame mut egui_wgpu_backend::RenderPass,
+    egui_renderer: &'frame mut egui_wgpu::Renderer,
 }
 
 pub struct Drawer<'frame> {
@@ -209,7 +209,7 @@ impl<'frame> Drawer<'frame> {
             quad_index_buffer_u32: &renderer.quad_index_buffer_u32,
             ui_premultiply_uploads: &mut renderer.ui_premultiply_uploads,
             #[cfg(feature = "egui-ui")]
-            egui_render_pass: &mut renderer.egui_renderpass,
+            egui_renderer: &mut renderer.egui_renderer,
         };
 
         let encoder = ManualScope::start("frame", &mut renderer.profiler, encoder);
@@ -615,53 +615,77 @@ impl<'frame> Drawer<'frame> {
     }
 
     #[cfg(feature = "egui-ui")]
-    pub fn draw_egui(&mut self, platform: &mut Platform, scale_factor: f32) {
+    pub fn draw_egui(
+        &mut self,
+        state: &mut egui_winit::State,
+        scale_factor: f32,
+    ) -> egui::PlatformOutput {
         span!(guard, "Draw egui");
 
-        let output = platform.end_pass(None);
+        let output = state.egui_ctx().end_pass();
 
-        let paint_jobs = platform.context().tessellate(output.shapes, scale_factor);
+        let paint_jobs = state.egui_ctx().tessellate(output.shapes, scale_factor);
 
         let screen_descriptor = ScreenDescriptor {
-            physical_width: self.borrow.surface_config.width,
-            physical_height: self.borrow.surface_config.height,
-            scale_factor,
+            size_in_pixels: [
+                self.borrow.surface_config.width,
+                self.borrow.surface_config.height,
+            ],
+            pixels_per_point: scale_factor,
         };
 
-        self.borrow
-            .egui_render_pass
-            .add_textures(
+        for (id, delta) in output.textures_delta.set.iter() {
+            self.borrow.egui_renderer.update_texture(
                 self.borrow.device,
                 self.borrow.queue,
-                &output.textures_delta,
-            )
-            .expect("Failed to update egui textures");
-        self.borrow.egui_render_pass.update_buffers(
+                *id,
+                delta,
+            );
+        }
+
+        // PaintCallback is not used to my knowledge so this should always be empty
+        // Couldn't figure out a nice way to get it into Drawer's Drop impl, anyway
+        let _ = self.borrow.egui_renderer.update_buffers(
             self.borrow.device,
             self.borrow.queue,
+            self.encoder.encoder(),
             &paint_jobs,
             &screen_descriptor,
         );
 
-        self.borrow
-            .egui_render_pass
-            .execute(
-                self.encoder.encoder(),
-                self.taking_screenshot
-                    .as_ref()
-                    .map_or(&self.surface_view, |s| s.texture_view()),
-                &paint_jobs,
-                &screen_descriptor,
-                None,
-            )
-            .expect("Failed to draw egui");
+        let mut render_pass = self
+            .encoder
+            .encoder()
+            .begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("egui pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: self
+                        .taking_screenshot
+                        .as_ref()
+                        .map_or(&self.surface_view, |s| s.texture_view()),
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            })
+            .forget_lifetime();
 
         self.borrow
-            .egui_render_pass
-            .remove_textures(output.textures_delta)
-            .expect("Failed to remove unused egui textures");
+            .egui_renderer
+            .render(&mut render_pass, &paint_jobs, &screen_descriptor);
+
+        for id in output.textures_delta.free.iter() {
+            self.borrow.egui_renderer.free_texture(id);
+        }
 
         drop(guard);
+        output.platform_output
     }
 
     /// Does nothing if the shadow pipelines are not available or shadow map

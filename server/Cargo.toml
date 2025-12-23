@@ -1,7 +1,9 @@
 [package]
 name = "veloren-server"
-version = "0.17.0"
+version.workspace = true
 edition.workspace = true
+license.workspace = true
+
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [lints]
@@ -75,6 +77,6 @@ noise = { workspace = true }
 censor = "0.3"
 
 rusqlite = { workspace = true }
-refinery = { version = "0.8.14", features = ["rusqlite"] }
+refinery = { version = "0.9", features = ["rusqlite"] }
 
 schnellru = "0.2.1"

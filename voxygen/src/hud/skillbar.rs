@@ -17,7 +17,7 @@ use crate::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
     },
-    window::KeyMouse,
+    window::{KeyMouse, LastInput},
 };
 use i18n::Localization;
 
@@ -170,6 +170,7 @@ widget_ids! {
         slot10,
         slot10_text,
         slot10_text_bg,
+        slot_highlight,
     }
 }
 
@@ -304,8 +305,6 @@ pub struct Skillbar<'a> {
     skillset: &'a SkillSet,
     active_abilities: Option<&'a ActiveAbilities>,
     body: &'a Body,
-    // character_state: &'a CharacterState,
-    // controller: &'a ControllerInputs,
     hotbar: &'a hotbar::State,
     tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -342,9 +341,7 @@ impl<'a> Skillbar<'a> {
         skillset: &'a SkillSet,
         active_abilities: Option<&'a ActiveAbilities>,
         body: &'a Body,
-        // character_state: &'a CharacterState,
         pulse: f32,
-        // controller: &'a ControllerInputs,
         hotbar: &'a hotbar::State,
         tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
@@ -376,9 +373,7 @@ impl<'a> Skillbar<'a> {
             active_abilities,
             body,
             common: widget::CommonBuilder::default(),
-            // character_state,
             pulse,
-            // controller,
             hotbar,
             tooltip_manager,
             item_tooltip_manager,
@@ -1182,6 +1177,58 @@ impl<'a> Skillbar<'a> {
             // if not, just set slot
             } else {
                 slot.set(entry.widget_id, ui);
+            }
+
+            // selection box around current hotbar index
+            match self.global_state.window.last_input() {
+                LastInput::Controller => {
+                    // enable UI if gamepad binding is set for CurrentSlot
+                    if self
+                        .global_state
+                        .settings
+                        .controller
+                        .get_game_button_binding(GameInput::CurrentSlot)
+                        .is_some()
+                        || self
+                            .global_state
+                            .settings
+                            .controller
+                            .get_layer_button_binding(GameInput::CurrentSlot)
+                            .is_some()
+                    {
+                        let current_hotbar_selection =
+                            self.hotbar.currently_selected_slot == entry.slot;
+                        if current_hotbar_selection {
+                            let selection_image = self.imgs.skillbar_index;
+
+                            Image::new(selection_image)
+                                .w_h(42.0, 42.0)
+                                .middle_of(entry.widget_id)
+                                .set(state.ids.slot_highlight, ui);
+                        }
+                    }
+                },
+                LastInput::KeyboardMouse => {
+                    // enable UI if keyboard binding is set for CurrentSlot
+                    if self
+                        .global_state
+                        .settings
+                        .controls
+                        .get_binding(GameInput::CurrentSlot)
+                        .is_some()
+                    {
+                        let current_hotbar_selection =
+                            self.hotbar.currently_selected_slot == entry.slot;
+                        if current_hotbar_selection {
+                            let selection_image = self.imgs.skillbar_index;
+
+                            Image::new(selection_image)
+                                .w_h(42.0, 42.0)
+                                .middle_of(entry.widget_id)
+                                .set(state.ids.slot_highlight, ui);
+                        }
+                    }
+                },
             }
 
             // shortcuts

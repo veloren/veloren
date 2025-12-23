@@ -25,3 +25,4 @@ dialogue-decline =
     .a1 = Нет, спасибо.
     .a2 = Прости, не сейчас.
 dialogue-direction-airship_dock = Причал для дирижаблей
+dialogue-finish = До свидания

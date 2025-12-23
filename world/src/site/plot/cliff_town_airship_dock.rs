@@ -37,7 +37,6 @@ impl CliffTownAirshipDock {
         door_tile: Vec2<i32>,
         door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
-        alt: Option<i32>,
     ) -> Self {
         let door_tile_pos = site.tile_center_wpos(door_tile);
         let bounds = Aabr {
@@ -45,22 +44,63 @@ impl CliffTownAirshipDock {
             max: site.tile_wpos(tile_aabr.max),
         };
         let center = bounds.center();
-        let alt = alt.unwrap_or_else(|| land.get_alt_approx(door_tile_pos) as i32);
+
+        // dock is 5 tiles = 30 blocks in radius
+        // airships are 37 blocks wide = 6 tiles.
+        // distance from the center to the outside edge of the airship when docked is 11
+        // tiles. The area covered by all four airships is a square 22 tiles on
+        // a side.
+
+        // Sample the surface altitude every 4 tiles (= 24 blocks) around the dock
+        // center to find the highest point of terrain surrounding the dock.
+        let mut max_surface_alt = i32::MIN;
+        // -12 -8 -4 0 +4 +8 +12
+        for dx in -3..=3 {
+            for dy in -3..=3 {
+                let pos = center + Vec2::new(dx * 24, dy * 24);
+                let surface_alt = land.get_surface_alt_approx(pos) as i32;
+                if surface_alt > max_surface_alt {
+                    max_surface_alt = surface_alt;
+                }
+            }
+        }
+
+        // Sample the surface altitude over the foundation area to get the
+        // minimum foundation alt. The foundation will be 10 tiles (60 blocks) square.
+        let mut min_foundation_alt = i32::MAX;
+        for dx in -2..=2 {
+            for dy in -2..=2 {
+                let pos = center + Vec2::new(dx * 15, dy * 15);
+                let alt = land.get_surface_alt_approx(pos) as i32;
+                if alt < min_foundation_alt {
+                    min_foundation_alt = alt;
+                }
+            }
+        }
+
         let variant = 15;
         let storeys = 5 + (variant / 2);
         let platform_length = 2 * variant;
         let mut docking_positions = vec![];
-        let mut platform_level = alt - 40;
-        let mut platform_height = 18 + variant / 2;
-        for s in 0..storeys {
-            if s == (storeys - 1) {
-                for dir in CARDINALS {
-                    let docking_pos = center + dir * (platform_length + 9);
-                    docking_positions.push(docking_pos.with_z(platform_level + 1));
-                }
-            }
-            platform_height += -1;
-            platform_level += platform_height;
+        let platform_height = 18 + variant / 2 - 1;
+        // Try to place the dock so that the base of the tower is at min_foundation_alt.
+        // If that results in the docking platforms being below max_surface_alt,
+        // increase the base altitude.
+        let mut base_alt = min_foundation_alt;
+        // The docking platforms are at the floor level of the penultimate storey.
+        // The storeys are stacked with decreasing height (by 1).
+        // The tower base is sunk one floor below the foundation altitude in the
+        // rendering function below.
+        let mut platform_level = base_alt - platform_height + (storeys - 1) * platform_height
+            - (storeys - 2) * (storeys - 1) / 2;
+        let clearance = platform_level - (max_surface_alt + 6);
+        if clearance < 0 {
+            base_alt += -clearance;
+            platform_level += -clearance;
+        }
+        for dir in CARDINALS {
+            let docking_pos = center + dir * (platform_length + 9);
+            docking_positions.push(docking_pos.with_z(platform_level + 1));
         }
 
         let (surface_color, sub_surface_color) =
@@ -71,7 +111,7 @@ impl CliffTownAirshipDock {
             };
         Self {
             door_tile: door_tile_pos,
-            alt,
+            alt: base_alt,
             door_dir,
             surface_color,
             sub_surface_color,
@@ -159,7 +199,7 @@ impl Structure for CliffTownAirshipDock {
             let mut length = 16 + (variant / 2);
             let mut width = 7 * length / 8;
             let mut height = 18 + variant / 2;
-            let mut floor_level = self.alt - 40;
+            let mut floor_level = self.alt - height + 1;
             let platform_length = self.platform_length;
             let mut ground_entries = 0;
             for s in 0..storeys {

@@ -1,35 +1,37 @@
 [workspace]
 resolver = "2"
 members = [
+    "client",
+    "client/i18n",
     "common",
     "common/assets",
-    "common/i18n",
     "common/base",
     "common/dynlib",
     "common/ecs",
+    "common/frontend",
+    "common/i18n",
     "common/net",
+    "common/query_server",
     "common/state",
     "common/systems",
-    "common/frontend",
-    "common/query_server",
-    "client",
-    "client/i18n",
+    "network",
+    "network/protocol",
     "rtsim",
     "server",
     "server/agent",
     "server-cli",
     "voxygen",
     "voxygen/anim",
-    "voxygen/i18n-helpers",
     "voxygen/egui",
+    "voxygen/i18n-helpers",
     "world",
-    "network",
-    "network/protocol",
 ]
 
 ### PACKAGE ###
 [workspace.package]
+version = "0.17.0"
 edition = "2024"
+license = "GPL-3.0-or-later"
 
 ### LINTS ###
 
@@ -155,7 +157,7 @@ chrono = { version = "0.4.24", default-features = false, features = [
     "serde",
 ] }
 chrono-tz = { version = "0.10", features = ["serde"] }
-criterion = { version = "0.7", default-features = false, features = [
+criterion = { version = "0.8", default-features = false, features = [
     "rayon",
     "cargo_bench_support",
 ] }
@@ -164,7 +166,7 @@ crossbeam-utils = { version = "0.8.7" }
 enum-map = { version = "2.4" }
 futures-util = { version = "0.3.7", default-features = false }
 fxhash = { version = "0.2.1" }
-hashbrown = { version = "0.15", default-features = false, features = [
+hashbrown = { version = "0.16", default-features = false, features = [
     "rayon",
     "serde",
     "nightly",
@@ -176,9 +178,9 @@ hex = "0.4.3"
 inline_tweak = { version = "1.0.8" }
 image = { version = "0.25", default-features = false, features = ["png"] }
 itertools = { version = "0.14" }
-# TODO: Fix LTO on linux with newer kiddo versions
-kiddo = "=4.2.0"
+kiddo = "5"
 lazy_static = "1.4.0"
+mimalloc = "0.1"
 noise = { version = "0.9", default-features = false }
 num = { version = "0.4" }
 num-traits = { version = "0.2" }
@@ -189,9 +191,9 @@ regex = { version = "1.11" }
 rand = { version = "0.9", features = ["alloc"] }
 rand_chacha = { version = "0.9" }
 rayon = { version = "1.5" }
-ron = { version = "0.11", default-features = false }
+ron = { version = "0.12", default-features = false, features = ["std"] }
 rustls = { version = "0.23", default-features = false, features = ["std"] }
-rusqlite = { version = "0.31", features = [
+rusqlite = { version = "0.37", features = [
     "array",
     "vtab",
     "bundled",

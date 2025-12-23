@@ -60,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New glider for Fire Gigas crafting drop.
 - Support for directional lanterns
 - Rebind controller buttons in-game.
+- Adds a cyclable hotbar for improved controller support.
+- Close button for dialogues.
 
 ### Changed
 
@@ -125,6 +127,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tweaked attack timings and orientation rates for a variety of entities.
 - Builds for Linux are now with compressed debuginfo, this should reduce the size of the game on disk.
 - Changed default controller controls.
+- Re-ordered controls list to group related actions.
+- Airship movement is according to timing of route schedule, no longer autonomous.
+- Added height to City airship docs located near sloping terrain for airship docking clearance.
 
 ### Removed
 
@@ -172,6 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix offset of BenchCoastal sprite
 - Adjust marine vehicles center alignment
 - Various sprite lighting issues
+- Spatial SFX no longer pop at the very start of their sound.
 
 ## [0.17.0] - 2024-12-28
 
