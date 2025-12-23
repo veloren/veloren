@@ -1912,7 +1912,7 @@ impl Client {
         }
     }
 
-    pub fn respawn(&mut self) {
+    pub fn respawn(&mut self) -> bool {
         if self.current::<comp::Health>().is_some_and(|h| h.is_dead) {
             // Hardcore characters cannot respawn, kick them to character selection
             if self.current::<Hardcore>().is_some() {
@@ -1920,6 +1920,9 @@ impl Client {
             } else {
                 self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
             }
+            true
+        } else {
+            false
         }
     }
 

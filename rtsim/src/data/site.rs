@@ -6,7 +6,7 @@ use common::{
 };
 use hashbrown::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
-use slotmap::HopSlotMap;
+use slotmap::DenseSlotMap;
 use std::ops::{Deref, DerefMut};
 use vek::*;
 use world::site::Site as WorldSite;
@@ -73,7 +73,7 @@ impl Site {
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Sites {
     pub uid_counter: u64,
-    pub sites: HopSlotMap<SiteId, Site>,
+    pub sites: DenseSlotMap<SiteId, Site>,
 
     #[serde(skip_serializing, skip_deserializing)]
     pub world_site_map: HashMap<Id<WorldSite>, SiteId>,
@@ -95,7 +95,7 @@ impl Sites {
 }
 
 impl Deref for Sites {
-    type Target = HopSlotMap<SiteId, Site>;
+    type Target = DenseSlotMap<SiteId, Site>;
 
     fn deref(&self) -> &Self::Target { &self.sites }
 }

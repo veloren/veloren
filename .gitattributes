@@ -13,4 +13,5 @@
 assets/world/map/*.bin filter=lfs diff=lfs merge=lfs -text
 
 *.ron gitlab-language=rust
+/CHANGELOG.md merge=union
 * !text !filter !merge !diff

@@ -2,7 +2,7 @@ use crate::data::Sentiments;
 use common::rtsim::Actor;
 pub use common::rtsim::FactionId;
 use serde::{Deserialize, Serialize};
-use slotmap::HopSlotMap;
+use slotmap::DenseSlotMap;
 use std::ops::{Deref, DerefMut};
 use vek::*;
 
@@ -25,7 +25,7 @@ impl Faction {
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Factions {
-    pub factions: HopSlotMap<FactionId, Faction>,
+    pub factions: DenseSlotMap<FactionId, Faction>,
 }
 
 impl Factions {
@@ -33,7 +33,7 @@ impl Factions {
 }
 
 impl Deref for Factions {
-    type Target = HopSlotMap<FactionId, Faction>;
+    type Target = DenseSlotMap<FactionId, Faction>;
 
     fn deref(&self) -> &Self::Target { &self.factions }
 }

@@ -252,6 +252,15 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                                     .then(session.say_statement(Content::localized(
                                         "npc-response-quest-slay-start",
                                     )))
+                                    .then(session.say_statement(Content::localized(
+                                        "npc-response-quest-slay-start_2",
+                                    )))
+                                    .then(session.say_statement(Content::localized(
+                                        "npc-response-quest-slay-start_3",
+                                    )))
+                                    .then(session.say_statement(Content::localized(
+                                        "npc-response-quest-slay-start_4",
+                                    )))
                                     .boxed()
                             } else {
                                 session

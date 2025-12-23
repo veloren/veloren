@@ -39,7 +39,6 @@ widget_ids! {
         quest_close,
         bg,
         frame,
-        icon,
         close,
         title_align,
         title,
@@ -49,7 +48,6 @@ widget_ids! {
         intro_txt,
         desc_txt_0,
         ack_prompt,
-        quest_objectives[],
         quest_response_txt,
         objective_text,
         quest_responses_frames[],
@@ -57,8 +55,6 @@ widget_ids! {
         quest_responses_icons[],
         quest_responses_amounts[],
         quest_rewards_txts[],
-        accept_btn,
-        decline_btn,
     }
 }
 

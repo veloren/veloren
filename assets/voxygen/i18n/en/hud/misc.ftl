@@ -8,8 +8,6 @@ hud-inventory_full = Inventory Full
 hud-someone_else = someone else
 hud-another_group = another group
 hud-owned_by_for_secs = Owned by { $name } for { $secs } secs
-hud-press_key_to_show_keybindings_fmt = [{ $key }] Key bindings
-hud-press_key_to_toggle_lantern_fmt = [{ $key }] Lantern
 hud-press_key_to_show_debug_info_fmt = Press { $key } to show debug info
 hud-press_key_to_toggle_keybindings_fmt = Press { $key } to toggle key bindings
 hud-press_key_to_toggle_debug_info_fmt = Press { $key } to toggle debug info
@@ -114,3 +112,5 @@ hud-init-stage-client-authentication = [{ -client }]: Authenticating...
 hud-init-stage-client-load-init-data = [{ -client }]: Loading initialization data from server...
 hud-init-stage-client-starting-client = [{ -client }]: Preparing Client...
 hud-init-stage-render-pipeline = Creating render pipeline ({ $done }/{ $total })
+
+hud-tutorial-disable = Permanently disable tutorial hints

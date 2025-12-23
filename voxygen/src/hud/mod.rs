@@ -27,6 +27,7 @@ mod trade;
 
 pub mod img_ids;
 pub mod item_imgs;
+pub mod tutorial;
 pub mod util;
 
 pub use chat::MessageBacklog;
@@ -61,6 +62,7 @@ use skillbar::Skillbar;
 use social::Social;
 use subtitles::Subtitles;
 use trade::Trade;
+use tutorial::Tutorial;
 
 use crate::{
     GlobalState,
@@ -297,9 +299,7 @@ widget_ids! {
 
         // Help
         help,
-        help_info,
         debug_info,
-        lantern_info,
 
         // Window Frames
         window_frame_0,
@@ -333,6 +333,7 @@ widget_ids! {
         small_window,
         social_window,
         quest_window,
+        tutorial_window,
         crafting_window,
         settings_window,
         group_window,
@@ -1606,6 +1607,7 @@ impl Hud {
                         .color(Some(Color::Rgba(1.0, 1.0, 1.0, hurt_fade)))
                         .set(self.ids.hurt_bg, ui_widgets);
                 }
+
                 // Version info
                 Text::new(&version)
                     .font_id(self.fonts.cyri.conrod_id)
@@ -2008,6 +2010,7 @@ impl Hud {
 
             // Push speech bubbles
             for msg in self.new_messages.iter() {
+                global_state.profile.tutorial.event_chat_msg(msg);
                 if let Some((bubble, uid)) = msg.to_bubble() {
                     self.speech_bubbles.insert(uid, bubble);
                 }
@@ -3089,45 +3092,6 @@ impl Hud {
                 .set(self.ids.debug_bg, ui_widgets);
         }
 
-        if global_state.settings.interface.toggle_hotkey_hints {
-            // Controls, Keybindings
-            if let Some(help_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Controls)
-            {
-                Text::new(&i18n.get_msg_ctx(
-                    "hud-press_key_to_show_keybindings_fmt",
-                    &i18n::fluent_args! {
-                        "key" => help_key.display_string(),
-                    },
-                ))
-                .color(TEXT_COLOR)
-                .bottom_left_with_margins_on(ui_widgets.window, 210.0, 10.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(12))
-                .set(self.ids.help_info, ui_widgets);
-            }
-            // Lantern Key
-            if let Some(toggle_lantern_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::ToggleLantern)
-            {
-                Text::new(&i18n.get_msg_ctx(
-                    "hud-press_key_to_toggle_lantern_fmt",
-                    &i18n::fluent_args! {
-                        "key" => toggle_lantern_key.display_string(),
-                    },
-                ))
-                .color(TEXT_COLOR)
-                .up_from(self.ids.help_info, 2.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(12))
-                .set(self.ids.lantern_info, ui_widgets);
-            }
-        }
-
         // Bag button and nearby icons
         let ecs = client.state().ecs();
         // let entity = info.viewpoint_entity;
@@ -3814,6 +3778,22 @@ impl Hud {
         } else {
             false
         };
+
+        Tutorial::new(
+            &self.show,
+            client,
+            &self.imgs,
+            &self.fonts,
+            i18n,
+            global_state,
+            &self.rot_imgs,
+            tooltip_manager,
+            &self.item_imgs,
+            self.pulse,
+            dt,
+            self.show.esc_menu,
+        )
+        .set(self.ids.tutorial_window, ui_widgets);
 
         if !dialogue_open && let Some((sender, _, dialogue)) = self.current_dialogue.take() {
             events.push(Event::Dialogue(sender, rtsim::Dialogue {
@@ -4719,11 +4699,13 @@ impl Hud {
         sender: EcsEntity,
         player_pos: Vec3<f32>,
         dialogue: rtsim::Dialogue<true>,
+        global_state: &mut GlobalState,
     ) {
         match dialogue.kind {
             rtsim::DialogueKind::Marker(marker) => {
                 // Remove any existing markers with the same ID
                 self.extra_markers.retain(|em| !em.marker.is_same(&marker));
+                global_state.profile.tutorial.event_map_marker();
                 self.extra_markers.push(map::ExtraMarker {
                     recv_pos: player_pos.xy(),
                     marker,
@@ -4978,10 +4960,12 @@ impl Hud {
                         true
                     },
                     GameInput::Map if state => {
+                        global_state.profile.tutorial.event_open_map();
                         self.show.toggle_map();
                         true
                     },
                     GameInput::Inventory if state => {
+                        global_state.profile.tutorial.event_open_inventory();
                         let state = !self.show.bag;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, state);
                         true
@@ -4991,10 +4975,12 @@ impl Hud {
                         true
                     },
                     GameInput::Crafting if state => {
+                        global_state.profile.tutorial.event_open_crafting();
                         self.show.toggle_crafting();
                         true
                     },
                     GameInput::Diary if state => {
+                        global_state.profile.tutorial.event_open_diary();
                         self.show.toggle_diary();
                         true
                     },

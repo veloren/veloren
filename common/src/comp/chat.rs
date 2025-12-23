@@ -130,6 +130,19 @@ pub enum ChatType<G> {
 }
 
 impl<G> ChatType<G> {
+    /// Determine whether the chat message is a message from a human player.
+    pub fn is_player_msg(&self) -> bool {
+        matches!(
+            self,
+            Self::Tell(_, _)
+                | Self::Say(_)
+                | Self::Group(_, _)
+                | Self::Faction(_, _)
+                | Self::Region(_)
+                | Self::World(_)
+        )
+    }
+
     pub fn into_plain_msg(self, text: impl ToString) -> GenericChatMsg<G> {
         GenericChatMsg {
             chat_type: self,

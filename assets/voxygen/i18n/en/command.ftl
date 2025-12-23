@@ -121,6 +121,8 @@ command-whitelist-desc = Adds/removes username to whitelist
 command-wiring-desc = Create wiring element
 command-world-desc = Send messages to everyone on the server
 command-wiki-desc = Open the wiki or search for a topic
+command-reset_tutorial-desc = Reset the in-game tutorial to its starting state
+command-reset_tutorial-success = Reset tutorial state.
 command-naga-desc = Toogle use of naga in initial shader processing (not persisted)
 # Command: /players
 players-list-header = { $count ->

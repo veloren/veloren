@@ -375,6 +375,7 @@ impl SessionState {
                                 }
                             },
                             InventoryUpdateEvent::Collected(item) => {
+                                global_state.profile.tutorial.event_collect();
                                 self.hud.new_loot_message(LootMessage {
                                     amount: item.amount(),
                                     item,
@@ -387,7 +388,7 @@ impl SessionState {
                 },
                 client::Event::Dialogue(sender_uid, dialogue) => {
                     if let Some(sender) = client.state().ecs().entity_from_uid(sender_uid) {
-                        self.hud.dialogue(sender, pos, dialogue);
+                        self.hud.dialogue(sender, pos, dialogue, global_state);
                     }
                 },
                 client::Event::Disconnect => return Ok(TickAction::Disconnect),
@@ -401,10 +402,17 @@ impl SessionState {
                         }));
                 },
                 client::Event::Notification(n) => {
+                    global_state.profile.tutorial.event_notification(&n);
                     self.hud.new_notification(n);
                 },
                 client::Event::SetViewDistance(_vd) => {},
-                client::Event::Outcome(outcome) => outcomes.push(outcome),
+                client::Event::Outcome(outcome) => {
+                    global_state
+                        .profile
+                        .tutorial
+                        .event_outcome(&client, &outcome);
+                    outcomes.push(outcome);
+                },
                 client::Event::CharacterCreated(_) => {},
                 client::Event::CharacterEdited(_) => {},
                 client::Event::CharacterError(_) => {},
@@ -689,6 +697,10 @@ impl PlayState for SessionState {
                 &self.scene,
             ) {
                 Ok(input_map) => {
+                    for (_, inter) in input_map.values() {
+                        global_state.profile.tutorial.event_find_interactable(inter);
+                    }
+
                     let entities = input_map
                         .values()
                         .filter_map(|(_, interactable)| {
@@ -861,6 +873,7 @@ impl PlayState for SessionState {
                                         self.selected_block = block;
                                     }
                                 } else if controlling_char {
+                                    global_state.profile.tutorial.event_roll();
                                     client.handle_input(
                                         InputKind::Roll,
                                         state,
@@ -881,12 +894,13 @@ impl PlayState for SessionState {
                             GameInput::Respawn => {
                                 self.walking_speed = false;
                                 self.stop_auto_walk();
-                                if state {
-                                    self.client.borrow_mut().respawn();
+                                if state && self.client.borrow_mut().respawn() {
+                                    global_state.profile.tutorial.event_respawn();
                                 }
                             },
                             GameInput::Jump => {
                                 self.walking_speed = false;
+                                global_state.profile.tutorial.event_jump();
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
@@ -976,6 +990,7 @@ impl PlayState for SessionState {
                                         self.stop_auto_walk();
                                     }
                                     self.client.borrow_mut().toggle_glide();
+                                    global_state.profile.tutorial.event_open_glider();
                                 }
                             },
                             GameInput::Fly => {
@@ -1011,6 +1026,7 @@ impl PlayState for SessionState {
                                 if client.is_lantern_enabled() {
                                     client.disable_lantern();
                                 } else {
+                                    global_state.profile.tutorial.event_lantern();
                                     client.enable_lantern();
                                 }
                             },
@@ -1372,6 +1388,10 @@ impl PlayState for SessionState {
 
                     // Pass all other events to the scene
                     event => {
+                        if let Event::Zoom(delta) = &event {
+                            global_state.profile.tutorial.event_zoom(*delta);
+                        }
+
                         self.scene.handle_input_event(event, &self.client.borrow());
                     }, // TODO: Do something if the event wasn't handled?
                 }
@@ -1414,6 +1434,9 @@ impl PlayState for SessionState {
 
             // Get the current state of movement related inputs
             let input_vec = self.key_state.dir_vec();
+            if input_vec.magnitude_squared() > 0.5f32.powi(2) {
+                global_state.profile.tutorial.event_move()
+            }
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
 
             if let Some(ref mut timer) = self.key_state.give_up {
