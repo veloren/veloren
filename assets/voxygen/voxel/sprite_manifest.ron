@@ -3922,6 +3922,9 @@ PurpleFlower: [
                 model: "voxygen.voxel.sprite.flowers.flower_purple_1",
                 offset: (-6.0, -6.0, 0.0),
                 lod_axes: (1.0, 1.0, 1.0),
+                custom_indices: {
+                    16: (attr: Matte),
+                },
             ),
             (
                 model: "voxygen.voxel.sprite.flowers.flower_purple-2",
@@ -4006,6 +4009,12 @@ RedFlower: [
                 model: "voxygen.voxel.sprite.flowers.flower_red_1",
                 offset: (-6.0, -6.0, 0.0),
                 lod_axes: (1.0, 1.0, 1.0),
+                custom_indices: {
+                    08: (attr: Matte),
+                    09: (attr: Matte),
+                    10: (attr: Matte),
+                    16: (attr: Matte),
+                },
             ),
             (
                 model: "voxygen.voxel.sprite.flowers.flower_red_2",
@@ -4031,11 +4040,18 @@ RedFlower: [
                 model: "voxygen.voxel.sprite.flowers.jungle_flower_red-0",
                 offset: (-7.5, -7.5, 0.0),
                 lod_axes: (1.0, 1.0, 1.0),
+                custom_indices: {
+                    11: (attr: Matte),
+                }
+                
             ),
             (
                 model: "voxygen.voxel.sprite.flowers.jungle_flower_red-1",
                 offset: (-7.5, -7.5, 0.0),
                 lod_axes: (1.0, 1.0, 1.0),
+                custom_indices: {
+                    11: (attr: Matte),
+                }
             ),
         ],
         wind_sway: 0.1,
@@ -4213,11 +4229,17 @@ Sunflower: [(
             model: "voxygen.voxel.sprite.flowers.sunflower_1",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                16: (attr: Matte),
+            },
         ),
         (
             model: "voxygen.voxel.sprite.flowers.sunflower_2",
             offset: (-6.0, -6.0, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                16: (attr: Matte),
+            },
         ),
     ],
     wind_sway: 0.1,
