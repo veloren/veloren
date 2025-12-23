@@ -856,6 +856,31 @@ impl Widget for Chat<'_> {
         {
             ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
         }
+        // Chat Scroll
+        // If PageUp is pressed: scroll up chat history
+        if ui
+            .widget_input(state.ids.chat_input)
+            .presses()
+            .key()
+            .any(|key_press| {
+                let pressed = matches!(key_press.key, Key::PageUp);
+                pressed
+            })
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, -chat_size.y])
+        }
+        // If PageDown is pressed: scroll down chat history
+        if ui
+            .widget_input(state.ids.chat_input)
+            .presses()
+            .key()
+            .any(|key_press| {
+                let pressed = matches!(key_press.key, Key::PageDown);
+                pressed
+            })
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, chat_size.y])
+        }
 
         // We've started a new tab completion. Populate tab completion suggestions.
         if request_tab_completions {
