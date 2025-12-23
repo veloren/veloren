@@ -145,7 +145,6 @@ pub enum Interface {
     ToggleHitboxes(bool),
     ToggleChat(bool),
     ToggleTips(bool),
-    ToggleHotkeyHints(bool),
 
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
@@ -691,9 +690,6 @@ impl SettingsChange {
                     },
                     Interface::ToggleTips(loading_tips) => {
                         settings.interface.loading_tips = loading_tips;
-                    },
-                    Interface::ToggleHotkeyHints(toggle_hotkey_hints) => {
-                        settings.interface.toggle_hotkey_hints = toggle_hotkey_hints;
                     },
                     Interface::CrosshairTransp(crosshair_opacity) => {
                         settings.interface.crosshair_opacity = crosshair_opacity;

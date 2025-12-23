@@ -1,4 +1,4 @@
-use crate::{comp::Pos, shared_server_config::ServerConstants};
+use crate::{comp::Pos, shared_server_config::ServerConstants, time::DayPeriod};
 use serde::{Deserialize, Serialize};
 use specs::Entity;
 use std::ops::{Mul, MulAssign};
@@ -26,6 +26,9 @@ impl TimeOfDay {
         let angle_rad = self.get_angle_rad();
         -Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
     }
+
+    /// Get the current [`DayPeriod`].
+    pub fn day_period(&self) -> DayPeriod { DayPeriod::from(self.0) }
 }
 
 impl TimeOfDay {

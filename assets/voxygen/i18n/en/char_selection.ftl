@@ -16,7 +16,9 @@ char_selection-skin = Skin
 char_selection-eyeshape = Eye Details
 char_selection-accessories = Accessories
 char_selection-hardcore = Hardcore
-char_selection-hardcore_tooltip = Hardcore characters will be deleted upon death, no other changes in difficulty
+char_selection-hardcore_tooltip = Hardcore characters will be deleted upon death, no other changes in difficulty.
+    
+    Hardcore is recommended for experienced players only.
 char_selection-starting_site = Select Starting Area
 char_selection-starting_site_next = Next
 char_selection-starting_site_prev = Previous

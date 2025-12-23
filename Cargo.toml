@@ -223,3 +223,8 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840b
 # wgpu-core = { path = "../wgpu/wgpu-core" }
 # wgpu-types = { path = "../wgpu/wgpu-types" }
 # naga = { path = "../wgpu/naga" }
+
+
+[workspace.lints.clippy]
+# This lint is widely considered an annoyance by Veloren developers and doesn't pay its way.
+unnecessary_map_or = "allow"
