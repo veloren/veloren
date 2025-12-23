@@ -1,31 +1,3 @@
-// ---- IMPORTANT ----
-// 
-// # Indexing
-//
-// Tools like Magicavoxel use 1-indexing (i.e: their voxel indices start at 1).
-// However, Veloren uses 0-indexing (i.e: our indices start at 0). This means
-// that to translate an index from Magicavoxel to Veloren, you will need to
-// subtract 1. All indices mentioned below will be correct for Veloren (i.e: 0-indexing).
-//
-// # Materials
-//
-// By default, Veloren assigns materials based on indexes. Here are the defaults:
-//
-// 0-7    : Matte (default, like plastic)
-// 8-12   : Shiny (material will have minor reflective properties: suitable for metals, for example)
-// 13-15  : Glow (material will produce its own light)
-// 16-255 : Matte (default, like plastic)
-//
-// You can override these materials with a `custom_indices` field. You might want
-// to do this to add materials that aren't present in the default set (such as
-// `Fire` or `Water`). Search for 'custom_indices' in this file to find examples
-// of that.
-//
-// # Grouping
-//
-// We make an attempt to group sprites in similar-ish categories within this file,
-// for the sake of organisation. Please try to respect those categories.
-
 #![enable(unwrap_newtypes, implicit_some)]
 {
 // Represents the lack of a sprite.
@@ -1065,6 +1037,9 @@ DungeonChest1: [(
             model: "voxygen.voxel.sprite.chests.chest_skull_0",
             offset: (-7.5, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                223: (attr: Glowy),
+            },
         ),
     ],
     wind_sway: 0.0,
@@ -2556,6 +2531,9 @@ WallLamp: [(
             model: "voxygen.voxel.sprite.furniture.lamp_wall-1",
             offset: (-10.5, -12.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                15: (attr: Glowy),
+            },
         ),
     ],
     wind_sway: 0.0,
@@ -2580,6 +2558,9 @@ WallLampWizard: [(
             model: "voxygen.voxel.sprite.furniture.lamp_wall-2",
             offset: (-5.5, 0.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
+            custom_indices: {
+                15: (attr: Glowy),
+            },
         ),
     ],
     wind_sway: 0.0,
