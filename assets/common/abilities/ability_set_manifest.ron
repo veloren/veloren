@@ -2,7 +2,7 @@
 // Maps a tool kind to a set of abilities
 // A set of abilities is a primary, a secondary, and a vec of all extra abilities
 ({
-    Tool(Sword): (
+    Tool(Sword): AbilitySet((
         guard: Some(Contextualized(
             pseudo_id: "veloren.core.pseudo_abilities.sword.guard",
             abilities: [
@@ -141,8 +141,8 @@
             Simple(Sword(CleavingBladeFever), "common.abilities.sword.cleaving_blade_fever"),
             Simple(Sword(CleavingSkySplitter), "common.abilities.sword.cleaving_sky_splitter"),
         ],
-    ),
-    Tool(Axe): (
+    )),
+    Tool(Axe): AbilitySet((
         guard: Some(Simple(None, "common.abilities.axe.basic_guard")),
         primary: Simple(None, "common.abilities.axe.triple_chop"),
         secondary: Simple(None, "common.abilities.axe.cleave"),
@@ -190,8 +190,8 @@
                 ],
             ),
         ],
-    ),
-    Tool(Hammer): (
+    )),
+    Tool(Hammer): AbilitySet((
         guard: Some(Simple(None, "common.abilities.hammer.basic_guard")),
         primary: Simple(None, "common.abilities.hammer.solid_smash"),
         secondary: Simple(None, "common.abilities.hammer.wide_wallop"),
@@ -240,80 +240,80 @@
             Simple(Hammer(Earthshaker), "common.abilities.hammer.earthshaker"),
             Simple(Hammer(Judgement), "common.abilities.hammer.judgement"),
         ],
-    ),
-    Tool(Bow): (
+    )),
+    Tool(Bow): AbilitySet((
         primary: Simple(None, "common.abilities.bow.charged"),
         secondary: Simple(None, "common.abilities.bow.repeater"),
         abilities: [
             Simple(Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
         ],
-    ),
-    Tool(Staff): (
+    )),
+    Tool(Staff): AbilitySet((
         primary: Simple(None, "common.abilities.staff.firebomb"),
         secondary: Simple(None, "common.abilities.staff.flamethrower"),
         abilities: [
             Simple(Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
         ],
-    ),
-    Tool(Sceptre): (
+    )),
+    Tool(Sceptre): AbilitySet((
         primary: Simple(None, "common.abilities.sceptre.lifestealbeam"),
         secondary: Simple(None, "common.abilities.sceptre.healingaura"),
         abilities: [
             Simple(Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
-    ),
-    Custom("Husk"): (
+    )),
+    Custom("Husk"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.husk.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.husk.triplestrike"),
         abilities: [],
-    ),
-    Custom("Husk Brute"): (
+    )),
+    Custom("Husk Brute"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.husk_brute.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.husk_brute.chargedmelee"),
         abilities: [],
-    ),
-    Custom("Bushly"): (
+    )),
+    Custom("Bushly"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.bushly.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.bushly.dash"),
         abilities: [],
-    ),
-    Custom("Cactid"): (
+    )),
+    Custom("Cactid"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.cactid.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.cactid.dash"),
         abilities: [],
-    ),
-    Custom("Irrwurz"): (
+    )),
+    Custom("Irrwurz"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.irrwurz.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.irrwurz.magicball"),
         abilities: [],
-    ),
-    Tool(Spear): (
+    )),
+    Tool(Spear): AbilitySet((
         primary: Simple(None, "common.abilities.spear.doublestrike"),
         secondary: Simple(None, "common.abilities.spear.dash"),
         abilities: [],
-    ),
-    Custom("Hammer Simple"): (
+    )),
+    Custom("Hammer Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.hammersimple.doublestrike"),
         secondary: Simple(None, "common.abilities.hammersimple.doublestrike"),
         abilities: [],
-    ),
+    )),
     // TODO: Later investigate if we want to make this back to a simple axe when more things need a simpler axe ability set
-    Custom("Gnarling Axe"): (
+    Custom("Gnarling Axe"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.axe.chop"),
         secondary: Simple(None, "common.abilities.gnarling.axe.chop"),
         abilities: [],
-    ),
-    Custom("Gnarling Dagger"): (
+    )),
+    Custom("Gnarling Dagger"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.dagger.stab"),
         secondary: Simple(None, "common.abilities.gnarling.dagger.stab"),
         abilities: [],
-    ),
-    Custom("Gnarling Blowgun"): (
+    )),
+    Custom("Gnarling Blowgun"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.blowgun.dart"),
         secondary: Simple(None, "common.abilities.gnarling.blowgun.dart"),
         abilities: [],
-    ),
-    Custom("Gnarling Chieftain"): (
+    )),
+    Custom("Gnarling Chieftain"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.chieftain.flamestrike"),
         secondary: Simple(None, "common.abilities.gnarling.chieftain.firebarrage"),
         abilities: [
@@ -322,193 +322,193 @@
             Simple(None, "common.abilities.gnarling.chieftain.greentotem"),
             Simple(None, "common.abilities.gnarling.chieftain.whitetotem"),
         ],
-    ),
-    Custom("Gnarling Totem Red"): (
+    )),
+    Custom("Gnarling Totem Red"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.totem.red"),
         secondary: Simple(None, "common.abilities.gnarling.totem.red"),
         abilities: [],
-    ),
-    Custom("Gnarling Totem Green"): (
+    )),
+    Custom("Gnarling Totem Green"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.totem.green"),
         secondary: Simple(None, "common.abilities.gnarling.totem.green"),
         abilities: [],
-    ),
-    Custom("Gnarling Totem White"): (
+    )),
+    Custom("Gnarling Totem White"): AbilitySet((
         primary: Simple(None, "common.abilities.gnarling.totem.white"),
         secondary: Simple(None, "common.abilities.gnarling.totem.white"),
         abilities: [],
-    ),
-    Custom("Deadwood"): (
+    )),
+    Custom("Deadwood"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.deadwood.lifestealbeam"),
         secondary: Simple(None, "common.abilities.custom.deadwood.dash"),
         abilities: [],
-    ),
-    Custom("Mandragora"): (
+    )),
+    Custom("Mandragora"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.mandragora.basic"),
         secondary: Simple(None, "common.abilities.custom.mandragora.scream"),
         abilities: [],
-    ),
-    Custom("Wood Golem"): (
+    )),
+    Custom("Wood Golem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.woodgolem.strike"),
         secondary: Simple(None, "common.abilities.custom.woodgolem.spin"),
         abilities: [
             Simple(None, "common.abilities.custom.woodgolem.shockwave")
         ],
-    ),
-    Custom("Coral Golem"): (
+    )),
+    Custom("Coral Golem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.coralgolem.strike"),
         secondary: Simple(None, "common.abilities.custom.coralgolem.spin"),
         abilities: [
             Simple(None, "common.abilities.custom.coralgolem.shockwave")
         ],
-    ),
-    Custom("Simple Flying Melee"): (
+    )),
+    Custom("Simple Flying Melee"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.simpleflyingmelee.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.simpleflyingmelee.singlestrike"),
         abilities: [],
-    ),
-    Custom("Sword Simple"): (
+    )),
+    Custom("Sword Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.swordsimple.doublestrike"),
         secondary: Simple(None, "common.abilities.swordsimple.dash"),
         abilities: [],
-    ),
-    Custom("Staff Simple"): (
+    )),
+    Custom("Staff Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.staffsimple.firebomb"),
         secondary: Simple(None, "common.abilities.staffsimple.flamethrower"),
         abilities: [],
-    ),
-    Custom("Bow Simple"): (
+    )),
+    Custom("Bow Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.bowsimple.basic"),
         secondary: Simple(None, "common.abilities.bowsimple.basic"),
         abilities: [],
-    ),
-    Custom("Axe Simple"): (
+    )),
+    Custom("Axe Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.axesimple.doublestrike"),
         secondary: Simple(None, "common.abilities.axesimple.doublestrike"),
         abilities: [],
-    ),
-    Custom("Dagger Simple"): (
+    )),
+    Custom("Dagger Simple"): AbilitySet((
         primary: Simple(None, "common.abilities.daggersimple.singlestrike"),
         secondary: Simple(None, "common.abilities.daggersimple.singlestrike"),
         abilities: [],
-    ),
-    Tool(Dagger): (
+    )),
+    Tool(Dagger): AbilitySet((
         primary: Simple(None, "common.abilities.dagger.tempbasic"),
         secondary: Simple(None, "common.abilities.dagger.tempbasic"),
         abilities: [],
-    ),
-    Tool(Shield): (
+    )),
+    Tool(Shield): AbilitySet((
         guard: Some(Simple(None, "common.abilities.shield.basic_guard")),
         primary: Simple(None, "common.abilities.shield.singlestrike"),
         secondary: Simple(None, "common.abilities.shield.power_guard"),
         abilities: [],
-    ),
-    Custom("Stone Golem"): (
+    )),
+    Custom("Stone Golem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.stonegolemfist.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.stonegolemfist.shockwave"),
         abilities: [
             Simple(None, "common.abilities.custom.stonegolemfist.spin"),
         ],
-    ),
-    Custom("Iron Golem"): (
+    )),
+    Custom("Iron Golem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.irongolemfist.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.irongolemfist.shockwave"),
         abilities: [
             Simple(None, "common.abilities.custom.irongolemfist.iron_pike_bomb"),
             Simple(None, "common.abilities.custom.irongolemfist.spin"),
         ],
-    ),
-    Custom("Beast Claws"): (
+    )),
+    Custom("Beast Claws"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.beastclaws.basic"),
         secondary: Simple(None, "common.abilities.custom.beastclaws.basic"),
         abilities: [],
-    ),
-    Custom("Tursus Claws"): (
+    )),
+    Custom("Tursus Claws"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.tursus.tursus_claws"),
         secondary: Simple(None, "common.abilities.custom.tursus.tusk_bash_leap"),
         abilities: [
             Simple(None, "common.abilities.custom.tursus.tusk_stab"),
         ],
-    ),
-    Custom("Wendigo Magic"): (
+    )),
+    Custom("Wendigo Magic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.wendigomagic.frostbomb"),
         secondary: Simple(None, "common.abilities.custom.wendigomagic.singlestrike"),
         abilities: [],
-    ),
-    Custom("Tidal Warrior"): (
+    )),
+    Custom("Tidal Warrior"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.tidalwarrior.pincer"),
         secondary: Simple(None, "common.abilities.custom.tidalwarrior.scuttle"),
         abilities: [
             Simple(None, "common.abilities.custom.tidalwarrior.bubbles"),
             Simple(None, "common.abilities.custom.tidalwarrior.totem"),
         ],
-    ),
-    Custom("Tidal Totem"): (
+    )),
+    Custom("Tidal Totem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.tidalwarrior.totem_wave"),
         secondary: Simple(None, "common.abilities.custom.tidalwarrior.totem_wave"),
         abilities: [],
-    ),
+    )),
     // Note: Consider making a ranking system once we get more entities
     // TODO: Make all purple item droppers have purple CR and a unique skillset
-    Custom("Quad Med Quick"): (
+    Custom("Quad Med Quick"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadmedquick.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.quadmedquick.dash"),
         abilities: [],
-    ),
-    Custom("Quad Med Jump"): (
+    )),
+    Custom("Quad Med Jump"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadmedjump.leap"),
         secondary: Simple(None, "common.abilities.custom.quadmedjump.doublestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.quadmedjump.quickleap"),
         ],
-    ),
-    Custom("Quad Med Charge"): (
+    )),
+    Custom("Quad Med Charge"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadmedcharge.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.quadmedcharge.dash"),
         abilities: [],
-    ),
-    Custom("Quad Med Hoof"): (
+    )),
+    Custom("Quad Med Hoof"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadmedhoof.basic"),
         secondary: Simple(None, "common.abilities.custom.quadmedhoof.basic"),
         abilities: [],
-    ),
-    Custom("ClaySteed"): (
+    )),
+    Custom("ClaySteed"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.claysteed.basic"),
         secondary: Simple(None, "common.abilities.custom.claysteed.shockwave"),
         abilities: [],
-    ),
-    Custom("Quad Med Basic"): (
+    )),
+    Custom("Quad Med Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadmedbasic.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.quadmedbasic.triplestrike"),
         abilities: [],
-    ),
-    Custom("Darkhound"): (
+    )),
+    Custom("Darkhound"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.darkhound.leap"),
         secondary: Simple(None, "common.abilities.custom.darkhound.doublestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.darkhound.quickleap"),
         ],
-    ),
-    Custom("Frostfang"): (
+    )),
+    Custom("Frostfang"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.frostfang.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.frostfang.triplestrike"),
         abilities: [],
-    ),
-    Custom("Roshwalr"): (
+    )),
+    Custom("Roshwalr"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.roshwalr.doublehusk"),
         secondary: Simple(None, "common.abilities.custom.roshwalr.slowcharge"),
         abilities: [
             Simple(None, "common.abilities.custom.roshwalr.freezeshockwave"),
         ],
-    ),
-    Custom("Basilisk"): (
+    )),
+    Custom("Basilisk"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.basilisk.petrify"),
         secondary: Simple(None, "common.abilities.custom.basilisk.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.basilisk.dash"),
         ],
-    ),
-    Custom("Hydra"): (
+    )),
+    Custom("Hydra"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.hydra.multi_bite"),
         secondary: Simple(None, "common.abilities.custom.hydra.poison"),
         abilities: [
@@ -517,40 +517,40 @@
             Simple(None, "common.abilities.custom.hydra.growhead"),
             Simple(None, "common.abilities.custom.hydra.tail_swipe"),
         ],
-    ),
-    Custom("Asp"): (
+    )),
+    Custom("Asp"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.asp.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.asp.firebomb"),
         abilities: [],
-    ),
-    Custom("Maneater"): (
+    )),
+    Custom("Maneater"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.maneater.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.maneater.poisonball"),
         abilities: [],
-    ),
-    Custom("Quad Low Breathe"): (
+    )),
+    Custom("Quad Low Breathe"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadlowbreathe.flamethrower"),
         secondary: Simple(None, "common.abilities.custom.quadlowbreathe.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.quadlowbreathe.dash"),
         ],
-    ),
-    Custom("Quad Low Tail"): (
+    )),
+    Custom("Quad Low Tail"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadlowtail.charged"),
         secondary: Simple(None, "common.abilities.custom.quadlowtail.singlestrike"),
         abilities: [],
-    ),
-    Custom("Quad Low Quick"): (
+    )),
+    Custom("Quad Low Quick"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadlowquick.dash"),
         secondary: Simple(None, "common.abilities.custom.quadlowquick.quadstrike"),
         abilities: [],
-    ),
-    Custom("Quad Low Basic"): (
+    )),
+    Custom("Quad Low Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadlowbasic.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.quadlowbasic.singlestrike"),
         abilities: [],
-    ),
-    Custom("Elephant"): (
+    )),
+    Custom("Elephant"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.elephant.gouge"),
         secondary: Simple(None, "common.abilities.custom.elephant.dash"),
         abilities: [
@@ -558,121 +558,121 @@
             Simple(None, "common.abilities.custom.elephant.water"),
             Simple(None, "common.abilities.custom.elephant.vacuum"),
         ],
-    ),
-    Custom("Rocksnapper"): (
+    )),
+    Custom("Rocksnapper"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.rocksnapper.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.rocksnapper.dash"),
         abilities: [
             Simple(None, "common.abilities.custom.rocksnapper.leapshockwave"),
         ],
-    ),
-    Custom("Quad Low Beam"): (
+    )),
+    Custom("Quad Low Beam"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadlowbeam.lifestealbeam"),
         secondary: Simple(None, "common.abilities.custom.quadlowbreathe.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.quadlowbreathe.dash"),
         ],
-    ),
-    Custom("Quad Small Basic"): (
+    )),
+    Custom("Quad Small Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.quadsmallbasic.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.quadsmallbasic.singlestrike"),
         abilities: [],
-    ),
-    Custom("Driggle"): (
+    )),
+    Custom("Driggle"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.driggle.bite"),
         secondary: Simple(None, "common.abilities.custom.driggle.flamethrower"),
         abilities: [],
-    ),
-    Custom("Mossy Snail"): (
+    )),
+    Custom("Mossy Snail"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.mossy_snail.headbutt"),
         secondary: Simple(None, "common.abilities.custom.mossy_snail.harden"),
         abilities: [],
-    ),
-    Custom("Treant Sapling"): (
+    )),
+    Custom("Treant Sapling"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.treant_sapling.shockwave"),
         secondary: Simple(None, "common.abilities.custom.treant_sapling.shockwave"),
         abilities: [],
-    ),
-    Custom("Theropod Basic"): (
+    )),
+    Custom("Theropod Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.theropodbasic.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.theropodbasic.triplestrike"),
         abilities: [],
-    ),
-    Custom("Theropod Small"): (
+    )),
+    Custom("Theropod Small"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.theropodsmall.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.theropodsmall.triplestrike"),
         abilities: [],
-    ),
-    Custom("Theropod Bird"): (
+    )),
+    Custom("Theropod Bird"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.theropodbird.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.theropodbird.triplestrike"),
         abilities: [],
-    ),
-    Custom("Theropod Charge"): (
+    )),
+    Custom("Theropod Charge"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.theropodbasic.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.theropodbasic.dash"),
         abilities: [],
-    ),
+    )),
     // Arthropods
-    Custom("Antlion"): (
+    Custom("Antlion"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.antlion.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.antlion.charge"),
         abilities: [],
-    ),
-    Custom("Black Widow"): (
+    )),
+    Custom("Black Widow"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.blackwidow.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.blackwidow.ensnaringwebs"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.blackwidow.poisonball"),
         ],
-    ),
-    Custom("Horn Beetle"): (
+    )),
+    Custom("Horn Beetle"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.hornbeetle.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.hornbeetle.harden"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.hornbeetle.leap"),
         ],
-    ),
-    Custom("Emberfly"): (
+    )),
+    Custom("Emberfly"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.emberfly.leap"),
         secondary: Simple(None, "common.abilities.custom.emberfly.leap"),
         abilities: [],
-    ),
-    Custom("Tarantula"): (
+    )),
+    Custom("Tarantula"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.tarantula.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.tarantula.ensnaringwebs"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.tarantula.leap"),
         ],
-    ),
-    Custom("Weevil"): (
+    )),
+    Custom("Weevil"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.weevil.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.weevil.harden"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.weevil.threadshot"),
         ],
-    ),
-    Custom("Crawler"): (
+    )),
+    Custom("Crawler"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.crawler.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.arthropods.crawler.harden"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.crawler.threadshot"),
         ],
-    ),
-    Custom("Dagonite"): (
+    )),
+    Custom("Dagonite"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
         secondary: Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
         abilities: [
             Simple(None, "common.abilities.custom.arthropods.dagonite.leapshockwave"),
         ],
-    ),
+    )),
     // Crustaceans
-    Custom("Crab"): (
+    Custom("Crab"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.crab.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.crab.triplestrike"),
         abilities: [],
-    ),
-    Custom("Karkatha"): (
+    )),
+    Custom("Karkatha"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.karkatha.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.karkatha.leap"),
         abilities: [
@@ -680,29 +680,29 @@
             Simple(None, "common.abilities.custom.karkatha.summoncrabs"),
             Simple(None, "common.abilities.custom.karkatha.riposte"),
         ],
-    ),
+    )),
     /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
-    Custom("Turret"): (
+    Custom("Turret"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.turret.arrows"),
         secondary: Simple(None, "common.abilities.custom.turret.arrows"),
         abilities: [],
-    ),
-    Custom("Flamethrower"): (
+    )),
+    Custom("Flamethrower"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.turret.flamethrower_strong"),
         secondary: Simple(None, "common.abilities.custom.turret.flamethrower_strong"),
         abilities: [],
-    ),
-    Custom("Organ"): (
+    )),
+    Custom("Organ"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.organ.organaura"),
         secondary: Simple(None, "common.abilities.custom.organ.organaura"),
         abilities: [],
-    ),
-    Custom("Haniwa Sentry"): (
+    )),
+    Custom("Haniwa Sentry"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.turret.flamethrower"),
         secondary: Simple(None, "common.abilities.custom.turret.flamethrower"),
         abilities: [],
-    ),
-    Custom("Mindflayer"): (
+    )),
+    Custom("Mindflayer"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.mindflayer.cursedflames"),
         secondary: Simple(None, "common.abilities.custom.mindflayer.necroticvortex"),
         abilities: [
@@ -712,8 +712,8 @@
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere_blast"),
             Simple(None, "common.abilities.custom.mindflayer.necroticsphere_multiblast"),
         ],
-    ),
-    Custom("Flamekeeper"): (
+    )),
+    Custom("Flamekeeper"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.mines"),
         secondary: Simple(None, "common.abilities.custom.dwarves.flamekeeper.flamecrush"),
         abilities: [
@@ -722,8 +722,8 @@
             Simple(None, "common.abilities.custom.dwarves.flamekeeper.lavawave"),
             Simple(None, "common.abilities.custom.dwarves.flamekeeper.mines"),
         ],
-    ),
-    Custom("Forgemaster"): (
+    )),
+    Custom("Forgemaster"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.dwarves.forgemaster.lava_mortar"),
         secondary: Simple(None, "common.abilities.custom.dwarves.forgemaster.flamecrush"),
         abilities: [
@@ -734,13 +734,13 @@
             Simple(None, "common.abilities.custom.dwarves.forgemaster.groundislava2"),
             Simple(None, "common.abilities.custom.dwarves.forgemaster.teleport"),
         ],
-    ),
-    Custom("IronDwarf"): (
+    )),
+    Custom("IronDwarf"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.dwarves.iron_dwarf.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.dwarves.iron_dwarf.triplestrike"),
         abilities: [],
-    ),
-    Custom("Snaretongue"): (
+    )),
+    Custom("Snaretongue"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.dwarves.snaretongue.tongue"),
         secondary: Simple(None, "common.abilities.custom.dwarves.snaretongue.wave"),
         abilities: [
@@ -748,8 +748,8 @@
             Simple(None, "common.abilities.custom.dwarves.snaretongue.beam"),
             Simple(None, "common.abilities.custom.dwarves.snaretongue.heal"),
         ],
-    ),
-    Custom("Minotaur"): (
+    )),
+    Custom("Minotaur"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.minotaur.cleave"),
         secondary: Simple(None, "common.abilities.custom.minotaur.cripplingstrike"),
         abilities: [
@@ -758,16 +758,16 @@
             Simple(None, "common.abilities.custom.minotaur.axethrow"),
             Simple(None, "common.abilities.custom.minotaur.ironspike_targeted"),
         ],
-    ),
-     Custom("Dullahan"): (
+    )),
+    Custom("Dullahan"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.dullahan.melee"),
         secondary: Simple(None, "common.abilities.custom.dullahan.fierce_darts"),
         abilities: [
             Simple(None, "common.abilities.custom.dullahan.knife_rain"),
             Simple(None, "common.abilities.custom.dullahan.dash"),
         ],
-     ),
-     Custom("Cyclops"): (
+    )),
+    Custom("Cyclops"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.cyclops.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.cyclops.optic_blast"),
         abilities: [
@@ -776,34 +776,34 @@
             Simple(None, "common.abilities.custom.cyclops.reinforce"),
 
         ],
-     ),
-    Custom("Grave Warden"): (
+    )),
+    Custom("Grave Warden"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.gravewarden.strike"),
         secondary: Simple(None, "common.abilities.custom.gravewarden.laser"),
         abilities: [
             Simple(None, "common.abilities.custom.gravewarden.shockwave"),
             Simple(None, "common.abilities.custom.gravewarden.rocket"),
         ],
-    ),
-    Custom("Clay Golem"): (
+    )),
+    Custom("Clay Golem"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.claygolem.strike"),
         secondary: Simple(None, "common.abilities.custom.claygolem.dashstrike"),
         abilities: [],
-    ),
-    Custom("Yeti"): (
+    )),
+    Custom("Yeti"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.yeti.strike"),
         secondary: Simple(None, "common.abilities.custom.yeti.icespikes"),
         abilities: [
             Simple(None, "common.abilities.custom.yeti.frostbreath"),
             Simple(None, "common.abilities.custom.yeti.snowball"),
         ],
-    ),
-    Custom("Ancient Effigy"): (
+    )),
+    Custom("Ancient Effigy"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.ancienteffigy.laser"),
         secondary: Simple(None, "common.abilities.custom.ancienteffigy.blast"),
         abilities: [],
-    ),
-    Custom("Harvester"): (
+    )),
+    Custom("Harvester"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.harvester.scythe"),
         secondary: Simple(None, "common.abilities.custom.harvester.firebreath"),
         abilities: [
@@ -811,17 +811,17 @@
             Simple(None, "common.abilities.custom.harvester.ensnaringvines_sparse"),
             Simple(None, "common.abilities.custom.harvester.ensnaringvines_dense"),
         ],
-    ),
+    )),
     // TODO: Allow ability sets to expand other ability sets
-    Custom("Ice Drake"): (
+    Custom("Ice Drake"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.icedrake.multi_bite"),
         secondary: Simple(None, "common.abilities.custom.icedrake.icy_bite"),
         abilities: [
             Simple(None, "common.abilities.custom.icedrake.icebombs"),
             Simple(None, "common.abilities.custom.icedrake.icebreath"),
         ],
-    ),
-    Custom("Dagon"): (
+    )),
+    Custom("Dagon"): AbilitySet((
     primary: Simple(None, "common.abilities.custom.dagon.dagonbombs"),
     secondary: Simple(None, "common.abilities.custom.dagon.seaurchins"),
         abilities: [
@@ -829,33 +829,33 @@
             Simple(None, "common.abilities.custom.dagon.steambeam"),
             Simple(None, "common.abilities.custom.dagon.steamheal"),
         ],
-    ),
-    Custom("Cardinal"): (
+    )),
+    Custom("Cardinal"): AbilitySet((
         primary: Simple(None, "common.abilities.sceptre.lifestealbeam"),
         secondary: Simple(None, "common.abilities.sceptre.healingaura"),
         abilities: [
             Simple(None, "common.abilities.custom.cardinal.steambeam"),
             Simple(None, "common.abilities.custom.cardinal.summondagonites"),
         ],
-    ),
-    Custom("Sea Bishop"): (
+    )),
+    Custom("Sea Bishop"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.sea_bishop.longbeam"),
         secondary: Simple(None, "common.abilities.custom.sea_bishop.longbeam"),
         abilities: [],
-    ),
-    Custom("Oni"): (
+    )),
+    Custom("Oni"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.oni.dash"),
         secondary: Simple(None, "common.abilities.custom.oni.doublestrike"),
         abilities: [],
-    ),
-    Custom("Bird Large Breathe"): (
+    )),
+    Custom("Bird Large Breathe"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.birdlargebreathe.firebomb"),
         secondary: Simple(None, "common.abilities.custom.birdlargebreathe.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.birdlargebreathe.flamethrower"),
         ],
-    ),
-    Custom("Bird Large Fire"): (
+    )),
+    Custom("Bird Large Fire"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.birdlargefire.longstrike"),
         secondary: Simple(None, "common.abilities.custom.birdlargefire.shortstrike"),
         abilities: [
@@ -865,60 +865,60 @@
             Simple(None, "common.abilities.custom.birdlargefire.heat_laser"),
             Simple(None, "common.abilities.custom.birdlargefire.from_the_ashes"),
         ],
-    ),
-    Custom("Flame Wyvern"): (
+    )),
+    Custom("Flame Wyvern"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.flamewyvern.firebomb"),
         secondary: Simple(None, "common.abilities.custom.flamewyvern.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.flamewyvern.fireshockwave"),
             Simple(None, "common.abilities.custom.flamewyvern.flamethrower"),
         ],
-    ),
-    Custom("Frost Wyvern"): (
+    )),
+    Custom("Frost Wyvern"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.frostwyvern.frostbomb"),
         secondary: Simple(None, "common.abilities.custom.frostwyvern.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.frostwyvern.iceshockwave"),
             Simple(None, "common.abilities.custom.frostwyvern.frostthrower"),
         ],
-    ),
-    Custom("Cloud Wyvern"): (
+    )),
+    Custom("Cloud Wyvern"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.cloudwyvern.lightningbomb"),
         secondary: Simple(None, "common.abilities.custom.cloudwyvern.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.cloudwyvern.lightningshockwave"),
             Simple(None, "common.abilities.custom.cloudwyvern.lightningthrower"),
         ],
-    ),
-    Custom("Sea Wyvern"): (
+    )),
+    Custom("Sea Wyvern"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.seawyvern.inkbomb"),
         secondary: Simple(None, "common.abilities.custom.seawyvern.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.seawyvern.inkshockwave"),
             Simple(None, "common.abilities.custom.seawyvern.inkthrower"),
         ],
-    ),
-    Custom("Weald Wyvern"): (
+    )),
+    Custom("Weald Wyvern"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.wealdwyvern.poisonbomb"),
         secondary: Simple(None, "common.abilities.custom.wealdwyvern.triplestrike"),
         abilities: [
             Simple(None, "common.abilities.custom.wealdwyvern.poisonshockwave"),
             Simple(None, "common.abilities.custom.wealdwyvern.poisonthrower"),
         ],
-    ),
-    Custom("Bird Large Basic"): (
+    )),
+    Custom("Bird Large Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.birdlargebasic.triplestrike"),
         secondary: Simple(None, "common.abilities.custom.birdlargebasic.summontornadoes"),
         abilities: [
             Simple(None, "common.abilities.custom.birdlargebasic.dash"),
         ],
-    ),
-    Custom("Bird Medium Basic"): (
+    )),
+    Custom("Bird Medium Basic"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.birdmediumbasic.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.birdmediumbasic.singlestrike"),
         abilities: [],
-    ),
-    Custom("Frost Gigas"): (
+    )),
+    Custom("Frost Gigas"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.gigas_frost.cleave"),
         secondary: Simple(None, "common.abilities.custom.gigas_frost.wide_cleave"),
         abilities: [
@@ -931,22 +931,22 @@
             Simple(None, "common.abilities.custom.gigas_frost.bonk"),
             Simple(None, "common.abilities.custom.gigas_frost.whirlwind"),
         ],
-    ),
-    Custom("Boreal Hammer"): (
+    )),
+    Custom("Boreal Hammer"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.singlestrike"),
         secondary: Simple(None, "common.abilities.custom.boreal_warrior.hammer.dash"),
         abilities: [
             Simple(None, "common.abilities.custom.boreal_warrior.hammer.leap"),
         ],
-    ),
-    Custom("Boreal Bow"): (
+    )),
+    Custom("Boreal Bow"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.boreal_warrior.bow.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.boreal_warrior.bow.shotgun"),
         abilities: [
             Simple(None, "common.abilities.custom.boreal_warrior.bow.trap"),
         ],
-    ),
-    Custom("Fire Gigas"): (
+    )),
+    Custom("Fire Gigas"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.gigas_fire.fast_slash"),
         secondary: Simple(None, "common.abilities.custom.gigas_fire.fast_thrust"),
         abilities: [
@@ -962,306 +962,306 @@
             Simple(None, "common.abilities.custom.gigas_fire.ashen_summons"),
             Simple(None, "common.abilities.custom.gigas_fire.parry_punish"),
         ],
-    ),
-    Custom("Ashen Axe"): (
+    )),
+    Custom("Ashen Axe"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.ashen_warrior.axe.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.ashen_warrior.axe.flame_wave"),
         abilities: [
             Simple(None, "common.abilities.custom.ashen_warrior.axe.knockback_combo"),
             Simple(None, "common.abilities.custom.ashen_warrior.axe.self_immolation"),
         ],
-    ),
-    Custom("Ashen Staff"): (
+    )),
+    Custom("Ashen Staff"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.ashen_warrior.staff.fireball"),
         secondary: Simple(None, "common.abilities.custom.ashen_warrior.staff.fireball"),
         abilities: [
             Simple(None, "common.abilities.custom.ashen_warrior.staff.flame_wall"),
             Simple(None, "common.abilities.custom.ashen_warrior.staff.summon_crux"),
         ],
-    ),
-    Custom("Tornado"): (
+    )),
+    Custom("Tornado"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.tornado.spin"),
         secondary: Simple(None, "common.abilities.empty.basic"),
         abilities: [],
-    ),
-    Custom("FieryTornado"): (
+    )),
+    Custom("FieryTornado"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.fiery_tornado.fiery_spin"),
         secondary: Simple(None, "common.abilities.custom.fiery_tornado.fiery_aura"),
         abilities: [],
-    ),
-    Custom("Golf Club"): (
+    )),
+    Custom("Golf Club"): AbilitySet((
         primary: Simple(None, "common.abilities.tool.golf_club.charged"),
         secondary: Simple(None, "common.abilities.tool.golf_club.charged"),
         abilities: [],
-    ),
-    Custom("DoubleBass"): (
+    )),
+    Custom("DoubleBass"): AbilitySet((
         primary: Simple(None, "common.abilities.music.double_bass"),
         secondary: Simple(None, "common.abilities.music.double_bass"),
         abilities: [],
-    ),
-    Custom("Flute"): (
+    )),
+    Custom("Flute"): AbilitySet((
         primary: Simple(None, "common.abilities.music.flute"),
         secondary: Simple(None, "common.abilities.music.flute"),
         abilities: [],
-    ),
-    Custom("GlassFlute"): (
+    )),
+    Custom("GlassFlute"): AbilitySet((
         primary: Simple(None, "common.abilities.music.glass_flute"),
         secondary: Simple(None, "common.abilities.music.glass_flute"),
         abilities: [],
-    ),
-    Custom("Lyre"): (
+    )),
+    Custom("Lyre"): AbilitySet((
         primary: Simple(None, "common.abilities.music.lyre"),
         secondary: Simple(None, "common.abilities.music.lyre"),
         abilities: [],
-    ),
-    Custom("WildskinDrum"): (
+    )),
+    Custom("WildskinDrum"): AbilitySet((
         primary: Simple(None, "common.abilities.music.wildskin_drum"),
         secondary: Simple(None, "common.abilities.music.wildskin_drum"),
         abilities: [],
-    ),
-    Custom("IcyTalharpa"): (
+    )),
+    Custom("IcyTalharpa"): AbilitySet((
         primary: Simple(None, "common.abilities.music.icy_talharpa"),
         secondary: Simple(None, "common.abilities.music.icy_talharpa"),
         abilities: [],
-    ),
-    Custom("Washboard"): (
+    )),
+    Custom("Washboard"): AbilitySet((
         primary: Simple(None, "common.abilities.music.washboard"),
         secondary: Simple(None, "common.abilities.music.washboard"),
         abilities: [],
-    ),
-    Custom("Kalimba"): (
+    )),
+    Custom("Kalimba"): AbilitySet((
         primary: Simple(None, "common.abilities.music.kalimba"),
         secondary: Simple(None, "common.abilities.music.kalimba"),
         abilities: [],
-    ),
-    Custom("Melodica"): (
+    )),
+    Custom("Melodica"): AbilitySet((
         primary: Simple(None, "common.abilities.music.melodica"),
         secondary: Simple(None, "common.abilities.music.melodica"),
         abilities: [],
-    ),
-    Custom("Lute"): (
+    )),
+    Custom("Lute"): AbilitySet((
         primary: Simple(None, "common.abilities.music.lute"),
         secondary: Simple(None, "common.abilities.music.lute"),
         abilities: [],
-    ),
-    Custom("Oud"): (
+    )),
+    Custom("Oud"): AbilitySet((
         primary: Simple(None, "common.abilities.music.oud"),
         secondary: Simple(None, "common.abilities.music.oud"),
         abilities: [],
-    ),    
-    Custom("Guitar"): (
+    )),    
+    Custom("Guitar"): AbilitySet((
         primary: Simple(None, "common.abilities.music.guitar"),
         secondary: Simple(None, "common.abilities.music.guitar"),
         abilities: [],
-    ),
-    Custom("DarkGuitar"): (
+    )),
+    Custom("DarkGuitar"): AbilitySet((
         primary: Simple(None, "common.abilities.music.dark_guitar"),
         secondary: Simple(None, "common.abilities.music.dark_guitar"),
         abilities: [],
-    ),
-    Custom("Sitar"): (
+    )),
+    Custom("Sitar"): AbilitySet((
         primary: Simple(None, "common.abilities.music.sitar"),
         secondary: Simple(None, "common.abilities.music.sitar"),
         abilities: [],
-    ),
-    Custom("Steeltonguedrum"): (
+    )),
+    Custom("Steeltonguedrum"): AbilitySet((
         primary: Simple(None, "common.abilities.music.steeltonguedrum"),
         secondary: Simple(None, "common.abilities.music.steeltonguedrum"),
         abilities: [],
-    ),
-    Custom("Shamisen"): (
+    )),
+    Custom("Shamisen"): AbilitySet((
         primary: Simple(None, "common.abilities.music.shamisen"),
         secondary: Simple(None, "common.abilities.music.shamisen"),
         abilities: [],
-    ),
-    Custom("Kora"): (
+    )),
+    Custom("Kora"): AbilitySet((
         primary: Simple(None, "common.abilities.music.kora"),
         secondary: Simple(None, "common.abilities.music.kora"),
         abilities: [],
-    ),
-    Custom("Banjo"): (
+    )),
+    Custom("Banjo"): AbilitySet((
         primary: Simple(None, "common.abilities.music.banjo"),
         secondary: Simple(None, "common.abilities.music.banjo"),
         abilities: [],
-    ),
-    Custom("ViolaPizzicato"): (
+    )),
+    Custom("ViolaPizzicato"): AbilitySet((
         primary: Simple(None, "common.abilities.music.viola_pizzicato"),
         secondary: Simple(None, "common.abilities.music.viola_pizzicato"),
         abilities: [],
-    ),
-    Custom("StarlightConch"): (
+    )),
+    Custom("StarlightConch"): AbilitySet((
         primary: Simple(None, "common.abilities.music.starlight_conch"),
         secondary: Simple(None, "common.abilities.music.starlight_conch"),
         abilities: [],
-    ),
-    Custom("TimbrelOfChaos"): (
+    )),
+    Custom("TimbrelOfChaos"): AbilitySet((
         primary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
         secondary: Simple(None, "common.abilities.music.timbrel_of_chaos"),
         abilities: [],
-    ),
-    Custom("Rhythmo"): (
+    )),
+    Custom("Rhythmo"): AbilitySet((
         primary: Simple(None, "common.abilities.music.rhythmo"),
         secondary: Simple(None, "common.abilities.music.rhythmo"),
         abilities: [],
-    ),
-    Custom("Bomb"): (
+    )),
+    Custom("Bomb"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.bomb"),
         secondary: Simple(None, "common.abilities.throw.bomb"),
         abilities: [],
-    ),
-    Custom("FireworkWhite"): (
+    )),
+    Custom("FireworkWhite"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_white"),
         secondary: Simple(None, "common.abilities.throw.firework_white"),
         abilities: [],
-    ),
-    Custom("FireworkRed"): (
+    )),
+    Custom("FireworkRed"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_red"),
         secondary: Simple(None, "common.abilities.throw.firework_red"),
         abilities: [],
-    ),
-    Custom("FireworkYellow"): (
+    )),
+    Custom("FireworkYellow"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_yellow"),
         secondary: Simple(None, "common.abilities.throw.firework_yellow"),
         abilities: [],
-    ),
-    Custom("FireworkGreen"): (
+    )),
+    Custom("FireworkGreen"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_green"),
         secondary: Simple(None, "common.abilities.throw.firework_green"),
         abilities: [],
-    ),
-    Custom("FireworkBlue"): (
+    )),
+    Custom("FireworkBlue"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_blue"),
         secondary: Simple(None, "common.abilities.throw.firework_blue"),
         abilities: [],
-    ),
-    Custom("FireworkPurple"): (
+    )),
+    Custom("FireworkPurple"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.firework_purple"),
         secondary: Simple(None, "common.abilities.throw.firework_purple"),
         abilities: [],
-    ),
-    Custom("SurpriseEgg"): (
+    )),
+    Custom("SurpriseEgg"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.surprise_egg"),
         secondary: Simple(None, "common.abilities.throw.surprise_egg"),
         abilities: [],
-    ),
-    Custom("TrainingDummy"): (
+    )),
+    Custom("TrainingDummy"): AbilitySet((
         primary: Simple(None, "common.abilities.throw.training_dummy"),
         secondary: Simple(None, "common.abilities.throw.training_dummy"),
         abilities: [],
-    ),
-    Tool(Debug): (
+    )),
+    Tool(Debug): AbilitySet((
         primary: Simple(None, "common.abilities.debug.forwardboost"),
         secondary: Simple(None, "common.abilities.debug.upboost"),
         abilities: [
             Simple(None, "common.abilities.debug.possess"),
             Simple(None, "common.abilities.debug.evolve"),
         ],
-    ),
-    Custom("Admin's Eagle"): (
+    )),
+    Custom("Admin's Eagle"): AbilitySet((
         primary: Simple(None, "common.abilities.debug.glide_speeder"),
         secondary: Simple(None, "common.abilities.debug.glide_boost"),
         abilities: [
             Simple(None, "common.abilities.debug.eaglify"),
         ],
-    ),
-    Tool(Farming): (
+    )),
+    Tool(Farming): AbilitySet((
         primary: Simple(None, "common.abilities.farming.basic"),
         secondary: Simple(None, "common.abilities.farming.basic"),
         abilities: [],
-    ),
-    Tool(Pick): (
+    )),
+    Tool(Pick): AbilitySet((
         primary: Simple(None, "common.abilities.pick.swing"),
         secondary: Simple(None, "common.abilities.pick.swing"),
         abilities: [],
-    ),
-    Tool(Shovel): (
+    )),
+    Tool(Shovel): AbilitySet((
         primary: Simple(None, "common.abilities.shovel.dig"),
         secondary: Simple(None, "common.abilities.shovel.dig"),
         abilities: [],
-    ),
-    Tool(Empty): (
+    )),
+    Tool(Empty): AbilitySet((
         primary: Simple(None, "common.abilities.empty.basic"),
         secondary: Simple(None, "common.abilities.empty.basic"),
         abilities: [],
-    ),
+    )),
     // Adlets
     // TODO: Do we want to eventually convert these to simple variants of weapons?
-    Custom("Adlet Hunter"): (
+    Custom("Adlet Hunter"): AbilitySet((
         primary: Simple(None, "common.abilities.adlet.hunter.stab"),
         secondary: Simple(None, "common.abilities.adlet.hunter.throw"),
         abilities: [],
-    ),
-    Custom("Adlet Icepicker"): (
+    )),
+    Custom("Adlet Icepicker"): AbilitySet((
         primary: Simple(None, "common.abilities.adlet.icepicker.spike"),
         secondary: Simple(None, "common.abilities.adlet.icepicker.leap"),
         abilities: [],
-    ),
-    Custom("Adlet Tracker"): (
+    )),
+    Custom("Adlet Tracker"): AbilitySet((
         primary: Simple(None, "common.abilities.adlet.tracker.arrow"),
         secondary: Simple(None, "common.abilities.adlet.tracker.trap"),
         abilities: [],
-    ),
-    Custom("Adlet Elder"): (
+    )),
+    Custom("Adlet Elder"): AbilitySet((
         primary: Simple(None, "common.abilities.adlet.elder.triplestrike"),
         secondary: Simple(None, "common.abilities.adlet.elder.dash"),
         abilities: [
             Simple(None, "common.abilities.adlet.elder.trap"),
             Simple(None, "common.abilities.adlet.elder.leap"),
         ],
-    ),
+    )),
     // Haniwa
-    Custom("Haniwa Soldier"): (
+    Custom("Haniwa Soldier"): AbilitySet((
         primary: Simple(None, "common.abilities.haniwa.soldier.strike"),
         secondary: Simple(None, "common.abilities.haniwa.soldier.riposte"),
         guard: Simple(None, "common.abilities.haniwa.soldier.guard"),
         abilities: [],
-    ),
-    Custom("Haniwa Guard"): (
+    )),
+    Custom("Haniwa Guard"): AbilitySet((
         primary: Simple(None, "common.abilities.haniwa.guard.strike"),
         secondary: Simple(None, "common.abilities.haniwa.guard.flurry"),
         abilities: [
             Simple(None, "common.abilities.haniwa.guard.backpedal")
         ],
-    ),
-    Custom("Haniwa Archer"): (
+    )),
+    Custom("Haniwa Archer"): AbilitySet((
         primary: Simple(None, "common.abilities.haniwa.archer.arrow"),
         secondary: Simple(None, "common.abilities.haniwa.archer.kick"),
         abilities: [
             Simple(None, "common.abilities.haniwa.archer.explosive")
         ],
-    ),
+    )),
     // Terracotta
-    Custom("TerracottaBesieger"): (
+    Custom("TerracottaBesieger"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.terracotta_besieger.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.terracotta_besieger.multishot"),
         abilities: [],
-    ),
-    Custom("TerracottaDemolisher"): (
+    )),
+    Custom("TerracottaDemolisher"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.terracotta_demolisher.drop"),
         secondary: Simple(None, "common.abilities.custom.terracotta_demolisher.throw"),
         abilities: [],
-    ),
-    Custom("TerracottaPursuer"): (
+    )),
+    Custom("TerracottaPursuer"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.terracotta_pursuer.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.terracotta_pursuer.dash"),
         abilities: [],
-    ),
-    Custom("TerracottaPunisher"): (
+    )),
+    Custom("TerracottaPunisher"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.terracotta_punisher.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.terracotta_punisher.doublestrike"),
         abilities: [],
-    ),
-    Custom("TerracottaStatue"): (
+    )),
+    Custom("TerracottaStatue"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.terracotta_statue.trap"),
         secondary: Simple(None, "common.abilities.custom.terracotta_statue.blast"),
         abilities: [],
-    ),
-    Custom("Mogwai"): (
+    )),
+    Custom("Mogwai"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.mogwai.breathe"),
         secondary: Simple(None, "common.abilities.custom.mogwai.breathe"),
         abilities: [],
-    ),
-    Custom("Cursekeeper"): (
+    )),
+    Custom("Cursekeeper"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.cursekeeper.beam"),
         secondary: Simple(None, "common.abilities.custom.cursekeeper.trap"),
         abilities: [
@@ -1272,43 +1272,43 @@
             Simple(None, "common.abilities.custom.cursekeeper.teleport"),
             Simple(None, "common.abilities.custom.cursekeeper.poisonbomb"),
         ],
-    ),
-    Custom("CursekeeperFake"): (
+    )),
+    Custom("CursekeeperFake"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.cursekeeper.transform"),
         secondary: Simple(None, "common.abilities.custom.cursekeeper.transform"),
         abilities: [],
-    ),
-    Custom("ShamanicSpirit"): (
+    )),
+    Custom("ShamanicSpirit"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.shamanic_spirit.ironspikes"),
         secondary: Simple(None, "common.abilities.custom.shamanic_spirit.teleport"),
         abilities: [],
-    ),
-    Custom("Jiangshi"): (
+    )),
+    Custom("Jiangshi"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.jiangshi.poisonshockwave"),
         secondary: Simple(None, "common.abilities.custom.jiangshi.teleport"),
         abilities: [],
-    ),
-    Custom("BipedLargeCultistStaff"): (
+    )),
+    Custom("BipedLargeCultistStaff"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.biped_large_cultist.staff.firebomb"),
         secondary: Simple(None, "common.abilities.custom.biped_large_cultist.staff.flamethrower"),
         abilities: [],
-    ),
-    Custom("BipedLargeCultistSword"): (
+    )),
+    Custom("BipedLargeCultistSword"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.biped_large_cultist.sword.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.biped_large_cultist.sword.dash"),
         abilities: [],
-    ),
-    Custom("BipedLargeCultistHammer"): (
+    )),
+    Custom("BipedLargeCultistHammer"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.biped_large_cultist.hammer.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.biped_large_cultist.hammer.doublestrike"),
         abilities: [],
-    ),
-    Custom("BipedLargeCultistBow"): (
+    )),
+    Custom("BipedLargeCultistBow"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.biped_large_cultist.bow.basic"),
         secondary: Simple(None, "common.abilities.custom.biped_large_cultist.bow.basic"),
         abilities: [],
-    ),
-    Custom("Bloodmoon Bat"): (
+    )),
+    Custom("Bloodmoon Bat"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_1"),
         secondary: Simple(None, "common.abilities.vampire.bloodmoon_bat.shockwave_2"),
         abilities: [
@@ -1317,21 +1317,21 @@
             Simple(None, "common.abilities.vampire.bloodmoon_bat.singlestrike"),
             Simple(None, "common.abilities.vampire.bloodmoon_bat.lifestealbeam"),
         ],
-    ),
-    Custom("Strigoi Claws"): (
+    )),
+    Custom("Strigoi Claws"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.strigoi.singlestrike"),
         secondary: Simple(None, "common.abilities.vampire.strigoi.projectiles"),
         abilities: [],
-    ),
-    Custom("Vampire Bat"): (
+    )),
+    Custom("Vampire Bat"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.vampire_bat.upboost"),
         secondary: Simple(None, "common.abilities.vampire.vampire_bat.shockwave_2"),
         abilities: [
             Simple(None, "common.abilities.vampire.vampire_bat.drop"),
             Simple(None, "common.abilities.vampire.vampire_bat.teleport"),
         ],
-    ),
-    Custom("Bloodmoon Heiress"): (
+    )),
+    Custom("Bloodmoon Heiress"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.bloodmoon_heiress.singlestrike"),
         secondary: Simple(None, "common.abilities.vampire.bloodmoon_heiress.dash"),
         abilities: [
@@ -1340,55 +1340,55 @@
             Simple(None, "common.abilities.vampire.bloodmoon_heiress.summon"),
             Simple(None, "common.abilities.vampire.bloodmoon_heiress.shockwave_1"),            
         ],
-    ),
-    Custom("Harlequin"): (
+    )),
+    Custom("Harlequin"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.harlequin.stab"),
         secondary: Simple(None, "common.abilities.vampire.harlequin.throw"),
         abilities: [],
-    ),
-    Custom("Bloodservant"): (
+    )),
+    Custom("Bloodservant"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.bloodservant.doublestrike"),
         secondary: Simple(None, "common.abilities.vampire.bloodservant.doublestrike"),
         abilities: [],
-    ),
-    Custom("Executioner"): (
+    )),
+    Custom("Executioner"): AbilitySet((
         primary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
         secondary: Simple(None, "common.abilities.vampire.executioner.doublestrike"),
         abilities: [],
-    ),
-    Custom("Goblin Thug"): (
+    )),
+    Custom("Goblin Thug"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.goblin_thug.doublestrike"),
         abilities: [],
-    ),
-    Custom("Goblin Chucker"): (
+    )),
+    Custom("Goblin Chucker"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
         secondary: Simple(None, "common.abilities.custom.goblin_chucker.throw"),
         abilities: [],
-    ),
-    Custom("Goblin Ruffian"): (
+    )),
+    Custom("Goblin Ruffian"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
         secondary: Simple(None, "common.abilities.custom.goblin_ruffian.stab"),
         abilities: [],
-    ),
-    Custom("Green Legoom"): (
+    )),
+    Custom("Green Legoom"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.green_legoom.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.green_legoom.doublestrike"),
         abilities: [],
-    ),
-    Custom("Ochre Legoom"): (
+    )),
+    Custom("Ochre Legoom"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.ochre_legoom.dash"),
         secondary: Simple(None, "common.abilities.custom.ochre_legoom.dash"),
         abilities: [],
-    ),
-    Custom("Purple Legoom"): (
+    )),
+    Custom("Purple Legoom"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.purple_legoom.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.purple_legoom.doublestrike"),
         abilities: [],
-    ),
-    Custom("Red Legoom"): (
+    )),
+    Custom("Red Legoom"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.red_legoom.doublestrike"),
         secondary: Simple(None, "common.abilities.custom.red_legoom.doublestrike"),
         abilities: [],
-    ),
+    )),
 })

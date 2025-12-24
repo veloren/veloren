@@ -458,14 +458,8 @@ impl Ability {
                             .guard
                             .as_ref()
                             .and_then(|g| contextual_id(Some(g))),
-                        I::Primary => abilities
-                            .primary
-                            .as_ref()
-                            .and_then(|p| contextual_id(Some(p))),
-                        I::Secondary => abilities
-                            .secondary
-                            .as_ref()
-                            .and_then(|s| contextual_id(Some(s))),
+                        I::Primary => contextual_id(Some(&abilities.primary)),
+                        I::Secondary => contextual_id(Some(&abilities.secondary)),
                         I::Auxiliary(index) => contextual_id(abilities.abilities.get(index)),
                         I::Movement => None,
                     }
@@ -566,8 +560,8 @@ impl SpecifiedAbility {
 
                 let dispatched = match self.ability.try_ability_set_key()? {
                     I::Guard => abilities.guard.as_ref(),
-                    I::Primary => abilities.primary.as_ref(),
-                    I::Secondary => abilities.secondary.as_ref(),
+                    I::Primary => Some(&abilities.primary),
+                    I::Secondary => Some(&abilities.secondary),
                     I::Auxiliary(index) => abilities.abilities.get(index),
                     I::Movement => return None,
                 };
