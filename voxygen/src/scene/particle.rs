@@ -758,7 +758,6 @@ impl ParticleMgr {
                                     figure_mgr,
                                     trail_points,
                                     entity,
-                                    interpolated.pos,
                                 )
                             }
                         },
@@ -830,15 +829,9 @@ impl ParticleMgr {
         figure_mgr: &FigureMgr,
         trail_points: (Vec3<f32>, Vec3<f32>),
         entity: Entity,
-        pos: Vec3<f32>,
     ) {
         prof_span!("ParticleMgr::maintain_gigas_fire_sword_particles");
-        let Some(skeleton) = figure_mgr
-            .states
-            .biped_large_states
-            .get(&entity)
-            .map(|state| &state.computed_skeleton)
-        else {
+        let Some(state) = figure_mgr.states.biped_large_states.get(&entity) else {
             return;
         };
 
@@ -850,7 +843,7 @@ impl ParticleMgr {
                 + rng.random_range(-5.0..5.0) * Vec3::<f32>::unit_y()
                 + rng.random_range(-1.0..1.0) * Vec3::<f32>::unit_x();
 
-            let start_pos = pos + skeleton.main.mul_point(blade_offset);
+            let start_pos = state.wpos_of(state.computed_skeleton.main.mul_point(blade_offset));
             let end_pos = start_pos + rng.random_range(1.0..2.0) * Vec3::<f32>::unit_z();
 
             self.particles.push(Particle::new_directed(
