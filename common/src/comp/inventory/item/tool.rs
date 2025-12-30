@@ -18,6 +18,7 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 use strum::EnumIter;
+use tracing::warn;
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd, EnumIter,
@@ -315,7 +316,7 @@ pub struct AbilitySet<T> {
     pub abilities: Vec<AbilityKind<T>>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AbilityKind<T> {
     Simple(Option<Skill>, T),
     Contextualized {
@@ -556,7 +557,109 @@ pub struct AbilityItem {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AbilityMap<T = AbilityItem>(HashMap<AbilitySpec, AbilitySet<T>>);
+pub enum AbilityMapEntry<T = AbilityItem> {
+    AbilitySet(AbilitySet<T>),
+    AbilitySetOverride {
+        parent: AbilitySpec,
+        guard: Option<AbilityKind<T>>,
+        primary: Option<AbilityKind<T>>,
+        secondary: Option<AbilityKind<T>>,
+        added_abilities: Vec<AbilityKind<T>>,
+        removed_abilities: Vec<AbilityKind<T>>,
+    },
+}
+
+impl<T: Clone + Eq> AbilityMapEntry<T> {
+    pub fn map_ref<U, F: FnMut(&T) -> U>(&self, mut f: F) -> AbilityMapEntry<U> {
+        match self {
+            AbilityMapEntry::AbilitySet(ability_set) => {
+                AbilityMapEntry::AbilitySet(ability_set.map_ref(f))
+            },
+            AbilityMapEntry::AbilitySetOverride {
+                parent,
+                guard,
+                primary,
+                secondary,
+                added_abilities,
+                removed_abilities,
+            } => AbilityMapEntry::AbilitySetOverride {
+                parent: parent.clone(),
+                guard: guard.as_ref().map(|g| g.map_ref(&mut f)),
+                primary: primary.as_ref().map(|p| p.map_ref(&mut f)),
+                secondary: secondary.as_ref().map(|s| s.map_ref(&mut f)),
+                added_abilities: added_abilities.iter().map(|x| x.map_ref(&mut f)).collect(),
+                removed_abilities: removed_abilities
+                    .iter()
+                    .map(|x| x.map_ref(&mut f))
+                    .collect(),
+            },
+        }
+    }
+
+    pub fn inherit(self, parent: &Self) -> Self {
+        match self {
+            AbilityMapEntry::AbilitySet(_) => self,
+            AbilityMapEntry::AbilitySetOverride {
+                guard,
+                primary,
+                secondary,
+                mut added_abilities,
+                mut removed_abilities,
+                ..
+            } => match parent {
+                AbilityMapEntry::AbilitySet(parent) => {
+                    added_abilities.extend(
+                        parent
+                            .abilities
+                            .iter()
+                            .filter(|x| !removed_abilities.contains(x))
+                            .cloned(),
+                    );
+
+                    AbilityMapEntry::AbilitySet(AbilitySet {
+                        guard: guard.or(parent.guard.clone()),
+                        primary: primary.unwrap_or(parent.primary.clone()),
+                        secondary: secondary.unwrap_or(parent.secondary.clone()),
+                        abilities: added_abilities,
+                    })
+                },
+                AbilityMapEntry::AbilitySetOverride {
+                    parent: p_parent,
+                    guard: p_guard,
+                    primary: p_primary,
+                    secondary: p_secondary,
+                    added_abilities: p_added_abilities,
+                    removed_abilities: p_removed_abilities,
+                } => {
+                    added_abilities.extend(
+                        p_added_abilities
+                            .iter()
+                            .filter(|x| !removed_abilities.contains(x))
+                            .cloned(),
+                    );
+                    removed_abilities.extend(
+                        p_removed_abilities
+                            .iter()
+                            .filter(|x| !added_abilities.contains(x))
+                            .cloned(),
+                    );
+
+                    AbilityMapEntry::AbilitySetOverride {
+                        parent: p_parent.clone(),
+                        guard: guard.or(p_guard.clone()),
+                        primary: primary.or(p_primary.clone()),
+                        secondary: secondary.or(p_secondary.clone()),
+                        added_abilities,
+                        removed_abilities,
+                    }
+                },
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AbilityMap<T = AbilityItem>(HashMap<AbilitySpec, AbilityMapEntry<T>>);
 
 impl AbilityMap {
     pub fn load() -> AssetHandle<Self> {
@@ -565,33 +668,64 @@ impl AbilityMap {
 }
 
 impl<T> AbilityMap<T> {
-    pub fn get_ability_set(&self, key: &AbilitySpec) -> Option<&AbilitySet<T>> { self.0.get(key) }
+    pub fn get_ability_set(&self, key: &AbilitySpec) -> Option<&AbilitySet<T>> {
+        self.0.get(key).and_then(|entry| match entry {
+            AbilityMapEntry::AbilitySet(ability_set) => Some(ability_set),
+            AbilityMapEntry::AbilitySetOverride { .. } => None,
+        })
+    }
 }
 
 impl Asset for AbilityMap {
     fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
-        let manifest = cache.load::<Ron<AbilityMap<String>>>(specifier)?.read();
+        let mut ability_map = cache
+            .load::<Ron<AbilityMap<String>>>(specifier)?
+            .read()
+            .0
+            .0
+            .clone();
+
+        // Find child entries and inherit from their parent
+        while let Some((spec, mut entry)) = {
+            let spec = ability_map
+                .iter()
+                .find(|(_, entry)| matches!(entry, AbilityMapEntry::AbilitySetOverride { .. }))
+                .map(|(spec, _)| spec.clone());
+
+            spec.and_then(|spec| ability_map.remove_entry(&spec))
+        } {
+            let parent = if let AbilityMapEntry::AbilitySetOverride { parent, .. } = &entry {
+                Some(parent)
+            } else {
+                None
+            }
+            .and_then(|parent| ability_map.get(parent));
+
+            if let Some(parent) = parent {
+                entry = entry.inherit(parent);
+            }
+
+            ability_map.insert(spec, entry);
+        }
 
         Ok(AbilityMap(
-            manifest
-                .0
-                .0
-                .iter()
+            ability_map
+                .into_iter()
                 .map(|(kind, set)| {
                     (
                         kind.clone(),
-                        // expect cannot fail because CharacterAbility always
-                        // provides a default value in case of failure
                         set.map_ref(|s| AbilityItem {
                             id: s.clone(),
-                            ability: cache
-                                .load_expect::<Ron<CharacterAbility>>(s)
-                                .cloned()
-                                .into_inner(),
+                            ability: if let Ok(handle) = cache.load::<Ron<CharacterAbility>>(s) {
+                                handle.cloned().into_inner()
+                            } else {
+                                warn!(?s, "missing specified ability file");
+                                CharacterAbility::default()
+                            },
                         }),
                     )
                 })
-                .collect(),
+                .collect::<HashMap<_, _>>(),
         ))
     }
 }
