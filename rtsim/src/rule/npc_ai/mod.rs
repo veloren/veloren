@@ -1355,12 +1355,13 @@ fn check_inbox<S: State>(ctx: &mut NpcCtx) -> Option<impl Action<S> + use<S>> {
                             // This is a murder of a player. Feel bad for the player and stop
                             // attacking them.
                             if let Actor::Character(_) = actor {
+                                ctx.sentiments.toward_mut(actor).limit_below(0.1);
                                 ctx.sentiments
                                     .toward_mut(actor)
-                                    .limit_below(Sentiment::ENEMY)
-                            }
+                                    .change_by(Sentiment::NEGATIVE, Sentiment::NEGATIVE);
 
-                            if is_victim_enemy {
+                                "npc-speech-witness_enemy_murder"
+                            } else if is_victim_enemy {
                                 "npc-speech-witness_enemy_murder"
                             } else {
                                 "npc-speech-witness_murder"

@@ -1084,7 +1084,8 @@ impl ServerEvent for DestroyEvent {
                 // Skip the death hook for rtsim entities if they aren't deleted, otherwise
                 // we'll end up with rtsim respawning an entity that wasn't actually
                 // removed, producing 2 entities having the same RtsimEntityId.
-                && should_delete
+                // Additionally, the death of a player should trigger an event.
+                && (matches!(actor, Actor::Character(_)) || should_delete)
             {
                 data.rtsim.hook_rtsim_actor_death(
                     &data.world,
