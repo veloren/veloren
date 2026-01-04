@@ -84,17 +84,27 @@ pub(super) fn targets_under_cursor(
     );
     let terrain = client.state().terrain();
 
-    let find_pos = |hit: fn(Block) -> bool| {
-        let cam_ray = terrain
-            .ray(cam_pos, cam_pos + cam_dir * 100.0)
-            .until(|block| hit(*block))
-            .cast();
+    let find_pos = |hit: fn(Block) -> bool, pickup_range: bool| {
+        let dist = if pickup_range {
+            MAX_PICKUP_RANGE + 5.0
+        } else {
+            250.0
+        };
+        let cam_ray = terrain.ray(cam_pos, cam_pos + cam_dir * dist);
+
+        let cam_ray = if !pickup_range {
+            cam_ray.max_iter(500)
+        } else {
+            cam_ray
+        };
+
+        let cam_ray = cam_ray.until(|block| hit(*block)).cast();
         let cam_ray = (cam_ray.0, cam_ray.1.map(|x| x.copied()));
         let cam_dist = cam_ray.0;
 
         if matches!(
             cam_ray.1,
-            Ok(Some(_)) if player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
+            Ok(Some(_)) if player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE || !pickup_range
         ) {
             (
                 Some(cam_pos + cam_dir * (cam_dist + 0.01)),
@@ -106,13 +116,14 @@ pub(super) fn targets_under_cursor(
         }
     };
 
-    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_directly_collectible());
+    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_directly_collectible(), true);
     let (mine_pos, _, mine_cam_ray) = if active_mine_tool.is_some() {
-        find_pos(|b: Block| b.mine_tool().is_some())
+        find_pos(|b: Block| b.mine_tool().is_some(), true)
     } else {
         (None, None, None)
     };
-    let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_filled());
+    let (build_pos, place_block_pos, build_cam_ray) = find_pos(|b: Block| b.is_filled(), true);
+    let (solid_pos, _, solid_cam_ray) = find_pos(|b: Block| b.is_filled(), false);
 
     // See if ray hits entities
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
@@ -201,21 +212,18 @@ pub(super) fn targets_under_cursor(
             } else { None }
         });
 
-    let solid_ray_dist = solid_cam_ray.map(|r| r.0);
-    let terrain_target = solid_pos
-        .zip(solid_ray_dist)
-        .map(|(position, distance)| Target {
-            kind: Terrain,
-            distance,
-            position,
-        });
+    let terrain_target = solid_pos.zip(solid_cam_ray).map(|(position, ray)| Target {
+        kind: Terrain,
+        distance: ray.0,
+        position,
+    });
 
-    let build_target = if let (true, Some(distance)) = (can_build, solid_ray_dist) {
+    let build_target = if let (true, Some(ray)) = (can_build, build_cam_ray) {
         place_block_pos
-            .zip(solid_pos)
+            .zip(build_pos)
             .map(|(place_pos, position)| Target {
                 kind: Build(place_pos),
-                distance,
+                distance: ray.0,
                 position,
             })
     } else {

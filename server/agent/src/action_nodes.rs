@@ -5,9 +5,9 @@ use crate::{
     },
     data::{AgentData, AgentEmitters, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
-        aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
-        get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_dressed_as_pirate,
-        is_dressed_as_witch, is_invulnerable, is_steering, is_village_guard, is_villager,
+        are_our_owners_hostile, entities_have_line_of_sight, get_attacker, get_entity_by_id,
+        is_dead_or_invulnerable, is_dressed_as_cultist, is_dressed_as_pirate, is_dressed_as_witch,
+        is_invulnerable, is_steering, is_village_guard, is_villager,
     },
 };
 use common::{
@@ -24,7 +24,7 @@ use common::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
             tool::{AbilitySpec, ToolKind},
         },
-        projectile::ProjectileConstructorKind,
+        projectile::{ProjectileConstructorKind, aim_projectile},
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
@@ -1473,6 +1473,7 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + tgt_eye_offset,
                     ),
+                    false,
                 )
             },
             CharacterState::BasicRanged(c) => {
@@ -1495,6 +1496,7 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + offset_z,
                     ),
+                    false,
                 )
             },
             CharacterState::RapidRanged(c) => {
@@ -1510,6 +1512,7 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + tgt_eye_offset,
                     ),
+                    false,
                 )
             },
             CharacterState::LeapMelee(_)

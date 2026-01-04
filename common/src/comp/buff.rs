@@ -2,9 +2,9 @@ use crate::{
     combat::{
         AttackEffect, AttackSource, AttackedModification, AttackedModifier, CombatBuff,
         CombatBuffStrength, CombatEffect, CombatModification, CombatRequirement, Knockback,
-        KnockbackDir, StatEffect, StatEffectTarget,
+        KnockbackDir, ScalingKind, StatEffect, StatEffectTarget,
     },
-    comp::{InputKind, Mass, Stats, aura::AuraKey},
+    comp::{Mass, Stats, aura::AuraKey, tool::ToolKind},
     link::DynWeakLinkHandle,
     match_some,
     resources::{Secs, Time},
@@ -147,9 +147,6 @@ pub enum BuffKind {
     /// Strength linearly decreases the duration of newly applied, affected
     /// debuffs, 0.5 is a 50% reduction.
     Resilience,
-    /// Causes the next projectile fired to cause the rooted debuff.
-    /// Strength increases the strength of the rooted debuff
-    SnareShot,
     /// Causes the next attack to have precision of 1.0 if the target is not
     /// wielding their weapon, and also generally increases damage.
     /// Strength linearly increases the damage increase.
@@ -163,9 +160,11 @@ pub enum BuffKind {
     /// energy.
     /// Strength linearly increases the precision override and energy restored.
     Heartseeker,
-    /// Causes primary attacks to generate additional combo, and secondary
-    /// attacks to generate four times as much additional combo.
-    /// Strength linearly increases the amount of additional combo generated.
+    /// Causes projectile attacks to have more precision power, and to guarantee
+    /// a minimum precision multiplier.
+    /// Strength linearly increases both. The minimum precision power is
+    /// equivalent to the buff strength, and the additional precision power is
+    /// 50% of the buff strength.
     EagleEye,
     /// Causes the next projectile fired to debuff the target with ArdentHunted.
     /// Projectiles fired at the target generate additional combo, and
@@ -173,6 +172,11 @@ pub enum BuffKind {
     /// Strength linearly increases the amount of additional combo generated and
     /// the additional energy reward.
     ArdentHunter,
+    /// Causes the next projectile fired to do additional damage for every
+    /// debuff the target has that had been inflicted by the attacker when using
+    /// a bow.
+    /// Strength linearly increases the amount of additional damage.
+    SepticShot,
     // =================
     //      DEBUFFS
     // =================
@@ -311,12 +315,12 @@ impl BuffKind {
             | BuffKind::ScornfulTaunt
             | BuffKind::Tenacity
             | BuffKind::Resilience
-            | BuffKind::SnareShot
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock
             | BuffKind::Heartseeker
             | BuffKind::EagleEye
-            | BuffKind::ArdentHunter => BuffDescriptor::SimplePositive,
+            | BuffKind::ArdentHunter
+            | BuffKind::SepticShot => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -560,7 +564,7 @@ impl BuffKind {
                 AttackEffect::new(None, CombatEffect::Lifesteal(data.strength))
                     .with_requirement(CombatRequirement::TargetHasBuff(BuffKind::Bleeding)),
             )],
-            BuffKind::ImminentCritical => vec![BuffEffect::PrecisionOverride(1.0)],
+            BuffKind::ImminentCritical => vec![BuffEffect::PrecisionModifier(None, 1.0, false)],
             BuffKind::Fury => vec![BuffEffect::AttackEffect(
                 AttackEffect::new(None, CombatEffect::Combo(data.strength.round() as i32))
                     .with_requirement(CombatRequirement::AnyDamage),
@@ -615,24 +619,8 @@ impl BuffKind {
                 )),
             ],
             BuffKind::Resilience => vec![BuffEffect::CrowdControlResistance(data.strength)],
-            BuffKind::SnareShot => vec![BuffEffect::AttackEffect(
-                AttackEffect::new(
-                    None,
-                    CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Rooted,
-                        dur_secs: data.secondary_duration.unwrap_or(Secs(5.0)),
-                        strength: CombatBuffStrength::Value(data.strength),
-                        chance: 1.0,
-                    }),
-                )
-                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
-            )],
             BuffKind::OwlTalon => vec![
-                BuffEffect::ConditionalPrecisionModifier(
-                    CombatRequirement::TargetUnwielded,
-                    0.8,
-                    false,
-                ),
+                BuffEffect::PrecisionModifier(Some(CombatRequirement::TargetUnwielded), 0.8, false),
                 BuffEffect::AttackDamage(1.0 + data.strength),
             ],
             BuffKind::HeavyNock => {
@@ -670,8 +658,8 @@ impl BuffKind {
                             AttackSource::Projectile,
                         ));
                 vec![
-                    BuffEffect::ConditionalPrecisionModifier(
-                        CombatRequirement::AttackSource(AttackSource::Projectile),
+                    BuffEffect::PrecisionModifier(
+                        Some(CombatRequirement::AttackSource(AttackSource::Projectile)),
                         data.strength * 0.4,
                         false,
                     ),
@@ -679,19 +667,13 @@ impl BuffKind {
                 ]
             },
             BuffKind::EagleEye => {
-                let prim = AttackEffect::new(
-                    None,
-                    CombatEffect::Combo((data.strength).round().max(1.0) as i32),
-                )
-                .with_requirement(CombatRequirement::AttackInput(InputKind::Primary));
-                let sec = AttackEffect::new(
-                    None,
-                    CombatEffect::Combo((data.strength * 4.0).round().max(1.0) as i32),
-                )
-                .with_requirement(CombatRequirement::AttackInput(InputKind::Secondary));
                 vec![
-                    BuffEffect::AttackEffect(prim),
-                    BuffEffect::AttackEffect(sec),
+                    BuffEffect::PrecisionModifier(
+                        Some(CombatRequirement::AttackSource(AttackSource::Projectile)),
+                        data.strength,
+                        false,
+                    ),
+                    BuffEffect::PrecisionPowerMult(1.0 + data.strength * 0.5),
                 ]
             },
             BuffKind::ArdentHunter => vec![BuffEffect::AttackEffect(
@@ -708,24 +690,31 @@ impl BuffKind {
             )],
             BuffKind::ArdentHunted => {
                 let projectile_req = CombatRequirement::AttackSource(AttackSource::Projectile);
-                let mut combo_effect = StatEffect::new(
-                    StatEffectTarget::Attacker,
-                    CombatEffect::Combo(data.strength.ceil() as i32),
-                )
-                .with_requirement(projectile_req);
                 let mut energy_reward_effect =
-                    AttackedModification::new(AttackedModifier::EnergyReward(0.6 + data.strength))
+                    AttackedModification::new(AttackedModifier::EnergyReward(data.strength))
+                        .with_requirement(projectile_req);
+                let mut damage_mult_effect =
+                    AttackedModification::new(AttackedModifier::DamageMultiplier(data.strength))
                         .with_requirement(projectile_req);
                 if let Some(uid) = source_entity {
                     let attacker_req = CombatRequirement::Attacker(uid);
-                    combo_effect = combo_effect.with_requirement(attacker_req);
                     energy_reward_effect = energy_reward_effect.with_requirement(attacker_req);
+                    damage_mult_effect = damage_mult_effect.with_requirement(attacker_req);
                 }
                 vec![
-                    BuffEffect::DamagedEffect(combo_effect),
                     BuffEffect::AttackedModification(energy_reward_effect),
+                    BuffEffect::AttackedModification(damage_mult_effect),
                 ]
             },
+            BuffKind::SepticShot => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::DebuffsVulnerable {
+                    mult: data.strength,
+                    scaling: ScalingKind::Sqrt,
+                    filter_attacker: true,
+                    filter_weapon: Some(ToolKind::Bow),
+                })
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
+            )],
         }
     }
 
@@ -936,12 +925,10 @@ pub enum BuffEffect {
     PoiseDamageFromLostHealth(f32),
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
-    /// Overrides the precision multiplier applied to an attack
-    PrecisionOverride(f32),
     /// Adds a precision modifier applied to an attack if the condition
     /// is met, also allows for the modifier to optionally override other
     /// precision bonuses
-    ConditionalPrecisionModifier(CombatRequirement, f32, bool),
+    PrecisionModifier(Option<CombatRequirement>, f32, bool),
     /// Overrides the precision multiplier applied to an incoming attack
     PrecisionVulnerabilityOverride(f32),
     /// Changes body.
@@ -968,6 +955,8 @@ pub enum BuffEffect {
     ItemEffectReduction(f32),
     /// Adds an effect that modifies how attacks are applied to this entity
     AttackedModification(AttackedModification),
+    /// Multiplies the precision damage applied to attacks made
+    PrecisionPowerMult(f32),
 }
 
 /// Actual de/buff.
@@ -1028,7 +1017,7 @@ impl Buff {
         source_mass: Option<&Mass>,
     ) -> Self {
         let data = kind.modify_data(data, source_mass, dest_info, source);
-        let source_uid = if let BuffSource::Character { by } = source {
+        let source_uid = if let BuffSource::Character { by, .. } = source {
             Some(by)
         } else {
             None
@@ -1099,7 +1088,10 @@ impl PartialEq for Buff {
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum BuffSource {
     /// Applied by a character
-    Character { by: Uid },
+    Character {
+        by: Uid,
+        tool_kind: Option<ToolKind>,
+    },
     /// Applied by world, like a poisonous fumes from a swamp
     World,
     /// Applied by command

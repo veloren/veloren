@@ -5,17 +5,17 @@ ChargedRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 2,
+            damage: 6,
             buff: Some((
                 kind: Bleeding,
-                dur_secs: 7,
-                strength: DamageFraction(1.2),
-                chance: 1.0,
+                dur_secs: 5,
+                strength: DamageFraction(0.3),
+                chance: 0.25,
             )),
         )),
         scaled: Some((
-            damage: 10,
-            knockback: Some(8),
+            damage: 36,
+            knockback: Some(10),
         )),
     ),
     buildup_duration: 0.3,
@@ -28,5 +28,6 @@ ChargedRanged(
     move_speed: 0.4,
     meta: (
         init_event: Some(EnterStance(None)),
+        precision_power_mult: Some(1.5),
     ),
 )

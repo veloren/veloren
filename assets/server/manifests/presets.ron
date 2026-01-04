@@ -84,27 +84,23 @@
         (UnlockGroup(Weapon(Bow)), 1),
 
         (Bow(Foothold), 1),
-        (Bow(SnareShot), 1),
+        (Bow(HeavyNock), 1),
 
         (Bow(ArdentHunt), 1),
-        (Bow(HeavyNock), 1),
+        (Bow(SepticShot), 1),
         (Bow(Barrage), 1),
 
         (Bow(OwlTalon), 1),
         (Bow(EagleEye), 1),
-
         (Bow(IgniteArrow), 1),
         (Bow(DrenchArrow), 1),
-
         (Bow(PiercingGale), 1),
         (Bow(Scatterburst), 1),
 
         (Bow(Heartseeker), 1),
         (Bow(Hawkstrike), 1),
-
         (Bow(FreezeArrow), 1),
         (Bow(JoltArrow), 1),
-        
         (Bow(Fusillade), 1),
         (Bow(DeathVolley), 1),
 
@@ -163,18 +159,16 @@
         (UnlockGroup(Weapon(Bow)), 1),
 
         (Bow(Foothold), 1),
-        (Bow(SnareShot), 1),
+        (Bow(HeavyNock), 1),
 
         (Bow(ArdentHunt), 1),
-        (Bow(HeavyNock), 1),
+        (Bow(SepticShot), 1),
         (Bow(Barrage), 1),
 
         (Bow(OwlTalon), 1),
         (Bow(EagleEye), 1),
-
         (Bow(IgniteArrow), 1),
         (Bow(DrenchArrow), 1),
-
         (Bow(PiercingGale), 1),
         (Bow(Scatterburst), 1),
 

@@ -52,9 +52,9 @@ use anim::{
 };
 use common::{
     comp::{
-        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
-        Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
-        Scale, ThrownItem, Vel,
+        self, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
+        ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem,
+        PoiseState, Pos, Scale, ThrownItem, Vel,
         body::{self, parts::HeadState},
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind, armor::ArmorKind},
@@ -1769,6 +1769,27 @@ impl FigureMgr {
                             0.0
                         };
 
+                        let look_dir_override = if let CharacterState::BasicRanged(c) = &character {
+                            if c.static_data.auto_aim
+                                && let Some(sel_pos) = c
+                                    .static_data
+                                    .ability_info
+                                    .input_attr
+                                    .and_then(|ia| ia.select_pos)
+                            {
+                                comp::projectile::aim_projectile(
+                                    c.static_data.projectile_speed,
+                                    pos.0,
+                                    sel_pos,
+                                    true,
+                                )
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        };
+
                         anim::character::BasicAction::update_skeleton(
                             &target_base,
                             anim::character::BasicActionDependency {
@@ -1780,6 +1801,7 @@ impl FigureMgr {
                                 last_ori,
                                 orientation,
                                 look_dir,
+                                look_dir_override,
                                 is_riding,
                             },
                             progress,

@@ -8,15 +8,18 @@ use crate::{
         ability::Dodgeable,
         item::{Reagent, tool},
     },
+    consts::GRAVITY,
     explosion::{ColorPreset, Explosion, RadiusEffect},
     resources::Secs,
     states::utils::AbilityInfo,
     uid::Uid,
+    util::Dir,
 };
 use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::time::Duration;
+use vek::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Effect {
@@ -253,7 +256,12 @@ impl ProjectileConstructor {
             let mut attack = Attack::new(ability_info)
                 .with_stat_adjustments(entity_stats)
                 .with_damage(damage)
-                .with_precision(precision_mult)
+                .with_precision(
+                    precision_mult
+                        * ability_info
+                            .and_then(|ai| ai.ability_meta.precision_power_mult)
+                            .unwrap_or(1.0),
+                )
                 .with_blockable(a.blockable);
 
             if !a.without_combo {
@@ -287,13 +295,18 @@ impl ProjectileConstructor {
             .zip(self.homing_rate);
 
         let mut timeout = Vec::new();
+        let mut hit_solid = Vec::new();
 
         if let Some(split) = self.split {
             timeout.push(Effect::Split(split));
+            hit_solid.push(Effect::Split(split));
         }
 
         match self.kind {
             ProjectileConstructorKind::Pointed | ProjectileConstructorKind::Blunt => {
+                hit_solid.push(Effect::Stick);
+                hit_solid.push(Effect::Bonk);
+
                 let mut hit_entity = vec![Effect::Vanish];
 
                 if let Some(attack) = attack {
@@ -303,7 +316,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::Stick, Effect::Bonk],
+                    hit_solid,
                     hit_entity,
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -318,6 +331,9 @@ impl ProjectileConstructor {
                 }
             },
             ProjectileConstructorKind::Penetrating => {
+                hit_solid.push(Effect::Stick);
+                hit_solid.push(Effect::Bonk);
+
                 let mut hit_entity = Vec::new();
 
                 if let Some(attack) = attack {
@@ -327,7 +343,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::Stick, Effect::Bonk],
+                    hit_solid,
                     hit_entity,
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -345,6 +361,9 @@ impl ProjectileConstructor {
                 is_sticky,
                 duration,
             } => {
+                hit_solid.push(Effect::Stick);
+                hit_solid.push(Effect::Bonk);
+
                 let mut hit_entity = vec![Effect::Vanish];
 
                 if let Some(attack) = attack {
@@ -354,7 +373,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(duration);
 
                 Projectile {
-                    hit_solid: vec![Effect::Stick, Effect::Bonk],
+                    hit_solid,
                     hit_entity,
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -397,10 +416,13 @@ impl ProjectileConstructor {
                     min_falloff,
                 };
 
+                hit_solid.push(Effect::Explode(explosion.clone()));
+                hit_solid.push(Effect::Vanish);
+
                 let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
+                    hit_solid,
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -441,7 +463,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
 
                 Projectile {
-                    hit_solid: Vec::new(),
+                    hit_solid,
                     hit_entity,
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -489,7 +511,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(duration);
 
                 Projectile {
-                    hit_solid: Vec::new(),
+                    hit_solid,
                     hit_entity: vec![Effect::Explode(explosion), Effect::Vanish],
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -504,10 +526,12 @@ impl ProjectileConstructor {
                 }
             },
             ProjectileConstructorKind::Possess => {
+                hit_solid.push(Effect::Stick);
+
                 let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::Stick],
+                    hit_solid,
                     hit_entity: vec![Effect::Stick, Effect::Possess],
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -527,7 +551,7 @@ impl ProjectileConstructor {
                 let lifetime = self.lifetime_override.unwrap_or(Secs(3.0));
 
                 Projectile {
-                    hit_solid: Vec::new(),
+                    hit_solid,
                     hit_entity: Vec::new(),
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -542,10 +566,13 @@ impl ProjectileConstructor {
                 }
             },
             ProjectileConstructorKind::SurpriseEgg => {
+                hit_solid.push(Effect::SurpriseEgg);
+                hit_solid.push(Effect::Vanish);
+
                 let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::SurpriseEgg, Effect::Vanish],
+                    hit_solid,
                     hit_entity: vec![Effect::SurpriseEgg, Effect::Vanish],
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -560,12 +587,15 @@ impl ProjectileConstructor {
                 }
             },
             ProjectileConstructorKind::TrainingDummy => {
+                hit_solid.push(Effect::TrainingDummy);
+                hit_solid.push(Effect::Vanish);
+
                 timeout.push(Effect::TrainingDummy);
 
                 let lifetime = self.lifetime_override.unwrap_or(Secs(15.0));
 
                 Projectile {
-                    hit_solid: vec![Effect::TrainingDummy, Effect::Vanish],
+                    hit_solid,
                     hit_entity: vec![Effect::TrainingDummy, Effect::Vanish],
                     timeout,
                     time_left: Duration::from_secs_f64(lifetime.0),
@@ -715,4 +745,26 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::ExplosiveHazard { .. } => true,
         }
     }
+}
+
+/// Projectile motion: Returns the direction to aim for the projectile to reach
+/// target position. Does not take any forces but gravity into account.
+pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>, high_arc: bool) -> Option<Dir> {
+    let mut to_tgt = tgt - pos;
+    let dist_sqrd = to_tgt.xy().magnitude_squared();
+    let u_sqrd = speed.powi(2);
+    if high_arc {
+        to_tgt.z = (u_sqrd
+            + (u_sqrd.powi(2) - GRAVITY * (GRAVITY * dist_sqrd + 2.0 * to_tgt.z * u_sqrd))
+                .sqrt()
+                .max(0.0))
+            / GRAVITY;
+    } else {
+        to_tgt.z = (u_sqrd
+            - (u_sqrd.powi(2) - GRAVITY * (GRAVITY * dist_sqrd + 2.0 * to_tgt.z * u_sqrd))
+                .sqrt()
+                .max(0.0))
+            / GRAVITY;
+    }
+    Dir::from_unnormalized(to_tgt)
 }

@@ -114,7 +114,7 @@ impl CharacterBehavior for Data {
                     let mut auras = Vec::new();
                     for aura_data in &self.static_data.auras {
                         let aura = aura_data.to_aura(
-                            data.uid,
+                            (data.uid, self.static_data.ability_info.tool),
                             self.static_data.range,
                             self.static_data.aura_duration,
                             targets,

@@ -5558,12 +5558,12 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Berserk => imgs.buff_reckless,
         BuffKind::ScornfulTaunt => imgs.buff_scornfultaunt,
         BuffKind::Tenacity => imgs.buff_tenacity,
-        BuffKind::SnareShot => imgs.buff_snareshot,
         BuffKind::OwlTalon => imgs.buff_owltalon,
         BuffKind::HeavyNock => imgs.buff_heavynock,
         BuffKind::Heartseeker => imgs.buff_heartseeker,
         BuffKind::EagleEye => imgs.buff_eagleeye,
         BuffKind::ArdentHunter => imgs.buff_ardenthunter,
+        BuffKind::SepticShot => imgs.buff_septicshot,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_cursed_0,

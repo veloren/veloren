@@ -7,7 +7,6 @@ use common::{
         buff::BuffKind,
         item::{ItemDesc, ItemTag, tool::AbilityContext},
     },
-    consts::GRAVITY,
     terrain::Block,
     uid::Uid,
     util::Dir,
@@ -54,21 +53,6 @@ pub fn try_owner_alignment<'a>(
         return read_data.alignments.get(owner);
     }
     alignment
-}
-
-/// Projectile motion: Returns the direction to aim for the projectile to reach
-/// target position. Does not take any forces but gravity into account.
-pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>) -> Option<Dir> {
-    let mut to_tgt = tgt - pos;
-    let dist_sqrd = to_tgt.xy().magnitude_squared();
-    let u_sqrd = speed.powi(2);
-    to_tgt.z = (u_sqrd
-        - (u_sqrd.powi(2) - GRAVITY * (GRAVITY * dist_sqrd + 2.0 * to_tgt.z * u_sqrd))
-            .sqrt()
-            .max(0.0))
-        / GRAVITY;
-
-    Dir::from_unnormalized(to_tgt)
 }
 
 pub fn get_entity_by_id(uid: Uid, read_data: &ReadData) -> Option<EcsEntity> {

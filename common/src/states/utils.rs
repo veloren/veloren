@@ -1475,6 +1475,7 @@ fn handle_ability(
             data,
         )) {
             Ok(character_state) => {
+                let tool_kind = character_state.ability_info().and_then(|ai| ai.tool);
                 update.character = character_state;
 
                 if let Some(init_event) = ability.ability_meta().init_event {
@@ -1500,7 +1501,10 @@ fn handle_ability(
                                     kind,
                                     BuffData::new(strength, duration),
                                     vec![BuffCategory::SelfBuff],
-                                    BuffSource::Character { by: *data.uid },
+                                    BuffSource::Character {
+                                        by: *data.uid,
+                                        tool_kind,
+                                    },
                                     *data.time,
                                     dest_info,
                                     Some(data.mass),
@@ -1891,24 +1895,6 @@ pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
             entity: data.entity,
             stance: Stance::None,
         });
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ScalingKind {
-    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
-    // combo
-    Linear,
-    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at 4x minimum combo
-    Sqrt,
-}
-
-impl ScalingKind {
-    pub fn factor(&self, val: f32, norm: f32) -> f32 {
-        match self {
-            Self::Linear => val / norm,
-            Self::Sqrt => (val / norm).sqrt(),
-        }
     }
 }
 

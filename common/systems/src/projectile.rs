@@ -246,6 +246,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if physics.on_surface().is_some() {
+                let init_projectile = projectile.clone();
                 let projectile = &mut *projectile;
                 for effect in projectile.hit_solid.drain(..) {
                     match effect {
@@ -297,6 +298,58 @@ impl<'a> System<'a> for Sys {
                                 .with_health(Health::new(body))
                                 .with_poise(Poise::new(body)),
                             });
+                        },
+                        projectile::Effect::Split(split) => {
+                            let split_projectile = {
+                                let mut projectile = init_projectile.clone();
+                                // Remove split from effects here to avoid projectile infinitely
+                                // splitting
+                                projectile
+                                    .timeout
+                                    .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+                                projectile
+                                    .hit_solid
+                                    .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+                                projectile.time_left =
+                                    Duration::from_secs_f64(split.new_lifetime.0);
+                                projectile.init_time = split.new_lifetime;
+                                projectile
+                            };
+
+                            let init_dir = physics.on_surface().map(|d| -d).unwrap_or_default();
+
+                            for _ in 0..split.amount {
+                                let dir = {
+                                    let theta = rng.random_range(0.0..TAU);
+                                    let phi = rng.random_range(0.0..PI);
+                                    let offset = {
+                                        let x = theta.sin() * phi.sin();
+                                        let y = theta.cos() * phi.sin();
+                                        let z = phi.cos();
+                                        Vec3::new(x, y, z) * split.spread
+                                    };
+                                    Dir::from_unnormalized(init_dir + offset).unwrap_or_default()
+                                };
+
+                                let new_pos = Pos(pos.0 - physics.on_surface().unwrap_or_default());
+
+                                emitters.emit(ShootEvent {
+                                    entity: projectile_owner,
+                                    source_vel: None,
+                                    pos: new_pos,
+                                    dir,
+                                    body: *body,
+                                    light: None,
+                                    projectile: split_projectile.clone(),
+                                    speed: 10.0,
+                                    object: None,
+                                    marker: None, /* TODO: Do we check original for
+                                                   * projectile's marker? */
+                                })
+                            }
+
+                            // If the projectile splits, the original projectile should vanish
+                            projectile_vanished = true;
                         },
                         _ => {},
                     }
@@ -437,16 +490,15 @@ impl<'a> System<'a> for Sys {
                                 });
                             },
                             projectile::Effect::Split(split) => {
-                                if physics.on_surface().is_some() {
-                                    // We do not want to split if projectile is already on a surface
-                                    continue;
-                                }
                                 let split_projectile = {
                                     let mut projectile = init_projectile.clone();
                                     // Remove split from effects here to avoid projectile infinitely
                                     // splitting
                                     projectile
                                         .timeout
+                                        .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+                                    projectile
+                                        .hit_solid
                                         .retain(|e| !matches!(e, projectile::Effect::Split(_)));
                                     projectile.time_left =
                                         Duration::from_secs_f64(split.new_lifetime.0);

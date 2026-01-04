@@ -5219,7 +5219,10 @@ fn handle_aura(
                 source: if new_entity {
                     BuffSource::World
                 } else {
-                    BuffSource::Character { by: target_uid }
+                    BuffSource::Character {
+                        by: target_uid,
+                        tool_kind: None,
+                    }
                 },
             }
         },
@@ -5903,14 +5906,14 @@ fn build_buff(
             | BuffKind::OffBalance
             | BuffKind::Tenacity
             | BuffKind::Resilience
-            | BuffKind::SnareShot
             | BuffKind::OwlTalon
             | BuffKind::HeavyNock
             | BuffKind::Heartseeker
             | BuffKind::EagleEye
             | BuffKind::Chilled
             | BuffKind::ArdentHunter
-            | BuffKind::ArdentHunted => {
+            | BuffKind::ArdentHunted
+            | BuffKind::SepticShot => {
                 if buff_kind.is_simple() {
                     unreachable!("is_simple() above")
                 } else {

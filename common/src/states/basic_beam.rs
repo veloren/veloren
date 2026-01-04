@@ -141,7 +141,15 @@ impl CharacterBehavior for Data {
                         Attack::new(Some(self.static_data.ability_info))
                             .with_stat_adjustments(data.stats)
                             .with_damage(damage)
-                            .with_precision(precision_mult)
+                            .with_precision(
+                                precision_mult
+                                    * self
+                                        .static_data
+                                        .ability_info
+                                        .ability_meta
+                                        .precision_power_mult
+                                        .unwrap_or(1.0),
+                            )
                             .with_blockable(self.static_data.blockable)
                             .with_effect(energy)
                             .with_combo_increment()

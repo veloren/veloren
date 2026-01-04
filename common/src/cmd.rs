@@ -178,7 +178,6 @@ lazy_static! {
             BuffKind::OffBalance => "off_balance",
             BuffKind::Tenacity => "tenacity",
             BuffKind::Resilience => "resilience",
-            BuffKind::SnareShot => "snare_shot",
             BuffKind::OwlTalon => "owl_talon",
             BuffKind::HeavyNock => "heavy_nock",
             BuffKind::Heartseeker => "heartseeker",
@@ -186,6 +185,7 @@ lazy_static! {
             BuffKind::Chilled => "chilled",
             BuffKind::ArdentHunter => "ardent_hunter",
             BuffKind::ArdentHunted => "ardent_hunted",
+            BuffKind::SepticShot => "septic_shot",
         };
         let mut buff_parser = HashMap::new();
         for kind in BuffKind::iter() {

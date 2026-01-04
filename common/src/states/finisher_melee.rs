@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatBuff, CombatEffect},
+    combat::{self, CombatBuff, CombatEffect, ScalingKind},
     comp::{CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents},
     states::{
         behavior::{CharacterBehavior, JoinData},

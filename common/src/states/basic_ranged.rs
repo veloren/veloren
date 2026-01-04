@@ -1,10 +1,11 @@
 use crate::{
     combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
+        Body, CharacterState, LightEmitter, Pos, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
         object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
+        projectile::{ProjectileConstructor, aim_projectile},
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
@@ -40,6 +41,9 @@ pub struct StaticData {
     pub movement_modifier: MovementModifier,
     /// Adjusts turning rate during the attack per stage
     pub ori_modifier: OrientationModifier,
+    /// Automatically aims to account for distance and elevation to target the
+    /// selected pos
+    pub auto_aim: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -137,6 +141,30 @@ impl CharacterBehavior for Data {
                         data.inputs.look_dir
                     };
 
+                    // Gets offsets
+                    let body_offsets = data
+                        .body
+                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
+                    let pos = Pos(data.pos.0 + body_offsets);
+
+                    let aim_dir = if self.static_data.auto_aim
+                        && let Some(sel_pos) = self
+                            .static_data
+                            .ability_info
+                            .input_attr
+                            .and_then(|ia| ia.select_pos)
+                    {
+                        if let Some(ideal_dir) =
+                            aim_projectile(self.static_data.projectile_speed, pos.0, sel_pos, true)
+                        {
+                            ideal_dir.merge_z(aim_dir)
+                        } else {
+                            aim_dir
+                        }
+                    } else {
+                        aim_dir
+                    };
+
                     let dirs = if let Some(spread) = self.static_data.projectile_spread {
                         Either::Left(spread.compute_directions(
                             aim_dir,
@@ -147,12 +175,6 @@ impl CharacterBehavior for Data {
                     } else {
                         Either::Right((0..num_projectiles).map(|_| aim_dir))
                     };
-
-                    // Gets offsets
-                    let body_offsets = data
-                        .body
-                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
-                    let pos = Pos(data.pos.0 + body_offsets);
 
                     for dir in dirs {
                         // Tells server to create and shoot the projectile

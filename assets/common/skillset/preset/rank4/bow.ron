@@ -1,11 +1,11 @@
 [
     Group(Weapon(Bow)),
 
-    Skill((Bow(SnareShot), 1)),
+    Skill((Bow(HeavyNock), 1)),
     Skill((Bow(Foothold), 1)),
 
     Skill((Bow(ArdentHunt), 1)),
-    Skill((Bow(HeavyNock), 1)),
+    Skill((Bow(SepticShot), 1)),
     Skill((Bow(Barrage), 1)),
 
     Skill((Bow(OwlTalon), 1)),

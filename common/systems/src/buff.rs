@@ -541,11 +541,12 @@ impl<'a> System<'a> for Sys {
                             continue;
                         }
                         // Get buff owner?
-                        let buff_owner = if let BuffSource::Character { by: owner } = buff.source {
-                            Some(owner)
-                        } else {
-                            None
-                        };
+                        let buff_owner =
+                            if let BuffSource::Character { by: owner, .. } = buff.source {
+                                Some(owner)
+                            } else {
+                                None
+                            };
 
                         // Now, execute the buff, based on it's delta
                         for effect in &buff.effects {
@@ -826,14 +827,7 @@ fn execute_effect(
         BuffEffect::AttackDamage(dam) => {
             stat.attack_damage_modifier *= *dam;
         },
-        BuffEffect::PrecisionOverride(val) => {
-            // Use lower of precision multiplier overrides
-            stat.precision_multiplier_override = stat
-                .precision_multiplier_override
-                .map(|mult| mult.min(*val))
-                .or(Some(*val));
-        },
-        BuffEffect::ConditionalPrecisionModifier(req, val, ovrd) => {
+        BuffEffect::PrecisionModifier(req, val, ovrd) => {
             stat.conditional_precision_modifiers
                 .push((*req, *val, *ovrd));
         },
@@ -888,6 +882,9 @@ fn execute_effect(
         },
         BuffEffect::AttackedModification(am) => {
             stat.attacked_modifications.push(am.clone());
+        },
+        BuffEffect::PrecisionPowerMult(ppm) => {
+            stat.precision_power_mult *= ppm;
         },
     };
 }

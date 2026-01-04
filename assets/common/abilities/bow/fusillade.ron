@@ -1,5 +1,5 @@
 Simple(
-    energy_cost: 0,
+    energy_cost: 10,
     combo_cost: 5,
     buildup_duration: 0.1,
     meta: (

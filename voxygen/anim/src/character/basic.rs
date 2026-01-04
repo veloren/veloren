@@ -21,6 +21,7 @@ pub struct BasicActionDependency<'a> {
     pub last_ori: Vec3<f32>,
     pub orientation: Vec3<f32>,
     pub look_dir: Dir,
+    pub look_dir_override: Option<Dir>,
     pub is_riding: bool,
 }
 
@@ -1656,14 +1657,6 @@ impl Animation for BasicAction {
 
                 bow_draw(&mut next, move2, d.look_dir.z);
             },
-            Some("common.abilities.bow.snare_shot") => {
-                bow_start(&mut next, s_a);
-
-                let move1 = move1base / 0.5 + move2base / 0.5;
-
-                next.hand_l.position += Vec3::new(2.0, -2.0, -1.0) * move1;
-                next.hand_l.orientation.rotate_z(move1 * 0.4);
-            },
             Some("common.abilities.bow.barrage") => {
                 bow_start(&mut next, s_a);
 
@@ -1706,7 +1699,8 @@ impl Animation for BasicAction {
                 "common.abilities.bow.ignite_arrow"
                 | "common.abilities.bow.drench_arrow"
                 | "common.abilities.bow.freeze_arrow"
-                | "common.abilities.bow.jolt_arrow",
+                | "common.abilities.bow.jolt_arrow"
+                | "common.abilities.bow.septic_shot",
             ) => {
                 bow_start(&mut next, s_a);
             },
@@ -1763,7 +1757,8 @@ impl Animation for BasicAction {
             },
             Some("common.abilities.bow.death_volley_shot") => {
                 bow_start(&mut next, s_a);
-                bow_draw(&mut next, move1base, d.look_dir.z);
+                let look_z = d.look_dir_override.map_or(d.look_dir.z, |ldo| ldo.z);
+                bow_draw(&mut next, move1base, look_z);
 
                 next.hold.scale *= 1.5;
                 next.torso.position += Vec3::new(0.0, 0.0, -3.0) * move1;

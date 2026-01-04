@@ -686,11 +686,11 @@ impl ServerEvent for DestroyEvent {
                         DamageContributor::new(*uid, data.groups.get(ev.entity).copied())
                     });
 
-                    let effect_target = match effect.target {
-                        StatEffectTarget::Target => ev.entity,
+                    let (effect_target, other_entity) = match effect.target {
+                        StatEffectTarget::Target => (ev.entity, attacker_entity),
                         StatEffectTarget::Attacker => {
                             if let Some(attacker) = attacker_entity {
-                                attacker
+                                (attacker, Some(ev.entity))
                             } else {
                                 continue;
                             }
@@ -785,6 +785,7 @@ impl ServerEvent for DestroyEvent {
                                             (
                                                 data.uids.get(ev.entity).copied(),
                                                 data.masses.get(ev.entity),
+                                                None,
                                             ),
                                             (
                                                 data.stats.get(effect_target),
@@ -938,6 +939,7 @@ impl ServerEvent for DestroyEvent {
                                                 data.uids.get(effect_target).copied(),
                                                 data.stats.get(effect_target),
                                                 data.masses.get(effect_target),
+                                                None,
                                             ),
                                             damage_dealt,
                                             strength_modifier,
@@ -995,6 +997,38 @@ impl ServerEvent for DestroyEvent {
                                         allow_players: *allow_players,
                                         delete_on_failure: false,
                                     });
+                                }
+                            },
+                            CombatEffect::DebuffsVulnerable {
+                                mult,
+                                scaling,
+                                filter_attacker,
+                                filter_weapon,
+                            } => {
+                                if let Some(buffs) = data.buffs.get(effect_target) {
+                                    let num_debuffs = buffs.iter_active().flatten().filter(|b| {
+                                        let debuff_filter = matches!(b.kind.differentiate(), buff::BuffDescriptor::SimpleNegative);
+                                        let attacker_filter = !filter_attacker || matches!(b.source, BuffSource::Character { by, .. } if Some(by) == other_entity.and_then(|e| data.uids.get(e)).copied());
+                                        let weapon_filter = filter_weapon.is_none_or(|w| matches!(b.source, BuffSource::Character { tool_kind, .. } if Some(w) == tool_kind));
+                                        debuff_filter && attacker_filter && weapon_filter
+                                    }).count();
+                                    if num_debuffs > 0 {
+                                        let change = HealthChange {
+                                            amount: -damage_dealt
+                                                * scaling.factor(num_debuffs as f32, 1.0)
+                                                * mult
+                                                * strength_modifier,
+                                            by: dmg_contrib,
+                                            cause: Some(DamageSource::Other),
+                                            time: *data.time,
+                                            precise: false,
+                                            instance: rand::random(),
+                                        };
+                                        emitters.emit(HealthChangeEvent {
+                                            entity: effect_target,
+                                            change,
+                                        });
+                                    }
                                 }
                             },
                         }
@@ -2406,7 +2440,7 @@ impl ServerEvent for BuffEvent {
                             .flat_map(|b| {
                                 b.kind.effects(
                                     &b.data,
-                                    if let BuffSource::Character { by } = b.source {
+                                    if let BuffSource::Character { by, .. } = b.source {
                                         Some(by)
                                     } else {
                                         None
@@ -2601,7 +2635,10 @@ impl ServerEvent for ParryHookEvent {
         let mut poise_change_emitter = poise_change_events.emitter();
         let mut buff_emitter = buff_events.emitter();
         for ev in events {
+            let mut defender_tool = None;
+
             if let Some(mut char_state) = character_states.get_mut(ev.defender) {
+                defender_tool = char_state.ability_info().and_then(|ai| ai.tool);
                 let return_to_wield = match &mut *char_state {
                     CharacterState::RiposteMelee(c) => {
                         c.stage_section = StageSection::Action;
@@ -2635,7 +2672,10 @@ impl ServerEvent for ParryHookEvent {
                 // poise damage, get precision vulnerability and get slower recovery speed
                 let data = buff::BuffData::new(1.0, Some(Secs(2.0)));
                 let source = if let Some(uid) = uids.get(ev.defender) {
-                    BuffSource::Character { by: *uid }
+                    BuffSource::Character {
+                        by: *uid,
+                        tool_kind: defender_tool,
+                    }
                 } else {
                     BuffSource::World
                 };
@@ -2841,11 +2881,11 @@ impl ServerEvent for EntityAttackedHookEvent {
 
             if let Some(stats) = data.stats.get(ev.entity) {
                 for effect in &stats.effects_on_damaged {
-                    let effect_target = match effect.target {
-                        StatEffectTarget::Target => ev.entity,
+                    let (effect_target, other_entity) = match effect.target {
+                        StatEffectTarget::Target => (ev.entity, ev.attacker),
                         StatEffectTarget::Attacker => {
                             if let Some(attacker) = ev.attacker {
-                                attacker
+                                (attacker, Some(ev.entity))
                             } else {
                                 continue;
                             }
@@ -2949,6 +2989,7 @@ impl ServerEvent for EntityAttackedHookEvent {
                                             (
                                                 data.uids.get(ev.entity).copied(),
                                                 data.masses.get(ev.entity),
+                                                None,
                                             ),
                                             (
                                                 data.stats.get(effect_target),
@@ -3102,6 +3143,7 @@ impl ServerEvent for EntityAttackedHookEvent {
                                                 data.uids.get(effect_target).copied(),
                                                 data.stats.get(effect_target),
                                                 data.masses.get(effect_target),
+                                                None,
                                             ),
                                             ev.damage_dealt,
                                             strength_modifier,
@@ -3156,6 +3198,38 @@ impl ServerEvent for EntityAttackedHookEvent {
                                         allow_players: *allow_players,
                                         delete_on_failure: false,
                                     });
+                                }
+                            },
+                            CombatEffect::DebuffsVulnerable {
+                                mult,
+                                scaling,
+                                filter_attacker,
+                                filter_weapon,
+                            } => {
+                                if let Some(buffs) = data.buffs.get(effect_target) {
+                                    let num_debuffs = buffs.iter_active().flatten().filter(|b| {
+                                        let debuff_filter = matches!(b.kind.differentiate(), buff::BuffDescriptor::SimpleNegative);
+                                        let attacker_filter = !filter_attacker || matches!(b.source, BuffSource::Character { by, .. } if Some(by) == other_entity.and_then(|e| data.uids.get(e)).copied());
+                                        let weapon_filter = filter_weapon.is_none_or(|w| matches!(b.source, BuffSource::Character { tool_kind, .. } if Some(w) == tool_kind));
+                                        debuff_filter && attacker_filter && weapon_filter
+                                    }).count();
+                                    if num_debuffs > 0 {
+                                        let change = HealthChange {
+                                            amount: -ev.damage_dealt
+                                                * scaling.factor(num_debuffs as f32, 1.0)
+                                                * mult
+                                                * strength_modifier,
+                                            by: dmg_contrib,
+                                            cause: Some(DamageSource::Other),
+                                            time: *data.time,
+                                            precise: false,
+                                            instance: rand::random(),
+                                        };
+                                        emitters.emit(HealthChangeEvent {
+                                            entity: effect_target,
+                                            change,
+                                        });
+                                    }
                                 }
                             },
                         }

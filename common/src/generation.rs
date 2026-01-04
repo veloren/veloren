@@ -790,7 +790,8 @@ pub mod tests {
                 | CombatEffect::BuffsVulnerable(_, _)
                 | CombatEffect::StunnedVulnerable(_)
                 | CombatEffect::SelfBuff(_)
-                | CombatEffect::Energy(_) => {},
+                | CombatEffect::Energy(_)
+                | CombatEffect::DebuffsVulnerable { .. } => {},
             }
         }
     }

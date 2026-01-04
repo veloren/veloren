@@ -376,7 +376,13 @@ impl MeleeConstructor {
                     .with_effect(knockback)
             },
         }
-        .with_precision(precision_mult)
+        .with_precision(
+            precision_mult
+                * ability_info
+                    .ability_meta
+                    .precision_power_mult
+                    .unwrap_or(1.0),
+        )
         .with_blockable(self.blockable);
 
         let attack = if let Some((effect, requirement)) = self.attack_effect {

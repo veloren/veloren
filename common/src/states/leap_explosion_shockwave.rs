@@ -240,7 +240,15 @@ impl CharacterBehavior for Data {
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     let shockwave_attack = Attack::new(Some(self.static_data.ability_info))
                         .with_damage(shockwave_damage)
-                        .with_precision(precision_mult)
+                        .with_precision(
+                            precision_mult
+                                * self
+                                    .static_data
+                                    .ability_info
+                                    .ability_meta
+                                    .precision_power_mult
+                                    .unwrap_or(1.0),
+                        )
                         .with_effect(shockwave_poise)
                         .with_effect(shockwave_knockback)
                         .with_combo_increment();

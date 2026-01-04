@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect, DamageKind, Knockback},
+    combat::{self, CombatEffect, DamageKind, Knockback, ScalingKind},
     comp::{
         self, Body, CharacterState, LightEmitter, StateUpdate, aura, beam, buff,
         character_state::AttackFilters,
@@ -29,7 +29,7 @@ use crate::{
         sprite_summon::SpriteSummonAnchor,
         utils::{
             AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ProjectileSpread,
-            ScalingKind, StageSection,
+            StageSection,
         },
         *,
     },
@@ -808,6 +808,8 @@ pub enum CharacterAbility {
         num_projectiles: Amount,
         projectile_spread: Option<ProjectileSpread>,
         #[serde(default)]
+        auto_aim: bool,
+        #[serde(default)]
         movement_modifier: MovementModifier,
         #[serde(default)]
         ori_modifier: OrientationModifier,
@@ -1520,6 +1522,7 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 num_projectiles: _,
                 projectile_spread: _,
+                auto_aim: _,
                 movement_modifier: _,
                 ori_modifier: _,
                 meta: _,
@@ -2585,6 +2588,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 energy_cost: _,
                 num_projectiles,
                 projectile_spread,
+                auto_aim,
                 movement_modifier,
                 ori_modifier,
                 meta: _,
@@ -2598,6 +2602,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     projectile_speed: *projectile_speed,
                     num_projectiles: *num_projectiles,
                     projectile_spread: *projectile_spread,
+                    auto_aim: *auto_aim,
                     ability_info,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
@@ -3579,6 +3584,8 @@ pub struct AbilityMeta {
     // If we ever add more, I guess change to a vec? Or maybe just an array if we want to keep
     // AbilityMeta small?
     pub contextual_stats: Option<StatAdj>,
+    /// If provided, multiplies the precision power from armor for this ability
+    pub precision_power_mult: Option<f32>,
 }
 
 impl StatAdj {

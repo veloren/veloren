@@ -205,12 +205,12 @@ fn buff_key(buff: BuffKind) -> &'static str {
         BuffKind::ScornfulTaunt => "buff-scornfultaunt",
         BuffKind::Tenacity => "buff-tenacity",
         BuffKind::Resilience => "buff-resilience",
-        BuffKind::SnareShot => "buff-snareshot",
         BuffKind::OwlTalon => "buff-owltalon",
         BuffKind::HeavyNock => "buff-heavynock",
         BuffKind::Heartseeker => "buff-heartseeker",
         BuffKind::EagleEye => "buff-eagleeye",
         BuffKind::ArdentHunter => "buff-ardenthunter",
+        BuffKind::SepticShot => "buff-septicshot",
         // Debuffs
         BuffKind::Bleeding => "buff-bleed",
         BuffKind::Cursed => "buff-cursed",
@@ -369,14 +369,14 @@ pub fn consumable_desc(effects: &Effects, i18n: &Localization) -> Vec<String> {
                         | BuffKind::OffBalance
                         | BuffKind::Tenacity
                         | BuffKind::Resilience
-                        | BuffKind::SnareShot
                         | BuffKind::OwlTalon
                         | BuffKind::HeavyNock
                         | BuffKind::Heartseeker
                         | BuffKind::EagleEye
                         | BuffKind::Chilled
                         | BuffKind::ArdentHunter
-                        | BuffKind::ArdentHunted => Cow::Borrowed(""),
+                        | BuffKind::ArdentHunted
+                        | BuffKind::SepticShot => Cow::Borrowed(""),
                     };
 
                     write!(&mut description, "{}", buff_desc).unwrap();
@@ -646,16 +646,14 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.arrow_shot" => imgs.bow_arrow_shot,
         "common.abilities.bow.broadhead" => imgs.bow_broadhead,
         "common.abilities.bow.foothold" => imgs.bow_foothold,
-        "common.abilities.bow.snare_shot" => imgs.bow_snare_shot,
-        "common.abilities.bow.barrage" => imgs.bow_barrage,
-        "common.abilities.bow.barrage_shot" => imgs.bow_barrage,
-        "common.abilities.bow.owl_talon" => imgs.bow_owl_talon,
         "common.abilities.bow.heavy_nock" => imgs.bow_heavy_nock,
-        "common.abilities.bow.heartseeker" => imgs.bow_heartseeker,
-        "common.abilities.bow.scatterburst" => imgs.bow_scatterburst,
-        "common.abilities.bow.lesser_scatterburst" => imgs.bow_lesser_scatterburst,
-        "common.abilities.bow.greater_scatterburst" => imgs.bow_greater_scatterburst,
+        "common.abilities.bow.ardent_hunt" => imgs.bow_ardent_hunt,
+        "common.abilities.bow.owl_talon" => imgs.bow_owl_talon,
         "common.abilities.bow.eagle_eye" => imgs.bow_eagle_eye,
+        "common.abilities.bow.heartseeker" => imgs.bow_heartseeker,
+        "common.abilities.bow.hawkstrike" => imgs.bow_hawkstrike,
+        "common.abilities.bow.hawkstrike_shot" => imgs.bow_hawkstrike,
+        "common.abilities.bow.septic_shot" => imgs.bow_septic_shot,
         "common.abilities.bow.ignite_arrow" => imgs.bow_ignite_arrow,
         "common.abilities.bow.burning_arrow" => imgs.bow_burning_arrow,
         "common.abilities.bow.burning_broadhead" => imgs.bow_burning_broadhead,
@@ -668,11 +666,13 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.jolt_arrow" => imgs.bow_jolt_arrow,
         "common.abilities.bow.lightning_arrow" => imgs.bow_lightning_arrow,
         "common.abilities.bow.lightning_broadhead" => imgs.bow_lightning_broadhead,
-        "common.abilities.bow.ardent_hunt" => imgs.bow_ardent_hunt,
+        "common.abilities.bow.barrage" => imgs.bow_barrage,
+        "common.abilities.bow.barrage_shot" => imgs.bow_barrage,
         "common.abilities.bow.piercing_gale" => imgs.bow_piercing_gale,
         "common.abilities.bow.piercing_gale_shot" => imgs.bow_piercing_gale,
-        "common.abilities.bow.hawkstrike" => imgs.bow_hawkstrike,
-        "common.abilities.bow.hawkstrike_shot" => imgs.bow_hawkstrike,
+        "common.abilities.bow.scatterburst" => imgs.bow_scatterburst,
+        "common.abilities.bow.lesser_scatterburst" => imgs.bow_lesser_scatterburst,
+        "common.abilities.bow.greater_scatterburst" => imgs.bow_greater_scatterburst,
         "common.abilities.bow.fusillade" => imgs.bow_fusillade,
         "common.abilities.bow.fusillade_shot" => imgs.bow_fusillade,
         "common.abilities.bow.death_volley" => imgs.bow_death_volley,

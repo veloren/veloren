@@ -84,8 +84,7 @@ pub struct Stats {
     pub max_energy_modifiers: StatsModifier,
     pub poise_damage_modifier: f32,
     pub attack_damage_modifier: f32,
-    pub precision_multiplier_override: Option<f32>,
-    pub conditional_precision_modifiers: Vec<(CombatRequirement, f32, bool)>,
+    pub conditional_precision_modifiers: Vec<(Option<CombatRequirement>, f32, bool)>,
     pub precision_vulnerability_multiplier_override: Option<f32>,
     pub swim_speed_modifier: f32,
     /// This adds effects to any attacks that the entity makes
@@ -103,6 +102,7 @@ pub struct Stats {
     pub item_effect_reduction: f32,
     /// This modifies attacks that target this entity
     pub attacked_modifications: Vec<AttackedModification>,
+    pub precision_power_mult: f32,
 }
 
 impl Stats {
@@ -121,7 +121,6 @@ impl Stats {
             max_energy_modifiers: StatsModifier::default(),
             poise_damage_modifier: 1.0,
             attack_damage_modifier: 1.0,
-            precision_multiplier_override: None,
             conditional_precision_modifiers: Vec::new(),
             precision_vulnerability_multiplier_override: None,
             swim_speed_modifier: 1.0,
@@ -134,6 +133,7 @@ impl Stats {
             crowd_control_resistance: 0.0,
             item_effect_reduction: 1.0,
             attacked_modifications: Vec::new(),
+            precision_power_mult: 1.0,
         }
     }
 

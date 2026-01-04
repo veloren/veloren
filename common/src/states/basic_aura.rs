@@ -76,7 +76,7 @@ impl CharacterBehavior for Data {
                         AuraTarget::from((Some(self.static_data.targets), Some(data.uid)));
                     for aura_data in &self.static_data.auras {
                         let mut aura = aura_data.to_aura(
-                            data.uid,
+                            (data.uid, self.static_data.ability_info.tool),
                             self.static_data.range,
                             // check for indefinite aura
                             self.static_data.aura_duration,
