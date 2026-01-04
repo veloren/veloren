@@ -58,6 +58,7 @@ use common::{
     map::{Marker, MarkerKind},
     match_some,
     path::Path,
+    resources::Time,
     rtsim::{
         Actor, DialogueKind, ItemResource, NpcInput, NpcMsg, PersonalityTrait, Profession, QuestId,
         Response, Role, SiteId, TerrainResource,
@@ -1674,15 +1675,44 @@ fn bird_large() -> impl Action<DefaultState> {
 
 fn monster() -> impl Action<DefaultState> {
     now(
-        |ctx, (bearing, home_pos): &mut (Vec2<f32>, Option<Vec2<f32>>)| {
-            let home_pos = home_pos
-            // Move home locations every 10 minutes or so
-            .filter(|_| !ctx.rng.random_bool(ctx.dt as f64 / 600.0))
-            // Choose a new home location some distance away
-            .unwrap_or_else(|| ctx.npc.wpos.xy().map(|e| e + ctx.rng.random_range(-500.0..500.0)));
+        |ctx,
+         (bearing, roam_location, roam_location_timestamp): &mut (
+            Vec2<f32>,
+            Option<Vec2<f32>>,
+            Time,
+        )| {
+            // Some NPC's (like Frost Gigas) can roam the world, and thus need
+            // to periodically choose a new random location to roam towards.
+            // This is particularly important for quests, as it makes quest NPC
+            // waypoints a bit more reliable by keeping an NPC in a similar
+            // location for a little while. There is otherwise nothing special
+            // about the roam location itself.
+            //
+            // Choose a new roam location once every 10 minutes (+/- 1 minute)
+            // or so.
+            let desired_roam_location = match *roam_location {
+                Some(_)
+                    if ctx.time
+                        > roam_location_timestamp
+                            .add_seconds((540 + ctx.rng.random_range(0..120)) as f64) =>
+                {
+                    None
+                },
+                Some(rl) => Some(rl),
+                _ => None,
+            }
+            .unwrap_or_else(|| {
+                *roam_location_timestamp = ctx.time;
+                ctx.npc
+                    .wpos
+                    .xy()
+                    .map(|e| e + ctx.rng.random_range(-500.0..500.0))
+            });
 
-            // Tend to want to move back towards the home location
-            *bearing += (home_pos - ctx.npc.wpos.xy()) * ctx.dt;
+            *roam_location = Some(desired_roam_location);
+
+            // Tend to want to move back towards the roam location
+            *bearing += (desired_roam_location - ctx.npc.wpos.xy()) * ctx.dt;
             *bearing = bearing
                 .map(|e| e + ctx.rng.random_range(-1.0..1.0) * ctx.dt)
                 .try_normalized()
@@ -1716,7 +1746,7 @@ fn monster() -> impl Action<DefaultState> {
         },
     )
     .repeat()
-    .with_state((Vec2::<f32>::zero(), None))
+    .with_state((Vec2::<f32>::zero(), None, Time(0.0)))
     .map(|_, _| ())
 }
 
