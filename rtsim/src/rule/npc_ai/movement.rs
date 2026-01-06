@@ -281,9 +281,7 @@ fn goto_flying<S: State>(
     .repeat()
     .boxed()
     .with_state(None)
-    .stop_if(move |ctx: &mut NpcCtx| {
-        ctx.npc.wpos.xy().distance_squared(wpos.xy()) < goal_dist.powi(2)
-    })
+    .stop_if(move |ctx: &mut NpcCtx| ctx.npc.wpos.distance_squared(wpos) < goal_dist.powi(2))
     .debug(move || {
         format!(
             "goto flying ({}, {}, {}), goal dist {}",
