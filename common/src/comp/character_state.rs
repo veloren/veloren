@@ -412,6 +412,82 @@ impl CharacterState {
         )
     }
 
+    pub fn is_blockable(&self) -> Option<bool> {
+        match self {
+            CharacterState::BasicMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::BasicRanged(data) => data
+                .static_data
+                .projectile
+                .attack
+                .map(|projectile_attack| projectile_attack.blockable),
+            CharacterState::DashMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::ComboMelee2(data) => data
+                .static_data
+                .strikes
+                .get(data.completed_strikes)
+                .map(|strike| strike.melee_constructor.blockable),
+            CharacterState::LeapMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::ChargedRanged(data) => data
+                .static_data
+                .projectile
+                .attack
+                .map(|projectile_attack| projectile_attack.blockable),
+            CharacterState::ChargedMelee(data) => Some(
+                data.static_data.melee_constructor.blockable
+                    && data
+                        .static_data
+                        .buildup_strike
+                        .is_none_or(|(_, buildup_strike)| buildup_strike.blockable),
+            ),
+            CharacterState::RepeaterRanged(data) => data
+                .static_data
+                .projectile
+                .attack
+                .map(|projectile_attack| projectile_attack.blockable),
+            CharacterState::BasicBeam(data) => Some(data.static_data.blockable),
+            CharacterState::FinisherMelee(data) => {
+                Some(data.static_data.melee_constructor.blockable)
+            },
+            CharacterState::DiveMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::RiposteMelee(data) => {
+                Some(data.static_data.melee_constructor.blockable)
+            },
+            CharacterState::RapidMelee(data) => Some(data.static_data.melee_constructor.blockable),
+            CharacterState::Idle(_)
+            | CharacterState::Crawl
+            | CharacterState::Climb(_)
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk(_)
+            | CharacterState::Glide(_)
+            | CharacterState::GlideWield(_)
+            | CharacterState::Stunned(_)
+            | CharacterState::BasicBlock(_)
+            | CharacterState::Equipping(_)
+            | CharacterState::Wielding(_)
+            | CharacterState::Roll(_)
+            | CharacterState::Boost(_)
+            | CharacterState::Explosion(_)
+            | CharacterState::LeapExplosionShockwave(_)
+            | CharacterState::LeapShockwave(_)
+            | CharacterState::Shockwave(_)
+            | CharacterState::Throw(_)
+            | CharacterState::BasicAura(_)
+            | CharacterState::StaticAura(_)
+            | CharacterState::Blink(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SelfBuff(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::UseItem(_)
+            | CharacterState::Interact(_)
+            | CharacterState::Wallrun(_)
+            | CharacterState::Skate(_)
+            | CharacterState::Music(_)
+            | CharacterState::Transform(_)
+            | CharacterState::RegrowHead(_) => None,
+        }
+    }
+
     pub fn is_aimed(&self) -> bool {
         matches!(
             self,

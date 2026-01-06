@@ -373,12 +373,12 @@ impl StateExt for State {
             .with(body.density());
 
         if projectile.is_sticky {
-            projectile_base = projectile_base.with(comp::Sticky)
+            projectile_base = projectile_base.with(comp::Sticky);
         }
         if projectile.is_point {
-            projectile_base = projectile_base.with(comp::Collider::Point)
+            projectile_base = projectile_base.with(comp::Collider::Point);
         } else {
-            projectile_base = projectile_base.with(body.collider())
+            projectile_base = projectile_base.with(body.collider());
         }
 
         projectile_base.with(projectile).with(body)

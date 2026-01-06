@@ -944,6 +944,7 @@ impl AbilityData {
                     && energy_check(*energy)
                     && tgt_data.char_state.is_some_and(|cs| {
                         cs.is_melee_attack()
+                            && cs.is_blockable().unwrap_or(false)
                             && matches!(
                                 cs.stage_section(),
                                 Some(
@@ -962,10 +963,12 @@ impl AbilityData {
                 melee_check(25.0, *angle, None)
                     && energy_check(*energy)
                     && attack_kind_check(*blocked_attacks)
-                    && tgt_data
-                        .char_state
-                        .and_then(|cs| cs.stage_section())
-                        .is_some_and(|ss| !matches!(ss, StageSection::Recover))
+                    && tgt_data.char_state.is_some_and(|cs| {
+                        cs.is_blockable().unwrap_or(false)
+                            && cs
+                                .stage_section()
+                                .is_some_and(|ss| !matches!(ss, StageSection::Recover))
+                    })
             },
             BasicRanged {
                 energy,

@@ -2014,6 +2014,7 @@ impl ServerEvent for BonkEvent {
                                             energy: None,
                                             buff: None,
                                             friendly_fire: true,
+                                            blockable: true,
                                         }),
                                         scaled: None,
                                     }

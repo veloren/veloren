@@ -13,6 +13,7 @@ BasicMelee(
         ),
         range: 3.5,
         angle: 15.0,
+        blockable: false,
         attack_effect: Some((Poise(40), TargetBlocking)),
         precision_flank_multipliers: (back: 1.0, side: 1.0, front: 1.5),
         precision_flank_invert: true,

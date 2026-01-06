@@ -13,7 +13,7 @@ BasicMelee(
         ),
         range: 8.0,
         angle: 100.0,
-        attack_effect: Some((Poise(1000), TargetBlocking)),
+        blockable: false,
         multi_target: Some(Normal),
     ),
     movement_modifier: (
