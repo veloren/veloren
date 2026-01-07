@@ -23,3 +23,4 @@ char_selection-starting_site_kind = Тип: { $kind }
 char_selection-rules = Правила
 char_selection-hardcore = Хардкор
 char_selection-hardcore_tooltip = Персонажи в режиме "Хардкор" будут удалены после смерти. Дополнительных изменений сложности нет
+char_selection-editing_character = Сохранение персонажа...

@@ -7,7 +7,6 @@ hud-settings-autopress_behavior-auto = Samodejno
 hud-settings-debug_info = Razhroščevalske informacije
 hud-settings-show_hitboxes = Pokaži okvirje trkov
 hud-settings-show_chat = Pokaži klepet
-hud-settings-show_hotkey_hints = Pokaži namige bližnjic
 hud-settings-tips_on_startup = Namigi ob zagonu
 hud-settings-ui_scale = Velikost vmesnika
 hud-settings-relative_scaling = Sorazmerna velikost

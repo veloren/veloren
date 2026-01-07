@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = 누르기
 hud-settings-debug_info = 디버그 정보
 hud-settings-show_hitboxes = 피격판정 보이기
 hud-settings-show_chat = 채팅 보이기
-hud-settings-show_hotkey_hints = 핫키 보이기
 hud-settings-tips_on_startup = 시작할때 팁
 hud-settings-ui_scale = UI 크기
 hud-settings-relative_scaling = 비례 크기

@@ -33,7 +33,6 @@ noun-terracotta_besieger = терракотовый завоеватель
 noun-strigoi = стригой
 noun-executioner = палач
 noun-husk_brute = бездушный зверь
-
 noun-role-farmer = фермер
 noun-role-hunter = охотник
 noun-role-merchant = торговец
@@ -46,3 +45,4 @@ noun-role-pirate = пират
 noun-role-cultist = культист
 noun-role-captain = капитан
 noun-role-herbalist = травник
+noun-gigas_fire = огненный гигант

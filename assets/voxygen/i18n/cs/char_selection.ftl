@@ -20,6 +20,10 @@ char_selection-starting_site_prev = Předchozí
 char_selection-spectate = Prohlížet svět
 char_selection-joining_character = Připojuji se do světa...
 char_selection-hardcore = Hardcore
-char_selection-hardcore_tooltip = Hardcore postavy budou po smrti smazány, žádné jiné změny v obtížnosti
+char_selection-hardcore_tooltip =
+    Hardcore postavy budou po smrti smazány, žádné jiné změny v obtížnosti.
+
+    Hardcore je doporučen pouze pro zkušené hráče.
 char_selection-starting_site_kind = Druh: { $kind }
 char_selection-rules = Pravidla
+char_selection-editing_character = Ukládám postavu...

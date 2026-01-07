@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = กดค้าง
 hud-settings-debug_info = ข้อมูลเชิงลึก
 hud-settings-show_hitboxes = แสดง Hitbox
 hud-settings-show_chat = แสดงช่องสนทนา
-hud-settings-show_hotkey_hints = แสดงตัวช่วยแถบของใช้
 hud-settings-tips_on_startup = แสดงคำแนะนำตอนเปิดเกม
 hud-settings-ui_scale = ขนาดเมนู
 hud-settings-relative_scaling = กำหนดให้

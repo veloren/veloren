@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Przytrzymaj
 hud-settings-debug_info = Informacje debugowania
 hud-settings-show_hitboxes = Pokaż hitboxy
 hud-settings-show_chat = Pokaż czat
-hud-settings-show_hotkey_hints = Pokaż klawisze skrótu
 hud-settings-tips_on_startup = Porady startowe
 hud-settings-ui_scale = Skala interfejsu
 hud-settings-relative_scaling = Skalowanie relatywne

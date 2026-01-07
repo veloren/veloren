@@ -16,10 +16,11 @@ command-body-desc = 將您的角色變成不同種族
 command-buff-desc = 給玩家施加增益效果
 command-build-desc = 開關建築模式
 command-ban-desc = 封禁某個使用者名稱的玩家，提供時限可設定封禁時間，如果需要覆寫現有封禁請傳遞 true
-command-battlemode-desc = 設置戰鬥模式：
-  + pvp（玩家對玩家）
-  + pve（玩家對環境）
-  如果不帶參數將顯示當前的戰鬥模式
+command-battlemode-desc =
+    設置戰鬥模式：
+    + pvp（玩家對玩家）
+    + pve（玩家對環境）
+    如果不帶參數將顯示當前的戰鬥模式
 command-battlemode_force-desc = 在不進行任何檢查的情況下更改戰鬥模式標誌
 command-campfire-desc = 生成營火
 command-clear_persisted_terrain-desc = 清除附近的持久化地形
@@ -55,8 +56,9 @@ command-light-desc = 生成具有光線的實體
 command-lightning-desc = 在當前位置放出閃電
 command-location-desc = 傳送到某個地點
 command-make_block-desc = 在您的位置生成一個具有顏色的方塊
-command-make_npc-desc = 根據配置在您附近生成實體
-  使用 Tab 鍵獲取示例或自動完成
+command-make_npc-desc =
+    根據配置在您附近生成實體
+    使用 Tab 鍵獲取示例或自動完成
 command-make_sprite-desc = 在您位置生成一個精靈
 command-make_volume-desc = 創建一個體積（實驗性）
 command-motd-desc = 查看伺服器描述
@@ -124,14 +126,16 @@ command-username-uuid-unavailable = 無法為使用者名稱 { $username } 確�
 command-uuid-username-unavailable = 無法為 UUID  { $uuid } 確定使用者名稱
 command-no-sudo = 冒充他人是不禮貌的
 command-entity-dead = 實體 '{ $entity }' 已死亡！
-command-error-write-settings = 寫入設置檔至磁碟失敗，但已成功寫入記憶體
-  錯誤（存儲）：{ $error }
-  成功（記憶體）：{ $message }
+command-error-write-settings =
+    寫入設置檔至磁碟失敗，但已成功寫入記憶體
+    錯誤（存儲）：{ $error }
+    成功（記憶體）：{ $message }
 command-error-while-evaluating-request = 驗證請求時遇到錯誤：{ $error }
-command-give-inventory-full = 玩家物品欄已滿，僅給予 { $given ->
-  [1] 一件
-  *[other] { $given } 件
-}，總共 { $total } 件物品
+command-give-inventory-full =
+    玩家物品欄已滿，僅給予 { $given ->
+        [1] 一件
+       *[other] { $given } 件
+    }，總共 { $total } 件物品
 command-give-inventory-success = 將 { $total } 件 { $item } 添加到物品欄
 command-invalid-item = 無效的物品：{ $item }
 command-invalid-block-kind = 無效的方塊類型：{ $kind }

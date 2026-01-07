@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Трымаць
 hud-settings-debug_info = Тэхнічныя звесткі
 hud-settings-show_hitboxes = Адлюстроўваць хітбоксы
 hud-settings-show_chat = Паказваць чат
-hud-settings-show_hotkey_hints = Падказваць гарачыя клавішы
 hud-settings-tips_on_startup = Падказкі пры запуску
 hud-settings-ui_scale = Маштаб інтэрфейса
 hud-settings-relative_scaling = Адносны

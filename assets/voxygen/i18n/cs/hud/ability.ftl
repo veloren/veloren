@@ -1,6 +1,6 @@
-common-abilities-bow-shotgun = Dávka
+common-abilities-bow-shotgun = Brokovnice
     .desc = Vypustí dávku šípů
-common-abilities-staff-fireshockwave = Ohnivý kruh
+common-abilities-staff-fireshockwave = Šoková vlna
     .desc = Podpálí zem ohnivou šokovou vlnou.
 common-abilities-sceptre-wardingaura = Ochranná aura
     .desc = Chrání tvé spojence proti nepřátelským útokům.
@@ -139,7 +139,9 @@ common-abilities-sword-cleaving_cross_cut = Roztínající příčný řez
 common-abilities-hammer-wide_wallop = Široký úder
     .desc = Zatáhni a nauč je létat
 common-abilities-hammer-scornful_swipe = Pohrdavé máchnutí
-    .desc = Podpoř svou udatnost a výdrž posměchem nepřátelům, než zaútočíš. Pokud ale padneš, nepřítel posílí.
+    .desc =
+        Zvyšuje tvou udatnost a odměnu energie.
+        Pokud padneš, nepřítel posílí v poškození a odolnosti vůči němu.
 common-abilities-hammer-tremor = Otřes
     .desc = Udeř do země s takovou silou, že se pod tvými nepřáteli rozechvěje.
 common-abilities-hammer-heavy_whorl = Těžká spirála
@@ -149,23 +151,36 @@ common-abilities-hammer-intercept = Napadení
 common-abilities-hammer-dual_intercept = Napadení
     .desc = Vyraž oběma kladivy dopředu s vrhnutím vší síly do úderu.
 common-abilities-hammer-retaliate = Protiúder
-    .desc = Po vyblokování útoku udeř zpět těžkým úderem.
+    .desc = Vyblokuj nepřítele a proveď protiúder jedním rychlým máchnutím!
 common-abilities-hammer-breach = Průraz
-    .desc = Proraž skrz nepřátelský pokus o obranu těžkým úderem kladiva.
+    .desc =
+        Proraž skrz nepřátelský pokus o obranu těžkým úderem kladiva.
+        Udělí poškození navíc a rozhodí nepříteli postoj.
 common-abilities-hammer-pile_driver = Zatlučení
-    .desc = Zatluče nepřítele do země, tím se nebudou moci hýbat, dokud se nevyprostí.
-common-abilities-hammer-lung_pummel = Úder do plic
-    .desc = Udeř kladivem nepřítele do boku a vyraž mu tak dech.
+    .desc =
+        Zatluč nepřítele do země, tím se nebudou moci hýbat, dokud se nevyprostí.
+        Snižuje rychlost pohybu nepřítele.
+common-abilities-hammer-lung_pummel = Úder na solar
+    .desc =
+        Udeř kladivem nepřítele do boku a vyraž mu tak dech.
+        Vyžaduje { $min_combo } kombo k použití.
 common-abilities-hammer-iron_tempest = Železná smršť
     .desc = Máchni dostatečně rychle, že se tvé kladivo promění v bouři, která rozhází nepřátele po okolí.
 common-abilities-hammer-dual_iron_tempest = Železná smršť
     .desc = Máchni dostatečně rychle, že se tvá kladiva promění v bouři, která rozhází nepřátele po okolí.
 common-abilities-hammer-dual_upheaval = Pozdvižení
-    .desc = Udeř kladivy do nepřítele a vystřel ho do vzduchu, tím ho odhalíš pro omráčení.
+    .desc =
+        Udeř kladivy do nepřítele a vystřel ho do vzduchu.
+        Zvyšuje poškození z postoje udělené cíli.
 common-abilities-hammer-tenacity = Houževnatost
-    .desc = Stůj pevně, abys ustál útok za útokem, zatímco sám rozdáváš rány.
+    .desc =
+        Stůj pevně, abys ustál jeden úder za druhým.
+        Zvyšuje tvou odolnost proti poškození a snižuje rychlost pohybu.
+        Každý přijatý úder posiluje tvou energii.
 common-abilities-hammer-thunderclap = Zahřmění
-    .desc = Uvolni devastující sílu poháněnou adrenalinem a převeď ji do mocného úderu proti nepříteli.
+    .desc =
+        Uvolni devastující sílu poháněnou adrenalinem a převeď ji do mocného úderu proti nepříteli.
+        Vyžaduje { $min_combo } kombo k použití.
 common-abilities-axe-riptide = Zpětný proud
     .desc =
         Stáhni z kůže všechny okolo a odlehči jim tak od krve.
@@ -332,7 +347,9 @@ common-abilities-axe-bulkhead = Přepažení
         Vyžaduje { $min_combo } kombo bodů.
         Automaticky se povyšuje na Převrhnutí při { $min_combo_upg } kombo bodech.
 common-abilities-hammer-vigorous_bash = Rázný úder
-    .desc = Použij hlavu kladiva a rychle udeř nepřátele. Pokud je cíl mimo rovnováhu, navalí se ti adrenalin.
+    .desc =
+        Použij hlavu kladiva a rychle udeř nepřátele.
+        Pokud nepřítele omráčíš, obdržíš bonus 4 kombo body.
 common-abilities-hammer-dual_heavy_whorl = Těžká spirála
     .desc = Udeří všechny okolní nepřátele jedním máchnutím obou kladiv.
 common-abilities-sword-defensive_riposte = Protiútok
@@ -372,20 +389,49 @@ common-abilities-axe-fierce_raze = Neúprosné zničení
 common-abilities-axe-plunder = Plenění
     .desc = Rychle vykroč k nepříteli a okradni jej úderem o stabilitu.
 common-abilities-hammer-upheaval = Pozdvižení
-    .desc = Udeř kladivem do nepřítele a vystřel ho do vzduchu, tím ho odhalíš pro omráčení.
+    .desc =
+        Udeř kladivem do nepřítele a vystřel ho do vzduchu.
+        Zvyšuje poškození z postoje udělené cíli.
 common-abilities-hammer-spine_cracker = Lamač páteře
-    .desc = Když se k tobě nepřítel otočí zády, udeř ho vší silou se zaměřením na slabou oblast páteře.
+    .desc =
+        Dostaň se za nepřítele a udeř ho do zátylku!
+        Znatelně násobí tvé poškození a vyvede cíl z rovnováhy.
+        Vyžaduje alespoň { $min_combo } kombo k použití.
 common-abilities-hammer-helm_crusher = Drtič přileb
-    .desc = Prašť nepřítele do hlavy a způsob mu otřes mozku.
+    .desc =
+        Prašť nepřítele do hlavy a způsob mu otřes mozku.
+        Vyžaduje { $min_combo } kombo k použití.
 common-abilities-hammer-rampart = Obranný val
-    .desc = Udeř do země. Mírná tektonická činnost vytvoří val, který ochrání tvé přátele před útoky.
+    .desc =
+        deř do země. Mírná tektonická činnost vytvoří obranný val.
+        Snižuje utržené poškození pro všechny členy skupiny.
 common-abilities-hammer-seismic_shock = Seizmický šok
-    .desc = Úderem do země uvolni naakumulovanou sílu z kladiva a vytvoř tak tlakovou vlnu, která odhodí všechny nepřátele.
+    .desc =
+        Udeř do země takovou silou, že odhodíš své nepřátele do vzduchu.
+        Vyžaduje { $min_combo } kombo k použití.
 common-abilities-axe-bloodfeast = Krvavá hostina
     .desc =
         Tvá sekera lační po krvi nepřátel, čímž tě uzdravuje každým úderem proti krvácejícímu nepříteli.
         Vyžaduje 10 kombo bodů.
 common-abilities-hammer-earthshaker = Zemětřas
-    .desc = Udeř kladivem od krve do země a vypusť tlakovou vlnu, která všem okolo vyrazí dech.
+    .desc =
+        Udeř kladivem od krve do země a vypusť tlakovou vlnu.
+        Snižuje rychlost pohybu a získávání energie pro nepřátele.
+        Vyžaduje { $min_combo } kombo k použití.
 common-abilities-hammer-judgement = Rozsudek
-    .desc = Udeř nepřítele vší silou a pokud je omráčený, okamžitě ho zabij.
+    .desc =
+        Udeř nepřítele vší silou.
+        Velmi zvyšuje poškození, pokud je cíl omráčený.
+        Vyžaduje { $min_combo } kombo k použití.
+common-abilities-bow-charged = Natažená Střela
+    .desc = Vystřelí jeden šíp s poškozením na základě míry natažení.
+common-abilities-staff-firebomb = Ohnivá Bomba
+    .desc = Vystřelí ohnivou kouli, která po dopadu vybuchne.
+common-abilities-staff-flamethrower = Plamenomet
+    .desc = Chrlí oheň přímo před tebe.
+common-abilities-sceptre-lifestealbeam = Vysátí života
+    .desc = Vystřelí paprsek, který vysaje z nepřátel život.
+common-abilities-sceptre-healingaura = Léčebná aura
+    .desc = Léčí tvé přátele. K vyvolání potřebuješ kombo.
+common-abilities-bow-repeater = Opakovačka
+    .desc = Neustále střílí šípy čím dál tím rychleji.

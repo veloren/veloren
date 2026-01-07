@@ -1,0 +1,61 @@
+dialogue-question-site =
+    .a0 = Kde to jsem?
+    .a1 = Kde to jsme?
+    .a2 = Co je tohle za místo?
+dialogue-question-self =
+    .a0 = Kdo jsi?
+    .a1 = Pověz mi něco o sobě
+dialogue-question-hire =
+    .a0 = Můžu tě najmout?
+    .a1 = Můžu ti nabídnout práci.
+dialogue-question-sentiment =
+    .a0 = Co takhle...
+    .a1 = Jaký máš názor na...
+dialogue-cancel_hire = Už tě nechci dál zaměstnávat.
+dialogue-me = Já
+dialogue-cancel_interaction = Rozmyslel jsem si to.
+dialogue-question-directions = Mohl bys mě nasměrovat?
+dialogue-direction-tavern = Místní hospoda
+dialogue-direction-plaza = Nejbližší náměstí
+dialogue-direction-workshop = Dílna
+dialogue-direction-airship_dock = Dok pro vzducholodě
+dialogue-play_game = Pojďme si zahrát
+dialogue-game-what_game =
+    .a0 = Jakou hru bys chtěl hrát?
+    .a1 = Jasně! Jakou hru?
+dialogue-game-win =
+    .a0 = Vyhrál jsem!
+    .a1 = Jo! Vyhrávám!
+dialogue-game-lose =
+    .a0 = Ahh, prohrál jsem...
+    .a1 = Gratuluji, vyhrál jsi.
+    .a2 = Vem to leguma! Prohrál jsem.
+dialogue-game-draw =
+    .a0 = Remíza!
+dialogue-game-rock_paper_scissors = Kámen Nůžky Papír
+dialogue-game-rock = Kámen
+dialogue-game-paper = Papír
+dialogue-game-scissors = Nůžky
+dialogue-accept =
+    .a0 = Jasně!
+    .a1 = Ano.
+dialogue-decline =
+    .a1 = Ne, díky.
+    .a2 = Promiň, teď ne.
+dialogue-finish = Na shledanou
+dialogue-buy_hire_days =
+    .day = Den
+    .week = Týden
+    .unknown =
+        { $days ->
+            [one] { $days } den
+            [few] { $days } dny
+           *[other] { $days } dní
+        }
+dialogue-direction-actor = Kde leží { $name }?
+dialogue-question-quest_req =
+    .a0 = Máš pro mě práci?
+    .a1 = Našla by se tu práce?
+dialogue-question-quest-escort-where = Kam míříme?
+dialogue-question-quest-slay-where = Kde najdu { TAIL($body) }?
+dialogue-question-quest-slay-claim = Příšera byla zdolána!

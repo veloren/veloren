@@ -26,3 +26,36 @@ dialogue-decline =
     .a2 = Прости, не сейчас.
 dialogue-direction-airship_dock = Причал для дирижаблей
 dialogue-finish = До свидания
+dialogue-buy_hire_days =
+    .day = Один день
+    .week = Одну неделю
+    .unknown =
+        { $days ->
+            [one] { $days } день
+            [few] { $days } дня
+            [many] { $days } дней
+           *[other] { $days } дня
+        }
+dialogue-direction-actor = Где { $name }?
+dialogue-question-quest_req =
+    .a0 = У вас есть для меня работа?
+    .a1 = Есть ли у вас какие-нибудь вакансии?
+dialogue-question-quest-escort-where = Куда мы направляемся?
+dialogue-question-quest-slay-claim = Монстр был убит!
+dialogue-play_game = Давайте поиграем в игру
+dialogue-game-what_game =
+    .a0 = В какую игру вы хотите поиграть?
+    .a1 = Конечно! В какую игру?
+dialogue-game-win =
+    .a0 = Я выиграл!
+    .a1 = Да! Я выиграл!
+dialogue-game-lose =
+    .a0 = Эх, я проиграл...
+    .a1 = Поздравляю, ты выиграл.
+    .a2 = Вялый Легуум! Я проиграл.
+dialogue-game-rock_paper_scissors = Камень, Ножницы, Бумага
+dialogue-game-draw =
+    .a0 = Ничья!
+dialogue-game-rock = Камень
+dialogue-game-paper = Бумага
+dialogue-game-scissors = Ножницы

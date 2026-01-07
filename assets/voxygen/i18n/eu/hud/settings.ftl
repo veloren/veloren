@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Mantendu
 hud-settings-debug_info = Arazketa informazioa
 hud-settings-show_hitboxes = Erakutsi kolpe kutxak
 hud-settings-show_chat = Erakutsi txata
-hud-settings-show_hotkey_hints = Erakutsi laster tekla aholkuak
 hud-settings-tips_on_startup = Aholkuak hasieran
 hud-settings-ui_scale = UI eskala
 hud-settings-relative_scaling = Eskalatze erlatiboa

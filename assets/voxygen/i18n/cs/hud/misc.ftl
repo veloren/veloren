@@ -5,8 +5,6 @@ hud-you_died = Zemřel/a jsi
 hud-waypoint_saved = Bod uložen
 hud-sp_arrow_txt = SP
 hud-inventory_full = Plný inventář
-hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Nastavení ovládání
-hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Lucerna
 hud-press_key_to_show_debug_info_fmt = Stiskni { $key } pro zobrazení ladících informací
 hud-press_key_to_toggle_keybindings_fmt = Stiskni { $key } pro přepnutí ovládání
 hud-press_key_to_toggle_debug_info_fmt = Stiskni { $key } pro přepnutí ladících informací
@@ -29,7 +27,11 @@ hud-temp_quest_text =
     Kdykoliv se na to budeš cítit, můžeš získat ještě lepší vybavení z mnoha výzev označených na mapě!
 hud-spell = Zkušenosti
 hud-diary = Deník
-hud-free_look_indicator = Volný rozhled. Stiskni { $key } pro vypnutí.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] Volný rozhled. Stiskni { $key } k vypnutí.
+       *[other] Volný rozhled. Pusť { $key } k vypnutí.
+    }
 hud-camera_clamp_indicator = Vertikální zámek kamery aktivní. Stiskni { $key } pro vypnutí.
 hud-auto_walk_indicator = Automatická chůze aktivní
 hud-someone_else = někdo jiný
@@ -115,3 +117,6 @@ hud-init-stage-server-worldsim-erosion_time_left =
         }
 hud-rest = Odpočívat
 hud-waypoint_interact = Nastavit cestovní bod
+hud-steal-requires = Vykrást pomocí { $item }
+hud-steal-consumes = Použij { $item } ke krádeži
+hud-tutorial-disable = Trvale vypni nápovědu pro začátečníky

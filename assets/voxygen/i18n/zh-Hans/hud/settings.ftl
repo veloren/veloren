@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = 按住
 hud-settings-debug_info = 调试信息
 hud-settings-show_hitboxes = 显示复选框
 hud-settings-show_chat = 显示聊天
-hud-settings-show_hotkey_hints = 显示热键提示
 hud-settings-tips_on_startup = 开始时的提示信息
 hud-settings-ui_scale = UI比例
 hud-settings-relative_scaling = 相对缩放

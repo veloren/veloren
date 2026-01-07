@@ -86,3 +86,5 @@ pseudo-recipe-modular_weapon-staff = Držalo palice
     .desc = { "" }
 pseudo-recipe-modular_weapon-sceptre = Držalo žezla
     .desc = { "" }
+recipe-weapons-eldwood = Recepti za orožja iz starega lesa
+    .desc = { "" }

@@ -44,3 +44,10 @@ command-set_body_type-not_found =
     Попробуйте один из:
     { $options }
 command-set_body_type-no_body = Не удалось установить тип тела, так как у объекта нет тела.
+command-death_effect-dest = Добавляет объекту эффект "На грани смерти"
+command-group_promote-desc = Передать игроку права лидера группы
+command-health-desc = Установить ваше текущее показание здоровья
+command-set_body_type-not_character = Тип телосложения может быть установлен только в том случае, если персонаж игрока в сети.
+command-group_invite-desc = Пригласить игрока в группу
+command-group_kick-desc = Выгнать игрока из группы
+command-group_leave-desc = Покинуть текущую группу

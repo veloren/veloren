@@ -122,3 +122,7 @@ recipe-metal-steel = Рецепты Брони и Оружия из Стали
     .desc = { "" }
 recipe-armor-witch = Рецепт Брони Ведьмы
     .desc = { "" }
+recipe-lanterns = Рецепты Изготовления Фонарей
+    .desc = { "" }
+recipe-armor-cotton = Рецепт Одеяния из Хлопка
+    .desc = { "" }
