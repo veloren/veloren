@@ -17,12 +17,12 @@ BasicRanged(
         )),
         split: Some((
             amount: 30,
-            spread: 0.8,
+            spread: 0.25,
             new_lifetime: 15.0,
         )),
         lifetime_override: Some(0.8),
     ),
-    projectile_body: Object(Arrow),
+    projectile_body: Object(WideHeavyArrow),
     projectile_speed: 37.0,
     auto_aim: true,
     movement_modifier: (

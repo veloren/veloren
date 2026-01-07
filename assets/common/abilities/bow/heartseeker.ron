@@ -7,5 +7,5 @@ SelfBuff(
     ],
     buff_cat: Some(RemoveOnAttack),
     energy_cost: 0,
-    combo_cost: 5,
+    combo_cost: 0,
 )

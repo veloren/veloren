@@ -677,6 +677,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.bow.fusillade_shot" => imgs.bow_fusillade,
         "common.abilities.bow.death_volley" => imgs.bow_death_volley,
         "common.abilities.bow.death_volley_shot" => imgs.bow_death_volley,
+        "common.abilities.bow.death_volley_heavy_shot" => imgs.bow_death_volley,
         // Staff
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,

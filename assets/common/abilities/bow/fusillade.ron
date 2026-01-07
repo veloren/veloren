@@ -1,6 +1,6 @@
 Simple(
     energy_cost: 10,
-    combo_cost: 5,
+    combo_cost: 0,
     buildup_duration: 0.1,
     meta: (
         init_event: Some(EnterStance(Bow(Fusillade))),

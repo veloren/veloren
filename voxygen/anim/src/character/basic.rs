@@ -1755,7 +1755,10 @@ impl Animation for BasicAction {
                 next.hand_l.position += Vec3::new(0.0, 8.0, 0.0) * (-move1 + move2);
                 next.hold.scale *= 1.0 + move1;
             },
-            Some("common.abilities.bow.death_volley_shot") => {
+            Some(
+                "common.abilities.bow.death_volley_shot"
+                | "common.abilities.bow.death_volley_heavy_shot",
+            ) => {
                 bow_start(&mut next, s_a);
                 let look_z = d.look_dir_override.map_or(d.look_dir.z, |ldo| ldo.z);
                 bow_draw(&mut next, move1base, look_z);
