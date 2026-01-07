@@ -5,8 +5,6 @@ hud-sp_arrow_txt = SP
 hud-inventory_full = Inventaro Plenas
 hud-someone_else = aliulo
 hud-another_group = alia grupo
-hud-press_key_to_show_keybindings_fmt = { "[" }{ $key }] Klavbindadoj
-hud-press_key_to_toggle_lantern_fmt = { "[" }{ $key }] Lanterno
 hud-spell = Sorĉoj
 
 ## Diary

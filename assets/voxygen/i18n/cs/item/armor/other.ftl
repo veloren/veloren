@@ -82,3 +82,5 @@ lantern-bloodmoon_relic = Relikvie Červeného měsíce
     .desc = Půvabný pach krve slouží jako past i jako zdroj světla k lovu nočních stvůr.
 lantern-crux = Jádro
     .desc = Spalující žár je pouhým vzorkem nezaměnitelného žáru Gigase.
+glider-tephras = Tefras
+    .desc = Kvůli spalujícímu žáru se skoro nedá udržet.

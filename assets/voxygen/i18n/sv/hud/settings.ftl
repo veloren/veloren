@@ -7,7 +7,6 @@ hud-settings-autopress_behavior-auto = Auto
 hud-settings-debug_info = Felsökningsinformation
 hud-settings-show_hitboxes = Visa kollisionsgränser
 hud-settings-show_chat = Visa chatt
-hud-settings-show_hotkey_hints = Visa snabbtangentstips
 hud-settings-tips_on_startup = Tips vid uppstart
 hud-settings-ui_scale = Skalning av gränssnitt
 hud-settings-relative_scaling = Relativ skalning

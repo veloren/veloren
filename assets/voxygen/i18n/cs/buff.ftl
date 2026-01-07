@@ -11,8 +11,19 @@ buff-potion = Lektvar
 buff-saturation = Nasycení
     .desc = Přidá život během času ze Spotřebních.
 buff-invulnerability = Nezranitelnost
-    .desc = Žádný útok tě nezraní.
-    .stat = Zaručuje nezranitelnost.
+    .desc = Žádný útok ti neublíží.
+    .stat =
+        { $duration ->
+            [1]
+                Poskytuje nezranitelnost.
+                Trvá { $duration } sekundu.
+            [few]
+                Poskytuje nezranitelnost.
+                Trvá { $duration } sekundy.
+           *[other]
+                Poskytuje nezranitelnost.
+                Trvá { $duration } sekund.
+        }
 buff-protectingward = Ochraná Vizita
     .desc = Jsi chráněn, nějak, před útoky.
 buff-frenzied = Šílený
@@ -34,8 +45,20 @@ buff-ensnared = Polapen
 buff-increase_max_energy = Zvýšení Maximální Energie
     .desc = Maximum tvé energie se zvýší.
     .stat =
-        Zvedne maximální energii
-        o { $strength }.
+        { $duration ->
+            [1]
+                Zvyšuje maximální energii
+                o { $strength }.
+                Trvá { $duration } sekundu.
+            [few]
+                Zvyšuje maximální energii
+                o { $strength }.
+                Trvá { $duration } sekundy.
+           *[other]
+                Zvyšuje maximální energii
+                o { $strength }.
+                Trvá { $duration } sekund.
+        }
 buff-increase_max_health = Zvýšení zdraví
     .desc = Tvá hodnota maximálního zdraví je zvýšena.
     .stat =
@@ -107,8 +130,20 @@ buff-parried = Odražen
 buff-potionsickness = Nevolnost z lektvarů
     .desc = Poslední vypitý lektvar způsobí, že každý další bude mít menší efekt.
     .stat =
-        Snižuje pozitivní efekt
-        dalších lektvarů o { $strength } %.
+        { $duration ->
+            [1]
+                Snižuje pozitivní efekty
+                dalších lektvarů o { $strength } %.
+                Trvá { $duration } sekundu.
+            [few]
+                Snižuje pozitivní efekty
+                dalších lektvarů o { $strength } %.
+                Trvá { $duration } sekundy.
+           *[other]
+                Snižuje pozitivní efekty
+                dalších lektvarů o { $strength } %.
+                Trvá { $duration } sekund.
+        }
 buff-reckless = Lehkomyslnost
     .desc = Tvoje útoky jsou silnější. Ale necháváš svou obranu otevřenou.
 buff-polymorphed = Polymorfní

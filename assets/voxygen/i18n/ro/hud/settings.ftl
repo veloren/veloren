@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Ține apăsat
 hud-settings-debug_info = Informații pentru depanare
 hud-settings-show_hitboxes = Afișați casetele de coliziune
 hud-settings-show_chat = Arată chat
-hud-settings-show_hotkey_hints = Afișează sugestii pentru taste rapide
 hud-settings-tips_on_startup = Sfaturi la Pornire
 hud-settings-ui_scale = Dimensiune interfață
 hud-settings-relative_scaling = Dimensiune Relativă

@@ -63,3 +63,8 @@ hud-bag-split_swap_slots_drop_items =
         [1] Toto vyústí v upuštění 1 předmětu na zem. Jsi si jistý?
        *[other] Toto vyústí v upuštění { $slot_deficit } předmětů na zem. Jsi si jistý?
     }
+hud-bag-change_to_sort_by_name = Změnit na třídění dle Jména
+hud-bag-change_to_sort_by_quality = Změnit na třídění dle Kvality
+hud-bag-change_to_sort_by_category = Změnit na třídění dle Kategorie
+hud-bag-change_to_sort_by_tag = Změnit na třídění dle Značky
+hud-bag-change_to_sort_by_quantity = Změnit na třídění dle Počtu

@@ -912,3 +912,6 @@ name-body-quadruped_low-hakulaq =
 name-body-arthropod-emberfly =
     .fem = Янтарная Муха
     .masc = Янтарная Муха
+name-body-biped_large-gigas_fire =
+    .fem = Огненный Гигант
+    .masc = Огненный Гигант

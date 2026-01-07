@@ -7,7 +7,6 @@ hud-settings-autopress_behavior-auto = Auto
 hud-settings-debug_info = Información de depuración
 hud-settings-show_hitboxes = Mostrar cajas de colisión (hitboxes)
 hud-settings-show_chat = Mostrar chat
-hud-settings-show_hotkey_hints = Mostrar sugerencias de atajos
 hud-settings-tips_on_startup = Consejos iniciales
 hud-settings-ui_scale = Escala de la interfaz
 hud-settings-relative_scaling = Escala Relativa

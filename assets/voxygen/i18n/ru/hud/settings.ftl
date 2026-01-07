@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Удержание
 hud-settings-debug_info = Отладочная информация
 hud-settings-show_hitboxes = Отображать хитбоксы
 hud-settings-show_chat = Отображать чат
-hud-settings-show_hotkey_hints = Показывать подсказки клавиш
 hud-settings-tips_on_startup = Советы при запуске
 hud-settings-ui_scale = Масштаб пользовательского интерфейса
 hud-settings-relative_scaling = Стандартное масштабирование
@@ -170,3 +169,6 @@ hud-settings-menu_buttons = Кнопки Меню
 hud-settings-keybind-helper =
     ЛКМ - чтобы назначить
     ПКМ - чтобы отменить
+hud-settings-minimap = Мини-карта
+hud-settings-minimap_scale = Масштаб
+hud-settings-colored_player_marker = Цветной Маркер Игрока

@@ -7,7 +7,6 @@ hud-settings-autopress_behavior-auto = 自動
 hud-settings-debug_info = 除錯資訊
 hud-settings-show_hitboxes = 顯示碰撞框
 hud-settings-show_chat = 顯示聊天
-hud-settings-show_hotkey_hints = 顯示快捷鍵提示
 hud-settings-tips_on_startup = 啟動時顯示提示
 hud-settings-ui_scale = 介面縮放
 hud-settings-relative_scaling = 相對縮放

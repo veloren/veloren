@@ -5,7 +5,6 @@ hud-settings-press_behavior-hold = Manté
 hud-settings-debug_info = Informació de Depurat
 hud-settings-show_hitboxes = Mostra caixes d'impacte
 hud-settings-show_chat = Mostra Xat
-hud-settings-show_hotkey_hints = Mostra consells de tecla ràpida
 hud-settings-tips_on_startup = Consells en iniciar
 hud-settings-ui_scale = Escala de l'IU
 hud-settings-relative_scaling = Escalat Relatiu

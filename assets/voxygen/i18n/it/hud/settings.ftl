@@ -7,7 +7,6 @@ hud-settings-press_behavior-hold = Tieni premuto
 hud-settings-debug_info = Info debug
 hud-settings-show_hitboxes = Mostra le hitbox
 hud-settings-show_chat = Mostra la chat
-hud-settings-show_hotkey_hints = Mostra suggerimenti per i tasti di scelta rapida
 hud-settings-tips_on_startup = Consigli all'avvio
 hud-settings-ui_scale = Scala UI
 hud-settings-relative_scaling = Ridimensionamento relativo

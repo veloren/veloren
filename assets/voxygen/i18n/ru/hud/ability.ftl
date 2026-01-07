@@ -309,3 +309,7 @@ common-abilities-sceptre-lifestealbeam = Вампиризм
     .desc = Выпускает луч, который высасывает жизнь из ваших врагов.
 common-abilities-sceptre-healingaura = Аура Исцеления
     .desc = Исцеляет ваших союзников. Для использования требуется комбо.
+common-abilities-staff-flamethrower = Огнемет
+    .desc = Распыляет огонь перед вами.
+common-abilities-staff-firebomb = Огненная Бомба
+    .desc = Выстреливает огненным шаром, который взрывается при ударе.

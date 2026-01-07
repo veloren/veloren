@@ -165,3 +165,4 @@ subtitle-spear_attack = Švih kopím
 subtitle-uwield_spear = Kopí schováno
 subtitle-pickup_spear = Kopí zdvihnuto
 subtitle-wield_spear = Vyzbrojení kopím
+subtitle-train-chugg = Blafající vlak

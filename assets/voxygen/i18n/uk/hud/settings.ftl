@@ -7,7 +7,6 @@ hud-settings-autopress_behavior-auto = Автоматично
 hud-settings-debug_info = Технічна інформація
 hud-settings-show_hitboxes = Відображати хітбокси
 hud-settings-show_chat = Відображати чат
-hud-settings-show_hotkey_hints = Відображати підказки гарячих клавіш
 hud-settings-tips_on_startup = Підказки при запуску
 hud-settings-ui_scale = Масштабування інтерфейсу
 hud-settings-relative_scaling = Відносне

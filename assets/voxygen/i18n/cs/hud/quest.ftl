@@ -6,3 +6,4 @@ hud-quest-reward = Odměním tě:
 hud-quest-accept = Přijmout
 hud-quest-decline = Odmítnout
 hud-dialogue = Rozhovor
+hud-dialogue-ack = Stiskni [{ $key }] pro potvrzení

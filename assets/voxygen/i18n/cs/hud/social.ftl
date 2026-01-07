@@ -1,4 +1,4 @@
-hud-social = Společnost
+hud-social = Hráči
 hud-social-online = Aktivní:
 hud-social-friends = Přátelé
 hud-social-not_yet_available = Ještě není dostupné
