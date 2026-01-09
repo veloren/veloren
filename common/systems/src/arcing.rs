@@ -29,7 +29,7 @@ event_emitters! {
         buff: BuffEvent,
         poise_change: PoiseChangeEvent,
         combo_change: ComboChangeEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
+        entity_attack_hook: EntityAttackedHookEvent,
         transform: TransformEvent,
     }
 }
@@ -58,8 +58,8 @@ pub struct ReadData<'a> {
     players: ReadStorage<'a, Player>,
 }
 
-/// This system is responsible for handling accepted inputs like moving or
-/// attacking
+/// This system is responsible for hit detection of arcing attacks. Arcing
+/// attacks chain between nearby entities.
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {

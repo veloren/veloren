@@ -5,6 +5,6 @@ SelfBuff(
     buffs: [
         BuffDesc(kind: SepticShot, data: BuffData(strength: 1.0, duration: Some(5.0))),
     ],
-    buff_cat: Some(RemoveOnShoot),
+    buff_cat: Some(RemoveOnAttack),
     energy_cost: 20,
 )

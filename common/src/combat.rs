@@ -183,14 +183,6 @@ impl Attack {
     #[must_use]
     pub fn with_combo_increment(self) -> Self { self.with_combo(1) }
 
-    #[must_use]
-    pub fn with_stat_adjustments(mut self, stats: &Stats) -> Self {
-        for effect in stats.effects_on_attack.iter() {
-            self = self.with_effect(effect.clone())
-        }
-        self
-    }
-
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
     pub fn compute_block_damage_decrement(
@@ -799,6 +791,13 @@ impl Attack {
         for effect in self
             .effects
             .iter()
+            .chain(
+                attacker
+                    .and_then(|a| a.stats)
+                    .map(|s| s.effects_on_attack.iter())
+                    .into_iter()
+                    .flatten(),
+            )
             .filter(|e| {
                 allow_friendly_fire
                     || e.target
@@ -825,24 +824,11 @@ impl Attack {
             if requirements_met {
                 let mut strength_modifier = strength_modifier;
                 for modification in effect.modifications.iter() {
-                    match modification {
-                        CombatModification::RangeWeakening {
-                            start_dist,
-                            end_dist,
-                            min_str,
-                        } => {
-                            if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
-                                let dist = attacker_pos.distance(target.pos);
-                                // a = (y2 - y1) / (x2 - x1)
-                                let gradient = (*min_str - 1.0) / (end_dist - start_dist);
-                                // c = y2 - a*x1
-                                let intercept = 1.0 - gradient * start_dist;
-                                // y = clamp(a*x + c)
-                                let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
-                                strength_modifier *= strength;
-                            }
-                        },
-                    }
+                    modification.apply_mod(
+                        attacker.and_then(|a| a.pos),
+                        Some(target.pos),
+                        &mut strength_modifier,
+                    );
                 }
                 let strength_modifier = strength_modifier;
                 is_applied = true;
@@ -1567,25 +1553,11 @@ impl AttackedModification {
 
                     let mut strength_modifier = 1.0;
                     for modification in a_mod.modifications.iter() {
-                        match modification {
-                            CombatModification::RangeWeakening {
-                                start_dist,
-                                end_dist,
-                                min_str,
-                            } => {
-                                if let Some(attacker_pos) = attacker.and_then(|a| a.pos) {
-                                    let dist = attacker_pos.distance(target.pos);
-                                    // a = (y2 - y1) / (x2 - x1)
-                                    let gradient = (*min_str - 1.0) / (end_dist - start_dist);
-                                    // c = y2 - a*x1
-                                    let intercept = 1.0 - gradient * start_dist;
-                                    // y = clamp(a*x + c)
-                                    let strength =
-                                        (gradient * dist + intercept).clamp(*min_str, 1.0);
-                                    strength_modifier *= strength;
-                                }
-                            },
-                        }
+                        modification.apply_mod(
+                            attacker.and_then(|a| a.pos),
+                            Some(target.pos),
+                            &mut strength_modifier,
+                        );
                     }
                     let strength_modifier = strength_modifier;
 
@@ -1717,6 +1689,34 @@ pub enum CombatModification {
         end_dist: f32,
         min_str: f32,
     },
+}
+
+impl CombatModification {
+    pub fn apply_mod(
+        &self,
+        attacker_pos: Option<Vec3<f32>>,
+        target_pos: Option<Vec3<f32>>,
+        strength_mod: &mut f32,
+    ) {
+        match self {
+            Self::RangeWeakening {
+                start_dist,
+                end_dist,
+                min_str,
+            } => {
+                if let Some((attacker_pos, target_pos)) = attacker_pos.zip(target_pos) {
+                    let dist = attacker_pos.distance(target_pos);
+                    // a = (y2 - y1) / (x2 - x1)
+                    let gradient = (*min_str - 1.0) / (end_dist - start_dist).max(0.1);
+                    // c = y2 - a*x1
+                    let intercept = 1.0 - gradient * start_dist;
+                    // y = clamp(a*x + c)
+                    let strength = (gradient * dist + intercept).clamp(*min_str, 1.0);
+                    *strength_mod *= strength;
+                }
+            },
+        }
+    }
 }
 
 /// Effects applied to the rider of this entity while riding.

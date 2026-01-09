@@ -4,13 +4,13 @@ use crate::{
         DamageKind, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
-        self, ArcProperties,
+        ArcProperties,
         ability::Dodgeable,
         item::{Reagent, tool},
     },
     consts::GRAVITY,
     explosion::{ColorPreset, Explosion, RadiusEffect},
-    resources::Secs,
+    resources::{Secs, Time},
     states::utils::AbilityInfo,
     uid::Uid,
     util::Dir,
@@ -64,6 +64,9 @@ pub struct Projectile {
     /// Entities that the projectile has hit (only relevant for projectiles that
     /// can pierce entities)
     pub hit_entities: Vec<Uid>,
+    /// Whether to limit the number of projectiles from from an ability can
+    /// damage the target in a short duration
+    pub limit_per_ability: bool,
 }
 
 impl Component for Projectile {
@@ -94,6 +97,8 @@ pub struct ProjectileConstructor {
     pub homing_rate: Option<f32>,
     pub split: Option<SplitOptions>,
     pub lifetime_override: Option<Secs>,
+    #[serde(default)]
+    pub limit_per_ability: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -178,7 +183,6 @@ impl ProjectileConstructor {
         self,
         owner: Option<Uid>,
         precision_mult: f32,
-        entity_stats: &comp::Stats,
         ability_info: Option<AbilityInfo>,
     ) -> Projectile {
         if self.scaled.is_some() {
@@ -254,7 +258,6 @@ impl ProjectileConstructor {
             }
 
             let mut attack = Attack::new(ability_info)
-                .with_stat_adjustments(entity_stats)
                 .with_damage(damage)
                 .with_precision(
                     precision_mult
@@ -328,6 +331,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Penetrating => {
@@ -355,6 +359,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: true,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Hazard {
@@ -385,6 +390,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Explosive {
@@ -434,6 +440,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Arcing {
@@ -475,6 +482,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::ExplosiveHazard {
@@ -523,6 +531,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Possess => {
@@ -543,6 +552,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::Firework(reagent) => {
@@ -563,6 +573,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::SurpriseEgg => {
@@ -584,6 +595,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
             ProjectileConstructorKind::TrainingDummy => {
@@ -607,6 +619,7 @@ impl ProjectileConstructor {
                     homing,
                     pierce_entities: false,
                     hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
                 }
             },
         }
@@ -767,4 +780,13 @@ pub fn aim_projectile(speed: f32, pos: Vec3<f32>, tgt: Vec3<f32>, high_arc: bool
             / GRAVITY;
     }
     Dir::from_unnormalized(to_tgt)
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ProjectileHitEntities {
+    pub hit_entities: Vec<(Uid, Time)>,
+}
+
+impl Component for ProjectileHitEntities {
+    type Storage = specs::DenseVecStorage<Self>;
 }

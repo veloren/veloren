@@ -3594,11 +3594,11 @@ impl StatAdj {
         let add = match self.context {
             StatContext::PoiseResilience(base) => {
                 let poise_res = combat::compute_poise_resilience(data.inventory, data.msm);
-                poise_res.unwrap_or(0.0) / base
+                poise_res.unwrap_or(0.0) / base.max(0.1)
             },
             StatContext::Stealth(base) => {
                 let stealth = combat::compute_stealth(data.inventory, data.msm);
-                stealth / base
+                stealth / base.max(0.1)
             },
         };
         match self.field {

@@ -216,6 +216,7 @@ impl CharacterBehavior for Data {
                                     homing: None,
                                     pierce_entities: false,
                                     hit_entities: Vec::new(),
+                                    limit_per_ability: false,
                                 });
 
                                 let mut rng = rand::rng();

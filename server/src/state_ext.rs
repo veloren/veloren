@@ -226,6 +226,7 @@ impl StateExt for State {
             .with(comp::Auras::default())
             .with(comp::EnteredAuras::default())
             .with(comp::Stance::default())
+            .with(comp::projectile::ProjectileHitEntities::default())
             .maybe_with(body.heads().map(comp::body::parts::Heads::new))
     }
 
@@ -575,6 +576,10 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::EnteredAuras::default());
             self.write_component_ignore_entity_dead(entity, comp::Combo::default());
             self.write_component_ignore_entity_dead(entity, comp::Stance::default());
+            self.write_component_ignore_entity_dead(
+                entity,
+                comp::projectile::ProjectileHitEntities::default(),
+            );
 
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());

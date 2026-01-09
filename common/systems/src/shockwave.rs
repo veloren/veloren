@@ -33,7 +33,7 @@ event_emitters! {
         mine_block: MineBlockEvent,
         parry_hook: ParryHookEvent,
         knockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
+        entity_attack_hook: EntityAttackedHookEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         delete: DeleteEvent,

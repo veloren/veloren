@@ -71,7 +71,6 @@ impl CharacterBehavior for Data {
                                 melee.clone().create_melee(
                                     precision_mult,
                                     tool_stats,
-                                    data.stats,
                                     self.static_data.ability_info,
                                 ),
                             );
@@ -120,7 +119,6 @@ impl CharacterBehavior for Data {
                         let projectile = self.static_data.projectile.clone().create_projectile(
                             Some(*data.uid),
                             precision_mult,
-                            data.stats,
                             Some(self.static_data.ability_info),
                         );
 

@@ -10,14 +10,14 @@ use common::{
         Object, Ori, Pos, ThrownItem, TradingBehavior, Vel, WaypointArea,
         aura::{Aura, AuraKind, AuraTarget},
         body,
-        buff::{BuffCategory, BuffChange, BuffData, BuffKind, BuffSource},
+        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
         item::MaterialStatManifest,
         ship::figuredata::VOXEL_COLLIDER_MANIFEST,
         tool::AbilityMap,
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        ArcingEvent, BuffEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
+        ArcingEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
         CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
         EventBus, InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent,
         ShootEvent, SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
@@ -432,20 +432,6 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
             vel,
         });
 
-    if let Some(entity) = ev.entity {
-        state
-            .ecs()
-            .read_resource::<EventBus<BuffEvent>>()
-            .emit_now(BuffEvent {
-                entity,
-                buff_change: BuffChange::RemoveByCategory {
-                    all_required: vec![BuffCategory::RemoveOnShoot],
-                    any_required: vec![],
-                    none_required: vec![],
-                },
-            });
-    }
-
     state
         .create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile)
         .maybe_with(ev.light)
@@ -667,6 +653,7 @@ pub fn handle_create_object(
                     AuraTarget::NotGroupOf(owner),
                     time,
                 )]))
+                .with(comp::projectile::ProjectileHitEntities::default())
                 .build();
 
             if let Some(owner) = state.ecs().read_resource::<IdMaps>().uid_entity(owner) {

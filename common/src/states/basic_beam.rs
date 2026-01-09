@@ -139,7 +139,6 @@ impl CharacterBehavior for Data {
                         let precision_mult =
                             combat::compute_precision_mult(data.inventory, data.msm);
                         Attack::new(Some(self.static_data.ability_info))
-                            .with_stat_adjustments(data.stats)
                             .with_damage(damage)
                             .with_precision(
                                 precision_mult

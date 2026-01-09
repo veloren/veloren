@@ -22,8 +22,8 @@ use common::{
     CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget, RadiusEffect,
     assets::{AssetExt, Ron},
     combat::{
-        self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, CombatEffect, CombatModification,
-        DamageContributor, DeathEffects, StatEffect, StatEffectTarget,
+        self, AttackSource, BASE_PARRIED_POISE_PUNISHMENT, CombatEffect, DamageContributor,
+        DeathEffects, StatEffect, StatEffectTarget,
     },
     comp::{
         self, Alignment, Auras, BASE_ABILITY_LIMIT, Body, BuffCategory, BuffEffect, CharacterState,
@@ -120,7 +120,7 @@ event_emitters! {
         sound: SoundEvent,
         parry_hook: ParryHookEvent,
         knockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
+        entity_attack_hook: EntityAttackedHookEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         bonk: BonkEvent,
@@ -722,29 +722,11 @@ impl ServerEvent for DestroyEvent {
                     if requirements_met {
                         let mut strength_modifier = 1.0;
                         for modification in effect.modifications() {
-                            match modification {
-                                CombatModification::RangeWeakening {
-                                    start_dist,
-                                    end_dist,
-                                    min_str,
-                                } => {
-                                    if let Some((pos_a, pos_b)) = data
-                                        .positions
-                                        .get(effect_target)
-                                        .zip(data.positions.get(ev.entity))
-                                    {
-                                        let dist = pos_a.0.distance(pos_b.0);
-                                        // a = (y2 - y1) / (x2 - x1)
-                                        let gradient = (*min_str - 1.0) / (end_dist - start_dist);
-                                        // c = y2 - a*x1
-                                        let intercept = 1.0 - gradient * start_dist;
-                                        // y = clamp(a*x + c)
-                                        let strength =
-                                            (gradient * dist + intercept).clamp(*min_str, 1.0);
-                                        strength_modifier *= strength;
-                                    }
-                                },
-                            }
+                            modification.apply_mod(
+                                data.positions.get(effect_target).map(|x| x.0),
+                                data.positions.get(ev.entity).map(|x| x.0),
+                                &mut strength_modifier,
+                            )
                         }
                         let strength_modifier = strength_modifier;
 
@@ -2336,13 +2318,9 @@ impl ServerEvent for BonkEvent {
                                         homing_rate: None,
                                         split: None,
                                         lifetime_override: None,
+                                        limit_per_ability: false,
                                     }
-                                    .create_projectile(
-                                        None,
-                                        1.0,
-                                        &comp::Stats::empty(Body::Object(comp::object::Body::Bomb)),
-                                        None,
-                                    ),
+                                    .create_projectile(None, 1.0, None),
                                     speed: vel.0.magnitude(),
                                     object: None,
                                     marker: None,
@@ -2926,29 +2904,11 @@ impl ServerEvent for EntityAttackedHookEvent {
                     if requirements_met {
                         let mut strength_modifier = 1.0;
                         for modification in effect.modifications() {
-                            match modification {
-                                CombatModification::RangeWeakening {
-                                    start_dist,
-                                    end_dist,
-                                    min_str,
-                                } => {
-                                    if let Some((pos_a, pos_b)) = data
-                                        .positions
-                                        .get(effect_target)
-                                        .zip(data.positions.get(ev.entity))
-                                    {
-                                        let dist = pos_a.0.distance(pos_b.0);
-                                        // a = (y2 - y1) / (x2 - x1)
-                                        let gradient = (*min_str - 1.0) / (end_dist - start_dist);
-                                        // c = y2 - a*x1
-                                        let intercept = 1.0 - gradient * start_dist;
-                                        // y = clamp(a*x + c)
-                                        let strength =
-                                            (gradient * dist + intercept).clamp(*min_str, 1.0);
-                                        strength_modifier *= strength;
-                                    }
-                                },
-                            }
+                            modification.apply_mod(
+                                data.positions.get(effect_target).map(|x| x.0),
+                                data.positions.get(ev.entity).map(|x| x.0),
+                                &mut strength_modifier,
+                            );
                         }
                         let strength_modifier = strength_modifier;
 

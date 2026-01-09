@@ -646,8 +646,7 @@ impl BuffKind {
                 vec![
                     BuffEffect::AttackEffect(knockback),
                     BuffEffect::AttackEffect(poise),
-                    // BuffEffect::AttackDamage(0.5 * data.strength), // TODO: has no effect on
-                    // damage?
+                    BuffEffect::AttackDamage(0.75), // TODO: has no effect on damage?
                 ]
             },
             BuffKind::Heartseeker => {
@@ -720,7 +719,7 @@ impl BuffKind {
 
     fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
         // TODO: Remove clippy allow after another buff needs this
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match self {
             BuffKind::PotionSickness => {
                 cat_ids.push(BuffCategory::PersistOnDowned);
@@ -860,7 +859,6 @@ pub enum BuffCategory {
     FromActiveAura(Uid, AuraKey),
     FromLink(DynWeakLinkHandle),
     RemoveOnAttack,
-    RemoveOnShoot,
     RemoveOnLoadoutChange,
     SelfBuff,
 }

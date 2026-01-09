@@ -17,6 +17,7 @@ ChargedRanged(
             damage: 10,
             knockback: Some(5),
         )),
+        limit_per_ability: true,
     ),
     buildup_duration: 0.3,
     charge_duration: 1.0,

@@ -6,7 +6,8 @@ use common::{
         Mass, Ori, PhysicsState, Player, Poise, Pos, Projectile, Stats, Vel,
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
-        object, projectile,
+        object,
+        projectile::{self, ProjectileHitEntities},
     },
     effect,
     event::{
@@ -96,6 +97,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Projectile>,
         Read<'a, EventBus<Outcome>>,
         WriteStorage<'a, Vel>,
+        WriteStorage<'a, ProjectileHitEntities>,
     );
 
     const NAME: &'static str = "projectile";
@@ -104,7 +106,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut orientations, mut projectiles, outcomes, mut velocities): Self::SystemData,
+        (read_data, mut orientations, mut projectiles, outcomes, mut velocities, mut hit_entities): Self::SystemData,
     ) {
         let mut emitters = read_data.events.get_emitters();
         let mut outcomes_emitter = outcomes.emitter();
@@ -176,6 +178,18 @@ impl<'a> System<'a> for Sys {
                     continue;
                 }
 
+                // Skip if another projectile from the attacker has already hit this entity, and
+                // if this projectile limits the number of hits per ability
+                if projectile.limit_per_ability
+                    && projectile
+                        .owner
+                        .and_then(|owner| read_data.id_maps.uid_entity(owner))
+                        .and_then(|owner| hit_entities.get(owner))
+                        .is_some_and(|h_e| h_e.hit_entities.iter().any(|(hit, _)| *hit == other))
+                {
+                    continue;
+                }
+
                 let projectile = &mut *projectile;
 
                 let entity_of = |uid: Uid| read_data.id_maps.uid_entity(uid);
@@ -201,7 +215,21 @@ impl<'a> System<'a> for Sys {
                     }
                 }
 
+                // This hit entities list prevents a single projectile from hitting the same
+                // target multiple times
                 projectile.hit_entities.push(other);
+
+                // This hit entities list prevents multiple projectiles fired from the same
+                // attacker hitting the same target multiple times (if the ability calls for
+                // this behavior)
+                if let Some(owner) = projectile
+                    .owner
+                    .and_then(|owner| read_data.id_maps.uid_entity(owner))
+                    && projectile.limit_per_ability
+                    && let Some(hit_entities) = hit_entities.get_mut(owner)
+                {
+                    hit_entities.hit_entities.push((other, *read_data.time))
+                }
 
                 let effects = if projectile.pierce_entities {
                     Either::Left(projectile.hit_entity.clone().into_iter())
@@ -464,6 +492,7 @@ impl<'a> System<'a> for Sys {
                                                 homing: None,
                                                 pierce_entities: false,
                                                 hit_entities: Vec::new(),
+                                                limit_per_ability: false,
                                             },
                                             speed,
                                             object: None,
@@ -551,6 +580,13 @@ impl<'a> System<'a> for Sys {
                 .time_left
                 .checked_sub(Duration::from_secs_f32(read_data.dt.0))
                 .unwrap_or_default();
+        }
+
+        // Hit entities lists
+        for hit_entities_list in (&mut hit_entities).join() {
+            hit_entities_list
+                .hit_entities
+                .retain(|(_, time)| read_data.time.0 < time.0 + 1.0)
         }
     }
 }

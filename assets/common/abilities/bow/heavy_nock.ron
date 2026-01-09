@@ -5,6 +5,6 @@ SelfBuff(
     buffs: [
         BuffDesc(kind: HeavyNock, data: BuffData(strength: 1.0, duration: None)),
     ],
-    buff_cat: Some(RemoveOnShoot),
+    buff_cat: Some(RemoveOnAttack),
     energy_cost: 10,
 )

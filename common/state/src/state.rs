@@ -274,6 +274,7 @@ impl State {
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
+        ecs.register::<comp::projectile::ProjectileHitEntities>();
         ecs.register::<comp::Beam>();
         ecs.register::<comp::Arcing>();
         ecs.register::<comp::Alignment>();

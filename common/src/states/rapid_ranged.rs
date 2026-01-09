@@ -146,7 +146,6 @@ impl CharacterBehavior for Data {
                     let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
                         precision_mult,
-                        data.stats,
                         Some(self.static_data.ability_info),
                     );
                     output_events.emit_server(ShootEvent {

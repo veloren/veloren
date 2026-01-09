@@ -193,7 +193,6 @@ impl CharacterBehavior for Data {
                             .create_melee(
                                 precision_mult,
                                 tool_stats,
-                                data.stats,
                                 self.static_data.ability_info,
                             ),
                     );
@@ -212,9 +211,8 @@ impl CharacterBehavior for Data {
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        let attack = Attack::new(Some(self.static_data.ability_info))
-                            .with_stat_adjustments(data.stats)
-                            .with_damage(damage);
+                        let attack =
+                            Attack::new(Some(self.static_data.ability_info)).with_damage(damage);
                         let explosion = Explosion {
                             effects: vec![RadiusEffect::Attack {
                                 attack,

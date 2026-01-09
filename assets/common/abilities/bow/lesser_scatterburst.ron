@@ -18,6 +18,7 @@ ChargedRanged(
             knockback: Some(7),
             // energy: Some(6),
         )),
+        limit_per_ability: true,
     ),
     buildup_duration: 0.2,
     charge_duration: 0.4,

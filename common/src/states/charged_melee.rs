@@ -100,7 +100,6 @@ impl CharacterBehavior for Data {
                             strike.clone().create_melee(
                                 precision_mult,
                                 tool_stats,
-                                data.stats,
                                 self.static_data.ability_info,
                             ),
                         );
@@ -193,7 +192,6 @@ impl CharacterBehavior for Data {
                             .create_melee(
                                 precision_mult,
                                 tool_stats,
-                                data.stats,
                                 self.static_data.ability_info,
                             ),
                     );
