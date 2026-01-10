@@ -130,6 +130,7 @@ pub enum SfxEvent {
     SplashBig,
     Run(BlockKind),
     QuadRun(BlockKind),
+    OctoRun(BlockKind),
     Roll,
     RollCancel,
     Sneak,

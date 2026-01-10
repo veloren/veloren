@@ -97,6 +97,9 @@ impl EventMapper for MovementEventMapper {
                     Body::BirdMedium(_) | Body::BirdLarge(_) | Body::BipedLarge(_) => {
                         Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
                     },
+                    Body::Arthropod(_) => {
+                        Self::map_arthropod_movement_event(physics, vel.0, underfoot_block_kind)
+                    },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
                 };
 
@@ -283,6 +286,32 @@ impl MovementEventMapper {
                 BlockKind::Earth => SfxEvent::QuadRun(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
                 _ => SfxEvent::QuadRun(BlockKind::Grass),
+            }
+        } else {
+            SfxEvent::Idle
+        }
+    }
+
+    /// Maps a limited set of movements for arthropod entities
+    fn map_arthropod_movement_event(
+        physics_state: &PhysicsState,
+        vel: Vec3<f32>,
+        underfoot_block_kind: BlockKind,
+    ) -> SfxEvent {
+        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
+            SfxEvent::Swim
+        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
+            match underfoot_block_kind {
+                BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::OctoRun(BlockKind::Snow),
+                BlockKind::Rock
+                | BlockKind::WeakRock
+                | BlockKind::GlowingRock
+                | BlockKind::GlowingWeakRock
+                | BlockKind::Ice => SfxEvent::OctoRun(BlockKind::Rock),
+                // BlockKind::Sand => SfxEvent::OctoRun(BlockKind::Sand),
+                BlockKind::Earth => SfxEvent::OctoRun(BlockKind::Earth),
+                BlockKind::Air => SfxEvent::Idle,
+                _ => SfxEvent::OctoRun(BlockKind::Grass),
             }
         } else {
             SfxEvent::Idle
