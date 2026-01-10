@@ -196,6 +196,17 @@
         threshold: 0.25,
         subtitle: "subtitle-footsteps_earth",
     ),
+    OctoRun(Earth): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepdirt_1",
+            "voxygen.audio.sfx.footsteps.stepdirt_2",
+            "voxygen.audio.sfx.footsteps.stepdirt_3",
+            "voxygen.audio.sfx.footsteps.stepdirt_4",
+            "voxygen.audio.sfx.footsteps.stepdirt_5",
+        ],
+        threshold: 0.13,
+        subtitle: "subtitle-footsteps_earth",
+    ),
     Run(Grass): (
         files: [
             "voxygen.audio.sfx.footsteps.stepgrass_1",
@@ -218,6 +229,18 @@
             "voxygen.audio.sfx.footsteps.stepgrass_6",
         ],
         threshold: 0.5,
+        subtitle: "subtitle-footsteps_grass",
+    ),
+    OctoRun(Grass): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stepgrass_1",
+            "voxygen.audio.sfx.footsteps.stepgrass_2",
+            "voxygen.audio.sfx.footsteps.stepgrass_3",
+            "voxygen.audio.sfx.footsteps.stepgrass_4",
+            "voxygen.audio.sfx.footsteps.stepgrass_5",
+            "voxygen.audio.sfx.footsteps.stepgrass_6",
+        ],
+        threshold: 0.25,
         subtitle: "subtitle-footsteps_grass",
     ),
     // For when sand 1) exists and 2) has unique sounds
@@ -259,6 +282,15 @@
         threshold: 0.5,
         subtitle: "subtitle-footsteps_snow",
     ),
+    OctoRun(Snow): (
+        files: [
+            "voxygen.audio.sfx.footsteps.snow_step_1",
+            "voxygen.audio.sfx.footsteps.snow_step_2",
+            "voxygen.audio.sfx.footsteps.snow_step_3",
+        ],
+        threshold: 0.25,
+        subtitle: "subtitle-footsteps_snow",
+    ),
     Run(Rock): (
         files: [
             "voxygen.audio.sfx.footsteps.stone_step_1",
@@ -293,6 +325,24 @@
             "voxygen.audio.sfx.footsteps.stone_step_12",
         ],
         threshold: 0.5,
+        subtitle: "subtitle-footsteps_rock",
+    ),
+    OctoRun(Rock): (
+        files: [
+            "voxygen.audio.sfx.footsteps.stone_step_1",
+            "voxygen.audio.sfx.footsteps.stone_step_2",
+            "voxygen.audio.sfx.footsteps.stone_step_3",
+            "voxygen.audio.sfx.footsteps.stone_step_4",
+            "voxygen.audio.sfx.footsteps.stone_step_5",
+            "voxygen.audio.sfx.footsteps.stone_step_6",
+            "voxygen.audio.sfx.footsteps.stone_step_7",
+            "voxygen.audio.sfx.footsteps.stone_step_8",
+            "voxygen.audio.sfx.footsteps.stone_step_9",
+            "voxygen.audio.sfx.footsteps.stone_step_10",
+            "voxygen.audio.sfx.footsteps.stone_step_11",
+            "voxygen.audio.sfx.footsteps.stone_step_12",
+        ],
+        threshold: 0.25,
         subtitle: "subtitle-footsteps_rock",
     ),
     Roll: (

@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Close button for dialogues.
 - A new tutorial system that introduces mechanics during gameplay without breaking immersion
 - Added more sprite effects
+- Arthropod footsteps
 
 ### Changed
 
