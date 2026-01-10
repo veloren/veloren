@@ -1142,7 +1142,11 @@ pub fn handle_manipulate_loadout(
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
-    loadout_change_hook(data, output_events, true);
+    // Trigger the hook for everything except the Collect action so that buffs
+    // and combos are preserved.
+    if !matches!(inv_action, InventoryAction::Collect(_)) {
+        loadout_change_hook(data, output_events, true);
+    }
     match inv_action {
         InventoryAction::Use(slot @ Slot::Inventory(inv_slot)) => {
             // If inventory action is using a slot, and slot is in the inventory
