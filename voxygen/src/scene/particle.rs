@@ -6,7 +6,7 @@ use crate::{
         Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
         pipelines::particle::ParticleMode,
     },
-    scene::terrain::FireplaceType,
+    scene::{terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
 };
 use common::{
     assets::{AssetExt, DotVox},
@@ -709,7 +709,7 @@ impl ParticleMgr {
                 .retain(|p| p.alive_until > scene_data.state.get_time());
 
             // add new Particle
-            self.maintain_armor_particles(scene_data, figure_mgr);
+            self.maintain_equipment_particles(scene_data, figure_mgr);
             self.maintain_body_particles(scene_data);
             self.maintain_char_state_particles(scene_data, figure_mgr);
             self.maintain_beam_particles(scene_data, lights);
@@ -732,7 +732,7 @@ impl ParticleMgr {
         }
     }
 
-    fn maintain_armor_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
+    fn maintain_equipment_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
         prof_span!("ParticleMgr::maintain_armor_particles");
         let ecs = scene_data.state.ecs();
 
@@ -746,12 +746,23 @@ impl ParticleMgr {
             .join()
         {
             for item in inv.equipped_items() {
-                if let ItemDefinitionId::Simple(str) = item.item_definition_id()
-                    && &*str == "common.items.armor.misc.head.pipe"
-                {
-                    self.maintain_pipe_particles(
-                        scene_data, figure_mgr, entity, body, scale, physics,
-                    )
+                if let ItemDefinitionId::Simple(str) = item.item_definition_id() {
+                    match &*str {
+                        "common.items.armor.misc.head.pipe" => self.maintain_pipe_particles(
+                            scene_data, figure_mgr, entity, body, scale, physics,
+                        ),
+                        "common.items.npc_weapons.sword.gigas_fire_sword" => {
+                            if let Some(trail_points) = TOOL_TRAIL_MANIFEST.get(item) {
+                                self.maintain_gigas_fire_sword_particles(
+                                    scene_data,
+                                    figure_mgr,
+                                    trail_points,
+                                    entity,
+                                )
+                            }
+                        },
+                        _ => {},
+                    }
                 }
             }
         }
@@ -777,7 +788,6 @@ impl ParticleMgr {
             let Some(state) = figure_mgr.states.character_states.get(&entity) else {
                 return;
             };
-            let time = scene_data.state.get_time();
 
             // TODO: compute offsets instead of hardcoding
             use body::humanoid::{BodyType::*, Species::*};
@@ -799,6 +809,7 @@ impl ParticleMgr {
             let mut rng = rand::rng();
             let dt = scene_data.state.get_delta_time();
             if rng.random_bool((0.25 * dt as f64).min(1.0)) {
+                let time = scene_data.state.get_time();
                 self.particles.resize_with(self.particles.len() + 10, || {
                     Particle::new(
                         Duration::from_millis(1500),
@@ -809,6 +820,40 @@ impl ParticleMgr {
                     )
                 });
             }
+        }
+    }
+
+    fn maintain_gigas_fire_sword_particles(
+        &mut self,
+        scene_data: &SceneData,
+        figure_mgr: &FigureMgr,
+        trail_points: (Vec3<f32>, Vec3<f32>),
+        entity: Entity,
+    ) {
+        prof_span!("ParticleMgr::maintain_gigas_fire_sword_particles");
+        let Some(state) = figure_mgr.states.biped_large_states.get(&entity) else {
+            return;
+        };
+
+        let mut rng = rand::rng();
+        let time = scene_data.state.get_time();
+        for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
+            let blade_offset = trail_points.0
+                + rng.random_range(0.0..1.0_f32) * (trail_points.1 - trail_points.0)
+                + rng.random_range(-5.0..5.0) * Vec3::<f32>::unit_y()
+                + rng.random_range(-1.0..1.0) * Vec3::<f32>::unit_x();
+
+            let start_pos = state.wpos_of(state.computed_skeleton.main.mul_point(blade_offset));
+            let end_pos = start_pos + rng.random_range(1.0..2.0) * Vec3::<f32>::unit_z();
+
+            self.particles.push(Particle::new_directed(
+                Duration::from_millis(500),
+                time,
+                ParticleMode::FlameThrower,
+                start_pos,
+                end_pos,
+                scene_data,
+            ));
         }
     }
 

@@ -24,6 +24,7 @@ use crate::{
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
+        trail::TOOL_TRAIL_MANIFEST,
     },
 };
 #[cfg(feature = "plugins")]
@@ -7928,27 +7929,7 @@ impl FigureMgr {
                             .read_storage::<Inventory>()
                             .get(entity)
                             .and_then(|inv| inv.equipped(slot))
-                            .and_then(|item| {
-                                if let ItemKind::Tool(tool) = &*item.kind() {
-                                    Some(tool.kind)
-                                } else {
-                                    None
-                                }
-                            })
-                            .map(|tool_kind| {
-                                let lengths = match tool_kind {
-                                    ToolKind::Sword => (0.0, 29.25),
-                                    ToolKind::Axe => (10.0, 19.25),
-                                    ToolKind::Hammer => (10.0, 19.25),
-                                    ToolKind::Staff => (10.0, 19.25),
-                                    ToolKind::Sceptre => (10.0, 19.25),
-                                    _ => (0.0, 0.0),
-                                };
-                                (
-                                    Vec3::new(0.0, 0.0, lengths.0),
-                                    Vec3::new(0.0, 0.0, lengths.1),
-                                )
-                            })
+                            .and_then(|item| TOOL_TRAIL_MANIFEST.get(item))
                     };
 
                     let weapon_trails =
