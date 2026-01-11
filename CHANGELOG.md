@@ -133,7 +133,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Re-ordered controls list to group related actions.
 - Airship movement is according to timing of route schedule, no longer autonomous.
 - Added height to City airship docs located near sloping terrain for airship docking clearance.
-- Added foot mark dithering on orichalcum armor
 - switch to Naga for default Shader compiler instead of shaderc
 
 ### Removed
@@ -142,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Combat music temporarily removed.
 - Hotkey hints
 - Bags and other superficial equipment no longer cost resources to repair
+- Removed natural glow from gem deposits, and increased Velorite glowiness to compensate for the resulting darker caves.
 
 ### Fixed
 
