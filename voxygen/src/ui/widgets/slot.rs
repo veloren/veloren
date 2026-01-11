@@ -275,6 +275,7 @@ where
             let [mouse_x, mouse_y] = input.mouse.xy;
             super::ghost_image::GhostImage::new(content_img)
                 .wh(dragged_size)
+                .no_parent()
                 .xy([mouse_x, mouse_y])
                 .set(self.drag_id, ui);
 
