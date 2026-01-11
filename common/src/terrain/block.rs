@@ -414,8 +414,7 @@ impl Block {
                 | SpriteKind::Orb
                 | SpriteKind::Candle => 16,
                 SpriteKind::DiamondLight => 30,
-                SpriteKind::Velorite
-                | SpriteKind::VeloriteFrag
+                SpriteKind::VeloriteFrag
                 | SpriteKind::GrassBlueShort
                 | SpriteKind::GrassBlueMedium
                 | SpriteKind::GrassBlueLong
@@ -433,12 +432,6 @@ impl Block {
                 | SpriteKind::CeilingLanternPlant
                 | SpriteKind::CrystalLow => 10,
                 SpriteKind::SewerMushroom => 16,
-                SpriteKind::Amethyst
-                | SpriteKind::Ruby
-                | SpriteKind::Sapphire
-                | SpriteKind::Diamond
-                | SpriteKind::Emerald
-                | SpriteKind::Topaz => 3,
                 SpriteKind::Lantern
                 | SpriteKind::LanternpostWoodLantern
                 | SpriteKind::LanternAirshipWallBlackS
@@ -451,7 +444,7 @@ impl Block {
                 | SpriteKind::LanternAirshipGroundRedS
                 | SpriteKind::LampMetalShinglesCyan
                 | SpriteKind::LampMetalShinglesRed => 24,
-                SpriteKind::TerracottaStatue => 8,
+                SpriteKind::Velorite | SpriteKind::TerracottaStatue => 8,
                 SpriteKind::SeashellLantern | SpriteKind::GlowIceCrystal => 16,
                 SpriteKind::SeaDecorEmblem => 12,
                 SpriteKind::SeaDecorBlock
