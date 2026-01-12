@@ -2319,6 +2319,7 @@ impl ServerEvent for BonkEvent {
                                         split: None,
                                         lifetime_override: None,
                                         limit_per_ability: false,
+                                        override_collider: None,
                                     }
                                     .create_projectile(None, 1.0, None),
                                     speed: vel.0.magnitude(),

@@ -7,7 +7,7 @@ use common::{
         agent::{Sound, SoundKind},
         aura::EnteredAuras,
         object,
-        projectile::{self, ProjectileHitEntities},
+        projectile::{self, ProjectileHitEntities, SplitOptions},
     },
     effect,
     event::{
@@ -246,7 +246,7 @@ impl<'a> System<'a> for Sys {
                         owner,
                         ori: orientations.get(entity),
                         pos,
-                        vel: velocities.get(entity).map_or(Vec3::zero(), |v| v.0),
+                        vel: velocities.get(entity).copied().unwrap_or(Vel(Vec3::zero())),
                     };
 
                     let target = entity_of(other);
@@ -328,53 +328,23 @@ impl<'a> System<'a> for Sys {
                             });
                         },
                         projectile::Effect::Split(split) => {
-                            let split_projectile = {
-                                let mut projectile = init_projectile.clone();
-                                // Remove split from effects here to avoid projectile infinitely
-                                // splitting
-                                projectile
-                                    .timeout
-                                    .retain(|e| !matches!(e, projectile::Effect::Split(_)));
-                                projectile
-                                    .hit_solid
-                                    .retain(|e| !matches!(e, projectile::Effect::Split(_)));
-                                projectile.time_left =
-                                    Duration::from_secs_f64(split.new_lifetime.0);
-                                projectile.init_time = split.new_lifetime;
-                                projectile
-                            };
-
                             let init_dir = physics.on_surface().map(|d| -d).unwrap_or_default();
 
-                            for _ in 0..split.amount {
-                                let dir = {
-                                    let theta = rng.random_range(0.0..TAU);
-                                    let phi = rng.random_range(0.0..PI);
-                                    let offset = {
-                                        let x = theta.sin() * phi.sin();
-                                        let y = theta.cos() * phi.sin();
-                                        let z = phi.cos();
-                                        Vec3::new(x, y, z) * split.spread
-                                    };
-                                    Dir::from_unnormalized(init_dir + offset).unwrap_or_default()
-                                };
+                            let new_pos = Pos(pos.0 - physics.on_surface().unwrap_or_default());
 
-                                let new_pos = Pos(pos.0 - physics.on_surface().unwrap_or_default());
+                            let speed = 10.0;
 
-                                emitters.emit(ShootEvent {
-                                    entity: projectile_owner,
-                                    source_vel: None,
-                                    pos: new_pos,
-                                    dir,
-                                    body: *body,
-                                    light: None,
-                                    projectile: split_projectile.clone(),
-                                    speed: 10.0,
-                                    object: None,
-                                    marker: None, /* TODO: Do we check original for
-                                                   * projectile's marker? */
-                                })
-                            }
+                            handle_split_effect(
+                                &split,
+                                &init_projectile,
+                                init_dir,
+                                new_pos,
+                                &mut rng,
+                                projectile_owner,
+                                body,
+                                speed,
+                                &mut emitters,
+                            );
 
                             // If the projectile splits, the original projectile should vanish
                             projectile_vanished = true;
@@ -493,6 +463,7 @@ impl<'a> System<'a> for Sys {
                                                 pierce_entities: false,
                                                 hit_entities: Vec::new(),
                                                 limit_per_ability: false,
+                                                override_collider: None,
                                             },
                                             speed,
                                             object: None,
@@ -519,57 +490,24 @@ impl<'a> System<'a> for Sys {
                                 });
                             },
                             projectile::Effect::Split(split) => {
-                                let split_projectile = {
-                                    let mut projectile = init_projectile.clone();
-                                    // Remove split from effects here to avoid projectile infinitely
-                                    // splitting
-                                    projectile
-                                        .timeout
-                                        .retain(|e| !matches!(e, projectile::Effect::Split(_)));
-                                    projectile
-                                        .hit_solid
-                                        .retain(|e| !matches!(e, projectile::Effect::Split(_)));
-                                    projectile.time_left =
-                                        Duration::from_secs_f64(split.new_lifetime.0);
-                                    projectile.init_time = split.new_lifetime;
-                                    projectile
-                                };
-
                                 let init_dir = velocities
                                     .get(entity)
                                     .and_then(|v| Dir::from_unnormalized(v.0))
                                     .unwrap_or_default();
 
-                                for _ in 0..split.amount {
-                                    let dir = {
-                                        let theta = rng.random_range(0.0..TAU);
-                                        let phi = rng.random_range(0.0..PI);
-                                        let offset = {
-                                            let x = theta.sin() * phi.sin();
-                                            let y = theta.cos() * phi.sin();
-                                            let z = phi.cos();
-                                            Vec3::new(x, y, z) * split.spread
-                                        };
-                                        Dir::from_unnormalized(*init_dir + offset)
-                                            .unwrap_or_default()
-                                    };
+                                let speed = velocities.get(entity).map_or(0.0, |v| v.0.magnitude());
 
-                                    emitters.emit(ShootEvent {
-                                        entity: projectile_owner,
-                                        source_vel: None,
-                                        pos: *pos,
-                                        dir,
-                                        body: *body,
-                                        light: None,
-                                        projectile: split_projectile.clone(),
-                                        speed: velocities
-                                            .get(entity)
-                                            .map_or(0.0, |v| v.0.magnitude()),
-                                        object: None,
-                                        marker: None, /* TODO: Do we check original for
-                                                       * projectile's marker? */
-                                    })
-                                }
+                                handle_split_effect(
+                                    &split,
+                                    &init_projectile,
+                                    *init_dir,
+                                    *pos,
+                                    &mut rng,
+                                    projectile_owner,
+                                    body,
+                                    speed,
+                                    &mut emitters,
+                                );
                             },
                             _ => {},
                         }
@@ -598,7 +536,7 @@ struct ProjectileInfo<'a> {
     owner: Option<EcsEntity>,
     ori: Option<&'a Ori>,
     pos: &'a Pos,
-    vel: Vec3<f32>,
+    vel: Vel,
 }
 
 struct ProjectileTargetInfo<'a> {
@@ -676,7 +614,7 @@ fn dispatch_hit(
                 outcomes_emitter.emit(Outcome::ProjectileHit {
                     pos: target_pos,
                     body,
-                    vel: projectile_info.vel,
+                    vel: projectile_info.vel.0,
                     source: projectile_info.owner_uid,
                     target: read_data.uids.get(target).copied(),
                 });
@@ -714,7 +652,7 @@ fn dispatch_hit(
                 // the upper 10% of an entity's dimensions. The line segment is from the
                 // projectile's positions on the current and previous tick.
                 let curr_pos = projectile_info.pos.0;
-                let last_pos = projectile_info.pos.0 - projectile_info.vel * read_data.dt.0;
+                let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
                 let vel = projectile_info.vel;
                 let (target_height, target_radius) = read_data
                     .bodies
@@ -734,12 +672,12 @@ fn dispatch_hit(
                     || last_pos.z < head_bottom_pos.z
                 {
                     let proj_top_intersection = {
-                        let t = (head_top_pos.z - last_pos.z) / vel.z;
-                        last_pos + vel * t
+                        let t = (head_top_pos.z - last_pos.z) / vel.0.z;
+                        last_pos + vel.0 * t
                     };
                     let proj_bottom_intersection = {
-                        let t = (head_bottom_pos.z - last_pos.z) / vel.z;
-                        last_pos + vel * t
+                        let t = (head_bottom_pos.z - last_pos.z) / vel.0.z;
+                        last_pos + vel.0 * t
                     };
                     let intersected_bottom = head_bottom_pos
                         .distance_squared(proj_bottom_intersection)
@@ -863,5 +801,61 @@ fn dispatch_hit(
             ),
         }),
         projectile::Effect::Split(_) => {},
+    }
+}
+
+fn handle_split_effect(
+    split: &SplitOptions,
+    init_projectile: &Projectile,
+    init_dir: Vec3<f32>,
+    pos: Pos,
+    rng: &mut impl Rng,
+    projectile_owner: Option<EcsEntity>,
+    body: &Body,
+    speed: f32,
+    emitters: &mut impl EmitExt<ShootEvent>,
+) {
+    let split_projectile = || {
+        let mut projectile = init_projectile.clone();
+        // Remove split from effects here to avoid projectile infinitely
+        // splitting
+        projectile
+            .timeout
+            .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+        projectile
+            .hit_solid
+            .retain(|e| !matches!(e, projectile::Effect::Split(_)));
+        projectile.time_left = Duration::from_secs_f64(split.new_lifetime.0);
+        projectile.init_time = split.new_lifetime;
+        projectile.override_collider = split.override_collider;
+        projectile
+    };
+
+    for _ in 0..split.amount {
+        let dir = {
+            let theta = rng.random_range(0.0..TAU);
+            let phi = rng.random_range(0.0..PI);
+            let offset = {
+                let x = theta.sin() * phi.sin();
+                let y = theta.cos() * phi.sin();
+                let z = phi.cos();
+                Vec3::new(x, y, z) * split.spread
+            };
+            Dir::from_unnormalized(init_dir + offset).unwrap_or_default()
+        };
+
+        emitters.emit(ShootEvent {
+            entity: projectile_owner,
+            source_vel: None,
+            pos,
+            dir,
+            body: *body,
+            light: None,
+            projectile: split_projectile(),
+            speed,
+            object: None,
+            marker: None, /* TODO: Do we check original for
+                           * projectile's marker? */
+        })
     }
 }

@@ -4291,6 +4291,10 @@
         "voxel.item.mineral.ore.ancient_gold",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
+    Simple("common.items.mineral.ore.lodestone"): VoxTrans(
+        "voxel.item.mineral.ore.lodestone",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
+    ),
     Simple("common.items.crafting_ing.honey"): VoxTrans(
         "voxel.item.food.honey",
         (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
@@ -4380,7 +4384,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     Simple("common.items.crafting_ing.bloodbag"): VoxTrans(
-        "voxel.sprite.crafting_ing.bloodbag",
+        "voxel.item.crafting.bloodbag",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
     // Gliders

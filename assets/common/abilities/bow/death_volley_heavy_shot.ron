@@ -19,10 +19,17 @@ BasicRanged(
             amount: 30,
             spread: 0.25,
             new_lifetime: 15.0,
+            override_collider: Some((
+                p0: (x: 0, y: 0),
+                p1: (x: 0, y: 0),
+                radius: 1.0,
+                z_min: -1.0,
+                z_max: 1.0,
+            )),
         )),
         lifetime_override: Some(0.8),
     ),
-    projectile_body: Object(WideHeavyArrow),
+    projectile_body: Object(Arrow),
     projectile_speed: 37.0,
     auto_aim: true,
     movement_modifier: (

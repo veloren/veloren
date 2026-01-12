@@ -16,7 +16,6 @@ ChargedRanged(
         scaled: Some((
             damage: 5,
             knockback: Some(7),
-            // energy: Some(6),
         )),
         limit_per_ability: true,
     ),

@@ -26,7 +26,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How much energy is drained per second when charging
     pub energy_drain: f32,
-    /// Energy per second drain after ful charge is reached
+    /// Energy per second drain after full charge is reached
     pub idle_drain: f32,
     /// Projectile information
     pub projectile: ProjectileConstructor,

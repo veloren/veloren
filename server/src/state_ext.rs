@@ -17,8 +17,8 @@ use common::{
     LoadoutBuilder, ViewDistances,
     character::CharacterId,
     comp::{
-        self, BASE_ABILITY_LIMIT, ChatType, Content, Group, Inventory, LootOwner, Object, Player,
-        Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
+        self, BASE_ABILITY_LIMIT, CapsulePrism, ChatType, Content, Group, Inventory, LootOwner,
+        Object, Player, Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
     },
     interaction::Interaction,
     link::{Is, Link, LinkHandle},
@@ -561,13 +561,16 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
             self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
             self.write_component_ignore_entity_dead(entity, comp::Ori::default());
-            self.write_component_ignore_entity_dead(entity, comp::Collider::CapsulePrism {
-                p0: Vec2::zero(),
-                p1: Vec2::zero(),
-                radius: 0.4,
-                z_min: 0.0,
-                z_max: 1.75,
-            });
+            self.write_component_ignore_entity_dead(
+                entity,
+                comp::Collider::CapsulePrism(CapsulePrism {
+                    p0: Vec2::zero(),
+                    p1: Vec2::zero(),
+                    radius: 0.4,
+                    z_min: 0.0,
+                    z_max: 1.75,
+                }),
+            );
             self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
             self.write_component_ignore_entity_dead(entity, comp::CharacterActivity::default());
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));

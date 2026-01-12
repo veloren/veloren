@@ -9,8 +9,8 @@ use common::{
         Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
         ControlEvent, Controller, Fluid, InputKind,
         ability::{
-            ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, BowStance, ItemEnum, Stance,
-            SwordStance,
+            AbilityReqItem, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, BowStance,
+            Stance, SwordStance,
         },
         buff::BuffKind,
         fluid_dynamics::LiquidKind,
@@ -2475,22 +2475,26 @@ impl AgentData<'_> {
                     let additional_conditions = match ability {
                         Ability::MainWeaponAux(8) => self
                             .inventory
-                            .get_slot_of_item_by_def_id(&ItemEnum::item_def_id(&ItemEnum::Firedrop))
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::Firedrop,
+                            ))
                             .is_some(),
                         Ability::MainWeaponAux(9) => self
                             .inventory
-                            .get_slot_of_item_by_def_id(&ItemEnum::item_def_id(
-                                &ItemEnum::PoisonClot,
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::PoisonClot,
                             ))
                             .is_some(),
                         Ability::MainWeaponAux(10) => self
                             .inventory
-                            .get_slot_of_item_by_def_id(&ItemEnum::item_def_id(&ItemEnum::GelidGel))
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::GelidGel,
+                            ))
                             .is_some(),
                         Ability::MainWeaponAux(11) => self
                             .inventory
-                            .get_slot_of_item_by_def_id(&ItemEnum::item_def_id(
-                                &ItemEnum::LevinDust,
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::LevinDust,
                             ))
                             .is_some(),
                         _ => true,

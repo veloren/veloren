@@ -2006,8 +2006,8 @@ impl ProjectileSpread {
         }
     }
 
-    // Don't use this for anything important, just things that need to know
-    // "roughly" the spread
+    /// Don't use this for anything important, just things that need to know
+    /// "roughly" the spread
     pub fn estimated_spread(&self) -> f32 {
         match self {
             // TODO: Check if we want these to return something different

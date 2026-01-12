@@ -1,5 +1,5 @@
 RapidRanged(
-    energy_cost: 5,
+    energy_cost: 10,
     buildup_duration: 0.5,
     shoot_duration: 0.05,
     recover_duration: 0.4,

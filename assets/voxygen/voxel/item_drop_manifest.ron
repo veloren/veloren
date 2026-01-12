@@ -1112,7 +1112,7 @@
     Simple("common.items.log.hardwood"): "voxel.item.wood.hardwood",
     Simple("common.items.log.ironwood"): "voxel.item.wood.ironwood",
     Simple("common.items.log.wood"): "voxel.item.wood.wood",
-    Simple("common.items.crafting_ing.bloodbag"): "voxel.sprite.crafting_ing.bloodbag",
+    Simple("common.items.crafting_ing.bloodbag"): "voxel.item.crafting.bloodbag",
     // Keys and Lockpicks
     Simple("common.items.keys.rusty_tower_key"): "voxel.item.key.key_rusty-0",
     Simple("common.items.keys.bone_key"): "voxel.item.key.key_bone",

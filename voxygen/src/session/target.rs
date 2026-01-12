@@ -3,7 +3,7 @@ use vek::*;
 
 use client::{self, Client};
 use common::{
-    comp::{self, tool::ToolKind},
+    comp::{self, CapsulePrism, tool::ToolKind},
     consts::MAX_PICKUP_RANGE,
     link::Is,
     mounting::{Mount, Rider},
@@ -84,13 +84,13 @@ pub(super) fn targets_under_cursor(
     );
     let terrain = client.state().terrain();
 
-    let find_pos = |hit: fn(Block) -> bool, pickup_range: bool| {
+    let find_pos = |hit: fn(Block) -> bool, pickup_range: bool, start_pos: Vec3<f32>| {
         let dist = if pickup_range {
             MAX_PICKUP_RANGE + 5.0
         } else {
             250.0
         };
-        let cam_ray = terrain.ray(cam_pos, cam_pos + cam_dir * dist);
+        let cam_ray = terrain.ray(start_pos, start_pos + cam_dir * dist);
 
         let cam_ray = if !pickup_range {
             cam_ray.max_iter(500)
@@ -104,11 +104,11 @@ pub(super) fn targets_under_cursor(
 
         if matches!(
             cam_ray.1,
-            Ok(Some(_)) if player_cylinder.min_distance(cam_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE || !pickup_range
+            Ok(Some(_)) if player_cylinder.min_distance(start_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE || !pickup_range
         ) {
             (
-                Some(cam_pos + cam_dir * (cam_dist + 0.01)),
-                Some(cam_pos + cam_dir * (cam_dist - 0.01)),
+                Some(start_pos + cam_dir * (cam_dist + 0.01)),
+                Some(start_pos + cam_dir * (cam_dist - 0.01)),
                 Some(cam_ray),
             )
         } else {
@@ -116,14 +116,20 @@ pub(super) fn targets_under_cursor(
         }
     };
 
-    let (collect_pos, _, collect_cam_ray) = find_pos(|b: Block| b.is_directly_collectible(), true);
+    let (collect_pos, _, collect_cam_ray) =
+        find_pos(|b: Block| b.is_directly_collectible(), true, cam_pos);
     let (mine_pos, _, mine_cam_ray) = if active_mine_tool.is_some() {
-        find_pos(|b: Block| b.mine_tool().is_some(), true)
+        find_pos(|b: Block| b.mine_tool().is_some(), true, cam_pos)
     } else {
         (None, None, None)
     };
-    let (build_pos, place_block_pos, build_cam_ray) = find_pos(|b: Block| b.is_filled(), true);
-    let (solid_pos, _, solid_cam_ray) = find_pos(|b: Block| b.is_filled(), false);
+    let (build_pos, place_block_pos, build_cam_ray) =
+        find_pos(|b: Block| b.is_filled(), true, cam_pos);
+    let (solid_pos, _, solid_cam_ray) = find_pos(
+        |b: Block| b.is_filled(),
+        false,
+        player_pos + Vec3::unit_z() * 1.5,
+    );
 
     // See if ray hits entities
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
@@ -294,13 +300,13 @@ pub(super) fn ray_entities(
         let nearest = seg_ray.projected_point(*p);
 
         match c {
-            comp::Collider::CapsulePrism {
+            comp::Collider::CapsulePrism(CapsulePrism {
                 p0,
                 p1,
                 radius,
                 z_min,
                 z_max,
-            } => {
+            }) => {
                 // Check if the nearest point is within the capsule's inclusive radius (radius
                 // from center to furthest possible edge corner) If not, then
                 // the ray doesn't intersect the capsule at all and we can skip it

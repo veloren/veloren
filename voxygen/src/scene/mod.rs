@@ -43,8 +43,8 @@ use client::Client;
 use common::{
     calendar::Calendar,
     comp::{
-        self, CharacterState, item::ItemDesc, ship::figuredata::VOXEL_COLLIDER_MANIFEST,
-        slot::EquipSlot, tool::ToolKind,
+        self, CapsulePrism, CharacterState, item::ItemDesc,
+        ship::figuredata::VOXEL_COLLIDER_MANIFEST, slot::EquipSlot, tool::ToolKind,
     },
     outcome::Outcome,
     resources::{DeltaTime, TimeOfDay, TimeScale},
@@ -1634,13 +1634,13 @@ impl Scene {
                 .join()
             {
                 match collider {
-                    comp::Collider::CapsulePrism {
+                    comp::Collider::CapsulePrism(CapsulePrism {
                         p0,
                         p1,
                         radius,
                         z_min,
                         z_max,
-                    } => {
+                    }) => {
                         let scale = scale.map_or(1.0, |s| s.0);
                         current_entities.insert(entity);
 

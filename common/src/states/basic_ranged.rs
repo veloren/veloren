@@ -156,7 +156,7 @@ impl CharacterBehavior for Data {
                         if let Some(ideal_dir) =
                             aim_projectile(self.static_data.projectile_speed, pos.0, sel_pos, true)
                         {
-                            ideal_dir.merge_z(aim_dir)
+                            ideal_dir
                         } else {
                             aim_dir
                         }

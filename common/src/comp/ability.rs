@@ -3637,16 +3637,15 @@ pub enum StatField {
     Power,
 }
 
-// Reviewers: Please don't let me name this "ItemEnum"
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ItemEnum {
+pub enum AbilityReqItem {
     Firedrop,
     PoisonClot,
     GelidGel,
     LevinDust,
 }
 
-impl ItemEnum {
+impl AbilityReqItem {
     pub fn item_def_id(&self) -> ItemDefinitionIdOwned {
         match self {
             Self::Firedrop => {
@@ -3669,7 +3668,7 @@ impl ItemEnum {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AbilityRequirements {
     pub stance: Option<Stance>,
-    pub item: Option<ItemEnum>,
+    pub item: Option<AbilityReqItem>,
 }
 
 impl AbilityRequirements {

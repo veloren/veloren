@@ -4,7 +4,7 @@ use crate::{
         DamageKind, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
-        ArcProperties,
+        ArcProperties, CapsulePrism,
         ability::Dodgeable,
         item::{Reagent, tool},
     },
@@ -67,6 +67,9 @@ pub struct Projectile {
     /// Whether to limit the number of projectiles from from an ability can
     /// damage the target in a short duration
     pub limit_per_ability: bool,
+    /// Whether to override the collider used by the projectile for detecting
+    /// hit entities
+    pub override_collider: Option<CapsulePrism>,
 }
 
 impl Component for Projectile {
@@ -99,6 +102,7 @@ pub struct ProjectileConstructor {
     pub lifetime_override: Option<Secs>,
     #[serde(default)]
     pub limit_per_ability: bool,
+    pub override_collider: Option<CapsulePrism>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -107,6 +111,9 @@ pub struct SplitOptions {
     pub amount: u32,
     pub spread: f32,
     pub new_lifetime: Secs,
+    /// If this is used, it will only apply to projectiles created after the
+    /// split, and will also override this option on the parent projectile
+    pub override_collider: Option<CapsulePrism>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -332,6 +339,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Penetrating => {
@@ -360,6 +368,7 @@ impl ProjectileConstructor {
                     pierce_entities: true,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Hazard {
@@ -391,6 +400,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Explosive {
@@ -441,6 +451,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Arcing {
@@ -483,6 +494,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::ExplosiveHazard {
@@ -532,6 +544,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Possess => {
@@ -553,6 +566,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::Firework(reagent) => {
@@ -574,6 +588,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::SurpriseEgg => {
@@ -596,6 +611,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
             ProjectileConstructorKind::TrainingDummy => {
@@ -620,6 +636,7 @@ impl ProjectileConstructor {
                     pierce_entities: false,
                     hit_entities: Vec::new(),
                     limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
                 }
             },
         }
