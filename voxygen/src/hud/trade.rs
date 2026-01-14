@@ -20,9 +20,10 @@ use common_net::sync::WorldSyncExt;
 use i18n::Localization;
 
 use crate::{
+    GlobalState,
     hud::{
         Event as HudEvent, PromptDialogSettings,
-        bag::{BackgroundIds, InventoryScroller},
+        bag::{BackgroundIds, InventoryScroller, InventoryScrollerEvent},
     },
     ui::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
@@ -47,6 +48,7 @@ pub enum TradeEvent {
     SetDetailsMode(bool),
     HudUpdate(HudUpdate),
     ShowPrompt(PromptDialogSettings),
+    MoveBag(Vec2<f64>),
 }
 
 #[derive(Debug)]
@@ -90,6 +92,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Trade<'a> {
     client: &'a Client,
+    global_state: &'a GlobalState,
     info: &'a HudInfo<'a>,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
@@ -110,8 +113,10 @@ pub struct Trade<'a> {
 }
 
 impl<'a> Trade<'a> {
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
+        global_state: &'a GlobalState,
         info: &'a HudInfo,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
@@ -129,6 +134,7 @@ impl<'a> Trade<'a> {
     ) -> Self {
         Self {
             client,
+            global_state,
             info,
             imgs,
             item_imgs,
@@ -213,8 +219,8 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
         prices: &'a Option<SitePrices>,
         ours: bool,
-    ) -> Option<TradeEvent> {
-        let mut event = None;
+    ) -> Option<Vec<TradeEvent>> {
+        let mut events: Vec<TradeEvent> = Vec::new();
         let inventories = self.client.inventories();
         let check_if_us = |who: usize| -> Option<_> {
             let uid = trade.parties[who];
@@ -331,25 +337,25 @@ impl<'a> Trade<'a> {
             .collect();
 
         if matches!(trade.phase(), TradePhase::Mutate) {
-            event = self
-                .phase1_itemwidget(
-                    state,
-                    ui,
-                    inventory,
-                    our_inventory,
-                    who,
-                    ours,
-                    entity,
-                    name,
-                    prices,
-                    &tradeslots,
-                )
-                .or(event);
+            for event in self.phase1_itemwidget(
+                state,
+                ui,
+                inventory,
+                our_inventory,
+                who,
+                ours,
+                entity,
+                name,
+                prices,
+                &tradeslots,
+            ) {
+                events.push(event);
+            }
         } else {
             self.phase2_itemwidget(state, ui, inventory, who, ours, entity, &tradeslots);
         }
 
-        event
+        Some(events)
     }
 
     fn phase1_itemwidget(
@@ -365,8 +371,8 @@ impl<'a> Trade<'a> {
         name: String,
         prices: &'a Option<SitePrices>,
         tradeslots: &[TradeSlot],
-    ) -> Option<TradeEvent> {
-        let mut event = None;
+    ) -> Vec<TradeEvent> {
+        let mut events = Vec::new();
         // Tooltips
         let item_tooltip = ItemTooltip::new(
             {
@@ -399,8 +405,9 @@ impl<'a> Trade<'a> {
         .desc_text_color(TEXT_COLOR);
 
         if !ours {
-            InventoryScroller::new(
+            for event in InventoryScroller::new(
                 self.client,
+                self.global_state,
                 self.imgs,
                 self.item_imgs,
                 self.fonts,
@@ -421,7 +428,18 @@ impl<'a> Trade<'a> {
                 false,
                 self.show.trade_details,
             )
-            .set(state.ids.inventory_scroller, ui);
+            .set(state.ids.inventory_scroller, ui)
+            {
+                if self
+                    .global_state
+                    .settings
+                    .interface
+                    .toggle_draggable_windows
+                {
+                    let InventoryScrollerEvent::Drag(pos) = event;
+                    events.push(TradeEvent::MoveBag(pos));
+                }
+            }
 
             let bag_tooltip = Tooltip::new({
                 // Edge images [t, b, r, l]
@@ -467,7 +485,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.trade_details_btn, ui)
                 .was_clicked()
             {
-                event = Some(TradeEvent::SetDetailsMode(!self.show.trade_details));
+                events.push(TradeEvent::SetDetailsMode(!self.show.trade_details));
             }
         }
 
@@ -544,7 +562,7 @@ impl<'a> Trade<'a> {
                 slot_widget.set(slot_id, ui);
             }
         }
-        event
+        events
     }
 
     fn phase2_itemwidget(
@@ -845,7 +863,7 @@ impl<'a> Trade<'a> {
 }
 
 impl Widget for Trade<'_> {
-    type Event = Option<TradeEvent>;
+    type Event = Vec<TradeEvent>;
     type State = State;
     type Style = ();
 
@@ -865,10 +883,13 @@ impl Widget for Trade<'_> {
         common_base::prof_span!("Trade::update");
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let mut event = None;
+        let mut events = Vec::new();
         let (trade, prices) = match self.client.pending_trade() {
             Some((_, trade, prices)) => (trade, prices),
-            None => return Some(TradeEvent::TradeAction(TradeAction::Decline)),
+            None => {
+                events.push(TradeEvent::TradeAction(TradeAction::Decline));
+                return events;
+            },
         };
 
         if state.ids.inv_alignment.len() < 2 {
@@ -893,10 +914,30 @@ impl Widget for Trade<'_> {
         self.title(state, ui);
         self.phase_indicator(state, ui, trade);
 
-        event = self.item_pane(state, ui, trade, prices, false).or(event);
-        event = self.item_pane(state, ui, trade, prices, true).or(event);
-        event = self.accept_decline_buttons(state, ui, trade).or(event);
-        event = self.close_button(state, ui).or(event);
-        self.input_item_amount(state, ui, trade).or(event)
+        if let Some(event_list) = self.item_pane(state, ui, trade, prices, false) {
+            for event in event_list {
+                events.push(event);
+            }
+        }
+
+        if let Some(event_list) = self.item_pane(state, ui, trade, prices, true) {
+            for event in event_list {
+                events.push(event);
+            }
+        }
+
+        if let Some(event) = self.accept_decline_buttons(state, ui, trade) {
+            events.push(event);
+        }
+
+        if let Some(event) = self.close_button(state, ui) {
+            events.push(event);
+        }
+
+        if let Some(event) = self.input_item_amount(state, ui, trade) {
+            events.push(event);
+        }
+
+        events
     }
 }

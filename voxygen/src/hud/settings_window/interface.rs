@@ -40,6 +40,8 @@ widget_ids! {
         hitboxes_button_label,
         chat_button,
         chat_button_label,
+        draggable_windows_button,
+        draggable_windows_button_label,
         ch_title,
         ch_transp_slider,
         ch_transp_value,
@@ -296,13 +298,50 @@ impl Widget for Interface<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.chat_button_label, ui);
 
+        // Draggable windows
+        let draggable_windows = ToggleButton::new(
+            self.global_state
+                .settings
+                .interface
+                .toggle_draggable_windows,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.chat_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.draggable_windows_button, ui);
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_draggable_windows
+            != draggable_windows
+        {
+            events.push(ToggleDraggableWindows(draggable_windows));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-draggable_windows"),
+        )
+        .right_from(state.ids.draggable_windows_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.draggable_windows_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.draggable_windows_button_label, ui);
+
         // Row background opacity
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-row_background_opacity"),
         )
-        .down_from(state.ids.chat_button, 10.0)
+        .down_from(state.ids.draggable_windows_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

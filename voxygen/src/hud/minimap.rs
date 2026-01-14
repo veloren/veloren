@@ -6,7 +6,8 @@ use super::{
 use crate::{
     GlobalState,
     hud::{Graphic, Ui},
-    session::settings_change::{Interface as InterfaceChange, Interface::*},
+    session::settings_change::Interface::{self as InterfaceChange, *},
+    settings::HudPositionSettings,
     ui::{KeyedJobs, fonts::Fonts, img_ids},
 };
 use client::{self, Client};
@@ -31,7 +32,8 @@ use hashbrown::{HashMap, HashSet};
 use image::{DynamicImage, RgbaImage};
 use specs::WorldExt;
 use std::sync::Arc;
-use vek::*;
+
+use vek::{Rgba, Vec2, Vec3, approx::AbsDiffEq};
 
 struct MinimapColumn {
     /// Coordinate of lowest z-slice
@@ -400,6 +402,7 @@ widget_ids! {
         location_marker,
         location_marker_group[],
         voxel_minimap,
+        draggable_area,
     }
 }
 
@@ -457,6 +460,7 @@ pub struct State {
 
 pub enum Event {
     SettingsChange(InterfaceChange),
+    MoveMiniMap(Vec2<f64>),
 }
 
 impl Widget for MiniMap<'_> {
@@ -496,19 +500,24 @@ impl Widget for MiniMap<'_> {
         } else {
             self.ori
         };
+
+        let scaled_map_window_size = Vec2::new(174.0 * scale, 190.0 * scale);
         let map_size = Vec2::new(170.0 * scale, 170.0 * scale);
+        let minimap_pos = self.global_state.settings.hud_position.minimap;
 
         if show_minimap {
             Image::new(self.imgs.mmap_frame)
-                .w_h(174.0 * scale, 190.0 * scale)
-                .top_right_with_margins_on(ui.window, 5.0, 5.0)
+                .w_h(scaled_map_window_size.x, scaled_map_window_size.y)
+                .top_right_with_margins_on(ui.window, minimap_pos.y, minimap_pos.x)
                 .color(Some(UI_MAIN))
                 .set(state.ids.mmap_frame, ui);
+
             Image::new(self.imgs.mmap_frame_2)
-                .w_h(174.0 * scale, 190.0 * scale)
+                .w_h(scaled_map_window_size.x, scaled_map_window_size.y)
                 .middle_of(state.ids.mmap_frame)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.mmap_frame_2, ui);
+
             Rectangle::fill_with([170.0 * scale, 170.0 * scale], color::TRANSPARENT)
                 .mid_top_with_margin_on(state.ids.mmap_frame_2, 18.0 * scale)
                 .set(state.ids.mmap_frame_bg, ui);
@@ -524,6 +533,18 @@ impl Widget for MiniMap<'_> {
                         .map_layers
                         .resize(self.world_map.0.len(), &mut ui.widget_id_generator())
                 });
+            }
+
+            if Button::image(self.imgs.mmap_open)
+                .w_h(18.0 * scale, 18.0 * scale)
+                .hover_image(self.imgs.mmap_open_hover)
+                .press_image(self.imgs.mmap_open_press)
+                .top_right_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
+                .image_color(UI_HIGHLIGHT_0)
+                .set(state.ids.mmap_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::SettingsChange(MinimapShow(!show_minimap)));
             }
 
             // Zoom Buttons
@@ -970,34 +991,22 @@ impl Widget for MiniMap<'_> {
             }
         } else {
             Image::new(self.imgs.mmap_frame_closed)
-                .w_h(174.0 * scale, 18.0 * scale)
+                .w_h(scaled_map_window_size.x, 18.0 * scale)
                 .color(Some(UI_MAIN))
-                .top_right_with_margins_on(ui.window, 0.0, 5.0)
+                .top_right_with_margins_on(ui.window, minimap_pos.y, minimap_pos.x)
                 .set(state.ids.mmap_frame, ui);
-        }
 
-        if Button::image(if show_minimap {
-            self.imgs.mmap_open
-        } else {
-            self.imgs.mmap_closed
-        })
-        .w_h(18.0 * scale, 18.0 * scale)
-        .hover_image(if show_minimap {
-            self.imgs.mmap_open_hover
-        } else {
-            self.imgs.mmap_closed_hover
-        })
-        .press_image(if show_minimap {
-            self.imgs.mmap_open_press
-        } else {
-            self.imgs.mmap_closed_press
-        })
-        .top_right_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
-        .image_color(UI_HIGHLIGHT_0)
-        .set(state.ids.mmap_button, ui)
-        .was_clicked()
-        {
-            events.push(Event::SettingsChange(MinimapShow(!show_minimap)));
+            if Button::image(self.imgs.mmap_closed)
+                .w_h(18.0 * scale, 18.0 * scale)
+                .hover_image(self.imgs.mmap_closed_hover)
+                .press_image(self.imgs.mmap_closed_press)
+                .top_right_with_margins_on(state.ids.mmap_frame, 0.0, 0.0)
+                .image_color(UI_HIGHLIGHT_0)
+                .set(state.ids.mmap_button, ui)
+                .was_clicked()
+            {
+                events.push(Event::SettingsChange(MinimapShow(!show_minimap)));
+            }
         }
 
         // TODO: Subregion name display
@@ -1009,12 +1018,16 @@ impl Widget for MiniMap<'_> {
                 // Count characters in the name to avoid clipping with the name display
                 if let Some(name) = chunk.meta().name() {
                     let name_len = name.chars().count();
-                    let pos = map_size / 2.0 + 3.0;
-                    Text::new(name)
+                    let y_position = if show_minimap {
+                        (map_size / 2.0 + 3.0).y
+                    } else {
+                        3.0
+                    };
+                    let text = Text::new(name)
                         .align_middle_x_of(state.ids.mmap_frame)
                         .y_position_relative_to(
                             state.ids.mmap_frame,
-                            position::Relative::Scalar(pos.y),
+                            position::Relative::Scalar(y_position),
                         )
                         .font_size(self.fonts.cyri.scale(match name_len {
                             0..=5 => 12 + (4.0 * scale).round() as u32,
@@ -1025,8 +1038,9 @@ impl Widget for MiniMap<'_> {
                             _ => 2 + (4.0 * scale).round() as u32,
                         }))
                         .font_id(self.fonts.cyri.conrod_id)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.mmap_location, ui)
+                        .color(TEXT_COLOR);
+
+                    text.set(state.ids.mmap_location, ui);
                 }
             },
             None => Text::new(" ")
@@ -1034,6 +1048,68 @@ impl Widget for MiniMap<'_> {
                 .font_size(self.fonts.cyri.scale(18))
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
+        }
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_draggable_windows
+        {
+            // Create the draggable area & handle move events
+            let draggable_dim = if show_minimap {
+                // Subtract 70 for the left and right button widths
+                // (16 + 18 + 18 + 18)
+                [scaled_map_window_size.x - (70.0 * scale), 18.0 * scale]
+            } else {
+                // View is collapsed, adjust draggable area only based on right button
+                [scaled_map_window_size.x - (18.0 * scale), 18.0 * scale]
+            };
+
+            // If open, account for the two buttons on the right, if closed, account for the
+            // one.
+            let scaled_offset = if show_minimap {
+                36.0 * scale
+            } else {
+                18.0 * scale
+            };
+
+            Rectangle::fill_with(draggable_dim, color::TRANSPARENT)
+                .top_right_with_margins_on(state.ids.mmap_frame, 0.0, scaled_offset)
+                .floating(true)
+                .set(state.ids.draggable_area, ui);
+
+            let pos_delta: Vec2<f64> = ui
+                .widget_input(state.ids.draggable_area)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+
+            // The minimap uses top_right_with_margins_on which means
+            // we have to use positive margins to move left and positive
+            // to move down, so we have to invert the (x, y) values.
+            let pos_delta = [-pos_delta.x, -pos_delta.y];
+
+            let window_clamp = Vec2::new(ui.win_w, ui.win_h) - scaled_map_window_size;
+
+            let new_pos = (minimap_pos + pos_delta)
+                .map(|e| e.max(0.))
+                .map2(window_clamp, |e, bounds| e.min(bounds));
+
+            if new_pos.abs_diff_ne(&minimap_pos, f64::EPSILON) {
+                events.push(Event::MoveMiniMap(new_pos));
+            }
+
+            if ui
+                .widget_input(state.ids.draggable_area)
+                .clicks()
+                .right()
+                .count()
+                == 1
+            {
+                events.push(Event::MoveMiniMap(HudPositionSettings::default().minimap));
+            }
         }
 
         events

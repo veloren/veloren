@@ -3153,31 +3153,6 @@ impl Hud {
         )
         .set(self.ids.popup, ui_widgets);
 
-        let persisted_state = self.persisted_state.borrow();
-        // MiniMap
-        for event in MiniMap::new(
-            client,
-            &self.imgs,
-            &self.rot_imgs,
-            &self.world_map,
-            &self.fonts,
-            self.pulse,
-            camera.get_orientation(),
-            global_state,
-            &persisted_state.location_markers,
-            &self.voxel_minimap,
-            &self.extra_markers,
-        )
-        .set(self.ids.minimap, ui_widgets)
-        {
-            match event {
-                minimap::Event::SettingsChange(interface_change) => {
-                    events.push(Event::SettingsChange(interface_change.into()));
-                },
-            }
-        }
-        drop(persisted_state);
-
         if let Some(prompt_dialog_settings) = &self.show.prompt_dialog {
             // Prompt Dialog
             match PromptDialog::new(
@@ -3294,132 +3269,6 @@ impl Hud {
                 }
             }
         }
-        // Bag contents
-        if self.show.bag
-            && let (
-                Some(player_stats),
-                Some(skill_set),
-                Some(health),
-                Some(energy),
-                Some(body),
-                Some(poise),
-            ) = (
-                stats.get(info.viewpoint_entity),
-                skill_sets.get(info.viewpoint_entity),
-                healths.get(entity),
-                energies.get(entity),
-                bodies.get(entity),
-                poises.get(entity),
-            )
-        {
-            match Bag::new(
-                client,
-                &info,
-                global_state,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                item_tooltip_manager,
-                &mut self.slot_manager,
-                self.pulse,
-                i18n,
-                &self.item_i18n,
-                player_stats,
-                skill_set,
-                health,
-                energy,
-                &self.show,
-                body,
-                &msm,
-                &rbm,
-                poise,
-            )
-            .set(self.ids.bag, ui_widgets)
-            {
-                Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
-                Some(bag::Event::SetDetailsMode(mode)) => self.show.bag_details = mode,
-                Some(bag::Event::Close) => {
-                    self.show.stats = false;
-                    Self::show_bag(&mut self.slot_manager, &mut self.show, false);
-                    if !self.show.social {
-                        self.show.want_grab = true;
-                        self.force_ungrab = false;
-                    } else {
-                        self.force_ungrab = true
-                    };
-                },
-                Some(bag::Event::ChangeInventorySortOrder(sort_order)) => {
-                    self.events
-                        .push(Event::SettingsChange(SettingsChange::Inventory(
-                            Inventory::ChangeSortOrder(sort_order),
-                        )));
-                },
-                Some(bag::Event::SortInventory(sort_order)) => {
-                    self.events.push(Event::SortInventory(sort_order))
-                },
-                Some(bag::Event::SwapEquippedWeapons) => {
-                    self.events.push(Event::SwapEquippedWeapons)
-                },
-                None => {},
-            }
-        }
-        // Trade window
-        if self.show.trade
-            && let Some(action) = Trade::new(
-                client,
-                &info,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                item_tooltip_manager,
-                &mut self.slot_manager,
-                i18n,
-                &self.item_i18n,
-                &msm,
-                &rbm,
-                self.pulse,
-                &mut self.show,
-            )
-            .set(self.ids.trade, ui_widgets)
-        {
-            match action {
-                trade::TradeEvent::HudUpdate(update) => match update {
-                    trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
-                    trade::HudUpdate::Submit => {
-                        let key = self.show.trade_amount_input_key.take();
-                        key.map(|k| {
-                            k.submit_action.map(|action| {
-                                self.events.push(Event::TradeAction(action));
-                            });
-                        });
-                    },
-                },
-                trade::TradeEvent::TradeAction(action) => {
-                    if let TradeAction::Decline = action {
-                        self.show.stats = false;
-                        self.show.trade(false);
-                        if !self.show.social {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                        self.show.prompt_dialog = None;
-                    }
-                    events.push(Event::TradeAction(action));
-                },
-                trade::TradeEvent::SetDetailsMode(mode) => {
-                    self.show.trade_details = mode;
-                },
-                trade::TradeEvent::ShowPrompt(prompt) => {
-                    self.show.prompt_dialog = Some(prompt);
-                },
-            }
-        }
 
         // Buffs
         if let (Some(player_buffs), Some(health), Some(energy)) = (
@@ -3456,6 +3305,7 @@ impl Hud {
             for event in Crafting::new(
                 //&self.show,
                 client,
+                global_state,
                 &info,
                 &self.imgs,
                 &self.fonts,
@@ -3556,6 +3406,9 @@ impl Hud {
                             crate::session::settings_change::Gameplay::ChangeShowAllRecipes(show),
                         )));
                     },
+                    crafting::Event::MoveCrafting(pos) => {
+                        global_state.settings.hud_position.crafting = pos;
+                    },
                 }
             }
         }
@@ -3594,6 +3447,169 @@ impl Hud {
         .set(self.ids.loot_scroller, ui_widgets);
 
         self.new_loot_messages.clear();
+
+        let persisted_state = self.persisted_state.borrow();
+        // MiniMap
+        for event in MiniMap::new(
+            client,
+            &self.imgs,
+            &self.rot_imgs,
+            &self.world_map,
+            &self.fonts,
+            self.pulse,
+            camera.get_orientation(),
+            global_state,
+            &persisted_state.location_markers,
+            &self.voxel_minimap,
+            &self.extra_markers,
+        )
+        .set(self.ids.minimap, ui_widgets)
+        {
+            match event {
+                minimap::Event::SettingsChange(interface_change) => {
+                    events.push(Event::SettingsChange(interface_change.into()));
+                },
+                minimap::Event::MoveMiniMap(pos) => {
+                    global_state.settings.hud_position.minimap = pos;
+                },
+            }
+        }
+        drop(persisted_state);
+
+        // Bag contents
+        if self.show.bag
+            && let (
+                Some(player_stats),
+                Some(skill_set),
+                Some(health),
+                Some(energy),
+                Some(body),
+                Some(poise),
+            ) = (
+                stats.get(info.viewpoint_entity),
+                skill_sets.get(info.viewpoint_entity),
+                healths.get(entity),
+                energies.get(entity),
+                bodies.get(entity),
+                poises.get(entity),
+            )
+        {
+            for event in Bag::new(
+                client,
+                &info,
+                global_state,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                item_tooltip_manager,
+                &mut self.slot_manager,
+                self.pulse,
+                i18n,
+                &self.item_i18n,
+                player_stats,
+                skill_set,
+                health,
+                energy,
+                &self.show,
+                body,
+                &msm,
+                &rbm,
+                poise,
+            )
+            .set(self.ids.bag, ui_widgets)
+            {
+                match event {
+                    bag::Event::BagExpand => self.show.bag_inv = !self.show.bag_inv,
+                    bag::Event::SetDetailsMode(mode) => self.show.bag_details = mode,
+                    bag::Event::Close => {
+                        self.show.stats = false;
+                        Self::show_bag(&mut self.slot_manager, &mut self.show, false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                    },
+                    bag::Event::ChangeInventorySortOrder(sort_order) => {
+                        self.events
+                            .push(Event::SettingsChange(SettingsChange::Inventory(
+                                Inventory::ChangeSortOrder(sort_order),
+                            )));
+                    },
+                    bag::Event::SortInventory(sort_order) => {
+                        self.events.push(Event::SortInventory(sort_order))
+                    },
+                    bag::Event::SwapEquippedWeapons => self.events.push(Event::SwapEquippedWeapons),
+                    bag::Event::MoveBag(pos) => {
+                        global_state.settings.hud_position.bag.own = pos;
+                    },
+                }
+            }
+        }
+
+        // Trade window
+        if self.show.trade {
+            for event in Trade::new(
+                client,
+                global_state,
+                &info,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                item_tooltip_manager,
+                &mut self.slot_manager,
+                i18n,
+                &self.item_i18n,
+                &msm,
+                &rbm,
+                self.pulse,
+                &mut self.show,
+            )
+            .set(self.ids.trade, ui_widgets)
+            {
+                match event {
+                    trade::TradeEvent::HudUpdate(update) => match update {
+                        trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
+                        trade::HudUpdate::Submit => {
+                            let key = self.show.trade_amount_input_key.take();
+                            key.map(|k| {
+                                k.submit_action.map(|action| {
+                                    self.events.push(Event::TradeAction(action));
+                                });
+                            });
+                        },
+                    },
+                    trade::TradeEvent::TradeAction(action) => {
+                        if let TradeAction::Decline = action {
+                            self.show.stats = false;
+                            self.show.trade(false);
+                            if !self.show.social {
+                                self.show.want_grab = true;
+                                self.force_ungrab = false;
+                            } else {
+                                self.force_ungrab = true
+                            };
+                            self.show.prompt_dialog = None;
+                        }
+                        events.push(Event::TradeAction(action));
+                    },
+                    trade::TradeEvent::SetDetailsMode(mode) => {
+                        self.show.trade_details = mode;
+                    },
+                    trade::TradeEvent::ShowPrompt(prompt) => {
+                        self.show.prompt_dialog = Some(prompt);
+                    },
+                    trade::TradeEvent::MoveBag(pos) => {
+                        global_state.settings.hud_position.bag.other = pos;
+                    },
+                }
+            }
+        }
 
         self.new_messages.retain(chat::show_in_chatbox);
 
@@ -3838,6 +3854,9 @@ impl Hud {
                     },
                     social::Event::SetBattleMode(mode) => {
                         events.push(Event::SetBattleMode(mode));
+                    },
+                    social::Event::MoveSocial(pos) => {
+                        global_state.settings.hud_position.social = pos;
                     },
                 }
             }
