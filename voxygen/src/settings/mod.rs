@@ -12,6 +12,7 @@ pub mod control;
 pub mod controller;
 pub mod gameplay;
 pub mod graphics;
+pub mod hud_position;
 pub mod interface;
 pub mod inventory;
 pub mod language;
@@ -23,6 +24,7 @@ pub use control::ControlSettings;
 pub use controller::{Button, ControllerSettings};
 pub use gameplay::GameplaySettings;
 pub use graphics::{Fps, GraphicsSettings, get_fps};
+pub use hud_position::HudPositionSettings;
 pub use interface::InterfaceSettings;
 pub use inventory::InventorySettings;
 pub use language::LanguageSettings;
@@ -37,6 +39,7 @@ pub struct Settings {
     pub controls: ControlSettings,
     pub controller: ControllerSettings,
     pub interface: InterfaceSettings,
+    pub hud_position: HudPositionSettings,
     pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
     pub graphics: GraphicsSettings,
@@ -74,6 +77,7 @@ impl Default for Settings {
             controls: ControlSettings::default(),
             controller: ControllerSettings::default(),
             interface: InterfaceSettings::default(),
+            hud_position: HudPositionSettings::default(),
             gameplay: GameplaySettings::default(),
             networking: NetworkingSettings::default(),
             graphics: GraphicsSettings::default(),

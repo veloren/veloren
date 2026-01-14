@@ -10,7 +10,7 @@ use crate::{
     render::RenderMode,
     settings::{
         AudioSettings, ChatSettings, ControlSettings, ControllerSettings, Fps, GameplaySettings,
-        GraphicsSettings, InterfaceSettings, audio::AudioVolume,
+        GraphicsSettings, HudPositionSettings, InterfaceSettings, audio::AudioVolume,
     },
     window::{FullScreenSettings, MenuInput, Window},
 };
@@ -144,6 +144,7 @@ pub enum Interface {
     ToggleDebug(bool),
     ToggleHitboxes(bool),
     ToggleChat(bool),
+    ToggleDraggableWindows(bool),
     ToggleTips(bool),
 
     CrosshairTransp(f32),
@@ -688,6 +689,9 @@ impl SettingsChange {
                     Interface::ToggleChat(toggle_chat) => {
                         settings.interface.toggle_chat = toggle_chat;
                     },
+                    Interface::ToggleDraggableWindows(toggle_draggable_windows) => {
+                        settings.interface.toggle_draggable_windows = toggle_draggable_windows;
+                    },
                     Interface::ToggleTips(loading_tips) => {
                         settings.interface.loading_tips = loading_tips;
                     },
@@ -799,6 +803,8 @@ impl SettingsChange {
                         let tmp = settings.interface.intro_show;
                         settings.interface = InterfaceSettings::default();
                         settings.interface.intro_show = tmp;
+                        // Reset Hud Position Settings
+                        settings.hud_position = HudPositionSettings::default();
                         // Update Current Scaling Mode
                         session_state
                             .hud

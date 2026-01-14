@@ -7,7 +7,8 @@ use super::{
     util,
 };
 use crate::{
-    settings::Settings,
+    GlobalState,
+    settings::{HudPositionSettings, Settings},
     ui::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
         Tooltipable,
@@ -45,7 +46,7 @@ use itertools::Either;
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 use strum::{EnumIter, IntoEnumIterator};
 use tracing::{error, warn};
-use vek::*;
+use vek::{approx::AbsDiffEq, *};
 
 widget_ids! {
     pub struct Ids {
@@ -101,6 +102,7 @@ widget_ids! {
         modular_wep_empty_bg,
         modular_wep_ing_1_bg,
         modular_wep_ing_2_bg,
+        draggable_area,
     }
 }
 
@@ -127,6 +129,7 @@ pub enum Event {
     RepairItem {
         slot: Slot,
     },
+    MoveCrafting(Vec2<f64>),
 }
 
 pub struct CraftingShow {
@@ -155,6 +158,7 @@ impl Default for CraftingShow {
 #[derive(WidgetCommon)]
 pub struct Crafting<'a> {
     client: &'a Client,
+    global_state: &'a GlobalState,
     info: &'a HudInfo<'a>,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -179,6 +183,7 @@ impl<'a> Crafting<'a> {
     #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
+        global_state: &'a GlobalState,
         info: &'a HudInfo,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
@@ -198,6 +203,7 @@ impl<'a> Crafting<'a> {
     ) -> Self {
         Self {
             client,
+            global_state,
             info,
             imgs,
             fonts,
@@ -404,11 +410,14 @@ impl Widget for Crafting<'_> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
+        let crafting_pos = self.global_state.settings.hud_position.crafting;
+        let crafting_window_size = Vec2::new(470.0, 460.0);
+
         // Window
         Image::new(self.imgs.crafting_window)
-            .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
+            .bottom_right_with_margins_on(ui.window, crafting_pos.y, crafting_pos.x)
             .color(Some(UI_MAIN))
-            .w_h(470.0, 460.0)
+            .w_h(crafting_window_size.x, crafting_window_size.y)
             .set(state.ids.window, ui);
 
         // Frame
@@ -2407,6 +2416,54 @@ impl Widget for Crafting<'_> {
             .thickness(5.0)
             .rgba(0.66, 0.66, 0.66, 1.0)
             .set(state.ids.scrollbar_ing, ui);
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_draggable_windows
+        {
+            // Draggable area
+            let draggable_dim = [crafting_window_size.x, 48.0];
+
+            Rectangle::fill_with(draggable_dim, color::TRANSPARENT)
+                .top_left_with_margin_on(state.ids.window_frame, 0.0)
+                .set(state.ids.draggable_area, ui);
+
+            let pos_delta: Vec2<f64> = ui
+                .widget_input(state.ids.draggable_area)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+
+            // The crafting uses bottom_right_with_margins_on which means
+            // which means we have to use positive margins to move left
+            // so we have to invert the x value from the delta.
+            let pos_delta = pos_delta.with_x(-pos_delta.x);
+
+            let crafting_window_size_with_tabs =
+                crafting_window_size.with_x(crafting_window_size.x + 40.0);
+            let window_clamp = Vec2::new(ui.win_w, ui.win_h) - crafting_window_size_with_tabs;
+
+            let new_pos = (crafting_pos + pos_delta)
+                .map(|e| e.max(0.))
+                .map2(window_clamp, |e, bounds| e.min(bounds));
+
+            if new_pos.abs_diff_ne(&crafting_pos, f64::EPSILON) {
+                events.push(Event::MoveCrafting(new_pos));
+            }
+
+            if ui
+                .widget_input(state.ids.draggable_area)
+                .clicks()
+                .right()
+                .count()
+                == 1
+            {
+                events.push(Event::MoveCrafting(HudPositionSettings::default().crafting));
+            }
+        }
 
         events
     }

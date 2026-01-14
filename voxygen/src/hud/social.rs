@@ -4,6 +4,7 @@ use super::{
 };
 use crate::{
     GlobalState,
+    settings::HudPositionSettings,
     ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
 };
 use client::{self, Client};
@@ -16,10 +17,12 @@ use conrod_core::{
 use i18n::Localization;
 use itertools::Itertools;
 use std::time::Instant;
+use vek::{Vec2, approx::AbsDiffEq};
 
 widget_ids! {
     pub struct Ids {
         frame,
+        draggable_area,
         close,
         title_align,
         title,
@@ -99,6 +102,7 @@ pub enum Event {
     Focus(widget::Id),
     SearchPlayers(Option<String>),
     SetBattleMode(BattleMode),
+    MoveSocial(Vec2<f64>),
 }
 
 impl Widget for Social<'_> {
@@ -138,17 +142,21 @@ impl Widget for Social<'_> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
+        let social_pos = self.global_state.settings.hud_position.social;
+        let social_window_size = Vec2::new(310.0, 460.0);
+
         // Window BG
         Image::new(self.imgs.social_bg_on)
-            .bottom_left_with_margins_on(ui.window, 308.0, 25.0)
+            .bottom_left_with_margins_on(ui.window, social_pos.y, social_pos.x)
             .color(Some(UI_MAIN))
-            .w_h(310.0, 460.0)
+            .w_h(social_window_size.x, social_window_size.y)
             .set(state.ids.bg, ui);
+
         // Window frame
         Image::new(self.imgs.social_frame_on)
             .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
-            .w_h(310.0, 460.0)
+            .wh_of(state.ids.bg)
             .set(state.ids.frame, ui);
 
         // Icon
@@ -161,7 +169,7 @@ impl Widget for Social<'_> {
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
+            .top_right_with_margins_on(state.ids.bg, 0.0, 0.0)
             .set(state.ids.close, ui)
             .was_clicked()
         {
@@ -581,6 +589,47 @@ impl Widget for Social<'_> {
                     events.push(Event::SetBattleMode(BattleMode::PvE))
                 }
             },
+        }
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_draggable_windows
+        {
+            // Draggable area
+            let draggable_dim = [social_window_size.x, 48.0];
+
+            Rectangle::fill_with(draggable_dim, color::TRANSPARENT)
+                .top_left_with_margin_on(state.ids.frame, 0.0)
+                .set(state.ids.draggable_area, ui);
+
+            let pos_delta: Vec2<f64> = ui
+                .widget_input(state.ids.draggable_area)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+
+            let window_clamp = Vec2::new(ui.win_w, ui.win_h) - social_window_size;
+
+            let new_pos = (social_pos + pos_delta)
+                .map(|e| e.max(0.))
+                .map2(window_clamp, |e, bounds| e.min(bounds));
+
+            if new_pos.abs_diff_ne(&social_pos, f64::EPSILON) {
+                events.push(Event::MoveSocial(new_pos));
+            }
+
+            if ui
+                .widget_input(state.ids.draggable_area)
+                .clicks()
+                .right()
+                .count()
+                == 1
+            {
+                events.push(Event::MoveSocial(HudPositionSettings::default().social));
+            }
         }
 
         events
