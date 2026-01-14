@@ -1,21 +1,21 @@
 RapidMelee(
     buildup_duration: 0.1,
-    swing_duration: 0.07,
-    recover_duration: 0.1,
+    swing_duration: 0.1,
+    recover_duration: 0.2,
     melee_constructor: (
         kind: Slash(
-            damage: 6,
+            damage: 9.5,
             poise: 3,
             knockback: 0,
             energy_regen: 0,
         ),
-        range: 6.0,
+        range: 4.0,
         angle: 10.0,
     ),
     energy_cost: 6,
-    max_strikes: Some(6),
+    max_strikes: Some(3),
     move_modifier: 0.35,
-    ori_modifier: 0.25,
+    ori_modifier: 0.5,
     meta: (
         requirements: (stance: Some(Sword(Agile))),
     ),

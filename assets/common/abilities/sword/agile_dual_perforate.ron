@@ -1,19 +1,19 @@
 RapidMelee(
-    buildup_duration: 0.2,
-    swing_duration: 0.14,
-    recover_duration: 0.3,
+    buildup_duration: 0.15,
+    swing_duration: 0.15,
+    recover_duration: 0.25,
     melee_constructor: (
         kind: Stab(
-            damage: 3,
+            damage: 3.5,
             poise: 1,
             knockback: 0,
-            energy_regen: 4,
+            energy_regen: 5,
         ),
         range: 4.0,
         angle: 5.0,
     ),
     energy_cost: 0,
     max_strikes: None,
-    move_modifier: 0.3,
-    ori_modifier: 0.2,
+    move_modifier: 0.35,
+    ori_modifier: 0.5,
 )
