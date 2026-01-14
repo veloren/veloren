@@ -6,6 +6,6 @@ ItemDef(
         effects: One(Permanent(CycleBodyType)),
         container: Some(Simple("common.items.crafting_ing.empty_vial")),
     ),
-    quality: Moderate,
+    quality: Legendary,
     tags: [Potion],
 )

@@ -5,7 +5,7 @@ ItemDef(
         kind: Hammer,
         hands: Two,
         stats: (
-            equip_time_secs: 0.5,
+            equip_time_secs: 0.25,
             power: 2.25,
             effect_power: 1.2,
             speed: 0.7,

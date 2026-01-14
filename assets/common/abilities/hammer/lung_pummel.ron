@@ -15,7 +15,7 @@ FinisherMelee(
         damage_effect: Some(Buff((
             kind: Winded,
             dur_secs: 8,
-            strength: Value(1.0),
+            strength: Value(0.7),
             chance: 1.0,
         ))),
         precision_flank_multipliers: (front: 1.0, side: 2.0, back: 1.0),

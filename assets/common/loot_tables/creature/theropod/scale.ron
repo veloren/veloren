@@ -1,7 +1,7 @@
 [
     (1, All([
         MultiDrop(Item("common.items.crafting_ing.animal_misc.raptor_feather"), 2, 3),
-        MultiDrop(Item("common.items.crafting_ing.hide.scales"), 2, 6),
+        MultiDrop(Item("common.items.crafting_ing.hide.scales"), 2, 4),
         ],
     )),
 ]

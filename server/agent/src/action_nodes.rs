@@ -1262,7 +1262,9 @@ impl AgentData<'_> {
                             "Oni" | "Sword Simple" | "BipedLargeCultistSword" => {
                                 Tactic::SwordSimple
                             },
-                            "Staff Simple" | "BipedLargeCultistStaff" => Tactic::Staff,
+                            "Staff Simple" | "BipedLargeCultistStaff" | "Ogre Staff" => {
+                                Tactic::Staff
+                            },
                             "BipedLargeCultistHammer" => Tactic::Hammer,
                             "Simple Flying Melee" => Tactic::SimpleFlyingMelee,
                             "Bow Simple" | "BipedLargeCultistBow" => Tactic::Bow,
