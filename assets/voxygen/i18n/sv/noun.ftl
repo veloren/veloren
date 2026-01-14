@@ -33,3 +33,7 @@ noun-terracotta_pursuer = en terrakottaförföljare
 noun-cursekeeper = terrakottaförföljare
 noun-strigoi = En strigoi
 noun-executioner = en bödel
+noun-role-guard = en vakt
+noun-role-adventurer = en äventyrare
+noun-role-pirate = en pirat
+noun-role-captain = en kapten

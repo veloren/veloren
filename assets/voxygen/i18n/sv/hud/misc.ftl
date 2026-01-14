@@ -108,3 +108,5 @@ hud-init-stage-server-worldsim-erosion_time_left =
 hud-rest = Vila
 hud-steal-consumes = Använd { $item } för att stjäla
 hud-steal-requires = Stjäl med { $item }
+hud-waypoint_interact = Sätt vägpunkt
+hud-tutorial-disable = Stäng av nybörjartips permanent

@@ -10,7 +10,7 @@ armor-misc-back-admin_back = Správcova kápě
     .desc =
         S velkou mocí přichází
         velká zodpovědnost.
-armor-misc-bag-admin_black_hole = Správcova osobní černá díra
+armor-misc-bag-admin_black_hole = Správcova Osobní Černá Díra
     .desc = Prý se do ní vejde všechno.
 armor-velorite-belt = Veloritový opasek
     .desc = { "" }

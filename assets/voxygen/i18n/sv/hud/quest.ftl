@@ -6,4 +6,4 @@ hud-quest-reward = Jag kommer belöna dig med:
 hud-quest-accept = Acceptera
 hud-quest-decline = Neka
 hud-dialogue = Dialog
-hud-dialogue-ack = Tryck på [{ $key }] för att erkänna
+hud-dialogue-ack = Tryck på [{ $key }] för att fortsätta

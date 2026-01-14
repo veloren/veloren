@@ -52,3 +52,5 @@ hud-map-character = Karaktär
 hud-map-character-label = { $name }s senaste kända plats
 hud-map-creature-label = Senaste kända plats för { $body }
 hud-map-escort-label = Eskortera { $name } till { $place }.
+hud-map-workshop = Verkstad
+hud-map-airship_dock = Luftskeppsdock
