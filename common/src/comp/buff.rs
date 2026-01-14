@@ -604,6 +604,7 @@ impl BuffKind {
         match_some!(self,
             BuffKind::Amnesia => 0.3,
             BuffKind::Frozen => data.strength,
+            BuffKind::Winded => data.strength / 3.0,
         )
     }
 

@@ -777,6 +777,11 @@
 
         ],
     )),
+    Custom("Ogre Staff"): AbilitySet((
+        primary: Simple(None, "common.abilities.custom.ogre_staff.firebomb"),
+        secondary: Simple(None, "common.abilities.custom.ogre_staff.flamethrower"),
+        abilities: [],
+    )),
     Custom("Grave Warden"): AbilitySet((
         primary: Simple(None, "common.abilities.custom.gravewarden.strike"),
         secondary: Simple(None, "common.abilities.custom.gravewarden.laser"),

@@ -1358,6 +1358,7 @@ impl Body {
             },
             Body::Ship(_) => 0.0,
             Body::BipedLarge(b) => match b.species {
+                biped_large::Species::Gigasfire => 1.2,
                 biped_large::Species::Mindflayer => 4.35,
                 biped_large::Species::Minotaur => 4.05,
                 biped_large::Species::Tidalwarrior => 2.75,
@@ -1365,6 +1366,7 @@ impl Body {
                 _ => 1.0,
             },
             Body::BipedSmall(b) => match b.species {
+                biped_small::Species::Ashen => 1.33,
                 biped_small::Species::IronDwarf => 2.0,
                 biped_small::Species::Flamekeeper => 4.0,
                 biped_small::Species::GreenLegoom

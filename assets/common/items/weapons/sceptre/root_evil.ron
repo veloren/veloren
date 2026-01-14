@@ -5,7 +5,7 @@ ItemDef(
         kind: Sceptre,
         hands: Two,
         stats: (
-            equip_time_secs: 0.4,
+            equip_time_secs: 0.25,
             power: 1.45,
             effect_power: 1.0,
             speed: 0.65,
