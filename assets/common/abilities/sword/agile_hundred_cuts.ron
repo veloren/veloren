@@ -4,7 +4,7 @@ RapidMelee(
     recover_duration: 0.1,
     melee_constructor: (
         kind: Slash(
-            damage: 4,
+            damage: 8,
             poise: 0,
             knockback: 0,
             energy_regen: 0,
@@ -12,9 +12,9 @@ RapidMelee(
         range: 3.0,
         angle: 10.0,
     ),
-    energy_cost: 1,
-    max_strikes: Some(20),
-    move_modifier: 0.6,
-    ori_modifier: 0.4,
+    energy_cost: 2,
+    max_strikes: Some(10),
+    move_modifier: 0.75,
+    ori_modifier: 0.5,
     minimum_combo: 10,
 )
