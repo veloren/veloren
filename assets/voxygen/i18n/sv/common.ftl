@@ -109,3 +109,4 @@ common-kind-lantern = Lykta
 hud-battle-mode = Stridsläge
 common-tool-throwable = Kastbar
 hud-diary-sections-skill_trees-title = Skillträd
+hud-waypoint = Vägpunkt

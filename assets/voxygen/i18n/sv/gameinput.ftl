@@ -89,3 +89,4 @@ gamepad-dpad_up = Upp
 gamepad-mode = Läge
 gamepad-dpad_right = Höger
 gamepad-unknown = Okänd
+gameinput-walljump = Vägghopp

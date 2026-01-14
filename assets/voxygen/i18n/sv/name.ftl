@@ -4,3 +4,4 @@ name-custom-dungeon-dwarven_quarry-mine_guard =
 name-custom-village-guard =
     .fem = Vakt
     .masc = Vakt
+name-custom-village-captain = Kapten
