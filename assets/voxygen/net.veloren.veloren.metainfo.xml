@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2019 Artem Polishchuk <ego.cordatus@gmail.com> -->
 <component type="desktop-application">
-  <id>net.veloren.veloren.desktop</id>
+  <id>net.veloren.veloren</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
+  <project_group>Veloren</project_group>
+  <developer id="net.veloren">
+    <name>The Veloren Community</name>
+  </developer>
 
   <name>Veloren</name>
   <provides>
     <binary>veloren-voxygen</binary>
+    <binary>veloren-server-cli</binary>
   </provides>
+  <launchable type="desktop-id">net.veloren.veloren.desktop</launchable>
 
   <content_rating type="oars-1.0">
     <content_attribute id="social-chat">intense</content_attribute>
@@ -18,12 +24,11 @@
   </content_rating>
 
   <summary>Veloren is an action RPG set in a vast fantasy world made of voxels</summary>
+  <summary xml:lang="cs">Veloren je akční RPG hra odehrávající se ve fantasy světě celém z kostiček</summary>
   <summary xml:lang="de">Veloren ist ein Action-RPG, das in einer riesigen Fantasiewelt aus Voxeln spielt</summary>
+  <summary xml:lang="pl">Veloren jest fabularną grą akcji osadzoną w rozległym fantastycznym świecie zbudowanym z wokseli</summary>
 
   <description>
-    <p>Welcome To Veloren!</p>
-    <p xml:lang="de">Willkommen bei Veloren!</p>
-    
     <p>
       Veloren is an action-adventure RPG game set in a vast fantasy world.
       It is inspired by other games such as Cube World,
@@ -35,50 +40,68 @@
       The Legend of Zelda: Breath of the Wild, Dwarf Fortress und Minecraft.
     </p>
 
-    <h2>Development</h2>
-    <h2 xml:lang="de">Entwicklung</h2>
+    <p>Development</p>
+    <p xml:lang="de">Entwicklung</p>
 
     <p>
-      You are welcome to join our [Zulip server](https://veloren.net/zulip) to chat with the community.
+      You are welcome to join our Zulip server to chat with the community.
     </p>
     <p xml:lang="de">
-      Du bist herzlich eingeladen, unserem [Zulip-Server] (https://veloren.net/zulip) beizutreten und mit der Community zu chatten.
+      Du bist herzlich eingeladen, unserem Zulip-Server beizutreten und mit der Community zu chatten.
     </p>
   </description>
 
   <releases>
-    <release date="@DATE@" version="@VERSION@"></release>
+    <release date="@DATE@" version="@VERSION@"/>
   </releases>
 
   <screenshots>
     <screenshot type="default">
+      <caption>Airship flying over a valley</caption>
       <image>https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/634860358623821835/884138091537907793/screenshot_1630865233900.png</image>
     </screenshot>
     <screenshot>
+      <caption>Players observing a structure</caption>
       <image>https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/634860358623821835/885141629902684180/bg_12.jpg</image>
     </screenshot>
     <screenshot>
+      <caption>Battling the Mindflayer</caption>
       <image>https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/634860358623821835/884297602462539876/screenshot_1630903166427.png</image>
     </screenshot>
     <screenshot>
+      <caption>Archers hunting deer</caption>
       <image>https://s3.eu-central-2.wasabisys.com/veloren-blog/cdn/634860358623821835/885141632519905330/bg_10.jpg</image>
     </screenshot>
   </screenshots>
 
+  <recommends>
+    <internet>always</internet>
+    <memory>4096</memory>
+  </recommends>
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
     <control>gamepad</control>
+    <internet>offline-only</internet>
   </supports>
 
+  <categories>
+    <category>Game</category>
+  </categories>
   <keywords>
     <keyword>multiplayer</keyword>
+    <keyword>voxel</keyword>
     <keyword>sandbox</keyword>
-    <keyword>world</keyword>
+    <keyword>role-playing game</keyword>
+    <keyword>RPG</keyword>
   </keywords>
 
   <url type="bugtracker">https://gitlab.com/veloren/veloren/issues</url>
-  <url type="faq">https://gitlab.com/veloren/veloren#faq</url>
+  <url type="faq">https://book.veloren.net/players/faq.html</url>
   <url type="help">https://book.veloren.net/</url>
   <url type="homepage">https://veloren.net</url>
+  <url type="contact">https://veloren.net/zulip</url>
+  <url type="donation">https://veloren.net/donate</url>
+  <url type="vcs-browser">https://gitlab.com/veloren/veloren</url>
+  <url type="contribute">https://book.veloren.net/contributors/index.html</url>
 </component>
