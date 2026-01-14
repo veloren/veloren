@@ -185,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjust marine vehicles center alignment
 - Various sprite lighting issues
 - Spatial SFX no longer pop at the very start of their sound.
+- AppStream metadata for Veloren is now fully valid.
 
 ## [0.17.0] - 2024-12-28
 
