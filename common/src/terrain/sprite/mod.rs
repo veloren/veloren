@@ -261,6 +261,9 @@ sprites! {
         FenceWoodGateWoodland = 0xCC,
         Hay = 0xCD,
         CrystalBall = 0xCE,
+        BenchWood2Middle = 0xD0,
+        BenchWood2Side = 0xD1,
+        BenchWood2Middle2 = 0xD2,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered, Collectable {
@@ -454,6 +457,7 @@ sprites! {
         TerracottaBlock = 0x47,
         MetalChain = 0x48,
         Bell = 0x49,
+        DoorWideAirship = 0x4A,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -744,7 +748,8 @@ impl SpriteKind {
             | SpriteKind::KeyholeBars
             | SpriteKind::WoodBarricades
             | SpriteKind::DiamondLight
-            | SpriteKind::CrystalBall => 1.0,
+            | SpriteKind::CrystalBall
+            | SpriteKind::Ladder => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
@@ -887,6 +892,7 @@ impl SpriteKind {
             SpriteKind::HandrailWoodWoodlandBase | SpriteKind::HandrailWoodWoodlandMiddle => 1.727,
             SpriteKind::HandrailWoodWoodlandTop => 1.181,
             SpriteKind::Hay => 1.09,
+            SpriteKind::BenchWood2Middle | SpriteKind::BenchWood2Side => 0.636,
             _ => return None,
         })
     }
@@ -1104,6 +1110,9 @@ impl SpriteKind {
             SpriteKind::SeatWoodBlueMiddle | SpriteKind::SeatWoodBlueSide => {
                 Some((Vec3::new(0.4, 0.0, 0.5), Vec3::unit_x()))
             },
+            SpriteKind::BenchWood2Middle
+            | SpriteKind::BenchWood2Side
+            | SpriteKind::BenchWood2Middle2 => Some((Vec3::new(0.4, 0.0, 0.62), Vec3::unit_x())),
             SpriteKind::Helm => Some((Vec3::new(0.0, -1.1, 0.0), Vec3::unit_y())),
             SpriteKind::BedWoodWoodlandHead
             | SpriteKind::BedCliffHead
@@ -1157,7 +1166,10 @@ impl SpriteKind {
     pub fn is_door(&self) -> bool {
         matches!(
             self,
-            SpriteKind::Door | SpriteKind::DoorWide | SpriteKind::DoorDark
+            SpriteKind::Door
+                | SpriteKind::DoorWide
+                | SpriteKind::DoorDark
+                | SpriteKind::DoorWideAirship
         )
     }
 

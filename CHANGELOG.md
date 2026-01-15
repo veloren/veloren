@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A new tutorial system that introduces mechanics during gameplay without breaking immersion
 - Added more sprite effects
 - Arthropod footsteps
+- Added new bench and door sprites
 
 ### Changed
 
@@ -134,6 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airship movement is according to timing of route schedule, no longer autonomous.
 - Added height to City airship docs located near sloping terrain for airship docking clearance.
 - switch to Naga for default Shader compiler instead of shaderc
+- Changed doors on DefaultAirship vehicle
+- Changed lanterns and bench on Skiff vehicle
 
 ### Removed
 
