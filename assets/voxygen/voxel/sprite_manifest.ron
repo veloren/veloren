@@ -791,6 +791,36 @@ SeatWoodBlueSide: [(
     ],
     wind_sway: 0,
 )],
+BenchWood2Middle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood2_middle",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWood2Middle2: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood2_middle2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+BenchWood2Side: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.bench_wood2_side",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 LanternAirshipWallBlackS: [(
     variations: [
         (
@@ -1704,6 +1734,16 @@ DoorWide: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.door.door-wide",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+DoorWideAirship: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.door.door-wide-airship",
             offset: (-5.5, -5.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
