@@ -892,7 +892,9 @@ impl SpriteKind {
             SpriteKind::HandrailWoodWoodlandBase | SpriteKind::HandrailWoodWoodlandMiddle => 1.727,
             SpriteKind::HandrailWoodWoodlandTop => 1.181,
             SpriteKind::Hay => 1.09,
-            SpriteKind::BenchWood2Middle | SpriteKind::BenchWood2Side => 0.636,
+            SpriteKind::BenchWood2Middle
+            | SpriteKind::BenchWood2Side
+            | SpriteKind::BenchWood2Middle2 => 0.636,
             _ => return None,
         })
     }
