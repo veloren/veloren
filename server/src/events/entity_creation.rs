@@ -17,10 +17,10 @@ use common::{
     },
     consts::MAX_CAMPFIRE_RANGE,
     event::{
-        CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent, CreateNpcGroupEvent,
-        CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent, EventBus,
-        InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent, ShootEvent,
-        SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
+        ArcingEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
+        CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
+        EventBus, InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent,
+        ShootEvent, SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -420,10 +420,7 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
 
     let pos = ev.pos.0;
 
-    let vel = *ev.dir * ev.speed
-        + ev.entity
-            .and_then(|entity| state.ecs().read_storage::<Vel>().get(entity).map(|v| v.0))
-            .unwrap_or(Vec3::zero());
+    let vel = *ev.dir * ev.speed + ev.source_vel.map_or(Vec3::zero(), |v| v.0);
 
     // Add an outcome
     state
@@ -439,6 +436,7 @@ pub fn handle_shoot(server: &mut Server, ev: ShootEvent) {
         .create_projectile(Pos(pos), Vel(vel), ev.body, ev.projectile)
         .maybe_with(ev.light)
         .maybe_with(ev.object)
+        .maybe_with(ev.marker)
         .build();
 }
 
@@ -504,6 +502,13 @@ pub fn handle_shockwave(server: &mut Server, ev: ShockwaveEvent) {
     let state = server.state_mut();
     state
         .create_shockwave(ev.properties, ev.pos, ev.ori)
+        .build();
+}
+
+pub fn handle_arc(server: &mut Server, ev: ArcingEvent) {
+    let state = server.state_mut();
+    state
+        .create_arcing(ev.arc, ev.target, ev.owner, ev.pos)
         .build();
 }
 
@@ -648,6 +653,7 @@ pub fn handle_create_object(
                     AuraTarget::NotGroupOf(owner),
                     time,
                 )]))
+                .with(comp::projectile::ProjectileHitEntities::default())
                 .build();
 
             if let Some(owner) = state.ecs().read_resource::<IdMaps>().uid_entity(owner) {
@@ -739,7 +745,7 @@ pub fn handle_summon_beam_pillars(server: &mut Server, ev: SummonBeamPillarsEven
                     radius: ev.radius,
                     height: ev.height,
                     damage: ev.damage,
-                    damage_effect: ev.damage_effect,
+                    damage_effect: ev.damage_effect.clone(),
                     dodgeable: ev.dodgeable,
                     tick_rate: ev.tick_rate,
                     specifier: ev.specifier,

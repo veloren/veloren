@@ -194,6 +194,7 @@ fn maps_roll() {
                     ground_shockwaves: false,
                     air_shockwaves: false,
                     explosions: false,
+                    arcs: false,
                 },
                 ability_info: empty_ability_info(),
                 was_cancel: false,

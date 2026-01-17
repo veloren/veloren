@@ -1,8 +1,8 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, StateUpdate, character_state::OutputEvents,
-        projectile::ProjectileConstructor,
+        Body, CharacterState, FrontendMarker, LightEmitter, Pos, StateUpdate, ability::Amount,
+        character_state::OutputEvents, projectile::ProjectileConstructor,
     },
     event::ShootEvent,
     states::{
@@ -10,11 +10,13 @@ use crate::{
         utils::*,
     },
 };
+use itertools::Either;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the weapon needs to be prepared for
     pub buildup_duration: Duration,
@@ -24,18 +26,21 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// How much energy is drained per second when charging
     pub energy_drain: f32,
+    /// Energy per second drain after full charge is reached
+    pub idle_drain: f32,
     /// Projectile information
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub initial_projectile_speed: f32,
     pub scaled_projectile_speed: f32,
+    pub projectile_spread: Option<ProjectileSpread>,
+    pub num_projectiles: Amount,
+    pub marker: Option<FrontendMarker>,
     /// Move speed efficiency
     pub move_speed: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -74,17 +79,15 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Charge,
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Charge;
+                    }
                 }
             },
             StageSection::Charge => {
@@ -100,38 +103,59 @@ impl CharacterBehavior for Data {
                     let projectile = self
                         .static_data
                         .projectile
+                        .clone()
                         .handle_scaling(charge_frac)
                         .create_projectile(
                             Some(*data.uid),
                             precision_mult,
-                            self.static_data.damage_effect,
+                            Some(self.static_data.ability_info),
                         );
-                    output_events.emit_server(ShootEvent {
-                        entity: Some(data.entity),
-                        pos,
-                        dir: data.inputs.look_dir,
-                        body: self.static_data.projectile_body,
-                        projectile,
-                        light: self.static_data.projectile_light,
-                        speed: self.static_data.initial_projectile_speed
-                            + charge_frac * self.static_data.scaled_projectile_speed,
-                        object: None,
-                    });
 
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        exhausted: true,
-                        ..*self
-                    });
+                    let num_projectiles = self
+                        .static_data
+                        .num_projectiles
+                        .compute(data.heads.map_or(1, |heads| heads.amount() as u32));
+
+                    let mut rng = rng();
+                    let dirs = if let Some(spread) = self.static_data.projectile_spread {
+                        Either::Left(spread.compute_directions(
+                            data.inputs.look_dir,
+                            *data.ori,
+                            num_projectiles,
+                            &mut rng,
+                        ))
+                    } else {
+                        Either::Right((0..num_projectiles).map(|_| data.inputs.look_dir))
+                    };
+
+                    for dir in dirs {
+                        output_events.emit_server(ShootEvent {
+                            entity: Some(data.entity),
+                            source_vel: Some(*data.vel),
+                            pos,
+                            dir,
+                            body: self.static_data.projectile_body,
+                            projectile: projectile.clone(),
+                            light: self.static_data.projectile_light,
+                            speed: self.static_data.initial_projectile_speed
+                                + charge_frac * self.static_data.scaled_projectile_speed,
+                            object: None,
+                            marker: self.static_data.marker,
+                        });
+                    }
+
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.charge_duration
                     && input_is_pressed(data, self.static_data.ability_info.input)
                 {
                     // Charges
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and input is held down
                     update
@@ -139,28 +163,26 @@ impl CharacterBehavior for Data {
                         .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and RMB is held down
                     update
                         .energy
-                        .change_by(-self.static_data.energy_drain * data.dt.0 / 5.0);
+                        .change_by(-self.static_data.idle_drain * data.dt.0);
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::ChargedRanged(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::ChargedRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

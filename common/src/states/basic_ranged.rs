@@ -1,10 +1,11 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
+        Body, CharacterState, LightEmitter, Pos, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
         object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
+        projectile::{ProjectileConstructor, aim_projectile},
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
@@ -12,21 +13,21 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
-    util::Dir,
 };
-use rand::{Rng, rng};
+use itertools::Either;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How much buildup is required before the attack
     pub buildup_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
     /// How much spread there is when more than 1 projectile is created
-    pub projectile_spread: f32,
+    pub projectile_spread: Option<ProjectileSpread>,
     /// Projectile variables
     pub projectile: ProjectileConstructor,
     pub projectile_body: Body,
@@ -36,11 +37,13 @@ pub struct StaticData {
     pub num_projectiles: Amount,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    pub damage_effect: Option<CombatEffect>,
     /// Adjusts move speed during the attack per stage
     pub movement_modifier: MovementModifier,
     /// Adjusts turning rate during the attack per stage
     pub ori_modifier: OrientationModifier,
+    /// Automatically aims to account for distance and elevation to target the
+    /// selected pos
+    pub auto_aim: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -72,10 +75,9 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                     match self.static_data.projectile_body {
                         Body::Object(LaserBeam) => {
                             // Send local event used for frontend shenanigans
@@ -107,23 +109,22 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        movement_modifier: self.static_data.movement_modifier.recover,
-                        ori_modifier: self.static_data.ori_modifier.recover,
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                        c.movement_modifier = c.static_data.movement_modifier.recover;
+                        c.ori_modifier = c.static_data.ori_modifier.recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if !self.exhausted {
                     // Fire
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let projectile = self.static_data.projectile.create_projectile(
+                    let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
                         precision_mult,
-                        self.static_data.damage_effect,
+                        Some(self.static_data.ability_info),
                     );
                     // Shoots all projectiles simultaneously
                     let num_projectiles = self
@@ -131,36 +132,54 @@ impl CharacterBehavior for Data {
                         .num_projectiles
                         .compute(data.heads.map_or(1, |heads| heads.amount() as u32));
 
-                    for i in 0..num_projectiles {
-                        // Gets offsets
-                        let body_offsets = data.body.projectile_offsets(
-                            update.ori.look_vec(),
-                            data.scale.map_or(1.0, |s| s.0),
-                        );
-                        let pos = Pos(data.pos.0 + body_offsets);
+                    let mut rng = rng();
 
-                        let dir = {
-                            let look_dir = if self.static_data.ori_modifier.buildup.is_some() {
-                                data.inputs.look_dir.merge_z(data.ori.look_dir())
-                            } else {
-                                data.inputs.look_dir
-                            };
+                    let aim_dir = if self.static_data.ori_modifier.buildup.is_some() {
+                        data.inputs.look_dir.merge_z(data.ori.look_dir())
+                    } else {
+                        data.inputs.look_dir
+                    };
 
-                            // Adds a slight spread to the projectiles. First projectile has no
-                            // spread, and spread increases linearly
-                            // with number of projectiles created.
-                            Dir::from_unnormalized(look_dir.map(|x| {
-                                let offset = (2.0 * rng().random::<f32>() - 1.0)
-                                    * self.static_data.projectile_spread
-                                    * i as f32;
-                                x + offset
-                            }))
-                            .unwrap_or(data.inputs.look_dir)
-                        };
+                    // Gets offsets
+                    let body_offsets = data
+                        .body
+                        .projectile_offsets(update.ori.look_vec(), data.scale.map_or(1.0, |s| s.0));
+                    let pos = Pos(data.pos.0 + body_offsets);
 
+                    let aim_dir = if self.static_data.auto_aim
+                        && let Some(sel_pos) = self
+                            .static_data
+                            .ability_info
+                            .input_attr
+                            .and_then(|ia| ia.select_pos)
+                    {
+                        if let Some(ideal_dir) =
+                            aim_projectile(self.static_data.projectile_speed, pos.0, sel_pos, true)
+                        {
+                            ideal_dir
+                        } else {
+                            aim_dir
+                        }
+                    } else {
+                        aim_dir
+                    };
+
+                    let dirs = if let Some(spread) = self.static_data.projectile_spread {
+                        Either::Left(spread.compute_directions(
+                            aim_dir,
+                            *data.ori,
+                            num_projectiles,
+                            &mut rng,
+                        ))
+                    } else {
+                        Either::Right((0..num_projectiles).map(|_| aim_dir))
+                    };
+
+                    for dir in dirs {
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
+                            source_vel: Some(*data.vel),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,
@@ -168,23 +187,22 @@ impl CharacterBehavior for Data {
                             light: self.static_data.projectile_light,
                             speed: self.static_data.projectile_speed,
                             object: None,
+                            marker: None,
                         });
                     }
 
-                    update.character = CharacterState::BasicRanged(Data {
-                        exhausted: true,
-                        ..*self
-                    });
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::BasicRanged(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::BasicRanged(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     if input_is_pressed(data, self.static_data.ability_info.input) {

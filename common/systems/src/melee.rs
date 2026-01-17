@@ -37,6 +37,7 @@ event_emitters! {
         entity_attack_hook: event::EntityAttackedHookEvent,
         combo_change: event::ComboChangeEvent,
         buff: event::BuffEvent,
+        transform: event::TransformEvent,
     }
 }
 
@@ -224,6 +225,7 @@ impl<'a> System<'a> for Sys {
                         inventory: read_data.inventories.get(attacker),
                         stats: read_data.stats.get(attacker),
                         mass: read_data.masses.get(attacker),
+                        pos: Some(pos.0),
                     });
 
                     let target_ori = read_data.orientations.get(target);
@@ -240,6 +242,7 @@ impl<'a> System<'a> for Sys {
                         energy: read_data.energies.get(target),
                         buffs: read_data.buffs.get(target),
                         mass: read_data.masses.get(target),
+                        player: read_data.players.get(target),
                     };
 
                     // PvP check

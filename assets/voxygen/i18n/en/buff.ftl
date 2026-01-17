@@ -179,6 +179,30 @@ buff-tenacity = Tenacity
 ## Resilience
 buff-resilience = Resilience
     .desc = After having just taken a debilitating attack, you become more resilient to future incapaciting effects.
+## Owl Talon
+buff-owltalon = Owl Talon
+    .desc = Taking advantage of your target not knowing of your presence, your next attack will be more precise and deal more damage.
+## Heavy Nock
+buff-heavynock = Heavy Nock
+    .desc = Nock a heavier arrow to your bow, allowing your next shot to stagger the target. The heavier arrow will have less momentum at longer ranges though.
+## Heartseeker
+buff-heartseeker = Heartseeker
+    .desc = Your next arrow will strike your enemy as if it'd dealt a heartwound, causing a more serious wound and giving you energy.
+## Eagle Eye
+buff-eagleeye = Eagle Eye
+    .desc = You can clearly see the vulnerable areas on your targets, and have the agility required to direct every arrow to those areas.
+## Chilled
+buff-chilled = Chilled
+    .desc = The intense cold makes you a little slower and leaves you more vulnerable to forceful attacks.
+## Ardent Hunter
+buff-ardenthunter = Ardent Hunter
+    .desc = Your fervor causes your arrows to be more lethal to a specific target, and your energy to rise as you see your arrows strike them.
+## Aredent Hunted
+buff-ardenthunted = Ardent Hunted
+    .desc = You have been marked as a target by a fervent archer.
+## Septic Shot
+buff-septicshot = Septic Shot
+    .desc = Your next arrow will cause infection in the target, making it more deadly if the target has any ongoing conditions.
 ## Util
 buff-mysterious = Mysterious effect
 buff-remove = Click to remove

@@ -34,9 +34,10 @@ event_emitters! {
         sound: event::SoundEvent,
         parry_hook: event::ParryHookEvent,
         knockback: event::KnockbackEvent,
-        entity_attack_hoow: event::EntityAttackedHookEvent,
+        entity_attack_hook: event::EntityAttackedHookEvent,
         combo_change: event::ComboChangeEvent,
         buff: event::BuffEvent,
+        transform: event::TransformEvent,
     }
 }
 
@@ -243,6 +244,7 @@ impl<'a> System<'a> for Sys {
                                 inventory: read_data.inventories.get(entity),
                                 stats: read_data.stats.get(entity),
                                 mass: read_data.masses.get(entity),
+                                pos: Some(pos.0),
                             });
 
                             let target_info = TargetInfo {
@@ -257,6 +259,7 @@ impl<'a> System<'a> for Sys {
                                 energy: read_data.energies.get(target),
                                 buffs: read_data.buffs.get(target),
                                 mass: read_data.masses.get(target),
+                                player: read_data.players.get(target),
                             };
 
                             let target_dodging = match beam.dodgeable {

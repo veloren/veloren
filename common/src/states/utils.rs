@@ -3,7 +3,10 @@ use crate::{
     comp::{
         Alignment, Body, CharacterState, Density, InputAttr, InputKind, InventoryAction, Melee,
         Ori, Pos, Scale, StateUpdate,
-        ability::{AbilityInitEvent, AbilityMeta, Capability, SpecifiedAbility, Stance},
+        ability::{
+            AbilityInitEvent, AbilityMeta, AbilityRequirements, Capability, SpecifiedAbility,
+            Stance,
+        },
         arthropod, biped_large, biped_small, bird_medium,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffSource, DestInfo},
         character_state::OutputEvents,
@@ -31,9 +34,12 @@ use crate::{
 };
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
+use itertools::Either;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
+    num::NonZeroU32,
     ops::{Add, Div, Mul},
     time::Duration,
 };
@@ -620,12 +626,6 @@ pub fn handle_forced_movement(
                 // This allows players to stop moving forward when they
                 // look downward at target
                 * (1.0 - data.inputs.look_dir.z.abs());
-        },
-        ForcedMovement::Hover { move_input } => {
-            update.vel.0 = Vec3::new(data.vel.0.x, data.vel.0.y, 0.0)
-                + move_input
-                    * data.scale.map_or(1.0, |s| s.0.sqrt())
-                    * data.inputs.move_dir.try_normalized().unwrap_or_default();
         },
     }
 }
@@ -1452,18 +1452,30 @@ fn handle_ability(
             })
             .filter(|(ability, _, _)| ability.requirements_paid(data, update))
     {
+        // TODO: Change requirements_paid to requirements_met, and then pay requirements
+        // here (necessary after energy and combo moved to AbilityMeta)
+        let ability_meta = ability.ability_meta();
+        {
+            let AbilityRequirements { stance: _, item } = ability_meta.requirements;
+            let inv_slot = item.and_then(|item| {
+                data.inventory
+                    .and_then(|inv| inv.get_slot_of_item_by_def_id(&item.item_def_id()))
+            });
+            if let Some(inv_slot) = inv_slot {
+                let inv_manip = InventoryManip::Delete(
+                    inv_slot,
+                    NonZeroU32::new(1).expect("1 is greater than 0"),
+                );
+                output_events.emit_server(InventoryManipEvent(data.entity, inv_manip));
+            }
+        }
         match CharacterState::try_from((
             &ability,
-            AbilityInfo::new(
-                data,
-                from_offhand,
-                input,
-                Some(spec_ability),
-                ability.ability_meta(),
-            ),
+            AbilityInfo::new(data, from_offhand, input, Some(spec_ability), ability_meta),
             data,
         )) {
             Ok(character_state) => {
+                let tool_kind = character_state.ability_info().and_then(|ai| ai.tool);
                 update.character = character_state;
 
                 if let Some(init_event) = ability.ability_meta().init_event {
@@ -1489,7 +1501,10 @@ fn handle_ability(
                                     kind,
                                     BuffData::new(strength, duration),
                                     vec![BuffCategory::SelfBuff],
-                                    BuffSource::Character { by: *data.uid },
+                                    BuffSource::Character {
+                                        by: *data.uid,
+                                        tool_kind,
+                                    },
                                     *data.time,
                                     dest_info,
                                     Some(data.mass),
@@ -1722,9 +1737,6 @@ pub enum ForcedMovement {
         progress: f32,
         direction: MovementDirection,
     },
-    Hover {
-        move_input: f32,
-    },
 }
 
 impl Mul<f32> for ForcedMovement {
@@ -1749,7 +1761,6 @@ impl Mul<f32> for ForcedMovement {
                 progress,
                 direction,
             },
-            Hover { move_input } => Hover { move_input },
         }
     }
 }
@@ -1757,6 +1768,7 @@ impl Mul<f32> for ForcedMovement {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MovementDirection {
     Look,
+    AntiLook,
     Move,
 }
 
@@ -1765,6 +1777,12 @@ impl MovementDirection {
         use MovementDirection::*;
         match self {
             Look => data
+                .inputs
+                .look_dir
+                .to_horizontal()
+                .unwrap_or_default()
+                .xy(),
+            AntiLook => -data
                 .inputs
                 .look_dir
                 .to_horizontal()
@@ -1880,24 +1898,6 @@ pub fn leave_stance(data: &JoinData<'_>, output_events: &mut OutputEvents) {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ScalingKind {
-    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
-    // combo
-    Linear,
-    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at 4x minimum combo
-    Sqrt,
-}
-
-impl ScalingKind {
-    pub fn factor(&self, val: f32, norm: f32) -> f32 {
-        match self {
-            Self::Linear => val / norm,
-            Self::Sqrt => (val / norm).sqrt(),
-        }
-    }
-}
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ComboConsumption {
     #[default]
@@ -1954,4 +1954,64 @@ pub struct OrientationModifier {
     pub buildup: Option<f32>,
     pub swing: Option<f32>,
     pub recover: Option<f32>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ProjectileSpread {
+    Increasing(f32),
+    Horizontal(f32),
+}
+
+impl ProjectileSpread {
+    pub fn compute_directions(
+        self,
+        init_dir: Dir,
+        init_ori: Ori,
+        num: u32,
+        rng: &mut impl Rng,
+    ) -> impl Iterator<Item = Dir> + '_ {
+        match self {
+            Self::Increasing(spread) => Either::Left(
+                // Adds a slight spread to the projectiles. First projectile has no spread,
+                // and spread increases linearly with number of projectiles created.
+                (0..num).map(move |i| {
+                    Dir::from_unnormalized(init_dir.map(|x| {
+                        let offset = (2.0 * rng.random::<f32>() - 1.0) * spread * i as f32;
+                        x + offset
+                    }))
+                    .unwrap_or(init_dir)
+                }),
+            ),
+            Self::Horizontal(spread) => Either::Right(if num < 2 {
+                Either::Left(std::iter::once(init_dir))
+            } else {
+                let left = -spread.to_radians();
+                let increment = spread.to_radians() * 2.0 / (num as f32 - 1.0);
+                let rot_quat_dir = Quaternion::<f32>::rotation_from_to_3d(
+                    Vec3::unit_y(),
+                    Vec3::new(0.0, init_dir.xy().magnitude(), init_dir.z),
+                );
+                Either::Right((0..num).map(move |i| {
+                    let angle = left + increment * i as f32;
+                    let rot_quat_spread = Quaternion::<f32>::rotation_from_to_3d(
+                        Vec3::unit_y(),
+                        Vec2::unit_y().rotated_z(angle).with_z(0.0),
+                    );
+                    Dir::from_unnormalized(
+                        Ori::new(init_ori.to_quat() * rot_quat_dir * rot_quat_spread).look_vec(),
+                    )
+                    .unwrap_or(init_dir)
+                }))
+            }),
+        }
+    }
+
+    /// Don't use this for anything important, just things that need to know
+    /// "roughly" the spread
+    pub fn estimated_spread(&self) -> f32 {
+        match self {
+            // TODO: Check if we want these to return something different
+            Self::Increasing(spread) | Self::Horizontal(spread) => *spread,
+        }
+    }
 }

@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback,
+        DamageKind, GroupTarget, Knockback,
     },
     comp::{
         CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents, shockwave,
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
@@ -62,7 +62,7 @@ pub struct StaticData {
     pub combo_consumption: ComboConsumption,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -84,10 +84,9 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::Shockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Shockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Attack
                     if matches!(self.static_data.timing, Timing::PostBuildup) {
@@ -95,20 +94,18 @@ impl CharacterBehavior for Data {
                     }
 
                     // Transitions to swing
-                    update.character = CharacterState::Shockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::Shockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
                 if self.timer < self.static_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::Shockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::Shockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                     // Send local event used for frontend shenanigans
                     if self.static_data.emit_outcome {
                         match self.static_data.specifier {
@@ -169,24 +166,22 @@ impl CharacterBehavior for Data {
                     }
 
                     // Transitions to recover
-                    update.character = CharacterState::Shockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::Shockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::Shockwave(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::Shockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);
@@ -225,20 +220,27 @@ impl Data {
         .with_requirement(CombatRequirement::AnyDamage);
         let mut damage = AttackDamage::new(
             Damage {
-                source: DamageSource::Shockwave,
                 kind: self.static_data.damage_kind,
                 value: self.static_data.damage,
             },
             Some(GroupTarget::OutOfGroup),
             rand::random(),
         );
-        if let Some(effect) = self.static_data.damage_effect {
-            damage = damage.with_effect(effect);
+        if let Some(effect) = &self.static_data.damage_effect {
+            damage = damage.with_effect(effect.clone());
         }
         let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-        let attack = Attack::default()
+        let attack = Attack::new(Some(self.static_data.ability_info))
             .with_damage(damage)
-            .with_precision(precision_mult)
+            .with_precision(
+                precision_mult
+                    * self
+                        .static_data
+                        .ability_info
+                        .ability_meta
+                        .precision_power_mult
+                        .unwrap_or(1.0),
+            )
             .with_effect(poise)
             .with_effect(knockback)
             .with_combo_increment();

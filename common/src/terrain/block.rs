@@ -432,6 +432,7 @@ impl Block {
                 | SpriteKind::CeilingLanternPlant
                 | SpriteKind::CrystalLow => 10,
                 SpriteKind::SewerMushroom => 16,
+                SpriteKind::Lodestone => 3,
                 SpriteKind::Lantern
                 | SpriteKind::LanternpostWoodLantern
                 | SpriteKind::LanternAirshipWallBlackS

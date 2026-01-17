@@ -103,23 +103,7 @@ widget_ids! {
         sword_stance_right_align,
         axe_bg,
         hammer_bg,
-        bow_render,
-        skill_bow_charged_0,
-        skill_bow_charged_1,
-        skill_bow_charged_2,
-        skill_bow_charged_3,
-        skill_bow_charged_4,
-        skill_bow_charged_5,
-        skill_bow_repeater_0,
-        skill_bow_repeater_1,
-        skill_bow_repeater_2,
-        skill_bow_repeater_3,
-        skill_bow_shotgun_0,
-        skill_bow_shotgun_1,
-        skill_bow_shotgun_2,
-        skill_bow_shotgun_3,
-        skill_bow_shotgun_4,
-        skill_bow_passive_0,
+        bow_bg,
         staff_render,
         skill_staff_basic_0,
         skill_staff_basic_1,
@@ -2376,152 +2360,111 @@ impl Diary<'_> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        // Title text
-        let tree_title = &self.localized_strings.get_msg("common-weapons-bow");
+        Image::new(self.imgs.bow_bg)
+            .wh([924.0, 619.0])
+            .mid_top_with_margin_on(state.ids.content_align, 65.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.bow_bg, ui);
 
-        Text::new(tree_title)
-            .mid_top_with_margin_on(state.ids.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
-            .set(state.ids.tree_title_txt, ui);
-
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 6;
-        let skills_top_r = 4;
-        let skills_bot_l = 5;
-        let skills_bot_r = 1;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
-        // Skill icons and buttons
-        use skills::BowSkill::*;
-        // Bow
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_bow".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .set(state.ids.bow_render, ui);
-        use PositionSpecifier::MidTopWithMarginOn;
+        use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-bow_charged_title",
-                desc: "hud-skill-bow_charged",
-                image: self.imgs.bow_m1,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_bow_charged_0,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Foothold),
+                ability_id: "common.abilities.bow.foothold",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 368.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(CDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_bow_charged_1,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::HeavyNock),
+                ability_id: "common.abilities.bow.heavy_nock",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 424.0, 480.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(CRegen),
-                image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_bow_charged_2,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::ArdentHunt),
+                ability_id: "common.abilities.bow.ardent_hunt",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 204.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(CKnockback),
-                image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_bow_charged_3,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::SepticShot),
+                ability_id: "common.abilities.bow.septic_shot",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 424.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(CSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
-                id: state.ids.skill_bow_charged_4,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Barrage),
+                ability_id: "common.abilities.bow.barrage",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 310.0, 644.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(CMove),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[5], 3.0),
-                id: state.ids.skill_bow_charged_5,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::OwlTalon),
+                ability_id: "common.abilities.bow.owl_talon",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 154.0),
             },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-bow_repeater_title",
-                desc: "hud-skill-bow_repeater",
-                image: self.imgs.bow_m2,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_bow_repeater_0,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::EagleEye),
+                ability_id: "common.abilities.bow.eagle_eye",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 254.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(RDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_bow_repeater_1,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::IgniteArrow),
+                ability_id: "common.abilities.bow.ignite_arrow",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 374.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(RCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_bow_repeater_2,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::DrenchArrow),
+                ability_id: "common.abilities.bow.drench_arrow",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 474.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(RSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_bow_repeater_3,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::PiercingGale),
+                ability_id: "common.abilities.bow.piercing_gale",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 594.0),
             },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(UnlockShotgun),
-                image: self.imgs.skill_bow_jump_burst,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_bow_shotgun_0,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Scatterburst),
+                ability_id: "common.abilities.bow.scatterburst",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 196.0, 694.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(SDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_bow_shotgun_1,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Heartseeker),
+                ability_id: "common.abilities.bow.heartseeker",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 154.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(SCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_bow_shotgun_2,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Hawkstrike),
+                ability_id: "common.abilities.bow.hawkstrike",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 254.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(SArrows),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_bow_shotgun_3,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::FreezeArrow),
+                ability_id: "common.abilities.bow.freeze_arrow",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 374.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(SSpread),
-                image: self.imgs.physical_explosion_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_bow_shotgun_4,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::JoltArrow),
+                ability_id: "common.abilities.bow.jolt_arrow",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 474.0),
             },
-            // Bottom right skills
-            SkillIcon::Unlockable {
-                skill: Skill::Bow(ProjSpeed),
-                image: self.imgs.physical_projectile_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
-                id: state.ids.skill_bow_passive_0,
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::Fusillade),
+                ability_id: "common.abilities.bow.fusillade",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 594.0),
+            },
+            SkillIcon::Ability {
+                skill: Skill::Bow(BowSkill::DeathVolley),
+                ability_id: "common.abilities.bow.death_volley",
+                position: TopLeftWithMarginsOn(state.ids.bow_bg, 82.0, 694.0),
             },
         ];
+
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
 
         self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
@@ -3069,7 +3012,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         // general tree
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Bow(s) => bow_skill_strings(s),
         Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
         // movement trees
@@ -3119,85 +3061,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             tracing::warn!("Requesting title for unlocking unexpected skill group");
             SkillStrings::Empty
         },
-    }
-}
-
-fn bow_skill_strings(skill: BowSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.bow_tree;
-    match skill {
-        // Passives
-        BowSkill::ProjSpeed => SkillStrings::with_mult(
-            "hud-skill-bow_projectile_speed_title",
-            "hud-skill-bow_projectile_speed",
-            modifiers.universal.projectile_speed,
-        ),
-        // Charged upgrades
-        BowSkill::CDamage => SkillStrings::with_mult(
-            "hud-skill-bow_charged_damage_title",
-            "hud-skill-bow_charged_damage",
-            modifiers.charged.damage_scaling,
-        ),
-        BowSkill::CRegen => SkillStrings::with_mult(
-            "hud-skill-bow_charged_energy_regen_title",
-            "hud-skill-bow_charged_energy_regen",
-            modifiers.charged.regen_scaling,
-        ),
-        BowSkill::CKnockback => SkillStrings::with_mult(
-            "hud-skill-bow_charged_knockback_title",
-            "hud-skill-bow_charged_knockback",
-            modifiers.charged.knockback_scaling,
-        ),
-        BowSkill::CSpeed => SkillStrings::with_mult(
-            "hud-skill-bow_charged_speed_title",
-            "hud-skill-bow_charged_speed",
-            modifiers.charged.charge_rate,
-        ),
-        BowSkill::CMove => SkillStrings::with_mult(
-            "hud-skill-bow_charged_move_title",
-            "hud-skill-bow_charged_move",
-            modifiers.charged.move_speed,
-        ),
-        // Repeater upgrades
-        BowSkill::RDamage => SkillStrings::with_mult(
-            "hud-skill-bow_repeater_damage_title",
-            "hud-skill-bow_repeater_damage",
-            modifiers.repeater.power,
-        ),
-        BowSkill::RCost => SkillStrings::with_mult(
-            "hud-skill-bow_repeater_cost_title",
-            "hud-skill-bow_repeater_cost",
-            modifiers.repeater.energy_cost,
-        ),
-        BowSkill::RSpeed => SkillStrings::with_mult(
-            "hud-skill-bow_repeater_speed_title",
-            "hud-skill-bow_repeater_speed",
-            modifiers.repeater.max_speed,
-        ),
-        // Shotgun upgrades
-        BowSkill::UnlockShotgun => SkillStrings::plain(
-            "hud-skill-bow_shotgun_unlock_title",
-            "hud-skill-bow_shotgun_unlock",
-        ),
-        BowSkill::SDamage => SkillStrings::with_mult(
-            "hud-skill-bow_shotgun_damage_title",
-            "hud-skill-bow_shotgun_damage",
-            modifiers.shotgun.power,
-        ),
-        BowSkill::SCost => SkillStrings::with_mult(
-            "hud-skill-bow_shotgun_cost_title",
-            "hud-skill-bow_shotgun_cost",
-            modifiers.shotgun.energy_cost,
-        ),
-        BowSkill::SArrows => SkillStrings::with_const(
-            "hud-skill-bow_shotgun_arrow_count_title",
-            "hud-skill-bow_shotgun_arrow_count",
-            modifiers.shotgun.num_projectiles,
-        ),
-        BowSkill::SSpread => SkillStrings::with_mult(
-            "hud-skill-bow_shotgun_spread_title",
-            "hud-skill-bow_shotgun_spread",
-            modifiers.shotgun.spread,
-        ),
     }
 }
 

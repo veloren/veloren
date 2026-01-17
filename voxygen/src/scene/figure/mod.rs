@@ -52,9 +52,9 @@ use anim::{
 };
 use common::{
     comp::{
-        Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory, ItemKey,
-        Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem, PoiseState, Pos,
-        Scale, ThrownItem, Vel,
+        self, Body, CharacterActivity, CharacterState, Collider, Controller, Health, Inventory,
+        ItemKey, Last, LightAnimation, LightEmitter, Object, Ori, PhysicsState, PickupItem,
+        PoiseState, Pos, Scale, ThrownItem, Vel,
         body::{self, parts::HeadState},
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind, armor::ArmorKind},
@@ -1722,7 +1722,9 @@ impl FigureMgr {
                     | CharacterState::StaticAura(_)
                     | CharacterState::BasicBeam(_)
                     | CharacterState::BasicBlock(_)
-                    | CharacterState::RiposteMelee(_) => {
+                    | CharacterState::RiposteMelee(_)
+                    | CharacterState::LeapRanged(_)
+                    | CharacterState::Simple(_) => {
                         let timer = character.timer();
                         let stage_section = character.stage_section();
                         let durations = character.durations();
@@ -1767,6 +1769,27 @@ impl FigureMgr {
                             0.0
                         };
 
+                        let look_dir_override = if let CharacterState::BasicRanged(c) = &character {
+                            if c.static_data.auto_aim
+                                && let Some(sel_pos) = c
+                                    .static_data
+                                    .ability_info
+                                    .input_attr
+                                    .and_then(|ia| ia.select_pos)
+                            {
+                                comp::projectile::aim_projectile(
+                                    c.static_data.projectile_speed,
+                                    pos.0,
+                                    sel_pos,
+                                    true,
+                                )
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        };
+
                         anim::character::BasicAction::update_skeleton(
                             &target_base,
                             anim::character::BasicActionDependency {
@@ -1778,6 +1801,7 @@ impl FigureMgr {
                                 last_ori,
                                 orientation,
                                 look_dir,
+                                look_dir_override,
                                 is_riding,
                             },
                             progress,
@@ -1786,7 +1810,7 @@ impl FigureMgr {
                         )
                     },
                     CharacterState::ComboMelee2(_)
-                    | CharacterState::RepeaterRanged(_)
+                    | CharacterState::RapidRanged(_)
                     | CharacterState::RapidMelee(_) => {
                         let timer = character.timer();
                         let stage_section = character.stage_section();
@@ -1815,7 +1839,7 @@ impl FigureMgr {
                                 (s.completed_strikes % s.static_data.strikes.len()) as u32,
                                 Some(s.static_data.strikes.len() as u32),
                             ),
-                            CharacterState::RepeaterRanged(s) => (s.projectiles_fired, None),
+                            CharacterState::RapidRanged(s) => (s.projectiles_fired, None),
                             CharacterState::RapidMelee(s) => {
                                 (s.current_strike, s.static_data.max_strikes)
                             },
@@ -2317,19 +2341,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::quadruped_small::ComboAnimation::update_skeleton(
                             &target_base,
@@ -2658,19 +2686,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::quadruped_medium::ComboAnimation::update_skeleton(
                             &target_base,
@@ -3076,19 +3108,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::quadruped_low::ComboAnimation::update_skeleton(
                             &target_base,
@@ -3771,19 +3807,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::biped_small::ComboAnimation::update_skeleton(
                             &target_base,
@@ -3871,7 +3911,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {
@@ -4423,19 +4463,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::theropod::ComboAnimation::update_skeleton(
                             &target_base,
@@ -4815,19 +4859,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::crustacean::ComboAnimation::update_skeleton(
                             &target_base,
@@ -5113,19 +5161,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::bird_large::ComboAnimation::update_skeleton(
                             &target_base,
@@ -5173,7 +5225,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {
@@ -5666,19 +5718,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::biped_large::ComboAnimation::update_skeleton(
                             &target_base,
@@ -5729,7 +5785,7 @@ impl FigureMgr {
                             skeleton_attr,
                         )
                     },
-                    CharacterState::RepeaterRanged(s) => {
+                    CharacterState::RapidRanged(s) => {
                         let stage_time = s.timer.as_secs_f32();
 
                         let stage_progress = match s.stage_section {
@@ -6339,19 +6395,23 @@ impl FigureMgr {
                     CharacterState::ComboMelee2(s) => {
                         let timer = s.timer.as_secs_f32();
                         let current_strike = s.completed_strikes % s.static_data.strikes.len();
-                        let strike_data = s.static_data.strikes[current_strike];
-                        let progress = match s.stage_section {
-                            StageSection::Buildup => {
-                                timer / strike_data.buildup_duration.as_secs_f32()
-                            },
-                            StageSection::Action => {
-                                timer / strike_data.swing_duration.as_secs_f32()
-                            },
-                            StageSection::Recover => {
-                                timer / strike_data.recover_duration.as_secs_f32()
-                            },
-                            _ => 0.0,
-                        };
+                        let progress =
+                            if let Some(strike_data) = s.static_data.strikes.get(current_strike) {
+                                match s.stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                }
+                            } else {
+                                0.0
+                            };
 
                         anim::golem::ComboAnimation::update_skeleton(
                             &target_base,

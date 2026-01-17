@@ -2,6 +2,7 @@ pub mod ability;
 mod admin;
 pub mod agent;
 pub mod anchor;
+pub mod arcing;
 pub mod aura;
 pub mod beam;
 pub mod body;
@@ -50,6 +51,7 @@ pub use self::{
         TradingBehavior,
     },
     anchor::Anchor,
+    arcing::{ArcProperties, Arcing},
     aura::{Aura, AuraChange, AuraKind, Auras, EnteredAuras},
     beam::Beam,
     body::{
@@ -94,8 +96,8 @@ pub use self::{
     ori::Ori,
     pet::Pet,
     phys::{
-        Collider, Density, ForceUpdate, Immovable, Mass, PhysicsState, Pos, PosVelOriDefer,
-        PreviousPhysCache, Scale, Sticky, Vel,
+        CapsulePrism, Collider, Density, ForceUpdate, Immovable, Mass, PhysicsState, Pos,
+        PosVelOriDefer, PreviousPhysCache, Scale, Sticky, Vel,
     },
     player::{AliasError, DisconnectReason, MAX_ALIAS_LEN, Player},
     poise::{Poise, PoiseChange, PoiseState},
@@ -108,7 +110,7 @@ pub use self::{
     },
     stats::{Stats, StatsModifier},
     teleport::Teleporting,
-    visual::{LightAnimation, LightEmitter},
+    visual::{FrontendMarker, LightAnimation, LightEmitter},
 };
 pub use common_i18n::{Content, LocalizationArg};
 

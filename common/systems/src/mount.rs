@@ -119,7 +119,10 @@ impl<'a> System<'a> for Sys {
                                 effect.kind,
                                 effect.data,
                                 cat_ids,
-                                common::comp::BuffSource::Character { by: is_mount.mount },
+                                common::comp::BuffSource::Character {
+                                    by: is_mount.mount,
+                                    tool_kind: None,
+                                },
                                 *time,
                                 dest_info,
                                 masses.get(entity),

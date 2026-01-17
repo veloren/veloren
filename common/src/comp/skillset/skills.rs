@@ -103,24 +103,23 @@ pub enum HammerSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum BowSkill {
-    // Passives
-    ProjSpeed,
-    // Charged upgrades
-    CDamage,
-    CRegen,
-    CKnockback,
-    CSpeed,
-    CMove,
-    // Repeater upgrades
-    RDamage,
-    RCost,
-    RSpeed,
-    // Shotgun upgrades
-    UnlockShotgun,
-    SDamage,
-    SCost,
-    SArrows,
-    SSpread,
+    Foothold,
+    HeavyNock,
+    ArdentHunt,
+    OwlTalon,
+    EagleEye,
+    Heartseeker,
+    Hawkstrike,
+    SepticShot,
+    IgniteArrow,
+    DrenchArrow,
+    FreezeArrow,
+    JoltArrow,
+    Barrage,
+    PiercingGale,
+    Scatterburst,
+    Fusillade,
+    DeathVolley,
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -213,7 +212,6 @@ impl Skill {
 pub const SKILL_MODIFIERS: SkillTreeModifiers = SkillTreeModifiers::get();
 
 pub struct SkillTreeModifiers {
-    pub bow_tree: BowTreeModifiers,
     pub staff_tree: StaffTreeModifiers,
     pub sceptre_tree: SceptreTreeModifiers,
     pub mining_tree: MiningTreeModifiers,
@@ -223,72 +221,10 @@ pub struct SkillTreeModifiers {
 impl SkillTreeModifiers {
     const fn get() -> Self {
         Self {
-            bow_tree: BowTreeModifiers::get(),
             staff_tree: StaffTreeModifiers::get(),
             sceptre_tree: SceptreTreeModifiers::get(),
             mining_tree: MiningTreeModifiers::get(),
             general_tree: GeneralTreeModifiers::get(),
-        }
-    }
-}
-
-pub struct BowTreeModifiers {
-    pub universal: BowUniversalModifiers,
-    pub charged: BowChargedModifiers,
-    pub repeater: BowRepeaterModifiers,
-    pub shotgun: BowShotgunModifiers,
-}
-
-pub struct BowUniversalModifiers {
-    // TODO: split per abilities?
-    pub projectile_speed: f32,
-}
-
-pub struct BowChargedModifiers {
-    pub damage_scaling: f32,
-    pub regen_scaling: f32,
-    pub knockback_scaling: f32,
-    pub charge_rate: f32,
-    pub move_speed: f32,
-}
-
-pub struct BowRepeaterModifiers {
-    pub power: f32,
-    pub energy_cost: f32,
-    pub max_speed: f32,
-}
-
-pub struct BowShotgunModifiers {
-    pub power: f32,
-    pub energy_cost: f32,
-    pub num_projectiles: u32,
-    pub spread: f32,
-}
-
-impl BowTreeModifiers {
-    const fn get() -> Self {
-        Self {
-            universal: BowUniversalModifiers {
-                projectile_speed: 1.05,
-            },
-            charged: BowChargedModifiers {
-                damage_scaling: 1.05,
-                regen_scaling: 1.05,
-                knockback_scaling: 1.05,
-                charge_rate: 1.05,
-                move_speed: 1.05,
-            },
-            repeater: BowRepeaterModifiers {
-                power: 1.05,
-                energy_cost: 0.95,
-                max_speed: 1.1,
-            },
-            shotgun: BowShotgunModifiers {
-                power: 1.05,
-                energy_cost: 0.95,
-                num_projectiles: 1,
-                spread: 0.95,
-            },
         }
     }
 }

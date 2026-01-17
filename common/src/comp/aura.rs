@@ -1,6 +1,9 @@
 use crate::{
     combat::GroupTarget,
-    comp::buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+    comp::{
+        buff::{BuffCategory, BuffData, BuffKind, BuffSource},
+        tool::ToolKind,
+    },
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -181,7 +184,7 @@ pub struct AuraBuffConstructor {
 impl AuraBuffConstructor {
     pub fn to_aura(
         &self,
-        uid: &Uid,
+        entity_info: (&Uid, Option<ToolKind>),
         radius: f32,
         duration: Option<Secs>,
         target: AuraTarget,
@@ -191,7 +194,10 @@ impl AuraBuffConstructor {
             kind: self.kind,
             data: BuffData::new(self.strength, self.duration),
             category: self.category.clone(),
-            source: BuffSource::Character { by: *uid },
+            source: BuffSource::Character {
+                by: *entity_info.0,
+                tool_kind: entity_info.1,
+            },
         };
         Aura::new(aura_kind, radius, duration, target, time)
     }

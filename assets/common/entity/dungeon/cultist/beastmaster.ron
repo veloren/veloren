@@ -13,6 +13,12 @@
                 (1, Item("common.items.weapons.bow.velorite")),
             ]), None)),
         )),
+        items: [
+            (10, "common.items.consumable.levin_dust"),
+            (10, "common.items.consumable.gelid_gel"),
+            (10, "common.items.consumable.firedrop"),
+            (10, "common.items.consumable.poison_clot"),
+        ],
     ),
     pets: [("common.entity.dungeon.cultist.hound", ( start: 4, end: 5 ))],
     meta: [

@@ -1,6 +1,6 @@
 use crate::{
     Explosion, RadiusEffect,
-    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
+    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, GroupTarget},
     comp::{
         CharacterState, MeleeConstructor, StateUpdate, ability::Dodgeable,
         character_state::OutputEvents, item::Reagent, melee::CustomCombo, tool::Stats,
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Strike<T> {
     /// Used to construct the Melee attack
@@ -188,25 +188,31 @@ impl CharacterBehavior for Data {
                         data.entity,
                         strike_data
                             .melee_constructor
+                            .clone()
                             .custom_combo(strike_data.custom_combo)
-                            .create_melee(precision_mult, tool_stats),
+                            .create_melee(
+                                precision_mult,
+                                tool_stats,
+                                self.static_data.ability_info,
+                            ),
                     );
                 } else if self.timer < strike_data.swing_duration {
                     // Swings
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
+                    // TODO: Remove this, this should never have been added in this way
                     if self.static_data.specifier == Some(FrontendSpecifier::IronGolemFist) {
                         let damage = AttackDamage::new(
                             Damage {
-                                source: DamageSource::Explosion,
                                 kind: Crushing,
                                 value: 10.0,
                             },
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        let attack = Attack::default().with_damage(damage);
+                        let attack =
+                            Attack::new(Some(self.static_data.ability_info)).with_damage(damage);
                         let explosion = Explosion {
                             effects: vec![RadiusEffect::Attack {
                                 attack,

@@ -19,7 +19,7 @@ BasicRanged(
     projectile_body: Object(SpectralSwordSmall),
     projectile_speed: 20.0,
     num_projectiles: Value(12),
-    projectile_spread: 0.4,
+    projectile_spread: Some(Increasing(0.4)),
     movement_modifier: (
         buildup: Some(0.3),
         recover: Some(0.3),

@@ -1,23 +1,27 @@
-RepeaterRanged(
-    energy_cost: 6.0,
-    buildup_duration: 0.2,
-    shoot_duration: 0.3,
+RapidRanged(
+    energy_cost: 0,
+    buildup_duration: 0.3,
+    shoot_duration: 0.2,
     recover_duration: 0.5,
-    max_speed: 4.0,
-    half_speed_at: 3,
+    options: (
+        max_projectiles: Some(25),
+    ),
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 5,
+            damage: 4,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,
                 strength: DamageFraction(0.1),
                 chance: 0.1,
             )),
+            without_combo: true,
         )),
     ),
     projectile_body: Object(Arrow),
-    projectile_light: None,
-    projectile_speed: 100.0,
+    projectile_speed: 50.0,
+    meta: (
+        init_event: Some(EnterStance(None)),
+    ),
 )

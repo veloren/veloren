@@ -16,7 +16,7 @@ use specs::{
 
 use self::{
     entity_creation::{
-        handle_create_aura_entity, handle_create_item_drop, handle_create_npc,
+        handle_arc, handle_create_aura_entity, handle_create_item_drop, handle_create_npc,
         handle_create_object, handle_create_ship, handle_create_special_entity,
         handle_initialize_character, handle_initialize_spectator, handle_loaded_character_data,
         handle_shockwave, handle_shoot, handle_throw,
@@ -159,6 +159,7 @@ impl Server {
         self.handle_serial_events(handle_shoot);
         self.handle_serial_events(handle_throw);
         self.handle_serial_events(handle_shockwave);
+        self.handle_serial_events(handle_arc);
         self.handle_serial_events(handle_create_special_entity);
         self.handle_serial_events(handle_create_item_drop);
         self.handle_serial_events(handle_create_object);

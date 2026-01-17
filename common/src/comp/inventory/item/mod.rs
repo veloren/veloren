@@ -49,6 +49,7 @@ pub enum Utility {
     Coins,
     Collar,
     Key,
+    AbilityReq,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -1,6 +1,7 @@
 use super::{
     super::{Animation, vek::*},
-    CharacterSkeleton, SkeletonAttr, dual_wield_start, hammer_start, twist_back, twist_forward,
+    CharacterSkeleton, SkeletonAttr, bow_draw, bow_start, dual_wield_start, hammer_start,
+    twist_back, twist_forward,
 };
 use common::{
     comp::item::Hands,
@@ -20,6 +21,7 @@ pub struct BasicActionDependency<'a> {
     pub last_ori: Vec3<f32>,
     pub orientation: Vec3<f32>,
     pub look_dir: Dir,
+    pub look_dir_override: Option<Dir>,
     pub is_riding: bool,
 }
 
@@ -1595,59 +1597,177 @@ impl Animation for BasicAction {
             // ==================================
             //                BOW
             // ==================================
-            Some("common.abilities.bow.charged" | "common.abilities.bow.shotgun") => {
-                let move2 = move2base;
+            Some(
+                "common.abilities.bow.arrow_shot"
+                | "common.abilities.bow.lesser_scatterburst"
+                | "common.abilities.bow.burning_arrow"
+                | "common.abilities.bow.poison_arrow"
+                | "common.abilities.bow.freezing_arrow"
+                | "common.abilities.bow.lightning_arrow",
+            ) => {
+                bow_start(&mut next, s_a);
 
-                let ori: Vec2<f32> = Vec2::from(d.orientation);
-                let last_ori = Vec2::from(d.last_ori);
-                let tilt = if vek::Vec2::new(ori, last_ori)
-                    .map(|o| o.magnitude_squared())
-                    .map(|m| m > 0.001 && m.is_finite())
-                    .reduce_and()
-                    && ori.angle_between(last_ori).is_finite()
-                {
-                    ori.angle_between(last_ori).min(0.2)
-                        * last_ori.determine_side(Vec2::zero(), ori).signum()
-                } else {
-                    0.0
-                } * 1.3;
-                let ori_angle = d.orientation.y.atan2(d.orientation.x);
-                let lookdir_angle = d.look_dir.y.atan2(d.look_dir.x);
-                let swivel = lookdir_angle - ori_angle;
+                let charge = chargebase.min(1.0);
+                let tension = (chargebase * 15.0).sin();
 
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-                next.hand_l.position = Vec3::new(
-                    s_a.bhl.0 + move2 * -8.0,
-                    s_a.bhl.1 + move2 * -10.0,
-                    s_a.bhl.2,
-                );
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.bhl.3) * Quaternion::rotation_y(move2 * 0.7);
-                next.hand_r.position = Vec3::new(s_a.bhr.0, s_a.bhr.1, s_a.bhr.2);
-                next.hand_r.orientation = Quaternion::rotation_x(s_a.bhr.3);
+                bow_draw(&mut next, move1base, d.look_dir.z);
 
-                next.hold.position = Vec3::new(0.0, -1.0 + move2 * 2.0, -5.2 + move2 * 7.0);
-                next.hold.orientation = Quaternion::rotation_x(-PI / 2.0);
-                next.hold.scale = Vec3::one() * 1.0 * (1.0 - move2);
+                next.hand_l.position +=
+                    Vec3::new(0.0, charge * -3.0, 0.0) + Vec3::one() * tension * 0.05;
+            },
+            Some(
+                "common.abilities.bow.broadhead"
+                | "common.abilities.bow.greater_scatterburst"
+                | "common.abilities.bow.burning_broadhead"
+                | "common.abilities.bow.poison_broadhead"
+                | "common.abilities.bow.freezing_broadhead"
+                | "common.abilities.bow.lightning_broadhead",
+            ) => {
+                bow_start(&mut next, s_a);
 
-                next.control.position = Vec3::new(
-                    s_a.bc.0 + 11.0 + move2 * 2.0,
-                    s_a.bc.1 + 2.0 + (d.look_dir.z * -5.0).min(-2.0) + move2 * -1.0,
-                    s_a.bc.2 + 8.0 + (d.look_dir.z * 15.0).max(-8.0),
-                );
-                next.control.orientation = Quaternion::rotation_x(d.look_dir.z)
-                    * Quaternion::rotation_y(-d.look_dir.z + s_a.bc.4 - 1.25)
-                    * Quaternion::rotation_z(s_a.bc.5 - 0.2 + move2 * -0.1);
+                let charge = chargebase.min(1.0);
+                let tension = (chargebase * 50.0).sin();
 
-                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+                next.hold.scale *= 1.3;
+                bow_draw(&mut next, move1base, d.look_dir.z);
 
-                next.head.orientation = Quaternion::rotation_x(d.look_dir.z * 0.7)
-                    * Quaternion::rotation_z(tilt * -0.0);
-                next.chest.orientation = Quaternion::rotation_z(swivel * 0.8 + 0.8 + move2 * 0.5);
-                next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
+                next.hand_l.position +=
+                    Vec3::new(0.0, charge * -5.0, 0.0) + Vec3::one() * tension * 0.05;
+            },
+            Some("common.abilities.bow.foothold") => {
+                bow_start(&mut next, s_a);
 
-                next.shoulder_l.orientation = Quaternion::rotation_x(move2 * 0.5);
+                let move1a = (move1base * 1.5).min(1.0);
+                let move1b = (move1base * 3.0 - 2.0).max(0.0).powi(4);
+                let move1a_reta = move1a - move1b;
+                let move2 = movementbase.min(1.0);
+                let move1a_retb = move1a - move2;
+                let move1b_ret = move1b - move2;
+
+                twist_back(&mut next, move1a_reta, 1.1, 0.7, 0.5, 0.8);
+                next.foot_l.orientation.rotate_z(move1a_retb * 1.4);
+                next.foot_l.position += Vec3::new(-2.0, -3.0, 0.0) * move1a_retb;
+                next.control.orientation.rotate_z(move1a_reta * -0.9);
+                next.control.position += Vec3::new(8.0, 3.0, 0.0) * move1a_reta;
+
+                twist_forward(&mut next, move1b_ret, 1.8, 1.1, 0.6, 1.0);
+                next.foot_l.orientation.rotate_z(move1b_ret * -2.4);
+                next.foot_l.orientation.rotate_x(move1b_ret * 1.2);
+                next.foot_l.position += Vec3::new(11.0, 10.0, 6.0) * move1b_ret;
+
+                bow_draw(&mut next, move2, d.look_dir.z);
+            },
+            Some("common.abilities.bow.barrage") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(4.0, -6.0, -6.0) * move1;
+                next.hand_l.orientation.rotate_z(move1 * 2.0);
+            },
+            Some("common.abilities.bow.owl_talon") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(-4.0, 0.0, 4.0) * move1;
+                next.hand_l.orientation.rotate_x(1.6 * move1);
+
+                next.hand_l.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+            },
+            Some("common.abilities.bow.heavy_nock") => {
+                bow_start(&mut next, s_a);
+
+                next.hold.scale *= 1.0 + move1base / 2.0;
+                next.hold.position += Vec3::new(0.0, 0.0, -2.5) * move1;
+            },
+            Some("common.abilities.bow.heartseeker") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_y(move1 * 0.4);
+                next.control.orientation.rotate_x(move1 * 0.6);
+                next.control.position += Vec3::new(4.0, 0.0, 6.0) * move1;
+            },
+            Some("common.abilities.bow.scatterburst") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * ((move1 + move2) * 10.0).sin();
+            },
+            Some("common.abilities.bow.eagle_eye") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_x(move1 * 0.8);
+                next.control.position += Vec3::new(5.0, 0.0, 7.0) * move1;
+            },
+            Some(
+                "common.abilities.bow.ignite_arrow"
+                | "common.abilities.bow.drench_arrow"
+                | "common.abilities.bow.freeze_arrow"
+                | "common.abilities.bow.jolt_arrow"
+                | "common.abilities.bow.septic_shot",
+            ) => {
+                bow_start(&mut next, s_a);
+            },
+            Some("common.abilities.bow.ardent_hunt") => {
+                bow_start(&mut next, s_a);
+
+                next.foot_l.position += Vec3::new(0.0, 2.0, 0.0) * move1;
+                next.control.position += Vec3::new(6.0, 3.0, 5.0) * move1;
+                next.control.orientation.rotate_y(move1 * -1.0);
+            },
+            Some("common.abilities.bow.piercing_gale") => {
+                bow_start(&mut next, s_a);
+
+                next.control.orientation.rotate_y(move1 * -PI + move2 * -PI);
+            },
+            Some("common.abilities.bow.piercing_gale_shot") => {
+                bow_start(&mut next, s_a);
+
+                bow_draw(&mut next, move1base, d.look_dir.z);
+
+                let charge = chargebase.min(2.0);
+                let rate = 2.5;
+                next.control.orientation.rotate_x(charge * -rate * 0.3);
+                next.control.orientation.rotate_z(charge * rate * 0.3);
+                next.control.orientation.rotate_y(charge * -rate);
+                next.control.orientation.rotate_z(charge * rate * -0.3);
+            },
+            Some("common.abilities.bow.hawkstrike") => {
+                bow_start(&mut next, s_a);
+
+                bow_draw(&mut next, move1base * 2.0, d.look_dir.z);
+            },
+            Some("common.abilities.bow.hawkstrike_shot") => {
+                bow_start(&mut next, s_a);
+
+                let charge = chargebase.min(1.0);
+
+                bow_draw(&mut next, move1base, d.look_dir.z);
+
+                next.hand_l.position += Vec3::new(0.0, charge * -5.0, 0.0);
+                next.hand_l.orientation.rotate_y(charge * PI / 2.0);
+            },
+            Some("common.abilities.bow.fusillade") => {
+                bow_start(&mut next, s_a);
+
+                let move_rep = ((move1 + move2) * 20.0).sin();
+                next.hand_l.position += Vec3::new(0.0, 5.0, 0.0) * move_rep;
+            },
+            Some("common.abilities.bow.death_volley") => {
+                bow_start(&mut next, s_a);
+
+                next.hand_l.position += Vec3::new(0.0, 8.0, 0.0) * (-move1 + move2);
+                next.hold.scale *= 1.0 + move1;
+            },
+            Some(
+                "common.abilities.bow.death_volley_shot"
+                | "common.abilities.bow.death_volley_heavy_shot",
+            ) => {
+                bow_start(&mut next, s_a);
+                let look_z = d.look_dir_override.map_or(d.look_dir.z, |ldo| ldo.z);
+                bow_draw(&mut next, move1base, look_z);
+
+                next.hold.scale *= 1.5;
+                next.torso.position += Vec3::new(0.0, 0.0, -3.0) * move1;
+                next.foot_l.orientation.rotate_x(-1.7 * move1);
+                next.foot_l.position += Vec3::new(0.0, -8.0, 3.0) * move1;
+                next.foot_r.position += Vec3::new(0.0, 6.0, 3.0) * move1;
             },
             // ==================================
             //             FIRE STAFF

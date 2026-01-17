@@ -1,0 +1,10 @@
+SelfBuff(
+    buildup_duration: 0.1,
+    cast_duration: 0.1,
+    recover_duration: 0.1,
+    buffs: [
+        BuffDesc(kind: EagleEye, data: BuffData(strength: 1.0, duration: Some(15.0))),
+    ],
+    use_raw_buff_strength: true,
+    energy_cost: 20,
+)

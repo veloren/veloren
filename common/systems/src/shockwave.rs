@@ -11,7 +11,7 @@ use common::{
     event::{
         BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, EnergyChangeEvent,
         EntityAttackedHookEvent, EventBus, HealthChangeEvent, KnockbackEvent, MineBlockEvent,
-        ParryHookEvent, PoiseChangeEvent, SoundEvent,
+        ParryHookEvent, PoiseChangeEvent, SoundEvent, TransformEvent,
     },
     event_emitters,
     outcome::Outcome,
@@ -33,10 +33,11 @@ event_emitters! {
         mine_block: MineBlockEvent,
         parry_hook: ParryHookEvent,
         knockback: KnockbackEvent,
-        entity_attack_hoow: EntityAttackedHookEvent,
+        entity_attack_hook: EntityAttackedHookEvent,
         combo_change: ComboChangeEvent,
         buff: BuffEvent,
         delete: DeleteEvent,
+        transform: TransformEvent,
     }
 }
 
@@ -231,6 +232,7 @@ impl<'a> System<'a> for Sys {
                                 inventory: read_data.inventories.get(entity),
                                 stats: read_data.stats.get(entity),
                                 mass: read_data.masses.get(entity),
+                                pos: Some(pos.0),
                             });
 
                     let target_info = TargetInfo {
@@ -245,6 +247,7 @@ impl<'a> System<'a> for Sys {
                         energy: read_data.energies.get(target),
                         buffs: read_data.buffs.get(target),
                         mass: read_data.masses.get(target),
+                        player: read_data.players.get(target),
                     };
 
                     let target_dodging = read_data

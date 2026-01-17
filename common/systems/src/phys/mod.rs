@@ -1,7 +1,7 @@
 use common::{
     comp::{
-        Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
-        PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        Body, CapsulePrism, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState,
+        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
         body::ship::{self, figuredata::VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, Wings},
         inventory::item::armor::Friction,
@@ -235,7 +235,7 @@ impl PhysicsData<'_> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, phys_state, phys_cache, collider, scale, cs) in (
+        for (_, vel, position, ori, phys_state, phys_cache, collider, scale, cs, proj) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
@@ -245,9 +245,14 @@ impl PhysicsData<'_> {
             &self.read.colliders,
             self.read.scales.maybe(),
             self.read.character_states.maybe(),
+            self.read.projectiles.maybe(),
         )
             .join()
         {
+            let override_collider = proj
+                .and_then(|p| p.override_collider)
+                .map(Collider::CapsulePrism);
+            let collider = override_collider.as_ref().unwrap_or(collider);
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let z_limits = calc_z_limit(cs, collider);
             let (z_min, z_max) = z_limits;
@@ -269,14 +274,14 @@ impl PhysicsData<'_> {
             phys_cache.scaled_radius = flat_radius;
 
             let neighborhood_radius = match collider {
-                Collider::CapsulePrism { radius, .. } => radius * scale,
+                Collider::CapsulePrism(CapsulePrism { radius, .. }) => radius * scale,
                 Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
             let ori = ori.to_quat();
             let origins = match collider {
-                Collider::CapsulePrism { p0, p1, .. } => {
+                Collider::CapsulePrism(CapsulePrism { p0, p1, .. }) => {
                     let a = p1 - p0;
                     let len = a.magnitude();
                     // If origins are close enough, our capsule prism is cylinder
@@ -420,12 +425,16 @@ impl PhysicsData<'_> {
                         };
                     }
 
-                    let z_limits = calc_z_limit(char_state_maybe, collider);
-
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
 
                     let is_projectile = projectile.is_some();
+                    let override_collider = projectile
+                        .and_then(|p| p.override_collider)
+                        .map(Collider::CapsulePrism);
+                    let collider = override_collider.as_ref().unwrap_or(collider);
+
+                    let z_limits = calc_z_limit(char_state_maybe, collider);
 
                     let mut vel_delta = Vec3::zero();
 
@@ -1029,13 +1038,13 @@ impl PhysicsData<'_> {
                                 );
                                 tgt_pos = cpos.0;
                             },
-                            Collider::CapsulePrism {
+                            Collider::CapsulePrism(CapsulePrism {
                                 z_min: _,
                                 z_max,
                                 p0: _,
                                 p1: _,
                                 radius: _,
-                            } => {
+                            }) => {
                                 // Scale collider
                                 let radius = collider.bounding_radius().min(0.45) * scale;
                                 let z_min = 0.0;

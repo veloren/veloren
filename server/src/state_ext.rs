@@ -17,8 +17,8 @@ use common::{
     LoadoutBuilder, ViewDistances,
     character::CharacterId,
     comp::{
-        self, BASE_ABILITY_LIMIT, ChatType, Content, Group, Inventory, LootOwner, Object, Player,
-        Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
+        self, BASE_ABILITY_LIMIT, CapsulePrism, ChatType, Content, Group, Inventory, LootOwner,
+        Object, Player, Poise, Presence, PresenceKind, item::ItemKind, misc::PortalData, object,
     },
     interaction::Interaction,
     link::{Is, Link, LinkHandle},
@@ -94,6 +94,13 @@ pub trait StateExt {
         properties: comp::shockwave::Properties,
         pos: comp::Pos,
         ori: comp::Ori,
+    ) -> EcsEntityBuilder<'_>;
+    fn create_arcing(
+        &mut self,
+        arc: comp::ArcProperties,
+        target: Uid,
+        owner: Option<Uid>,
+        pos: comp::Pos,
     ) -> EcsEntityBuilder<'_>;
     /// Creates a safezone
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder<'_>;
@@ -219,6 +226,7 @@ impl StateExt for State {
             .with(comp::Auras::default())
             .with(comp::EnteredAuras::default())
             .with(comp::Stance::default())
+            .with(comp::projectile::ProjectileHitEntities::default())
             .maybe_with(body.heads().map(comp::body::parts::Heads::new))
     }
 
@@ -403,6 +411,26 @@ impl StateExt for State {
             })
     }
 
+    fn create_arcing(
+        &mut self,
+        arc: comp::ArcProperties,
+        target: Uid,
+        owner: Option<Uid>,
+        pos: comp::Pos,
+    ) -> EcsEntityBuilder<'_> {
+        let time = self.get_time();
+
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Arcing {
+                properties: arc,
+                last_arc_time: Time(time),
+                hit_entities: vec![target],
+                owner,
+            })
+    }
+
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder<'_> {
         use comp::{
             aura::{Aura, AuraKind, AuraTarget, Auras},
@@ -533,13 +561,16 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
             self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
             self.write_component_ignore_entity_dead(entity, comp::Ori::default());
-            self.write_component_ignore_entity_dead(entity, comp::Collider::CapsulePrism {
-                p0: Vec2::zero(),
-                p1: Vec2::zero(),
-                radius: 0.4,
-                z_min: 0.0,
-                z_max: 1.75,
-            });
+            self.write_component_ignore_entity_dead(
+                entity,
+                comp::Collider::CapsulePrism(CapsulePrism {
+                    p0: Vec2::zero(),
+                    p1: Vec2::zero(),
+                    radius: 0.4,
+                    z_min: 0.0,
+                    z_max: 1.75,
+                }),
+            );
             self.write_component_ignore_entity_dead(entity, comp::CharacterState::default());
             self.write_component_ignore_entity_dead(entity, comp::CharacterActivity::default());
             self.write_component_ignore_entity_dead(entity, comp::Alignment::Owned(player_uid));
@@ -548,6 +579,10 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::EnteredAuras::default());
             self.write_component_ignore_entity_dead(entity, comp::Combo::default());
             self.write_component_ignore_entity_dead(entity, comp::Stance::default());
+            self.write_component_ignore_entity_dead(
+                entity,
+                comp::projectile::ProjectileHitEntities::default(),
+            );
 
             // Make sure physics components are updated
             self.write_component_ignore_entity_dead(entity, comp::ForceUpdate::forced());

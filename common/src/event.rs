@@ -3,7 +3,7 @@ use crate::{
     character::CharacterId,
     combat::{AttackSource, AttackTarget, CombatEffect, DeathEffects, RiderEffects},
     comp::{
-        self, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
+        self, ArcProperties, DisconnectReason, LootOwner, Ori, Pos, UnresolvedChatMsg, Vel,
         ability::Dodgeable,
         agent::Sound,
         beam,
@@ -325,6 +325,13 @@ pub struct ExplosionEvent {
     pub owner: Option<Uid>,
 }
 
+pub struct ArcingEvent {
+    pub arc: ArcProperties,
+    pub owner: Option<Uid>,
+    pub target: Uid,
+    pub pos: Pos,
+}
+
 pub struct BonkEvent {
     pub pos: Vec3<f32>,
     pub owner: Option<Uid>,
@@ -368,7 +375,9 @@ pub struct GroupManipEvent(pub EcsEntity, pub comp::GroupManip);
 pub struct RespawnEvent(pub EcsEntity);
 
 pub struct ShootEvent {
+    // This should be the owner entity
     pub entity: Option<EcsEntity>,
+    pub source_vel: Option<Vel>,
     pub pos: Pos,
     pub dir: Dir,
     pub body: comp::Body,
@@ -376,6 +385,7 @@ pub struct ShootEvent {
     pub projectile: comp::Projectile,
     pub speed: f32,
     pub object: Option<comp::Object>,
+    pub marker: Option<comp::FrontendMarker>,
 }
 
 pub struct ThrowEvent {
@@ -495,6 +505,9 @@ pub struct CreateSpriteEvent {
 pub struct EntityAttackedHookEvent {
     pub entity: EcsEntity,
     pub attacker: Option<EcsEntity>,
+    pub attack_dir: Dir,
+    pub damage_dealt: f32,
+    pub attack_source: AttackSource,
 }
 
 pub struct ChangeAbilityEvent {

@@ -31,7 +31,7 @@ use specs::{Component, DerefFlaggedStorage};
 use strum::{Display, IntoEnumIterator};
 use vek::*;
 
-use super::{BuffKind, Collider, Density, Mass, Scale};
+use super::{BuffKind, CapsulePrism, Collider, Density, Mass, Scale};
 
 enum_iter! {
     #[derive(
@@ -845,13 +845,13 @@ impl Body {
         } else {
             let (p0, p1, radius) = self.sausage();
 
-            Collider::CapsulePrism {
+            Collider::CapsulePrism(CapsulePrism {
                 p0,
                 p1,
                 radius,
                 z_min: 0.0,
                 z_max: self.height(),
-            }
+            })
         }
     }
 

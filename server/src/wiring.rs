@@ -185,13 +185,15 @@ impl WiringAction {
                     if let Some(&pos) = pos {
                         emitters.emit(ShootEvent {
                             entity: Some(entity),
+                            source_vel: None,
                             pos,
                             dir: Dir::forward(),
                             body: Body::Object(object::Body::Arrow),
-                            projectile: constr.create_projectile(None, 1.0, None),
+                            projectile: constr.clone().create_projectile(None, 1.0, None),
                             light: None,
                             speed: 5.0,
                             object: None,
+                            marker: None,
                         });
                     }
                 },
@@ -214,7 +216,7 @@ impl WiringAction {
 /// Effects of a circuit in the game world.
 pub enum WiringActionEffect {
     /// Spawn a projectile.
-    SpawnProjectile { constr: ProjectileConstructor },
+    SpawnProjectile { constr: Box<ProjectileConstructor> },
     /// Set a terrain block at the provided coordinates.
     SetBlock { coords: Vec3<i32>, block: Block },
     /// Emit light with the given RGB values.

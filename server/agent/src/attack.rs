@@ -8,7 +8,10 @@ use common::{
     comp::{
         Ability, AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction,
         ControlEvent, Controller, Fluid, InputKind,
-        ability::{ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, Stance, SwordStance},
+        ability::{
+            AbilityReqItem, ActiveAbilities, AuxiliaryAbility, BASE_ABILITY_LIMIT, BowStance,
+            Stance, SwordStance,
+        },
         buff::BuffKind,
         fluid_dynamics::LiquidKind,
         item::tool::AbilityContext,
@@ -1957,15 +1960,15 @@ impl AgentData<'_> {
                 self.extract_ability(AbilityInput::Auxiliary(3)),
                 self.extract_ability(AbilityInput::Auxiliary(4)),
             ];
-            let could_use_input = |input, desired_energy| match input {
+            let could_use_input = |input, ability_preferences| match input {
                 InputKind::Primary => primary.as_ref().is_some_and(|p| {
-                    p.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                    p.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
                 }),
                 InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
-                    s.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                    s.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
                 }),
                 InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
-                    a.could_use(attack_data, self, tgt_data, read_data, desired_energy)
+                    a.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
                 }),
                 _ => false,
             };
@@ -2077,154 +2080,586 @@ impl AgentData<'_> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        const MIN_CHARGE_FRAC: f32 = 0.5;
-        const OPTIMAL_TARGET_VELOCITY: f32 = 5.0;
-        const DESIRED_ENERGY_LEVEL: f32 = 50.0;
-
-        let line_of_sight_with_target = || {
-            entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                self.scale,
-                tgt_data.pos,
-                tgt_data.body,
-                tgt_data.scale,
-                read_data,
-            )
-        };
-
-        // Logic to use abilities
-        if let CharacterState::ChargedRanged(c) = self.char_state {
-            if !matches!(c.stage_section, StageSection::Recover) {
-                // Don't even bother with this logic if in recover
-                let target_speed_sqd = agent
-                    .target
-                    .as_ref()
-                    .map(|t| t.target)
-                    .and_then(|e| read_data.velocities.get(e))
-                    .map_or(0.0, |v| v.0.magnitude_squared());
-                if c.charge_frac() < MIN_CHARGE_FRAC
-                    || (target_speed_sqd > OPTIMAL_TARGET_VELOCITY.powi(2) && c.charge_frac() < 1.0)
-                {
-                    // If haven't charged to desired level, or target is moving too fast and haven't
-                    // fully charged, keep charging
-                    controller.push_basic_input(InputKind::Primary);
-                }
-                // Else don't send primary input to release the shot
-            }
-        } else if matches!(self.char_state, CharacterState::RepeaterRanged(c) if self.energy.current() > 5.0 && !matches!(c.stage_section, StageSection::Recover))
-        {
-            // If in repeater ranged, have enough energy, and aren't in recovery, try to
-            // keep firing
-            if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
-                && line_of_sight_with_target()
-            {
-                // Only keep firing if not in melee range or if can see target
-                controller.push_basic_input(InputKind::Secondary);
-            }
-        } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            if self
-                .skill_set
-                .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
-                && self.energy.current() > 45.0
-                && rng.random_bool(0.5)
-            {
-                // Use shotgun if target close and have sufficient energy
-                controller.push_basic_input(InputKind::Ability(0));
-            } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && self.energy.current()
-                    > CharacterAbility::default_roll(Some(self.char_state)).energy_cost()
-                && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
-            {
-                // Else roll away if can roll and have enough energy, and not using shotgun
-                // (other 2 attacks have interrupt handled above) unless in recover
-                controller.push_basic_input(InputKind::Roll);
-            } else {
-                self.path_toward_target(
-                    agent,
-                    controller,
-                    tgt_data.pos.0,
-                    read_data,
-                    Path::Separate,
-                    None,
+        if !agent.combat_state.initialized {
+            agent.combat_state.initialized = true;
+            let available_tactics = {
+                let mut tactics = Vec::new();
+                let try_tactic = |skill, tactic, tactics: &mut Vec<BowTactics>| {
+                    if self.skill_set.has_skill(Skill::Bow(skill)) {
+                        tactics.push(tactic);
+                    }
+                };
+                try_tactic(
+                    BowSkill::Heartseeker,
+                    BowTactics::HunterAdvanced,
+                    &mut tactics,
                 );
-                if attack_data.angle < 15.0 {
-                    controller.push_basic_input(InputKind::Primary);
+                try_tactic(
+                    BowSkill::FreezeArrow,
+                    BowTactics::TricksterAdvanced,
+                    &mut tactics,
+                );
+                try_tactic(
+                    BowSkill::Fusillade,
+                    BowTactics::ArtilleryAdvanced,
+                    &mut tactics,
+                );
+                if tactics.is_empty() {
+                    try_tactic(
+                        BowSkill::OwlTalon,
+                        BowTactics::HunterIntermediate,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        BowSkill::IgniteArrow,
+                        BowTactics::TricksterIntermediate,
+                        &mut tactics,
+                    );
+                    try_tactic(
+                        BowSkill::PiercingGale,
+                        BowTactics::ArtilleryIntermediate,
+                        &mut tactics,
+                    );
                 }
-            }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) && line_of_sight_with_target() {
-            // If not really far, and can see target, attempt to shoot bow
-            if self.energy.current() < DESIRED_ENERGY_LEVEL {
-                // If low on energy, use primary to attempt to regen energy
-                controller.push_basic_input(InputKind::Primary);
-            } else {
-                // Else we have enough energy, use repeater
-                controller.push_basic_input(InputKind::Secondary);
+                if tactics.is_empty() {
+                    try_tactic(BowSkill::ArdentHunt, BowTactics::HunterSimple, &mut tactics);
+                    try_tactic(
+                        BowSkill::SepticShot,
+                        BowTactics::TricksterSimple,
+                        &mut tactics,
+                    );
+                    try_tactic(BowSkill::Barrage, BowTactics::ArtillerySimple, &mut tactics);
+                }
+                if tactics.is_empty() {
+                    try_tactic(BowSkill::HeavyNock, BowTactics::Simple, &mut tactics);
+                }
+                if tactics.is_empty() {
+                    tactics.push(BowTactics::Unskilled);
+                }
+                tactics
+            };
+
+            let tactic = available_tactics
+                .choose(rng)
+                .copied()
+                .unwrap_or(BowTactics::Unskilled);
+
+            agent.combat_state.int_counters[IntCounters::Tactic as usize] = tactic as u8;
+
+            let auxiliary_key = ActiveAbilities::active_auxiliary_key(Some(self.inventory));
+            let set_ability = |controller: &mut Controller, slot, skill| {
+                controller.push_event(ControlEvent::ChangeAbility {
+                    slot,
+                    auxiliary_key,
+                    new_ability: AuxiliaryAbility::MainWeapon(skill),
+                });
+            };
+            let mut set_random = |controller: &mut Controller, slot, options: &mut Vec<usize>| {
+                if options.is_empty() {
+                    return;
+                }
+                let i = rng.random_range(0..options.len());
+                set_ability(controller, slot, options.swap_remove(i));
+            };
+
+            match tactic {
+                BowTactics::Unskilled => {},
+                BowTactics::Simple => {
+                    // foothold or heavy nock
+                    set_ability(controller, 0, rng.random_range(0..2));
+                },
+                BowTactics::HunterSimple => {
+                    // foothold
+                    set_ability(controller, 0, 0);
+                    // heavy nock
+                    set_ability(controller, 1, 1);
+                    // ardent hunt
+                    set_ability(controller, 2, 2);
+                },
+                BowTactics::HunterIntermediate => {
+                    // ardent hunt
+                    set_ability(controller, 0, 2);
+                    // foothold, heavy nock, owl talon, or eagle eye
+                    let mut options = vec![0, 1, 3, 4];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                },
+                BowTactics::HunterAdvanced => {
+                    // ardent hunt, owl talon, eagle eye, heartseeker, or hawkstrike
+                    let mut options = vec![2, 3, 4, 5, 6];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                    set_random(controller, 4, &mut options);
+                    // foothold or heavy nock
+                    set_ability(controller, 0, rng.random_range(0..2));
+                },
+                BowTactics::TricksterSimple => {
+                    // foothold
+                    set_ability(controller, 0, 0);
+                    // heavy nock
+                    set_ability(controller, 1, 1);
+                    // septic shot
+                    set_ability(controller, 2, 7);
+                },
+                BowTactics::TricksterIntermediate => {
+                    // septic shot
+                    set_ability(controller, 0, 7);
+                    // foothold, heavy nock, ignite arrow, or drench arrow
+                    let mut options = vec![0, 1, 8, 9];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                },
+                BowTactics::TricksterAdvanced => {
+                    // septic shot, ignite arrow, drench arrow, freeze arrow, jolt arrow
+                    let mut options = vec![7, 8, 9, 10, 11];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                    set_random(controller, 4, &mut options);
+                    // foothold or heavy nock
+                    set_ability(controller, 0, rng.random_range(0..2));
+                },
+                BowTactics::ArtillerySimple => {
+                    // foothold
+                    set_ability(controller, 0, 0);
+                    // heavy nock
+                    set_ability(controller, 1, 1);
+                    // barrage
+                    set_ability(controller, 2, 12);
+                },
+                BowTactics::ArtilleryIntermediate => {
+                    // barrage
+                    set_ability(controller, 0, 12);
+                    // foothold, heavy nock, piercing gale, or scatterburst
+                    let mut options = vec![0, 1, 13, 14];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                },
+                BowTactics::ArtilleryAdvanced => {
+                    // barrage, piercing gale, scatterburst, fusillade, death volley
+                    let mut options = vec![12, 13, 14, 15, 16];
+                    set_random(controller, 1, &mut options);
+                    set_random(controller, 2, &mut options);
+                    set_random(controller, 3, &mut options);
+                    set_random(controller, 4, &mut options);
+                    // foothold or heavy nock
+                    set_ability(controller, 0, rng.random_range(0..2));
+                },
             }
         }
-        // Logic to move. Intentionally kept separate from ability logic so duplicated
-        // work is less necessary.
-        if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
-            // Attempt to move away from target if too close
-            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                tgt_data.pos.0,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-                &read_data.time,
-            ) {
-                self.unstuck_if(stuck, controller);
-                controller.inputs.move_dir =
-                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+
+        enum IntCounters {
+            Tactic = 0,
+            ActionMode = 1,
+        }
+
+        enum Conditions {
+            RollingBreakThrough = 0,
+            MaintainDist = 1,
+            CreateDist = 2,
+        }
+
+        enum Positions {
+            Flee = 0,
+            Maintain = 1,
+        }
+
+        enum Timers {
+            GuardedCycle = 0,
+        }
+
+        enum FloatCounters {
+            GuardedCycle = 0,
+        }
+
+        // TODO: Abstract this with `handle_attack_aggression` later (probably with
+        // staff rework?) once the effectiveness of this strategy has been evaluated
+        // more
+        let attempt_attack = {
+            if let Some(health) = self.health {
+                agent.combat_state.int_counters[IntCounters::ActionMode as usize] =
+                    if health.fraction() < 0.2 {
+                        ActionMode::Fleeing as u8
+                    } else if health.fraction() < 0.95 {
+                        ActionMode::Guarded as u8
+                    } else {
+                        ActionMode::Reckless as u8
+                    };
             }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            // Else attempt to circle target if neither too close nor too far
-            if let Some((bearing, speed, stuck)) = agent.chaser.chase(
-                &*read_data.terrain,
-                self.pos.0,
-                self.vel.0,
-                tgt_data.pos.0,
-                TraversalConfig {
-                    min_tgt_dist: 1.25,
-                    ..self.traversal_config
-                },
-                &read_data.time,
-            ) {
-                self.unstuck_if(stuck, controller);
-                if line_of_sight_with_target() && attack_data.angle < 45.0 {
-                    controller.inputs.move_dir = bearing
-                        .xy()
-                        .rotated_z(rng.random_range(0.5..1.57))
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero)
-                        * speed;
+
+            let range1 = rng.random_range(6.0..10.0);
+            let range2 = rng.random_range(8.0..15.0);
+
+            let mut flee_handler = |agent: &mut Agent| {
+                if agent.combat_state.conditions[Conditions::RollingBreakThrough as usize] {
+                    controller.push_basic_input(InputKind::Roll);
+                    agent.combat_state.conditions[Conditions::RollingBreakThrough as usize] = false;
+                }
+                if let Some(pos) = agent.combat_state.positions[Positions::Flee as usize] {
+                    if let Some(dir) = Dir::from_unnormalized(pos - self.pos.0) {
+                        controller.inputs.look_dir = dir;
+                    }
+                    if pos.distance_squared(self.pos.0) < 5_f32.powi(2) {
+                        agent.combat_state.positions[Positions::Flee as usize] = None;
+                    }
+                    self.path_toward_target(
+                        agent,
+                        controller,
+                        pos,
+                        read_data,
+                        Path::Separate,
+                        None,
+                    );
                 } else {
-                    // Unless cannot see target, then move towards them
-                    controller.inputs.move_dir =
-                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(bearing.z > 1.5, controller);
-                    controller.inputs.move_z = bearing.z;
+                    agent.combat_state.positions[Positions::Flee as usize] = {
+                        let rand_dir = {
+                            let dir = (self.pos.0 - tgt_data.pos.0)
+                                .try_normalized()
+                                .unwrap_or(Vec3::unit_x())
+                                .xy();
+                            dir.rotated_z(rng.random_range(-0.75..0.75))
+                        };
+                        let attempted_dist = rng.random_range(16.0..26.0);
+                        let actual_dist = read_data
+                            .terrain
+                            .ray(
+                                self.pos.0 + Vec3::unit_z() * 0.5,
+                                self.pos.0 + Vec3::unit_z() * 0.5 + rand_dir * attempted_dist,
+                            )
+                            .until(Block::is_solid)
+                            .cast()
+                            .0
+                            - 1.0;
+                        if actual_dist < 10.0 {
+                            let dist = read_data
+                                .terrain
+                                .ray(
+                                    self.pos.0 + Vec3::unit_z() * 0.5,
+                                    self.pos.0 + Vec3::unit_z() * 0.5 - rand_dir * attempted_dist,
+                                )
+                                .until(Block::is_solid)
+                                .cast()
+                                .0
+                                - 1.0;
+                            agent.combat_state.conditions
+                                [Conditions::RollingBreakThrough as usize] = true;
+                            Some(self.pos.0 - rand_dir * dist)
+                        } else {
+                            Some(self.pos.0 + rand_dir * actual_dist)
+                        }
+                    };
+                }
+            };
+
+            match ActionMode::from_u8(
+                agent.combat_state.int_counters[IntCounters::ActionMode as usize],
+            ) {
+                ActionMode::Reckless => true,
+                ActionMode::Guarded => {
+                    agent.combat_state.timers[Timers::GuardedCycle as usize] += read_data.dt.0;
+                    if agent.combat_state.timers[Timers::GuardedCycle as usize]
+                        > agent.combat_state.counters[FloatCounters::GuardedCycle as usize]
+                    {
+                        agent.combat_state.timers[Timers::GuardedCycle as usize] = 0.0;
+                        agent.combat_state.conditions[Conditions::MaintainDist as usize] ^= true;
+                        agent.combat_state.counters[FloatCounters::GuardedCycle as usize] =
+                            if agent.combat_state.conditions[Conditions::MaintainDist as usize] {
+                                range1
+                            } else {
+                                range2
+                            };
+                    }
+                    if let Some(pos) = agent.combat_state.positions[Positions::Maintain as usize]
+                        && pos.distance_squared(self.pos.0) < 5_f32.powi(2)
+                    {
+                        agent.combat_state.positions[Positions::Maintain as usize] = None;
+                    }
+                    let circle = if agent.combat_state.conditions[Conditions::MaintainDist as usize]
+                    {
+                        if attack_data.dist_sqrd < 7_f32.powi(2) {
+                            agent.combat_state.conditions[Conditions::CreateDist as usize] = true;
+                        }
+                        if attack_data.dist_sqrd > 12_f32.powi(2) {
+                            agent.combat_state.conditions[Conditions::CreateDist as usize] = false;
+                        }
+                        if agent.combat_state.conditions[Conditions::CreateDist as usize] {
+                            flee_handler(agent);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    };
+                    if circle {
+                        if let Some(pos) =
+                            agent.combat_state.positions[Positions::Maintain as usize]
+                        {
+                            self.path_toward_target(
+                                agent,
+                                controller,
+                                pos,
+                                read_data,
+                                Path::Separate,
+                                None,
+                            );
+                        } else {
+                            agent.combat_state.positions[Positions::Maintain as usize] = {
+                                let rand_dir = {
+                                    let dir = (tgt_data.pos.0 - self.pos.0)
+                                        .try_normalized()
+                                        .unwrap_or(Vec3::unit_x())
+                                        .xy();
+                                    if rng.random_bool(0.5) {
+                                        dir.rotated_z(PI / 2.0 + rng.random_range(0.0..0.75))
+                                    } else {
+                                        dir.rotated_z(-PI / 2.0 - rng.random_range(0.0..0.75))
+                                    }
+                                };
+                                let attempted_dist = rng.random_range(12.0..20.0);
+                                let actual_dist = read_data
+                                    .terrain
+                                    .ray(
+                                        self.pos.0 + Vec3::unit_z() * 0.5,
+                                        self.pos.0
+                                            + Vec3::unit_z() * 0.5
+                                            + rand_dir * attempted_dist,
+                                    )
+                                    .until(Block::is_solid)
+                                    .cast()
+                                    .0
+                                    - 1.0;
+                                Some(self.pos.0 + rand_dir * actual_dist)
+                            };
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                },
+                ActionMode::Fleeing => {
+                    flee_handler(agent);
+                    false
+                },
+            }
+        };
+
+        let attack_failed = if attempt_attack {
+            let primary = self.extract_ability(AbilityInput::Primary);
+            let secondary = self.extract_ability(AbilityInput::Secondary);
+            let abilities = [
+                self.extract_ability(AbilityInput::Auxiliary(0)),
+                self.extract_ability(AbilityInput::Auxiliary(1)),
+                self.extract_ability(AbilityInput::Auxiliary(2)),
+                self.extract_ability(AbilityInput::Auxiliary(3)),
+                self.extract_ability(AbilityInput::Auxiliary(4)),
+            ];
+            let could_use_input = |input, ability_preferences| match input {
+                InputKind::Primary => primary.as_ref().is_some_and(|p| {
+                    p.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
+                }),
+                InputKind::Secondary => secondary.as_ref().is_some_and(|s| {
+                    s.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
+                }),
+                InputKind::Ability(x) => abilities[x].as_ref().is_some_and(|a| {
+                    let ability = self.active_abilities.get_ability(
+                        AbilityInput::Auxiliary(x),
+                        Some(self.inventory),
+                        Some(self.skill_set),
+                        self.stats,
+                    );
+                    let additional_conditions = match ability {
+                        Ability::MainWeaponAux(8) => self
+                            .inventory
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::Firedrop,
+                            ))
+                            .is_some(),
+                        Ability::MainWeaponAux(9) => self
+                            .inventory
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::PoisonClot,
+                            ))
+                            .is_some(),
+                        Ability::MainWeaponAux(10) => self
+                            .inventory
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::GelidGel,
+                            ))
+                            .is_some(),
+                        Ability::MainWeaponAux(11) => self
+                            .inventory
+                            .get_slot_of_item_by_def_id(&AbilityReqItem::item_def_id(
+                                &AbilityReqItem::LevinDust,
+                            ))
+                            .is_some(),
+                        _ => true,
+                    };
+                    a.could_use(attack_data, self, tgt_data, read_data, ability_preferences)
+                        && additional_conditions
+                }),
+                _ => false,
+            };
+            let continue_current_input = |current_input, next_input: &mut Option<InputKind>| {
+                let charging =
+                    matches!(self.char_state.stage_section(), Some(StageSection::Charge));
+                let charged = self
+                    .char_state
+                    .durations()
+                    .and_then(|durs| durs.charge)
+                    .zip(self.char_state.timer())
+                    .is_some_and(|(dur, timer)| timer > dur);
+                let recover =
+                    matches!(self.char_state.stage_section(), Some(StageSection::Recover));
+
+                if !(recover || (charging && charged)) {
+                    *next_input = Some(current_input);
+                }
+            };
+            let prefer_m1m2 = matches!(
+                self.stance,
+                Some(Stance::Bow(
+                    BowStance::Scatterburst
+                        | BowStance::IgniteArrow
+                        | BowStance::DrenchArrow
+                        | BowStance::FreezeArrow
+                        | BowStance::JoltArrow
+                ))
+            );
+            let prefer_m2 = matches!(
+                self.stance,
+                Some(Stance::Bow(
+                    BowStance::Barrage
+                        | BowStance::PiercingGale
+                        | BowStance::Hawkstrike
+                        | BowStance::Fusillade
+                        | BowStance::DeathVolley
+                ))
+            );
+            let current_input = self.char_state.ability_info().map(|ai| ai.input);
+            let ability_preferences = AbilityPreferences {
+                desired_energy: 40.0,
+                combo_scaling_buildup: 0,
+            };
+            let mut next_input = None;
+            if let Some(input) = current_input {
+                continue_current_input(input, &mut next_input);
+            } else if prefer_m1m2 {
+                if rng.random_bool(0.3) {
+                    next_input = Some(InputKind::Primary);
+                } else {
+                    next_input = Some(InputKind::Secondary);
+                }
+            } else if prefer_m2 {
+                if could_use_input(InputKind::Secondary, ability_preferences) {
+                    next_input = Some(InputKind::Secondary);
+                } else {
+                    next_input = Some(InputKind::Primary);
+                }
+            } else {
+                match BowTactics::from_u8(
+                    agent.combat_state.int_counters[IntCounters::Tactic as usize],
+                ) {
+                    BowTactics::Unskilled => {
+                        if rng.random_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    BowTactics::Simple => {
+                        if could_use_input(InputKind::Ability(0), ability_preferences) {
+                            next_input = Some(InputKind::Ability(0));
+                        } else if rng.random_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    BowTactics::HunterSimple
+                    | BowTactics::TricksterSimple
+                    | BowTactics::ArtillerySimple => {
+                        let random_ability = InputKind::Ability(rng.random_range(0..3));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.random_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    BowTactics::HunterIntermediate
+                    | BowTactics::TricksterIntermediate
+                    | BowTactics::ArtilleryIntermediate => {
+                        let random_ability = InputKind::Ability(rng.random_range(0..4));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.random_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
+                    BowTactics::HunterAdvanced
+                    | BowTactics::TricksterAdvanced
+                    | BowTactics::ArtilleryAdvanced => {
+                        let random_ability = InputKind::Ability(rng.random_range(0..5));
+                        if could_use_input(random_ability, ability_preferences) {
+                            next_input = Some(random_ability);
+                        } else if rng.random_bool(0.5) {
+                            next_input = Some(InputKind::Primary);
+                        } else {
+                            next_input = Some(InputKind::Secondary);
+                        }
+                    },
                 }
             }
-            // Sometimes try to roll
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.random::<f32>() < 0.01
-            {
-                controller.push_basic_input(InputKind::Roll);
+            if let Some(input) = next_input {
+                if could_use_input(input, ability_preferences) {
+                    if matches!(input, InputKind::Secondary)
+                        && matches!(self.stance, Some(Stance::Bow(BowStance::DeathVolley)))
+                    {
+                        controller.push_action(ControlAction::StartInput {
+                            input: InputKind::Secondary,
+                            target_entity: None,
+                            select_pos: Some(tgt_data.pos.0),
+                        });
+                    } else {
+                        controller.push_basic_input(input);
+                    }
+                    false
+                } else {
+                    true
+                }
+            } else {
+                true
             }
         } else {
-            // If too far, move towards target
+            false
+        };
+
+        if attack_failed
+            && (attack_data.dist_sqrd > 25_f32.powi(2)
+                || !entities_have_line_of_sight(
+                    self.pos,
+                    self.body,
+                    self.scale,
+                    tgt_data.pos,
+                    tgt_data.body,
+                    tgt_data.scale,
+                    read_data,
+                ))
+        {
             self.path_toward_target(
                 agent,
                 controller,
                 tgt_data.pos.0,
                 read_data,
-                Path::AtTarget,
+                Path::Separate,
                 None,
             );
         }

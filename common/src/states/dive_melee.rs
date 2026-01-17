@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// If Some(_), the state can be activated on the ground
     pub buildup_duration: Option<Duration>,
@@ -30,7 +30,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -104,8 +104,13 @@ impl CharacterBehavior for Data {
                         data.entity,
                         self.static_data
                             .melee_constructor
+                            .clone()
                             .handle_scaling(scaling)
-                            .create_melee(precision_mult, tool_stats),
+                            .create_melee(
+                                precision_mult,
+                                tool_stats,
+                                self.static_data.ability_info,
+                            ),
                     );
 
                     if let CharacterState::DiveMelee(c) = &mut update.character {

@@ -12,10 +12,5 @@ BasicBlock(
     can_hold: true,
     blocked_attacks: (
         melee: true,
-        projectiles: false,
-        beams: false,
-        ground_shockwaves: false,
-        air_shockwaves: false,
-        explosions: false,
     ),
 )

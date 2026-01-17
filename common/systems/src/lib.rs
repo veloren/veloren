@@ -1,5 +1,6 @@
 #![expect(clippy::option_map_unit_fn)]
 
+mod arcing;
 mod aura;
 mod beam;
 mod buff;
@@ -37,6 +38,7 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<phys_events::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<projectile::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<shockwave::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
+    dispatch::<arcing::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<beam::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<aura::Sys>(dispatch_builder, &[]);
 }

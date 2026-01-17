@@ -1,6 +1,6 @@
 use crate::{
     Explosion, RadiusEffect,
-    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, DamageSource, GroupTarget},
+    combat::{self, Attack, AttackDamage, Damage, DamageKind::Crushing, GroupTarget},
     comp::{
         CharacterState, MeleeConstructor, StateUpdate, ability::Dodgeable,
         character_state::OutputEvents, item::Reagent,
@@ -16,7 +16,7 @@ use std::time::Duration;
 use vek::Vec3;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until the state attacks
     pub buildup_duration: Duration,
@@ -40,7 +40,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -90,9 +90,11 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        self.static_data
-                            .melee_constructor
-                            .create_melee(precision_mult, tool_stats),
+                        self.static_data.melee_constructor.clone().create_melee(
+                            precision_mult,
+                            tool_stats,
+                            self.static_data.ability_info,
+                        ),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
@@ -107,18 +109,19 @@ impl CharacterBehavior for Data {
                     .try_change_by(-self.static_data.energy_cost)
                     .is_ok()
                 {
+                    // TODO: Remove this, this should never have been added this way
                     if self.static_data.frontend_specifier == Some(FrontendSpecifier::CultistVortex)
                     {
                         let damage = AttackDamage::new(
                             Damage {
-                                source: DamageSource::Explosion,
                                 kind: Crushing,
                                 value: 10.0,
                             },
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        let attack = Attack::default().with_damage(damage);
+                        let attack =
+                            Attack::new(Some(self.static_data.ability_info)).with_damage(damage);
                         let explosion = Explosion {
                             effects: vec![RadiusEffect::Attack {
                                 attack,

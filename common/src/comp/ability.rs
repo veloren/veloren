@@ -1,12 +1,12 @@
 use crate::{
-    combat::{self, CombatEffect, DamageKind, Knockback},
+    combat::{self, CombatEffect, DamageKind, Knockback, ScalingKind},
     comp::{
         self, Body, CharacterState, LightEmitter, StateUpdate, aura, beam, buff,
         character_state::AttackFilters,
         inventory::{
             Inventory,
             item::{
-                ItemKind, Tool,
+                ItemDefinitionIdOwned, ItemKind, Tool,
                 tool::{
                     AbilityContext, AbilityItem, AbilityKind, ContextualIndex, Stats, ToolKind,
                 },
@@ -28,7 +28,7 @@ use crate::{
         behavior::JoinData,
         sprite_summon::SpriteSummonAnchor,
         utils::{
-            AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ScalingKind,
+            AbilityInfo, ComboConsumption, MovementModifier, OrientationModifier, ProjectileSpread,
             StageSection,
         },
         *,
@@ -683,7 +683,7 @@ pub enum CharacterAbilityType {
     Music(StageSection),
     Shockwave,
     BasicBeam,
-    RepeaterRanged,
+    RapidRanged,
     BasicAura,
     SelfBuff,
     Other,
@@ -708,7 +708,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::ChargedRanged(_) => Self::ChargedRanged,
             CharacterState::Shockwave(_) => Self::Shockwave,
             CharacterState::BasicBeam(_) => Self::BasicBeam,
-            CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
+            CharacterState::RapidRanged(_) => Self::RapidRanged,
             CharacterState::BasicAura(_) => Self::BasicAura,
             CharacterState::SelfBuff(_) => Self::SelfBuff,
             CharacterState::Music(data) => Self::Music(data.stage_section),
@@ -736,7 +736,9 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::StaticAura(_)
             | CharacterState::Throw(_)
             | CharacterState::LeapExplosionShockwave(_)
-            | CharacterState::Explosion(_) => Self::Other,
+            | CharacterState::Explosion(_)
+            | CharacterState::LeapRanged(_)
+            | CharacterState::Simple(_) => Self::Other,
         }
     }
 }
@@ -770,6 +772,10 @@ impl Amount {
     }
 }
 
+impl Default for Amount {
+    fn default() -> Self { Self::Value(1) }
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 /// For documentation on individual fields, see the corresponding character
@@ -798,9 +804,11 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
+        #[serde(default)]
         num_projectiles: Amount,
-        projectile_spread: f32,
-        damage_effect: Option<CombatEffect>,
+        projectile_spread: Option<ProjectileSpread>,
+        #[serde(default)]
+        auto_aim: bool,
         #[serde(default)]
         movement_modifier: MovementModifier,
         #[serde(default)]
@@ -808,20 +816,20 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
-    RepeaterRanged {
+    RapidRanged {
+        #[serde(default)]
+        initial_energy: f32,
+        #[serde(default)]
         energy_cost: f32,
         buildup_duration: f32,
         shoot_duration: f32,
         recover_duration: f32,
-        max_speed: f32,
-        half_speed_at: u32,
+        options: rapid_ranged::Options,
         projectile: ProjectileConstructor,
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        damage_effect: Option<CombatEffect>,
-        properties_of_aoe: Option<repeater_ranged::ProjectileOffset>,
-        specifier: Option<repeater_ranged::FrontendSpecifier>,
+        specifier: Option<rapid_ranged::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -934,7 +942,6 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
-        damage_effect: Option<CombatEffect>,
         specifier: Option<leap_melee::FrontendSpecifier>,
         #[serde(default)]
         meta: AbilityMeta,
@@ -972,7 +979,6 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
-        damage_effect: Option<CombatEffect>,
         #[serde(default)]
         custom_combo: CustomCombo,
         #[serde(default)]
@@ -985,6 +991,7 @@ pub enum CharacterAbility {
     ChargedRanged {
         energy_cost: f32,
         energy_drain: f32,
+        idle_drain: f32,
         projectile: ProjectileConstructor,
         buildup_duration: f32,
         charge_duration: f32,
@@ -993,7 +1000,10 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
-        damage_effect: Option<CombatEffect>,
+        projectile_spread: Option<ProjectileSpread>,
+        #[serde(default)]
+        num_projectiles: Amount,
+        marker: Option<comp::FrontendMarker>,
         move_speed: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -1141,6 +1151,9 @@ pub enum CharacterAbility {
         cast_duration: f32,
         recover_duration: f32,
         buffs: Vec<self_buff::BuffDesc>,
+        #[serde(default)]
+        use_raw_buff_strength: bool,
+        buff_cat: Option<buff::BuffCategory>,
         energy_cost: f32,
         #[serde(default = "default_true")]
         enforced_limit: bool,
@@ -1247,6 +1260,32 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    LeapRanged {
+        energy_cost: f32,
+        buildup_duration: f32,
+        buildup_melee_timing: f32,
+        movement_duration: f32,
+        movement_ranged_timing: f32,
+        land_timeout: f32,
+        recover_duration: f32,
+        melee: Option<MeleeConstructor>,
+        melee_required: bool,
+        projectile: ProjectileConstructor,
+        projectile_body: Body,
+        projectile_light: Option<LightEmitter>,
+        projectile_speed: f32,
+        horiz_leap_strength: f32,
+        vert_leap_strength: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
+    Simple {
+        energy_cost: f32,
+        combo_cost: u32,
+        buildup_duration: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -1294,7 +1333,7 @@ impl CharacterAbility {
     pub fn requirements_paid(&self, data: &JoinData, update: &mut StateUpdate) -> bool {
         let from_meta = {
             let AbilityMeta { requirements, .. } = self.ability_meta();
-            requirements.requirements_met(data.stance)
+            requirements.requirements_met(data.stance, data.inventory)
         };
         from_meta
             && match self {
@@ -1327,13 +1366,19 @@ impl CharacterAbility {
                 | CharacterAbility::RegrowHead { energy_cost, .. } => {
                     update.energy.try_change_by(-*energy_cost).is_ok()
                 },
-                // Consumes energy within state, so value only checked before entering state
-                CharacterAbility::RepeaterRanged { energy_cost, .. } => {
-                    update.energy.current() >= *energy_cost
+                // Also can consume energy within state, so value checked before entering state too
+                CharacterAbility::RapidRanged {
+                    initial_energy,
+                    energy_cost,
+                    ..
+                } => {
+                    update.energy.current() >= *energy_cost + *initial_energy
+                        && update.energy.try_change_by(-*initial_energy).is_ok()
                 },
                 CharacterAbility::LeapExplosionShockwave { energy_cost, .. }
                 | CharacterAbility::LeapMelee { energy_cost, .. }
-                | CharacterAbility::LeapShockwave { energy_cost, .. } => {
+                | CharacterAbility::LeapShockwave { energy_cost, .. }
+                | CharacterAbility::LeapRanged { energy_cost, .. } => {
                     update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
                 },
                 CharacterAbility::BasicAura {
@@ -1356,6 +1401,11 @@ impl CharacterAbility {
                     ..
                 }
                 | CharacterAbility::SelfBuff {
+                    energy_cost,
+                    combo_cost: minimum_combo,
+                    ..
+                }
+                | CharacterAbility::Simple {
                     energy_cost,
                     combo_cost: minimum_combo,
                     ..
@@ -1433,6 +1483,7 @@ impl CharacterAbility {
                 ground_shockwaves: false,
                 air_shockwaves: true,
                 explosions: true,
+                arcs: true,
             },
             was_cancel: remaining_duration > 0.0,
             meta: Default::default(),
@@ -1459,7 +1510,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             BasicRanged {
                 ref mut energy_cost,
@@ -1471,38 +1522,37 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 num_projectiles: _,
                 projectile_spread: _,
-                damage_effect: _,
+                auto_aim: _,
                 movement_modifier: _,
                 ori_modifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *projectile = projectile.adjusted_by_stats(stats);
+                *projectile = projectile.clone().adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
-            RepeaterRanged {
+            RapidRanged {
+                ref mut initial_energy,
                 ref mut energy_cost,
                 ref mut buildup_duration,
                 ref mut shoot_duration,
                 ref mut recover_duration,
-                max_speed: _,
-                half_speed_at: _,
+                options: _,
                 ref mut projectile,
                 projectile_body: _,
                 projectile_light: _,
                 ref mut projectile_speed,
-                damage_effect: _,
-                properties_of_aoe: _,
                 specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *shoot_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *projectile = projectile.adjusted_by_stats(stats);
+                *projectile = projectile.clone().adjusted_by_stats(stats);
                 *projectile_speed *= stats.range;
+                *initial_energy /= stats.energy_efficiency;
                 *energy_cost /= stats.energy_efficiency;
             },
             Boost {
@@ -1533,7 +1583,7 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             BasicBlock {
                 ref mut buildup_duration,
@@ -1578,7 +1628,7 @@ impl CharacterAbility {
                 *energy_cost_per_strike /= stats.energy_efficiency;
                 *strikes = strikes
                     .iter_mut()
-                    .map(|s| s.adjusted_by_stats(stats))
+                    .map(|s| s.clone().adjusted_by_stats(stats))
                     .collect();
             },
             LeapExplosionShockwave {
@@ -1647,7 +1697,6 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
-                ref mut damage_effect,
                 specifier: _,
                 meta: _,
             } => {
@@ -1655,16 +1704,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats)
             },
             LeapShockwave {
                 ref mut energy_cost,
@@ -1715,7 +1755,6 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 specifier: _,
-                ref mut damage_effect,
                 meta: _,
                 custom_combo: _,
                 movement_modifier: _,
@@ -1723,25 +1762,19 @@ impl CharacterAbility {
             } => {
                 *swing_duration /= stats.speed;
                 *buildup_strike = buildup_strike
+                    .as_ref()
+                    .cloned()
                     .map(|(dur, strike)| (dur / stats.speed, strike.adjusted_by_stats(stats)));
                 *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             ChargedRanged {
                 ref mut energy_cost,
                 ref mut energy_drain,
+                ref mut idle_drain,
                 ref mut projectile,
                 ref mut buildup_duration,
                 ref mut charge_duration,
@@ -1750,11 +1783,13 @@ impl CharacterAbility {
                 projectile_light: _,
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
-                damage_effect: _,
+                projectile_spread: _,
+                num_projectiles: _,
+                marker: _,
                 move_speed: _,
                 meta: _,
             } => {
-                *projectile = projectile.adjusted_by_stats(stats);
+                *projectile = projectile.clone().adjusted_by_stats(stats);
                 *buildup_duration /= stats.speed;
                 *charge_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -1762,6 +1797,7 @@ impl CharacterAbility {
                 *scaled_projectile_speed *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
+                *idle_drain /= stats.energy_efficiency;
             },
             Throw {
                 ref mut energy_cost,
@@ -1779,7 +1815,7 @@ impl CharacterAbility {
                 move_speed: _,
                 meta: _,
             } => {
-                *projectile = projectile.adjusted_by_stats(stats);
+                *projectile = projectile.clone().adjusted_by_stats(stats);
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain *= stats.speed / stats.energy_efficiency;
                 *buildup_duration /= stats.speed;
@@ -1820,7 +1856,10 @@ impl CharacterAbility {
                 *poise_damage *= stats.effect_power;
                 *shockwave_duration *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                *damage_effect = damage_effect.map(|de| de.adjusted_by_stats(stats));
+                *damage_effect = damage_effect
+                    .as_ref()
+                    .cloned()
+                    .map(|de| de.adjusted_by_stats(stats));
             },
             Explosion {
                 ref mut energy_cost,
@@ -1876,7 +1915,10 @@ impl CharacterAbility {
                 // Duration modified to keep velocity constant
                 *beam_duration *= stats.range as f64;
                 *energy_drain /= stats.energy_efficiency;
-                *damage_effect = damage_effect.map(|de| de.adjusted_by_stats(stats));
+                *damage_effect = damage_effect
+                    .as_ref()
+                    .cloned()
+                    .map(|de| de.adjusted_by_stats(stats));
             },
             BasicAura {
                 ref mut buildup_duration,
@@ -1971,6 +2013,8 @@ impl CharacterAbility {
                 ref mut cast_duration,
                 ref mut recover_duration,
                 ref mut buffs,
+                use_raw_buff_strength,
+                buff_cat: _,
                 ref mut energy_cost,
                 enforced_limit: _,
                 combo_cost: _,
@@ -1979,7 +2023,11 @@ impl CharacterAbility {
                 specifier: _,
             } => {
                 for buff in buffs.iter_mut() {
-                    buff.data.strength *= stats.diminished_buff_strength();
+                    buff.data.strength *= if use_raw_buff_strength {
+                        stats.buff_strength
+                    } else {
+                        stats.diminished_buff_strength()
+                    };
                 }
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -2029,7 +2077,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             DiveMelee {
                 ref mut energy_cost,
@@ -2046,7 +2094,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             RiposteMelee {
                 ref mut energy_cost,
@@ -2064,7 +2112,7 @@ impl CharacterAbility {
                 *whiffed_recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *block_strength *= stats.power;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             RapidMelee {
                 ref mut buildup_duration,
@@ -2083,7 +2131,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+                *melee_constructor = melee_constructor.clone().adjusted_by_stats(stats);
             },
             Transform {
                 ref mut buildup_duration,
@@ -2108,6 +2156,40 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
             },
+            LeapRanged {
+                ref mut energy_cost,
+                ref mut buildup_duration,
+                buildup_melee_timing: _,
+                movement_duration: _,
+                movement_ranged_timing: _,
+                land_timeout: _,
+                ref mut recover_duration,
+                ref mut melee,
+                melee_required: _,
+                ref mut projectile,
+                projectile_body: _,
+                projectile_light: _,
+                ref mut projectile_speed,
+                horiz_leap_strength: _,
+                vert_leap_strength: _,
+                meta: _,
+            } => {
+                *energy_cost /= stats.energy_efficiency;
+                *buildup_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *melee = melee.as_ref().cloned().map(|m| m.adjusted_by_stats(stats));
+                *projectile = projectile.clone().adjusted_by_stats(stats);
+                *projectile_speed *= stats.range;
+            },
+            Simple {
+                ref mut energy_cost,
+                combo_cost: _,
+                ref mut buildup_duration,
+                meta: _,
+            } => {
+                *energy_cost /= stats.energy_efficiency;
+                *buildup_duration /= stats.speed;
+            },
         }
         self
     }
@@ -2117,7 +2199,7 @@ impl CharacterAbility {
         match self {
             BasicMelee { energy_cost, .. }
             | BasicRanged { energy_cost, .. }
-            | RepeaterRanged { energy_cost, .. }
+            | RapidRanged { energy_cost, .. }
             | DashMelee { energy_cost, .. }
             | Roll { energy_cost, .. }
             | LeapExplosionShockwave { energy_cost, .. }
@@ -2140,7 +2222,9 @@ impl CharacterAbility {
             | RiposteMelee { energy_cost, .. }
             | RapidMelee { energy_cost, .. }
             | StaticAura { energy_cost, .. }
-            | RegrowHead { energy_cost, .. } => *energy_cost,
+            | RegrowHead { energy_cost, .. }
+            | LeapRanged { energy_cost, .. }
+            | Simple { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -2181,6 +2265,9 @@ impl CharacterAbility {
             }
             | SelfBuff {
                 combo_cost: combo, ..
+            }
+            | Simple {
+                combo_cost: combo, ..
             } => *combo,
             Shockwave {
                 minimum_combo: combo,
@@ -2188,7 +2275,7 @@ impl CharacterAbility {
             } => combo.unwrap_or(0),
             BasicMelee { .. }
             | BasicRanged { .. }
-            | RepeaterRanged { .. }
+            | RapidRanged { .. }
             | DashMelee { .. }
             | Roll { .. }
             | LeapExplosionShockwave { .. }
@@ -2211,7 +2298,8 @@ impl CharacterAbility {
             | SpriteSummon { .. }
             | Transform { .. }
             | StaticAura { .. }
-            | RegrowHead { .. } => 0,
+            | RegrowHead { .. }
+            | LeapRanged { .. } => 0,
         }
     }
 
@@ -2221,7 +2309,7 @@ impl CharacterAbility {
         match self {
             BasicMelee { meta, .. }
             | BasicRanged { meta, .. }
-            | RepeaterRanged { meta, .. }
+            | RapidRanged { meta, .. }
             | DashMelee { meta, .. }
             | Roll { meta, .. }
             | LeapExplosionShockwave { meta, .. }
@@ -2249,14 +2337,15 @@ impl CharacterAbility {
             | RapidMelee { meta, .. }
             | Transform { meta, .. }
             | StaticAura { meta, .. }
-            | RegrowHead { meta, .. } => *meta,
+            | RegrowHead { meta, .. }
+            | LeapRanged { meta, .. }
+            | Simple { meta, .. } => *meta,
         }
     }
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
             Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
             Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
@@ -2285,97 +2374,6 @@ impl CharacterAbility {
         }
     }
 
-    fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
-        use skills::{BowSkill::*, Skill::Bow};
-
-        let projectile_speed_modifier = SKILL_MODIFIERS.bow_tree.universal.projectile_speed;
-        match self {
-            CharacterAbility::ChargedRanged {
-                projectile,
-                move_speed,
-                initial_projectile_speed,
-                scaled_projectile_speed,
-                charge_duration,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.charged;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    let projectile_speed_scaling = projectile_speed_modifier.powi(level.into());
-                    *initial_projectile_speed *= projectile_speed_scaling;
-                    *scaled_projectile_speed *= projectile_speed_scaling;
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CDamage)) {
-                    let power = modifiers.damage_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CRegen)) {
-                    let regen = modifiers.regen_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(1_f32, regen, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CKnockback)) {
-                    let kb = modifiers.knockback_scaling.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(1_f32, 1_f32, 1_f32, kb);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CSpeed)) {
-                    let charge_time = 1.0 / modifiers.charge_rate;
-                    *charge_duration *= charge_time.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(CMove)) {
-                    *move_speed *= modifiers.move_speed.powi(level.into());
-                }
-            },
-            CharacterAbility::RepeaterRanged {
-                energy_cost,
-                projectile,
-                max_speed,
-                projectile_speed,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.repeater;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RDamage)) {
-                    let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(RSpeed)) {
-                    *max_speed *= modifiers.max_speed.powi(level.into());
-                }
-            },
-            CharacterAbility::BasicRanged {
-                projectile,
-                energy_cost,
-                num_projectiles,
-                projectile_spread,
-                projectile_speed,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.bow_tree.shotgun;
-                if let Ok(level) = skillset.skill_level(Bow(ProjSpeed)) {
-                    *projectile_speed *= projectile_speed_modifier.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SDamage)) {
-                    let power = modifiers.power.powi(level.into());
-                    *projectile = projectile.legacy_modified_by_skills(power, 1_f32, 1_f32, 1_f32);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SArrows)) {
-                    num_projectiles.add(u32::from(level) * modifiers.num_projectiles);
-                }
-                if let Ok(level) = skillset.skill_level(Bow(SSpread)) {
-                    *projectile_spread *= modifiers.spread.powi(level.into());
-                }
-            },
-            _ => {},
-        }
-    }
-
     fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
         use skills::{Skill::Staff, StaffSkill::*};
 
@@ -2388,7 +2386,9 @@ impl CharacterAbility {
                 let power = modifiers.power.powi(damage_level.into());
                 let regen = modifiers.regen.powi(regen_level.into());
                 let range = modifiers.range.powi(range_level.into());
-                *projectile = projectile.legacy_modified_by_skills(power, regen, range, 1_f32);
+                *projectile = projectile
+                    .clone()
+                    .legacy_modified_by_skills(power, regen, range, 1_f32);
             },
             CharacterAbility::BasicBeam {
                 damage,
@@ -2566,7 +2566,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: hit_timing.clamp(0.0, 1.0),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
                     frontend_specifier: *frontend_specifier,
@@ -2588,7 +2588,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 energy_cost: _,
                 num_projectiles,
                 projectile_spread,
-                damage_effect,
+                auto_aim,
                 movement_modifier,
                 ori_modifier,
                 meta: _,
@@ -2596,14 +2596,14 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 static_data: basic_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    projectile: *projectile,
+                    projectile: projectile.clone(),
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
                     num_projectiles: *num_projectiles,
                     projectile_spread: *projectile_spread,
+                    auto_aim: *auto_aim,
                     ability_info,
-                    damage_effect: *damage_effect,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
                 },
@@ -2657,7 +2657,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     ori_modifier: *ori_modifier,
                     ability_info,
                 },
@@ -2726,7 +2726,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
-                    strikes: strikes.iter().map(|s| s.to_duration()).collect(),
+                    strikes: strikes.iter().cloned().map(|s| s.to_duration()).collect(),
                     energy_cost_per_strike: *energy_cost_per_strike,
                     specifier: *specifier,
                     auto_progress: *auto_progress,
@@ -2797,7 +2797,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     shockwave_speed: *shockwave_speed,
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
                     shockwave_dodgeable: *shockwave_dodgeable,
-                    shockwave_damage_effect: *shockwave_damage_effect,
+                    shockwave_damage_effect: shockwave_damage_effect.clone(),
                     shockwave_damage_kind: *shockwave_damage_kind,
                     shockwave_specifier: *shockwave_specifier,
                     move_efficiency: *move_efficiency,
@@ -2816,7 +2816,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 melee_constructor,
                 forward_leap_strength,
                 vertical_leap_strength,
-                damage_effect,
                 specifier,
                 meta: _,
             } => CharacterState::LeapMelee(leap_melee::Data {
@@ -2825,11 +2824,10 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
                     ability_info,
-                    damage_effect: *damage_effect,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
@@ -2874,7 +2872,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     move_efficiency: *move_efficiency,
                     damage_kind: *damage_kind,
                     specifier: *specifier,
-                    damage_effect: *damage_effect,
+                    damage_effect: damage_effect.clone(),
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
                     ability_info,
@@ -2893,7 +2891,6 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 recover_duration,
                 melee_constructor,
                 specifier,
-                damage_effect,
                 custom_combo,
                 meta: _,
                 movement_modifier,
@@ -2903,15 +2900,15 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
                     buildup_strike: buildup_strike
-                        .map(|(dur, strike)| (Duration::from_secs_f32(dur), strike)),
+                        .as_ref()
+                        .map(|(dur, strike)| (Duration::from_secs_f32(*dur), strike.clone())),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     ability_info,
                     specifier: *specifier,
-                    damage_effect: *damage_effect,
                     custom_combo: *custom_combo,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
@@ -2930,6 +2927,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
             CharacterAbility::ChargedRanged {
                 energy_cost: _,
                 energy_drain,
+                idle_drain,
                 projectile,
                 buildup_duration,
                 charge_duration,
@@ -2938,7 +2936,9 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 projectile_light,
                 initial_projectile_speed,
                 scaled_projectile_speed,
-                damage_effect,
+                projectile_spread,
+                num_projectiles,
+                marker,
                 move_speed,
                 meta: _,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
@@ -2947,50 +2947,47 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_drain: *energy_drain,
-                    projectile: *projectile,
+                    idle_drain: *idle_drain,
+                    projectile: projectile.clone(),
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     initial_projectile_speed: *initial_projectile_speed,
                     scaled_projectile_speed: *scaled_projectile_speed,
+                    projectile_spread: *projectile_spread,
+                    num_projectiles: *num_projectiles,
+                    marker: *marker,
                     move_speed: *move_speed,
                     ability_info,
-                    damage_effect: *damage_effect,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
-            CharacterAbility::RepeaterRanged {
+            CharacterAbility::RapidRanged {
+                initial_energy: _,
                 energy_cost,
                 buildup_duration,
                 shoot_duration,
                 recover_duration,
-                max_speed,
-                half_speed_at,
+                options,
                 projectile,
                 projectile_body,
                 projectile_light,
                 projectile_speed,
-                damage_effect,
-                properties_of_aoe,
                 specifier,
                 meta: _,
-            } => CharacterState::RepeaterRanged(repeater_ranged::Data {
-                static_data: repeater_ranged::StaticData {
+            } => CharacterState::RapidRanged(rapid_ranged::Data {
+                static_data: rapid_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     shoot_duration: Duration::from_secs_f32(*shoot_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     energy_cost: *energy_cost,
-                    // 1.0 is subtracted as 1.0 is added in state file
-                    max_speed: *max_speed - 1.0,
-                    half_speed_at: *half_speed_at,
-                    projectile: *projectile,
+                    options: *options,
+                    projectile: projectile.clone(),
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
                     ability_info,
-                    damage_effect: *damage_effect,
-                    properties_of_aoe: *properties_of_aoe,
                     specifier: *specifier,
                 },
                 timer: Duration::default(),
@@ -3044,14 +3041,14 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                         throw_duration: Duration::from_secs_f32(*throw_duration),
                         recover_duration: Duration::from_secs_f32(*recover_duration),
                         energy_drain: *energy_drain,
-                        projectile: *projectile,
+                        projectile: projectile.clone(),
                         projectile_light: *projectile_light,
                         projectile_dir: *projectile_dir,
                         initial_projectile_speed: *initial_projectile_speed,
                         scaled_projectile_speed: *scaled_projectile_speed,
                         move_speed: *move_speed,
                         ability_info,
-                        damage_effect: *damage_effect,
+                        damage_effect: damage_effect.clone(),
                         equip_slot,
                         item_hash,
                         hand_info,
@@ -3099,7 +3096,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     shockwave_duration: Duration::from_secs_f32(*shockwave_duration),
                     dodgeable: *dodgeable,
                     move_efficiency: *move_efficiency,
-                    damage_effect: *damage_effect,
+                    damage_effect: damage_effect.clone(),
                     ability_info,
                     damage_kind: *damage_kind,
                     specifier: *specifier,
@@ -3183,7 +3180,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     dodgeable: *dodgeable,
                     blockable: *blockable,
                     end_radius: max_angle.to_radians().tan() * *range,
-                    damage_effect: *damage_effect,
+                    damage_effect: damage_effect.clone(),
                     energy_regen: *energy_regen,
                     energy_drain: *energy_drain,
                     ability_info,
@@ -3282,7 +3279,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     cast_duration: Duration::from_secs_f32(*cast_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    summon_info: *summon_info,
+                    summon_info: summon_info.clone(),
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
                     ability_info,
@@ -3298,6 +3295,8 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 cast_duration,
                 recover_duration,
                 buffs,
+                use_raw_buff_strength: _,
+                buff_cat,
                 energy_cost: _,
                 combo_cost,
                 combo_scaling,
@@ -3310,6 +3309,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     cast_duration: Duration::from_secs_f32(*cast_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     buffs: buffs.clone(),
+                    buff_cat: buff_cat.clone(),
                     combo_cost: *combo_cost,
                     combo_scaling: *combo_scaling,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
@@ -3381,7 +3381,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     scaling: *scaling,
                     minimum_combo: *minimum_combo,
                     combo_on_use: data.combo.map_or(0, |c| c.counter()),
@@ -3409,7 +3409,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     vertical_speed: *vertical_speed,
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     max_scaling: *max_scaling,
                     ability_info,
                 },
@@ -3438,7 +3438,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     whiffed_recover_duration: Duration::from_secs_f32(*whiffed_recover_duration),
                     block_strength: *block_strength,
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -3463,7 +3463,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    melee_constructor: *melee_constructor,
+                    melee_constructor: melee_constructor.clone(),
                     energy_cost: *energy_cost,
                     max_strikes: *max_strikes,
                     move_modifier: *move_modifier,
@@ -3513,6 +3513,59 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
+            CharacterAbility::LeapRanged {
+                energy_cost: _,
+                buildup_duration,
+                buildup_melee_timing,
+                movement_duration,
+                movement_ranged_timing,
+                land_timeout,
+                recover_duration,
+                melee,
+                melee_required,
+                projectile,
+                projectile_body,
+                projectile_light,
+                projectile_speed,
+                horiz_leap_strength,
+                vert_leap_strength,
+                meta: _,
+            } => CharacterState::LeapRanged(leap_ranged::Data {
+                static_data: leap_ranged::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    buildup_melee_timing: *buildup_melee_timing,
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    movement_ranged_timing: *movement_ranged_timing,
+                    land_timeout: Duration::from_secs_f32(*land_timeout),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee: melee.clone(),
+                    melee_required: *melee_required,
+                    projectile: projectile.clone(),
+                    projectile_body: *projectile_body,
+                    projectile_light: *projectile_light,
+                    projectile_speed: *projectile_speed,
+                    horiz_leap_strength: *horiz_leap_strength,
+                    vert_leap_strength: *vert_leap_strength,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                melee_done: false,
+                ranged_done: false,
+            }),
+            CharacterAbility::Simple {
+                energy_cost: _,
+                combo_cost: _,
+                buildup_duration,
+                meta: _,
+            } => CharacterState::Simple(simple::Data {
+                static_data: simple::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+            }),
         })
     }
 }
@@ -3531,6 +3584,8 @@ pub struct AbilityMeta {
     // If we ever add more, I guess change to a vec? Or maybe just an array if we want to keep
     // AbilityMeta small?
     pub contextual_stats: Option<StatAdj>,
+    /// If provided, multiplies the precision power from armor for this ability
+    pub precision_power_mult: Option<f32>,
 }
 
 impl StatAdj {
@@ -3539,7 +3594,11 @@ impl StatAdj {
         let add = match self.context {
             StatContext::PoiseResilience(base) => {
                 let poise_res = combat::compute_poise_resilience(data.inventory, data.msm);
-                poise_res.unwrap_or(0.0) / base
+                poise_res.unwrap_or(0.0) / base.max(0.1)
+            },
+            StatContext::Stealth(base) => {
+                let stealth = combat::compute_stealth(data.inventory, data.msm);
+                stealth / base.max(0.1)
             },
         };
         match self.field {
@@ -3559,6 +3618,8 @@ impl StatAdj {
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StatAdj {
+    /// If this much of the stat is achieved, 1.0 will be added to the affected
+    /// stat
     pub context: StatContext,
     pub field: StatField,
 }
@@ -3566,6 +3627,7 @@ pub struct StatAdj {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum StatContext {
     PoiseResilience(f32),
+    Stealth(f32),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -3575,27 +3637,56 @@ pub enum StatField {
     Power,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AbilityReqItem {
+    Firedrop,
+    PoisonClot,
+    GelidGel,
+    LevinDust,
+}
+
+impl AbilityReqItem {
+    pub fn item_def_id(&self) -> ItemDefinitionIdOwned {
+        match self {
+            Self::Firedrop => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.firedrop"))
+            },
+            Self::PoisonClot => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.poison_clot"))
+            },
+            Self::GelidGel => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.gelid_gel"))
+            },
+            Self::LevinDust => {
+                ItemDefinitionIdOwned::Simple(String::from("common.items.consumable.levin_dust"))
+            },
+        }
+    }
+}
+
 // TODO: Later move over things like energy and combo into here
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AbilityRequirements {
     pub stance: Option<Stance>,
+    pub item: Option<AbilityReqItem>,
 }
 
 impl AbilityRequirements {
-    pub fn requirements_met(&self, stance: Option<&Stance>) -> bool {
-        let AbilityRequirements { stance: req_stance } = self;
-        req_stance
-            .is_none_or(|req_stance| stance.is_some_and(|char_stance| req_stance == *char_stance))
+    pub fn requirements_met(&self, stance: Option<&Stance>, inv: Option<&Inventory>) -> bool {
+        let AbilityRequirements {
+            stance: req_stance,
+            item,
+        } = self;
+        let stance_met = req_stance
+            .is_none_or(|req_stance| stance.is_some_and(|char_stance| req_stance == *char_stance));
+        let item_met = item.is_none_or(|item| {
+            inv.is_some_and(|inv| {
+                inv.get_slot_of_item_by_def_id(&item.item_def_id())
+                    .is_some()
+            })
+        });
+        stance_met && item_met
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
-pub enum SwordStance {
-    Crippling,
-    Cleaving,
-    Defensive,
-    Heavy,
-    Agile,
 }
 
 bitflags::bitflags! {
@@ -3624,6 +3715,7 @@ pub enum Stance {
     #[default]
     None,
     Sword(SwordStance),
+    Bow(BowStance),
 }
 
 impl Stance {
@@ -3640,9 +3732,42 @@ impl Stance {
             Stance::Sword(SwordStance::Cleaving) => {
                 "veloren.core.pseudo_abilities.sword.cleaving_stance"
             },
+            Stance::Bow(BowStance::Barrage) => "common.abilities.bow.barrage",
+            Stance::Bow(BowStance::Scatterburst) => "common.abilities.bow.scatterburst",
+            Stance::Bow(BowStance::IgniteArrow) => "common.abilities.bow.ignite_arrow",
+            Stance::Bow(BowStance::DrenchArrow) => "common.abilities.bow.drench_arrow",
+            Stance::Bow(BowStance::FreezeArrow) => "common.abilities.bow.freeze_arrow",
+            Stance::Bow(BowStance::JoltArrow) => "common.abilities.bow.jolt_arrow",
+            Stance::Bow(BowStance::PiercingGale) => "common.abilities.bow.piercing_gale",
+            Stance::Bow(BowStance::Hawkstrike) => "common.abilities.bow.hawkstrike",
+            Stance::Bow(BowStance::Fusillade) => "common.abilities.bow.fusillade",
+            Stance::Bow(BowStance::DeathVolley) => "common.abilities.bow.death_volley",
             Stance::None => "veloren.core.pseudo_abilities.no_stance",
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+pub enum SwordStance {
+    Crippling,
+    Cleaving,
+    Defensive,
+    Heavy,
+    Agile,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash, PartialOrd, Ord)]
+pub enum BowStance {
+    Barrage,
+    Scatterburst,
+    IgniteArrow,
+    DrenchArrow,
+    FreezeArrow,
+    JoltArrow,
+    PiercingGale,
+    Hawkstrike,
+    Fusillade,
+    DeathVolley,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

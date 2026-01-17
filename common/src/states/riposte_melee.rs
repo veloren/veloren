@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until state should deal damage
     pub buildup_duration: Duration,
@@ -29,7 +29,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -78,9 +78,11 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        self.static_data
-                            .melee_constructor
-                            .create_melee(precision_mult, tool_stats),
+                        self.static_data.melee_constructor.clone().create_melee(
+                            precision_mult,
+                            tool_stats,
+                            self.static_data.ability_info,
+                        ),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

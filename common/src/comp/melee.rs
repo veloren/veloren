@@ -1,13 +1,14 @@
 use crate::{
     combat::{
         Attack, AttackDamage, AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect,
-        CombatRequirement, Damage, DamageKind, DamageSource, FlankMults, GroupTarget, Knockback,
-        KnockbackDir,
+        CombatRequirement, Damage, DamageKind, FlankMults, GroupTarget, Knockback, KnockbackDir,
     },
     comp::{
         buff::BuffKind,
         tool::{Stats, ToolKind},
     },
+    resources::Secs,
+    states::utils::AbilityInfo,
 };
 use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
@@ -68,7 +69,7 @@ pub struct Scaled {
     pub angle: f32,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
     pub kind: MeleeConstructorKind,
@@ -102,7 +103,12 @@ pub struct CustomCombo {
 }
 
 impl MeleeConstructor {
-    pub fn create_melee(self, precision_mult: f32, tool_stats: Stats) -> Melee {
+    pub fn create_melee(
+        self,
+        precision_mult: f32,
+        tool_stats: Stats,
+        ability_info: AbilityInfo,
+    ) -> Melee {
         if self.scaled.is_some() {
             dev_panic!(
                 "Attempted to create a melee attack that had a provided scaled value without \
@@ -122,14 +128,13 @@ impl MeleeConstructor {
                     .with_requirement(CombatRequirement::AnyDamage);
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
-                    dur_secs: 10.0,
+                    dur_secs: Secs(10.0),
                     strength: CombatBuffStrength::DamageFraction(0.1),
                     chance: 0.1,
                 })
                 .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Slashing,
                         value: damage,
                     },
@@ -154,7 +159,7 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -170,14 +175,13 @@ impl MeleeConstructor {
                     .with_requirement(CombatRequirement::AnyDamage);
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
-                    dur_secs: 5.0,
+                    dur_secs: Secs(5.0),
                     strength: CombatBuffStrength::DamageFraction(0.05),
                     chance: 0.1,
                 })
                 .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Piercing,
                         value: damage,
                     },
@@ -202,7 +206,7 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -218,7 +222,6 @@ impl MeleeConstructor {
                     .with_requirement(CombatRequirement::AnyDamage);
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Crushing,
                         value: damage,
                     },
@@ -242,7 +245,7 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(poise)
@@ -255,14 +258,13 @@ impl MeleeConstructor {
             } => {
                 let buff = CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Bleeding,
-                    dur_secs: 5.0,
+                    dur_secs: Secs(5.0),
                     strength: CombatBuffStrength::DamageFraction(0.2),
                     chance: 0.1,
                 })
                 .adjusted_by_stats(tool_stats);
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Piercing,
                         value: damage,
                     },
@@ -287,7 +289,7 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(poise)
                     .with_effect(knockback)
@@ -304,7 +306,6 @@ impl MeleeConstructor {
 
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Energy,
                         value: damage,
                     },
@@ -326,7 +327,7 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(energy)
                     .with_effect(knockback)
@@ -338,7 +339,6 @@ impl MeleeConstructor {
             } => {
                 let mut damage = AttackDamage::new(
                     Damage {
-                        source: DamageSource::Melee,
                         kind: DamageKind::Energy,
                         value: damage,
                     },
@@ -362,13 +362,19 @@ impl MeleeConstructor {
                 )
                 .with_requirement(CombatRequirement::AnyDamage);
 
-                Attack::default()
+                Attack::new(Some(ability_info))
                     .with_damage(damage)
                     .with_effect(poise)
                     .with_effect(knockback)
             },
         }
-        .with_precision(precision_mult)
+        .with_precision(
+            precision_mult
+                * ability_info
+                    .ability_meta
+                    .precision_power_mult
+                    .unwrap_or(1.0),
+        )
         .with_blockable(self.blockable);
 
         let attack = if let Some((effect, requirement)) = self.attack_effect {
@@ -548,6 +554,9 @@ impl MeleeConstructor {
             scaled.range *= stats.range;
         }
         self.damage_effect = self.damage_effect.map(|de| de.adjusted_by_stats(stats));
+        self.attack_effect = self
+            .attack_effect
+            .map(|(e, r)| (e.adjusted_by_stats(stats), r));
         self
     }
 

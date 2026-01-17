@@ -14,6 +14,7 @@ pub enum Effect {
     Damage(combat::Damage),
     Buff(BuffEffect),
     Permanent(PermanentEffect),
+    Stance(comp::ability::Stance),
 }
 
 /// A buff that may be applied to an entity
@@ -35,6 +36,7 @@ impl Effect {
             Effect::Damage(d) => format!("{:+}", d.value),
             Effect::Buff(e) => format!("{:?} buff", e),
             Effect::Permanent(e) => format!("{:?}", e),
+            Effect::Stance(s) => format!("{:?} stance", s),
         }
     }
 
@@ -45,6 +47,7 @@ impl Effect {
             Effect::Damage(_) => true,
             Effect::Buff(e) => !e.kind.is_buff(),
             Effect::Permanent(_) => false,
+            Effect::Stance(_) => false,
         }
     }
 
@@ -63,6 +66,7 @@ impl Effect {
                 effect.data.strength *= modifier;
             },
             Effect::Permanent(_) => {},
+            Effect::Stance(_) => {},
         }
     }
 }

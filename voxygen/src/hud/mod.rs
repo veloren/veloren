@@ -244,6 +244,7 @@ widget_ids! {
         // Crosshair
         crosshair_inner,
         crosshair_outer,
+        crosshair_charge,
 
         // SCT
         player_scts[],
@@ -1547,6 +1548,7 @@ impl Hud {
             let id_maps = ecs.read_resource::<common::uid::IdMaps>();
             let terrain = ecs.read_resource::<common::terrain::TerrainGrid>();
             let colliders = ecs.read_storage::<comp::Collider>();
+            let char_states = ecs.read_storage::<comp::CharacterState>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -1655,6 +1657,29 @@ impl Hud {
                     .middle_of(self.ids.crosshair_outer)
                     .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
                     .set(self.ids.crosshair_inner, ui_widgets);
+
+                if let Some(charge) = char_states.get(me).and_then(|cs| cs.charge_frac()) {
+                    Image::new(match charge {
+                        _ if charge > 0.999 => self.imgs.crosshair_charge_8,
+                        _ if charge > 0.875 => self.imgs.crosshair_charge_7,
+                        _ if charge > 0.75 => self.imgs.crosshair_charge_6,
+                        _ if charge > 0.625 => self.imgs.crosshair_charge_5,
+                        _ if charge > 0.5 => self.imgs.crosshair_charge_4,
+                        _ if charge > 0.375 => self.imgs.crosshair_charge_3,
+                        _ if charge > 0.25 => self.imgs.crosshair_charge_2,
+                        _ if charge > 0.125 => self.imgs.crosshair_charge_1,
+                        _ => self.imgs.crosshair_charge_0,
+                    })
+                    .w_h(21.0 * 1.5, 21.0 * 1.5)
+                    .middle_of(ui_widgets.window)
+                    .color(Some(Color::Rgba(
+                        1.0,
+                        1.0,
+                        1.0,
+                        self.crosshair_opacity * global_state.settings.interface.crosshair_opacity,
+                    )))
+                    .set(self.ids.crosshair_charge, ui_widgets);
+                }
             }
 
             // Max amount the sct font size increases when "flashing"
@@ -5533,6 +5558,12 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Berserk => imgs.buff_reckless,
         BuffKind::ScornfulTaunt => imgs.buff_scornfultaunt,
         BuffKind::Tenacity => imgs.buff_tenacity,
+        BuffKind::OwlTalon => imgs.buff_owltalon,
+        BuffKind::HeavyNock => imgs.buff_heavynock,
+        BuffKind::Heartseeker => imgs.buff_heartseeker,
+        BuffKind::EagleEye => imgs.buff_eagleeye,
+        BuffKind::ArdentHunter => imgs.buff_ardenthunter,
+        BuffKind::SepticShot => imgs.buff_septicshot,
         //  Debuffs
         BuffKind::Bleeding => imgs.debuff_bleed_0,
         BuffKind::Cursed => imgs.debuff_cursed_0,
@@ -5550,6 +5581,8 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Winded => imgs.debuff_winded_0,
         BuffKind::Amnesia => imgs.debuff_amnesia_0,
         BuffKind::OffBalance => imgs.debuff_offbalance_0,
+        BuffKind::Chilled => imgs.debuff_chilled,
+        BuffKind::ArdentHunted => imgs.debuff_ardenthunted,
     }
 }
 

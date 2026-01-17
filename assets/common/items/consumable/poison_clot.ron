@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Venom Sac",
+    legacy_description: "description.txt",
+    kind: Utility(
+        kind: AbilityReq,
+    ),
+    quality: Common,
+    tags: [],
+)

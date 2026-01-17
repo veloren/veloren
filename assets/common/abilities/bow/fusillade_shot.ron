@@ -1,27 +1,28 @@
-BasicRanged(
-    energy_cost: 25.0,
-    buildup_duration: 0.3,
-    recover_duration: 0.3,
-    projectile_spread: 0.05,
+RapidRanged(
+    energy_cost: 10,
+    buildup_duration: 0.5,
+    shoot_duration: 0.05,
+    recover_duration: 0.4,
+    options: (
+        max_projectiles: Some(5),
+        fire_all: true,
+    ),
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 6,
-            knockback: Some(5),
+            damage: 11,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,
                 strength: DamageFraction(0.1),
                 chance: 0.1,
             )),
+            without_combo: true,
         )),
     ),
     projectile_body: Object(Arrow),
-    projectile_light: None,
     projectile_speed: 80.0,
-    num_projectiles: Value(5),
-    movement_modifier: (
-        buildup: Some(0.3),
-        recover: Some(0.3),
+    meta: (
+        init_event: Some(EnterStance(None)),
     ),
 )

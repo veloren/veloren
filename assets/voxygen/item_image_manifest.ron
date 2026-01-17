@@ -1686,7 +1686,7 @@
     Simple("common.items.tool.instruments.oud"): VoxTrans(
         "voxel.weapon.tool.wooden_oud",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
-    ),    
+    ),
     Simple("common.items.tool.instruments.steeltonguedrum"): VoxTrans(
         "voxel.weapon.tool.steeltonguedrum",
         (0.0, 0.0, 0.0), (45.0, 90.0, 0.0), 1.0,
@@ -3920,6 +3920,22 @@
         "voxel.item.food.salad_tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
+    Simple("common.items.consumable.firedrop"): VoxTrans(
+        "voxel.object.firedrop",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
+    Simple("common.items.consumable.poison_clot"): VoxTrans(
+        "voxel.object.poison_clot",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
+    Simple("common.items.consumable.gelid_gel"): VoxTrans(
+        "voxel.object.gelid_gel",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
+    Simple("common.items.consumable.levin_dust"): VoxTrans(
+        "voxel.object.levin_dust",
+        (0.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 1.0,
+    ),
     // Admin consumables
     Simple("common.items.debug.golden_cheese"): VoxTrans(
         "voxel.item.food.item_cheese",
@@ -3932,7 +3948,7 @@
     ),
     Simple("common.items.utility.surprise_egg"): VoxTrans(
         "voxel.object.surprise_egg",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     Simple("common.items.utility.firework_blue"): VoxTrans(
         "voxel.weapon.projectile.fireworks_blue-0",
@@ -4275,6 +4291,10 @@
         "voxel.item.mineral.ore.ancient_gold",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
+    Simple("common.items.mineral.ore.lodestone"): VoxTrans(
+        "voxel.item.mineral.ore.lodestone",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
+    ),
     Simple("common.items.crafting_ing.honey"): VoxTrans(
         "voxel.item.food.honey",
         (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
@@ -4362,6 +4382,10 @@
     Simple("common.items.crafting_ing.molten_core"): VoxTrans(
         "voxel.item.crafting.molten_core",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
+    ),
+    Simple("common.items.crafting_ing.bloodbag"): VoxTrans(
+        "voxel.item.crafting.bloodbag",
+        (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
     // Gliders
     Simple("common.items.glider.cloverleaf"): VoxTrans(

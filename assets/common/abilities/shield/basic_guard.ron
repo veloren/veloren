@@ -14,8 +14,8 @@ BasicBlock(
         melee: true,
         projectiles: true,
         beams: true,
-        ground_shockwaves: false,
         air_shockwaves: true,
         explosions: true,
+        arcs: true,
     ),
 )

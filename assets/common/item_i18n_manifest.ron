@@ -326,7 +326,7 @@
         ): "common-items-npc_armor-biped_small-ashen-chest-warrior",
         Simple(
             "common.items.npc_armor.biped_small.ashen.hand.warrior",
-        ): "common-items-npc_armor-biped_small-ashen-hand-warrior",        
+        ): "common-items-npc_armor-biped_small-ashen-hand-warrior",
         Simple(
             "common.items.npc_armor.biped_small.bushly.foot.bushly",
         ): "common-items-npc_armor-biped_small-bushly-foot-bushly",
@@ -2559,6 +2559,9 @@
             "common.items.mineral.ore.veloritefrag",
         ): "sprite-velorite-velorite",
         Simple(
+            "common.items.mineral.ore.lodestone",
+        ): "sprite-velorite-lodestone",
+        Simple(
             "common.items.mineral.ingot.bloodsteel",
         ): "sprite-mineral-ingot-bloodsteel",
         Simple(
@@ -2695,7 +2698,7 @@
         ): "weapon-tool-wooden_lute",
         Simple(
             "common.items.tool.instruments.oud",
-        ): "weapon-tool-wooden_oud",        
+        ): "weapon-tool-wooden_oud",
         Simple(
             "common.items.tool.instruments.lyre",
         ): "weapon-tool-wooden_lyre",
@@ -2819,7 +2822,7 @@
         ): "common-items-npc_weapons-biped_small-ashen-axe",
         Simple(
             "common.items.npc_weapons.biped_small.ashen.staff",
-        ): "common-items-npc_weapons-biped_small-ashen-staff",        
+        ): "common-items-npc_weapons-biped_small-ashen-staff",
         Simple(
             "common.items.npc_weapons.biped_small.haniwa.archer",
         ): "common-items-npc_weapons-biped_small-haniwa-archer",
@@ -3688,6 +3691,18 @@
             "common.items.consumable.potion_freezing",
         ): "object-potion_freezing",
         Simple(
+            "common.items.consumable.firedrop"
+        ): "object-consumable-firedrop",
+        Simple(
+            "common.items.consumable.poison_clot"
+        ): "object-consumable-poison_clot",
+        Simple(
+            "common.items.consumable.gelid_gel"
+        ): "object-consumable-gelid_gel",
+        Simple(
+            "common.items.consumable.levin_dust"
+        ): "object-consumable-levin_dust",
+        Simple(
             "common.items.lantern.black_0",
         ): "lantern-black",
         Simple(
@@ -3716,7 +3731,7 @@
         ): "lantern-bloodmoon_relic",
         Simple(
             "common.items.lantern.crux",
-        ): "lantern-crux",                
+        ): "lantern-crux",
         Simple(
             "common.items.charms.burning_charm",
         ): "object-burning_charm",
@@ -3768,6 +3783,9 @@
         Simple(
             "common.items.flowers.yellow",
         ): "sprite-flowers-yellow",
+        Simple(
+            "common.items.crafting_ing.bloodbag",
+        ): "sprite-crafting_ing-bloodbag",
         ModularWeaponComponent(
             (
                 "common.items.modular.weapon.primary.axe.labrys",

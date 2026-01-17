@@ -36,6 +36,10 @@
         items: [
             (5, "common.items.consumable.potion_med"),
             (10, "common.items.food.sunflower_icetea"),
+            (10, "common.items.consumable.levin_dust"),
+            (10, "common.items.consumable.gelid_gel"),
+            (10, "common.items.consumable.firedrop"),
+            (10, "common.items.consumable.poison_clot"),
         ],
     ),
     meta: [

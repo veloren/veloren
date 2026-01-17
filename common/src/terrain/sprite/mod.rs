@@ -402,6 +402,7 @@ sprites! {
         VeloriteFrag  = 0x0F,
         Mud           = 0x10,
         Grave         = 0x11,
+        Lodestone     = 0x12,
     },
     // Structural elements including doors and building parts
     Structural = 6 has Ori {
@@ -761,7 +762,8 @@ impl SpriteKind {
             | SpriteKind::Iron
             | SpriteKind::Tin
             | SpriteKind::Silver
-            | SpriteKind::Gold => 0.6,
+            | SpriteKind::Gold
+            | SpriteKind::Lodestone => 0.6,
             SpriteKind::EnsnaringVines
             | SpriteKind::CavernLillypadBlue
             | SpriteKind::EnsnaringWeb => 0.15,
@@ -960,6 +962,7 @@ impl SpriteKind {
             SpriteKind::Mushroom => item("common.items.food.mushroom"),
             SpriteKind::Velorite => item("common.items.mineral.ore.velorite"),
             SpriteKind::VeloriteFrag => item("common.items.mineral.ore.veloritefrag"),
+            SpriteKind::Lodestone => item("common.items.mineral.ore.lodestone"),
             //SpriteKind::BlueFlower => item("common.items.flowers.blue"),
             //SpriteKind::PinkFlower => item("common.items.flowers.pink"),
             //SpriteKind::PurpleFlower => item("common.items.flowers.purple"),
@@ -1195,7 +1198,8 @@ impl SpriteKind {
             | SpriteKind::Iron
             | SpriteKind::Tin
             | SpriteKind::Silver
-            | SpriteKind::Gold => Some(ToolKind::Pick),
+            | SpriteKind::Gold
+            | SpriteKind::Lodestone => Some(ToolKind::Pick),
             SpriteKind::Grave | SpriteKind::Mud => Some(ToolKind::Shovel),
             _ => None,
         }
@@ -1219,6 +1223,7 @@ impl SpriteKind {
             SpriteKind::Diamond => 3,
             SpriteKind::Velorite => 3,
             SpriteKind::VeloriteFrag => 2,
+            SpriteKind::Lodestone => 2,
             _ => return None,
         })
     }
@@ -1243,6 +1248,7 @@ impl SpriteKind {
             SpriteKind::Ruby => 3,
             SpriteKind::Velorite => 3,
             SpriteKind::VeloriteFrag => 2,
+            SpriteKind::Lodestone => 2,
             _ => 1,
         }
     }

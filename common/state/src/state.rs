@@ -274,13 +274,16 @@ impl State {
         ecs.register::<comp::Group>();
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
+        ecs.register::<comp::projectile::ProjectileHitEntities>();
         ecs.register::<comp::Beam>();
+        ecs.register::<comp::Arcing>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Stance>();
         ecs.register::<comp::Teleporting>();
         ecs.register::<comp::GizmoSubscriber>();
+        ecs.register::<comp::FrontendMarker>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

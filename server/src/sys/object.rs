@@ -1,5 +1,5 @@
 use common::{
-    CachedSpatialGrid, Damage, DamageKind, DamageSource, GroupTarget,
+    CachedSpatialGrid, Damage, DamageKind, GroupTarget,
     combat::{Attack, AttackDamage},
     comp::{Body, Object, Pos, Teleporting, Vel, beam, object},
     consts::TELEPORTER_RADIUS,
@@ -75,7 +75,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            match *object {
+            match object {
                 Object::DeleteAfter {
                     spawned_at,
                     timeout,
@@ -128,8 +128,12 @@ impl<'a> System<'a> for Sys {
                     indicator_specifier,
                 } => {
                     match indicator_specifier {
-                        BeamPillarIndicatorSpecifier::FirePillar => outcome_bus
-                            .emit_now(Outcome::FirePillarIndicator { pos: pos.0, radius }),
+                        BeamPillarIndicatorSpecifier::FirePillar => {
+                            outcome_bus.emit_now(Outcome::FirePillarIndicator {
+                                pos: pos.0,
+                                radius: *radius,
+                            })
+                        },
                     }
 
                     let age = (time.0 - spawned_at.0).max(0.0);
@@ -141,28 +145,27 @@ impl<'a> System<'a> for Sys {
                     } else if age > buildup && !beams.contains(entity) {
                         let mut attack_damage = AttackDamage::new(
                             Damage {
-                                source: DamageSource::Energy,
                                 kind: DamageKind::Energy,
-                                value: damage,
+                                value: *damage,
                             },
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
                         if let Some(combat_effect) = damage_effect {
-                            attack_damage = attack_damage.with_effect(combat_effect);
+                            attack_damage = attack_damage.with_effect(combat_effect.clone());
                         }
 
                         updater.insert(entity, beam::Beam {
-                            attack: Attack::default().with_damage(attack_damage),
-                            dodgeable,
-                            start_radius: radius,
-                            end_radius: radius,
-                            range: height,
+                            attack: Attack::new(None).with_damage(attack_damage),
+                            dodgeable: *dodgeable,
+                            start_radius: *radius,
+                            end_radius: *radius,
+                            range: *height,
                             duration: Secs(beam_duration.as_secs_f64()),
-                            tick_dur: Secs(1.0 / tick_rate as f64),
+                            tick_dur: Secs(1.0 / *tick_rate as f64),
                             hit_entities: Vec::new(),
                             hit_durations: HashMap::new(),
-                            specifier,
+                            specifier: *specifier,
                             bezier: QuadraticBezier3 {
                                 start: pos.0,
                                 ctrl: pos.0,
@@ -171,10 +174,7 @@ impl<'a> System<'a> for Sys {
                         });
                     }
                 },
-                Object::Crux {
-                    ref mut pid_controller,
-                    ..
-                } => {
+                Object::Crux { pid_controller, .. } => {
                     if let Some(vel) = vel
                         && let Some(pid_controller) = pid_controller
                         && let Some(accel) = body.and_then(|body| {

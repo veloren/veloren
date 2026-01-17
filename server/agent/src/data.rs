@@ -404,6 +404,41 @@ impl HammerTactics {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum BowTactics {
+    Unskilled = 0,
+    Simple = 1,
+    HunterSimple = 2,
+    TricksterSimple = 3,
+    ArtillerySimple = 4,
+    HunterIntermediate = 5,
+    TricksterIntermediate = 6,
+    ArtilleryIntermediate = 7,
+    HunterAdvanced = 8,
+    TricksterAdvanced = 9,
+    ArtilleryAdvanced = 10,
+}
+
+impl BowTactics {
+    pub fn from_u8(x: u8) -> Self {
+        use BowTactics::*;
+        match x {
+            0 => Unskilled,
+            1 => Simple,
+            2 => HunterSimple,
+            3 => TricksterSimple,
+            4 => ArtillerySimple,
+            5 => HunterIntermediate,
+            6 => TricksterIntermediate,
+            7 => ArtilleryIntermediate,
+            8 => HunterAdvanced,
+            9 => TricksterAdvanced,
+            10 => ArtilleryAdvanced,
+            _ => Unskilled,
+        }
+    }
+}
+
 #[derive(SystemData)]
 pub struct ReadData<'a> {
     pub entities: Entities<'a>,
@@ -557,6 +592,28 @@ pub enum AbilityData {
     RegrowHead {
         energy: f32,
     },
+    Simple {
+        energy: f32,
+        combo: u32,
+    },
+    ChargedRanged {
+        projectile_speed: f32,
+        initial_energy: f32,
+        energy_drain: f32,
+        charge_dur: f32,
+    },
+    RapidRanged {
+        projectile_speed: f32,
+        energy_per_shot: f32,
+        shots: u32,
+    },
+    LeapRanged {
+        // range, angle
+        melee: Option<(f32, f32)>,
+        melee_required: bool,
+        projectile_speed: f32,
+        energy: f32,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -656,7 +713,7 @@ impl AbilityData {
                 energy_per_strike: *energy_cost,
                 range: melee_constructor.range,
                 angle: melee_constructor.angle,
-                strikes: max_strikes.unwrap_or(100),
+                strikes: max_strikes.unwrap_or(10),
                 combo: *minimum_combo,
             },
             ChargedMelee {
@@ -700,7 +757,7 @@ impl AbilityData {
             } => Self::BasicRanged {
                 energy: *energy_cost,
                 projectile_speed: *projectile_speed,
-                projectile_spread: *projectile_spread,
+                projectile_spread: projectile_spread.map_or(0.0, |sprd| sprd.estimated_spread()),
                 num_projectiles: *num_projectiles,
             },
             BasicMelee {
@@ -761,6 +818,49 @@ impl AbilityData {
             },
             RegrowHead { energy_cost, .. } => Self::RegrowHead {
                 energy: *energy_cost,
+            },
+            Simple {
+                energy_cost,
+                combo_cost,
+                ..
+            } => Self::Simple {
+                energy: *energy_cost,
+                combo: *combo_cost,
+            },
+            ChargedRanged {
+                energy_cost,
+                energy_drain,
+                initial_projectile_speed,
+                scaled_projectile_speed,
+                charge_duration,
+                ..
+            } => Self::ChargedRanged {
+                projectile_speed: *initial_projectile_speed + *scaled_projectile_speed,
+                initial_energy: *energy_cost,
+                energy_drain: *energy_drain,
+                charge_dur: *charge_duration,
+            },
+            RapidRanged {
+                energy_cost,
+                projectile_speed,
+                options,
+                ..
+            } => Self::RapidRanged {
+                projectile_speed: *projectile_speed,
+                energy_per_shot: *energy_cost,
+                shots: options.max_projectiles.unwrap_or(10),
+            },
+            LeapRanged {
+                energy_cost,
+                melee_required,
+                melee,
+                projectile_speed,
+                ..
+            } => Self::LeapRanged {
+                energy: *energy_cost,
+                projectile_speed: *projectile_speed,
+                melee_required: *melee_required,
+                melee: melee.as_ref().map(|m| (m.range, m.angle)),
             },
             _ => {
                 dev_panic!(
@@ -1018,6 +1118,31 @@ impl AbilityData {
             BasicAura { energy } => energy_check(*energy),
             StaticAura { energy } => energy_check(*energy),
             RegrowHead { energy } => energy_check(*energy),
+            Simple { energy, combo } => energy_check(*energy) && combo_check(*combo, false),
+            ChargedRanged {
+                projectile_speed,
+                initial_energy,
+                energy_drain,
+                charge_dur,
+            } => {
+                energy_check(*initial_energy + *energy_drain + *charge_dur)
+                    && ranged_check(*projectile_speed)
+            },
+            RapidRanged {
+                projectile_speed,
+                energy_per_shot,
+                shots,
+            } => energy_check(*energy_per_shot * *shots as f32) && ranged_check(*projectile_speed),
+            LeapRanged {
+                melee,
+                melee_required,
+                projectile_speed,
+                energy,
+            } => {
+                energy_check(*energy)
+                    && (!melee_required || melee.is_some_and(|(r, a)| melee_check(r, a, None)))
+                    && ranged_check(*projectile_speed)
+            },
         }
     }
 }

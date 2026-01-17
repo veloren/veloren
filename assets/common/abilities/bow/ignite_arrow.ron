@@ -1,0 +1,11 @@
+Simple(
+    energy_cost: 0,
+    combo_cost: 0,
+    buildup_duration: 0.1,
+    meta: (
+        init_event: Some(EnterStance(Bow(IgniteArrow))),
+        requirements: (
+            item: Some(Firedrop),
+        ),
+    ),
+)

@@ -23,7 +23,7 @@ BasicRanged(
     projectile_body: Object(BoltFire),
     projectile_speed: 25,
     num_projectiles: Value(5),
-    projectile_spread: 0.125,
+    projectile_spread: Some(Increasing(0.125)),
     movement_modifier: (
         buildup: Some(0.3),
         recover: Some(0.3),

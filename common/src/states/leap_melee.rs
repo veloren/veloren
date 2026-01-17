@@ -1,5 +1,5 @@
 use crate::{
-    combat::{self, CombatEffect},
+    combat,
     comp::{CharacterState, MeleeConstructor, StateUpdate, character_state::OutputEvents},
     event::LocalEvent,
     outcome::Outcome,
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the state is moving
     pub movement_duration: Duration,
@@ -32,10 +32,9 @@ pub struct StaticData {
     pub vertical_leap_strength: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    pub damage_effect: Option<CombatEffect>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -61,17 +60,15 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 // Wait for `buildup_duration` to expire
                 if self.timer < self.static_data.buildup_duration {
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to leap portion of state after buildup delay
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Movement,
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Movement
+                    }
 
                     // Send local event used for frontend shenanigans
                     match self.static_data.specifier {
@@ -106,33 +103,29 @@ impl CharacterBehavior for Data {
                     // If we were to set a timeout for state, this would be
                     // outside if block and have else check for > movement
                     // duration * some multiplier
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else if data.physics.on_ground.is_some() | data.physics.in_liquid().is_some() {
                     // Transitions to swing portion of state upon hitting ground
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
                 if self.timer < self.static_data.swing_duration {
                     // Swings weapons
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to recover portion
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
@@ -142,30 +135,30 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        self.static_data
-                            .melee_constructor
-                            .create_melee(precision_mult, tool_stats),
+                        self.static_data.melee_constructor.clone().create_melee(
+                            precision_mult,
+                            tool_stats,
+                            self.static_data.ability_info,
+                        ),
                     );
 
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        exhausted: true,
-                        ..*self
-                    });
+                        );
+                        c.exhausted = true;
+                    }
                 } else if self.timer < self.static_data.recover_duration {
                     // Complete recovery delay before finishing state
-                    update.character = CharacterState::LeapMelee(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::LeapMelee(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_melee_ability(data, &mut update);

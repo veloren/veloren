@@ -5,9 +5,9 @@ use crate::{
     },
     data::{AgentData, AgentEmitters, AttackData, Path, ReadData, Tactic, TargetData},
     util::{
-        aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
-        get_entity_by_id, is_dead_or_invulnerable, is_dressed_as_cultist, is_dressed_as_pirate,
-        is_dressed_as_witch, is_invulnerable, is_steering, is_village_guard, is_villager,
+        are_our_owners_hostile, entities_have_line_of_sight, get_attacker, get_entity_by_id,
+        is_dead_or_invulnerable, is_dressed_as_cultist, is_dressed_as_pirate, is_dressed_as_witch,
+        is_invulnerable, is_steering, is_village_guard, is_villager,
     },
 };
 use common::{
@@ -24,7 +24,7 @@ use common::{
             ConsumableKind, Effects, Item, ItemDesc, ItemKind,
             tool::{AbilitySpec, ToolKind},
         },
-        projectile::ProjectileConstructorKind,
+        projectile::{ProjectileConstructorKind, aim_projectile},
     },
     consts::MAX_MOUNT_RANGE,
     effect::{BuffEffect, Effect},
@@ -904,7 +904,9 @@ impl AgentData<'_> {
         // If we already have a healing buff active, don't start another one.
         if self.buffs.is_some_and(|buffs| {
             buffs.iter_active().flatten().any(|buff| {
-                buff.kind.effects(&buff.data).iter().any(|effect| {
+                // We don't care about seeing the optional combat requirements that can be
+                // tacked onto buff effects, so we'll just pass in None to this
+                buff.kind.effects(&buff.data, None).iter().any(|effect| {
                     if let comp::BuffEffect::HealthChangeOverTime { rate, .. } = effect
                         && *rate > 0.0
                     {
@@ -933,7 +935,9 @@ impl AgentData<'_> {
                 },
                 Effect::Buff(BuffEffect { kind, data, .. }) => {
                     if let Some(duration) = data.duration {
-                        for effect in kind.effects(data) {
+                        // We don't care about seeing the optional combat requirements that can be
+                        // tacked onto buff effects, so we'll just pass in None to this
+                        for effect in kind.effects(data, None) {
                             match effect {
                                 comp::BuffEffect::HealthChangeOverTime { rate, kind, .. } => {
                                     let amount = match kind {
@@ -1469,6 +1473,7 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + tgt_eye_offset,
                     ),
+                    false,
                 )
             },
             CharacterState::BasicRanged(c) => {
@@ -1491,9 +1496,10 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + offset_z,
                     ),
+                    false,
                 )
             },
-            CharacterState::RepeaterRanged(c) => {
+            CharacterState::RapidRanged(c) => {
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,
@@ -1506,6 +1512,7 @@ impl AgentData<'_> {
                         tgt_data.pos.0.y,
                         tgt_data.pos.0.z + tgt_eye_offset,
                     ),
+                    false,
                 )
             },
             CharacterState::LeapMelee(_)

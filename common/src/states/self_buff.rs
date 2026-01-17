@@ -1,4 +1,5 @@
 use crate::{
+    combat::ScalingKind,
     comp::{
         CharacterState, StateUpdate,
         buff::{Buff, BuffCategory, BuffChange, BuffData, BuffKind, BuffSource, DestInfo},
@@ -33,6 +34,7 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// What buffs are applied
     pub buffs: Vec<BuffDesc>,
+    pub buff_cat: Option<BuffCategory>,
     /// This is the minimum amount of combo required to enter this character
     /// state
     pub combo_cost: u32,
@@ -93,16 +95,21 @@ impl CharacterBehavior for Data {
                         )
                     });
 
-                    let mut buff_cat_ids = if self
+                    let mut buff_cat_ids = self
+                        .static_data
+                        .buff_cat
+                        .clone()
+                        .into_iter()
+                        .collect::<Vec<_>>();
+
+                    if self
                         .static_data
                         .ability_info
                         .ability
                         .is_some_and(|a| a.ability.is_from_wielded())
                     {
-                        vec![BuffCategory::RemoveOnLoadoutChange]
-                    } else {
-                        Vec::new()
-                    };
+                        buff_cat_ids.push(BuffCategory::RemoveOnLoadoutChange);
+                    }
 
                     // Remove previous selfbuffs if we should
                     if self.static_data.enforced_limit {
@@ -132,7 +139,10 @@ impl CharacterBehavior for Data {
                             buff_desc.kind,
                             buff_data,
                             buff_cat_ids.clone(),
-                            BuffSource::Character { by: *data.uid },
+                            BuffSource::Character {
+                                by: *data.uid,
+                                tool_kind: self.static_data.ability_info.tool,
+                            },
                             *data.time,
                             dest_info,
                             Some(data.mass),

@@ -17,7 +17,6 @@ BasicRanged(
     projectile_body: Object(Snowball),
     projectile_speed: 37.0,
     num_projectiles: Value(1),
-    projectile_spread: 0.0,
     movement_modifier: (
         buildup: Some(0.3),
         recover: Some(0.3),

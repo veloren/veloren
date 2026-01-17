@@ -53,6 +53,8 @@ macro_rules! synced_components {
             alignment: Alignment,
             stance: Stance,
             object: Object,
+            frontend_marker: FrontendMarker,
+            arcing: Arcing,
             // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
@@ -277,6 +279,14 @@ impl NetSync for Stance {
 }
 
 impl NetSync for Object {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for FrontendMarker {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for Arcing {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 

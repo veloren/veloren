@@ -1,5 +1,5 @@
 use crate::{
-    Damage, DamageKind, DamageSource, Explosion, GroupTarget, Knockback, RadiusEffect,
+    Damage, DamageKind, Explosion, GroupTarget, Knockback, RadiusEffect,
     combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
     comp::{
         CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents,
@@ -117,10 +117,9 @@ impl CharacterBehavior for Data {
                     };
 
                     let mut effects = vec![RadiusEffect::Attack {
-                        attack: Attack::default()
+                        attack: Attack::new(Some(self.static_data.ability_info))
                             .with_damage(AttackDamage::new(
                                 Damage {
-                                    source: DamageSource::Explosion,
                                     kind: DamageKind::Crushing,
                                     value: self.static_data.damage,
                                 },

@@ -2,7 +2,7 @@ use crate::{
     Explosion, KnockbackDir, RadiusEffect,
     combat::{
         self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget, Knockback,
+        DamageKind, GroupTarget, Knockback,
     },
     comp::{
         CharacterState, StateUpdate, ability::Dodgeable, character_state::OutputEvents,
@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long the state is moving
     pub movement_duration: Duration,
@@ -61,7 +61,7 @@ pub struct StaticData {
     pub ability_info: AbilityInfo,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -87,17 +87,15 @@ impl CharacterBehavior for Data {
                 handle_jump(data, output_events, &mut update, 1.0);
                 // Wait for `buildup_duration` to expire
                 if self.timer < self.static_data.buildup_duration {
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to leap portion of state after buildup delay
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Movement,
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Movement;
+                    }
                 }
             },
             StageSection::Movement => {
@@ -117,17 +115,15 @@ impl CharacterBehavior for Data {
                     // If we were to set a timeout for state, this would be
                     // outside if block and have else check for > movement
                     // duration * some multiplier
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else if data.physics.on_ground.is_some() | data.physics.in_liquid().is_some() {
                     // Transitions to swing portion of state upon hitting ground
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
@@ -135,10 +131,9 @@ impl CharacterBehavior for Data {
                 handle_jump(data, output_events, &mut update, 1.0);
                 if self.timer < self.static_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Attack
                     let poise = AttackEffect::new(
@@ -153,20 +148,27 @@ impl CharacterBehavior for Data {
                     .with_requirement(CombatRequirement::AnyDamage);
                     let mut damage = AttackDamage::new(
                         Damage {
-                            source: DamageSource::Shockwave,
                             kind: self.static_data.damage_kind,
                             value: self.static_data.damage,
                         },
                         Some(GroupTarget::OutOfGroup),
                         rand::random(),
                     );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
+                    if let Some(effect) = &self.static_data.damage_effect {
+                        damage = damage.with_effect(effect.clone());
                     }
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
-                    let attack = Attack::default()
+                    let attack = Attack::new(Some(self.static_data.ability_info))
                         .with_damage(damage)
-                        .with_precision(precision_mult)
+                        .with_precision(
+                            precision_mult
+                                * self
+                                    .static_data
+                                    .ability_info
+                                    .ability_meta
+                                    .precision_power_mult
+                                    .unwrap_or(1.0),
+                        )
                         .with_effect(poise)
                         .with_effect(knockback)
                         .with_combo_increment();
@@ -187,25 +189,25 @@ impl CharacterBehavior for Data {
                     });
                     // Send local event used for frontend shenanigans
                     match self.static_data.specifier {
+                        // TODO: Remove this, attacks should never be added this way
                         shockwave::FrontendSpecifier::IceSpikes => {
                             let damage = AttackDamage::new(
                                 Damage {
-                                    source: DamageSource::Explosion,
                                     kind: self.static_data.damage_kind,
                                     value: self.static_data.damage / 2.,
                                 },
                                 Some(GroupTarget::OutOfGroup),
                                 rand::random(),
                             );
-                            let attack = Attack::default().with_damage(damage).with_effect(
-                                AttackEffect::new(
+                            let attack = Attack::new(Some(self.static_data.ability_info))
+                                .with_damage(damage)
+                                .with_effect(AttackEffect::new(
                                     Some(GroupTarget::OutOfGroup),
                                     CombatEffect::Knockback(Knockback {
                                         direction: KnockbackDir::Away,
                                         strength: 10.,
                                     }),
-                                ),
-                            );
+                                ));
                             let explosion = Explosion {
                                 effects: vec![RadiusEffect::Attack {
                                     attack,
@@ -236,11 +238,10 @@ impl CharacterBehavior for Data {
                     };
                 } else {
                     // Transitions to recover
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Recover;
+                    }
                 }
             },
             StageSection::Recover => {
@@ -248,14 +249,13 @@ impl CharacterBehavior for Data {
                 handle_jump(data, output_events, &mut update, 1.0);
                 if self.timer < self.static_data.recover_duration {
                     // Recovers
-                    update.character = CharacterState::LeapShockwave(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::LeapShockwave(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);

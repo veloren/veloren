@@ -119,14 +119,17 @@ pub enum Collider {
     /// A mutable volume.
     Volume(Arc<VoxelCollider>),
     /// Capsule prism with line segment from p0 to p1
-    CapsulePrism {
-        p0: Vec2<f32>,
-        p1: Vec2<f32>,
-        radius: f32,
-        z_min: f32,
-        z_max: f32,
-    },
+    CapsulePrism(CapsulePrism),
     Point,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CapsulePrism {
+    pub p0: Vec2<f32>,
+    pub p1: Vec2<f32>,
+    pub radius: f32,
+    pub z_min: f32,
+    pub z_max: f32,
 }
 
 impl Collider {
@@ -143,7 +146,7 @@ impl Collider {
     pub fn bounding_radius(&self) -> f32 {
         match self {
             Collider::Voxel { .. } | Collider::Volume(_) => 1.0,
-            Collider::CapsulePrism { radius, p0, p1, .. } => {
+            Collider::CapsulePrism(CapsulePrism { radius, p0, p1, .. }) => {
                 let a = p0.distance(*p1);
                 a / 2.0 + *radius
             },
@@ -159,7 +162,9 @@ impl Collider {
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
             Collider::Voxel { .. } | Collider::Volume(_) => (0.0, 2.0),
-            Collider::CapsulePrism { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
+            Collider::CapsulePrism(CapsulePrism { z_min, z_max, .. }) => {
+                (*z_min * modifier, *z_max * modifier)
+            },
             Collider::Point => (0.0, 0.0),
         }
     }

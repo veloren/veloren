@@ -235,7 +235,7 @@ fn activate_aura(
             // when we will add this.
             let permit_pvp = || {
                 let owner = match source {
-                    BuffSource::Character { by } => read_data.id_maps.uid_entity(by),
+                    BuffSource::Character { by, .. } => read_data.id_maps.uid_entity(by),
                     _ => None,
                 };
                 combat::permit_pvp(

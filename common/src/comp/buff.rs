@@ -1,9 +1,10 @@
 use crate::{
     combat::{
-        AttackEffect, CombatBuff, CombatBuffStrength, CombatEffect, CombatRequirement,
-        DamagedEffect, DeathEffect,
+        AttackEffect, AttackSource, AttackedModification, AttackedModifier, CombatBuff,
+        CombatBuffStrength, CombatEffect, CombatModification, CombatRequirement, Knockback,
+        KnockbackDir, ScalingKind, StatEffect, StatEffectTarget,
     },
-    comp::{Mass, Stats, aura::AuraKey},
+    comp::{Mass, Stats, aura::AuraKey, tool::ToolKind},
     link::DynWeakLinkHandle,
     match_some,
     resources::{Secs, Time},
@@ -146,6 +147,36 @@ pub enum BuffKind {
     /// Strength linearly decreases the duration of newly applied, affected
     /// debuffs, 0.5 is a 50% reduction.
     Resilience,
+    /// Causes the next attack to have precision of 1.0 if the target is not
+    /// wielding their weapon, and also generally increases damage.
+    /// Strength linearly increases the damage increase.
+    OwlTalon,
+    /// Causes the next projectile fired to have more knockback and poise
+    /// damage.
+    /// Strength linearly increases the knockback and poise damage applied to
+    /// the next projectile.
+    HeavyNock,
+    /// Causes the next projectile to both gain precision and restore more
+    /// energy.
+    /// Strength linearly increases the precision override and energy restored.
+    Heartseeker,
+    /// Causes projectile attacks to have more precision power, and to guarantee
+    /// a minimum precision multiplier.
+    /// Strength linearly increases both. The minimum precision power is
+    /// equivalent to the buff strength, and the additional precision power is
+    /// 50% of the buff strength.
+    EagleEye,
+    /// Causes the next projectile fired to debuff the target with ArdentHunted.
+    /// Projectiles fired at the target generate additional combo, and
+    /// increase energy reward by a percentage.
+    /// Strength linearly increases the amount of additional combo generated and
+    /// the additional energy reward.
+    ArdentHunter,
+    /// Causes the next projectile fired to do additional damage for every
+    /// debuff the target has that had been inflicted by the attacker when using
+    /// a bow.
+    /// Strength linearly increases the amount of additional damage.
+    SepticShot,
     // =================
     //      DEBUFFS
     // =================
@@ -164,11 +195,12 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed. Bleeding is at 4x the value of the strength.
     Crippled,
-    /// Slows movement and attack speed.
+    /// Slows movement and attack speed and increases poise damage received.
     /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
     /// speed, 1.0 is 33% speed. Movement speed debuff is scaled to be slightly
-    /// smaller than attack speed debuff.
-    /// Provides immunity against Heatstroke.
+    /// smaller than attack speed debuff. Received poise damage scales linearly,
+    /// 1.0 is a 100% increase.
+    /// Provides immunity against Heatstroke and Chilled.
     Frozen,
     /// Makes you wet and causes you to have reduced friction on the ground.
     /// Strength scales the friction you ignore non-linearly. 0.5 is 50% ground
@@ -215,6 +247,16 @@ pub enum BuffKind {
     /// Scales linearly with strength, 1.0 leads to 100% more poise damage
     /// received
     OffBalance,
+    /// Decreases movement speed and increases amount of poise damage received.
+    /// Movement speed decreases non-linearly with strength, 0.5 leads to a 25%
+    /// reduction, 1.0 leads to a 33% reduction. Poise damage received scales
+    /// linearly with strength, 1.0 leads to 100% more poise damage.
+    /// Provides immunity to Heatstroke.
+    Chilled,
+    /// Increases combo generation and energy reward when hit with projectiles.
+    /// Strength linearly increases the amount of additional combo generated and
+    /// the additional energy reward.
+    ArdentHunted,
     // =================
     //      COMPLEX
     // =================
@@ -272,7 +314,13 @@ impl BuffKind {
             | BuffKind::Berserk
             | BuffKind::ScornfulTaunt
             | BuffKind::Tenacity
-            | BuffKind::Resilience => BuffDescriptor::SimplePositive,
+            | BuffKind::Resilience
+            | BuffKind::OwlTalon
+            | BuffKind::HeavyNock
+            | BuffKind::Heartseeker
+            | BuffKind::EagleEye
+            | BuffKind::ArdentHunter
+            | BuffKind::SepticShot => BuffDescriptor::SimplePositive,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -287,7 +335,9 @@ impl BuffKind {
             | BuffKind::Rooted
             | BuffKind::Winded
             | BuffKind::Amnesia
-            | BuffKind::OffBalance => BuffDescriptor::SimpleNegative,
+            | BuffKind::OffBalance
+            | BuffKind::Chilled
+            | BuffKind::ArdentHunted => BuffDescriptor::SimpleNegative,
             BuffKind::Polymorphed => BuffDescriptor::Complex,
         }
     }
@@ -323,7 +373,7 @@ impl BuffKind {
     /// only the strongest.
     pub fn stacks(self) -> bool { matches!(self, BuffKind::PotionSickness | BuffKind::Resilience) }
 
-    pub fn effects(&self, data: &BuffData) -> Vec<BuffEffect> {
+    pub fn effects(&self, data: &BuffData, source_entity: Option<Uid>) -> Vec<BuffEffect> {
         // Normalized nonlinear scaling
         // TODO: Do we want to make denominator term parameterized. Come back to if we
         // add nn_scaling3.
@@ -449,6 +499,13 @@ impl BuffKind {
             BuffKind::Frozen => vec![
                 BuffEffect::MovementSpeed(f32::powf(1.0 - nn_scaling(data.strength), 1.1)),
                 BuffEffect::AttackSpeed(1.0 - nn_scaling(data.strength)),
+                BuffEffect::PoiseReduction(-data.strength),
+                BuffEffect::BuffImmunity(BuffKind::Heatstroke),
+                BuffEffect::BuffImmunity(BuffKind::Chilled),
+            ],
+            BuffKind::Chilled => vec![
+                BuffEffect::MovementSpeed(1.0 - 0.5 * nn_scaling(data.strength)),
+                BuffEffect::PoiseReduction(-data.strength),
                 BuffEffect::BuffImmunity(BuffKind::Heatstroke),
             ],
             BuffKind::Wet => vec![
@@ -481,7 +538,7 @@ impl BuffKind {
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Burning,
-                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    dur_secs: data.secondary_duration.unwrap_or(Secs(5.0)),
                     strength: CombatBuffStrength::DamageFraction(data.strength),
                     chance: 1.0,
                 }),
@@ -490,7 +547,7 @@ impl BuffKind {
                 None,
                 CombatEffect::Buff(CombatBuff {
                     kind: BuffKind::Frozen,
-                    dur_secs: data.secondary_duration.map_or(5.0, |dur| dur.0 as f32),
+                    dur_secs: data.secondary_duration.unwrap_or(Secs(5.0)),
                     strength: CombatBuffStrength::Value(data.strength),
                     chance: 1.0,
                 }),
@@ -507,7 +564,7 @@ impl BuffKind {
                 AttackEffect::new(None, CombatEffect::Lifesteal(data.strength))
                     .with_requirement(CombatRequirement::TargetHasBuff(BuffKind::Bleeding)),
             )],
-            BuffKind::ImminentCritical => vec![BuffEffect::PrecisionOverride(1.0)],
+            BuffKind::ImminentCritical => vec![BuffEffect::PrecisionModifier(None, 1.0, false)],
             BuffKind::Fury => vec![BuffEffect::AttackEffect(
                 AttackEffect::new(None, CombatEffect::Combo(data.strength.round() as i32))
                     .with_requirement(CombatRequirement::AnyDamage),
@@ -518,8 +575,9 @@ impl BuffKind {
             ],
             BuffKind::Defiance => vec![
                 BuffEffect::MovementSpeed(0.5),
-                BuffEffect::DamagedEffect(DamagedEffect::Combo(
-                    (data.strength * 5.0).round() as i32
+                BuffEffect::DamagedEffect(StatEffect::new(
+                    StatEffectTarget::Target,
+                    CombatEffect::Combo((data.strength * 5.0).round() as i32),
                 )),
             ],
             BuffKind::Berserk => vec![
@@ -535,11 +593,15 @@ impl BuffKind {
             BuffKind::ScornfulTaunt => vec![
                 BuffEffect::PoiseReduction(nn_scaling(data.strength)),
                 BuffEffect::EnergyReward(1.0 + data.strength),
-                BuffEffect::DeathEffect(DeathEffect::AttackerBuff {
-                    kind: BuffKind::Reckless,
-                    strength: data.strength,
-                    duration: data.duration,
-                }),
+                BuffEffect::DeathEffect(StatEffect::new(
+                    StatEffectTarget::Attacker,
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::Reckless,
+                        dur_secs: data.duration.unwrap_or(Secs(10.0)),
+                        strength: CombatBuffStrength::Value(data.strength),
+                        chance: 1.0,
+                    }),
+                )),
             ],
             BuffKind::Rooted => vec![BuffEffect::MovementSpeed(0.0)],
             BuffKind::Winded => vec![
@@ -551,17 +613,114 @@ impl BuffKind {
             BuffKind::Tenacity => vec![
                 BuffEffect::DamageReduction(nn_scaling(data.strength) / 2.0),
                 BuffEffect::MovementSpeed(0.7),
-                BuffEffect::DamagedEffect(DamagedEffect::Energy(data.strength * 10.0)),
+                BuffEffect::DamagedEffect(StatEffect::new(
+                    StatEffectTarget::Target,
+                    CombatEffect::Energy(data.strength * 10.0),
+                )),
             ],
             BuffKind::Resilience => vec![BuffEffect::CrowdControlResistance(data.strength)],
+            BuffKind::OwlTalon => vec![
+                BuffEffect::PrecisionModifier(Some(CombatRequirement::TargetUnwielded), 0.8, false),
+                BuffEffect::AttackDamage(1.0 + data.strength),
+            ],
+            BuffKind::HeavyNock => {
+                let range_mod = CombatModification::RangeWeakening {
+                    start_dist: 5.0,
+                    end_dist: 50.0,
+                    min_str: 0.3,
+                };
+                let knockback = AttackEffect::new(
+                    None,
+                    CombatEffect::Knockback(Knockback {
+                        direction: KnockbackDir::Away,
+                        strength: 20.0 * data.strength,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage)
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
+                .with_modification(range_mod);
+                let poise = AttackEffect::new(None, CombatEffect::Poise(35.0 * data.strength))
+                    .with_requirement(CombatRequirement::AnyDamage)
+                    .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
+                    .with_modification(range_mod);
+                vec![
+                    BuffEffect::AttackEffect(knockback),
+                    BuffEffect::AttackEffect(poise),
+                    BuffEffect::AttackDamage(0.75), // TODO: has no effect on damage?
+                ]
+            },
+            BuffKind::Heartseeker => {
+                let energy =
+                    AttackEffect::new(None, CombatEffect::EnergyReward(30.0 * data.strength))
+                        .with_requirement(CombatRequirement::AnyDamage)
+                        .with_requirement(CombatRequirement::AttackSource(
+                            AttackSource::Projectile,
+                        ));
+                vec![
+                    BuffEffect::PrecisionModifier(
+                        Some(CombatRequirement::AttackSource(AttackSource::Projectile)),
+                        data.strength * 0.4,
+                        false,
+                    ),
+                    BuffEffect::AttackEffect(energy),
+                ]
+            },
+            BuffKind::EagleEye => {
+                vec![
+                    BuffEffect::PrecisionModifier(
+                        Some(CombatRequirement::AttackSource(AttackSource::Projectile)),
+                        data.strength,
+                        false,
+                    ),
+                    BuffEffect::PrecisionPowerMult(1.0 + data.strength * 0.5),
+                ]
+            },
+            BuffKind::ArdentHunter => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(
+                    None,
+                    CombatEffect::Buff(CombatBuff {
+                        kind: BuffKind::ArdentHunted,
+                        dur_secs: data.secondary_duration.unwrap_or(Secs(60.0)),
+                        strength: CombatBuffStrength::Value(data.strength),
+                        chance: 1.0,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
+            )],
+            BuffKind::ArdentHunted => {
+                let projectile_req = CombatRequirement::AttackSource(AttackSource::Projectile);
+                let mut energy_reward_effect =
+                    AttackedModification::new(AttackedModifier::EnergyReward(data.strength))
+                        .with_requirement(projectile_req);
+                let mut damage_mult_effect =
+                    AttackedModification::new(AttackedModifier::DamageMultiplier(data.strength))
+                        .with_requirement(projectile_req);
+                if let Some(uid) = source_entity {
+                    let attacker_req = CombatRequirement::Attacker(uid);
+                    energy_reward_effect = energy_reward_effect.with_requirement(attacker_req);
+                    damage_mult_effect = damage_mult_effect.with_requirement(attacker_req);
+                }
+                vec![
+                    BuffEffect::AttackedModification(energy_reward_effect),
+                    BuffEffect::AttackedModification(damage_mult_effect),
+                ]
+            },
+            BuffKind::SepticShot => vec![BuffEffect::AttackEffect(
+                AttackEffect::new(None, CombatEffect::DebuffsVulnerable {
+                    mult: data.strength,
+                    scaling: ScalingKind::Sqrt,
+                    filter_attacker: true,
+                    filter_weapon: Some(ToolKind::Bow),
+                })
+                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile)),
+            )],
         }
     }
 
     fn extend_cat_ids(&self, mut cat_ids: Vec<BuffCategory>) -> Vec<BuffCategory> {
+        // TODO: Remove clippy allow after another buff needs this
+        #[expect(clippy::single_match)]
         match self {
-            BuffKind::ImminentCritical => {
-                cat_ids.push(BuffCategory::RemoveOnAttack);
-            },
             BuffKind::PotionSickness => {
                 cat_ids.push(BuffCategory::PersistOnDowned);
             },
@@ -581,10 +740,12 @@ impl BuffKind {
         #[expect(clippy::single_match)]
         match self {
             BuffKind::Rooted => {
-                let source_mass = source_mass.map_or(50.0, |m| m.0 as f64);
-                let dest_mass = dest_info.mass.map_or(50.0, |m| m.0 as f64);
-                let ratio = (source_mass / dest_mass).min(1.0);
-                data.duration = data.duration.map(|dur| Secs(dur.0 * ratio));
+                let source_mass = source_mass.map_or(50.0, |m| m.0);
+                let dest_mass = dest_info.mass.map_or(50.0, |m| m.0);
+                let low_clamp = (0.25 + data.strength * 0.25).clamp(0.0, 1.0);
+                let high_clamp = (1.0 + data.strength * 0.5).max(1.0);
+                let ratio = (source_mass / dest_mass).clamp(low_clamp, high_clamp);
+                data.duration = data.duration.map(|dur| Secs(dur.0 * ratio as f64));
             },
             _ => {},
         }
@@ -605,6 +766,7 @@ impl BuffKind {
             BuffKind::Amnesia => 0.3,
             BuffKind::Frozen => data.strength,
             BuffKind::Winded => data.strength / 3.0,
+            BuffKind::Rooted => data.duration.map_or(0.1, |dur| dur.0 as f32 / 10.0),
         )
     }
 
@@ -761,8 +923,10 @@ pub enum BuffEffect {
     PoiseDamageFromLostHealth(f32),
     /// Modifier to the amount of damage dealt with attacks
     AttackDamage(f32),
-    /// Overrides the precision multiplier applied to an attack
-    PrecisionOverride(f32),
+    /// Adds a precision modifier applied to an attack if the condition
+    /// is met, also allows for the modifier to optionally override other
+    /// precision bonuses
+    PrecisionModifier(Option<CombatRequirement>, f32, bool),
     /// Overrides the precision multiplier applied to an incoming attack
     PrecisionVulnerabilityOverride(f32),
     /// Changes body.
@@ -778,15 +942,19 @@ pub enum BuffEffect {
     /// Modifies energy rewarded on successful strikes
     EnergyReward(f32),
     /// Add an effect to the entity when damaged by an attack
-    DamagedEffect(DamagedEffect),
+    DamagedEffect(StatEffect),
     /// Add an effect to the entity when killed
-    DeathEffect(DeathEffect),
+    DeathEffect(StatEffect),
     /// Prevents use of auxiliary abilities
     DisableAuxiliaryAbilities,
     /// Reduces duration of crowd control debuffs
     CrowdControlResistance(f32),
     /// Reduces the strength or duration of item buff
     ItemEffectReduction(f32),
+    /// Adds an effect that modifies how attacks are applied to this entity
+    AttackedModification(AttackedModification),
+    /// Multiplies the precision damage applied to attacks made
+    PrecisionPowerMult(f32),
 }
 
 /// Actual de/buff.
@@ -847,7 +1015,12 @@ impl Buff {
         source_mass: Option<&Mass>,
     ) -> Self {
         let data = kind.modify_data(data, source_mass, dest_info, source);
-        let effects = kind.effects(&data);
+        let source_uid = if let BuffSource::Character { by, .. } = source {
+            Some(by)
+        } else {
+            None
+        };
+        let effects = kind.effects(&data, source_uid);
         let cat_ids = kind.extend_cat_ids(cat_ids);
         let start_time = Time(time.0 + data.delay.map_or(0.0, |delay| delay.0));
         let end_time = if cat_ids.iter().any(|cat_id| {
@@ -913,7 +1086,10 @@ impl PartialEq for Buff {
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum BuffSource {
     /// Applied by a character
-    Character { by: Uid },
+    Character {
+        by: Uid,
+        tool_kind: Option<ToolKind>,
+    },
     /// Applied by world, like a poisonous fumes from a swamp
     World,
     /// Applied by command

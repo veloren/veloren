@@ -1,0 +1,42 @@
+BasicRanged(
+    energy_cost: 30,
+    buildup_duration: 0.4,
+    recover_duration: 0.3,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 6,
+            knockback: Some(5),
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 5,
+                strength: DamageFraction(0.5),
+                chance: 0.25,
+            )),
+            without_combo: true,
+        )),
+        split: Some((
+            amount: 30,
+            spread: 0.25,
+            new_lifetime: 15.0,
+            override_collider: Some((
+                p0: (x: 0, y: 0),
+                p1: (x: 0, y: 0),
+                radius: 1.0,
+                z_min: -1.0,
+                z_max: 1.0,
+            )),
+        )),
+        lifetime_override: Some(0.8),
+    ),
+    projectile_body: Object(Arrow),
+    projectile_speed: 37.0,
+    auto_aim: true,
+    movement_modifier: (
+        buildup: Some(0.0),
+        recover: Some(0.0),
+    ),
+    meta: (
+        init_event: Some(EnterStance(None)),
+    ),
+)

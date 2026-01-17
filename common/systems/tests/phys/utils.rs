@@ -1,7 +1,7 @@
 use common::{
     comp::{
-        Auras, Buffs, CharacterActivity, CharacterState, Collider, Combo, Controller, Energy,
-        EnteredAuras, Health, Ori, Pos, Stats, Vel, inventory::item::MaterialStatManifest,
+        Auras, Buffs, CapsulePrism, CharacterActivity, CharacterState, Collider, Combo, Controller,
+        Energy, EnteredAuras, Health, Ori, Pos, Stats, Vel, inventory::item::MaterialStatManifest,
         tool::AbilityMap,
     },
     resources::{DeltaTime, GameMode, Time},
@@ -105,13 +105,13 @@ pub fn create_player(state: &mut State) -> Entity {
         &common::comp::humanoid::Species::Human,
     ));
     let (p0, p1, radius) = body.sausage();
-    let collider = Collider::CapsulePrism {
+    let collider = Collider::CapsulePrism(CapsulePrism {
         p0,
         p1,
         radius,
         z_min: 0.0,
         z_max: body.height(),
-    };
+    });
     let skill_set = SkillSetBuilder::default().build();
 
     state

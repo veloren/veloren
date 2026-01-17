@@ -14,12 +14,6 @@ common-abilities-debug-glide_speeder = Vroom
 
 common-abilities-hammer-leap = Smash of Doom
     .desc = An AOE attack with knockback. Leaps to position of cursor.
-common-abilities-bow-charged = Charged Shot
-    .desc = Fires a single arrow with damage based on draw time.
-common-abilities-bow-repeater = Repeater
-    .desc = Shoots arrows continuously and faster the longer you fire for.
-common-abilities-bow-shotgun = Shotgun
-    .desc = Launches a burst of arrows
 common-abilities-staff-firebomb = Firebomb
     .desc = Shoots a fireball that explodes on impact.
 common-abilities-staff-flamethrower = Flamethrower
@@ -364,34 +358,27 @@ common-abilities-axe-capsize = Capsize
 
 # Hammer abilities
 common-abilities-hammer-solid_smash = Solid Smash
-    .desc =
-        A solid smash, that'll hurt
+    .desc = A solid smash, that'll hurt
 common-abilities-hammer-wide_wallop = Wide Wallop
-    .desc =
-        Pull back and send them flying
+    .desc = Pull back and send them flying
 common-abilities-hammer-scornful_swipe = Scornful Swipe
     .desc =
         Increases your poise resistance and energy reward.
         If you fall to an enemy their attack damage and vulnerability to damage are increased.
 common-abilities-hammer-tremor = Tremor
-    .desc =
-        Strike the earth with enough force that the ground beneath your foes trembles.
+    .desc = Strike the earth with enough force that the ground beneath your foes trembles.
 common-abilities-hammer-vigorous_bash = Vigorous Bash
     .desc =
         Use the head of your hammer to quickly strike your foes.
         Awards 4 combo bonus if your enemy is stunned.
 common-abilities-hammer-heavy_whorl = Heavy Whorl
-    .desc =
-        You strike all foes surrounding you with your hammer.
+    .desc = You strike all foes surrounding you with your hammer.
 common-abilities-hammer-dual_heavy_whorl = Heavy Whorl
-    .desc =
-        You strike all foes surrounding you with your hammers.
+    .desc = You strike all foes surrounding you with your hammers.
 common-abilities-hammer-intercept = Intercept
-    .desc =
-        Charge forward with your hammer throwing your weight behind your strike.
+    .desc = Charge forward with your hammer throwing your weight behind your strike.
 common-abilities-hammer-dual_intercept = Intercept
-    .desc =
-        Charge forward with your hammers throwing your weight behind your strike.
+    .desc = Charge forward with your hammers throwing your weight behind your strike.
 common-abilities-hammer-retaliate = Retaliate
     .desc =
         Block and counter your foe's attack in one swift move!
@@ -417,11 +404,9 @@ common-abilities-hammer-helm_crusher = Helm Crusher
         Bash your enemy's head with your hammer, concussing them.
         Requires { $min_combo } combo to use.
 common-abilities-hammer-iron_tempest = Iron Tempest
-    .desc =
-        Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
+    .desc = Swing swiftly enough that your hammer becomes like a storm, scattering your enemies.
 common-abilities-hammer-dual_iron_tempest = Iron Tempest
-    .desc =
-        Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
+    .desc = Swing swiftly enough that your hammers becomes like a storm, scattering your enemies.
 common-abilities-hammer-upheaval = Upheaval
     .desc =
         Slam your hammer into your foe, knocking them into the air.
@@ -457,3 +442,75 @@ common-abilities-hammer-judgement = Judgement
         Bring your hammer down on your foe with all your weight.
         Greatly increases the damage if your target is stunned.
         Requires { $min_combo } combo to use.
+
+# Bow Abilities
+common-abilities-bow-arrow_shot = Arrow Shot
+    .desc = Nock an arrow and release.
+common-abilities-bow-broadhead = Broadhead
+    .desc = Nock a heavier arrow, and release.
+common-abilities-bow-foothold = Foothold
+    .desc = Kick off of a foe to jump backwards while shooting an arrow at them.
+common-abilities-bow-heavy_nock = Heavy Nock
+    .desc = Nocks your bow with a weighted arrow to knock the target away. The lighter they are and the closer you are, the stronger the knockback.
+common-abilities-bow-ardent_hunt = Ardent Hunt
+    .desc = Designate a target by hitting them with your next arrow. As long as the target is designated, your arrows will hit them for more damage.
+common-abilities-bow-owl_talon = Owl Talon
+    .desc = The stealthier you are, the more damage your next shot will deal to an unprovoked target.
+common-abilities-bow-eagle_eye = Eagle Eye
+    .desc = Focus your vision to ensure your following shots will strike for critical damage, at the cost of part of your energy restoration.
+common-abilities-bow-heartseeker = Heartseeker
+    .desc = A reckless, costly shot that will restore your energy on impact.
+common-abilities-bow-hawkstrike = Hawkstrike
+    .desc = Prepares an arrow that will strike devastatingly when landing a critical hit.
+common-abilities-bow-hawkstrike_shot = Hawkstrike
+    .desc = Fire a hawk arrow, which is more lethal when striking a critical area on the target.
+common-abilities-bow-septic_shot = Septic Shot
+    .desc = Prepare your next arrow such that it is more lethal if you have inflicted your target with any conditions.
+common-abilities-bow-ignite_arrow = Ignite Arrow
+    .desc = Pull a firedrop out and apply it to your next arrow.
+common-abilities-bow-burning_arrow = Burning Arrow
+    .desc = As your arrow sinks into your target, they get set ablaze from the firedrop coating.
+common-abilities-bow-burning_broadhead = Burning Broadhead
+    .desc = Your next arrow carries enough force that the unstable firedrop coating will explode on impact.
+common-abilities-bow-drench_arrow = Drench Arrow
+    .desc = Coat your next arrow in a poison clot.
+common-abilities-bow-poison_arrow = Poison Arrow
+    .desc = Your arrow poisons your target, weakening them.
+common-abilities-bow-poison_broadhead = Poison Broadhead
+    .desc = Your next arrow strikes with enough speed that it ruptures the poison clot, splattering nearby enemies.
+common-abilities-bow-freeze_arrow = Freeze Arrow
+    .desc = Mold a gelid gel around your next arrow.
+common-abilities-bow-freezing_arrow = Freezing Arrow
+    .desc = Your arrow delivers a freezing reagent into your target, slowing them.
+common-abilities-bow-freezing_broadhead = Freezing Broadhead
+    .desc = As your arrow impacts, the gel scatters and coats everything nearby, leaving them vulnerable to staggering attacks.
+common-abilities-bow-jolt_arrow = Jolt Arrow
+    .desc = Electrify your next arrow with levin dust.
+common-abilities-bow-lightning_arrow = Lightning Arrow
+    .desc = Your arrow is guided with a magnetic force to a nearby target.
+common-abilities-bow-lightning_broadhead = Lightning Broadhead
+    .desc = Your arrow is charged with electricity, which arcs to nearby targets after striking an enemy.
+common-abilities-bow-barrage = Barrage
+    .desc = Replace your broadhead arrow with a bandolier of smaller arrows to quickly barrage at your foes.
+common-abilities-bow-barrage_shot = Barrage
+    .desc = Quickly fire a number of smaller arrows to barrage your enemies with an unending stream of arrows.
+common-abilities-bow-piercing_gale = Piercing Gale
+    .desc = Replace your broadhead arrow with a spinning arrow that is capable of piercing through targets.
+common-abilities-bow-piercing_gale_shot = Piercing Gale
+    .desc = Fire a spinning arrow capable of drilling through targets to reach beyond.
+common-abilities-bow-scatterburst = Scatterburst
+    .desc = Haphazardly grab a handful of arrows, so that you may strike multiple targets up close at once.
+common-abilities-bow-lesser_scatterburst = Scatterburst
+    .desc = Quickly pull the handful of arrows back, releasing them before you drop any.
+common-sbilities-bow-greater_scatterburst = Scatterburst
+    .desc = Carefully pull the handful of arrows back, bringing your bow to a full draw before releasing them.
+common-abilities-bow-fusillade = Fusillade
+    .desc = Prepares a number of arrows at once, to fire a short burst of multiple arrows over a long distance.
+common-abilities-bow-fusillade_shot = Fusillade
+    .desc = Nock and draw 5 smaller arrows all at the same time, staggered so they release one slightly after the other.
+common-abilities-bow-death_volley = Death Volley
+    .desc = Fire a bundle of arrows into the air at a fixed angle that will split wide apart into a rain of death.
+common-abilities-bow-death_volley_shot = Wide Death Volley
+    .desc = Fire a bundle of arrows into the air that will split wide apart into a rain of death.
+common-abilities-bow-death_volley_heavy_shot = Focused Death Volley
+    .desc = Fire a bundle of arrows into the air that will split narrowly apart into a rain of death.

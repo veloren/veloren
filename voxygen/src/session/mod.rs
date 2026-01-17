@@ -852,7 +852,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Block,
                                     state,
-                                    None,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -877,7 +877,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Roll,
                                         state,
-                                        None,
+                                        default_select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -904,7 +904,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
-                                    None,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -913,7 +913,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::WallJump,
                                     state,
-                                    None,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -1003,7 +1003,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Fly,
                                     self.key_state.fly,
-                                    None,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },

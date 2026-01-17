@@ -1,7 +1,7 @@
 use crate::{
     combat::{
         self, Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage,
-        DamageKind, DamageSource, GroupTarget,
+        DamageKind, GroupTarget,
     },
     comp::{
         Body, CharacterState, StateUpdate,
@@ -28,7 +28,7 @@ use std::time::Duration;
 use vek::*;
 
 /// Separated out to condense update portions of character state
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
     /// How long until state should deal damage or heal
     pub buildup_duration: Duration,
@@ -67,7 +67,7 @@ pub struct StaticData {
     pub specifier: beam::FrontendSpecifier,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Data {
     /// Struct containing data that does not change over the course of the
     /// character state
@@ -107,10 +107,9 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::BasicBeam(Data {
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicBeam(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                     if matches!(data.body, Body::Object(Flamethrower | Lavathrower)) {
                         // Send local event used for frontend shenanigans
                         output_events.emit_local(LocalEvent::CreateOutcome(
@@ -128,21 +127,28 @@ impl CharacterBehavior for Data {
                         .with_requirement(CombatRequirement::AnyDamage);
                         let mut damage = AttackDamage::new(
                             Damage {
-                                source: DamageSource::Energy,
                                 kind: DamageKind::Energy,
                                 value: self.static_data.damage,
                             },
                             Some(GroupTarget::OutOfGroup),
                             rand::random(),
                         );
-                        if let Some(effect) = self.static_data.damage_effect {
-                            damage = damage.with_effect(effect);
+                        if let Some(effect) = &self.static_data.damage_effect {
+                            damage = damage.with_effect(effect.clone());
                         }
                         let precision_mult =
                             combat::compute_precision_mult(data.inventory, data.msm);
-                        Attack::default()
+                        Attack::new(Some(self.static_data.ability_info))
                             .with_damage(damage)
-                            .with_precision(precision_mult)
+                            .with_precision(
+                                precision_mult
+                                    * self
+                                        .static_data
+                                        .ability_info
+                                        .ability_meta
+                                        .precision_power_mult
+                                        .unwrap_or(1.0),
+                            )
                             .with_blockable(self.static_data.blockable)
                             .with_effect(energy)
                             .with_combo_increment()
@@ -167,12 +173,11 @@ impl CharacterBehavior for Data {
                         },
                     });
                     // Build up
-                    update.character = CharacterState::BasicBeam(Data {
-                        beam_offset: body_offsets,
-                        timer: Duration::default(),
-                        stage_section: StageSection::Action,
-                        ..*self
-                    });
+                    if let CharacterState::BasicBeam(c) = &mut update.character {
+                        c.beam_offset = body_offsets;
+                        c.timer = Duration::default();
+                        c.stage_section = StageSection::Action;
+                    }
                 }
             },
             StageSection::Action => {
@@ -185,35 +190,30 @@ impl CharacterBehavior for Data {
                     // This means that we need to merge this data to one Ori.
                     let beam_dir = data.inputs.look_dir.merge_z(data.ori.look_dir());
 
-                    update.character = CharacterState::BasicBeam(Data {
-                        beam_offset: body_offsets,
-                        aim_dir: beam_dir,
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::BasicBeam(c) = &mut update.character {
+                        c.beam_offset = body_offsets;
+                        c.aim_dir = beam_dir;
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
 
                     // Consumes energy if there's enough left and ability key is held down
                     update
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
-                } else {
-                    update.character = CharacterState::BasicBeam(Data {
-                        timer: Duration::default(),
-                        stage_section: StageSection::Recover,
-                        ..*self
-                    });
+                } else if let CharacterState::BasicBeam(c) = &mut update.character {
+                    c.timer = Duration::default();
+                    c.stage_section = StageSection::Recover;
                 }
             },
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
-                    update.character = CharacterState::BasicBeam(Data {
-                        timer: tick_attack_or_default(
+                    if let CharacterState::BasicBeam(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(
                             data,
                             self.timer,
                             Some(data.stats.recovery_speed_modifier),
-                        ),
-                        ..*self
-                    });
+                        );
+                    }
                 } else {
                     // Done
                     end_ability(data, &mut update);
