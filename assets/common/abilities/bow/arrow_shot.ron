@@ -5,7 +5,7 @@ ChargedRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 2,
+            damage: 1,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,
@@ -14,9 +14,9 @@ ChargedRanged(
             )),
         )),
         scaled: Some((
-            damage: 8,
+            damage: 9.0,
             knockback: Some(4),
-            energy: Some(18),
+            energy: Some(7),
         )),
     ),
     buildup_duration: 0.2,

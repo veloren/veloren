@@ -651,7 +651,7 @@ impl BuffKind {
             },
             BuffKind::Heartseeker => {
                 let energy =
-                    AttackEffect::new(None, CombatEffect::EnergyReward(30.0 * data.strength))
+                    AttackEffect::new(None, CombatEffect::EnergyReward(15.0 * data.strength))
                         .with_requirement(CombatRequirement::AnyDamage)
                         .with_requirement(CombatRequirement::AttackSource(
                             AttackSource::Projectile,
