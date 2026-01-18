@@ -673,6 +673,7 @@ impl BuffKind {
                         false,
                     ),
                     BuffEffect::PrecisionPowerMult(1.0 + data.strength * 0.5),
+                    BuffEffect::EnergyReward(0.25 + data.strength * 0.25),
                 ]
             },
             BuffKind::ArdentHunter => vec![BuffEffect::AttackEffect(
