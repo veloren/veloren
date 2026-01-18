@@ -831,7 +831,15 @@ fn handle_split_effect(
         projectile
     };
 
-    for _ in 0..split.amount {
+    /// Do not allow too many projectiles to be generated. Otherwise, some
+    /// weapons (such as the admin bow) can produce tens of thousands of
+    /// projectiles and halt the server/client. The limit may need to be tweaked
+    /// in the future and was chosen purely for keeping game performance in
+    /// check. The number itself is somewhat arbitrary and no game
+    /// design/balancing decisions should be oriented around it, so please feel
+    /// free to increase or decrease as needed.
+    const MAX_PROJECTILES: u32 = 100;
+    for _ in 0..u32::min(split.amount, MAX_PROJECTILES) {
         let dir = {
             let theta = rng.random_range(0.0..TAU);
             let phi = rng.random_range(0.0..PI);
