@@ -396,6 +396,17 @@ impl Widget for Chat<'_> {
                     _ => (n, m, true),
                 },
             );
+        // Non-control character keypress events are currently replaced by text events
+        // (and such keyrelease events are swallowed) for conrod so we need to check
+        // these as well for stopping completion
+        let stop_tab_completion = stop_tab_completion
+            || ui
+                .widget_input(state.ids.chat_input)
+                .texts()
+                // Conrod seems to create a text event when it receives a keypress event for tab
+                .filter(|t| t.string != "\t")
+                .count()
+                > 0;
 
         // Handle tab completion
         let request_tab_completions = if stop_tab_completion {
