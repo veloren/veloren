@@ -128,6 +128,8 @@ impl Animation for RunAnimation {
             (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
+        next.hold.scale = Vec3::one() * 0.0;
+
         next.head.position = Vec3::new(0.0, s_a.head.0 * 1.5, s_a.head.1 + short * 0.1);
         next.head.orientation =
             Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.3 * speednorm)

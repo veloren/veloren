@@ -57,6 +57,8 @@ impl Animation for ClimbAnimation {
         );
         let stagnant = if speed > -0.7 { 1.0 } else { 0.0 }; //sets static position when there is no movement
 
+        next.hold.scale = Vec3::one() * 0.0;
+
         if speed > 0.7 || lateral > 0.1 {
             next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + smootha * 0.2);
             next.head.orientation = Quaternion::rotation_z(smooth * 0.1)
