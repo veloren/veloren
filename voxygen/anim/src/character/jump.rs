@@ -65,6 +65,9 @@ impl Animation for JumpAnimation {
         } else {
             0.0
         } * 1.3;
+
+        next.hold.scale = Vec3::one() * 0.0;
+
         next.head.scale = Vec3::one() * s_a.head_scale;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;

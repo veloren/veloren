@@ -650,8 +650,10 @@ impl BuffKind {
                 ]
             },
             BuffKind::Heartseeker => {
+                // TODO: We want the energy reward to be tied to the damage output for this
+                // ability. Currently, this just provides a flat bonus.
                 let energy =
-                    AttackEffect::new(None, CombatEffect::EnergyReward(30.0 * data.strength))
+                    AttackEffect::new(None, CombatEffect::EnergyReward(8.0 * data.strength))
                         .with_requirement(CombatRequirement::AnyDamage)
                         .with_requirement(CombatRequirement::AttackSource(
                             AttackSource::Projectile,
@@ -673,6 +675,7 @@ impl BuffKind {
                         false,
                     ),
                     BuffEffect::PrecisionPowerMult(1.0 + data.strength * 0.5),
+                    BuffEffect::EnergyReward(0.25 + data.strength * 0.25),
                 ]
             },
             BuffKind::ArdentHunter => vec![BuffEffect::AttackEffect(

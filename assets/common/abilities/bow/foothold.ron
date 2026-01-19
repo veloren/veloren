@@ -1,11 +1,11 @@
 LeapRanged(
-    energy_cost: 15,
+    energy_cost: 8,
     buildup_duration: 0.1,
     buildup_melee_timing: 0.1,
     movement_duration: 0.6,
-    movement_ranged_timing: 0.8,
+    movement_ranged_timing: 0.5,
     land_timeout: 2.0,
-    recover_duration: 0.2,
+    recover_duration: 0.0,
     melee: Some((
         kind: Bash(
             damage: 5,
@@ -13,7 +13,7 @@ LeapRanged(
             knockback: 10,
             energy_regen: 0,
         ),
-        range: 2.5,
+        range: 3.5,
         angle: 70,
     )),
     melee_required: true,
@@ -26,6 +26,6 @@ LeapRanged(
     projectile_body: Object(Arrow),
     projectile_light: None,
     projectile_speed: 75,
-    horiz_leap_strength: 14,
+    horiz_leap_strength: 20,
     vert_leap_strength: 10,
 )
