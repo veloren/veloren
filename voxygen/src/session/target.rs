@@ -85,26 +85,20 @@ pub(super) fn targets_under_cursor(
     let terrain = client.state().terrain();
 
     let find_pos = |hit: fn(Block) -> bool, pickup_range: bool, start_pos: Vec3<f32>| {
-        let dist = if pickup_range {
-            MAX_PICKUP_RANGE + 5.0
-        } else {
-            250.0
-        };
-        let cam_ray = terrain.ray(start_pos, start_pos + cam_dir * dist);
+        let dist = 250.0;
 
-        let cam_ray = if !pickup_range {
-            cam_ray.max_iter(500)
-        } else {
-            cam_ray
-        };
+        let cam_ray = terrain
+            .ray(start_pos, start_pos + cam_dir * dist)
+            .max_iter(500)
+            .until(|block| hit(*block))
+            .cast();
 
-        let cam_ray = cam_ray.until(|block| hit(*block)).cast();
         let cam_ray = (cam_ray.0, cam_ray.1.map(|x| x.copied()));
         let cam_dist = cam_ray.0;
 
         if matches!(
             cam_ray.1,
-            Ok(Some(_)) if player_cylinder.min_distance(start_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE || !pickup_range
+            Ok(Some(_)) if !pickup_range || player_cylinder.min_distance(start_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
         ) {
             (
                 Some(start_pos + cam_dir * (cam_dist + 0.01)),
