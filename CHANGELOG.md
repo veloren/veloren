@@ -191,6 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spatial SFX no longer pop at the very start of their sound.
 - AppStream metadata for Veloren is now fully valid.
 - Not being able to target ores when zoom out.
+- Dark/black in-game environment rendering problems when using Naga shaders and lighting mode A or B, on some systems.
 
 ## [0.17.0] - 2024-12-28
 

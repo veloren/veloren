@@ -249,10 +249,10 @@ void main() {
     float fluid_alt = mix(f_pos.z, f_alt, f_norm.z == 0);
     const float alpha = 0.255/*/ / 4.0*//* / 4.0 / sqrt(2.0)*/;
     const float n2 = 1.3325;
-    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
-    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
-    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
-    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
+    const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
+    const float R_s2s1 = pow(abs((1.0 - 1.3325) / (1.0 + 1.3325)), 2);
+    const float R_s1s2 = pow(abs((1.3325 - 1.0) / (1.3325 + 1.0)), 2);
     float R_s = (f_pos.z < fluid_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     // Water is transparent so both normals are valid.

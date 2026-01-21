@@ -278,10 +278,10 @@ void main() {
 
     float alpha = 1.0;//0.1;//0.2;///1.0;//sqrt(2.0);
     const float n2 = 1.5;
-    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
-    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
-    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
-    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
+    const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
+    const float R_s2s1 = pow(abs((1.0 - 1.3325) / (1.0 + 1.3325)), 2);
+    const float R_s1s2 = pow(abs((1.3325 - 1.0) / (1.3325 + 1.0)), 2);
     float cam_alt = alt_at(cam_pos.xy);
     float fluid_alt = medium.x == MEDIUM_WATER ? max(cam_alt + 1, floor(shadow_alt)) : view_distance.w;
     float R_s = (f_pos.z < my_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);

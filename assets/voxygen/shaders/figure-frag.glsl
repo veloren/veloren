@@ -218,10 +218,10 @@ void main() {
         alpha = 0.1;
     }
 
-    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
-    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
-    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
-    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
+    const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
+    const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
+    const float R_s2s1 = pow(abs((1.0 - 1.3325) / (1.0 + 1.3325)), 2);
+    const float R_s1s2 = pow(abs((1.3325 - 1.0) / (1.3325 + 1.0)), 2);
     float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     vec3 k_a = vec3(1.0);
