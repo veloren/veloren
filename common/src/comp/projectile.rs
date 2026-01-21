@@ -108,6 +108,7 @@ pub struct ProjectileConstructor {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SplitOptions {
+    pub split_on_terrain: bool,
     pub amount: u32,
     pub spread: f32,
     pub new_lifetime: Secs,
@@ -309,7 +310,9 @@ impl ProjectileConstructor {
 
         if let Some(split) = self.split {
             timeout.push(Effect::Split(split));
-            hit_solid.push(Effect::Split(split));
+            if split.split_on_terrain {
+                hit_solid.push(Effect::Split(split));
+            }
         }
 
         match self.kind {

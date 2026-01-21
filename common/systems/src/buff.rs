@@ -886,5 +886,8 @@ fn execute_effect(
         BuffEffect::PrecisionPowerMult(ppm) => {
             stat.precision_power_mult *= ppm;
         },
+        BuffEffect::KnockbackMult(km) => {
+            stat.knockback_mult *= km;
+        },
     };
 }

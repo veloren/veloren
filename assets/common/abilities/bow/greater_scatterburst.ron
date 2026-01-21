@@ -1,21 +1,21 @@
 ChargedRanged(
-    energy_cost: 20,
-    energy_drain: 6,
-    idle_drain: 12,
+    energy_cost: 15,
+    energy_drain: 0,
+    idle_drain: 0,
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 2,
+            damage: 1,
             buff: Some((
                 kind: Bleeding,
-                dur_secs: 5,
-                strength: DamageFraction(0.5),
+                dur_secs: 10,
+                strength: DamageFraction(0.2),
                 chance: 0.25,
             )),
         )),
         scaled: Some((
-            damage: 10,
-            knockback: Some(5),
+            damage: 12.0,
+            knockback: Some(18),
         )),
         limit_per_ability: true,
     ),

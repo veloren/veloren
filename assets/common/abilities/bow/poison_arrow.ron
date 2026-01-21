@@ -5,11 +5,11 @@ ChargedRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 2,
+            damage: 1,
             buff: Some((
                 kind: Poisoned,
-                dur_secs: 7,
-                strength: DamageFraction(0.5),
+                dur_secs: 10,
+                strength: Value(4.0),
                 chance: 1.0,
             )),
         )),

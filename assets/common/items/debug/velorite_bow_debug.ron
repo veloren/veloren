@@ -7,7 +7,7 @@ ItemDef(
         stats: (
             equip_time_secs: 0.0,
             power: 999.9,
-            effect_power: 999.9,
+            effect_power: 10.0,
             speed: 100.0,
             range: 1.0,
             energy_efficiency: 1.0,

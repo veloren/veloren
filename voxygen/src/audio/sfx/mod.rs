@@ -635,6 +635,7 @@ impl SfxMgr {
                         | object::Body::ArrowSnake
                         | object::Body::ArrowTurret
                         | object::Body::ArrowClay
+                        | object::Body::ArrowHeavy
                         | object::Body::BoltBesieger
                         | object::Body::HarlequinDagger
                         | object::Body::SpectralSwordSmall
@@ -700,6 +701,7 @@ impl SfxMgr {
                     | object::Body::ArrowSnake
                     | object::Body::ArrowTurret
                     | object::Body::ArrowClay
+                    | object::Body::ArrowHeavy
                     | object::Body::BoltBesieger
                     | object::Body::HarlequinDagger
                     | object::Body::SpectralSwordSmall

@@ -84,6 +84,7 @@ enum_iter! {
         MinotaurAxe = 67,
         BorealTrap = 68,
         Crux = 69,
+        ArrowHeavy = 70,
     }
 }
 
@@ -173,6 +174,7 @@ impl Body {
             Body::MinotaurAxe => "minotaur_axe",
             Body::BorealTrap => "boreal_trap",
             Body::Crux => "crux",
+            Body::ArrowHeavy => "heavy_arrow",
         }
     }
 
@@ -195,7 +197,8 @@ impl Body {
             | Body::Flamethrower
             | Body::Lavathrower
             | Body::BorealTrap
-            | Body::BloodBomb => 500.0,
+            | Body::BloodBomb
+            | Body::ArrowHeavy => 500.0,
             Body::Bomb | Body::Mine | Body::SurpriseEgg => 2000.0, /* I have no idea what it's */
             // supposed to be
             Body::Scarecrow => 900.0,
@@ -228,7 +231,8 @@ impl Body {
             | Body::BubbleBomb
             | Body::IronPikeBomb
             | Body::BoltBesieger
-            | Body::PoisonBall => 1.0,
+            | Body::PoisonBall
+            | Body::ArrowHeavy => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb
             | Body::DagonBomb
@@ -316,6 +320,7 @@ impl Body {
             Body::Pebble => Vec3::new(0.4, 0.4, 0.4),
             Body::MinotaurAxe => Vec3::new(5.0, 5.0, 5.0),
             Body::Crux => Vec3::new(2.0, 2.0, 2.0),
+            Body::ArrowHeavy => Vec3::new(0.1, 0.9, 0.1),
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

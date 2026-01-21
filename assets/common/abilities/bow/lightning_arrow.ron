@@ -8,7 +8,7 @@ ChargedRanged(
             damage: 4,
         )),
         scaled: Some((
-            damage: 12,
+            damage: 9.0,
             knockback: Some(4),
             energy: Some(7),
         )),

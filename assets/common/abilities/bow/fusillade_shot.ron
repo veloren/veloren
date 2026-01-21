@@ -1,8 +1,8 @@
 RapidRanged(
-    energy_cost: 10,
-    buildup_duration: 0.5,
+    energy_cost: 8,
+    buildup_duration: 0.65,
     shoot_duration: 0.05,
-    recover_duration: 0.4,
+    recover_duration: 0.5,
     options: (
         max_projectiles: Some(5),
         fire_all: true,
@@ -10,7 +10,7 @@ RapidRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 11,
+            damage: 10.5,
             buff: Some((
                 kind: Bleeding,
                 dur_secs: 10,

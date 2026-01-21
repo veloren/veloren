@@ -1,8 +1,8 @@
 use crate::{
     combat::{
         AttackEffect, AttackSource, AttackedModification, AttackedModifier, CombatBuff,
-        CombatBuffStrength, CombatEffect, CombatModification, CombatRequirement, Knockback,
-        KnockbackDir, ScalingKind, StatEffect, StatEffectTarget,
+        CombatBuffStrength, CombatEffect, CombatModification, CombatRequirement, ScalingKind,
+        StatEffect, StatEffectTarget,
     },
     comp::{Mass, Stats, aura::AuraKey, tool::ToolKind},
     link::DynWeakLinkHandle,
@@ -629,31 +629,19 @@ impl BuffKind {
                     end_dist: 50.0,
                     min_str: 0.3,
                 };
-                let knockback = AttackEffect::new(
-                    None,
-                    CombatEffect::Knockback(Knockback {
-                        direction: KnockbackDir::Away,
-                        strength: 20.0 * data.strength,
-                    }),
-                )
-                .with_requirement(CombatRequirement::AnyDamage)
-                .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
-                .with_modification(range_mod);
                 let poise = AttackEffect::new(None, CombatEffect::Poise(35.0 * data.strength))
                     .with_requirement(CombatRequirement::AnyDamage)
                     .with_requirement(CombatRequirement::AttackSource(AttackSource::Projectile))
                     .with_modification(range_mod);
                 vec![
-                    BuffEffect::AttackEffect(knockback),
+                    BuffEffect::KnockbackMult(data.strength * 5.0),
                     BuffEffect::AttackEffect(poise),
                     BuffEffect::AttackDamage(0.75), // TODO: has no effect on damage?
                 ]
             },
             BuffKind::Heartseeker => {
-                // TODO: We want the energy reward to be tied to the damage output for this
-                // ability. Currently, this just provides a flat bonus.
                 let energy =
-                    AttackEffect::new(None, CombatEffect::EnergyReward(8.0 * data.strength))
+                    AttackEffect::new(None, CombatEffect::EnergyReward(14.0 * data.strength))
                         .with_requirement(CombatRequirement::AnyDamage)
                         .with_requirement(CombatRequirement::AttackSource(
                             AttackSource::Projectile,
@@ -661,7 +649,7 @@ impl BuffKind {
                 vec![
                     BuffEffect::PrecisionModifier(
                         Some(CombatRequirement::AttackSource(AttackSource::Projectile)),
-                        data.strength * 0.4,
+                        data.strength * 1.2,
                         false,
                     ),
                     BuffEffect::AttackEffect(energy),
@@ -958,6 +946,8 @@ pub enum BuffEffect {
     AttackedModification(AttackedModification),
     /// Multiplies the precision damage applied to attacks made
     PrecisionPowerMult(f32),
+    /// Multiplies knockback dealt by attacks
+    KnockbackMult(f32),
 }
 
 /// Actual de/buff.

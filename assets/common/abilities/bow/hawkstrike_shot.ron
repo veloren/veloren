@@ -1,7 +1,7 @@
 ChargedRanged(
     energy_cost: 10,
-    energy_drain: 6,
-    idle_drain: 12,
+    energy_drain: 1.5,
+    idle_drain: 6,
     projectile: (
         kind: Pointed,
         attack: Some((
