@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Заклинаюча Стріла
     .desc = Стріляє отруйною стрілою. Дає тобі контроль над ціллю.
-common-abilities-bow-shotgun = Мультипостріл
-    .desc = Постріл купою стріл за раз.
 common-abilities-staff-fireshockwave = Кільце Вогню
     .desc = Підпалює землю вогненною ударною хвилею.
 common-abilities-sceptre-wardingaura = Захисна Аура

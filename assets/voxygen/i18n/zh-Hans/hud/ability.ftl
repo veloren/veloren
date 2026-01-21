@@ -1,7 +1,5 @@
 common-abilities-debug-possess = 附身箭矢
     .desc = 射出一个毒箭矢，使你能够控制你的目标.
-common-abilities-bow-shotgun = 爆发
-    .desc = 迸发一堆箭矢.
 common-abilities-staff-fireshockwave = 火焰之圈
     .desc = 在地上迸发一圈火焰冲击波.
 common-abilities-sceptre-wardingaura = 守护光环

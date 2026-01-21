@@ -233,3 +233,19 @@ buff-combo_generation = Génération de combo
             [1] Génère { $str_total } combo en { $duration } seconde.
            *[other] Génère { $str_total } combo en { $duration } secondes.
         }
+buff-owltalon = Serres de chouette
+    .desc = Prenant avantage de l'ignorance de votre cible quand à votre présence, votre prochaine attaque sera plus précise et infligera davantage de dommages.
+buff-heavynock = Encoche lourde
+    .desc = Encochez une flèche plus lourde, permettant à votre prochain tir d'étourdir sa cible. Cette flèche plus lourde aura cependant moins d'inertie à de longues distances.
+buff-heartseeker = Cherchecœur
+    .desc = Votre prochaine flèche frappera votre ennemi de manière similaire à une blessure au cœur, causant une blessure plus sévère et vous donnant de l'endurance.
+buff-eagleeye = Œil d'aigle
+    .desc = Vous pouvez observer les points vulnérables de vos cibles avec clarté, et avez l'agilité nécessaire pour guider chaque flèche sur ceux-ci.
+buff-chilled = Au frais
+    .desc = Le froid intense vous ralenti et vous laisse davantage vulnérable aux attaques puissantes.
+buff-ardenthunter = Chasse acharnée
+    .desc = Votre ferveur permet à vos flèches d'être plus léthales contre une cible spécifique, et votre endurance augmente à l'instar du nombre de flèches atteignant celle-ci.
+buff-ardenthunted = Acharnement de la chasse
+    .desc = Vous êtes la cible d'une chasse archarnée.
+buff-septicshot = Tir septique
+    .desc = Votre prochaine flèche inflige une infection à la cible, plus léthale si celle-ci subit déjà des effets négatifs.

@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Овладевающая стрела
     .desc = Стреляет ядовитой стрелой. Позволяет управлять вашей целью.
-common-abilities-bow-shotgun = Мультивыстрел
-    .desc = Выстрел несколькими стрелами одновременно
 common-abilities-staff-fireshockwave = Пламенное кольцо
     .desc = Поджигает землю огненной ударной волной.
 common-abilities-sceptre-wardingaura = Аура защиты
@@ -301,10 +299,6 @@ common-abilities-sword-defensive_disengage = Отступление
     .desc =
         Отойдите на шаг назад после нанесения удара.
         Вход в защитную стойку.
-common-abilities-bow-charged = Заряженный Выстрел
-    .desc = Одиночный выстрел, урон которого зависит от длительности удержания.
-common-abilities-bow-repeater = Повторитель
-    .desc = Продолжительная стрельба, чем дольше — тем быстрее.
 common-abilities-sceptre-lifestealbeam = Вампиризм
     .desc = Выпускает луч, который высасывает жизнь из ваших врагов.
 common-abilities-sceptre-healingaura = Аура Исцеления

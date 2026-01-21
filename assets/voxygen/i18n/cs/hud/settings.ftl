@@ -180,3 +180,4 @@ hud-settings-colored_player_marker = Barevné označení hráče
 hud-settings-lock_chat = Uzamknout pozici a velikost chatu
 hud-settings-rain = Déšť
 hud-settings-rain_ambience = Atmosféra deště
+hud-settings-draggable_windows = Přetahovatelná Okna

@@ -131,3 +131,4 @@ hud-settings-reset_chat = 重置为默认
 hud-settings-third_party_integrations = Third-party Integrations
 hud-settings-enable_discord_integration = Enable Discord Integration
 hud-settings-autopress_behavior-toggle = 切换
+hud-settings-autopress_behavior-auto = 自动

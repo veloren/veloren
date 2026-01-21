@@ -1,7 +1,7 @@
 ## Player events
 
 hud-chat-online_msg = { "[" }{ $name }] är online nu.
-hud-chat-offline_msg = { "[" }{ $name }] gick offline.
+hud-chat-offline_msg = { "[" }{ $name }] är inte längre online.
 
 ## Buff deaths
 

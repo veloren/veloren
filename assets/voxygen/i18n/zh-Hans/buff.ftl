@@ -1,8 +1,8 @@
 ## Regeneration
 
-buff-heal = 治愈
-    .desc = 一定时间内生命值随缓慢恢复.
-    .stat = 总共恢复 { $str_total } 点生命值
+buff-heal = 治疗
+    .desc = 持续恢复生命值。
+    .stat = 恢复 { $str_total } 点生命值，持续 { $duration } 秒。
 
 ## Potion
 

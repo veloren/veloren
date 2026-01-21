@@ -105,43 +105,15 @@ hud-skill-sc_wardaura_cost = El aura requiere un { $boost } % menos de energía.
 
 ## Tiro de arco
 
-hud-skill-bow_charged_title = Tiro de arco
-hud-skill-bow_charged = Tensa tu arco para disparar una flecha.
-hud-skill-bow_charged_damage_title = Daño de {{ hud-skill-bow_charged_title }}
-hud-skill-bow_charged_damage = Aumenta el daño infligido en un { $boost } %.{ $SP }
-hud-skill-bow_charged_speed_title = Velocidad de {{ hud-skill-bow_charged_title }}
-hud-skill-bow_charged_speed = Aumenta la velocidad a la que tensas el arco en un { $boost } %.{ $SP }
-hud-skill-bow_charged_knockback_title = Retroceso de {{ hud-skill-bow_charged_title }}
-hud-skill-bow_charged_knockback = Las flechas hacen retroceder a los enemigos un { $boost } % más.{ $SP }
 
 ## Metralleta
 
-hud-skill-bow_repeater_title = Metralleta
-hud-skill-bow_repeater = Dispara una serie de flechas que van aumentando de velocidad.
-hud-skill-bow_repeater_damage_title = Daño de {{ hud-skill-bow_repeater_title }}
-hud-skill-bow_repeater_damage = Aumenta el daño infligido en un { $boost } %.{ $SP }
-hud-skill-bow_repeater_cost_title = Coste de {{ hud-skill-bow_repeater_title }}
-hud-skill-bow_repeater_cost = Reduce el coste de energía al empezar una ráfaga en un { $boost } %.{ $SP }
-hud-skill-bow_repeater_speed_title = Velocidad de {{ hud-skill-bow_repeater_title }}
-hud-skill-bow_repeater_speed = Aumenta la velocidad a la que se disparan flechas en un { $boost } %.{ $SP }
 
 ## Escopeta
 
-hud-skill-bow_shotgun_unlock_title = Desbloquear Escopeta
-hud-skill-bow_shotgun_unlock = Desbloquea la capacidad de disparar una multitud de flechas al mismo tiempo.{ $SP }
-hud-skill-bow_shotgun_damage_title = Daño de Escopeta
-hud-skill-bow_shotgun_damage = Aumenta el daño infligido en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_spread_title = Dispersión de Escopeta
-hud-skill-bow_shotgun_spread = Reduce la dispersión de las flechas en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_cost_title = Coste de Escopeta
-hud-skill-bow_shotgun_cost = Reduce el coste de escopeta en un { $boost } %.{ $SP }
-hud-skill-bow_shotgun_arrow_count_title = Flechas de Escopeta
-hud-skill-bow_shotgun_arrow_count = Aumenta el número de flechas por disparo en { $boost }.{ $SP }
 
 ## Velocidad de proyectil
 
-hud-skill-bow_projectile_speed_title = Velocidad de proyectil
-hud-skill-bow_projectile_speed = Las flechas llegan más lejos al viajar un { $boost } % más rápido.{ $SP }
 
 # Bastón de fuego - Árbol de habilidades
 
@@ -194,11 +166,3 @@ hud-skill-pick_strike_oregain_title = Producción de minerales de {{ hud-skill-p
 hud-skill-pick_strike_oregain = Concede un { $boost } % de probabilidad de conseguir minerales adicionales.{ $SP }
 hud-skill-pick_strike_gemgain_title = Producción de gemas de {{ hud-skill-pick_strike_title }}
 hud-skill-pick_strike_gemgain = Concede un { $boost } % de probabilidad de conseguir gemas adicionales.{ $SP }
-# Skill tree UI
-hud-skill-bow_charged_move_title = Velocidad de movimiento mejorada
-# Skill tree UI
-hud-skill-bow_charged_energy_regen = Aumenta la regeneración de energía en un { $boost } %.{ $SP }
-# Skill tree UI
-hud-skill-bow_charged_move = Aumenta la velocidad de movimiento en un { $boost } % mientras cargas un ataque.{ $SP }
-# Skill tree UI
-hud-skill-bow_charged_energy_regen_title = Regeneración mejorada
