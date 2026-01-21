@@ -733,8 +733,11 @@ impl ServerEvent for DestroyEvent {
                         match &effect.effect {
                             CombatEffect::Knockback(kb) => {
                                 let char_state = data.character_states.get(effect_target);
-                                let impulse =
-                                    kb.calculate_impulse(dir, char_state) * strength_modifier;
+                                let impulse = kb.calculate_impulse(
+                                    dir,
+                                    char_state,
+                                    attacker_entity.and_then(|ae| data.stats.get(ae)),
+                                ) * strength_modifier;
                                 if !impulse.is_approx_zero() {
                                     emitters.emit(KnockbackEvent {
                                         entity: effect_target,
@@ -2916,8 +2919,11 @@ impl ServerEvent for EntityAttackedHookEvent {
                         match &effect.effect {
                             CombatEffect::Knockback(kb) => {
                                 let char_state = data.character_states.get(effect_target);
-                                let impulse =
-                                    kb.calculate_impulse(dir, char_state) * strength_modifier;
+                                let impulse = kb.calculate_impulse(
+                                    dir,
+                                    char_state,
+                                    ev.attacker.and_then(|ae| data.stats.get(ae)),
+                                ) * strength_modifier;
                                 if !impulse.is_approx_zero() {
                                     emitters.emit(KnockbackEvent {
                                         entity: effect_target,

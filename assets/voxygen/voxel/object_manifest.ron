@@ -9,6 +9,16 @@
             central: ("armor.empty"),
         )
     ),
+    ArrowHeavy: (
+        bone0: (
+            offset: (-0.5, -6.0, -1.5),
+            central: ("weapon.projectile.heavy-arrow"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
     Bomb: (
         bone0: (
             offset: (-5.5, -5.5, 0.0),

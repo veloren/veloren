@@ -538,8 +538,11 @@ impl Attack {
                 for effect in damage.effects.iter() {
                     match effect {
                         CombatEffect::Knockback(kb) => {
-                            let impulse =
-                                kb.calculate_impulse(dir, target.char_state) * strength_modifier;
+                            let impulse = kb.calculate_impulse(
+                                dir,
+                                target.char_state,
+                                attacker.and_then(|a| a.stats),
+                            ) * strength_modifier;
                             if !impulse.is_approx_zero() {
                                 emitters.emit(KnockbackEvent {
                                     entity: target.entity,
@@ -834,8 +837,11 @@ impl Attack {
                 is_applied = true;
                 match &effect.effect {
                     CombatEffect::Knockback(kb) => {
-                        let impulse =
-                            kb.calculate_impulse(dir, target.char_state) * strength_modifier;
+                        let impulse = kb.calculate_impulse(
+                            dir,
+                            target.char_state,
+                            attacker.and_then(|a| a.stats),
+                        ) * strength_modifier;
                         if !impulse.is_approx_zero() {
                             emitters.emit(KnockbackEvent {
                                 entity: target.entity,
@@ -1798,7 +1804,7 @@ pub enum DamageKind {
     Energy,
 }
 
-const PIERCING_PENETRATION_FRACTION: f32 = 0.5;
+const PIERCING_PENETRATION_FRACTION: f32 = 0.75;
 const SLASHING_ENERGY_FRACTION: f32 = 0.5;
 const CRUSHING_POISE_FRACTION: f32 = 1.0;
 
@@ -1930,9 +1936,14 @@ pub enum KnockbackDir {
 }
 
 impl Knockback {
-    pub fn calculate_impulse(self, dir: Dir, char_state: Option<&CharacterState>) -> Vec3<f32> {
+    pub fn calculate_impulse(
+        self,
+        dir: Dir,
+        tgt_char_state: Option<&CharacterState>,
+        attacker_stats: Option<&Stats>,
+    ) -> Vec3<f32> {
         let from_char = {
-            let resistant = char_state
+            let resistant = tgt_char_state
                 .and_then(|cs| cs.ability_info())
                 .map(|a| a.ability_meta)
                 .is_some_and(|a| a.capabilities.contains(Capability::KNOCKBACK_RESISTANT));
@@ -1942,6 +1953,7 @@ impl Knockback {
         // updated
         50.0 * self.strength
             * from_char
+            * attacker_stats.map_or(1.0, |s| s.knockback_mult)
             * match self.direction {
                 KnockbackDir::Away => *Dir::slerp(dir, Dir::new(Vec3::unit_z()), 0.5),
                 KnockbackDir::Towards => *Dir::slerp(-dir, Dir::new(Vec3::unit_z()), 0.5),

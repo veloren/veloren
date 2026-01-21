@@ -16,7 +16,7 @@ ChargedRanged(
         scaled: Some((
             damage: 30,
             knockback: Some(10),
-            energy: Some(18),
+            energy: Some(34),
         )),
     ),
     buildup_duration: 0.3,
@@ -26,5 +26,5 @@ ChargedRanged(
     projectile_light: None,
     initial_projectile_speed: 50.0,
     scaled_projectile_speed: 150.0,
-    move_speed: 0.05,
+    move_speed: 0.2,
 )

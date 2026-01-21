@@ -103,6 +103,7 @@ pub struct Stats {
     /// This modifies attacks that target this entity
     pub attacked_modifications: Vec<AttackedModification>,
     pub precision_power_mult: f32,
+    pub knockback_mult: f32,
 }
 
 impl Stats {
@@ -134,6 +135,7 @@ impl Stats {
             item_effect_reduction: 1.0,
             attacked_modifications: Vec::new(),
             precision_power_mult: 1.0,
+            knockback_mult: 1.0,
         }
     }
 

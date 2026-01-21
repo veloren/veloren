@@ -1,7 +1,7 @@
 ChargedRanged(
-    energy_cost: 20,
-    energy_drain: 2,
-    idle_drain: 4,
+    energy_cost: 15,
+    energy_drain: 0,
+    idle_drain: 0,
     projectile: (
         kind: Pointed,
         attack: Some((
@@ -14,8 +14,8 @@ ChargedRanged(
             )),
         )),
         scaled: Some((
-            damage: 5,
-            knockback: Some(7),
+            damage: 9,
+            knockback: Some(3),
         )),
         limit_per_ability: true,
     ),
@@ -27,7 +27,7 @@ ChargedRanged(
     initial_projectile_speed: 20.0,
     scaled_projectile_speed: 70.0,
     move_speed: 0.7,
-    num_projectiles: Value(5),
+    num_projectiles: Value(3),
     projectile_spread: Some(Horizontal(40.0)),
     meta: (
         init_event: Some(EnterStance(None)),

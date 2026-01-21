@@ -8,9 +8,9 @@ LeapRanged(
     recover_duration: 0.0,
     melee: Some((
         kind: Bash(
-            damage: 5,
+            damage: 3,
             poise: 0,
-            knockback: 10,
+            knockback: 15,
             energy_regen: 0,
         ),
         range: 3.5,
@@ -20,12 +20,12 @@ LeapRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 8,
+            damage: 12,
         )),
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,
     projectile_speed: 75,
-    horiz_leap_strength: 20,
+    horiz_leap_strength: 23,
     vert_leap_strength: 10,
 )

@@ -5,16 +5,16 @@ ChargedRanged(
     projectile: (
         kind: Pointed,
         attack: Some((
-            damage: 2,
+            damage: 1,
             buff: Some((
                 kind: Frozen,
-                dur_secs: 5,
-                strength: Value(1.0),
+                dur_secs: 10,
+                strength: Value(0.3),
                 chance: 1.0,
             )),
         )),
         scaled: Some((
-            damage: 7,
+            damage: 8,
             knockback: Some(4),
             energy: Some(7),
         )),

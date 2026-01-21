@@ -489,7 +489,7 @@ impl<'a> System<'a> for Sys {
                                     owner: projectile.owner,
                                 });
                             },
-                            projectile::Effect::Split(split) => {
+                            projectile::Effect::Split(split) if physics.on_surface().is_none() => {
                                 let init_dir = velocities
                                     .get(entity)
                                     .and_then(|v| Dir::from_unnormalized(v.0))
