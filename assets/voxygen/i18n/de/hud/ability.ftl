@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Pfeil der Besessenheit
     .desc = Schießt einen giftigen Pfeil und lässt dich dein Ziel kontrollieren.
-common-abilities-bow-shotgun = Pfeilhagel
-    .desc = Schießt einen Pfeilhagel ab
 common-abilities-staff-fireshockwave = Ring des Feuers
     .desc = Entzündet einen Feuerring um dich herum.
 common-abilities-sceptre-wardingaura = Abwehrende Aura

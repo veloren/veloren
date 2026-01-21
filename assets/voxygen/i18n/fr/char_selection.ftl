@@ -22,5 +22,8 @@ char_selection-create_info_name = Votre personnage doit avoir un nom !
 char_selection-version_mismatch = ATTENTION ! Ce serveur fonctionne sur une version différente et est possiblement incompatible avec celle de votre jeu. Veuillez mettre à jour votre jeu.
 char_selection-rules = Règles
 char_selection-hardcore = Hardcore
-char_selection-hardcore_tooltip = Les personnages hardcore seront supprimés à leur mort, sans autre changement de difficulté
+char_selection-hardcore_tooltip =
+    Les personnages hardcore seront supprimés à leur mort, sans autre changement de difficulté.
+
+    Le mode Hardcore n'est pas recommandé si vous manquez d'expérience avec Veloren.
 char_selection-editing_character = Sauvegarde du personnage...

@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Besättande spil
     .desc = Skjuter en förgiftad pil. Låter dig kontrollera ditt mål.
-common-abilities-bow-shotgun = Pilskur
-    .desc = Skjuter iväg en skur av pilar.
 common-abilities-staff-fireshockwave = Eldens ring
     .desc = Tänder eld på marken med en eldig stötvåg.
 common-abilities-sceptre-wardingaura = Vårdande Aura

@@ -258,8 +258,6 @@ common-abilities-sword-defensive_disengage = Retirada defensiva
 # Habilidades de arco
 common-abilities-debug-possess = Flecha de posesión
     .desc = Dispara una flecha que te permite controlar a tu objetivo.
-common-abilities-bow-shotgun = Ráfaga
-    .desc = Lanza una ráfaga de flechas.
 # Habilidades de bastón
 common-abilities-staff-fireshockwave = Anillo de fuego
     .desc = Incendia el suelo con una ardiente onda de choque.

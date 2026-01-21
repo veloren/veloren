@@ -115,3 +115,4 @@ hud-rest = Repos
 hud-waypoint_interact = Définir Repère
 hud-steal-consumes = Utiliser { $item } pour voler
 hud-steal-requires = Voler avec { $item }
+hud-tutorial-disable = Désactiver définitivement les aides tutorielles

@@ -22,8 +22,6 @@ common-abilities-debug-glide_speeder = 嗡嗡飛行
 
 common-abilities-hammer-leap = 末日重擊
     .desc = 一個範圍攻擊，伴隨擊退效果跳躍至游標位置
-common-abilities-bow-shotgun = 爆發
-    .desc = 發射一連串箭矢
 common-abilities-staff-fireshockwave = 火焰震波
     .desc = 用火焰震波點燃地面
 common-abilities-sceptre-wardingaura = 防護光環

@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Săgeată Manipulatoare
     .desc = Trage o săgeată otrăvită care te lasă să controlezi inamicul.
-common-abilities-bow-shotgun = Dezlănțuire
-    .desc = Dezlănțuie mai multe săgeți
 common-abilities-staff-fireshockwave = Inel de Foc
     .desc = Aprinde pământul cu o undă de șoc din flăcări.
 common-abilities-sceptre-wardingaura = Aură Protectoare

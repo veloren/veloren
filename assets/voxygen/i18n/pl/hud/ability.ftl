@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Strzała Opętania
     .desc = Pozwala przejąć kontrolę nad twoim celem.
-common-abilities-bow-shotgun = Salwa
-    .desc = Wystrzeliwujesz salwę strzał.
 common-abilities-staff-fireshockwave = Pierścień Ognia
     .desc = Przywołujesz ognisty pierścień odrzucający przeciwników.
 common-abilities-sceptre-wardingaura = Ochronna Aura

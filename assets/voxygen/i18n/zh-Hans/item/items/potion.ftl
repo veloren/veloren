@@ -18,3 +18,5 @@ object-frozen_charm = 冰冻护身符
     .desc = 让你的敌人在冻结他们的轨道时感受到冷冻。
 object-lifesteal_charm = 吸血符
     .desc = 吸取你目标的生命，并为你自己所用。
+object-potion_curious = 奇怪药水
+    .desc = 真想知道喝下去会发生什么…

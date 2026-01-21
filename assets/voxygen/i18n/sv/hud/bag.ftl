@@ -1,4 +1,4 @@
-hud-bag-inventory = { $playername }s Packning
+hud-bag-inventory = { $playername }s packning
 hud-bag-stats_title = { $playername }s Statistik
 hud-bag-armor = Rustning
 hud-bag-stats = Statistik

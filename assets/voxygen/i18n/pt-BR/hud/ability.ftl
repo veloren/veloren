@@ -1,7 +1,5 @@
 common-abilities-debug-possess = Flecha Marionete
     .desc = Atira uma flecha venenosa que deixa você controlar seu alvo.
-common-abilities-bow-shotgun = Estrondo
-    .desc = Atira uma sequência de flechas
 common-abilities-staff-fireshockwave = Anel de Fogo
     .desc = Incendeia o chão com uma onda de chamas.
 common-abilities-sceptre-wardingaura = Aura Protetora
