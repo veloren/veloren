@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [0.18.0] - 2026-01-23
+
+### Added
+
 - State of the window is saved between game launches.
 - Barns that can spawn at the edge of towns.
 - One new dungeon track and two new town tracks.
@@ -1594,7 +1604,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Note: 0.1.0 was part of the legacy engine.
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.17.0&to=master
+[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.18.0&to=master
+[0.18.0]: https://gitlab.com/veloren/veloren/compare?from=v0.17.0&to=v0.18.0
 [0.17.0]: https://gitlab.com/veloren/veloren/compare?from=v0.16.0&to=v0.17.0
 [0.16.0]: https://gitlab.com/veloren/veloren/compare?from=v0.15.0&to=v0.16.0
 [0.15.0]: https://gitlab.com/veloren/veloren/compare?from=v0.14.0&to=v0.15.0
