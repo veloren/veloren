@@ -861,8 +861,7 @@ impl ItemDef {
         #[expect(deprecated)]
         Self {
             item_definition_id,
-            name: "test item name".to_owned(),
-            description: "test item description".to_owned(),
+            legacy_name: "test item name".to_owned(),
             kind,
             quality,
             tags,
@@ -876,8 +875,7 @@ impl ItemDef {
         #[expect(deprecated)]
         Self {
             item_definition_id: "test.item".to_string(),
-            name: "test item name".to_owned(),
-            description: "test item description".to_owned(),
+            legacy_name: "test item name".to_owned(),
             kind,
             quality: Quality::Common,
             tags: vec![],
@@ -1304,6 +1302,7 @@ impl Item {
                     modular::modify_name(&item_def.legacy_name, self)
                 }
             },
+            #[expect(deprecated, reason = "since item i18n")]
             ItemBase::Modular(mod_base) => mod_base.generate_name(self.components()),
         }
     }
