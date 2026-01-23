@@ -50,9 +50,9 @@ fn get_git_tag() -> Option<String> {
         return None;
     }
 
-    let tag = String::from_utf8(output.stdout).ok()?;
+    let tag = String::from_utf8(output.stdout).ok()?.trim().to_string();
 
-    if Regex::new(r"/^v[0-9]+\.[0-9]+\.[0-9]+$/")
+    if Regex::new(r"^v[0-9]+\.[0-9]+\.[0-9]+$")
         .unwrap()
         .is_match(&tag)
     {
