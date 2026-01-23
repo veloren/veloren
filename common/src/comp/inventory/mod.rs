@@ -214,8 +214,10 @@ impl Inventory {
                     )
                 },
                 Some(CustomOrder::Quality) => cmp = Ord::cmp(&b_quality, &a_quality),
+                // TODO: remove sort by name here (on the server) or figure out
+                // the way to sort on the client.
                 #[expect(deprecated)]
-                Some(CustomOrder::Name) => cmp = Ord::cmp(&a.name(), &b.name()),
+                Some(CustomOrder::Name) => cmp = Ord::cmp(&a.legacy_name(), &b.legacy_name()),
                 Some(CustomOrder::Tag) => {
                     cmp = Ord::cmp(
                         &a.tags().first().map_or("", |tag| tag.name()),
@@ -234,11 +236,14 @@ impl Inventory {
 
         // always sort by name first to guarantee consistent result
         // when reordering items manually and then sorting again
+        //
+        // TODO: sorting without breaking i18n, same as above
         #[expect(deprecated)]
-        items.sort_by(|a, b| Ord::cmp(&a.name(), &b.name()));
+        items.sort_by(|a, b| Ord::cmp(&a.legacy_name(), &b.legacy_name()));
+
         items.sort_by(|a, b| match sort_order {
             #[expect(deprecated)]
-            InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
+            InventorySortOrder::Name => Ord::cmp(&a.legacy_name(), &b.legacy_name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
             InventorySortOrder::Category => {

@@ -777,6 +777,7 @@ impl Widget for Crafting<'_> {
                     }),
             )
             .collect();
+
         ordered_recipes.sort_by_key(|(_, recipe, is_craftable, has_materials, known)| {
             (
                 !known,
@@ -784,7 +785,8 @@ impl Widget for Crafting<'_> {
                 !has_materials,
                 recipe.output.0.quality(),
                 #[expect(deprecated)]
-                recipe.output.0.name(),
+                // FIXME: take i18n into account
+                recipe.output.0.legacy_name(),
             )
         });
 
@@ -794,6 +796,7 @@ impl Widget for Crafting<'_> {
         } else {
             self.inventory.recipe_book_len()
         } + pseudo_entries.len();
+
         if state.ids.recipe_list_btns.len() < recipe_list_length {
             state.update(|state| {
                 state
@@ -2150,6 +2153,7 @@ impl Widget for Crafting<'_> {
                         frame.down_from(frame_pos, 10.0)
                     };
                     frame.set(state.ids.ingredient_frame[i], ui);
+
                     // Item button for auto search
                     if Button::image(self.imgs.wpn_icon_border)
                         .w_h(22.0, 22.0)
@@ -2165,9 +2169,19 @@ impl Widget for Crafting<'_> {
                         .was_clicked()
                     {
                         events.push(Event::ChangeCraftingTab(CraftingTab::All));
+
                         #[expect(deprecated)]
-                        events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
+                        // TODO: what on earth are we doing here?
+                        //
+                        // oh wait, that's search by ingredient, yeah..
+                        //
+                        // well, we need a better logic here, use proper i18n
+                        // here
+                        events.push(Event::SearchRecipe(Some(
+                            item_def.legacy_name().to_string(),
+                        )));
                     }
+
                     // Item image
                     Image::new(animate_by_pulse(
                         &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),

@@ -751,7 +751,7 @@ pub struct ItemDef {
     /// prepended with `veloren.core` is reserved for veloren functions.
     item_definition_id: String,
     #[deprecated = "since item i18n"]
-    name: String,
+    legacy_name: String,
     #[deprecated = "since item i18n"]
     legacy_description: String,
     pub kind: ItemKind,
@@ -934,10 +934,11 @@ impl Asset for ItemDef {
         // TODO: This probably does not belong here
         let item_definition_id = specifier.replace('\\', ".");
 
-        #[expect(deprecated)]
         Ok(ItemDef {
             item_definition_id,
-            name: legacy_name,
+            #[expect(deprecated)]
+            legacy_name,
+            #[expect(deprecated)]
             legacy_description,
             kind,
             quality,
@@ -1296,15 +1297,15 @@ impl Item {
     }
 
     #[deprecated = "since item i18n"]
-    pub fn name(&self) -> Cow<'_, str> {
+    pub fn legacy_name(&self) -> Cow<'_, str> {
         match &self.item_base {
             ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
                     #[expect(deprecated)]
-                    Cow::Borrowed(&item_def.name)
+                    Cow::Borrowed(&item_def.legacy_name)
                 } else {
                     #[expect(deprecated)]
-                    modular::modify_name(&item_def.name, self)
+                    modular::modify_name(&item_def.legacy_name, self)
                 }
             },
             ItemBase::Modular(mod_base) => mod_base.generate_name(self.components()),
@@ -1748,7 +1749,7 @@ pub trait ItemDesc {
     #[deprecated = "since item i18n"]
     fn legacy_description(&self) -> &str;
     #[deprecated = "since item i18n"]
-    fn name(&self) -> Cow<'_, str>;
+    fn legacy_name(&self) -> Cow<'_, str>;
     fn kind(&self) -> Cow<'_, ItemKind>;
     fn amount(&self) -> NonZeroU32;
     fn quality(&self) -> Quality;
@@ -1774,9 +1775,10 @@ pub trait ItemDesc {
         let item_key: ItemKey = self.into();
 
         i18n.item_text_opt(item_key).unwrap_or_else(|| {
-            #[expect(deprecated)]
             (
-                Content::Plain(self.name().to_string()),
+                #[expect(deprecated)]
+                Content::Plain(self.legacy_name().to_string()),
+                #[expect(deprecated)]
                 Content::Plain(self.legacy_description().to_string()),
             )
         })
@@ -1789,9 +1791,9 @@ impl ItemDesc for Item {
         self.legacy_description()
     }
 
-    fn name(&self) -> Cow<'_, str> {
+    fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
-        self.name()
+        self.legacy_name()
     }
 
     fn kind(&self) -> Cow<'_, ItemKind> { self.kind() }
@@ -1825,9 +1827,9 @@ impl ItemDesc for FrontendItem {
         self.0.legacy_description()
     }
 
-    fn name(&self) -> Cow<'_, str> {
+    fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
-        self.0.name()
+        self.0.legacy_name()
     }
 
     fn kind(&self) -> Cow<'_, ItemKind> { self.0.kind() }
@@ -1861,9 +1863,9 @@ impl ItemDesc for ItemDef {
         &self.legacy_description
     }
 
-    fn name(&self) -> Cow<'_, str> {
+    fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
-        Cow::Borrowed(&self.name)
+        Cow::Borrowed(&self.legacy_name)
     }
 
     fn kind(&self) -> Cow<'_, ItemKind> { Cow::Borrowed(&self.kind) }
@@ -1899,9 +1901,9 @@ impl ItemDesc for PickupItem {
         self.item().legacy_description()
     }
 
-    fn name(&self) -> Cow<'_, str> {
+    fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
-        self.item().name()
+        self.item().legacy_name()
     }
 
     fn kind(&self) -> Cow<'_, ItemKind> { self.item().kind() }
@@ -1955,9 +1957,9 @@ impl<T: ItemDesc + ?Sized> ItemDesc for &T {
         (*self).legacy_description()
     }
 
-    fn name(&self) -> Cow<'_, str> {
+    fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
-        (*self).name()
+        (*self).legacy_name()
     }
 
     fn kind(&self) -> Cow<'_, ItemKind> { (*self).kind() }
