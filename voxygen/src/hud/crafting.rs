@@ -784,9 +784,10 @@ impl Widget for Crafting<'_> {
                 !is_craftable,
                 !has_materials,
                 recipe.output.0.quality(),
-                #[expect(deprecated)]
-                // FIXME: take i18n into account
-                recipe.output.0.legacy_name(),
+                {
+                    let (title, _) = recipe.output.0.i18n(self.item_i18n);
+                    self.localized_strings.get_content(&title)
+                },
             )
         });
 
