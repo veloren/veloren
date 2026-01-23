@@ -752,8 +752,6 @@ pub struct ItemDef {
     item_definition_id: String,
     #[deprecated = "since item i18n"]
     legacy_name: String,
-    #[deprecated = "since item i18n"]
-    legacy_description: String,
     pub kind: ItemKind,
     pub quality: Quality,
     pub tags: Vec<ItemTag>,
@@ -920,7 +918,7 @@ impl Asset for ItemDef {
 
         let RawItemDef {
             legacy_name,
-            legacy_description,
+            legacy_description: _,
             kind,
             quality,
             tags,
@@ -938,8 +936,6 @@ impl Asset for ItemDef {
             item_definition_id,
             #[expect(deprecated)]
             legacy_name,
-            #[expect(deprecated)]
-            legacy_description,
             kind,
             quality,
             tags,
@@ -1309,16 +1305,6 @@ impl Item {
                 }
             },
             ItemBase::Modular(mod_base) => mod_base.generate_name(self.components()),
-        }
-    }
-
-    #[deprecated = "since item i18n"]
-    pub fn legacy_description(&self) -> &str {
-        match &self.item_base {
-            #[expect(deprecated)]
-            ItemBase::Simple(item_def) => &item_def.legacy_description,
-            // TODO: See if James wanted to make description, else leave with none
-            ItemBase::Modular(_) => "",
         }
     }
 
@@ -1747,8 +1733,6 @@ pub fn flatten_counted_items<'a>(
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
     #[deprecated = "since item i18n"]
-    fn legacy_description(&self) -> &str;
-    #[deprecated = "since item i18n"]
     fn legacy_name(&self) -> Cow<'_, str>;
     fn kind(&self) -> Cow<'_, ItemKind>;
     fn amount(&self) -> NonZeroU32;
@@ -1778,19 +1762,13 @@ pub trait ItemDesc {
             (
                 #[expect(deprecated)]
                 Content::Plain(self.legacy_name().to_string()),
-                #[expect(deprecated)]
-                Content::Plain(self.legacy_description().to_string()),
+                Content::Plain(String::new()),
             )
         })
     }
 }
 
 impl ItemDesc for Item {
-    fn legacy_description(&self) -> &str {
-        #[expect(deprecated)]
-        self.legacy_description()
-    }
-
     fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.legacy_name()
@@ -1822,11 +1800,6 @@ impl ItemDesc for Item {
 }
 
 impl ItemDesc for FrontendItem {
-    fn legacy_description(&self) -> &str {
-        #[expect(deprecated)]
-        self.0.legacy_description()
-    }
-
     fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.0.legacy_name()
@@ -1858,11 +1831,6 @@ impl ItemDesc for FrontendItem {
 }
 
 impl ItemDesc for ItemDef {
-    fn legacy_description(&self) -> &str {
-        #[expect(deprecated)]
-        &self.legacy_description
-    }
-
     fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         Cow::Borrowed(&self.legacy_name)
@@ -1896,11 +1864,6 @@ impl ItemDesc for ItemDef {
 }
 
 impl ItemDesc for PickupItem {
-    fn legacy_description(&self) -> &str {
-        #[expect(deprecated)]
-        self.item().legacy_description()
-    }
-
     fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         self.item().legacy_name()
@@ -1952,11 +1915,6 @@ impl Component for ThrownItem {
 pub struct DurabilityMultiplier(pub f32);
 
 impl<T: ItemDesc + ?Sized> ItemDesc for &T {
-    fn legacy_description(&self) -> &str {
-        #[expect(deprecated)]
-        (*self).legacy_description()
-    }
-
     fn legacy_name(&self) -> Cow<'_, str> {
         #[expect(deprecated)]
         (*self).legacy_name()
