@@ -671,14 +671,6 @@ impl Widget for Crafting<'_> {
         // then unavailable ones, each sorted by quality and then alphabetically
         // In the tuple, "name" is the recipe book key, and "recipe.output.0.name()"
         // is the display name (as stored in the item descriptors)
-        fn content_contains(content: &common::comp::Content, s: &str) -> bool {
-            match content {
-                common::comp::Content::Plain(p) => p.contains(s),
-                common::comp::Content::Key(k) => k.contains(s),
-                common::comp::Content::Attr(k, _) => k.contains(s),
-                common::comp::Content::Localized { key, .. } => key.contains(s),
-            }
-        }
         let search = |item: &Arc<ItemDef>| {
             let (name_key, _) = item.i18n(self.item_i18n);
             let fallback_name = self
@@ -690,7 +682,7 @@ impl Widget for Crafting<'_> {
             search_keys.iter().all(|&substring| {
                 name.contains(substring)
                     || fallback_name.contains(substring)
-                    || content_contains(&name_key, substring)
+                    || name_key.hacky_descriptor().contains(substring)
             })
         };
         let known_recipes = self

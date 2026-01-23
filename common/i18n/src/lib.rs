@@ -38,6 +38,8 @@ pub enum Content {
         #[serde(default)]
         args: HashMap<String, LocalizationArg>,
     },
+    /// All of the above, but can use an optional fallback
+    WithFallback(Box<Content>, Box<Content>),
 }
 
 /// A localisation argument for localised content (see [`Content::Localized`]).
@@ -134,7 +136,22 @@ impl Content {
     pub fn as_plain(&self) -> Option<&str> {
         match self {
             Self::Plain(text) => Some(text.as_str()),
-            Self::Localized { .. } | Self::Attr { .. } | Self::Key { .. } => None,
+            Self::Localized { .. }
+            | Self::Attr { .. }
+            | Self::Key { .. }
+            | Self::WithFallback { .. } => None,
+        }
+    }
+
+    /// As the name suggests, only use that as a last resort, and don't
+    /// expect great results
+    pub fn hacky_descriptor(&self) -> &str {
+        match self {
+            Self::Plain(text) => text.as_str(),
+            Self::Key(k) => k.as_str(),
+            Self::Attr(k, _) => k.as_str(),
+            Self::Localized { key, .. } => key.as_str(),
+            Self::WithFallback(first, _) => first.hacky_descriptor(),
         }
     }
 }

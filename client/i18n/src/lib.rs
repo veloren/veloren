@@ -418,10 +418,15 @@ impl LocalizationGuard {
                     .ok_or_else(|| key.clone())
                     .and_then(|text| if is_arg_failure { Err(text) } else { Ok(text) })
             },
+            Content::WithFallback(content_true, content_fb) => {
+                Self::get_content_for_lang(lang, content_true)
+                    .or_else(|_| Self::get_content_for_lang(lang, content_fb))
+            },
         }
     }
 
-    /// Tries its best to localize compound message.
+    /// Tries its best to localize a message sent from the server, can be
+    /// compound.
     ///
     /// # Example
     /// ```text
