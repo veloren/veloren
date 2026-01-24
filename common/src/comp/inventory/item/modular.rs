@@ -603,9 +603,7 @@ pub fn random_weapon(
     result
 }
 
-// Adds a (modular) ingredient prefix basically
-//
-// NOTE: seems to be currently unused
+/// Adds a (modular) ingredient prefix
 #[deprecated = "since item i18n"]
 pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
     if let ItemKind::ModularComponent(_) = &*item.kind() {
@@ -618,7 +616,9 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
                 _ => None,
             })
         {
-            // "Flaming Bomb" ??
+            // "Wooden" + "Brand Shaft"
+            // =>
+            // "Wooden Brand Shaft"
             Cow::Owned(format!("{} {}", material_name, item_name))
         } else {
             Cow::Borrowed(item_name)
@@ -630,6 +630,15 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
 
 /// This is used as a key to uniquely identify the modular weapon in asset
 /// manifests in voxygen (Main component, material, hands)
+///
+/// # Example:
+/// ```ignore
+/// (
+///     "common.items.modular.weapon.primary.axe.labrys",
+///     "common.items.mineral.ingot.iron",
+///     Two,
+/// )
+/// ```
 pub type ModularWeaponKey = (String, String, Hands);
 
 pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
@@ -663,6 +672,14 @@ pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
 
 /// This is used as a key to uniquely identify the modular weapon in asset
 /// manifests in voxygen (Main component, material)
+///
+/// # Example:
+/// ```ignore
+/// (
+///     "common.items.modular.weapon.primary.axe.labrys",
+///     "common.items.mineral.ingot.iron",
+/// )
+/// ```
 pub type ModularWeaponComponentKey = (String, String);
 
 pub enum ModularWeaponComponentKeyError {

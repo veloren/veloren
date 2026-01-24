@@ -7645,4 +7645,289 @@
         Simple("common.items.recipes.weapons.eldwood"): "recipe-weapons-eldwood",
         Simple("common.items.recipes.default"): "recipe-default",
     },
+    // OPTIONAL templating support, has a lot of downsides, but serves as an
+    // escape hatch.
+    //
+    // English shouldn't use rely on it, instead do the thing above
+    fragments: {
+        //
+        // Ingredient fragments
+        //
+
+        // Metals
+        Ingredient(
+            "common.items.mineral.ingot.bronze",
+        ): "fragment-mineral-ingot-bronze",
+        Ingredient(
+            "common.items.mineral.ingot.iron",
+        ): "fragment-mineral-ingot-iron",
+        Ingredient(
+            "common.items.mineral.ingot.steel",
+        ): "fragment-mineral-ingot-steel",
+        Ingredient(
+            "common.items.mineral.ingot.cobalt",
+        ): "fragment-mineral-ingot-cobalt",
+        Ingredient(
+            "common.items.mineral.ingot.bloodsteel",
+        ): "fragment-mineral-ingot-bloodsteel",
+        Ingredient(
+            "common.items.mineral.ingot.orichalcum",
+        ): "fragment-mineral-ingot-orichalcum",
+
+        // Wood materials
+        Ingredient(
+            "common.items.log.wood"
+        ): "fragment-wood-item-wood",
+        Ingredient(
+            "common.items.log.bamboo",
+        ): "fragment-wood-item-bamboo",
+        Ingredient(
+            "common.items.log.hardwood",
+        ): "fragment-wood-item-hardwood",
+        Ingredient(
+            "common.items.log.ironwood",
+        ): "fragment-wood-item-ironwood",
+        Ingredient(
+            "common.items.log.frostwood",
+        ): "fragment-wood-item-frostwood",
+        Ingredient(
+            "common.items.log.eldwood",
+        ): "fragment-wood-item-eldwood",
+
+        //
+        // Weapon (primary) component fragments
+        //
+
+        // Staves
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.staff",
+            Two,
+        ): "fragment-staff-staff",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.rod",
+            Two,
+        ): "fragment-staff-rod",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.brand",
+            Two,
+        ): "fragment-staff-brand",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.longpole",
+            Two,
+        ): "fragment-staff-longpole",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.ornate",
+            Two,
+        ): "fragment-staff-ornate",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.grandstaff",
+            Two,
+        ): "fragment-staff-grandstaff",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.staff.pole",
+            Two,
+        ): "fragment-staff-pole",
+
+        // Bows
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.bow",
+            Two,
+        ): "fragment-bow-bow",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.warbow",
+            Two,
+        ): "fragment-bow-warbow",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.shortbow",
+            Two,
+        ): "fragment-bow-shortbow",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.greatbow",
+            Two,
+        ): "fragment-bow-greatbow",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.ornate",
+            Two,
+        ): "fragment-bow-ornate",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.composite",
+            Two,
+        ): "fragment-bow-composite",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.bow.longbow",
+            Two,
+        ): "fragment-bow-longbow",
+
+        // Sceptres
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.cane",
+            Two,
+        ): "fragment-sceptre-cane",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.crook",
+            Two,
+        ): "fragment-sceptre-crook",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.sceptre",
+            Two,
+        ): "fragment-sceptre-sceptre",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.crozier",
+            Two,
+        ): "fragment-sceptre-crozier",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.ornate",
+            Two,
+        ): "fragment-sceptre-ornate",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.arbor",
+            Two,
+        ): "fragment-sceptre-arbor",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sceptre.grandsceptre",
+            Two,
+        ): "fragment-sceptre-grandsceptre",
+
+        // Axes
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.jagged",
+            Two,
+        ): "fragment-axe-jagged-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.jagged",
+            One,
+        ): "fragment-axe-jagged-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.battleaxe",
+            Two,
+        ): "fragment-axe-battleaxe-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.battleaxe",
+            One,
+        ): "fragment-axe-battleaxe-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.axe",
+            Two,
+        ): "fragment-axe-axe-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.axe",
+            One,
+        ): "fragment-axe-axe-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.ornate",
+            Two,
+        ): "fragment-axe-ornate-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.ornate",
+            One,
+        ): "fragment-axe-ornate-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.greataxe",
+            Two,
+        ): "fragment-axe-greataxe-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.poleaxe",
+            Two,
+        ): "fragment-axe-poleaxe-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.axe.labrys",
+            Two,
+        ): "fragment-axe-labrys-2h",
+
+        // Swords
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.sabre",
+            Two,
+        ): "fragment-sword-sabre-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.sabre",
+            One,
+        ): "fragment-sword-sabre-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.sawblade",
+            Two,
+        ): "fragment-sword-sawblade-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.sawblade",
+            One,
+        ): "fragment-sword-sawblade-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.katana",
+            Two,
+        ): "fragment-sword-katana-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.katana",
+            One,
+        ): "fragment-sword-katana-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.ornate",
+            Two,
+        ): "fragment-sword-ornate-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.ornate",
+            One,
+        ): "fragment-sword-ornate-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.zweihander",
+            Two,
+        ): "fragment-sword-zweihander-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.greatsword",
+            Two,
+        ): "fragment-sword-greatsword-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.longsword",
+            Two,
+        ): "fragment-sword-longsword-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.sword.longsword",
+            One,
+        ): "fragment-sword-longsword-1h",
+
+        // Hammers
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.greathammer",
+            Two,
+        ): "fragment-hammer-greathammer-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.ornate",
+            Two,
+        ): "fragment-hammer-ornate-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.ornate",
+            One,
+        ): "fragment-hammer-ornate-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.warhammer",
+            Two,
+        ): "fragment-hammer-warhammer-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.warhammer",
+            One,
+        ): "fragment-hammer-warhammer-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.greatmace",
+            Two,
+        ): "fragment-hammer-greatmace-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.maul",
+            Two,
+        ): "fragment-hammer-maul-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.spikedmace",
+            Two,
+        ): "fragment-hammer-spikedmace-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.spikedmace",
+            One,
+        ): "fragment-hammer-spikedmace-1h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.hammer",
+            Two,
+        ): "fragment-hammer-hammer-2h",
+        WeaponPrimaryComponent(
+            "common.items.modular.weapon.primary.hammer.hammer",
+            One,
+        ): "fragment-hammer-hammer-1h",
+    },
 )

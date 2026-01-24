@@ -368,7 +368,7 @@ pub enum ItemKind {
     Ingredient {
         /// Used to generate names for modular items composed of this ingredient
         // I think we can actually remove it now?
-        #[deprecated = "part of non-localized name generation"]
+        #[deprecated = "since item i18n"]
         descriptor: String,
     },
     TagExamples {
@@ -556,6 +556,18 @@ type I18nId = String;
 pub struct ItemI18n {
     /// maps ItemKey to i18n identifier
     map: HashMap<ItemKey, I18nId>,
+    /// maps FragmentKey to i18n identifier
+    ///
+    /// Used for optional templating for languages that can stomach them
+    fragments: HashMap<FragmentKey, I18nId>,
+}
+
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Deserialize, Serialize)]
+pub enum FragmentKey {
+    // path to ingredient
+    Ingredient(String),
+    // path to primary component and hand-ness required
+    WeaponPrimaryComponent(String, Hands),
 }
 
 impl ItemI18n {
@@ -569,19 +581,35 @@ impl ItemI18n {
     /// Returns (name, description) in Content form.
     // TODO: after we remove legacy text from ItemDef, consider making this
     // function non-fallible?
-    fn item_text_opt(&self, mut item_key: ItemKey) -> Option<(Content, Content)> {
-        // we don't put TagExamples into manifest
-        if let ItemKey::TagExamples(_, id) = item_key {
-            item_key = ItemKey::Simple(id.to_string());
-        }
+    fn item_text_opt(&self, item_key: &ItemKey) -> Option<(Content, Content)> {
+        // We don't put TagExamples into manifest.
+        // Instead they are marked as Simple.
+        let key;
+        let item_key = if let ItemKey::TagExamples(_, id) = item_key {
+            key = ItemKey::Simple(id.to_string());
+            &key
+        } else {
+            item_key
+        };
 
-        let key = self.map.get(&item_key);
+        let key = self.map.get(item_key);
         key.map(|key| {
             (
                 Content::Key(key.to_owned()),
                 Content::Attr(key.to_owned(), "desc".to_owned()),
             )
         })
+    }
+
+    fn try_fragment(&self, fragment_key: &FragmentKey) -> Option<Content> {
+        self.fragments
+            .get(fragment_key)
+            .map(|key| Content::Key(key.to_owned()))
+    }
+
+    /// Returns all fragments, mainly for testing
+    pub fn all_fragments(&self) -> impl Iterator<Item = (&FragmentKey, &I18nId)> {
+        self.fragments.iter()
     }
 }
 
@@ -1757,13 +1785,42 @@ pub trait ItemDesc {
     fn i18n(&self, i18n: &ItemI18n) -> (Content, Content) {
         let item_key: ItemKey = self.into();
 
-        i18n.item_text_opt(item_key).unwrap_or_else(|| {
+        let (name, description) = i18n.item_text_opt(&item_key).unwrap_or_else(|| {
             (
                 #[expect(deprecated)]
                 Content::Plain(self.legacy_name().to_string()),
                 Content::Plain(String::new()),
             )
-        })
+        });
+
+        if let ItemKey::ModularWeapon((comp_id, ing_id, hands)) = item_key {
+            let b = |x| Box::new(x);
+
+            // the name template
+            let title_fallback = Content::localized("weapon-modular-fallback-template")
+                .with_arg(
+                    "material-fragment",
+                    i18n.try_fragment(&FragmentKey::Ingredient(ing_id))
+                        // use Key instead of Plain here, so it's marked as
+                        // "dirty" during and attempts English
+                        .unwrap_or_else(|| Content::Key("Modular".to_owned())),
+                )
+                .with_arg(
+                    "weapon",
+                    i18n.try_fragment(&FragmentKey::WeaponPrimaryComponent(comp_id, hands))
+                        // use Key instead of Plain here, so it's marked as
+                        // "dirty" during and attempts English
+                        .unwrap_or_else(|| Content::Key("Weapon".to_owned())),
+                );
+
+            (
+                Content::WithFallback(b(name), b(title_fallback)),
+                // no fallback for description
+                description,
+            )
+        } else {
+            (name, description)
+        }
     }
 }
 
@@ -2059,6 +2116,7 @@ impl From<&ItemDefinitionId<'_>> for ItemDefinitionIdOwned {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hashbrown::HashSet;
 
     #[test]
     fn test_assets_items() {
@@ -2096,12 +2154,42 @@ mod tests {
         let mut errs = vec![];
         for item in items {
             let item_key: ItemKey = (&item).into();
-            if manifest.item_text_opt(item_key.clone()).is_none() {
+            if manifest.item_text_opt(&item_key.clone()).is_none() {
                 errs.push(item_key)
             }
         }
         if !errs.is_empty() {
             panic!("item i18n manifest misses translation-id for following items {errs:#?}")
+        }
+    }
+
+    #[test]
+    // This exists to make translator's lives easier when translating
+    // modulars.
+    fn ensure_modular_fragments() {
+        let manifest = ItemI18n::new_expect();
+        let items = all_items_expect();
+        let mut errs = HashSet::new();
+
+        for item in items {
+            let item_key: ItemKey = (&item).into();
+            if let ItemKey::ModularWeapon((comp_id, ing_id, hands)) = item_key {
+                if manifest
+                    .try_fragment(&FragmentKey::Ingredient(ing_id.clone()))
+                    .is_none()
+                {
+                    errs.insert(FragmentKey::Ingredient(ing_id));
+                }
+                if manifest
+                    .try_fragment(&FragmentKey::WeaponPrimaryComponent(comp_id.clone(), hands))
+                    .is_none()
+                {
+                    errs.insert(FragmentKey::WeaponPrimaryComponent(comp_id, hands));
+                }
+            }
+        }
+        if !errs.is_empty() {
+            panic!("item i18n manifest misses fragment-id for following items {errs:#?}")
         }
     }
 }
