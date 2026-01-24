@@ -1,6 +1,7 @@
 # Publishes veloren-server-cli to the GitLab container registry.
 # https://gitlab.com/veloren/veloren/container_registry
 docker:
+  extends: .release
   stage: publish
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -21,10 +22,6 @@ docker:
       if [ "${PUBLISH_DOCKER_TAG}"  != "" ]; then
         /kaniko/executor --context ${CI_PROJECT_DIR} --dockerfile ${CI_PROJECT_DIR}/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}";
       fi
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: on_success
-    - when: never
 
 gittag:
   stage: publish
