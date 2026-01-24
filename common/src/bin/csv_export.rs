@@ -43,7 +43,6 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         "Energy Reward",
         "Crit Power",
         "Stealth",
-        "Description",
     ])?;
 
     for item in Item::new_from_asset_glob("common.items.armor.*")
@@ -80,7 +79,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                         .itemdef_id()
                         .expect("All items from asset glob should be simple items"),
                     &kind,
-                    &item.name(),
+                    &item.legacy_name(),
                     &format!("{:?}", item.quality()),
                     &protection,
                     &poise_resilience,
@@ -88,7 +87,6 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                     &energy_reward,
                     &precision_power,
                     &stealth,
-                    item.description(),
                 ])?;
             },
             _ => println!("Skipping non-armor item: {:?}\n", item),
@@ -142,7 +140,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                     .itemdef_id()
                     .expect("All items from asset glob should be simple items"),
                 &kind,
-                &item.name(),
+                &item.legacy_name(),
                 &hands,
                 &format!("{:?}", item.quality()),
                 &power,
@@ -152,7 +150,6 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 &energy_efficiency,
                 &buff_strength,
                 &equip_time,
-                item.description(),
             ])?;
         }
     }
@@ -220,7 +217,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
             item.item_definition_id()
                 .itemdef_id()
                 .expect("All items in asset glob should be simple items"),
-            &item.name(),
+            &item.legacy_name(),
         ])?;
     }
 
@@ -399,7 +396,11 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 .div(10_f32.powi(2))
                 .to_string();
 
-            let item_name = |asset| Item::new_from_asset_expect(asset).name().into_owned();
+            let item_name = |asset| {
+                Item::new_from_asset_expect(asset)
+                    .legacy_name()
+                    .into_owned()
+            };
 
             match item {
                 LootSpec::Item(item) => {
@@ -438,7 +439,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                         wtr.write_record(&[
                             asset_path.to_owned(),
                             percent_chance.clone(),
-                            weapon.name().into_owned(),
+                            weapon.legacy_name().into_owned(),
                             "1".to_owned(),
                         ])?;
                     }
@@ -462,7 +463,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                         wtr.write_record(&[
                             asset_path.to_owned(),
                             percent_chance.clone(),
-                            comp.name().into_owned(),
+                            comp.legacy_name().into_owned(),
                             "1".to_owned(),
                         ])?;
                     }

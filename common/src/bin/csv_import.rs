@@ -219,7 +219,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             .replace("\\'", "'");
 
                         let fake_item = FakeItemDef::new(
-                            item.name().to_string(),
+                            item.legacy_name().to_string(),
                             description.to_string(),
                             ItemKind::Armor(armor),
                             quality,
@@ -403,7 +403,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                 ));
 
                 let fake_item = FakeItemDef::new(
-                    item.name().to_string(),
+                    item.legacy_name().to_string(),
                     description.to_string(),
                     ItemKind::Tool(tool),
                     quality,
