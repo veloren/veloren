@@ -748,6 +748,10 @@ impl Window {
                 is_synthetic,
                 ..
             } => {
+                // Ignore key repeat events for GameInputs
+                if event.repeat {
+                    return;
+                }
                 // Ignore synthetic keydown events so that we don't e.g. get tabs when
                 // alt-tabbing back into the window
                 if matches!(event.state, winit::event::ElementState::Pressed) && is_synthetic {
