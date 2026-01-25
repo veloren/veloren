@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Don't show this on startup
 hud-show_tips = Show Tips
 hud-quests = Quests
 hud-you_died = You Died
