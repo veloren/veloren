@@ -45,6 +45,8 @@
     - cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libgcc_s_seh-1.dll ${CI_PROJECT_DIR};
     - cp /usr/lib/gcc/x86_64-w64-mingw32/13-posix/libstdc++-6.dll ${CI_PROJECT_DIR};
     - cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll ${CI_PROJECT_DIR};
+  after_script:
+    - echo WINDOWS_X86_64_JOB_ID=$CI_JOB_ID >> windows_x86_64_job_id.env
   artifacts:
     paths:
       - veloren-server-cli.exe
@@ -54,6 +56,8 @@
       - libgcc_s_seh-1.dll
       - libstdc++-6.dll
       - libwinpthread-1.dll
+    reports:
+      dotenv: windows_x86_64_job_id.env
     expire_in: 1 week
 
 # macOS.
@@ -107,6 +111,11 @@
     - *build-macos-before-script
     - rustup target add x86_64-apple-darwin;
     - export RUST_TARGET="x86_64-apple-darwin";
+  after_script:
+    - echo MACOS_X86_64_JOB_ID=$CI_JOB_ID >> macos_x86_64_job_id.env
+  artifacts:
+    reports:
+      dotenv: macos_x86_64_job_id.env
 
 .build-macos-aarch64:
   extends:
@@ -117,6 +126,11 @@
     - *build-macos-before-script
     - rustup target add aarch64-apple-darwin;
     - export RUST_TARGET="aarch64-apple-darwin";
+  after_script:
+    - echo MACOS_AARCH64_JOB_ID=$CI_JOB_ID >> macos_aarch64_job_id.env
+  artifacts:
+    reports:
+      dotenv: macos_aarch64_job_id.env
 
 # Linux.
 .build-linux-x86_64:
@@ -127,12 +141,16 @@
     - source ./.gitlab/scripts/linux-x86_64.sh;
     - cp -r target/release/veloren-server-cli ${CI_PROJECT_DIR};
     - cp -r target/release/veloren-voxygen ${CI_PROJECT_DIR};
+  after_script:
+    - echo LINUX_X86_64_JOB_ID=$CI_JOB_ID >> linux_x86_64_job_id.env
   artifacts:
     paths:
       - veloren-server-cli
       - veloren-voxygen
       - assets/
       - LICENSE
+    reports:
+      dotenv: linux_x86_64_job_id.env
     expire_in: 1 week
 
 .build-linux-aarch64:
@@ -143,10 +161,14 @@
     - source ./.gitlab/scripts/linux-aarch64.sh;
     - cp -r target/aarch64-unknown-linux-gnu/release/veloren-server-cli ${CI_PROJECT_DIR};
     - cp -r target/aarch64-unknown-linux-gnu/release/veloren-voxygen ${CI_PROJECT_DIR};
+  after_script:
+    - echo LINUX_AARCH64_JOB_ID=$CI_JOB_ID >> linux_aarch64_job_id.env
   artifacts:
     paths:
       - veloren-server-cli
       - veloren-voxygen
       - assets/
       - LICENSE
+    reports:
+      dotenv: linux_aarch64_job_id.env
     expire_in: 1 week

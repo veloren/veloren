@@ -65,3 +65,45 @@ pages:
     - mv target/doc/* public;
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+
+gitlab_release:
+  extends: .release
+  stage: publish
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags: ["veloren/veloren", "publish", "trusted"]
+  before_script:
+    - echo "" # Override before_script in .gitlab-ci.yml
+  dependencies:
+    - linux-x86_64
+    - linux-aarch64
+    - macos-x86_64
+    - macos-aarch64
+    - windows-x86_64
+  script:
+    # These are exported by earlier jobs via reports/dotenv
+    - echo "LINUX_X86_64_JOB_ID=$LINUX_X86_64_JOB_ID"
+    - echo "LINUX_AARCH64_JOB_ID=$LINUX_AARCH64_JOB_ID"
+    - echo "MACOS_X86_64_JOB_ID=$MACOS_X86_64_JOB_ID"
+    - echo "MACOS_AARCH64_JOB_ID=$MACOS_AARCH64_JOB_ID"
+    - echo "WINDOWS_X86_64_JOB_ID=$WINDOWS_X86_64_JOB_ID"
+  release:
+    name: "Veloren $CI_COMMIT_TAG"
+    description: "Veloren release $CI_COMMIT_TAG"
+    tag_name: "$CI_COMMIT_TAG"
+    assets:
+      links:
+        - name: "Linux (aarch64)"
+          link_type: "other"
+          url: "https://gitlab.com/veloren/airshipper/-/jobs/${LINUX_AARCH64_JOB_ID}/artifacts/download"
+        - name: "Linux (x86_64)"
+          link_type: "other"
+          url: "https://gitlab.com/veloren/airshipper/-/jobs/${LINUX_X86_64_JOB_ID}/artifacts/download"
+        - name: "MacOS (aarch64)"
+          link_type: "other"
+          url: "https://gitlab.com/veloren/airshipper/-/jobs/${MACOS_AARCH64_JOB_ID}/artifacts/download"
+        - name: "MacOS (x86_64)"
+          link_type: "other"
+          url: "https://gitlab.com/veloren/airshipper/-/jobs/${MACOS_X86_64_JOB_ID}/artifacts/download"
+        - name: "Windows (x86_64)"
+          link_type: "other"
+          url: "https://gitlab.com/veloren/airshipper/-/jobs/${WINDOWS_X86_64_JOB_ID}/artifacts/download"
