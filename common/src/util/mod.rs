@@ -1,5 +1,6 @@
 mod color;
 pub mod dir;
+pub mod div;
 pub mod find_dist;
 mod grid_hasher;
 pub mod lines;
