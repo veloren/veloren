@@ -217,6 +217,7 @@ pub fn entity_as_actor(
 #[derive(SystemData)]
 pub struct HealthChangeEventData<'a> {
     entities: Entities<'a>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
     #[cfg(feature = "worldgen")]
     rtsim: WriteExpect<'a, RtSim>,
     events: HealthChangeEvents<'a>,
@@ -233,6 +234,7 @@ pub struct HealthChangeEventData<'a> {
     presences: ReadStorage<'a, Presence>,
     #[cfg(feature = "worldgen")]
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    inventories: ReadStorage<'a, Inventory>,
     agents: WriteStorage<'a, Agent>,
     healths: WriteStorage<'a, Health>,
     heads: WriteStorage<'a, Heads>,
@@ -245,8 +247,9 @@ impl ServerEvent for HealthChangeEvent {
         let mut emitters = data.events.get_emitters();
         let mut rng = rand::rng();
         for ev in events {
-            if let Some((mut health, pos, uid, heads)) = (
+            if let Some((mut health, inventory, pos, uid, heads)) = (
                 &mut data.healths,
+                data.inventories.maybe(),
                 data.positions.maybe(),
                 data.uids.maybe(),
                 (&mut data.heads).maybe(),
@@ -254,6 +257,14 @@ impl ServerEvent for HealthChangeEvent {
                 .lend_join()
                 .get(ev.entity, &data.entities)
             {
+                // Skip damage if invincible.
+                if ev.change.amount < 0.0 &&
+                    // None indicates invincibility.
+                    combat::compute_protection(inventory, &data.msm).is_none()
+                {
+                    continue;
+                }
+
                 // If the change amount was not zero
                 let changed = health.change_by(ev.change);
                 if let Some(mut heads) = heads {
