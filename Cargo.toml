@@ -202,11 +202,19 @@ rusqlite = { version = "0.37", features = [
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.50" }
 sha2 = "0.10"
+signal-hook = "0.4.3"
 slab = { version = "0.4.2" }
 specs = { version = "0.20", features = ["nightly"] }
 strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1.44", default-features = false, features = ["rt"] }
 tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3.22", default-features = false, features = [
+    "ansi",
+    "env-filter",
+    "fmt",
+    "smallvec",
+    "time",
+] }
 vek = { version = "0.17.0", features = ["serde", "mint"] }
 quinn = { version = "0.11" }
 
