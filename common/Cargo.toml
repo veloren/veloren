@@ -93,13 +93,7 @@ criterion = { workspace = true }
 rand_chacha = { workspace = true }
 
 #test
-tracing-subscriber = { version = "0.3.7", default-features = false, features = [
-    "fmt",
-    "time",
-    "ansi",
-    "smallvec",
-    "env-filter",
-] }
+tracing-subscriber =  { workspace = true }
 petgraph = "0.8.1"
 
 [build-dependencies]

@@ -47,13 +47,7 @@ bytes = "^1"
 hashbrown = { workspace = true }
 
 [dev-dependencies]
-tracing-subscriber = { version = "0.3.7", default-features = false, features = [
-    "env-filter",
-    "fmt",
-    "time",
-    "ansi",
-    "smallvec",
-] }
+tracing-subscriber =  { workspace = true }
 tokio = { workspace = true, default-features = false, features = [
     "io-std",
     "fs",

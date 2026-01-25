@@ -18,7 +18,7 @@ common-base = { package = "veloren-common-base", path = "../base" }
 termcolor = "1.1"
 tracing = { workspace = true }
 tracing-appender = "0.2.0"
-tracing-subscriber = { version = "0.3.7", default-features = false, features = ["env-filter", "fmt", "time", "ansi", "smallvec", "tracing-log"]}
+tracing-subscriber =  { workspace = true, features = ["tracing-log"] }
 
 # Tracy
 # NOTE: This must be kept in sync with the `profiling` version in `common/base`.
