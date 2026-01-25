@@ -69,7 +69,7 @@ use common::{
     states::{equipping, idle, interact, utils::StageSection, wielding},
     terrain::{SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
-    util::Dir,
+    util::{Dir, div::checked_div},
     vol::RectRasterableVol,
 };
 use common_base::span;
@@ -1761,7 +1761,8 @@ impl FigureMgr {
                                 StageSection::Recover => durations.recover,
                             };
                             if let Some(base_dur) = base_dur {
-                                timer.as_secs_f32() / base_dur.as_secs_f32()
+                                checked_div(timer.as_secs_f32(), base_dur.as_secs_f32())
+                                    .unwrap_or(0.0)
                             } else {
                                 timer.as_secs_f32()
                             }
