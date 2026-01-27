@@ -19,7 +19,7 @@ hud-map-dungeon = Sotterraneo
 hud-map-df_mine = Miniera
 hud-map-difficulty_dungeon =
     Sotterraneo
-    
+
     Difficoltà: { $difficulty }
 hud-map-drag = Trascina
 hud-map-zoom = Zoom
@@ -38,3 +38,15 @@ hud-map-adlet = Fortezza degli Adlet
 hud-map-haniwa = Catacomba Haniwa
 hud-map-terracotta = Rovine di terracotta
 hud-map-placed_by = Piazzato da { $name }
+hud-map-unknown = Sconosciuto
+hud-map-bridges = Ponti
+hud-map-glider_course = Percorso di Planata
+hud-map-glider_courses = Percorsi di Planata
+hud-map-quests = Missioni
+hud-map-plaza = Piazza del paese
+hud-map-workshop = Laboratorio
+hud-map-airship_dock = Porto dirigibili
+hud-map-character = Personaggio
+hud-map-character-label = Ultima posizione nota di { $name }
+hud-map-creature-label = Ultima posizione nota di { $body }
+hud-map-escort-label = Scorta { $name } fino a { $place }.

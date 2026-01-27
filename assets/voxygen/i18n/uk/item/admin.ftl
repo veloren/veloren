@@ -36,5 +36,5 @@ armor-misc-back-admin_back = Плащ Адміна
         велика відповідальність.
 other-glider-vroom-debug = Вжух Глайдер
     .desc = робить вжух
-weapon-tool-broom_belzeshrub_purple = Белзешраб - Бог Мітла
+weapon-tool-broom_belzeshrub_purple = Вельзешраб - Бог Мітла
     .desc = Можна почути, як він хіхікає щоразу, коли ви сильно вдаряєтеся об землю...

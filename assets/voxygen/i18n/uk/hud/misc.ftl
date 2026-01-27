@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Не показувати це при запуску
 hud-show_tips = Показувати підказки
 hud-quests = Завдання
 hud-you_died = Вам гаплик

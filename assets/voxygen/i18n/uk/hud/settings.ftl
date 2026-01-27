@@ -1,4 +1,4 @@
-hud-settings-general = Основні
+hud-settings-general = Загальні
 hud-settings-none = Нічого
 hud-settings-press_behavior-toggle = Перемикання
 hud-settings-press_behavior-hold = Утримування

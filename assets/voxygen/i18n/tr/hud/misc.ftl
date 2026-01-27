@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Bunu açılışta gösterme
 hud-show_tips = Öneriler
 hud-quests = Görevler
 hud-you_died = Öldün

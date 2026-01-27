@@ -195,3 +195,12 @@ buff-heatstroke = Colpo di calore
 
 buff-mysterious = Effetto misterioso
 buff-remove = Premi per rimuovere
+buff-resting_heal = Cura a Riposo
+    .desc = A riposo rigeneri il { $rate } % di salute al secondo.
+buff-combo_generation = Generazione di combo
+    .desc = Genera combo nel tempo
+    .stat =
+        { $duration ->
+            [1] Genera { $str_total } combo in un secondo.
+           *[other] Genera { $str_total } combo in { $duration } secondi.
+        }

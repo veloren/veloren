@@ -13,3 +13,4 @@ hud-group-in_menu = В меню
 hud-group-members = Учасники групи
 hud-group-invite-declined = { $target } відмовився(лася) від вашого запрошення до групи.
 hud-group-invite-timed_out = Термін дії запрошення до групи для { $target } закінчився.
+hud-group-invite-accepted = { $target } приєднується до групи.

@@ -26,9 +26,13 @@ hud-trade-sell =
         [one] una moneta.
        *[other] { $coin_formatted } monete
     }
-hud-trade-tooltip_hint_1 = <Maiusc-Click per aggiungere/rimuovere dallo scambio.>
+hud-trade-tooltip_hint_1 = <Shift-Click per aggiungere/rimuovere dallo scambio.>
 hud-trade-tooltip_hint_2 = <Ctrl-Click per autobilanciare lo scambio con questo.>
 hud-trade-your_offer = La tua offerta
 hud-trade-their_offer = La sua offerta
 hud-trade-amount_input = Seleziona un oggetto
 hud-confirm-trade-for-nothing = Vuoi veramente donare tutto questo per niente?
+hud-trade-invite-accepted = { $target } ha accettato la tua richiesta di scambio.
+hud-trade-invite-declined = { $target } ha rifiutato la tua richiesta di scambio.
+hud-trade-invite-timed_out = La richiesta di scambio fatta a { $target } è scaduta.
+hud-trade-player_who = Giocatore { $player_who }

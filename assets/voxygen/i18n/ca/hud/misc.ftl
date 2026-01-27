@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = No mostris açò en començar
 hud-show_tips = Mostra Consells
 hud-quests = Missions
 hud-you_died = Has Mort

@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Ez erakutsi hau jokoa hastean
 hud-show_tips = Erakutsi aholkuak
 hud-quests = Misioak
 hud-you_died = Hil zara

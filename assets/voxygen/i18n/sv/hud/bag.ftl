@@ -1,5 +1,5 @@
 hud-bag-inventory = { $playername }s packning
-hud-bag-stats_title = { $playername }s Statistik
+hud-bag-stats_title = { $playername }s statistik
 hud-bag-armor = Rustning
 hud-bag-stats = Statistik
 hud-bag-head = Huvud

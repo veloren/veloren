@@ -23,3 +23,4 @@ char_selection-version_mismatch = УВАГА! Цей сервер викорис
 char_selection-rules = Правила
 char_selection-hardcore = Хардкор
 char_selection-hardcore_tooltip = Хардкорні персонажі будуть видалені після смерті, ніяких інших змін у складності
+char_selection-editing_character = Зберігаємо Персонажа...

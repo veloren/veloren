@@ -337,3 +337,17 @@ common-abilities-axe-capsize = Capovolgimento
     .desc =
         Stordisci tutto nelle vicinanze con un colpo rotante pesante
         Si trasforma automaticamente in Murata a 50 combo
+common-abilities-hammer-leap = Schiacciata rovinosa
+    .desc = Salta nella posizione del cursore e schiaccia con forza il terreno causando un'onda d'urto che danneggia e fa sbalzare indietro i nemici.
+common-abilities-staff-firebomb = Bomba Infuocata
+    .desc = Lancia una palla di fuoco che esplode all'impatto.
+common-abilities-staff-flamethrower = Lanciafiamme
+    .desc = Spruzza fuoco davanti a te.
+common-abilities-sceptre-lifestealbeam = Rubavita
+    .desc = Spara un raggio che drena la vita dai tuoi nemici.
+common-abilities-sceptre-healingaura = Aura Curativa
+    .desc = Cura i tuoi alleati. Richiede combo per attivarsi.
+common-abilities-hammer-solid_smash = Schianto Solido
+    .desc = Uno schianto solido, farà male
+common-abilities-hammer-wide_wallop = Sferzata Potente
+    .desc = Carica il colpo e spediscili in orbita

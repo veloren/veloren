@@ -1,10 +1,9 @@
-hud-do_not_show_on_startup = Visa inte detta vid uppstart
-hud-show_tips = Visa Tips
+hud-show_tips = Visa tips
 hud-quests = Uppdrag
-hud-you_died = Du Dog
-hud-waypoint_saved = Landmärke Sparat
+hud-you_died = Du dog
+hud-waypoint_saved = Vägpunkt sparad
 hud-sp_arrow_txt = FP
-hud-inventory_full = Packning är Full
+hud-inventory_full = Packning är full
 hud-someone_else = någon annan
 hud-another_group = en annan grupp
 hud-owned_by_for_secs = Ägs av { $name } i { $secs } sekunder
@@ -30,7 +29,11 @@ hud-temp_quest_text =
     När du känner dig redo, försök skaffa bättre utrustning från de många utmaningarna som finns markerade på din karta!
 hud-spell = Förtrollningar
 hud-diary = Dagbok
-hud-free_look_indicator = Kameran är olåst. Tryck { $key } för att ändra.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] Free look är aktivt. Tryck { $key } för att stänga av.
+       *[other] Free look är aktivt. Släpp { $key } för att stänga av.
+    }
 hud-camera_clamp_indicator = Kameran är låst vertikalt. Tryck { $key } För att ändra.
 hud-auto_walk_indicator = Automatisk gång/simning aktiverad
 hud-zoom_lock_indicator-remind = Zoom låst
@@ -45,8 +48,8 @@ hud-unlock-requires = Öppna med { $item }
 hud-unlock-consumes = Använd { $item } för att öppna
 hud-mine = Hacka
 hud-dig = Gräv
-hud-mine-needs_pickaxe = Kräver Hacka
-hud-mine-needs_shovel = Kräver Spade
+hud-mine-needs_pickaxe = Kräver hacka
+hud-mine-needs_shovel = Kräver spade
 hud-mine-needs_unhandled_case = Kräver ???
 hud-talk = Prata
 hud-trade = Byteshandla
@@ -60,13 +63,13 @@ hud-stay = Stanna
 -client = Klient
 hud-init-stage-singleplayer = Startar enspelarserver...
 hud-init-stage-server-db-vacuum = { "[" }{ -server }]: Städar databas...
-hud-init-stage-server-worldciv-civcreate = { "[" }{ -server }]: Genererade { $generated } utav { $total } civilisationer
+hud-init-stage-server-worldciv-civcreate = { "[" }{ -server }]: Genererade { $generated } av { $total } civilisationer
 hud-init-stage-server-economysim = { "[" }{ -server }]: Simulerar ekonomi...
 hud-init-stage-server-starting = { "[" }{ -server }]: Startar server...
 hud-init-stage-multiplayer = Startar multiplayer
 hud-init-stage-client-request-server-version = { "[" }{ -client }]: Väntar på serverversion...
 hud-init-stage-client-load-init-data = { "[" }{ -client }]: Laddar initialiseringdata från server...
-hud-init-stage-client-starting-client = { "[" }{ -client }]: Förbereder Klient...
+hud-init-stage-client-starting-client = { "[" }{ -client }]: Förbereder klient...
 hud-portal = Portal
 -server = Server
 hud-init-stage-client-connection-establish = { "[" }{ -client }]: Etablerar anslutning till server...
@@ -110,3 +113,5 @@ hud-steal-consumes = Använd { $item } för att stjäla
 hud-steal-requires = Stjäl med { $item }
 hud-waypoint_interact = Sätt vägpunkt
 hud-tutorial-disable = Stäng av nybörjartips permanent
+hud-items_lost_dur = Dina utrustade föremål har förlorat hållbarhet.
+hud-items_will_lose_dur = Dina utrustade föremål kommer att förlora hållbarhet.

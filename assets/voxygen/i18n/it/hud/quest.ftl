@@ -5,3 +5,5 @@ hud-quest-desc-kill = Mi puoi aiutare ad eliminare
 hud-quest-reward = Ti ricompenserò con:
 hud-quest-accept = Accetta
 hud-quest-decline = Rifiuta
+hud-dialogue = Dialoghi
+hud-dialogue-ack = Premi [{ $key }] per confermare

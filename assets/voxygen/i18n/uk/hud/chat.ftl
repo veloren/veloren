@@ -1,10 +1,6 @@
 ## Player events
 
-hud-chat-online_msg =
-    { "[" }{ $name }] { $user_gender ->
-        [she] зайшла на сервер.
-       *[he] зайшов на сервер.
-    }
+hud-chat-online_msg = { "[" }{ $name }] приєднується до гри.
 hud-chat-offline_msg =
     { "[" }{ $name }] { $user_gender ->
         [she] вийшла з серверу.

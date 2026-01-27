@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = 起動時に表示しない
 hud-show_tips = ヒント表示
 hud-quests = クエスト
 hud-you_died = あなたは死にました

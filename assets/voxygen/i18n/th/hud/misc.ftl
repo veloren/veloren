@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = ไม่ต้องแสดงเมื่อเปิดเกม
 hud-show_tips = แสดงคำแนะนำ
 hud-quests = ภารกิจ
 hud-you_died = สิ้นชีพ

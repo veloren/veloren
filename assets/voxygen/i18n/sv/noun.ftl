@@ -37,3 +37,5 @@ noun-role-guard = en vakt
 noun-role-adventurer = en äventyrare
 noun-role-pirate = en pirat
 noun-role-captain = en kapten
+noun-role-farmer = en bonde
+noun-role-hunter = en jägare

@@ -1,2 +1,2 @@
-esc_menu-logout = Logga Ut
-esc_menu-quit_game = Avsluta Spel
+esc_menu-logout = Logga ut
+esc_menu-quit_game = Avsluta spel

@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = 启动时不显示
 hud-show_tips = 显示提示
 hud-quests = 任务
 hud-you_died = 你死了
