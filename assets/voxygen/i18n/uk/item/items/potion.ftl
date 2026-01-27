@@ -22,3 +22,5 @@ object-potion_curious = Дивне Зілля
     .desc = Цікаво, що воно робить...
 object-potion_freezing = Морозне Зілля
     .desc = Заморожує мозок того, хто випив.
+object-potion_trans = Гемографічне Зілля Трансмутації
+    .desc = Назавжди змінює ваш тип тіла

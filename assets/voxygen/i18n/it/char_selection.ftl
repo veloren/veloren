@@ -21,3 +21,9 @@ char_selection-starting_site_kind = Tipo: { $kind }
 char_selection-create_info_name = Il tuo personaggio ha bisogno di un nome!
 char_selection-version_mismatch = ATTENZIONE! Questo server sta usando una versione differente, possibilmente incompatibile, di gioco. Per favore aggiorna la tua versione.
 char_selection-rules = Regole
+char_selection-hardcore = Hardcore
+char_selection-editing_character = Salvataggio personaggio...
+char_selection-hardcore_tooltip =
+    I personaggi hardcore verranno eliminati alla morte, senza altre modifiche alla difficoltà.
+
+    Hardcore è consigliato solo per giocatori esperti.

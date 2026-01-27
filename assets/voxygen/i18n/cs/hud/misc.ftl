@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Neukazovat při zapnutí
 hud-show_tips = Ukázat tipy
 hud-quests = Úkoly
 hud-you_died = Zemřel/a jsi

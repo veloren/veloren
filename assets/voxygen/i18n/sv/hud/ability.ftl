@@ -2,46 +2,46 @@ common-abilities-debug-possess = Besättande spil
     .desc = Skjuter en förgiftad pil. Låter dig kontrollera ditt mål.
 common-abilities-staff-fireshockwave = Eldens ring
     .desc = Tänder eld på marken med en eldig stötvåg.
-common-abilities-sceptre-wardingaura = Vårdande Aura
+common-abilities-sceptre-wardingaura = Vårdande aura
     .desc = Skyddar dina allierade mot fiendens attacker.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Tung Hållning
+veloren-core-pseudo_abilities-sword-heavy_stance = Tung hållning
     .desc = Attacker i denna hållning kan göra att fiender vacklar och ge mer skada på vacklande fiender men är långsammare.
-veloren-core-pseudo_abilities-sword-agile_stance = Smidig Hållning
+veloren-core-pseudo_abilities-sword-agile_stance = Smidig hållning
     .desc = Attacker är snabbare men svagare i denna hållning.
-veloren-core-pseudo_abilities-sword-defensive_stance = Defensiv Hållning
+veloren-core-pseudo_abilities-sword-defensive_stance = Defensiv hållning
     .desc = Attacker i denna hållning kan användas som en svag blockering eller parering.
-veloren-core-pseudo_abilities-sword-crippling_stance = Förlamande Hållning
+veloren-core-pseudo_abilities-sword-crippling_stance = Förlamande hållning
     .desc = Attacker i denna hållning skapar eller förvärrar varaktiga skador.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Klyvande Hållning
+veloren-core-pseudo_abilities-sword-cleaving_stance = Klyvande hållning
     .desc = Attacker i denna hållning kan träffa flera fiender.
 veloren-core-pseudo_abilities-sword-double_slash = Dubbelhugg
     .desc = En kombo med två träffar.
-common-abilities-sword-basic_double_slash = Grundläggande Dubbelhugg
+common-abilities-sword-basic_double_slash = Grundläggande dubbelhugg
     .desc = En grundläggande tvåslagskombo.
-common-abilities-sword-heavy_double_slash = Tungt Dubbelhugg
+common-abilities-sword-heavy_double_slash = Tungt dubbelhugg
     .desc = En långsammare tvåslagskombo som kan få en att vackla.
-common-abilities-sword-agile_double_slash = Smidigt Dubbelhugg
+common-abilities-sword-agile_double_slash = Smidigt dubbelhugg
     .desc = En snabb tvåslagskombo med lättare hugg.
-common-abilities-sword-defensive_double_slash = Defensivt Dubbelhugg
+common-abilities-sword-defensive_double_slash = Defensivt dubbelhugg
     .desc = En tvåslagskombo som minskar effekten av fiendens attacker.
-common-abilities-sword-crippling_double_slash = Förlamande Dubbelhugg
+common-abilities-sword-crippling_double_slash = Förlamande dubbelhugg
     .desc = En tvåslagskombo som kan förlänga fiendens blödande.
-common-abilities-sword-cleaving_double_slash = Klyvande Dubbelhugg
+common-abilities-sword-cleaving_double_slash = Klyvande dubbelhugg
     .desc = En tvåslagskombo som kan klyva genom flera fiender.
-veloren-core-pseudo_abilities-sword-secondary_ability = Sekundär Svärdsförmåga
+veloren-core-pseudo_abilities-sword-secondary_ability = Sekundär svärdförmåga
     .desc = Förmågan bunden till sekundär attackknapp.
-common-abilities-sword-basic_thrust = Grundläggande Stöt
+common-abilities-sword-basic_thrust = Grundläggande stöt
     .desc = Laddar man upp stöten blir den kraftfullare.
-common-abilities-sword-heavy_slam = Tung Smäll
+common-abilities-sword-heavy_slam = Tung smäll
     .desc = Ett tungt hugg över huvudet som kan laddas upp för att få fienden att vackla mer.
 common-abilities-sword-agile_perforate = Perforera
     .desc = Ett snabbt virrvarr av lätta attacker.
 common-abilities-sword-agile_dual_perforate = Perforera
     .desc = Ett snabbt virrvarr av lätta attacker med båda svärd.
-common-abilities-sword-defensive_vital_jab = Defensivt Dödligt Hugg
+common-abilities-sword-defensive_vital_jab = Defensivt dödligt hugg
     .desc = Ett snabbt laddat hugg som gör mer skada mot parerade fiender.
-common-abilities-sword-crippling_deep_rend = Djupt Sår
+common-abilities-sword-crippling_deep_rend = Djupt sår
     .desc = Ett hugg riktat mot ett redan öppet sår, gör mer skada mot blödande fiender.
 common-abilities-sword-cleaving_spiral_slash = Spiralhugg
     .desc = Svep ditt blad hela vägen runt dig för att träffa alla i närheten.
@@ -51,99 +51,99 @@ veloren-core-pseudo_abilities-sword-crescent_slash = Halvmåneshugg
     .desc =
         Ett uppåtriktat diagonellt hugg.
         Denna skill ändras beroende på din antagna hållning.
-common-abilities-sword-basic_crescent_slash = Grundläggande Halvmåneshugg
+common-abilities-sword-basic_crescent_slash = Grundläggande halvmåneshugg
     .desc = Ett grundläggande uppåtriktat diagonellt hugg.
-common-abilities-sword-heavy_crescent_slash = Tungt Halvmåneshugg
+common-abilities-sword-heavy_crescent_slash = Tungt halvmåneshugg
     .desc = Ett uppåtriktat diagonellt hugg som kan få fienden att vackla.
-common-abilities-sword-agile_crescent_slash = Smidigt Halvmåneshugg
+common-abilities-sword-agile_crescent_slash = Smidigt halvmåneshugg
     .desc = Ett lätt uppåtriktat diagolellt hugg.
-common-abilities-sword-defensive_crescent_slash = Defensivt Halvmåneshugg
+common-abilities-sword-defensive_crescent_slash = Defensivt halvmåneshugg
     .desc = Ett parerande uppåtriktat diagolellt hugg.
-common-abilities-sword-crippling_crescent_slash = Förlamande Halvmåneshugg
+common-abilities-sword-crippling_crescent_slash = Förlamande halvmåneshugg
     .desc = Ett uppåtriktat diagonellt hugg som kan blöda.
-common-abilities-sword-cleaving_crescent_slash = Klyvande Halvmåneshugg
+common-abilities-sword-cleaving_crescent_slash = Klyvande halvmåneshugg
     .desc = Ett uppåtriktat diagonellt hugg som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-fell_strike = Dödligt Hugg
+veloren-core-pseudo_abilities-sword-fell_strike = Dödligt hugg
     .desc =
         Ett snabbt starkt hugg.
         Denna skill ändras beroende på din antagna hållning.
-common-abilities-sword-basic_fell_strike = Grundläggande Dödligt Hugg
+common-abilities-sword-basic_fell_strike = Grundläggande dödligt hugg
     .desc = Ett grundläggande snabbt starkt hugg.
-common-abilities-sword-heavy_fell_strike = Tungt Dödligt Hugg
+common-abilities-sword-heavy_fell_strike = Tungt dödligt hugg
     .desc = Ett starkt hugg som kan få fienden att vackla.
-common-abilities-sword-agile_fell_strike = Smidigt Dödligt Hugg
+common-abilities-sword-agile_fell_strike = Smidigt dödligt hugg
     .desc = Ett väldigt snabbt starkt hugg.
-common-abilities-sword-defensive_fell_strike = Defensivt Dödligt Hugg
+common-abilities-sword-defensive_fell_strike = Defensivt dödligt hugg
     .desc = A parerande snabbt starkt hugg.
-common-abilities-sword-crippling_fell_strike = Förlamande Dödligt Hugg
+common-abilities-sword-crippling_fell_strike = Förlamande dödligt hugg
     .desc = Ett snabbt starkt hugg som kan blöda.
-common-abilities-sword-cleaving_fell_strike = Klyvande Dödligt Hugg
+common-abilities-sword-cleaving_fell_strike = Klyvande dödligt hugg
     .desc = Ett snabbt starkt hugg som kan klyva genom fiender.
 veloren-core-pseudo_abilities-sword-skewer = Spetsning
     .desc =
         Ett spetsande utfall.
         Denna skill ändras beroende på din antagna hållning.
-common-abilities-sword-basic_skewer = Grundläggande Spetsning
+common-abilities-sword-basic_skewer = Grundläggande spetsning
     .desc = Ett grundläggande spetsande utfall.
-common-abilities-sword-heavy_skewer = Tung Spetsning
+common-abilities-sword-heavy_skewer = Tung spetsning
     .desc = Ett spetsande utfall som kan få fienden att vackla.
-common-abilities-sword-agile_skewer = Smidig Spetsning
+common-abilities-sword-agile_skewer = Smidig spetsning
     .desc = Ett snabbt spetsande utfall.
-common-abilities-sword-defensive_skewer = Defensiv Spetsning
+common-abilities-sword-defensive_skewer = Defensiv spetsning
     .desc = Ett parerande spetsande utfall.
-common-abilities-sword-crippling_skewer = Förlamande Spetsning
+common-abilities-sword-crippling_skewer = Förlamande spetsning
     .desc = Ett spetsande utfall som kan blöda.
-common-abilities-sword-cleaving_skewer = Klyvande Spetsning
+common-abilities-sword-cleaving_skewer = Klyvande spetsning
     .desc = Ett spetsande utfall som kan klyva genom fiender.
 veloren-core-pseudo_abilities-sword-cascade = Kaskad
     .desc =
         Ett hugg över huvudet.
         Denna skill ädnras beroende på din antagna hållning.
-common-abilities-sword-basic_cascade = Grundläggande Kaskad
+common-abilities-sword-basic_cascade = Grundläggande kaskad
     .desc = Ett grundläggande hugg över huvudet.
-common-abilities-sword-heavy_cascade = Tung Kaskad
+common-abilities-sword-heavy_cascade = Tung kaskad
     .desc = Ett hugg över huvudet som kan få fienden att vackla.
-common-abilities-sword-agile_cascade = Smidig Kaskad
+common-abilities-sword-agile_cascade = Smidig kaskad
     .desc = Ett snabbt hugg över huvudet.
-common-abilities-sword-defensive_cascade = Defensiv Kaskad
+common-abilities-sword-defensive_cascade = Defensiv kaskad
     .desc = Ett parerande hugg över huvudet.
-common-abilities-sword-crippling_cascade = Förlamande Kaskad
+common-abilities-sword-crippling_cascade = Förlamande kaskad
     .desc = Ett hugg över huvudet som kan blöda.
-common-abilities-sword-cleaving_cascade = Klyvande Kaskad
+common-abilities-sword-cleaving_cascade = Klyvande kaskad
     .desc = Ett hugg över huvudet som kan klyva genom fiender.
 veloren-core-pseudo_abilities-sword-cross_cut = Korshugg
     .desc =
         Ett hugg åt höger och vänster.
         Denna skill ändras beroende på din antagna hållning.
-common-abilities-sword-basic_cross_cut = Grundläggande Korshugg
+common-abilities-sword-basic_cross_cut = Grundläggande korshugg
     .desc = Ett grundläggande hugg åt höger och vänster.
-common-abilities-sword-heavy_cross_cut = Tungt Korshugg
+common-abilities-sword-heavy_cross_cut = Tungt korshugg
     .desc = Ett hugg åt höger och vänster som kan få fienden att vackla.
-common-abilities-sword-agile_cross_cut = Smidigt Korshugg
+common-abilities-sword-agile_cross_cut = Smidigt korshugg
     .desc = Ett snabbt hugg åt höger och vänster.
-common-abilities-sword-defensive_cross_cut = Defensivt Korshugg
+common-abilities-sword-defensive_cross_cut = Defensivt korshugg
     .desc = Ett parerande hugg åt höger och vänster.
-common-abilities-sword-crippling_cross_cut = Förlamande Korshugg
+common-abilities-sword-crippling_cross_cut = Förlamande korshugg
     .desc = Ett hugg åt höger och vänster som kan blöda.
-common-abilities-sword-cleaving_cross_cut = Klyvande Korshugg
+common-abilities-sword-cleaving_cross_cut = Klyvande korshugg
     .desc = Ett hugg åt höger och vänster som kan klyva genom fiender.
-common-abilities-sword-basic_dual_cross_cut = Grundläggande Korshugg
+common-abilities-sword-basic_dual_cross_cut = Grundläggande korshugg
     .desc = Ett grundläggande hugg åt höger och vänster samtidigt.
-common-abilities-sword-heavy_dual_cross_cut = Tungt Korshugg
+common-abilities-sword-heavy_dual_cross_cut = Tungt korshugg
     .desc = Ett hugg åt höger och vänster samtidigt som kan få fienden att vackla.
-common-abilities-sword-agile_dual_cross_cut = Smidigt Korshugg
+common-abilities-sword-agile_dual_cross_cut = Smidigt korshugg
     .desc = Ett snabbt hugg åt höger och vänster samtidigt.
-common-abilities-sword-defensive_dual_cross_cut = Defensivt Korshugg
+common-abilities-sword-defensive_dual_cross_cut = Defensivt korshugg
     .desc = Ett parerande hugg åt höger och vänster samtidigt.
-common-abilities-sword-crippling_dual_cross_cut = Förlamande Korshugg
+common-abilities-sword-crippling_dual_cross_cut = Förlamande korshugg
     .desc = Ett hugg åt höger och vänster samtidigt som kan blöda.
-common-abilities-sword-cleaving_dual_cross_cut = Klyvande Korshugg
+common-abilities-sword-cleaving_dual_cross_cut = Klyvande korshugg
     .desc = Ett hugg åt höger och vänster samtidigt som kan klyva genom fiender.
 veloren-core-pseudo_abilities-sword-finisher = Avslutare
     .desc =
         En förmåga som konsumerar kombo och är menat för att avsluta en strid.
         Denna skill ändras beroende på din antagna hållning.
-common-abilities-sword-basic_mighty_strike = Mäktigt Hugg
+common-abilities-sword-basic_mighty_strike = Mäktigt hugg
     .desc =
         Ett simpelt kraftfullt hugg.
         Kräver en måttlig mängd kombo för att använda.
@@ -151,7 +151,7 @@ common-abilities-sword-heavy_guillotine = Giljotin
     .desc =
         En stark klyvning som troligtvis vacklar det den inte dödar.
         Kräver en måttlig mängd kombo för att använda.
-common-abilities-sword-agile_hundred_cuts = Hundra Hugg
+common-abilities-sword-agile_hundred_cuts = Hundra hugg
     .desc =
         Många väldigt snabba hugg mot din fiende.
         Kräver en måttlig mängd kombo för att använda.
@@ -163,23 +163,23 @@ common-abilities-sword-crippling_mutilate = Lemlästa
     .desc =
         Lämlesta din fiende genom att såga genom deras skador, gör mer skada mot blödande fiender.
         Kräver en måttlig mängd kombo för att använda.
-common-abilities-sword-cleaving_bladestorm = Storm av Svärdsblad
+common-abilities-sword-cleaving_bladestorm = Storm av svärdsblad
     .desc =
         Överrumpla dina fiender med flera cykliska hugg med ditt svärd.
         Kräver en måttlig mängd kombo för att använda.
-common-abilities-sword-cleaving_dual_bladestorm = Storm av Svärdsblad
+common-abilities-sword-cleaving_dual_bladestorm = Storm av svärdsblad
     .desc =
         Överrumpla dina fiender med flera cykliska sving med båda dina svärd.
         Kräver en måttlig mängd kombo för att använda.
-common-abilities-sword-heavy_sweep = Tungt Svep
+common-abilities-sword-heavy_sweep = Tungt svep
     .desc =
         Ett tungt brett svepande hugg som gör mer skada mot vacklande fiender.
         Påbörjar tung hållning.
 common-abilities-sword-heavy_pommel_strike = Pommelsslag
     .desc =
-        Ge din fiende en hjärnskakning med ett trubbigt slag på huvudet.
+        Slå din fiende med ett trubbigt slag på huvudet. Mer vacklande om de blockerar.
         Påbörjar tung hållning.
-common-abilities-sword-agile_quick_draw = Snabbt Drag
+common-abilities-sword-agile_quick_draw = Snabbt drag
     .desc =
         Rusa framåt medan du drar ditt svärd för en snabb attack.
         Påbörjar smidig hållning.
@@ -223,7 +223,7 @@ common-abilities-sword-heavy_pillar_thrust = Pelarstöt
     .desc =
         Stick ditt svärd genom fienden, hela vägen ner i marken, är effektivare om detta används medan du faller.
         Kräver tung hållning.
-common-abilities-sword-agile_dancing_edge = Dansande Egg
+common-abilities-sword-agile_dancing_edge = Dansande egg
     .desc =
         Rör dig och attackera snabbare.
         Kräver smidig hållning.
@@ -235,7 +235,7 @@ common-abilities-sword-agile_dual_flurry = Flurry
     .desc =
         Flera snabba hugg med båda svärd.
         Kräver smidig hållning.
-common-abilities-sword-defensive_stalwart_sword = Stabilt Svärd
+common-abilities-sword-defensive_stalwart_sword = Stabilt svärd
     .desc =
         Skaka av dig de flesta attackerna, inkommande skada är reducerad.
         Kräver defensiv hållning.
@@ -247,7 +247,7 @@ common-abilities-sword-crippling_eviscerate = Slit isär
     .desc =
         Sliter upp sår mer, gör mer skada mot förlamade fiender.
         Kräver förlamande hållning.
-common-abilities-sword-crippling_bloody_gash = Blodigt Jack
+common-abilities-sword-crippling_bloody_gash = Blodigt jack
     .desc =
         Hugg grymt en redan blödande skada, gör mer skada mot blödande fiender.
         Kräver förlamande hållning.
@@ -266,12 +266,12 @@ common-abilities-axe-execute = Avrätta
         Uppgraderar automatiskt till maelstrom vid 50 kombo om upplåst.
 common-abilities-axe-berserk = Bärsärk
     .desc = Ökar din styrka dock med kostnaden av att lämna dig sårbar.
-common-abilities-axe-brutal_swing = Brutal Sving
+common-abilities-axe-brutal_swing = Brutal sving
     .desc = En snurrande klyvning runt om dig.
 common-abilities-axe-maelstrom = Maelstrom
     .desc =
         Slå allt i din närhet med ett förödande, snurrande slag.
-        Uppgraderar automatisk från avrätta vid 50 kombo.
+        Uppgraderar automatisk från avrätta vid { $min_combo_upg } kombo.
 # Axe abilities
 common-abilities-axe-triple_chop = Tripellhugg
     .desc = Tre snabba slag.
@@ -328,7 +328,7 @@ common-abilities-axe-defiance = Trotsning
     .desc = Stirra döden i ögat längre medan du gör dig sjäv resistent mot både vacklanden och döden.
 # Axe abilities
 # Hammer abilities
-common-abilities-hammer-solid_smash = Rejäl Smäll
+common-abilities-hammer-solid_smash = Rejäl smäll
     .desc = En rejäl smäll, det kommer göra ont.
 # Axe abilities
 common-abilities-hammer-dual_intercept = Interceptera
@@ -372,3 +372,9 @@ common-abilities-axe-skull_bash = Skalleslag
     .desc = Ett slag med det platta av din yxa som kan vackla.
 common-abilities-hammer-scornful_swipe = Föraktfullt Slag
     .desc = Förstärk din mod och ork genom att håna dina fiender innan du slår dem. Om du faller du till en fiende blir de stärkta.
+common-abilities-staff-firebomb = Eldbomb
+    .desc = Skjuter ett eldklot som exploderar vid nedslag.
+common-abilities-staff-flamethrower = Eldkastare
+    .desc = Sprutar eld framför dig.
+common-abilities-sceptre-healingaura = Läkande aura
+    .desc = Läker dina allierade. Kräver kombo för att aktivera.

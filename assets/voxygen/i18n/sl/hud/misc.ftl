@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Tega ne pokaži ob zagonu
 hud-show_tips = Pokaži namige
 hud-quests = Naloge
 hud-waypoint_saved = Kažipot shranjen

@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Ne jelenjen meg indításkor
 hud-show_tips = Tippek megjelenítése
 hud-quests = Küldetések
 hud-you_died = Meghaltál

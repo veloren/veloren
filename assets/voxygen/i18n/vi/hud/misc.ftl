@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Không hiển thị lúc Khởi động
 hud-show_tips = Hiển Thị Mẹo
 hud-quests = Nhiệm Vụ
 hud-you_died = Bạn Đã Chết

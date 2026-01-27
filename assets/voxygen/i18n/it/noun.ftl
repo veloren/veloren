@@ -1,4 +1,3 @@
-#
 noun-creature = una creatura
 noun-ogre-male = un ogre
 noun-ogre-female = un'ogre
@@ -32,3 +31,4 @@ noun-terracotta_demolisher = un demolitore di terracotta
 noun-terracotta_punisher = un punitore di terracotta
 noun-terracotta_pursuer = un inseguitore terracotta
 noun-cursekeeper = un custode della maledizione
+noun-gigas_fire = un gigas di fuoco

@@ -61,3 +61,5 @@ sprite-spore-corruption_spore = Spora di corruzione
         Senti una forza malvagia pulsare dentro.
 
         Può essere poco saggio tenerlo per troppo tempo...
+sprite-lettuce-lettuce = Lattuga
+    .desc = Un verdissimo ortaggio a foglia. La lattuga è perfetta per preparare delle insalate!

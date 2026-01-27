@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Не приказуј ово при покретању
 hud-show_tips = Прикажи Савете
 hud-quests = Мисије
 hud-you_died = Погино/ла си

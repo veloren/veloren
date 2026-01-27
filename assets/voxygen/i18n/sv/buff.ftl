@@ -210,3 +210,10 @@ buff-resilience = Resilians
     .desc = Efter att just ha tagit en försvagande attack blit du mer resilient mot framtida försvagande effekter.
 buff-scornfultaunt = Föraktfullt Hån
     .desc = Du hånar dina fiender föraktfullt, och får förstärkt mod och ork. Din död kommer dock förstärka din dödare.
+buff-combo_generation = Kombogenerering
+    .desc = Genererar kombo över tid.
+    .stat =
+        { $duration ->
+            [1] Genererar { $str_total } kombo under { $duration } sekund.
+           *[other] Genererar { $str_total } kombo under { $duration } sekunder.
+        }

@@ -29,7 +29,7 @@ hud-crafting-dismantle_title = Smantellamento
 hud-crafting-dismantle_explanation =
     Passa il mouse sopra i tuoi oggetti nella borsa per vedere
     cosa puoi recuperare.
-    
+
     Fai Doppio Click per iniziare a smantellarlo.
 hud-crafting-modular_desc = Trascina qui le parti oggetto per creare un'arma
 hud-crafting-mod_weap_prim_slot_title = Componente principale dell'arma
@@ -44,3 +44,8 @@ hud-crafting-mod_comp_sec_slot_title = Componente animale
 hud-crafting-mod_comp_sec_slot_desc = Facoltativamente, posiziona un ingrediente animale, solo alcuni ingredienti possono essere utilizzati per potenziare le armi.
 hud-crafting-repair_slot_title = Oggetto danneggiato
 hud-crafting-repair_slot_desc = Posiziona qui un oggetto per vedere il costo della riparazione al suo attuale livello di resistenza.
+hud-crafting-repair-selection = Selezione
+hud-crafting-repair_equipped = Equipaggiato
+hud-crafting-repair_all = Tutto
+hud-crafting-tool_cata = Strumenti:
+hud-crafting-req_crafting_station = Stazione:

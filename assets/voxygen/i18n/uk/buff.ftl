@@ -1,8 +1,12 @@
 ## Regeneration
 
 buff-heal = Зцілення
-    .desc = Поступово відновлює здоров’я.
-    .stat = Відновлює { $str_total } ОЗ.
+    .desc = Поступово відновлює здоров'я.
+    .stat =
+        { $duration ->
+            [1] Відновлює { $str_total } ОЗ за одну секунду.
+           *[other] Відновлює { $str_total } ОЗ протягом { $duration } секунд.
+        }
 
 ## Potion
 

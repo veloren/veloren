@@ -1,4 +1,4 @@
-hud-social = Інші гравці
+hud-social = Гравці
 hud-social-online = В мережі:
 hud-social-friends = Друзі
 hud-social-not_yet_available = Ще не доступно

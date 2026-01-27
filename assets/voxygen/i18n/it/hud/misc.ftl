@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Non mostrare all'avvio
 hud-show_tips = Mostra consigli
 hud-quests = Missioni
 hud-you_died = Sei morto
@@ -74,3 +73,40 @@ hud-init-stage-client-authentication = { "[" }Client]: Autenticazione...
 hud-init-stage-client-load-init-data = { "[" }Client]: Lettura informazioni iniziali dal server...
 hud-init-stage-client-starting-client = { "[" }Client]: Preparazione client...
 hud-init-stage-render-pipeline = Generazione motore grafico ({ $done }/{ $total })
+hud-items_lost_dur = I tuoi oggetti equipaggiati hanno perso Durabilità.
+hud-items_will_lose_dur = I tuoi oggetti equipaggiati perderanno Durabilità.
+hud-hardcore_char_deleted = Questo personaggio Hardcore è stato eliminato.
+hud-steal = Ruba
+hud-steal-requires = Ruba con { $item }
+hud-steal-consumes = Usa { $item } per rubare
+hud-help = Aiuta
+hud-pet = Accarezza
+hud-rest = Riposati
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~un giorno rimasto
+           *[other] ~{ $n } giorni rimasti
+        }
+    .hours =
+        { $n ->
+            [one] ~ un'ora rimasta
+           *[other] ~{ $n } ore rimaste
+        }
+    .minutes =
+        { $n ->
+            [one] ~ un minuto rimasto
+           *[other] ~{ $n } minuti rimasti
+        }
+    .seconds =
+        { $n ->
+            [one] ~un secondo rimasto
+           *[other] ~{ $n } secondi rimasti
+        }
+hud-hardcore_will_char_deleted = Questo personaggio hardcore verrà eliminato.
+hud-press_key_to_give_up = Tieni premuto { $key } per arrenderti e morire.
+hud-downed_recieving_help = Ricezione aiuti.
+hud-waypoint_interact = Imposta Punto di Riferimento
+hud-press_key_to_return_to_char_menu = Premi { $key } per tornare al menu del personaggio.
+-server = Server
+-client = Client

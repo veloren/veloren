@@ -111,3 +111,6 @@ loading-tips =
     .a19 = Premi '{ $gameinput-roll }' per rotolare. Il rotolamento può essere usato per muoversi più velocemente ed evitare gli attacchi nemici.
     .a20 = Ti stai chiedendo a cosa serve un certo oggetto? Cerca 'input:<nome oggetto>' la finestra di creazione per vedere in quali ricette è usato.
     .a21 = Hai trovato qualcosa di bello? Fai una foto con '{ $gameinput-screenshot }'.
+main-singleplayer-map_large_extra_warning = Ci vorrebbero circa le stesse risorse necessarie per generare { $count } mondi con opzioni predefinite.
+main-singleplayer-map_shape-circle = Cerchio
+main-singleplayer-map_shape-square = Quadrato

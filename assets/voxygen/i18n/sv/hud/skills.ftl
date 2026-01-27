@@ -40,14 +40,14 @@ hud-skill-sc_lifesteal_lifesteal_title = Livsstjälande
 hud-skill-sc_lifesteal_lifesteal = Omvandlar ytterligare { $boost } % av skadan till hälsa.{ $SP }
 hud-skill-sc_lifesteal_regen_title = Energiregeneration
 hud-skill-sc_lifesteal_regen = Fyll på din energi med ytterligare { $boost } %.{ $SP }
-hud-skill-sc_heal_title = Healande Aura
-hud-skill-sc_heal = Heala dina allierade med dina fienders blod, kräver kombo för att aktivera.
-hud-skill-sc_heal_heal_title = Heala
-hud-skill-sc_heal_heal = Ökar mängden du healar med { $boost } %.{ $SP }
+hud-skill-sc_heal_title = Läkande aura
+hud-skill-sc_heal = Läka dina allierade med dina fienders blod, kräver kombo för att aktivera.
+hud-skill-sc_heal_heal_title = Läka
+hud-skill-sc_heal_heal = Ökar mängden du läker med { $boost } %.{ $SP }
 hud-skill-sc_heal_cost_title = Energikostnad
-hud-skill-sc_heal_cost = Healande kräver { $boost } % mindre energi.{ $SP }
+hud-skill-sc_heal_cost = Läkande kräver { $boost } % mindre energi.{ $SP }
 hud-skill-sc_heal_duration_title = Tidsspann
-hud-skill-sc_heal_duration = Effekterna från din healande aura varar { $boost } % längre.{ $SP }
+hud-skill-sc_heal_duration = Effekterna från din läkande aura varar { $boost } % längre.{ $SP }
 hud-skill-sc_heal_range_title = Radie
 hud-skill-sc_heal_range = Din läkande aura når { $boost } % längre.{ $SP }
 hud-skill-sc_wardaura_unlock_title = Låser upp beskyddande aura
@@ -93,7 +93,7 @@ hud-skill-pick_strike_title = Hackeslag
 hud-skill-pick_strike = Slå stenar med hackan för att få malm, ädelstenar och erfarenhet.
 hud-skill-pick_strike_speed_title = Hackeslaghastighet
 hud-skill-pick_strike_speed = Hacka stenar fortare.{ $SP }
-hud-skill-pick_strike_oregain_title = Hackans Malmavkastning
+hud-skill-pick_strike_oregain_title = Hackans malmavkastning
 hud-skill-pick_strike_oregain = Chans att få extra malm ({ $boost } % per nivå).{ $SP }
 hud-skill-pick_strike_gemgain_title = Hackans Ädelstensavkastning
 hud-skill-pick_strike_gemgain = Chans att få extra ädelstenar ({ $boost } % per nivå).{ $SP }
@@ -108,7 +108,7 @@ hud-skill-persistence-deserialization_failure = Det var ett fel i laddandet av n
 # Skill tree error dialog
 hud-skill-persistence-spent_experience_missing = Mängden gratis erfarenhet du hade i en av dina erfarenhetsgrupper skiljde sig från senast du spelade.
 # Skill tree UI
-hud-skill_tree-general = Allmän Strid
+hud-skill_tree-general = Allmän strid
 # Skill tree UI
 hud-skill_tree-sword = Svärd
 # Skill tree UI

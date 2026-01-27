@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Nu arăta asta la pornire
 hud-show_tips = Arată Sfaturi
 hud-quests = Misiuni
 hud-you_died = Ai murit

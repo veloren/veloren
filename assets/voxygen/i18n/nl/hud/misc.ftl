@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = Niet meer bij opstarten tonen
 hud-show_tips = Tips tonen
 hud-quests = Quests
 hud-you_died = Je bent gedood

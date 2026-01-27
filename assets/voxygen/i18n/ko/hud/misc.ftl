@@ -1,4 +1,3 @@
-hud-do_not_show_on_startup = 시작할 때 보이지 않기
 hud-show_tips = 팁 보이기
 hud-quests = 퀘스트
 hud-you_died = 사망함

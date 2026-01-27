@@ -12,3 +12,5 @@ weapon-projectile-fireworks_white = Fuoco d'artificio bianco
     .desc = Brilla come le stelle.
 weapon-projectile-fireworks_yellow = Fuoco d'artificio giallo
     .desc = Il grande dottore è deceduto dopo aver testato questa invenzione al chiuso.
+object-surprise_egg = Uovo a Sorpresa
+    .desc = Edizione pasquale esplosiva.

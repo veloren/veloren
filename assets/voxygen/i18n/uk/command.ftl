@@ -10,10 +10,11 @@ command-uuid-username-unavailable = Неможливо визначити лог
 command-no-sudo = Вдавати інших гравців неввічливо
 command-entity-dead = Сутність '{ $entity }' мертва!
 command-error-while-evaluating-request = При валідації запиту сталася помилка: { $error }
-command-give-inventory-full = Інвентар гравця повний. Видано { $given ->
-  [1] лише один
-  *[other] { $given }
-} з { $total } предметів.
+command-give-inventory-full =
+    Інвентар гравця повний. Видано { $given ->
+        [1] лише один
+       *[other] { $given }
+    } з { $total } предметів.
 command-invalid-item = Неправильний предмет: { $item }
 command-invalid-block-kind = Неправильний тип блока: { $kind }
 command-nof-entities-at-least = Сутностей має бути щонайменше 1
@@ -64,9 +65,9 @@ command-battlemode-same = Спроба встановити той самий б
 command-battlemode-updated = Новий бойовий режим: { $battlemode }
 command-buff-unknown = Невідомий баф: { $buff }
 command-skillpreset-load-error = Помилка при завантаженні пресетів
-command-skillpreset-broken = Пресет вмінь пошкоджений 
+command-skillpreset-broken = Пресет вмінь пошкоджений
 command-skillpreset-missing = Пресет не існує: { $preset }
-command-location-invalid = Назва локації '{ $location }' невалідна. Назви можуть містити тільки малі літери ASCII та підкреслення. 
+command-location-invalid = Назва локації '{ $location }' невалідна. Назви можуть містити тільки малі літери ASCII та підкреслення.
 command-location-duplicate = Локація '{ $location }' вже існує.
 command-location-not-found = Локація '{ $location }' не існує
 command-location-created = Свторено локацію '{ $location }'
@@ -77,8 +78,9 @@ command-locations-list = Доступні локації: { $locations }
 command-weather-valid-values = Допустимі значення: 'clear', 'rain', 'wind', 'storm'
 command-scale-set = Встановити масштаб в { $scale }
 command-repaired-items = Всі одягнути речі відремонтовано
-command-message-group-missing = Ви використовуєте чат групи, до якої не належите. Використовуйте /world чи
-  /region щоб змінити чат.
+command-message-group-missing =
+    Ви використовуєте чат групи, до якої не належите. Використовуйте /world чи
+    /region щоб змінити чат.
 command-tell-request = { $sender } хоче говорити з вами.
 
 # Unreachable/untestable but added for consistency
@@ -94,3 +96,10 @@ command-destroyed-tethers = Всі пута знищено! Тепер ви ві
 command-destroyed-no-tethers = Ви не підключені до пут
 command-dismounted = Ви спішилися
 command-no-dismount = Ви не їдете верхи і ніхто не їде верхи на вас
+command-help-template = { $usage } { $description }
+command-help-list =
+    { $client-commands }
+    { $server-commands }
+
+    Додатково ви можете використовувати наступні скорочення:
+    { $additional-shortcuts }
