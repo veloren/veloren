@@ -8,13 +8,13 @@
 publishdockertag () {
   # This stores the result in PUBLISH_DOCKER_TAG.
   export PUBLISH_DOCKER_TAG="";
-  
+
   if [[ "${CI_COMMIT_TAG}" =~ ${TAG_REGEX} ]]; then
     export PUBLISH_DOCKER_TAG="${CI_COMMIT_TAG}";
     return 0;
   fi
 
-  if [[ "${SCHEDULE_CADENCE}" != "" && ${CI_PIPELINE_SOURCE} == "schedule" ]]; then
+  if [[ "${SCHEDULE_CADENCE}" != "" && "${CI_PIPELINE_SOURCE}" == "schedule" ]]; then
     # Sanitize check.
     if [[ "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
       export PUBLISH_DOCKER_TAG="invalid_cadence";
@@ -24,7 +24,7 @@ publishdockertag () {
     return 0;
   fi
 
-  if [[ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]]; then
+  if [[ "${CI_COMMIT_BRANCH}" == "${CI_DEFAULT_BRANCH}" ]]; then
     export PUBLISH_DOCKER_TAG="master";
     return 0;
   fi
