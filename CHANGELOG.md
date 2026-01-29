@@ -14,11 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
+
 ### Changed
 
 ### Removed
 
 ### Fixed
+
 - Chat command autocomplete now works correctly again.
 
 ## [0.18.0] - 2026-01-23

@@ -1,10 +1,12 @@
 use crate::data::Npcs;
-use common::rtsim::NpcId;
+use common::{rtsim::NpcId, terrain::MapSizeLg};
 use std::cmp::Ordering;
 use vek::*;
 use world::{
     World,
-    civ::airship_travel::{AirshipFlightPhase, AirshipSpawningLocation, Airships},
+    civ::airship_travel::{
+        AirshipDockingApproach, AirshipFlightPhase, AirshipSpawningLocation, Airships,
+    },
     util::DHashMap,
 };
 
@@ -149,6 +151,46 @@ impl AirshipSim {
                 debug_airships!(4, "Route {} pilots: {:?}", route_index, pilots_on_route);
                 self.route_pilots.insert(route_index, pilots_on_route);
             }
+        }
+    }
+
+    /// Retrieves two airship destinations - the current and the next.
+    pub fn next_destinations(
+        &self,
+        airships: &Airships,
+        map: &MapSizeLg,
+        route_index: usize,
+        current_leg: Option<(usize, AirshipFlightPhase)>,
+    ) -> Option<(AirshipDockingApproach, AirshipDockingApproach)> {
+        if let Some(current_leg) = current_leg {
+            match current_leg.1 {
+                // If docked, retrieve the next two.
+                AirshipFlightPhase::Docked | AirshipFlightPhase::Ascent => {
+                    let next_route_leg = airships.increment_route_leg(route_index, current_leg.0);
+                    Some((
+                        airships.approach_for_route_and_leg(route_index, next_route_leg, map),
+                        airships.approach_for_route_and_leg(
+                            route_index,
+                            airships.increment_route_leg(route_index, next_route_leg),
+                            map,
+                        ),
+                    ))
+                },
+                // If not docked, retrieve the current and next.
+                AirshipFlightPhase::ApproachCruise
+                | AirshipFlightPhase::DepartureCruise
+                | AirshipFlightPhase::Descent
+                | AirshipFlightPhase::Transition => Some((
+                    airships.approach_for_route_and_leg(route_index, current_leg.0, map),
+                    airships.approach_for_route_and_leg(
+                        route_index,
+                        airships.increment_route_leg(route_index, current_leg.0),
+                        map,
+                    ),
+                )),
+            }
+        } else {
+            None
         }
     }
 

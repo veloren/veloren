@@ -138,6 +138,13 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
             }
         }
 
+        if let Some(Profession::Captain) = &ctx.npc.profession() {
+            responses.push((
+                Response::from(Content::localized("dialogue-question-where-ship-going")),
+                dialogue::where_are_we_going_next(session).boxed(),
+            ));
+        }
+
         // General informational questions
         responses.push((
             Response::from(Content::localized("dialogue-question-site")),
@@ -239,6 +246,61 @@ fn about_self<S: State>(session: DialogueSession) -> impl Action<S> {
             .say_statement(name)
             .then(session.say_statement(job))
             .then(session.say_statement(home))
+    })
+}
+
+fn where_are_we_going_next<S: State>(session: DialogueSession) -> impl Action<S> {
+    now(move |ctx, _| match ctx.npc.profession() {
+        Some(Profession::Captain) => {
+            let msg = if let Some(assigned_route) =
+                ctx.data.airship_sim.assigned_routes.get(&ctx.npc_id)
+            {
+                let dests = ctx.data.airship_sim.next_destinations(
+                    &ctx.world.civs().airships,
+                    &ctx.world.sim().map_size_lg(),
+                    assigned_route.0,
+                    ctx.controller.current_airship_pilot_leg,
+                );
+
+                if let Some(dests) = dests {
+                    let first_site_name = ctx
+                        .index
+                        .sites
+                        .get(dests.0.site_id)
+                        .name()
+                        .unwrap_or("Unknown Site")
+                        .to_string();
+                    let next_site_name = ctx
+                        .index
+                        .sites
+                        .get(dests.1.site_id)
+                        .name()
+                        .unwrap_or("Unknown Site")
+                        .to_string();
+
+                    let first_site_vec = dests.0.approach_transition_pos - ctx.npc.wpos.xy();
+                    let first_site_dir = Direction::from_dir(first_site_vec).localize_npc();
+
+                    let next_site_vec = dests.1.approach_transition_pos - ctx.npc.wpos.xy();
+                    let next_site_dir = Direction::from_dir(next_site_vec).localize_npc();
+
+                    Content::localized("npc-speech-pilot-where_heading_now")
+                        .with_arg("dir", first_site_dir)
+                        .with_arg("dst", first_site_name)
+                        .with_arg("ndir", next_site_dir)
+                        .with_arg("ndst", next_site_name)
+                } else {
+                    Content::localized("npc-speech-pilot-unknown_destination")
+                }
+            } else {
+                Content::localized("npc-speech-pilot-unknown_destination")
+            };
+
+            session.say_statement(msg)
+        },
+        _ => session.say_statement(Content::localized(
+            "npc-speech-where_are_we_going_wrong_profession",
+        )),
     })
 }
 

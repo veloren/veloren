@@ -494,7 +494,7 @@ npc-response-quest-slay-start_3 =
     .a0 = Be warned! The beast is on the move and may not stick around for long. Ask around if the trail goes cold!
     .a1 = The creature won't hang around for long. If you lose track of it, you can ask around for directions.
 npc-response-quest-slay-start_4 =
-    .a0 = Return to me when the deed is done and you shall receive your payment. 
+    .a0 = Return to me when the deed is done and you shall receive your payment.
     .a1 = Godspeed! Your payment awaits you when you return to me!
 npc-response-quest-slay-where = I've updated the location of the monster on your map.
 npc-response-quest-slay-thanks =
@@ -561,6 +561,9 @@ npc-speech-reject_rival =
     .a0 = You're not welcome here.
     .a1 = Sorry, I don't want to talk to you.
     .a2 = You should leave.
+npc-speech-where_are_we_going_wrong_profession =
+    .a0 = Wait, what? I don't think I'm supposed to be taking you anywhere.
+    .a1 = Huh? Why would I be taking you somewhere?
 
 ## NPC pilot dialogue
 
@@ -576,8 +579,16 @@ npc-speech-pilot-landed =
     .a3 = Is this your stop?
 npc-speech-pilot-announce_next =
     .a0 = Jump on if you're heading { $dir } to { $dst }!
-    .a1 = We sail for { $dst } soon!.
+    .a1 = We sail for { $dst } soon!
     .a2 = Travelling { $dir }? Jump on!
+npc-speech-pilot-where_heading_now =
+    .a0 = We are heading { $dir } to { $dst }! After that, we are heading { $ndir } to { $ndst }.
+    .a1 = I'm taking us { $dir } to { $dst } first, then { $ndir } to { $ndst } after.
+    .a2 = Up first we are flying { $dir } to { $dst }, and then we will head { $ndir } to { $ndst }.
+npc-speech-pilot-unknown_destination =
+    .a0 = I'm actually not sure where we're going.
+    .a1 = I lost track of where we're headed, unfortunately...
+    .a2 = I can't remember! Sorry.
 
 npc-speech-pirate =
     .a0 = Yarrr!

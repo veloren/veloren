@@ -584,7 +584,7 @@ impl Airships {
             .collect::<Vec<_>>()
     }
 
-    /// Convienence function that returns the next route leg accounting for wrap
+    /// Convenience function that returns the next route leg accounting for wrap
     /// around.
     pub fn increment_route_leg(&self, route_index: usize, leg_index: usize) -> usize {
         if route_index >= self.routes.len() {

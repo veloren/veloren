@@ -283,6 +283,9 @@ fn fly_airship(
         airship_context.stuck_backout_pos = None;
         let route_leg = &ctx.world.civs().airships.routes[airship_context.route_index].legs
             [airship_context.current_leg];
+
+        ctx.controller.current_airship_pilot_leg = Some((airship_context.current_leg, phase));
+
         let nominal_speed = ctx.world.civs().airships.nominal_speed;
         let leg_segment = &route_leg.segments[phase as usize];
         // The actual leg start time was recorded when the previous leg ended.
@@ -651,7 +654,7 @@ fn fly_airship(
                     and at each interval make an announcement. Make the last announcement
                     approximately 10-12 seconds before the end of the docking time.
                     Make the first announcement 5-8 seconds after starting the docking time.
-                    The minimum annoucment time after the start is 5 seconds, and the
+                    The minimum announcement time after the start is 5 seconds, and the
                     minimum time before departure announcement is 10 seconds.
                     The minimum interval between announcements is 10 seconds.
 
