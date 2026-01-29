@@ -33,7 +33,7 @@ use std::{
 use tracing::error;
 use vek::*;
 use world::{
-    civ::Track,
+    civ::{Track, airship_travel::AirshipFlightPhase},
     site::Site as WorldSite,
     util::{LOCALITY, RandomPerm},
 };
@@ -68,6 +68,17 @@ pub struct Controller {
     pub look_dir: Option<Dir>,
     pub job: Option<Job>,
     pub quests_to_create: Vec<(QuestId, Quest)>,
+
+    /// Each pilot gets assigned to a route, and as the server ticks onward, the
+    /// current leg of each pilot's assigned route increments. This gets
+    /// periodically updated to allow the current leg that a given NPC is on to
+    /// be retrieved, which is necessary for players to be able to ask their
+    /// captain where they're currently headed.
+    ///
+    /// NOTE: Do not put other arbitrary data into `Controller` without proper
+    /// consideration/discussion regarding where it should go. This will soon be
+    /// refactored into the Job data for the NPC.
+    pub current_airship_pilot_leg: Option<(usize, AirshipFlightPhase)>,
 }
 
 impl Controller {
