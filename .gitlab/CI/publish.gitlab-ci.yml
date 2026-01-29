@@ -79,6 +79,9 @@ gitlab_release:
     - macos-x86_64
     - macos-aarch64
     - windows-x86_64
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && ( $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ $TAG_REGEX )
+      when: on_success
   script:
     # These are exported by earlier jobs via reports/dotenv
     - echo "LINUX_X86_64_JOB_ID=$LINUX_X86_64_JOB_ID"
