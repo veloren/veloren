@@ -7645,10 +7645,33 @@
         Simple("common.items.recipes.weapons.eldwood"): "recipe-weapons-eldwood",
         Simple("common.items.recipes.default"): "recipe-default",
     },
-    // OPTIONAL templating support, has a lot of downsides, but serves as an
-    // escape hatch.
+    // Templating support
     //
-    // English shouldn't use rely on it, instead do the thing above
+    // Previously, this didn't exist and every item had to be translated
+    // manually on a per-item basis, which is even more taxing for modular
+    // weapons which incur a lot of duplicated effort.
+    //
+    // It was and remains a choice that trades convenience for translation
+    // quality.
+    //
+    // The fragment-based approach provides an escape hatch, which allows you to
+    // define a single template like so:
+    // ```fluent
+    // weapon-modular-fallback-template = { $material-fragment } { $weapon }
+    // ```
+    // And instead of translating {N_ingredient x N_weapon} combinations, you
+    // only need to translate {N_ingredient + N_weapon} combinations.
+    //
+    // Translators who choose to translate individual items can use fragments
+    // as a glossary, if they wish.
+    // In the future, we may add some tooling to convert from/to these templates
+    // into individual translations.
+    //
+    // P.s.
+    // English *must* define these fragments as well, because otherwise
+    // translators won't be able to translate them, but it also *must* define
+    // specialized translations for the keys above, because again, translators
+    // won't be able to translate specialized names.
     fragments: {
         //
         // Ingredient fragments

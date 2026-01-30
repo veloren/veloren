@@ -2164,7 +2164,7 @@ mod tests {
     }
 
     #[test]
-    // This exists to make translator's lives easier when translating
+    // This exists to make translators' lives easier when translating
     // modulars.
     fn ensure_modular_fragments() {
         let manifest = ItemI18n::new_expect();
@@ -2189,7 +2189,7 @@ mod tests {
             }
         }
         if !errs.is_empty() {
-            panic!("item i18n manifest misses fragment-id for following items {errs:#?}")
+            panic!("item i18n manifest missing fragment-id for following items {errs:#?}")
         }
     }
 }
