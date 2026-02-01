@@ -459,6 +459,14 @@ mod tests {
     use std::collections::HashSet;
     use vek::Vec3;
 
+    fn unfallback(c: Content) -> Content {
+        if let Content::WithFallback(a, _b) = c {
+            *a
+        } else {
+            c
+        }
+    }
+
     // item::tests::ensure_item_localization tests that we have Content for
     // each item. This tests that we actually have at least English translation
     // for this Content.
@@ -472,19 +480,33 @@ mod tests {
             let (name, desc) = item.i18n(&manifest);
 
             // check i18n for item name
+            let name = unfallback(name);
             let Content::Key(key) = name else {
-                panic!("name is expected to be Key, please fix the test");
+                panic!("name={name:?} is expected to be Key, please fix the test");
             };
             localization.try_msg(&key).unwrap_or_else(|| {
                 panic!("'{key}' name doesn't have i18n");
             });
 
             // check i18n for item desc
+            let desc = unfallback(desc);
             let Content::Attr(key, attr) = desc else {
-                panic!("desc is expected to be Attr, please fix the test");
+                panic!("desc={desc:?} is expected to be Attr, please fix the test");
             };
             localization.try_attr(&key, &attr).unwrap_or_else(|| {
                 panic!("'{key}' description doesn't have i18n");
+            });
+        }
+    }
+
+    #[test]
+    fn test_modular_fragments() {
+        let manifest = ItemI18n::new_expect();
+        let localization = LocalizationHandle::load_expect("en").read();
+
+        for (_fragment, i18n_id) in manifest.all_fragments() {
+            localization.try_msg(i18n_id).unwrap_or_else(|| {
+                panic!("'{i18n_id}' doesn't have i18n");
             });
         }
     }

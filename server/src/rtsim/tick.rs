@@ -130,7 +130,8 @@ fn sort_wares(bag: &mut [Item]) {
             )
         )
         // sort by name
-        .then(#[expect(deprecated)] Ord::cmp(&a.name(), &b.name()))
+        // TODO: figure out the better way here
+        .then(#[expect(deprecated)] Ord::cmp(&a.legacy_name(), &b.legacy_name()))
     });
 }
 

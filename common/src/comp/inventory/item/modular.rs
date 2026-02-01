@@ -140,6 +140,7 @@ impl ModularBase {
     /// Modular weapons are named as "{Material} {Weapon}" where {Weapon} is
     /// from the damage component used and {Material} is from the material
     /// the damage component is created from.
+    #[deprecated = "this function doesn't localize"]
     pub fn generate_name(&self, components: &[Item]) -> Cow<'_, str> {
         match self {
             ModularBase::Tool => {
@@ -150,6 +151,9 @@ impl ModularBase {
                             weapon_name,
                             ..
                         }) => {
+                            // "Iron", "Cobalt", what have you
+                            //
+                            // fallback to just "Modular"
                             let material_name = comp
                                 .components()
                                 .iter()
@@ -165,11 +169,22 @@ impl ModularBase {
                                     _ => None,
                                 })
                                 .unwrap_or_else(|| "Modular".into());
-                            Some(format!(
-                                "{} {}",
-                                material_name,
-                                weapon_name.resolve_name(Self::resolve_hands(components))
-                            ))
+
+                            // this whole thing is deprecated anyway
+                            #[expect(deprecated)]
+                            let weapon_name = match weapon_name {
+                                WeaponName::Universal(name) => name,
+                                WeaponName::HandednessDependent {
+                                    one_handed: name1,
+                                    two_handed: name2,
+                                } => match Self::resolve_hands(components) {
+                                    Hands::One => name1,
+                                    Hands::Two => name2,
+                                },
+                            };
+
+                            // turns into likes of "Iron Poleaxe"
+                            Some(format!("{material_name} {weapon_name}"))
                         },
                         _ => None,
                     })
@@ -252,26 +267,14 @@ pub enum ModularComponent {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WeaponName {
+    #[deprecated = "since item i18n"]
     Universal(String),
     HandednessDependent {
+        #[deprecated = "since item i18n"]
         one_handed: String,
+        #[deprecated = "since item i18n"]
         two_handed: String,
     },
-}
-
-impl WeaponName {
-    fn resolve_name(&self, handedness: Hands) -> &str {
-        match self {
-            Self::Universal(name) => name,
-            Self::HandednessDependent {
-                one_handed: name1,
-                two_handed: name2,
-            } => match handedness {
-                Hands::One => name1,
-                Hands::Two => name2,
-            },
-        }
-    }
 }
 
 impl ModularComponent {
@@ -600,6 +603,8 @@ pub fn random_weapon(
     result
 }
 
+/// Adds a (modular) ingredient prefix
+#[deprecated = "since item i18n"]
 pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
     if let ItemKind::ModularComponent(_) = &*item.kind() {
         if let Some(material_name) = item
@@ -611,6 +616,9 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
                 _ => None,
             })
         {
+            // "Wooden" + "Brand Shaft"
+            // =>
+            // "Wooden Brand Shaft"
             Cow::Owned(format!("{} {}", material_name, item_name))
         } else {
             Cow::Borrowed(item_name)
@@ -622,6 +630,15 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
 
 /// This is used as a key to uniquely identify the modular weapon in asset
 /// manifests in voxygen (Main component, material, hands)
+///
+/// # Example:
+/// ```ignore
+/// (
+///     "common.items.modular.weapon.primary.axe.labrys",
+///     "common.items.mineral.ingot.iron",
+///     Two,
+/// )
+/// ```
 pub type ModularWeaponKey = (String, String, Hands);
 
 pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
@@ -655,6 +672,14 @@ pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
 
 /// This is used as a key to uniquely identify the modular weapon in asset
 /// manifests in voxygen (Main component, material)
+///
+/// # Example:
+/// ```ignore
+/// (
+///     "common.items.modular.weapon.primary.axe.labrys",
+///     "common.items.mineral.ingot.iron",
+/// )
+/// ```
 pub type ModularWeaponComponentKey = (String, String);
 
 pub enum ModularWeaponComponentKeyError {
