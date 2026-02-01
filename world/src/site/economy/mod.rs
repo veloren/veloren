@@ -144,6 +144,20 @@ impl Default for Economy {
 }
 
 impl Economy {
+    // FIXME?: this is hit for (almost) every Good
+    //
+    // Which means that all goods in all cities have the same price.
+    //
+    // We could try to change that fact, but:
+    // a) This would mean we need need to rebalance prices again, which
+    // could probably be done quite easily with good_scaling, but still.
+    // b) Making prices vary from town to town would lead to (expected)
+    // scenarios where price of buying good in one town is less than
+    // the price of selling good in another town.
+    // Which we probably want, but the question is to what extent.
+    // c) Traveling merchants fuck this anyway from a gameplay perspective,
+    // since they have randomized origins anyway and don't conform to local
+    // prices the way they are coded right now.
     const MINIMUM_PRICE: f32 = 0.1;
     const STARTING_COIN: f32 = 1000.0;
     const _NATURAL_RESOURCE_SCALE: f32 = 1.0 / 9.0;

@@ -22,14 +22,14 @@ loot_tables: [
 
     // Ingredients
     (72.5, true, "common.trading.sellable_materials"),
-    (3.16184, false, "common.trading.unsellable_materials"),
+    (3.16184, true, "common.trading.unsellable_materials"),
 
     // Food Ingredients
     (20.375, true, "common.trading.food"),
 
     // Recipes
     (3.0, true, "common.trading.sellable_recipe"),
-    (3.0, false, "common.trading.unsellable_recipe"),
+    (3.0, true, "common.trading.unsellable_recipe"),
 
     // Potions
     //

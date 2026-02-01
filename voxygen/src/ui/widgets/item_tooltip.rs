@@ -1270,7 +1270,7 @@ impl Widget for ItemTooltip<'_> {
 
         // Price display
         if let Some((buy, sell, factor)) =
-            util::price_desc(self.prices, item.item_definition_id(), i18n)
+            util::price_desc(self.prices, item.item_definition_id(), item.quality(), i18n)
         {
             widget::Text::new(&buy)
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -1362,6 +1362,7 @@ impl Widget for ItemTooltip<'_> {
         let price_h: f64 = if let Some((buy, sell, _)) = util::price_desc(
             self.prices,
             item.item_definition_id(),
+            item.quality(),
             self.localized_strings,
         ) {
             // Get localized tooltip strings (gotten here because these should
