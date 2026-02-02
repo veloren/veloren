@@ -908,24 +908,28 @@ impl SpriteKind {
         move_dir: Vec3<f32>,
         parent: &Block,
     ) -> bool {
+        // Find the intrusion vector of the collision
+        let dir = entity_aabb.collision_vector_with_aabb(block_aabb);
+
+        // Determine an appropriate resolution vector (i.e: the minimum distance
+        // needed to push out of the block)
+        let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
+
+        let resolve_dir = -dir.map(|e| {
+            if e.abs().to_bits() == max_axis.to_bits() {
+                e.signum()
+            } else {
+                0.0
+            }
+        });
+
+        let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
+
         match self {
+            SpriteKind::LillyPads | SpriteKind::CavernLillypadBlue => {
+                is_moving_into && resolve_dir.z > 0.0
+            },
             SpriteKind::OneWayWall => {
-                // Find the intrusion vector of the collision
-                let dir = entity_aabb.collision_vector_with_aabb(block_aabb);
-
-                // Determine an appropriate resolution vector (i.e: the minimum distance
-                // needed to push out of the block)
-                let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
-                let resolve_dir = -dir.map(|e| {
-                    if e.abs().to_bits() == max_axis.to_bits() {
-                        e.signum()
-                    } else {
-                        0.0
-                    }
-                });
-
-                let is_moving_into = move_dir.dot(resolve_dir) <= 0.0;
-
                 is_moving_into
                     && parent.get_attr().is_ok_and(|Ori(ori)| {
                         Vec2::new(
