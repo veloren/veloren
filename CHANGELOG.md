@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Translators can now use fragment-based templates for modular weapons.
 
+- Translators can now use fragment-based templates for modular weapons.
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
 
 ### Changed
+
+- Can now swim through lillypads.
 
 ### Removed
 
