@@ -264,7 +264,7 @@ impl<'a> Canvas<'a> {
                     let mut add_snow = false;
                     let mut new_sprite_cfg = None;
                     let wpos = wpos2d.with_z(origin.z + z);
-                    canvas.map(wpos, |block| {
+                    canvas.map_resource(wpos, |block| {
                         if let Some((new_block, sprite_cfg, entity_path)) = block_from_structure(
                             info.index,
                             sblock,
