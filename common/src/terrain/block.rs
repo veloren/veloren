@@ -302,94 +302,80 @@ impl Block {
     #[inline]
     pub fn get_rtsim_resource(&self) -> Option<rtsim::TerrainResource> {
         match self.get_sprite()? {
-            SpriteKind::Stones => Some(rtsim::TerrainResource::Stone),
+            SpriteKind::Stones | SpriteKind::Stones2 => Some(rtsim::TerrainResource::Stone),
             SpriteKind::Twigs
-                | SpriteKind::Wood
-                | SpriteKind::Bamboo
-                | SpriteKind::Hardwood
-                | SpriteKind::Ironwood
-                | SpriteKind::Frostwood
-                | SpriteKind::Eldwood => Some(rtsim::TerrainResource::Wood),
+            | SpriteKind::Wood
+            | SpriteKind::Bamboo
+            | SpriteKind::Hardwood
+            | SpriteKind::Ironwood
+            | SpriteKind::Frostwood
+            | SpriteKind::Eldwood => Some(rtsim::TerrainResource::Wood),
             SpriteKind::Amethyst
-                | SpriteKind::Ruby
-                | SpriteKind::Sapphire
-                | SpriteKind::Emerald
-                | SpriteKind::Topaz
-                | SpriteKind::Diamond
-                | SpriteKind::CrystalHigh
-                | SpriteKind::CrystalLow => Some(rtsim::TerrainResource::Gem),
+            | SpriteKind::Ruby
+            | SpriteKind::Sapphire
+            | SpriteKind::Emerald
+            | SpriteKind::Topaz
+            | SpriteKind::Diamond
+            | SpriteKind::CrystalHigh
+            | SpriteKind::CrystalLow
+            | SpriteKind::Lodestone => Some(rtsim::TerrainResource::Gem),
             SpriteKind::Bloodstone
-                | SpriteKind::Coal
-                | SpriteKind::Cobalt
-                | SpriteKind::Copper
-                | SpriteKind::Iron
-                | SpriteKind::Tin
-                | SpriteKind::Silver
-                | SpriteKind::Gold => Some(rtsim::TerrainResource::Ore),
-
+            | SpriteKind::Coal
+            | SpriteKind::Cobalt
+            | SpriteKind::Copper
+            | SpriteKind::Iron
+            | SpriteKind::Tin
+            | SpriteKind::Silver
+            | SpriteKind::Gold => Some(rtsim::TerrainResource::Ore),
             SpriteKind::LongGrass
-                | SpriteKind::MediumGrass
-                | SpriteKind::ShortGrass
-                | SpriteKind::LargeGrass
-                | SpriteKind::GrassBlue
-                | SpriteKind::SavannaGrass
-                | SpriteKind::TallSavannaGrass
-                | SpriteKind::RedSavannaGrass
-                | SpriteKind::JungleRedGrass
-                | SpriteKind::Fern => Some(rtsim::TerrainResource::Grass),
+            | SpriteKind::MediumGrass
+            | SpriteKind::ShortGrass
+            | SpriteKind::LargeGrass
+            | SpriteKind::GrassBlue
+            | SpriteKind::SavannaGrass
+            | SpriteKind::TallSavannaGrass
+            | SpriteKind::RedSavannaGrass
+            | SpriteKind::JungleRedGrass
+            | SpriteKind::Fern => Some(rtsim::TerrainResource::Grass),
             SpriteKind::BlueFlower
-                | SpriteKind::PinkFlower
-                | SpriteKind::PurpleFlower
-                | SpriteKind::RedFlower
-                | SpriteKind::WhiteFlower
-                | SpriteKind::YellowFlower
-                | SpriteKind::Sunflower
-                | SpriteKind::Moonbell
-                | SpriteKind::Pyrebloom => Some(rtsim::TerrainResource::Flower),
+            | SpriteKind::PinkFlower
+            | SpriteKind::PurpleFlower
+            | SpriteKind::RedFlower
+            | SpriteKind::WhiteFlower
+            | SpriteKind::YellowFlower
+            | SpriteKind::Sunflower
+            | SpriteKind::Moonbell
+            | SpriteKind::Pyrebloom => Some(rtsim::TerrainResource::Flower),
             SpriteKind::Reed
-                | SpriteKind::Flax
-                | SpriteKind::WildFlax
-                | SpriteKind::Cotton
-                | SpriteKind::Corn
-                | SpriteKind::WheatYellow
-                | SpriteKind::WheatGreen => Some(rtsim::TerrainResource::Plant),
+            | SpriteKind::Flax
+            | SpriteKind::WildFlax
+            | SpriteKind::Cotton
+            | SpriteKind::Corn
+            | SpriteKind::WheatYellow
+            | SpriteKind::WheatGreen => Some(rtsim::TerrainResource::Plant),
             SpriteKind::Apple
-                | SpriteKind::Pumpkin
-                | SpriteKind::Beehive // TODO: Not a fruit, but kind of acts like one
-                | SpriteKind::Coconut => Some(rtsim::TerrainResource::Fruit),
+            | SpriteKind::Pumpkin
+            | SpriteKind::Beehive // TODO: Not a fruit, but kind of acts like one
+            | SpriteKind::Coconut => Some(rtsim::TerrainResource::Fruit),
             SpriteKind::Lettuce
-                | SpriteKind::Carrot
-                | SpriteKind::Tomato
-                | SpriteKind::Radish
-                | SpriteKind::Turnip => Some(rtsim::TerrainResource::Vegetable),
+            | SpriteKind::Carrot
+            | SpriteKind::Tomato
+            | SpriteKind::Radish
+            | SpriteKind::Turnip => Some(rtsim::TerrainResource::Vegetable),
             SpriteKind::Mushroom
-                | SpriteKind::CaveMushroom
-                | SpriteKind::CeilingMushroom
-                | SpriteKind::RockyMushroom
-                | SpriteKind::LushMushroom
-                | SpriteKind::GlowMushroom => Some(rtsim::TerrainResource::Mushroom),
-
-            SpriteKind::Chest
-                | SpriteKind::ChestBuried
-                | SpriteKind::PotionMinor
-                | SpriteKind::DungeonChest0
-                | SpriteKind::DungeonChest1
-                | SpriteKind::DungeonChest2
-                | SpriteKind::DungeonChest3
-                | SpriteKind::DungeonChest4
-                | SpriteKind::DungeonChest5
-                | SpriteKind::CoralChest
-                | SpriteKind::HaniwaUrn
-                | SpriteKind::TerracottaChest
-                | SpriteKind::SahaginChest
-                | SpriteKind::Crate
-                | SpriteKind::CommonLockedChest => Some(rtsim::TerrainResource::Loot),
+            | SpriteKind::CaveMushroom
+            | SpriteKind::CeilingMushroom
+            | SpriteKind::RockyMushroom
+            | SpriteKind::LushMushroom
+            | SpriteKind::GlowMushroom => Some(rtsim::TerrainResource::Mushroom),
+            // Catch all for other things that give items, but aren't specified above.
+            s if s.default_loot_spec().is_some_and(|inner| inner.is_some()) => Some(rtsim::TerrainResource::Loot),
             _ => None,
         }
         // Don't count collected sprites.
         // TODO: we may want to have rtsim still spawn these sprites when depleted by spawning them
         // in the "collected" state, see `into_collected` for sprites that would need this.
-        .filter(|_|  matches!(self.get_attr(), Ok(sprite::Collectable(false)) | Err(_)))
+        .filter(|_|  matches!(self.get_attr(), Ok(sprite::Collectable(true)) | Err(_)))
     }
 
     #[inline]
