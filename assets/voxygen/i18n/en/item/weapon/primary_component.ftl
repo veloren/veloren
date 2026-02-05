@@ -1,3 +1,11 @@
+## Optional template, accepts these variables:
+## - `$material-fragment` refers to things like `fragment-wood-item-wood`
+## in `weapon` component.
+## - `$component` refers to things like
+## `common-items-modular-weapon-primary-bow-bow` in `internal` component.
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }
+
+## Primary components, crafted into modular weapons
 weapon-component-sword-greatsword-iron = Iron Greatsword Blade
     .desc = {""}
 

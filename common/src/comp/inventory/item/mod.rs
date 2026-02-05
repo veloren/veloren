@@ -582,6 +582,26 @@ impl ItemI18n {
     // TODO: after we remove legacy text from ItemDef, consider making this
     // function non-fallible?
     fn item_text_opt(&self, item_key: &ItemKey) -> Option<(Content, Content)> {
+        let key = self.try_key(item_key);
+        key.map(|key| {
+            (
+                Content::Key(key.to_owned()),
+                Content::Attr(key.to_owned(), "desc".to_owned()),
+            )
+        })
+    }
+
+    /// Tries to fetch a fragment from i18n manifest
+    // TODO: potentially should just return a string as well?
+    fn try_fragment(&self, fragment_key: &FragmentKey) -> Option<Content> {
+        self.fragments
+            .get(fragment_key)
+            .map(|key| Content::Key(key.to_owned()))
+    }
+
+    /// Tries to fetch a key from i18n manifest, returns a i18n string,
+    /// do with it what you need.
+    fn try_key(&self, item_key: &ItemKey) -> Option<&I18nId> {
         // We don't put TagExamples into manifest.
         // Instead they are marked as Simple.
         let key;
@@ -592,19 +612,7 @@ impl ItemI18n {
             item_key
         };
 
-        let key = self.map.get(item_key);
-        key.map(|key| {
-            (
-                Content::Key(key.to_owned()),
-                Content::Attr(key.to_owned(), "desc".to_owned()),
-            )
-        })
-    }
-
-    fn try_fragment(&self, fragment_key: &FragmentKey) -> Option<Content> {
-        self.fragments
-            .get(fragment_key)
-            .map(|key| Content::Key(key.to_owned()))
+        self.map.get(item_key)
     }
 
     /// Returns all fragments, mainly for testing
@@ -1793,29 +1801,52 @@ pub trait ItemDesc {
             )
         });
 
+        let b = |x| Box::new(x);
         if let ItemKey::ModularWeapon((comp_id, ing_id, hands)) = item_key {
-            let b = |x| Box::new(x);
-
             // the name template
             let title_fallback = Content::localized("weapon-modular-fallback-template")
                 .with_arg(
                     "material-fragment",
                     i18n.try_fragment(&FragmentKey::Ingredient(ing_id))
                         // use Key instead of Plain here, so it's marked as
-                        // "dirty" during and attempts English
+                        // "dirty" during get_content() and attempts English
                         .unwrap_or_else(|| Content::Key("Modular".to_owned())),
                 )
                 .with_arg(
                     "weapon",
                     i18n.try_fragment(&FragmentKey::WeaponPrimaryComponent(comp_id, hands))
                         // use Key instead of Plain here, so it's marked as
-                        // "dirty" during and attempts English
+                        // "dirty" during get_content() and attempts English
                         .unwrap_or_else(|| Content::Key("Weapon".to_owned())),
                 );
 
             (
                 Content::WithFallback(b(name), b(title_fallback)),
-                // no fallback for description
+                // no fallback for description, yet?
+                description,
+            )
+        } else if let ItemKey::ModularWeaponComponent((comp_id, ing_id)) = item_key {
+            // the name template
+            let title_fallback = Content::localized("weapon-modular-comp-fallback-template")
+                .with_arg(
+                    "material-fragment",
+                    i18n.try_fragment(&FragmentKey::Ingredient(ing_id))
+                        // use Key instead of Plain here, so it's marked as
+                        // "dirty" during get_content() and attempts English
+                        .unwrap_or_else(|| Content::Key("Modular".to_owned())),
+                )
+                .with_arg(
+                    "component",
+                    i18n.try_key(&ItemKey::Simple(comp_id))
+                        .map(|k| Content::Key(k.to_owned()))
+                        // use Key instead of Plain here, so it's marked as
+                        // "dirty" during get_content() and attempts English
+                        .unwrap_or_else(|| Content::Key("Component".to_owned())),
+                );
+
+            (
+                Content::WithFallback(b(name), b(title_fallback)),
+                // no fallback for description, yet?
                 description,
             )
         } else {
