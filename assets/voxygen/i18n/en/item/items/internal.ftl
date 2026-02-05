@@ -94,6 +94,7 @@ common-items-testing-test_boots = Testing Boots
 common-items-weapons-empty-empty = Empty Item
     .desc = This item may grant abilities, but is invisible.
 
+## Fragments that are used for modular components template
 common-items-modular-weapon-primary-bow-bow = Bow Limbs
     .desc = {""}
 

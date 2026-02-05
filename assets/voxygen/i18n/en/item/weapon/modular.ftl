@@ -988,9 +988,13 @@ weapon-sword-sabre-cobalt-2h = Cobalt Sabre
 weapon-sword-sabre-cobalt-1h = Cobalt Scimitar
     .desc = {""}
 
-## Optional templates, feel free to ignore it or use as a glossary
+## Optional template, accepts these variables:
+## - `$material-fragment` refers to things like `fragment-wood-item-wood`
+## in this component
+## - `$weapon` refers to things like `fragment-axe-axe-1h` in this component
 weapon-modular-fallback-template = { $material-fragment } { $weapon }
 
+## Optional fragments, feel free to ignore it or use as a glossary
 fragment-mineral-ingot-bronze = Bronze
 fragment-mineral-ingot-iron = Iron
 fragment-mineral-ingot-steel = Steel
