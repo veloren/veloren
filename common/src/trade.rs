@@ -353,16 +353,20 @@ impl Good {
     /// The discounting factor applied when selling goods back to a merchant
     pub fn sell_discount(&self, quality: Quality) -> f32 {
         let res = match self {
-            Good::Tools | Good::Armor => 0.5,
-            Good::Ingredients | Good::Wood => 0.5,
-            Good::Food | Good::Potions => 0.75,
-            Good::Coin | Good::Recipe | Good::Stone => 1.0,
+            // Starts with less severe penalties, grows with quality
+            Good::Tools | Good::Armor => 0.9,
+            // Starts with less severe penalties, grows with quality
+            Good::Ingredients | Good::Wood | Good::Stone => 0.9,
+            // Mostly taxed by quality
+            Good::Food | Good::Potions => 1.0,
+            // Should have constant value, not even influenced by quality
+            Good::Coin | Good::Recipe => return 1.0,
             // Certain abstract goods (like Territory) shouldn't be attached
             // to concrete items.
             //
             // Give a sale price of 0 if the player is trying to sell a
             // concrete item that somehow has one of these categories
-            _ => 0.0,
+            _ => return 0.0,
         };
 
         res * Good::quality_sell_discount(quality)
@@ -379,7 +383,7 @@ impl Good {
             Quality::Moderate => 0.8,
             Quality::High => 0.6,
             Quality::Epic => 0.5,
-            Quality::Legendary => 0.4,
+            Quality::Legendary => 0.5,
             Quality::Artifact | Quality::Debug => 0.0,
         }
     }
