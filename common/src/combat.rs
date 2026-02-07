@@ -68,8 +68,6 @@ pub enum AttackSource {
 
 pub const FULL_FLANK_ANGLE: f32 = std::f32::consts::PI / 4.0;
 pub const PARTIAL_FLANK_ANGLE: f32 = std::f32::consts::PI * 3.0 / 4.0;
-// NOTE: Do we want to change this to be a configurable parameter on body?
-pub const PROJECTILE_HEADSHOT_PROPORTION: f32 = 0.1;
 pub const BEAM_DURATION_PRECISION: f32 = 2.5;
 pub const MAX_BACK_FLANK_PRECISION: f32 = 0.75;
 pub const MAX_SIDE_FLANK_PRECISION: f32 = 0.25;

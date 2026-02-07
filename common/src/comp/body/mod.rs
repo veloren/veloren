@@ -1573,6 +1573,26 @@ impl Body {
     /// Returns the eye height for this creature.
     pub fn eye_height(&self, scale: f32) -> f32 { self.height() * 0.8 * scale }
 
+    /// Returns the "head" size ratio for this creature, like 0.35 of body.
+    ///
+    /// (By design?) broken for non-humanoids, cause most animals
+    /// heads placed in the middle of their bodies, instead their
+    /// headshots are spine shots.
+    ///
+    /// Unless it's a camel which defies reality and our hitbox assumptions.
+    pub fn top_ratio(&self) -> f32 {
+        match self {
+            // our cartoonish characters have bigger heads than irl
+            Body::Humanoid(_) => 0.35,
+            // have big heads, but insanely massive bodies
+            Body::BipedLarge(_) => 0.25,
+            // these are basically heads on legs
+            Body::BipedSmall(_) => 0.45,
+            // whatever
+            _ => 0.2,
+        }
+    }
+
     pub fn default_light_offset(&self) -> Vec3<f32> {
         // TODO: Make this a manifest
         match self {

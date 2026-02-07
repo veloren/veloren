@@ -93,12 +93,12 @@ impl Body {
             (Species::Human, BodyType::Female) => 0.76,
             (Species::Elf, BodyType::Male) => 0.82,
             (Species::Elf, BodyType::Female) => 0.76,
-            (Species::Dwarf, BodyType::Male) => 0.67,
-            (Species::Dwarf, BodyType::Female) => 0.62,
+            (Species::Dwarf, BodyType::Male) => 0.70,
+            (Species::Dwarf, BodyType::Female) => 0.66,
             (Species::Draugr, BodyType::Male) => 0.78,
             (Species::Draugr, BodyType::Female) => 0.72,
-            (Species::Danari, BodyType::Male) => 0.56,
-            (Species::Danari, BodyType::Female) => 0.56,
+            (Species::Danari, BodyType::Male) => 0.61,
+            (Species::Danari, BodyType::Female) => 0.61,
         }
     }
 }
