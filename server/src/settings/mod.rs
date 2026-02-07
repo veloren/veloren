@@ -24,7 +24,6 @@ use common::{
 };
 use core::time::Duration;
 use portpicker::pick_unused_port;
-use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
@@ -34,8 +33,6 @@ use std::{
 };
 use tracing::{error, warn};
 use world::sim::{DEFAULT_WORLD_SEED, FileOpts};
-
-use self::server_description::ServerDescription;
 
 use self::server_physics::ServerPhysicsForceList;
 
@@ -399,21 +396,7 @@ impl EditableSettings {
     pub fn singleplayer(data_dir: &Path) -> Self {
         let load = Self::load(data_dir);
 
-        let motd = [
-            "A whole world to yourself! Time to stretch...",
-            "How's the serenity?",
-        ]
-        .iter()
-        .choose(&mut rand::rng())
-        .expect("Message of the day don't wanna play.");
-
-        let mut server_description = ServerDescriptions::default();
-        server_description
-            .descriptions
-            .insert("en".to_string(), ServerDescription {
-                motd: motd.to_string(),
-                rules: None,
-            });
+        let server_description = ServerDescriptions::default();
 
         let mut admins = Admins::default();
         // TODO: Let the player choose if they want to use admin commands or not

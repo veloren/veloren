@@ -1,9 +1,13 @@
 use common::{clock::Clock, match_some};
 use crossbeam_channel::{Receiver, Sender, TryRecvError, bounded, unbounded};
+use i18n::LocalizationHandle;
+use rand::seq::IteratorRandom;
 use server::{
     Error as ServerError, Event, Input, Server, ServerInitStage,
     persistence::{DatabaseSettings, SqlLogMode},
+    settings::server_description::ServerDescription,
 };
+
 use std::{
     sync::{
         Arc,
@@ -62,7 +66,12 @@ impl SingleplayerState {
         Self::Init(SingleplayerWorlds::load(&dir))
     }
 
-    pub fn run(&mut self, runtime: &Arc<Runtime>) {
+    pub fn run(
+        &mut self,
+        runtime: &Arc<Runtime>,
+        selected_language: &String,
+        i18n: &LocalizationHandle,
+    ) {
         if let Self::Init(worlds) = self {
             let Some(world) = worlds.current() else {
                 error!("Failed to get the current world.");
@@ -71,7 +80,21 @@ impl SingleplayerState {
             let server_data_dir = world.path.clone();
 
             let mut settings = server::Settings::singleplayer(&server_data_dir);
-            let editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
+            let mut editable_settings = server::EditableSettings::singleplayer(&server_data_dir);
+
+            let i18n = i18n.read();
+            let motd = ["hud-chat-singleplayer-motd1", "hud-chat-singleplayer-motd2"]
+                .iter()
+                .choose(&mut rand::rng())
+                .expect("Message of the day don't wanna play.");
+
+            editable_settings.server_description.descriptions.insert(
+                selected_language.to_string(),
+                ServerDescription {
+                    motd: i18n.get_msg(motd).to_string(),
+                    rules: None,
+                },
+            );
 
             let file_opts = if let Some(gen_opts) = &world.gen_opts
                 && !world.is_generated

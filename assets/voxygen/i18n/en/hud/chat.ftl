@@ -89,3 +89,6 @@ hud-loot-pickup-msg = { $amount ->
     [1] { $actor } picked up { $item }
     *[other] { $actor } picked up { $amount }x { $item }
 }
+
+hud-chat-singleplayer-motd1 = A whole world to yourself! Time to stretch...
+hud-chat-singleplayer-motd2 = How's the serenity?
