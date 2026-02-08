@@ -568,13 +568,14 @@ impl Body {
     /// The width (shoulder to shoulder), length (nose to tail) and height
     /// respectively (in metres)
     // Code reviewers: should we replace metres with 'block height'?
+    // #[inline_tweak::tweak_fn]
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Cyclops => Vec3::new(5.6, 3.0, 8.0),
                 biped_large::Species::Dullahan => Vec3::new(4.6, 3.0, 5.5),
                 biped_large::Species::Mightysaurok => Vec3::new(4.0, 3.0, 3.4),
-                biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.0),
+                biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.5),
                 biped_large::Species::Minotaur => Vec3::new(6.0, 3.0, 8.0),
                 biped_large::Species::Occultsaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Slysaurok => Vec3::new(4.0, 3.0, 3.4),
@@ -586,11 +587,11 @@ impl Body {
                 biped_large::Species::Tursus => Vec3::new(4.0, 3.0, 4.0),
                 biped_large::Species::Gigasfrost => Vec3::new(6.0, 3.0, 11.0),
                 biped_large::Species::Gigasfire => Vec3::new(6.0, 3.0, 11.0),
-                biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 5.0),
-                biped_large::Species::SeaBishop => Vec3::new(3.7, 2.5, 4.2),
-                biped_large::Species::HaniwaGeneral => Vec3::new(3.3, 2.3, 3.8),
+                biped_large::Species::AdletElder => Vec3::new(3.5, 3.0, 4.0),
+                biped_large::Species::SeaBishop => Vec3::new(3.7, 2.5, 3.4),
+                biped_large::Species::HaniwaGeneral => Vec3::new(3.3, 2.3, 3.6),
                 biped_large::Species::TerracottaBesieger => Vec3::new(3.8, 3.0, 5.0),
-                biped_large::Species::TerracottaDemolisher => Vec3::new(3.3, 2.5, 3.8),
+                biped_large::Species::TerracottaDemolisher => Vec3::new(3.3, 2.5, 3.6),
                 biped_large::Species::TerracottaPunisher => Vec3::new(3.3, 2.5, 3.8),
                 biped_large::Species::TerracottaPursuer => Vec3::new(3.3, 2.5, 3.8),
                 biped_large::Species::Cursekeeper => Vec3::new(3.8, 3.0, 5.0),
@@ -598,7 +599,17 @@ impl Body {
                 biped_large::Species::Strigoi => Vec3::new(3.8, 3.0, 5.0),
                 biped_large::Species::Executioner => Vec3::new(2.8, 2.8, 4.7),
                 biped_large::Species::Tidalwarrior => Vec3::new(7.0, 8.2, 6.8),
-                _ => Vec3::new(4.6, 3.0, 6.0),
+                biped_large::Species::Cavetroll => Vec3::new(4.6, 3.0, 5.0),
+                biped_large::Species::Mountaintroll => Vec3::new(4.6, 3.0, 5.0),
+                biped_large::Species::Swamptroll => Vec3::new(4.6, 3.0, 4.5),
+                biped_large::Species::Yeti => Vec3::new(4.6, 3.0, 4.8),
+                biped_large::Species::Blueoni => Vec3::new(4.6, 3.0, 4.8),
+                biped_large::Species::Redoni => Vec3::new(4.6, 3.0, 4.5),
+                biped_large::Species::Ogre => match body.body_type {
+                    biped_large::BodyType::Male => Vec3::new(4.6, 3.0, 5.6),
+                    biped_large::BodyType::Female => Vec3::new(4.6, 3.0, 5.9),
+                },
+                biped_large::Species::Wendigo => Vec3::new(4.6, 3.0, 6.0),
             },
             Body::BipedSmall(body) => match body.species {
                 biped_small::Species::Gnarling => Vec3::new(1.0, 0.75, 1.4),
@@ -628,7 +639,11 @@ impl Body {
                 biped_small::Species::OchreLegoom => Vec3::new(0.9, 0.8, 1.15),
                 biped_small::Species::PurpleLegoom => Vec3::new(0.9, 0.8, 1.15),
                 biped_small::Species::RedLegoom => Vec3::new(0.9, 0.8, 1.15),
-                _ => Vec3::new(1.0, 0.75, 1.4),
+                biped_small::Species::Gnome => Vec3::new(1.0, 0.75, 1.4),
+                // TODO: doublecheck, derived from default
+                biped_small::Species::Mandragora => Vec3::new(1.0, 0.75, 1.4),
+                biped_small::Species::Kappa => Vec3::new(1.0, 0.75, 1.4),
+                biped_small::Species::Gnoll => Vec3::new(1.0, 0.75, 1.4),
             },
             Body::BirdLarge(body) => match body.species {
                 bird_large::Species::Cockatrice => Vec3::new(2.5, 5.5, 3.5),
@@ -638,17 +653,29 @@ impl Body {
                 | bird_large::Species::CloudWyvern
                 | bird_large::Species::SeaWyvern
                 | bird_large::Species::WealdWyvern => Vec3::new(2.5, 9.0, 4.5),
-                _ => Vec3::new(2.0, 6.0, 4.4),
+                bird_large::Species::Phoenix => Vec3::new(2.0, 6.0, 4.4),
             },
-            Body::Dragon(_) => Vec3::new(16.0, 10.0, 16.0),
-            Body::FishMedium(_) => Vec3::new(0.5, 2.0, 0.8),
-            Body::FishSmall(_) => Vec3::new(0.3, 1.2, 0.6),
+            Body::Dragon(body) => match body.species {
+                dragon::Species::Reddragon => Vec3::new(16.0, 10.0, 16.0),
+            },
+            Body::FishMedium(body) => match body.species {
+                fish_medium::Species::Marlin => Vec3::new(0.5, 2.0, 0.8),
+                fish_medium::Species::Icepike => Vec3::new(0.5, 2.0, 0.8),
+            },
+            Body::FishSmall(body) => match body.species {
+                fish_small::Species::Clownfish => Vec3::new(0.3, 1.2, 0.6),
+                fish_small::Species::Piranha => Vec3::new(0.3, 1.2, 0.6),
+            },
             Body::Golem(body) => match body.species {
                 golem::Species::CoralGolem => Vec3::new(3.0, 5.0, 4.0),
                 golem::Species::ClayGolem => Vec3::new(6.8, 3.5, 7.5),
                 golem::Species::AncientEffigy => Vec3::new(2.5, 2.5, 3.8),
                 golem::Species::Mogwai => Vec3::new(2.5, 2.5, 3.8),
-                _ => Vec3::new(5.0, 4.5, 7.5),
+                golem::Species::StoneGolem => Vec3::new(10.0, 4.5, 9.0),
+                golem::Species::Treant => Vec3::new(7.8, 4.5, 5.8),
+                golem::Species::WoodGolem => Vec3::new(5.8, 4.5, 7.2),
+                golem::Species::Gravewarden => Vec3::new(7.3, 4.5, 7.7),
+                golem::Species::IronGolem => Vec3::new(9.8, 4.5, 9.4),
             },
             Body::Humanoid(humanoid) => {
                 let height = humanoid.height();
@@ -683,8 +710,19 @@ impl Body {
                 quadruped_medium::Species::Alpaca => Vec3::new(2.0, 2.0, 2.0),
                 quadruped_medium::Species::Camel => Vec3::new(2.0, 4.0, 3.5),
                 quadruped_medium::Species::Wolf => Vec3::new(1.25, 3.0, 1.8),
-                // FIXME: We really shouldn't be doing wildcards here
-                _ => Vec3::new(2.0, 3.0, 2.0),
+                // TODO: doublecheck, derived from default
+                quadruped_medium::Species::Tiger => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Tuskram => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Mouflon => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Bonerattler => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Hirdrasil => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Donkey => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Zebra => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Antelope => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Kelpie => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Darkhound => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Panda => Vec3::new(2.0, 3.0, 2.0),
+                quadruped_medium::Species::Snowleopard => Vec3::new(2.0, 3.0, 2.0),
             },
             Body::QuadrupedSmall(body) => match body.species {
                 quadruped_small::Species::Batfox => Vec3::new(1.4, 1.7, 1.3),
@@ -692,7 +730,31 @@ impl Body {
                 quadruped_small::Species::Hyena => Vec3::new(1.2, 1.4, 1.3),
                 quadruped_small::Species::Truffler => Vec3::new(1.2, 1.8, 2.2),
                 quadruped_small::Species::MossySnail => Vec3::new(1.4, 1.4, 1.2),
-                _ => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Gecko => Vec3::new(1.2, 1.2, 0.5),
+                // TODO: doublecheck, derived from default
+                quadruped_small::Species::Pig => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Fox => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Sheep => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Boar => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Jackalope => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Skunk => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Cat => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Raccoon => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Quokka => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Goat => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Rabbit => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Frog => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Rat => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Axolotl => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Turtle => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Squirrel => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Fungome => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Porcupine => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Beaver => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Hare => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Dog => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::Seal => Vec3::new(1.2, 1.2, 1.0),
+                quadruped_small::Species::TreantSapling => Vec3::new(1.2, 1.2, 1.0),
             },
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Asp => Vec3::new(2.0, 3.0, 1.7),
@@ -718,7 +780,8 @@ impl Body {
                 quadruped_low::Species::Driggle => Vec3::new(1.6, 2.7, 1.0),
                 quadruped_low::Species::Snaretongue => Vec3::new(2.0, 2.8, 1.6),
                 quadruped_low::Species::Hydra => Vec3::new(3.0, 5.0, 2.8),
-                _ => Vec3::new(1.0, 1.6, 1.3),
+                // TODO: doublecheck, derived from default
+                quadruped_low::Species::Alligator => Vec3::new(1.0, 1.6, 1.3),
             },
             Body::Ship(ship) => ship.dimensions(),
             Body::Theropod(body) => match body.species {
