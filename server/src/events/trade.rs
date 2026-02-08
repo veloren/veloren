@@ -442,7 +442,10 @@ mod tests {
     use hashbrown::HashMap;
 
     use super::*;
-    use common::{comp::slot::InvSlotId, uid::IdMaps};
+    use common::{
+        comp::{InventoryUpdate, slot::InvSlotId},
+        uid::IdMaps,
+    };
 
     use specs::{Builder, World};
 
@@ -460,6 +463,7 @@ mod tests {
         mockworld.insert(AbilityMap::load().cloned());
         mockworld.register::<Inventory>();
         mockworld.register::<Uid>();
+        mockworld.register::<InventoryUpdate>();
 
         let player: EcsEntity = mockworld
             .create_entity()
