@@ -1,7 +1,7 @@
 use crate::Server;
 use common::{
     comp::{
-        CharacterState, Health,
+        self, CharacterState, Health,
         agent::{Agent, AgentEvent},
         inventory::{
             Inventory,
@@ -426,6 +426,14 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
         }
     }
 
+    // Notify clients about trade event, to they can update recipe book and
+    // do all other necessary book-keeping
+    let mut inventory_update = ecs.write_storage::<comp::InventoryUpdate>();
+    for who in [0, 1].into_iter() {
+        if let Some(updates) = inventory_update.get_mut(entities[who]) {
+            updates.push(comp::InventoryUpdateEvent::Given)
+        }
+    }
     TradeResult::Completed
 }
 
