@@ -1,4 +1,4 @@
-common-abilities-debug-possess = Besättande spil
+common-abilities-debug-possess = Besättande pil
     .desc = Skjuter en förgiftad pil. Låter dig kontrollera ditt mål.
 common-abilities-staff-fireshockwave = Eldens ring
     .desc = Tänder eld på marken med en eldig stötvåg.
@@ -293,16 +293,24 @@ common-abilities-debug-glide_boost = Vroom
     .desc = Ger dig kraften att nå himlen.
 # Axe abilities
 common-abilities-hammer-helm_crusher = Hjälmkrossare
-    .desc = Slå din fiendes huvud med din hammare, och ge dem hjärnskakning.
+    .desc =
+        Slå din fiendes huvud med din hammare, och ge dem hjärnskakning.
+        Krävar { $min_combo } kombo att använda.
 # Axe abilities
 common-abilities-hammer-tenacity = Tenacitet
-    .desc = Håll dig själv stark då du står emot attack efter attack, och klarar av att attackera under hela tiden.
+    .desc =
+        Håll dig själv stark då du står emot attack efter attack.
+        Ökar din skademotstånd och minskar rörelsehastighet.
+        Varje mottaget slag ökar din energi.
 # Axe abilities
 common-abilities-hammer-earthshaker = Jordskakare
     .desc = Slå huvudet av din bloddränkta hammare i marken, och utlös en chockvåg som slår vinden ur alla omkring dig.
 # Axe abilities
 common-abilities-hammer-judgement = Dömning
-    .desc = Ta din hammare ner på din fiende med all din vikt, och potentiellt döda dem med en gång om de är vacklade.
+    .desc =
+        Ta din hammare ner på din fiende med all din vikt,.
+        Ökar skadan mycket om ditt mål vacklar.
+        Kräver { $min_combo } för att använda.
 # Axe abilities
 common-abilities-hammer-upheaval = Omstörtning
     .desc = Slå din hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
@@ -338,13 +346,17 @@ common-abilities-hammer-breach = Bryta Igenom
     .desc = Bryt igenom dina fienders försök till försvar med ett tungt slag från din hammare.
 # Axe abilities
 common-abilities-hammer-thunderclap = Åskklapp
-    .desc = Släpp lös ett förödande, adrenalinfyllt överhuvudsslag mot din fiende.
+    .desc =
+        Släpp loss ett förödande, adrenalinfyllt överhuvudsslag mot din fiende.
+        Kräver { $min_combo } kombo att använda.
 # Axe abilities
 common-abilities-hammer-dual_upheaval = Omstörtning
     .desc = Slå dina hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
 # Axe abilities
-common-abilities-hammer-seismic_shock = Seismisk Chock
-    .desc = Efter uppbyggnad av tillräckligt momentum i din hammare, slå marken med tillräcklig kraft att den spränger utåt, och kastar dina fiender i luften.
+common-abilities-hammer-seismic_shock = Seismisk chock
+    .desc =
+        Slå marken med tillräcklig kraft att den kastar dina fiender i luften.
+        Kräver { $min_combo } kombo att använda.
 # Axe abilities
 common-abilities-axe-adrenaline_rush = Adrenalinkick
     .desc =
@@ -378,3 +390,5 @@ common-abilities-staff-flamethrower = Eldkastare
     .desc = Sprutar eld framför dig.
 common-abilities-sceptre-healingaura = Läkande aura
     .desc = Läker dina allierade. Kräver kombo för att aktivera.
+common-abilities-sceptre-lifestealbeam = Livsstöld
+    .desc = Skjuter en stråle som dränerar livet från dina fiender.

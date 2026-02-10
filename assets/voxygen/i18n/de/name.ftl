@@ -49,3 +49,6 @@ name-custom-dungeon-sea_chapel-organ =
 name-custom-spot-pirate =
     .fem = Piratin
     .masc = Pirat
+name-custom-template-paddy =
+    .fem = Paddy
+    .masc = Paddy

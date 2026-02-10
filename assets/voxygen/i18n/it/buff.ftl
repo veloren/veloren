@@ -1,8 +1,12 @@
 ## Regeneration
 
 buff-heal = Cura
-    .desc = Guadagna salute nel tempo.
-    .stat = Ripristina { $str_total } di salute
+    .desc = Recuperi salute nel tempo.
+    .stat =
+        { $duration ->
+            [1] Ripristina { $str_total } punti salute in { $duration } secondo.
+           *[other] Ripristina { $str_total } punti salute in { $duration } secondi.
+        }
 
 ## Potion
 

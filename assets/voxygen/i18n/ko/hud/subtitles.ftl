@@ -1,4 +1,4 @@
-subtitle-campfire = 모닥불이 타는 소리
+subtitle-campfire = 모닥불이 타오름
 subtitle-bees = 벌들의 윙윙거림
 subtitle-owl = 올빼미가 우는 소리
 subtitle-lavapool = 용암 호수

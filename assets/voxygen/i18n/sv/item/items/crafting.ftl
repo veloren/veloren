@@ -162,3 +162,5 @@ sprite-mineral-ingot-orichalcum = Orikalkumtacka
         Kan användas vid tillverkning av metallvapen.
 sprite-mineral-ore-ancient_gold = Antikt Guld
     .desc = Antik tacka av guld, genomblöt av magiska energier.
+object-collar = Djurhalsband
+    .desc = Tämjer neutrala vilda djur inom 5 block.

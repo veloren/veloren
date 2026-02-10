@@ -1,8 +1,12 @@
 ## Regeneration
 
-buff-heal = Heala
-    .desc = Återfå hälsa över tid.
-    .stat = Återger { $str_total } hälsa.
+buff-heal = Läk
+    .desc = Återfå liv över tid.
+    .stat =
+        { $duration ->
+            [1] Återger { $str_total } livpoäng under { $duration } sekund.
+           *[other] Återger { $str_total } livpoäng under { $duration } sekunder.
+        }
 
 ## Potion
 
@@ -111,11 +115,19 @@ buff-parried = Parerad
 
 ## Potion sickness
 
-buff-potionsickness = Illamående från trolldryck
-    .desc = Trolldrycker har mindre positiv effekt på dig efter att du nyligen druckit en trolldryck.
+buff-potionsickness = Trolldryckssjuka
+    .desc = Trolldryck har mindre positiva effekter på dig efter nyligt konsumerade trolldryck.
     .stat =
-        Minskar dem positiva effekterna av
-        påföljande trolldrycker med { $strength } %.
+        { $duration ->
+            [1]
+                Minskar de positiva effekterna av
+                följande trolldryck med { $strength } %.
+                Varar i { $duration } sekund.
+           *[other]
+                Minskar de positiva effekterna av
+                följande trolldryck med { $strength } %.
+                varar i { $duration } sekunder.
+        }
 
 ## Reckless
 
@@ -137,7 +149,7 @@ buff-frigid = Frusen
 
 ## Lifesteal
 
-buff-lifesteal = Hälsostöld
+buff-lifesteal = Livsstöld
     .desc = Sug ut livet ur dina fiender.
 
 ## Polymorped
@@ -181,10 +193,20 @@ buff-mysterious = Mystisk effekt
 buff-remove = Klicka för att ta bort
 # Agility
 buff-agility = Smidighet
-    .desc = Din rörelse är snabbare, men du orsakar minder skada, och tar mer skada.
+    .desc =
+        Din rörelse är snabbare,
+        men du gör minder skada och tar mer skada.
     .stat =
-        Ökar rörelsehastighet med { $strength }%.
-        I utbyte minskar din attackkraft och skydd drastiskt.
+        { $duration ->
+            [1]
+                Ökar rörelsehastighet med { $strength } %.
+                I utbyte minskar din attackkraft och skydd drastiskt.
+                varar i { $duration } sekund.
+           *[other]
+                Ökar rörelsehastighet med { $strength } %.
+                I utbyte minskar din attackkraft och skydd drastiskt.
+                Varar i { $duration } sekunder.
+        }
 # Heatstroke
 buff-heatstroke = Värmeslag
     .desc = Du utsattes för värme och lider nu av värmeslag. Din energibelöning och rörelsehastighet är lägre. Chilla.

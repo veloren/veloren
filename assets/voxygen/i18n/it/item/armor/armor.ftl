@@ -1,9 +1,9 @@
 armor-hide-carapace-back = Cappa di carapace
     .desc = Realizzata dalla dura corazza che un tempo proteggeva un gigantesco esemplare.
 armor-hide-carapace-belt = Cintura di carapace
-    .desc = Fatta dalla corazza che un tempo proteggeva una bestia.
+    .desc = La chitina si incastra perfettamente intorno alla tua vita.
 armor-hide-carapace-chest = Corazza di carapace
-    .desc = Fatta dalla corazza che un tempo proteggeva una bestia.
+    .desc = Un torace spesso che ha vissuto per abbattere molti nemici.
 armor-hide-carapace-foot = Solette di carapace
     .desc = Fatta dalla corazza che un tempo proteggeva una bestia.
 armor-hide-carapace-hand = Impugnature di carapace

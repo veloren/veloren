@@ -2,7 +2,11 @@
 
 buff-heal = Heilung
     .desc = Heilt über die Zeit hinweg.
-    .stat = Stellt { $str_total } Lebenspunkte wieder her.
+    .stat =
+        { $duration ->
+            [1] Stellt { $str_total } Lebenspunkte innerhalb von { $duration } Sekunde wieder her.
+           *[other] Stellt { $str_total } Lebenspunkte innerhalb von { $duration } Sekunden wieder her.
+        }
 
 ## Potion
 

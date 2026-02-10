@@ -143,3 +143,7 @@ common-items-modular-weapon-primary-hammer-spikedmace = 尖刺锏头
     .desc = { "" }
 common-items-modular-weapon-primary-hammer-warhammer = 战锤头
     .desc = { "" }
+common-items-tag_examples-witch = 任何与神秘学相关的事物
+    .desc = { "浸染着黑魔法那令人作呕的腐臭气息" }
+common-items-tag_examples-pirate = 海寇贼党相关
+    .desc = { "散发着战利品与沧海的味道" }

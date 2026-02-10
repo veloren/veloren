@@ -1,7 +1,7 @@
 weapon-tool-wooden_bass = Contrabbasso
     .desc = Contrabbasso di legno
 weapon-tool-wooden_flute = Flauto
-    .desc = Flauto di legno
+    .desc = Flauto di legno.
 weapon-tool-glass_flute = Flauto di vetro
     .desc = Cosa ci fa il cardinale con questo?
 weapon-tool-wooden_guitar = Chitarra
