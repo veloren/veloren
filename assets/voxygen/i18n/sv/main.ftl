@@ -6,18 +6,18 @@ main-creating_world = Skapar värld
 main-tip = Tips:
 main-unbound_key_tip = obunden
 main-notice =
-    Välkommen till alfa-versionen av Veloren!
+    Välkommen till alfaversionen av Veloren!
 
-    Innan du dyker in i det roliga, ber vi dig hålla några saker i åtanke:
+    Innan du dyker in i det roliga ber vi dig att hålla några saker i åtanke:
 
-    - Detta är en väldig tidig alfa-version. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
+    – Detta är en väldig tidig alfaversion. Förvänta dig buggar, väldigt bristfällig spelupplevelse, ovårdad spelmekanik och saknade funktioner.
 
-    - Om du har konstruktiva synpunkter eller buggrapporter kan du kontakta oss på vår GitLab-repository och på vår Discord- eller Matrix-server.
+    – Om du har konstruktiva synpunkter eller buggrapporter kan du kontakta oss på vår GitLab-repo och på vår Discord- eller Matrix-server.
 
-    - Veloren är öppen källkod. Du får spela, modifiera, och sprida spelet vidare som du vill i enlighet med version 3 av GNU General Public License.
+    – Veloren är öppen källkod. Du får spela, modifiera, och sprida spelet vidare som du vill i enlighet med version 3 av GNU General Public License.
 
-    - Veloren är ett ideellt community-projekt, och alla som jobbar på det är en volontär.
-    Om du gillar det du ser, får du gärna gå med i en utvecklings- eller konstgrupp!
+    – Veloren är ett ideellt community-projekt, och alla som jobbar på det är en volontär.
+    Om du gillar det du ser får du gärna gå med i någon av våra arbetsgrupper!
 
     Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer gilla spelet!
 

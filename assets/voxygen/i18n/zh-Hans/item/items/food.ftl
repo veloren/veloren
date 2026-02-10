@@ -3,7 +3,7 @@ sprite-carrot-carrot = 胡萝卜
 sprite-cabbage-cabbage = 生菜
     .desc = 一种生机勃勃的绿叶蔬菜。生菜做沙拉！
 sprite-mushrooms-mushroom-10 = 蘑菇
-    .desc = 希望这个没有毒
+    .desc = 希望这朵没有毒。
 sprite-food-salad_plain = 青菜沙拉
     .desc = 简直就只是把生菜切成碎。这也能算沙拉吗？
 sprite-tomato-tomato = 番茄
@@ -61,3 +61,5 @@ sprite-spore-corruption_spore = 腐败孢子
         你感觉到一股邪恶的力量在体内涌动
 
         长久地坚持下去并不明智......
+sprite-lettuce-lettuce = 生菜
+    .desc = 一种鲜嫩翠绿的叶类蔬菜。来吧，让咱们“生”点菜！

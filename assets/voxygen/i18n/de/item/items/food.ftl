@@ -61,3 +61,5 @@ sprite-spore-corruption_spore = Sporen des Verderbens
         Du fühlst eine böse Kraft darin pulsieren.
 
         Es könnte unklug sein, sie zu lange zu behalten ...
+sprite-lettuce-lettuce = Salatkopf
+    .desc = Leuchtend grünes Blattgemüse. Man kann damit Salate machen!

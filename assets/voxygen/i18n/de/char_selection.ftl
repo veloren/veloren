@@ -23,3 +23,4 @@ char_selection-version_mismatch = WARNUNG! Die Spielversion des Servers untersch
 char_selection-rules = Regeln
 char_selection-hardcore = Hardcore
 char_selection-hardcore_tooltip = Hardcore-Charaktere werden beim Tod gelöscht, sonst keine Änderungen in der Schwierigkeit
+char_selection-editing_character = Speichere Charakter...

@@ -1,5 +1,5 @@
 hud-group = Gruppo
-hud-group-invite_to_join = { "[" }{ $name }] ti ha invitato a unirti al loro gruppo.
+hud-group-invite_to_join = { "[" }{ $name }] ti ha invitato a unirti al loro gruppo!
 hud-group-invite_to_trade = { "[" }{ $name }] vorrebbe commerciare con te.
 hud-group-invite = Invita
 hud-group-kick = Espelli

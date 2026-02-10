@@ -1,54 +1,36 @@
-weapon-component-bow-grip-long = Impugnatura lunga per arco
-    .desc = {""}
-
-weapon-component-bow-grip-medium = Impugnatura media per arco
-    .desc = {""}
-
+weapon-component-bow-grip-long = Impugnatura dell'arco lungo
+    .desc = { "" }
+weapon-component-bow-grip-medium = Impugnatura dell'arco medio
+    .desc = { "" }
 weapon-component-bow-grip-short = Impugnatura corta per arco
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-axe-haft-long = Manico lungo per ascia
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-axe-haft-medium = Manico medio per ascia
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-axe-haft-short = Manico corto per ascia
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-staff-core-heavy = Nucleo piroclastico pesante
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-staff-core-light = Nucleo piroclastico leggero
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-staff-core-medium = Nucleo piroclastico
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sword-hilt-long = Impugnatura lunga per spada
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sword-hilt-medium = Impugnatura media per spada
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sword-hilt-short = Impugnatura corta per spada
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sceptre-core-heavy = Nucleo biologico pesante
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sceptre-core-light = Nucleo biologico leggero
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-sceptre-core-medium = Nucleo biologico
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-hammer-shaft-long = Manico lungo per martello
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-hammer-shaft-medium = Manico medio per martello
-    .desc = {""}
-
+    .desc = { "" }
 weapon-component-hammer-shaft-short = Manico corto per martello
-    .desc = {""}
-
+    .desc = { "" }

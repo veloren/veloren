@@ -1,9 +1,13 @@
 armor-tabard_admin = Giubba dell'amministratore
     .desc = Da un grande potere derivano grandi responsabilità.
 armor-misc-back-admin = Cappa dell'amministratore
-    .desc = Da un grande potere derivano grandi responsabilità.
+    .desc =
+        Da un grande potere derivano
+        grandi responsabilità.
 armor-tabard-admin_tabard = Giubba dell'amministratore
-    .desc = Da un grande potere derivano grandi responsabilità.
+    .desc =
+        Da un grande potere derivano
+        grandi responsabilità.
 armor-misc-back-admin_back = Cappa dell'amministratore
     .desc = Da un grande potere derivano grandi responsabilità.
 armor-misc-bag-admin_black_hole = Buco nero dell'amministratore

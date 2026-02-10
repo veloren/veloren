@@ -359,3 +359,5 @@ name-custom-village-merchant =
 name-custom-village-mountaineer =
     .fem = Bergbestigare
     .masc = Bergbestigare
+name-custom-dungeon-dwarven_quarry-lavathrower =
+    .neut = Lavakastare

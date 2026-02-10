@@ -38,3 +38,11 @@ command-whitelist-desc = Ergänzt oder entfernt einen Benutzernamen von der Whit
 command-player-not-found = Spieler '{ $player }' konnte nicht gefunden werden!
 command-time-invalid = { $t } ist keine valide Zeitangabe.
 command-set-build-mode-off = Baumodus ausgeschaltet.
+command-adminify-desc = Gibt einem Spieler eine eingeschränkte Adminrolle oder entfernt die derzeitige
+command-help-list =
+    { $client-commands }
+    { $server-commands }
+
+    Zusätzlich können folgende Tastenkürzel verwendet werden:
+
+    { $additional-shortcuts }

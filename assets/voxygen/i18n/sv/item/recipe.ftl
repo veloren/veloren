@@ -88,5 +88,5 @@ recipe-armor-witch = Häxrustningsrecept
     .desc = { "" }
 recipe-lanterns = Lyktrecept
     .desc = { "" }
-recipe-metal-bloodsteel = Blodståls-rustning och -vapenrecept
+recipe-metal-bloodsteel = Blodstål-rustning och -vapenrecept
     .desc = { "" }
