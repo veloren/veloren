@@ -10,14 +10,18 @@ dialogue-question-hire =
     .a0 = 我能雇佣你吗？
     .a1 = 我可以给你提供工作。
 dialogue-question-sentiment =
-    .a0 = 你对...有什么看法
-    .a1 = 你认为...如何
+    .a0 = 你对...有什么看法...
+    .a1 = 你认为...如何...
 dialogue-cancel_hire = 我想停止雇佣你。
 dialogue-me = 我
 dialogue-buy_hire_days =
     .day = 一天
     .week = 一周
-    .unknown = { $days } 天
+    .unknown =
+        { $days ->
+            [one] { $days } 天
+           *[other] { $days } 天
+        }
 dialogue-cancel_interaction = 我改变主意了。
 dialogue-question-directions = 你能给我指路吗？
 dialogue-direction-tavern = 当地酒馆
@@ -49,3 +53,13 @@ dialogue-accept =
 dialogue-decline =
     .a1 = 不用了，谢谢。
     .a2 = 抱歉，现在不行。
+dialogue-direction-workshop = 一个工作间
+dialogue-game-lose =
+    .a0 = 啊！我输了……
+    .a1 = 恭喜，你赢了。
+    .a2 = 该死的豆子！我输了。
+dialogue-question-where-ship-going =
+    .a0 = 我们要去哪里?
+    .a1 = 我们去哪里?
+    .a2 = 这艘船去哪里?
+    .a3 = 你带我们去哪里?

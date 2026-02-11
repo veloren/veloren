@@ -37,9 +37,24 @@ hud-chat-npc_explosion_kill_msg = { $attacker }炸死了[{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker }用魔法击杀了[{ $victim }]
 hud-chat-npc_other_kill_msg = { $attacker }击杀了[{ $victim }]
 hud-loot-pickup-msg =
-    { $actor } 捡起了 { $amount ->
-        [one] { $item }
-       *[other] { $amount } x { $item }
+    { $amount ->
+        [1] { $actor } 拾取了 { $item }
+       *[other] { $actor } 拾取了 { $amount }x { $item }
     }
 hud-chat-goodbye = 再见！
 hud-chat-connection_lost = 连接中断。{ $time }秒后将被踢出。
+hud-chat-tell-to-npc = 向 [{ $alias }] 说：{ $msg }
+hud-chat-tell-from-npc = 来自 [{ $alias }]：{ $msg }
+hud-chat-tell-to = 致 [{ $alias }]：{ $msg }
+hud-chat-tell-from = 来自 [{ $alias }]：{ $msg }
+hud-chat-message = { "[" }{ $alias }]：{ $msg }
+hud-chat-message-with-name = { "[" }{ $alias }] { $name }：{ $msg }
+hud-chat-message-in-group = ({ $group }) [{ $alias }]：{ $msg }
+hud-chat-message-in-group-with-name = ({ $group }) [{ $alias }] { $name }：{ $msg }
+hud-loot-pickup-msg-you =
+    { $amount ->
+        [1] 你拾取了 { $item }
+       *[other] 你拾取了 { $amount }x { $item }
+    }
+hud-chat-singleplayer-motd1 = 一整个世界都属于你！是时候大展身手了……
+hud-chat-singleplayer-motd2 = 这片宁静如何？

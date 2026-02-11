@@ -4,7 +4,7 @@ char_selection-enter_world = 进入世界
 char_selection-spectate = 观察世界
 char_selection-joining_character = 进入世界...
 char_selection-logout = 登出
-char_selection-create_new_character = 创建新的角色
+char_selection-create_new_character = 创建新角色
 char_selection-creating_character = 创建角色中...
 char_selection-uncanny_valley = 荒野
 char_selection-beard = 胡须
@@ -21,3 +21,9 @@ char_selection-starting_site_kind = 种类: { $kind }
 char_selection-create_info_name = 你的角色需要一个名字!
 char_selection-version_mismatch = 警告！此服务器正在运行另一个可能不兼容的游戏版本,请更新您的游戏.
 char_selection-rules = 规则
+char_selection-hardcore = 硬核
+char_selection-hardcore_tooltip =
+    硬核模式下，角色死亡后将被永久删除。
+
+    其余难度不变。
+char_selection-editing_character = 正在保存角色...

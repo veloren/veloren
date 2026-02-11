@@ -5,7 +5,7 @@ command-area_list-desc = 列出所有建造区域
 command-area_remove-desc = 移除指定建造区域
 command-aura-desc = 释放一个光环
 command-body-desc = 变身成不同种族
-command-set_body_type-desc = 设置性别：女性或男性
+command-set_body_type-desc = 设置性别：女性或男性。
 command-set_body_type-not_found =
     这不是有效的体型。
     请尝试以下选项之一：
@@ -21,3 +21,10 @@ command-battlemode-desc =
     如不带参数调用，将显示当前战斗模式。
 command-battlemode_force-desc = 直接更改战斗模式，无需验证
 command-campfire-desc = 生成一个篝火
+command-help-template = { $usage }{ $description }
+command-help-list =
+    { $client-commands }
+    { $server-commands }
+
+    此外，您可以使用以下快捷键:
+    { $additional-shortcuts }
