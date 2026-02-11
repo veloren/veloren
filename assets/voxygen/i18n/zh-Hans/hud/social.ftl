@@ -3,7 +3,11 @@ hud-social-online = 在线:
 hud-social-friends = 好友
 hud-social-not_yet_available = 尚不可用
 hud-social-faction = 帮派
-hud-social-play_online_fmt = { $nb_player } 玩家在线
+hud-social-play_online_fmt =
+    { $nb_player ->
+        [1] { $nb_player } 名玩家在线
+       *[other] { $nb_player } 名玩家在线
+    }
 hud-social-name = 名称
 hud-social-level = 等级
 hud-social-zone = 地区

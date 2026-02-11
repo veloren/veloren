@@ -545,3 +545,6 @@ npc-response-quest-slay-start_3 =
 npc-response-quest-slay-start_4 =
     .a0 = Revenez me voir quand le travail est fait et vous recevrez votre dû
     .a1 = Bonne chance ! Votre paiement vous attend à votre retour !
+npc-speech-where_are_we_going_wrong_profession =
+    .a0 = Attendez, quoi ? Je ne crois pas devoir vous emmener où que ce soit.
+    .a1 = Hein ? Pourquoi est-ce que je devrais vous emmener quelque part ?

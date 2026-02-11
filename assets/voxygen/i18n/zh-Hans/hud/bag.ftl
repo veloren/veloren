@@ -9,7 +9,7 @@ hud-bag-shoulders = 肩膀
 hud-bag-chest = 胸部
 hud-bag-hands = 手部
 hud-bag-lantern = 提灯
-hud-bag-glider = 滑翔伞
+hud-bag-glider = 滑翔翼
 hud-bag-belt = 腰带
 hud-bag-ring = 戒指
 hud-bag-back = 背部
@@ -27,11 +27,11 @@ hud-bag-energy = 耐力值
 hud-bag-combat_rating = 战力
 hud-bag-protection = 防御
 hud-bag-stun_res = 韧性恢复
-hud-bag-stealth = Stealth
+hud-bag-stealth = 潜行
 hud-bag-combat_rating_desc =
     根据你的装备
     和血量综合计算得出的数值.
-hud-bag-protection_desc = 可以装备护甲来减少伤害
+hud-bag-protection_desc = 可以装备护甲来减少伤害。
 hud-bag-stun_res_desc =
     抵御被连续击打而晕眩的韧性.
     像耐力一样恢复.
@@ -41,3 +41,28 @@ hud-bag-sort_by_category = 根据类别排序
 hud-bag-sort_by_tag = 根据标签排序
 hud-bag-backpack = 背包
 hud-bag-sort_by_quantity = 根据数量排序
+hud-bag-change_to_sort_by_name = 按名称排序
+hud-bag-change_to_sort_by_quality = 按品质排序
+hud-bag-change_to_sort_by_category = 按物品类别排序
+hud-bag-change_to_sort_by_tag = 按预设标签排序
+hud-bag-change_to_sort_by_quantity = 按堆叠数量排序
+hud-bag-use_slot_equip_drop_items =
+    { $slot_deficit ->
+        [1] 装备此物品会导致背包空间不足以存放现有物品，其中 1 件物品将掉落在地上。你想继续吗？
+       *[other] 装备此物品会导致背包空间不足以存放现有物品，其中 { $slot_deficit } 件物品将掉落在地上。你想继续吗？
+    }
+hud-bag-use_slot_unequip_drop_items =
+    { $slot_deficit ->
+        [1] 卸下此物品会导致背包空间不足以存放现有物品，其中 1 件物品将掉落在地上。你想继续吗？
+       *[other] 卸下此物品会导致背包空间不足以存放现有物品，其中 { $slot_deficit } 件物品将掉落在地上。你想继续吗？
+    }
+hud-bag-swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] 这将导致 1 件物品掉落在地上。你确定吗？
+       *[other] 这将导致 { $slot_deficit } 件物品掉落在地上。你确定吗？
+    }
+hud-bag-split_swap_slots_drop_items =
+    { $slot_deficit ->
+        [1] 这将导致 1 件物品掉落在地上。你确定吗？
+       *[other] 这将导致 { $slot_deficit } 件物品掉落在地上。你确定吗？
+    }

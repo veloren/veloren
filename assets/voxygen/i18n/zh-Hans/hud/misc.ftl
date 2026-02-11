@@ -8,7 +8,7 @@ hud-someone_else = 其他人
 hud-another_group = 其他队伍
 hud-owned_by_for_secs = 归属 { $name } 还有 { $secs } 秒
 hud-press_key_to_show_debug_info_fmt = 按下 { $key } 显示调试信息
-hud-press_key_to_toggle_keybindings_fmt = 按下 { $key } 切换显示快捷键设置
+hud-press_key_to_toggle_keybindings_fmt = 按下 { $key } 切换快捷键绑定
 hud-press_key_to_toggle_debug_info_fmt = 按下 { $key } 切换显示调试信息
 hud-press_key_to_respawn = 按下 { $key } 在你上次访问的篝火处重生.
 hud-tutorial_btn = 教程
@@ -29,7 +29,11 @@ hud-temp_quest_text =
     只要你准备就绪,就可以尝试挑战地图上的标记点,来获得更好的装备!
 hud-spell = 法术
 hud-diary = 技能书
-hud-free_look_indicator = 启用自由视角. 按下 { $key } 禁用.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] 自由视角已激活。按 { $key } 键关闭。
+       *[other] 自由视角已激活。松开 { $key } 键关闭。
+    }
 hud-camera_clamp_indicator = 启用锁定视角. 按下 { $key } 禁用.
 hud-auto_walk_indicator = 启用自动 行走/滑翔
 hud-zoom_lock_indicator-remind = 缩放锁定
@@ -57,7 +61,7 @@ hud-portal = 传送
 hud-init-stage-singleplayer = 启动单人游戏服务器...
 hud-init-stage-server-db-migrations = { "[" }{ -server }]: 应用数据库迁移...
 hud-init-stage-server-db-vacuum = { "[" }{ -server }]: 清理数据库...
-hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: 刻蚀 { $percentage }%
+hud-init-stage-server-worldsim-erosion = { "[" }{ -server }]: 蚀刻 { $percentage }%
 hud-init-stage-server-worldciv-civcreate = { "[" }{ -server }]: 生成 { $generated } 了 { $total } 村庄
 hud-init-stage-server-worldciv-site = { "[" }{ -server }]: 生成村庄...
 hud-init-stage-server-economysim = { "[" }{ -server }]: 模化经济...
@@ -70,3 +74,44 @@ hud-init-stage-client-authentication = { "[" }{ -client }]: 认证中...
 hud-init-stage-client-load-init-data = { "[" }{ -client }]: 从服务器加载初始化数据...
 hud-init-stage-client-starting-client = { "[" }{ -client }]: 准备客户端...
 hud-init-stage-render-pipeline = 创建渲染管线 ({ $done }/{ $total })
+hud-items_lost_dur = 你装备的物品损失了耐久度。
+hud-items_will_lose_dur = 你装备的物品会损失耐久度。
+hud-hardcore_char_deleted = 此硬核模式角色已被删除。
+hud-hardcore_will_char_deleted = 此硬核模式角色将会被删除。
+hud-press_key_to_give_up = 按 { $key } 放弃被救援并立即死亡。
+hud-steal-requires = 使用 { $item } 偷窃
+hud-steal-consumes = 使用 { $item } 进行偷窃
+hud-waypoint_interact = 设置路径点
+hud-rest = 休息
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] 剩余约 { $n } 天
+           *[other] 剩余约 { $n } 天
+        }
+    .hours =
+        { $n ->
+            [one] 剩余约 { $n } 小时
+           *[other] 剩余约 { $n } 小时
+        }
+    .minutes =
+        { $n ->
+            [one] 剩余约 { $n } 分钟
+           *[other] 剩余约 { $n } 分钟
+        }
+    .seconds =
+        { $n ->
+            [one] 剩余约 { $n } 秒
+           *[other] 剩余约 { $n } 秒
+        }
+hud-tutorial-disable = 不再显示教学提示
+hud-press_key_to_return_to_char_menu = 按 { $key } 返回人物菜单。
+hud-downed_recieving_help = 正在接受帮助。
+hud-steal = 窃取
+hud-dig = 挖掘
+hud-mine-needs_shovel = 需要铲子
+hud-help = 帮助
+hud-pet = 摸摸
+hud-follow = 跟随
+hud-stay = 停留
+hud-read = 阅读

@@ -19,4 +19,4 @@ weapon-tool-pickaxe_green = 镐
 weapon-tool-pickaxe_steel = 钢镐
     .desc = 允许快速挖掘看到的矿石。
 weapon-tool-pickaxe_stone = 石镐
-    .desc = Strike the earth!（矮人要塞开局口号，大意为向地心进发）
+    .desc = 敲击大地！
