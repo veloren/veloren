@@ -1,6 +1,6 @@
 hud-group = 队伍
-hud-group-invite_to_join = [{ $name }]邀请你加入它们的队伍!
-hud-group-invite_to_trade = [{ $name }]希望与你进行交易.
+hud-group-invite_to_join = { "[" }{ $name }]邀请你加入它们的队伍!
+hud-group-invite_to_trade = { "[" }{ $name }]希望与你进行交易.
 hud-group-invite = 邀请
 hud-group-kick = 踢出
 hud-group-assign_leader = 指定队长
@@ -11,3 +11,6 @@ hud-group-add_friend = 添加好友
 hud-group-link_group = 连接队伍
 hud-group-in_menu = 菜单中
 hud-group-members = 队伍成员
+hud-group-invite-accepted = { $target } 接受了你的队伍邀请。
+hud-group-invite-declined = { $target } 拒绝了你的队伍邀请。
+hud-group-invite-timed_out = 对 { $target } 的队伍邀请超时了。

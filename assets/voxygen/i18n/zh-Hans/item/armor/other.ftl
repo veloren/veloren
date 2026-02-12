@@ -54,8 +54,10 @@ armor-misc-bag-knitted_red_pouch = 针织红色小袋
     .desc = 一个相当大的红色包，有两个袋子，用羊毛和染料制成。
 armor-misc-bag-liana_kit = 自然背包
     .desc = 由干燥的藤本植物编织而成。
-armor-misc-bag-mindflayer_spellbag = 夺心魔咒袋
-    .desc = 你几乎能感受到摄心者邪恶的存在流淌在织物中。
+armor-misc-bag-mindflayer_spellbag = 夺心魔咒语袋
+    .desc =
+        你几乎能感觉到夺心魔那
+        邪恶的存在感正透过布料流淌。
 armor-misc-bag-reliable_backpack = 可靠的背包
     .desc = 它永远不会放弃你。
 armor-misc-bag-reliable_leather_pack = 可靠的皮革包
@@ -77,6 +79,8 @@ armor-misc-bag-woven_red_bag = 编织红包
 lantern-bloodmoon_relic = 血月遗物
     .desc = 那诱人的血腥气息，既为陷阱，亦作明灯，用以追猎暗夜生灵。
 lantern-delvers_lamp = 深掘者提灯
-    .desc = { "矿业开采的理想之选。" }
+    .desc = 矿业开采的理想之选。
 lantern-crux = 源核
-    .desc = { "那股灼人的高温，仅仅是巨灵酷烈起源之中的零星余烬。" }
+    .desc = 那股灼人的高温，仅仅是巨灵酷烈起源之中的零星余烬。
+glider-tephras = 火山喷发物
+    .desc = 灼热的高温使人难以长时间握持。

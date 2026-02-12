@@ -304,3 +304,4 @@ command-parse-duration-error = Impossible de déterminer la durée : { $error }
 command-waypoint-error = Votre Repère n'a pas pu être trouvé.
 command-unimplemented-spawn-special = Créer des entités spéciales n'est pas implémenté
 command-inventory-cant-fit-item = Impossible de placer l'objet dans l'inventaire
+command-spot-desc = Trouve et téléporte à un lieu d'un type spécifié le plus proche.

@@ -154,3 +154,5 @@ hud-loot-pickup-msg-you =
         [1] Vous avez récupéré { $item }
        *[other] vous avez récupéré { $amount }x { $item }
     }
+hud-chat-singleplayer-motd1 = Un monde entier rien que pour vous ! Il est temps de s'étirer...
+hud-chat-singleplayer-motd2 = Comment trouvez-vous la sérénité ?
