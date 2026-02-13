@@ -18,6 +18,7 @@ pub enum DebugShape {
     CapsulePrism {
         p0: Vec2<f32>,
         p1: Vec2<f32>,
+        head_ratio: f32,
         radius: f32,
         height: f32,
     },
@@ -92,9 +93,27 @@ impl DebugShape {
         let tri = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>| {
             Tri::<DebugVertex>::new(x.into(), y.into(), z.into())
         };
+        let tri_colored = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, color: [f32; 4]| {
+            let normal = (y - x).cross(z - y).normalized();
+            Tri::<DebugVertex>::new(
+                (x, color, normal).into(),
+                (y, color, normal).into(),
+                (z, color, normal).into(),
+            )
+        };
         let quad = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, w: Vec3<f32>| {
             Quad::<DebugVertex>::new(x.into(), y.into(), z.into(), w.into())
         };
+        let quad_colored =
+            |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, w: Vec3<f32>, color: [f32; 4]| {
+                let normal = (y - x).cross(z - y).normalized();
+                Quad::<DebugVertex>::new(
+                    (x, color, normal).into(),
+                    (y, color, normal).into(),
+                    (z, color, normal).into(),
+                    (w, color, normal).into(),
+                )
+            };
 
         match self {
             DebugShape::Line([a, b], width) => {
@@ -135,15 +154,20 @@ impl DebugShape {
             DebugShape::CapsulePrism {
                 p0,
                 p1,
+                head_ratio,
                 radius,
                 height,
             } => {
                 // We split circle in two parts
                 const HALF_SECTORS: u8 = 8;
                 const TOTAL: u8 = HALF_SECTORS * 2;
+                // FIXME: doesn't really work
+                // but it does change the coloring or something
+                const YELLOW: [f32; 4] = [0.6, 0.2, 0.0, 1.0];
 
                 let offset = (p0 - p1).angle_between(Vec2::new(0.0, 1.0));
                 let h = Vec3::new(0.0, 0.0, *height);
+                let neck_point = 1.0 - *head_ratio;
 
                 let draw_cylinder_sector =
                     |mesh: &mut Mesh<DebugVertex>, origin: Vec3<f32>, from: u8, to: u8| {
@@ -160,12 +184,21 @@ impl DebugShape {
                             let r0 = to(i);
                             let r1 = to(i + 1);
 
+                            // 1. Draw everything up to neck
                             // Draw bottom sector
                             mesh.push_tri(tri(r1, r0, origin));
-                            // Draw face
-                            mesh.push_quad(quad(r0, r1, r1 + h, r0 + h));
+                            // Draw body face
+                            mesh.push_quad(quad(r0, r1, r1 + h * neck_point, r0 + h * neck_point));
+                            // 2. Draw everything after neck
+                            mesh.push_quad(quad_colored(
+                                r0 + h * neck_point,
+                                r1 + h * neck_point,
+                                r1 + h,
+                                r0 + h,
+                                YELLOW,
+                            ));
                             // Draw top sector
-                            mesh.push_tri(tri(origin + h, r0 + h, r1 + h));
+                            mesh.push_tri(tri_colored(origin + h, r0 + h, r1 + h, YELLOW));
                         }
                     };
 
@@ -192,21 +225,29 @@ impl DebugShape {
                 let d0 = p1 + shift;
 
                 // top points
-                let a1 = a0 + h;
-                let b1 = b0 + h;
-                let c1 = c0 + h;
-                let d1 = d0 + h;
+                let a_mid = a0 + h * neck_point;
+                let a_top = a0 + h;
+                let b_mid = b0 + h * neck_point;
+                let b_top = b0 + h;
+                let c_mid = c0 + h * neck_point;
+                let c_top = c0 + h;
+                let d_mid = d0 + h * neck_point;
+                let d_top = d0 + h;
 
                 // Bottom
                 mesh.push_quad(quad(d0, c0, b0, a0));
 
-                // Faces
-                // (we need only two of them, because other two are inside)
-                mesh.push_quad(quad(d0, a0, a1, d1));
-                mesh.push_quad(quad(b0, c0, c1, b1));
+                // Faces (front and back, no need to draw internal ones)
+                //
+                // Up to neck, and after neck as above.
+                mesh.push_quad(quad(d0, a0, a_mid, d_mid));
+                mesh.push_quad(quad_colored(d_mid, a_mid, a_top, d_top, YELLOW));
+
+                mesh.push_quad(quad(b0, c0, c_mid, b_mid));
+                mesh.push_quad(quad_colored(b_mid, c_mid, c_top, b_top, YELLOW));
 
                 // Top
-                mesh.push_quad(quad(a1, b1, c1, d1));
+                mesh.push_quad(quad_colored(a_top, b_top, c_top, d_top, YELLOW));
 
                 // 3) Draw second half-cylinder
                 draw_cylinder_sector(&mut mesh, p1, HALF_SECTORS, TOTAL);

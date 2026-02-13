@@ -480,6 +480,9 @@ impl SessionState {
                                         p0: Vec2::zero(),
                                         p1: Vec2::zero(),
                                         radius: sphere.radius,
+                                        // Well, we need to put something in
+                                        // there...
+                                        head_ratio: 1.0,
                                         height: sphere.radius * 2.0,
                                     },
                                     sphere.center,
