@@ -30,7 +30,7 @@ common-abilities-sword-crippling_double_slash = 残忍型 二连击
 common-abilities-sword-cleaving_double_slash = 劈砍型 二连击
     .desc = 一个能够劈穿数个敌人的二连击.
 veloren-core-pseudo_abilities-sword-secondary_ability = 副剑技
-    .desc = 绑定在特殊攻击上的技能.
+    .desc = 绑定在副攻击键上的技能。
 common-abilities-sword-basic_thrust = 基础突进
     .desc = 蓄势可以使突进更加强大.
 common-abilities-sword-heavy_slam = 重剑出击
@@ -41,8 +41,8 @@ common-abilities-sword-defensive_vital_jab = 防守型 致命突刺
     .desc = 一个极快的前戳，对于被格挡的敌人造成更多的伤害.
 common-abilities-sword-crippling_deep_rend = 撕裂伤口
     .desc = 专注于攻击已经撕裂的伤口，对于已流血的敌人造成更多伤害.
-common-abilities-sword-cleaving_spiral_slash = 转转乐
-    .desc = 挥舞剑刃一圈来攻击附近的任何目标.
+common-abilities-sword-cleaving_spiral_slash = 旋风斩
+    .desc = 挥舞你的剑刃环绕自身，攻击附近的所有人。
 veloren-core-pseudo_abilities-sword-crescent_slash = 空月斩
     .desc =
         一个从下往上的斜斩。
@@ -295,16 +295,18 @@ common-abilities-axe-adrenaline_rush = 肾上腺素激增
 common-abilities-axe-execute = 处决
     .desc =
         通常被认为是致命的毁灭性打击。
-        需要30连击数才能使用。
-        在50连击时自动升级为“漩涡”（如已解锁）。
+        需要 { $min_combo } 连击数才能使用。
+        在 { $min_combo_upg } 连击时自动升级为“漩涡”（如已解锁）。
 common-abilities-axe-maelstrom = 漩涡
     .desc =
         用毁灭性的旋转打击来攻击你附近的一切。
-        在50连击时自动升级为“处决”。
+        在 { $min_combo_upg } 连击时自动升级为“处决”。
 common-abilities-axe-rake = 耙击
     .desc = 用斧头划过你的敌人，造成流血。
 common-abilities-axe-bloodfeast = 血腥盛宴
-    .desc = 你的战斧渴望着你敌人的鲜血，每次对流血的敌人的攻击将会为你自己补充。
+    .desc =
+        你的战斧渴求敌人的鲜血，每当劈砍流血的敌人时，便能为你补充力量。
+        需10连击方可使用。
 common-abilities-axe-fierce_raze = 猛烈摧残
     .desc = 对敌人的一系列快速打击。
 common-abilities-axe-dual_fierce_raze = 猛烈摧残
@@ -340,3 +342,161 @@ common-abilities-debug-glide_speeder = 轰鸣
     .desc = 目之所及，无远弗届
 common-abilities-hammer-wide_wallop = 宽幅打击
     .desc = 拉开距离并将敌人击飞
+common-abilities-staff-firebomb = 火球术
+    .desc = 射出一个在撞击时爆炸的火球。
+common-abilities-staff-flamethrower = 喷火器
+    .desc = 向前方喷射火焰。
+common-abilities-sceptre-lifestealbeam = 吸血
+    .desc = 发射一道光束，吸取敌人的生命。
+common-abilities-sceptre-healingaura = 治疗光环
+    .desc = 治疗你的盟友。需要连击才能激活。
+common-abilities-hammer-scornful_swipe = 轻蔑挥击
+    .desc =
+        增加你的架势抗性和能量回复。
+        如果被敌人击倒，你的攻击伤害和所受伤害的易伤都会增加。
+common-abilities-hammer-tremor = 震击
+    .desc = 用足够的力道击打地面，使你敌人脚下的土地颤抖。
+common-abilities-hammer-vigorous_bash = 强力猛击
+    .desc =
+        用你的锤头快速击打你的敌人。
+        如果你的敌人处于震慑状态，则奖励 4 点连击加成。
+common-abilities-hammer-heavy_whorl = 重旋击
+    .desc = 你用锤子重击所有环绕你的敌人。
+common-abilities-hammer-dual_heavy_whorl = 重旋击
+    .desc = 你用你的锤子们重击所有环绕你的敌人。
+common-abilities-hammer-intercept = 拦截
+    .desc = 挥舞你的锤子向前冲锋，将你的全部重量灌注到你的打击中。
+common-abilities-hammer-dual_intercept = 拦截
+    .desc = 用你的锤子向前冲锋，将你的全部重量灌注到你的打击中。
+common-abilities-hammer-retaliate = 反击
+    .desc = 用一次快速的动作格挡并反击敌人的攻击！
+common-abilities-hammer-spine_cracker = 脊椎粉碎
+    .desc =
+        绕到你的敌人身后，狠狠地击打他们的后背！
+        对伤害进行大幅度乘算，并降低目标的架势值。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-breach = 突破
+    .desc =
+        用你锤子的重击突破你敌人防御的尝试。
+        造成额外伤害并降低目标的架势值。
+common-abilities-hammer-pile_driver = 打桩机
+    .desc =
+        将你的敌人猛击到地面，直到他们挣脱双腿，否则会阻止他们的移动。
+        降低你敌人的移动速度。
+common-abilities-hammer-lung_pummel = 猛击侧腹
+    .desc =
+        用你的锤子横扫敌人的侧面，使其感到气馁（或“使他们动作迟缓”）。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-helm_crusher = 碎盔击
+    .desc =
+        用你的锤子猛击敌人的头部，使其昏迷。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-iron_tempest = 钢铁风暴
+    .desc = 以足够快的速度挥动你的锤子，使其如同风暴一般，击散你的敌人。
+common-abilities-hammer-dual_iron_tempest = 钢铁风暴
+    .desc = 以足够快的速度挥动你的锤子，使其如同风暴一般，击散你的敌人。
+common-abilities-hammer-upheaval = 巨变
+    .desc =
+        将你的锤子猛击到你的敌人身上，将他们击飞到空中。
+        增加目标受到的架势伤害。
+common-abilities-hammer-dual_upheaval = 巨变
+    .desc =
+        将你的锤子猛击到你的敌人身上，将他们击飞到空中。
+        增加目标受到的架势伤害。
+common-abilities-hammer-rampart = 壁垒
+    .desc =
+        击打地面，造成非常轻微的地壳抬升。
+        减少所有队伍成员受到的伤害。
+common-abilities-hammer-tenacity = 坚韧
+    .desc =
+        你在承受一次又一次的攻击时保持坚强。
+        增加你的伤害抗性并降低移动速度。
+        受到的每一次攻击都会增加你的能量。
+common-abilities-hammer-thunderclap = 雷鸣斩
+    .desc =
+        对你的敌人施展一次毁灭性的、由肾上腺素驱动的头顶重击。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-seismic_shock = 地震冲击
+    .desc =
+        用足够的力道击打地面，将你的敌人击飞到空中。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-earthshaker = 撼地者
+    .desc =
+        将你的锤子猛击到地面，在你周围释放一道冲击波。
+        减少敌人的移动速度和能量奖励。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-hammer-judgement = 审判
+    .desc =
+        用你全部的重量将你的锤子砸向你的敌人。
+        如果你的目标处于震慑状态，伤害会大大增加。
+        需要 { $min_combo } 连击数才能使用。
+common-abilities-bow-arrow_shot = 箭矢射击
+    .desc = 准备一支箭矢并射出。
+common-abilities-bow-broadhead = 宽刃箭
+    .desc = 准备一支更重的箭矢，并射出。
+common-abilities-bow-foothold = 旋风闪避
+    .desc = 蹬开一个敌人向后跳跃，同时向他们射出一支箭。
+common-abilities-bow-heavy_nock = 重型蓄力
+    .desc = 用一支配重箭矢搭在你的弓上，将目标击退。他们越轻，你距离越近，击退效果越强。
+common-abilities-bow-ardent_hunt = 炽热追猎
+    .desc = 用你的下一支箭命中目标来指定他们。只要目标被指定，你的箭矢就会对他们造成更高的伤害。
+common-abilities-bow-owl_talon = 猫头鹰之爪
+    .desc = 你越隐蔽，你的下一箭对未被激怒的目标造成的伤害就越高。
+common-abilities-bow-eagle_eye = 鹰眼
+    .desc = 集中你的视野，确保你接下来的射击能造成暴击伤害，但这会以消耗部分能量恢复为代价。
+common-abilities-bow-heartseeker = 追心箭
+    .desc = 一次鲁莽且高消耗的射击，命中时会为你恢复能量。
+common-abilities-bow-hawkstrike = 猎鹰突袭
+    .desc = 准备一支箭矢，当它造成暴击时将造成毁灭性的打击。
+common-abilities-bow-hawkstrike_shot = 猎鹰突袭
+    .desc = 射出一支猎鹰箭矢，当它命中目标的要害区域时，其致命性更强。
+common-abilities-bow-septic_shot = 剧毒之箭
+    .desc = 准备你的下一支箭矢，如果你已经对目标施加了任何负面状态，它将更具致命性。
+common-abilities-bow-ignite_arrow = 燃火之箭
+    .desc = 取出一个火滴，并将其附着到你的下一支箭矢上。
+common-abilities-bow-burning_arrow = 燃烧箭
+    .desc = 当你的箭矢深深刺入目标时，他们会因火滴涂层而被点燃。
+common-abilities-bow-burning_broadhead = 燃烧宽刃箭
+    .desc = 你的下一支箭矢带有足够的冲击力，使其不稳定的火滴涂层在撞击时爆炸。
+common-abilities-bow-drench_arrow = 浸毒箭
+    .desc = 用一团毒液涂覆你的下一支箭矢。
+common-abilities-bow-poison_arrow = 毒箭
+    .desc = 你的箭矢会使你的目标中毒，削弱他们。
+common-abilities-bow-poison_broadhead = 毒刃箭
+    .desc = 你的下一支箭矢以足够的初速射出，使毒液团破裂，溅射到附近的敌人身上。
+common-abilities-bow-freeze_arrow = 冰冻箭
+    .desc = 在你的下一支箭矢周围塑造一层冰冷的凝胶。
+common-abilities-bow-freezing_arrow = 冰冻箭
+    .desc = 你的箭矢将一种冰冻试剂注入你的目标，减缓他们的速度。
+common-abilities-bow-freezing_broadhead = 冰冻箭头
+    .desc = 当箭矢击中目标时，凝胶四散飞溅并覆盖周围一切，使其易受眩晕攻击。
+common-abilities-bow-jolt_arrow = 电击箭
+    .desc = 用雷文之尘为你的下一支箭注入电流。
+common-abilities-bow-lightning_arrow = 闪电箭
+    .desc = 你的箭矢被电磁力引导至附近目标。
+common-abilities-bow-lightning_broadhead = 闪电箭头
+    .desc = 你的箭矢蕴含电能，击中敌人后会向附近目标释放电弧。
+common-abilities-bow-barrage = 弹幕射击
+    .desc = 用弹药带替换你的宽头箭，快速向敌人发射密集箭雨。
+common-abilities-bow-barrage_shot = 箭雨
+    .desc = 快速射出大量小型箭矢，以无尽箭雨覆盖敌人。
+common-abilities-bow-piercing_gale = 穿透狂风
+    .desc = 将你的宽头箭替换为旋转箭，能够穿透目标。
+common-abilities-bow-piercing_gale_shot = 穿透狂风
+    .desc = 发射一枚旋转箭矢，能钻穿目标直达其后方。
+common-abilities-bow-scatterburst = 散射箭
+    .desc = 随意抓起一把箭矢，以便同时攻击近处的多个目标。
+common-abilities-bow-lesser_scatterburst = 散射箭
+    .desc = 迅速将满手的箭矢向后拉开，在箭矢脱手前射出。
+common-sbilities-bow-greater_scatterburst = 散射爆裂
+    .desc = 谨慎地将满手的箭矢向后拉开，将弓弦完全拉满后再射出。
+common-abilities-bow-fusillade = 连射
+    .desc = 同时准备多支箭矢，以短促连射的方式在远距离发射多支箭矢。
+common-abilities-bow-fusillade_shot = 连射
+    .desc = 同时搭上并拉出5支较小的箭矢，错开排列使它们依次稍有延迟地射出。
+common-abilities-bow-death_volley = 死亡箭雨
+    .desc = 以固定角度向空中发射一束箭矢，箭矢将四散开来化作死亡之雨。
+common-abilities-bow-death_volley_shot = 聚焦死亡箭雨
+    .desc = 向空中发射一束箭矢，它们会狭窄地分散开来，形成一场死亡之雨。
+common-abilities-bow-death_volley_heavy_shot = 广域死亡箭雨
+    .desc = 向空中发射一束箭矢，箭矢将四散开来化作死亡的雨幕。

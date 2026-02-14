@@ -2,8 +2,8 @@ armor-tabard_admin = 管理员战袍
     .desc = 能力越大，责任越大。
 armor-misc-back-admin = 管理员披风
     .desc =
-        巨大的力量，伴随着
-        巨大的责任。
+        能力越大
+        责任越大。
 armor-tabard-admin_tabard = 管理员旗袍
     .desc =
         巨大的力量，伴随着

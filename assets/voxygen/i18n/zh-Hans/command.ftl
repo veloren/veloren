@@ -28,3 +28,16 @@ command-help-list =
 
     此外，您可以使用以下快捷键:
     { $additional-shortcuts }
+command-airship-desc = 生成一艘空中飞船
+command-ban-desc = 根据给定的用户名，对玩家进行禁用操作，持续时间由参数指定(如果提供)。传递true以覆盖并修改现有禁令。
+command-ban-ip-desc = 封禁拥有指定用户名的玩家，期限为指定时长(若已提供)。与常规封禁不同，此操作还会额外封禁与该用户关联的IP地址。传递true可覆盖选项，则可将现有封禁状态进行更改。
+command-clear_persisted_terrain-desc = 清除附近已存在的地形
+command-create_location-desc = 在当前位置创建一个定位
+command-death_effect-dest = 为目标实体添加一个死亡时效果
+command-debug_column-desc = 打印有关某列的一些调试信息
+command-debug_ways-desc = 打印有关列的存储方式的调试信息
+command-delete_location-desc = 删除定位
+command-destroy_tethers-desc = 摧毁所有与你相连的束缚
+command-disconnect_all_players-desc = 断开与服务器上连接的所有玩家
+command-dismount-desc = 如果你在骑乘，请先下马，或者卸载骑在你身上的任何东西
+command-dropall-desc = 把你所有的物品扔到地上
