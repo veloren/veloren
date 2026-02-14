@@ -648,20 +648,22 @@ fn dispatch_hit(
             );
 
             let precision_from_head = {
-                // This performs a cylinder and line segment intersection check. The cylinder is
-                // the upper 10% of an entity's dimensions. The line segment is from the
-                // projectile's positions on the current and previous tick.
+                // This performs a cylinder and line segment intersection check.
+                //
+                // The cylinder is the upper N% of an entity's dimensions.
+                // The line segment is from the projectile's positions on the
+                // current and previous tick.
                 let curr_pos = projectile_info.pos.0;
                 let last_pos = projectile_info.pos.0 - projectile_info.vel.0 * read_data.dt.0;
                 let vel = projectile_info.vel;
-                let (target_height, target_radius) = read_data
-                    .bodies
-                    .get(target)
-                    .map_or((0.0, 0.0), |b| (b.height(), b.max_radius()));
+                let (target_height, head_ratio, target_radius) =
+                    read_data.bodies.get(target).map_or((0.0, 0.0, 0.0), |b| {
+                        (b.height(), b.top_ratio(), b.max_radius())
+                    });
+
                 let head_top_pos = target_pos.with_z(target_pos.z + target_height);
-                let head_bottom_pos = head_top_pos.with_z(
-                    head_top_pos.z - target_height * combat::PROJECTILE_HEADSHOT_PROPORTION,
-                );
+                let head_bottom_pos =
+                    head_top_pos.with_z(head_top_pos.z - target_height * head_ratio);
                 if (curr_pos.z < head_bottom_pos.z && last_pos.z < head_bottom_pos.z)
                     || (curr_pos.z > head_top_pos.z && last_pos.z > head_top_pos.z)
                 {
@@ -687,9 +689,11 @@ fn dispatch_hit(
                     let hit_head = intersected_bottom || intersected_top;
                     let hit_from_bottom = last_pos.z < head_bottom_pos.z && intersected_bottom;
                     let hit_from_top = last_pos.z > head_top_pos.z && intersected_top;
-                    // If projectile from bottom, do not award precision damage because it trivial
-                    // to get from up close If projectile from top, reduce
-                    // precision damage to mitigate cheesing benefits
+                    // If projectile from bottom, do not award precision damage
+                    // because it trivial to get from up close.
+                    //
+                    // If projectile from top, reduce precision damage to
+                    // mitigate cheesing benefits.
                     if !hit_head || hit_from_bottom {
                         None
                     } else if hit_from_top {
@@ -702,10 +706,8 @@ fn dispatch_hit(
                         start: last_pos,
                         end: curr_pos,
                     };
-                    let head_middle_pos = head_bottom_pos.with_z(
-                        head_bottom_pos.z
-                            + target_height * combat::PROJECTILE_HEADSHOT_PROPORTION * 0.5,
-                    );
+                    let head_middle_pos = head_bottom_pos
+                        .with_z(head_bottom_pos.z + target_height * head_ratio * 0.5);
                     if trajectory.distance_to_point(head_middle_pos) < target_radius {
                         Some(combat::MAX_HEADSHOT_PRECISION)
                     } else {

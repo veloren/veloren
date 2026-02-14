@@ -1623,11 +1623,13 @@ impl Scene {
             let orientations = ecs.read_component::<comp::Ori>();
             let scales = ecs.read_component::<comp::Scale>();
             let groups = ecs.read_component::<comp::Group>();
-            for (entity, pos, collider, ori, scale, group) in (
+            let bodies = ecs.read_component::<comp::Body>();
+            for (entity, pos, collider, ori, body, scale, group) in (
                 &ecs.entities(),
                 &positions,
                 &colliders,
                 &orientations,
+                &bodies,
                 scales.maybe(),
                 groups.maybe(),
             )
@@ -1648,6 +1650,7 @@ impl Scene {
                             p0: *p0 * scale,
                             p1: *p1 * scale,
                             radius: *radius * scale,
+                            head_ratio: body.top_ratio(),
                             height: (*z_max - *z_min) * scale,
                         };
 
