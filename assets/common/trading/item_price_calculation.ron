@@ -22,6 +22,7 @@ loot_tables: [
 
     // Ingredients
     (72.5, true, "common.trading.sellable_materials"),
+    // TODO: carefully merge with the thing above
     (3.16184, true, "common.trading.unsellable_materials"),
 
     // Food Ingredients
@@ -29,6 +30,7 @@ loot_tables: [
 
     // Recipes
     (3.0, true, "common.trading.sellable_recipe"),
+    // TODO: carefully merge with the thing above
     (3.0, true, "common.trading.unsellable_recipe"),
 
     // Potions
