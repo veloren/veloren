@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translators can now use fragment-based templates for modular weapons.
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
 - Internationalization feature for singleplayer MOTDs
+- Added bullet character (•) to EnterCommand font
 
 ### Changed
 
