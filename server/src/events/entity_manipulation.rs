@@ -68,7 +68,7 @@ use common::{
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt, synced_components::Heads};
 use common_state::{AreasContainer, BlockChange, NoDurabilityArea, ScheduledBlockChange};
 use hashbrown::HashSet;
-use rand::Rng;
+use rand::RngExt;
 use specs::{
     DispatcherBuilder, Entities, Entity as EcsEntity, Entity, Join, LendJoin, Read, ReadExpect,
     ReadStorage, SystemData, WorldExt, Write, WriteExpect, WriteStorage, shred,

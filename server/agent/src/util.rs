@@ -13,7 +13,7 @@ use common::{
     vol::ReadVol,
 };
 use core::f32::consts::PI;
-use rand::Rng;
+use rand::RngExt;
 use specs::Entity as EcsEntity;
 use vek::*;
 
@@ -254,7 +254,7 @@ pub fn handle_attack_aggression(
     attack_data: &AttackData,
     tgt_data: &TargetData,
     read_data: &ReadData,
-    rng: &mut impl Rng,
+    rng: &mut impl RngExt,
     timer_pos_timeout_index: usize,
     timer_guarded_cycle_index: usize,
     fcounter_guarded_timer_index: usize,

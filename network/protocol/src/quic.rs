@@ -582,7 +582,7 @@ mod test_utils {
             &mut self,
             data: Self::DataFormat,
         ) -> Result<(), ProtocolError<Self::CustomErr>> {
-            use rand::Rng;
+            use rand::RngExt;
             if matches!(data.stream, QuicDataFormatStream::Unreliable)
                 && rand::rng().random::<f32>() < self.drop_ratio
             {

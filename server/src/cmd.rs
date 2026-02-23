@@ -76,7 +76,7 @@ use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAr
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use specs::{Builder, Entity as EcsEntity, Join, LendJoin, WorldExt, storage::StorageEntry};
 use std::{
     fmt::Write, net::SocketAddr, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc,

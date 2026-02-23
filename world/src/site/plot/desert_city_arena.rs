@@ -9,7 +9,7 @@ use common::{
     generation::{EntityInfo, SpecialEntity},
     terrain::{Block, BlockKind, SpriteKind},
 };
-use rand::Rng;
+use rand::RngExt;
 use vek::*;
 
 pub struct DesertCityArena {
@@ -32,7 +32,12 @@ pub struct DesertCityArena {
 }
 
 impl DesertCityArena {
-    pub fn generate(land: &Land, _rng: &mut impl Rng, site: &Site, tile_aabr: Aabr<i32>) -> Self {
+    pub fn generate(
+        land: &Land,
+        _rng: &mut impl RngExt,
+        site: &Site,
+        tile_aabr: Aabr<i32>,
+    ) -> Self {
         let bounds = Aabr {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
@@ -78,7 +83,7 @@ impl DesertCityArena {
         &self,
         _pos: Vec3<i32>,
         _above_block: &Block,
-        _dynamic_rng: &mut impl Rng,
+        _dynamic_rng: &mut impl RngExt,
     ) -> Option<EntityInfo> {
         None
     }

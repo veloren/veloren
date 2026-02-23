@@ -10,7 +10,7 @@ use enum_map::EnumMap;
 use enumset::EnumSet;
 use hashbrown::HashSet;
 use rand::{
-    Rng,
+    RngExt,
     seq::{IndexedRandom, IteratorRandom},
 };
 use strum::{EnumIter, IntoEnumIterator};
@@ -280,7 +280,7 @@ impl Tavern {
     pub fn generate(
         land: &Land,
         _index: IndexRef,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
         site: &Site,
         door_tile: Vec2<i32>,
         door_dir: Dir,
@@ -311,7 +311,7 @@ impl Tavern {
         let door_alt = alt.unwrap_or_else(|| land.get_alt_approx(door_wpos).ceil() as i32);
         let door_wpos = door_wpos.with_z(door_alt);
 
-        fn gen_range_snap(rng: &mut impl Rng, range: RangeInclusive<i32>, snap_max: i32) -> i32 {
+        fn gen_range_snap(rng: &mut impl RngExt, range: RangeInclusive<i32>, snap_max: i32) -> i32 {
             let res = rng.random_range(range.clone());
             if snap_max <= *range.end() && snap_max - res <= 2 {
                 snap_max
@@ -326,7 +326,7 @@ impl Tavern {
             max_bounds: Aabr<i32>,
             in_dir: Dir,
             in_pos: Vec2<i32>,
-            rng: &mut impl Rng,
+            rng: &mut impl RngExt,
         ) -> Option<Aabr<i32>> {
             let (size_range, area_range) = room.size_range();
             let min = *size_range.start();
@@ -364,7 +364,7 @@ impl Tavern {
             room: RoomKind,
             max_bounds: Aabr<i32>,
             from_bounds: Aabr<i32>,
-            rng: &mut impl Rng,
+            rng: &mut impl RngExt,
         ) -> Option<Aabr<i32>> {
             let (size_range, area_range) = room.size_range();
             let min = Vec2::broadcast(*size_range.start());

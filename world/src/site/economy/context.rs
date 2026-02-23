@@ -244,7 +244,7 @@ mod tests {
         trade::Good,
     };
     use hashbrown::HashMap;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
     use rand_chacha::ChaChaRng;
     use serde::{Deserialize, Serialize};
     use std::convert::TryInto;

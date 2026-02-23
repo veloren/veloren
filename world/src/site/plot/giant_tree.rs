@@ -8,7 +8,7 @@ use common::{
     generation::EntityInfo,
     terrain::{Block, BlockKind},
 };
-use rand::Rng;
+use rand::RngExt;
 use vek::*;
 
 pub struct GiantTree {
@@ -19,7 +19,12 @@ pub struct GiantTree {
 }
 
 impl GiantTree {
-    pub fn generate(site: &Site, center_tile: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
+    pub fn generate(
+        site: &Site,
+        center_tile: Vec2<i32>,
+        land: &Land,
+        rng: &mut impl RngExt,
+    ) -> Self {
         let wpos = site.tile_center_wpos(center_tile);
         Self {
             name: format!("Tree of {}", NameGen::location(rng).generate()),
@@ -43,7 +48,7 @@ impl GiantTree {
         &self,
         pos: Vec3<i32>,
         above_block: &Block,
-        dynamic_rng: &mut impl Rng,
+        dynamic_rng: &mut impl RngExt,
     ) -> Option<EntityInfo> {
         if above_block.kind() == BlockKind::Leaves && dynamic_rng.random_bool(0.000055) {
             let entity = EntityInfo::at(pos.as_());

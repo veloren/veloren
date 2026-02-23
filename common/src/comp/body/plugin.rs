@@ -88,7 +88,9 @@ impl Body {
     pub fn id(&self) -> String { PLUGIN_SPECIES.read().0[self.species].id.clone() }
 
     #[inline]
-    pub fn random_with(_rng: &mut impl rand::Rng, &species: &Species) -> Self { Self { species } }
+    pub fn random_with(_rng: &mut impl rand::RngExt, &species: &Species) -> Self {
+        Self { species }
+    }
 
     fn from_name(species: &str) -> Result<Body, NotFound> {
         let guard = PLUGIN_SPECIES.read();

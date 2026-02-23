@@ -33,7 +33,7 @@ use common::{
 };
 use common_net::msg::world_msg::SiteId;
 use i18n::{Localization, LocalizationHandle};
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 //ImageFrame, Tooltip,
 use crate::settings::Settings;
 //use std::time::Duration;

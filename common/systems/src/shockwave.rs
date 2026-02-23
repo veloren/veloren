@@ -20,7 +20,7 @@ use common::{
     util::Dir,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rand::Rng;
+use rand::RngExt;
 use specs::{Entities, Join, LendJoin, Read, ReadStorage, SystemData, WriteStorage, shred};
 use vek::*;
 

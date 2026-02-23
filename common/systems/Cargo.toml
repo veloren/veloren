@@ -19,7 +19,7 @@ common-net = { package = "veloren-common-net", path = "../net" }
 common-ecs = { package = "veloren-common-ecs", path = "../ecs" }
 common-base = { package = "veloren-common-base", path = "../base" }
 
-rand = { workspace = true, features = ["small_rng"] }
+rand = { workspace = true }
 rayon = { workspace = true }
 tracing = { workspace = true }
 vek = { workspace = true }

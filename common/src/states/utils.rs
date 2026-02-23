@@ -35,7 +35,7 @@ use crate::{
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
 use itertools::Either;
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::PI,
@@ -1968,7 +1968,7 @@ impl ProjectileSpread {
         init_dir: Dir,
         init_ori: Ori,
         num: u32,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) -> impl Iterator<Item = Dir> + '_ {
         match self {
             Self::Increasing(spread) => Either::Left(

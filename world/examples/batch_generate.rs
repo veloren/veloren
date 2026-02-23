@@ -19,7 +19,7 @@ use common::{
 };
 use image::{DynamicImage, GenericImage, ImageEncoder, codecs::png::PngEncoder};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use rayon::ThreadPool;
 use serde::{Deserialize, Serialize};
 use tracing::{Level, Span, debug, error, info, info_span};

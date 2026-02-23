@@ -57,7 +57,7 @@ use common::{
 use common_state::State;
 use hashbrown::HashMap;
 use kira::clock::ClockTime;
-use rand::{Rng, prelude::IndexedRandom, rng, rngs::ThreadRng};
+use rand::{RngExt, prelude::IndexedRandom, rng, rngs::ThreadRng};
 use serde::Deserialize;
 use tracing::{debug, trace, warn};
 

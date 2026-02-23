@@ -8,7 +8,7 @@ use std::{
 };
 
 use protocol::Parcel;
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use tokio::{net::UdpSocket, sync::watch};
 use tracing::{debug, error, trace};
 

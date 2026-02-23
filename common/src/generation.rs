@@ -291,7 +291,7 @@ impl EntityInfo {
         time: Option<&(TimeOfDay, Calendar)>,
     ) -> Self
     where
-        R: rand::Rng,
+        R: rand::RngExt,
     {
         let config: EntityConfig = Ron::load_expect_cloned(asset_specifier).into_inner();
 
@@ -308,7 +308,7 @@ impl EntityInfo {
         time: Option<&(TimeOfDay, Calendar)>,
     ) -> Self
     where
-        R: rand::Rng,
+        R: rand::RngExt,
     {
         let EntityConfig {
             name,
@@ -430,7 +430,7 @@ impl EntityInfo {
         time: Option<&(TimeOfDay, Calendar)>,
     ) -> Self
     where
-        R: rand::Rng,
+        R: rand::RngExt,
     {
         let config_asset = config_asset.unwrap_or("???");
         let InventorySpec { loadout, items } = inventory;

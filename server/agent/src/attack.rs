@@ -28,7 +28,7 @@ use common::{
     util::Dir,
     vol::ReadVol,
 };
-use rand::{Rng, seq::IndexedRandom};
+use rand::{RngExt, seq::IndexedRandom};
 use std::{f32::consts::PI, time::Duration};
 use vek::*;
 use world::util::CARDINALS;
@@ -45,7 +45,9 @@ fn projectile_multi_angle(projectile_spread: f32, num_projectiles: u32) -> f32 {
     (180.0 / PI) * projectile_spread * (num_projectiles - 1) as f32
 }
 
-fn rng_from_span(rng: &mut impl Rng, span: [f32; 2]) -> f32 { rng.random_range(span[0]..=span[1]) }
+fn rng_from_span(rng: &mut impl RngExt, span: [f32; 2]) -> f32 {
+    rng.random_range(span[0]..=span[1])
+}
 
 impl AgentData<'_> {
     // Intended for any agent that has one attack, that attack is a melee attack,
@@ -57,7 +59,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if attack_data.in_min_range() && attack_data.angle < 30.0 {
             controller.push_basic_input(InputKind::Primary);
@@ -89,7 +91,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         // Fly to target
         let dir_to_target = ((tgt_data.pos.0 + Vec3::unit_z() * 1.5) - self.pos.0)
@@ -138,7 +140,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             AttackTimer,
@@ -232,7 +234,7 @@ impl AgentData<'_> {
         _attack_data: &AttackData,
         _tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             AttackTimer,
@@ -277,7 +279,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const DASH_TIMER: usize = 0;
         const SUMMON_THRESHOLD: f32 = 0.20;
@@ -566,7 +568,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
@@ -955,7 +957,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
@@ -1762,7 +1764,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
@@ -2078,7 +2080,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if !agent.combat_state.initialized {
             agent.combat_state.initialized = true;
@@ -2672,7 +2674,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateConditions {
             ConditionStaffCanShockwave = 0,
@@ -2834,7 +2836,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const DESIRED_ENERGY_LEVEL: f32 = 50.0;
         const DESIRED_COMBO_LEVEL: u32 = 8;
@@ -3099,7 +3101,7 @@ impl AgentData<'_> {
         read_data: &ReadData,
         radius: u32,
         circle_time: u32,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateCountersF {
             CounterFHandleCircleChargeAttack = 0,
@@ -3813,7 +3815,7 @@ impl AgentData<'_> {
         _attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         enum FCounters {
             SummonThreshold = 0,
@@ -4122,7 +4124,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         const PHOENIX_HEAL_THRESHOLD: f32 = 0.20;
 
@@ -4283,7 +4285,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             AttackTimer = 0,
@@ -4401,7 +4403,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             TimerBirdLargeBreathe = 0,
@@ -4705,7 +4707,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             TimersArthropodAmbush = 0,
@@ -5376,7 +5378,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const MELEE_RANGE: f32 = 10.0;
         const RANGED_RANGE: f32 = 20.0;
@@ -5570,7 +5572,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         // === reference ===
         // Inputs:
@@ -5845,7 +5847,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const GIGAS_MELEE_RANGE: f32 = 12.0;
         const GIGAS_SPIKE_RANGE: f32 = 16.0;
@@ -6047,7 +6049,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             TimerHandleHammerAttack = 0,
@@ -6125,7 +6127,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
@@ -6223,7 +6225,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const MELEE_RANGE: f32 = 12.0;
         const RANGED_RANGE: f32 = 27.0;
@@ -6262,7 +6264,7 @@ impl AgentData<'_> {
         const PARRY_PUNISH: InputKind = InputKind::Ability(10);
 
         fn choose_weighted<const N: usize>(
-            rng: &mut impl Rng,
+            rng: &mut impl RngExt,
             choices: [(InputKind, f32); N],
         ) -> InputKind {
             choices
@@ -6272,7 +6274,7 @@ impl AgentData<'_> {
         }
 
         // Basic melee strikes
-        fn rand_basic(rng: &mut impl Rng, damage_fraction: f32) -> InputKind {
+        fn rand_basic(rng: &mut impl RngExt, damage_fraction: f32) -> InputKind {
             choose_weighted(rng, [
                 (FAST_SLASH, 2.0),
                 (FAST_THRUST, 2.0),
@@ -6282,7 +6284,7 @@ impl AgentData<'_> {
         }
 
         // Less frequent mixup attacks
-        fn rand_special(rng: &mut impl Rng) -> InputKind {
+        fn rand_special(rng: &mut impl RngExt) -> InputKind {
             choose_weighted(rng, [
                 (WHIRLWIND, 6.0),
                 (VERTICAL_STRIKE, 6.0),
@@ -6294,7 +6296,7 @@ impl AgentData<'_> {
         }
 
         // Attacks capable of also hitting entities behind the gigas
-        fn rand_aoe(rng: &mut impl Rng) -> InputKind {
+        fn rand_aoe(rng: &mut impl RngExt) -> InputKind {
             choose_weighted(rng, [
                 (EXPLOSIVE_STRIKE, 1.0),
                 (FIRE_PILLARS, 1.0),
@@ -6303,7 +6305,7 @@ impl AgentData<'_> {
         }
 
         // Attacks capable of also hitting entities further away
-        fn rand_ranged(rng: &mut impl Rng) -> InputKind {
+        fn rand_ranged(rng: &mut impl RngExt) -> InputKind {
             choose_weighted(rng, [
                 (EXPLOSIVE_STRIKE, 1.0),
                 (FIRE_PILLARS, 1.0),
@@ -6505,7 +6507,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const IMMOLATION_COOLDOWN: f32 = 50.0;
         const ABILITY_PREFERENCES: AbilityPreferences = AbilityPreferences {
@@ -6596,7 +6598,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const ABILITY_COOLDOWN: f32 = 50.0;
         const INITIAL_COOLDOWN: f32 = ABILITY_COOLDOWN - 10.0;
@@ -6737,7 +6739,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const DESIRED_ENERGY_LEVEL: f32 = 50.0;
         const DESIRED_COMBO_LEVEL: u32 = 8;
@@ -6920,7 +6922,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         let line_of_sight_with_target = || {
             entities_have_line_of_sight(
@@ -7017,7 +7019,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             TimerBeam,
@@ -7128,7 +7130,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        _rng: &mut impl Rng,
+        _rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             RiposteTimer,
@@ -7441,7 +7443,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         // === reference ===
 
@@ -7617,7 +7619,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         // === reference ===
         // Inputs
@@ -7895,7 +7897,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const ROTATE_TIMER: usize = 0;
         const ROTATE_DIR_CONDITION: usize = 0;
@@ -8072,7 +8074,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const TRAP_TIMER: usize = 0;
         agent.combat_state.timers[TRAP_TIMER] -= read_data.dt.0;
@@ -8163,7 +8165,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         let primary = self.extract_ability(AbilityInput::Primary);
         let secondary = self.extract_ability(AbilityInput::Secondary);
@@ -8268,7 +8270,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionStateTimers {
             RegrowHeadNoDamage,
@@ -8396,7 +8398,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
         primary_weight: u8,
         secondary_weight: u8,
         ability_weights: [u8; BASE_ABILITY_LIMIT],
@@ -8796,7 +8798,7 @@ impl AgentData<'_> {
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         const BACKPEDAL_DIST: f32 = 5.0;
         const ROTATE_CCW_CONDITION: usize = 0;

@@ -300,7 +300,7 @@ mod tests {
     #[cfg(feature = "compression")]
     #[test]
     fn serialize_compress_large() {
-        use rand::{Rng, SeedableRng};
+        use rand::{RngExt, SeedableRng};
         let mut seed = [0u8; 32];
         seed[8] = 13;
         seed[9] = 37;

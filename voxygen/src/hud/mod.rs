@@ -134,7 +134,7 @@ use conrod_core::{
 };
 use hashbrown::{HashMap, HashSet};
 use i18n::Localization;
-use rand::Rng;
+use rand::RngExt;
 use specs::{Entity as EcsEntity, Join, LendJoin, WorldExt};
 use std::{
     borrow::Cow,

@@ -293,11 +293,7 @@ impl BlocksOfInterest {
         // TODO: Come up with a better way to prune many light sources: grouping them
         // into larger lights with k-means clustering, perhaps?
         const MAX_MINOR_LIGHTS: usize = 64;
-        lights.extend(
-            minor_lights
-                .choose_multiple(&mut rng, MAX_MINOR_LIGHTS)
-                .copied(),
-        );
+        lights.extend(minor_lights.sample(&mut rng, MAX_MINOR_LIGHTS).copied());
 
         Self {
             leaves,

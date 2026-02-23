@@ -63,7 +63,7 @@ use noise::{
     core::worley::distance_functions,
 };
 use num::{Float, Signed, traits::FloatConst};
-use rand::{Rng, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};

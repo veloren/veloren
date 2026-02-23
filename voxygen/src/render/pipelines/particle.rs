@@ -180,7 +180,7 @@ impl Instance {
         inst_pos: Vec3<f32>,
         inst_start_wind_vel: Vec2<f32>,
     ) -> Self {
-        use rand::Rng;
+        use rand::RngExt;
         Self {
             inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,
@@ -200,7 +200,7 @@ impl Instance {
         inst_pos2: Vec3<f32>,
         inst_start_wind_vel: Vec2<f32>,
     ) -> Self {
-        use rand::Rng;
+        use rand::RngExt;
         Self {
             inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
             inst_lifespan: lifespan,

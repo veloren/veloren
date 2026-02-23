@@ -26,7 +26,7 @@ use common::{
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use rand::Rng;
+use rand::RngExt;
 use rayon::iter::ParallelIterator;
 use specs::{
     Entities, Entity, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,

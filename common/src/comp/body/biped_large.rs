@@ -20,7 +20,7 @@ impl Body {
     }
 
     #[inline]
-    pub fn random_with(rng: &mut impl rand::Rng, &species: &Species) -> Self {
+    pub fn random_with(rng: &mut impl rand::RngExt, &species: &Species) -> Self {
         let body_type = *ALL_BODY_TYPES.choose(rng).unwrap();
         Self { species, body_type }
     }

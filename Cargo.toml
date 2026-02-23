@@ -188,8 +188,8 @@ ordered-float = { version = "5", default-features = true }
 prometheus = { version = "0.14", default-features = false }
 prometheus-hyper = "0.2.1"
 regex = { version = "1.11" }
-rand = { version = "0.9", features = ["alloc"] }
-rand_chacha = { version = "0.9" }
+rand = { version = "0.10", features = ["alloc"] }
+rand_chacha = { version = "0.10" }
 rayon = { version = "1.5" }
 ron = { version = "0.12", default-features = false, features = ["std"] }
 rustls = { version = "0.23", default-features = false, features = ["std"] }

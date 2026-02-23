@@ -3266,9 +3266,8 @@ impl ParticleMgr {
 
             let particle_count = avg_particles.trunc() as usize
                 + (rng.random::<f32>() < avg_particles.fract()) as usize;
-            let chosen =
-                smoke_properties
-                    .choose_multiple_weighted(&mut rng, particle_count, |smoker| smoker.strength);
+            let chosen = smoke_properties
+                .sample_weighted(&mut rng, particle_count, |smoker| smoker.strength);
             if let Ok(chosen) = chosen {
                 self.particles.extend(chosen.map(|smoker| {
                     Particle::new(

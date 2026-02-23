@@ -5,7 +5,7 @@ use common::{
     terrain::CoordinateConversions,
 };
 use rand::{
-    Rng, rng,
+    RngExt, rng,
     seq::{IndexedRandom, IteratorRandom},
 };
 use world::{CONFIG, IndexRef, World, sim::SimChunk, site::SiteKind};
@@ -251,7 +251,7 @@ fn architect_tick(ctx: EventCtx<Architect, OnTick>) {
     }
 }
 
-fn randomize_body(body: Body, rng: &mut impl Rng) -> Body {
+fn randomize_body(body: Body, rng: &mut impl RngExt) -> Body {
     let mut random_humanoid = || {
         let species = comp::humanoid::ALL_SPECIES.choose(rng).unwrap();
         Body::Humanoid(comp::humanoid::Body::random_with(rng, species))
@@ -262,7 +262,7 @@ fn randomize_body(body: Body, rng: &mut impl Rng) -> Body {
     }
 }
 
-fn role_personality(rng: &mut impl Rng, role: &Role) -> Personality {
+fn role_personality(rng: &mut impl RngExt, role: &Role) -> Personality {
     match role {
         Role::Civilised(profession) => match profession {
             Some(Profession::Guard | Profession::Merchant | Profession::Captain) => {
@@ -290,7 +290,7 @@ fn spawn_anywhere(
     data: &mut Data,
     world: &World,
     death: &Death,
-    rng: &mut impl Rng,
+    rng: &mut impl RngExt,
     body: Body,
     personality: Personality,
 ) {
@@ -331,7 +331,7 @@ fn spawn_at_plot(
     world: &World,
     index: IndexRef,
     death: &Death,
-    rng: &mut impl Rng,
+    rng: &mut impl RngExt,
     body: Body,
     personality: Personality,
     match_plot: impl Fn(&Data, common::rtsim::SiteId, &world::site::Plot) -> bool,
@@ -375,7 +375,7 @@ fn spawn_profession(
     world: &World,
     index: IndexRef,
     death: &Death,
-    rng: &mut impl Rng,
+    rng: &mut impl RngExt,
     body: Body,
     personality: Personality,
     profession: Option<Profession>,

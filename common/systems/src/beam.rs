@@ -19,7 +19,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use rand::Rng;
+use rand::RngExt;
 use rayon::iter::ParallelIterator;
 use specs::{
     Entities, LendJoin, ParJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
