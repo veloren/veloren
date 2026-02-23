@@ -286,6 +286,9 @@ impl Renderer {
         let graphics_backend = format!("{:?}", &info.backend);
 
         let required_limits = wgpu::Limits {
+            max_texture_dimension_1d: 0,
+            max_texture_dimension_2d: supported_limits.max_texture_dimension_2d.min(8192),
+            max_texture_dimension_3d: 0,
             max_push_constant_size: 64,
             ..Default::default()
         };
