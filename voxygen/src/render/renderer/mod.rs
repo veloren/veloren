@@ -239,12 +239,14 @@ impl Renderer {
 
         for (i, adapter) in adapters.iter().enumerate() {
             let info = adapter.get_info();
+            let supported_limits = adapter.limits();
             info!(
                 ?info.name,
                 ?info.vendor,
                 ?info.backend,
                 ?info.device,
                 ?info.device_type,
+                ?supported_limits.max_texture_dimension_2d,
                 "graphics device #{}", i,
             );
         }
@@ -271,12 +273,14 @@ impl Renderer {
         };
 
         let info = adapter.get_info();
+        let supported_limits = adapter.limits();
         info!(
             ?info.name,
             ?info.vendor,
             ?info.backend,
             ?info.device,
             ?info.device_type,
+            ?supported_limits.max_texture_dimension_2d,
             "selected graphics device"
         );
         let graphics_backend = format!("{:?}", &info.backend);
