@@ -207,9 +207,6 @@ impl Renderer {
         // Note that since we only have to enable this once globally, there is no point
         // in doing this on rerender.
         // Self::enable_seamless_cube_maps(&mut device);
-
-        // TODO: fix panic on wayland with opengl?
-        // TODO: fix backend defaulting to opengl on wayland.
         let backends = std::env::var("WGPU_BACKEND")
             .ok()
             .and_then(|backend| match backend.to_lowercase().as_str() {
