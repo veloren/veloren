@@ -31,7 +31,7 @@ hud-spell = Förtrollningar
 hud-diary = Dagbok
 hud-free_look_indicator =
     { $toggle ->
-        [0] Free look är aktivt. Tryck { $key } för att stänga av.
+        [0] Free look är aktivt. Tryck på { $key } för att stänga av.
        *[other] Free look är aktivt. Släpp { $key } för att stänga av.
     }
 hud-camera_clamp_indicator = Kameran är låst vertikalt. Tryck { $key } För att ändra.

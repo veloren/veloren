@@ -1,6 +1,6 @@
 hud-trade-trade_window = Byte
 hud-trade-phase1_description =
-    Drag de föremål du vill byta
+    Dra de föremål du vill byta
      till motsvarande ruta.
 hud-trade-phase2_description =
     Bytet är nu låst för att ge dig

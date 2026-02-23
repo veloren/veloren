@@ -1,6 +1,6 @@
 common-abilities-debug-possess = Besättande pil
     .desc = Skjuter en förgiftad pil. Låter dig kontrollera ditt mål.
-common-abilities-staff-fireshockwave = Eldens ring
+common-abilities-staff-fireshockwave = Chockvåg
     .desc = Tänder eld på marken med en eldig stötvåg.
 common-abilities-sceptre-wardingaura = Vårdande aura
     .desc = Skyddar dina allierade mot fiendens attacker.
@@ -262,8 +262,8 @@ common-abilities-sword-cleaving_sky_splitter = Himmelsklyvare
 common-abilities-axe-execute = Avrätta
     .desc =
         Ett förödande slag som ofta är känd att vara fatal.
-        Kräver 30 kombo att använda.
-        Uppgraderar automatiskt till maelstrom vid 50 kombo om upplåst.
+        Kräver { $min_combo } kombo att använda.
+        Uppgraderar automatiskt till maelstrom vid { $min_combo_upg } kombo om upplåst.
 common-abilities-axe-berserk = Bärsärk
     .desc = Ökar din styrka dock med kostnaden av att lämna dig sårbar.
 common-abilities-axe-brutal_swing = Brutal sving
@@ -316,7 +316,7 @@ common-abilities-hammer-upheaval = Omstörtning
     .desc = Slå din hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
 # Axe abilities
 common-abilities-hammer-retaliate = Retaliera
-    .desc = Efter att blockat en attack, retaliera med ett tungt slag tillbaka.
+    .desc = Blockera och motanfall din fiende i en kvick rörelse!
 # Axe abilities
 common-abilities-hammer-tremor = Tremor
     .desc = Slå jorden med tillräckligt kraft så att marken under dina fiender skakar.
@@ -369,8 +369,8 @@ common-abilities-axe-rake = Räfsa
 common-abilities-axe-bulkhead = Bulkhead
     .desc =
         En tung sving som vissa säger kan även vackla titaner.
-        Kräver 30 kombo för användning.
-        Uppgraderar automatiskt till kapsejsning vid 50 kombo om upplåst.
+        Kräver { $min_combo } kombo för användning.
+        Uppgraderar automatiskt till kapsejsning vid { $min_combo_upg } kombo om upplåst.
 # Axe abilities
 common-abilities-axe-capsize = Kapsejsa
     .desc =

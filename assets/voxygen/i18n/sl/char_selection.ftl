@@ -15,7 +15,10 @@ char_selection-skin = Polt
 char_selection-eyeshape = Oblike oči
 char_selection-accessories = Dodatki
 char_selection-hardcore = Brez povratka
-char_selection-hardcore_tooltip = Nepovratni liki se ob smrti izbrišejo, težavnost igre pa ostaja enaka
+char_selection-hardcore_tooltip =
+    Nepovratni liki se ob smrti izbrišejo, težavnost igre pa ostaja enaka
+
+    Način brez povratka odsvetujemo neizkušenim igralcem.
 char_selection-starting_site = Izberi začetno območje
 char_selection-starting_site_next = Naslednje
 char_selection-starting_site_prev = Prejšnje

@@ -94,3 +94,4 @@ hud-skill-pick_strike_oregain_title = Rendimiento del Pico con Minerales
 hud-skill-pick_strike_oregain = Posibilidad de conseguir mineral extra({ $boost }% por nivel){ $SP }
 hud-skill-pick_strike_gemgain_title = Rendimiento del Pico con Gemas
 hud-skill-pick_strike_gemgain = Posibilidad de conseguir gemas extras ({ $boost }% por nivel){ $SP }
+hud-skill_tree-sword = Espada

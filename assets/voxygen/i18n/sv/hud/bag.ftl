@@ -61,8 +61,8 @@ hud-bag-swap_slots_drop_items =
         [1] Det här kommer resultera i att 1 föremål släpps på marken. Är du säker?
        *[other] Det här kommer resultera i att { $slot_deficit } föremål släpps på marken. Är du säker?
     }
-hud-bag-change_to_sort_by_name = Byt till sortera efter namn
-hud-bag-change_to_sort_by_quality = Byt till sortera efter kvalitet
-hud-bag-change_to_sort_by_category = Byt till sortera efter kategori
-hud-bag-change_to_sort_by_tag = Byt till sortera efter tagg
-hud-bag-change_to_sort_by_quantity = Byt till sortera efter kvantitet
+hud-bag-change_to_sort_by_name = Byt till sortering efter namn
+hud-bag-change_to_sort_by_quality = Byt till sortering efter kvalitet
+hud-bag-change_to_sort_by_category = Byt till sortering efter kategori
+hud-bag-change_to_sort_by_tag = Byt till sortering efter tagg
+hud-bag-change_to_sort_by_quantity = Byt till sortering efter kvantitet

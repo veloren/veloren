@@ -406,3 +406,4 @@ weapon-component-sceptre-grandsceptre-ironwood = Järnträ-storspirskaft
     .desc = { "" }
 weapon-component-sceptre-crook-ironwood = Järnträ-herdestavskaft
     .desc = { "" }
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }
