@@ -207,9 +207,6 @@ impl Renderer {
         // Note that since we only have to enable this once globally, there is no point
         // in doing this on rerender.
         // Self::enable_seamless_cube_maps(&mut device);
-
-        // TODO: fix panic on wayland with opengl?
-        // TODO: fix backend defaulting to opengl on wayland.
         let backends = std::env::var("WGPU_BACKEND")
             .ok()
             .and_then(|backend| match backend.to_lowercase().as_str() {
@@ -242,12 +239,14 @@ impl Renderer {
 
         for (i, adapter) in adapters.iter().enumerate() {
             let info = adapter.get_info();
+            let supported_limits = adapter.limits();
             info!(
                 ?info.name,
                 ?info.vendor,
                 ?info.backend,
                 ?info.device,
                 ?info.device_type,
+                ?supported_limits.max_texture_dimension_2d,
                 "graphics device #{}", i,
             );
         }
@@ -274,17 +273,22 @@ impl Renderer {
         };
 
         let info = adapter.get_info();
+        let supported_limits = adapter.limits();
         info!(
             ?info.name,
             ?info.vendor,
             ?info.backend,
             ?info.device,
             ?info.device_type,
+            ?supported_limits.max_texture_dimension_2d,
             "selected graphics device"
         );
         let graphics_backend = format!("{:?}", &info.backend);
 
         let required_limits = wgpu::Limits {
+            max_texture_dimension_1d: 0,
+            max_texture_dimension_2d: supported_limits.max_texture_dimension_2d.min(8192),
+            max_texture_dimension_3d: 0,
             max_push_constant_size: 64,
             ..Default::default()
         };
