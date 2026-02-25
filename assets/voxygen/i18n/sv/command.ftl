@@ -1,7 +1,7 @@
 command-adminify-desc = Ger en spelare temporärt en begränsad adminroll eller tar bort den nuvarande (om inte gett)
 command-airship-desc = Spawnar ett luftskepp
 command-alias-desc = Ändra ditt alias
-command-area_list-desc = Visa alla byggområden
+command-area_list-desc = Lista alla byggområden
 command-area_remove-desc = Tar bort specifierat byggområde
 command-aura-desc = Skapa en aura
 command-body-desc = Ändra din kropp till en annan art
@@ -146,3 +146,15 @@ command-invalid-command-message =
     { $commands-with-same-prefix }
 
     Skriv /help för att se en lista över alla kommandon.
+command-set_body_type-no_body = Kunde ej sätta kroppstyp eftersom målet inte har en kropp.
+command-ban-desc = Bannlys en spelare med givet användarnamn under en given period (om angiven). Passera ”true” för att skriva över en existerande bannlysning.
+command-ban-ip-desc = Bannlys en spelare med givet användarnamn under en given period (om angiven). Till skillnad från en vanlig bannlysning förbjuds ip-adressen associerat med användaren. Passera ”true” för att skriva över en existerande bannlysning.
+command-campfire-desc = Spawnar ett lägereld
+command-create_location-desc = Skapa en plats vid nuvarande position
+command-death_effect-dest = Lägger till en vid-död-effekt på målentiteten
+command-delete_location-desc = Radera en plats
+command-disconnect_all_players-desc = Bortkoppla alla spelare från servern
+command-give_item-desc = Ge dig själv några föremål. För ett exempel eller autokomplettering använd tabb.
+command-group_promote-desc = Befordra en spelare till gruppledare
+command-health-desc = Sätt din nuvarande hälsa
+command-join_faction-desc = Gå med/Hoppa av den specifierade fraktionen

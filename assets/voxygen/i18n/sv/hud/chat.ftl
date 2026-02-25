@@ -82,3 +82,5 @@ hud-chat-message = { "[" }{ $alias }]: { $msg }
 hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
 # Player /tell messages, $user_gender should be available
 hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
+hud-chat-singleplayer-motd1 = En hel värld till dig själv! Dags att stretcha...
+hud-chat-singleplayer-motd2 = hur är sinnesron?

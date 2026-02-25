@@ -39,3 +39,6 @@ noun-role-pirate = en pirat
 noun-role-captain = en kapten
 noun-role-farmer = en bonde
 noun-role-hunter = en jägare
+noun-role-merchant = en handelsman
+noun-role-blacksmith = en smed
+noun-role-alchemist = en alkemist

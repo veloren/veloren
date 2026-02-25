@@ -98,14 +98,14 @@ sprite-mineral-ore-cobalt = Koboltmalm
     .desc = En blå, glansig malm.
 sprite-mineral-ore-bloodstone = Blodstensmalm
     .desc = En djupröd malm, den påminner dig om blod.
-sprite-mineral-ingot-bloodsteel = Blodstålstacka
+sprite-mineral-ingot-bloodsteel = Blodståltacka
     .desc =
-        En legering mellan blodsten och järn, med en mörkröd färg.
+        En legering av blodsten och järn, med en mörkröd färg.
 
         Kan användas när man tillverkar metallvapen.
 sprite-mineral-ingot-steel = Ståltacka
     .desc =
-        En legering mellan järn och kål som är mycket tuffare än dess komponenter.
+        En legering av järn och kål som är mycket tuffare än dess komponenter.
 
         Kan användas när man tillverkar metallvapen.
 sprite-wood-item-hardwood = Hårdträstockar
@@ -164,3 +164,14 @@ sprite-mineral-ore-ancient_gold = Antikt Guld
     .desc = Antik tacka av guld, genomblöt av magiska energier.
 object-collar = Djurhalsband
     .desc = Tämjer neutrala vilda djur inom 5 block.
+sprite-crafting_ing-coral_branch = Korallgren
+    .desc = Skatt från havets botten.
+sprite-crafting_ing-bloody_tear = Blodig tåre
+    .desc = Det hårdnade, koncentrerade blodet från bestens oräkneliga offer.
+sprite-crafting_ing-animal_misc-large_horn = Stort horn
+    .desc =
+        Ett stort horn från en fruktad best.
+
+        Vapen gjorda med det har ökade smidighetseffekter.
+sprite-crafting_ing-animal_misc-venom_sac = Giftsäck
+    .desc = En giftig säck från ett giftigt djur.

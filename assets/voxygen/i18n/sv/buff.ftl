@@ -33,25 +33,49 @@ buff-energy_regen = Energiregenerering
 
 ## Health Increase
 
-buff-increase_max_health = Öka Maximala Hälsan
-    .desc = Din maximala hälsogräns är ökad.
+buff-increase_max_health = Öka max. hälsa
+    .desc = Din maximala hälsa höjs.
     .stat =
-        Ökar den maximala hälsan
-        med { $strength }.
+        { $duration ->
+            [1]
+                Höjer maximal hälsa
+                med { $strength }.
+                Varar i { $duration } sekund.
+           *[other]
+                Höjer maximal hälsa
+                med { $strength }.
+                Varar i { $duration } sekunder.
+        }
 
 ## Energy Increase
 
-buff-increase_max_energy = Öka Maximala Energin
-    .desc = Höj din maximala energigräns.
+buff-increase_max_energy = Öka max. energi
+    .desc = Din maximala energi höjs.
     .stat =
-        Ökar den maximala energin
-        med { $strength }.
+        { $duration ->
+            [1]
+                Höjer maximal energi
+                med { $strength }.
+                Varar i { $duration } sekund.
+           *[other]
+                Höjer maximal hälsa
+                med { $strength }.
+                Varar i { $duration } sekunder.
+        }
 
 ## Invulnerability
 
 buff-invulnerability = Osårbarhet
     .desc = Du kan inte skadas av någon attack.
-    .stat = Ger osårbarhet.
+    .stat =
+        { $duration ->
+            [1]
+                Ger osårbarhet.
+                Varar i { $duration } sekund.
+           *[other]
+                Ger osårbarhet.
+                Varar i { $duration } sekunder.
+        }
 
 ## Protection Ward
 
@@ -239,3 +263,11 @@ buff-combo_generation = Kombogenerering
             [1] Genererar { $str_total } kombo under { $duration } sekund.
            *[other] Genererar { $str_total } kombo under { $duration } sekunder.
         }
+buff-resting_heal = Villäkning
+    .desc = Vilande läker { $rate } % liv per sekund.
+buff-heartseeker = Hjärtsökare
+    .desc = Din nästa pil kommer träffa din fiende som om det orsakade ett hjärtsår, vilket leder till ett mer allvarligt sår och ger dig energi.
+buff-eagleeye = Örnöga
+    .desc = Du ser tydligt sårbara delar på dina mål och har smidigheten som krävs för att sikta varje pil till dessa delar.
+buff-chilled = Kyld
+    .desc = Den intensiva kylan gör dig lite segare och mer sårbar för kraftfulla attacker.

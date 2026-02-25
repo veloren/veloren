@@ -180,3 +180,4 @@ hud-settings-zoom_lock = Zaklep približevanja kamere
 hud-settings-sprites_view_distance = Doseg prikaza podobic
 hud-settings-entities_detail_distance = Doseg podrobnosti entitet
 hud-settings-music_spacing = Razmik glasbe
+hud-settings-draggable_windows = Okna lahko vlečemo
