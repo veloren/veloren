@@ -14,7 +14,7 @@ use common::{
     path::TraversalConfig,
     rtsim::{NpcAction, RtSimEntity},
 };
-use rand::{Rng, prelude::ThreadRng};
+use rand::{RngExt, prelude::ThreadRng};
 use server_agent::{data::AgentEmitters, util::is_steering};
 use specs::Entity as EcsEntity;
 use tracing::warn;

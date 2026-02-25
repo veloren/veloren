@@ -8,7 +8,7 @@ use common::{
 };
 use common_ecs::{Origin, Phase, System};
 use common_net::msg::ServerGeneral;
-use rand::{Rng, seq::IteratorRandom};
+use rand::{RngExt, seq::IteratorRandom};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect};
 use std::{mem, sync::Arc};
 use vek::Vec2;

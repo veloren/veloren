@@ -41,7 +41,7 @@ use common::{
     vol::ReadVol,
 };
 use itertools::Itertools;
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use specs::Entity as EcsEntity;
 use vek::*;
 
@@ -213,7 +213,7 @@ impl AgentData<'_> {
         controller: &mut Controller,
         read_data: &ReadData,
         _emitters: &mut AgentEmitters,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         enum ActionTimers {
             TimerIdle = 0,
@@ -1197,7 +1197,7 @@ impl AgentData<'_> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         #[cfg(any(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
         let _rng = rng;
@@ -1238,7 +1238,7 @@ impl AgentData<'_> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        #[cfg(not(feature = "be-dyn-lib"))] rng: &mut impl Rng,
+        #[cfg(not(feature = "be-dyn-lib"))] rng: &mut impl RngExt,
     ) {
         #[cfg(feature = "be-dyn-lib")]
         let rng = &mut rng();
@@ -2042,7 +2042,7 @@ impl AgentData<'_> {
         controller: &mut Controller,
         read_data: &ReadData,
         emitters: &mut AgentEmitters,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
@@ -2090,7 +2090,7 @@ impl AgentData<'_> {
         read_data: &ReadData,
         controller: &mut Controller,
         emitters: &mut AgentEmitters,
-        rng: &mut impl Rng,
+        rng: &mut impl RngExt,
     ) {
         if let Some(Target { target, .. }) = agent.target
             && let Some(tgt_health) = read_data.healths.get(target)

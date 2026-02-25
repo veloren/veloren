@@ -9,7 +9,7 @@ use hashbrown::HashMap;
 use network_protocol::{Cid, Pid, ProtocolMetricCache, ProtocolMetrics};
 #[cfg(feature = "metrics")]
 use prometheus::Registry;
-use rand::Rng;
+use rand::RngExt;
 use std::{
     sync::{
         Arc,

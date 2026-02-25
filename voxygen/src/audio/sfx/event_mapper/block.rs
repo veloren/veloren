@@ -11,7 +11,7 @@ use client::Client;
 use common::{comp::Pos, spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 use common_state::State;
 use hashbrown::HashMap;
-use rand::{Rng, prelude::*, rng};
+use rand::{RngExt, prelude::*, rng};
 use rand_chacha::ChaCha8Rng;
 use std::time::{Duration, Instant};
 use vek::*;

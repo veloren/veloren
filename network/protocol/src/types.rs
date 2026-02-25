@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 use bytes::{Buf, BufMut, BytesMut};
-use rand::Rng;
+use rand::RngExt;
 
 /// MessageID, unique ID per Message.
 pub type Mid = u64;

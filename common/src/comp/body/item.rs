@@ -133,7 +133,7 @@ impl Body {
 
     pub fn dimensions(&self) -> Vec3<f32> { Vec3::new(0.0, 0.1, 0.0) }
 
-    pub fn orientation(&self, rng: &mut impl Rng) -> Ori {
+    pub fn orientation(&self, rng: &mut impl RngExt) -> Ori {
         let random = rng.random_range(-1.0..1.0f32);
         let default = Ori::default();
         match self {

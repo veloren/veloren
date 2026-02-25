@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 
@@ -35,7 +35,7 @@ impl Heads {
 
     pub fn amount_missing(&self) -> usize { self.capacity() - self.amount() }
 
-    pub fn remove_one(&mut self, rng: &mut impl Rng, time: Time) -> Option<usize> {
+    pub fn remove_one(&mut self, rng: &mut impl RngExt, time: Time) -> Option<usize> {
         if self.amount() == 0 {
             return None;
         }

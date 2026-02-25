@@ -4,7 +4,7 @@ use iced::{
     Align, Button, Column, Container, Length, Row, Scrollable, Slider, Space, Text, TextInput,
     button, scrollable, slider, text_input,
 };
-use rand::Rng;
+use rand::RngExt;
 use vek::Rgba;
 
 use crate::{

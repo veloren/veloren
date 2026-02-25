@@ -3,7 +3,7 @@ use crate::{
     comp::{ability::Dodgeable, item::Reagent},
     effect::Effect,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use vek::Rgb;
 

@@ -1,5 +1,5 @@
 use super::{Sampler, seed_expan};
-use rand::RngCore;
+use rand::{Rng, TryRng};
 use vek::*;
 
 #[derive(Clone, Copy)]
@@ -73,20 +73,27 @@ impl Sampler<'static> for RandomPerm {
 }
 
 // `RandomPerm` is not high-quality but it is at least fast and deterministic.
-impl RngCore for RandomPerm {
-    fn next_u32(&mut self) -> u32 {
-        self.seed = self.get(self.seed) ^ 0xA7535839;
-        self.seed
+impl TryRng for RandomPerm {
+    type Error = core::convert::Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        Ok({
+            self.seed = self.get(self.seed) ^ 0xA7535839;
+            self.seed
+        })
     }
 
-    fn next_u64(&mut self) -> u64 {
-        let a = self.next_u32();
-        let b = self.next_u32();
-        ((a as u64) << 32) | b as u64
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        Ok({
+            let a = self.next_u32();
+            let b = self.next_u32();
+            ((a as u64) << 32) | b as u64
+        })
     }
 
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
         dest.iter_mut()
             .for_each(|b| *b = (self.next_u32() & 0xFF) as u8);
+        Ok(())
     }
 }

@@ -21,7 +21,7 @@ use crate::{
     util::Dir,
 };
 use common_i18n::Content;
-use rand::{Rng, seq::IteratorRandom};
+use rand::{RngExt, seq::IteratorRandom};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use std::{collections::VecDeque, sync::Arc};
@@ -97,7 +97,7 @@ pub struct Personality {
     neuroticism: u8,
 }
 
-fn distributed(min: u8, max: u8, rng: &mut impl Rng) -> u8 {
+fn distributed(min: u8, max: u8, rng: &mut impl RngExt) -> u8 {
     let l = max - min;
     min + rng.random_range(0..=l / 3)
         + rng.random_range(0..=l / 3 + l % 3 % 2)
@@ -113,9 +113,9 @@ impl Personality {
     pub const MID: u8 = (Self::MAX - Self::MIN) / 2;
     const MIN: u8 = 0;
 
-    fn distributed_value(rng: &mut impl Rng) -> u8 { distributed(Self::MIN, Self::MAX, rng) }
+    fn distributed_value(rng: &mut impl RngExt) -> u8 { distributed(Self::MIN, Self::MAX, rng) }
 
-    pub fn random(rng: &mut impl Rng) -> Self {
+    pub fn random(rng: &mut impl RngExt) -> Self {
         Self {
             openness: Self::distributed_value(rng),
             conscientiousness: Self::distributed_value(rng),
@@ -125,7 +125,7 @@ impl Personality {
         }
     }
 
-    pub fn random_evil(rng: &mut impl Rng) -> Self {
+    pub fn random_evil(rng: &mut impl RngExt) -> Self {
         Self {
             openness: Self::distributed_value(rng),
             extraversion: Self::distributed_value(rng),
@@ -135,7 +135,7 @@ impl Personality {
         }
     }
 
-    pub fn random_good(rng: &mut impl Rng) -> Self {
+    pub fn random_good(rng: &mut impl RngExt) -> Self {
         Self {
             openness: Self::distributed_value(rng),
             extraversion: Self::distributed_value(rng),
@@ -182,7 +182,7 @@ impl Personality {
         }
     }
 
-    pub fn chat_trait(&self, rng: &mut impl Rng) -> Option<PersonalityTrait> {
+    pub fn chat_trait(&self, rng: &mut impl RngExt) -> Option<PersonalityTrait> {
         PersonalityTrait::iter().filter(|t| self.is(*t)).choose(rng)
     }
 
@@ -190,7 +190,7 @@ impl Personality {
         self.agreeableness < Self::LOW_THRESHOLD && self.conscientiousness < Self::LOW_THRESHOLD
     }
 
-    pub fn get_generic_comment(&self, rng: &mut impl Rng) -> Content {
+    pub fn get_generic_comment(&self, rng: &mut impl RngExt) -> Content {
         let i18n_key = if let Some(extreme_trait) = self.chat_trait(rng) {
             match extreme_trait {
                 PersonalityTrait::Open => "npc-speech-villager_open",
@@ -457,7 +457,7 @@ pub enum ItemResource {
 impl ItemResource {
     /// Attempt to translate this resource into an equivalent [`ItemDef`].
     // TODO: Return (Arc<ItemDef>, f32) to allow for an exchange rate
-    // TODO: Have this function take an `impl Rng` so that it can be stochastic
+    // TODO: Have this function take an `impl RngExt` so that it can be stochastic
     pub fn to_equivalent_item_def(&self) -> Arc<ItemDef> {
         match self {
             Self::Coin => Arc::<ItemDef>::load_cloned("common.items.utility.coins").unwrap(),

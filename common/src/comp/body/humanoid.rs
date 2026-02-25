@@ -1,5 +1,5 @@
 use crate::{make_case_elim, make_proj_elim};
-use rand::{Rng, prelude::IndexedRandom, rng};
+use rand::{RngExt, prelude::IndexedRandom, rng};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
@@ -52,7 +52,7 @@ impl Body {
     }
 
     #[inline]
-    pub fn random_with(rng: &mut impl Rng, &species: &Species) -> Self {
+    pub fn random_with(rng: &mut impl RngExt, &species: &Species) -> Self {
         let body_type = *ALL_BODY_TYPES.choose(rng).unwrap();
         Self {
             species,

@@ -3,7 +3,7 @@ pub mod sprites;
 
 use std::ops::{Add, Sub};
 
-use rand::Rng;
+use rand::RngExt;
 use vek::*;
 
 /// A 2d cardinal direction.
@@ -18,7 +18,7 @@ pub enum Dir {
 impl Dir {
     pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
 
-    pub fn choose(rng: &mut impl Rng) -> Dir {
+    pub fn choose(rng: &mut impl RngExt) -> Dir {
         match rng.random_range(0..4) {
             0 => Dir::X,
             1 => Dir::Y,
@@ -332,7 +332,7 @@ pub enum Dir3 {
 impl Dir3 {
     pub const ALL: [Dir; 4] = [Dir::X, Dir::Y, Dir::NegX, Dir::NegY];
 
-    pub fn choose(rng: &mut impl Rng) -> Dir3 {
+    pub fn choose(rng: &mut impl RngExt) -> Dir3 {
         match rng.random_range(0..6) {
             0 => Dir3::X,
             1 => Dir3::Y,

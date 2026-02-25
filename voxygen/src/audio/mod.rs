@@ -12,7 +12,7 @@ use channel::{
     UiChannel,
 };
 use cpal::{
-    Device, SampleRate, StreamConfig, SupportedStreamConfigRange,
+    Device, StreamConfig, SupportedStreamConfigRange,
     traits::{DeviceTrait, HostTrait},
 };
 use kira::{
@@ -344,9 +344,9 @@ impl AudioFrontend {
         {
             info!(
                 "Current default samplerate: {:?}",
-                default_output_config.sample_rate().0
+                default_output_config.sample_rate()
             );
-            samplerate = default_output_config.sample_rate().0;
+            samplerate = default_output_config.sample_rate();
             if samplerate > 48000 && set_samplerate.is_none() {
                 warn!(
                     "Current default samplerate is higher than 48000; attempting to lower \
@@ -358,10 +358,10 @@ impl AudioFrontend {
                         .max_by(SupportedStreamConfigRange::cmp_default_heuristics);
                     if let Some(best_config) = best_config {
                         warn!("Attempting to change samplerate to 48khz");
-                        supported_config = best_config.try_with_sample_rate(SampleRate(48000));
+                        supported_config = best_config.try_with_sample_rate(48000);
                         if supported_config.is_none() {
                             warn!("Attempting to change samplerate to 44.1khz");
-                            supported_config = best_config.try_with_sample_rate(SampleRate(44100));
+                            supported_config = best_config.try_with_sample_rate(44100);
                         }
                         if supported_config.is_none() {
                             warn!("Could not change samplerate, using default")
@@ -375,8 +375,7 @@ impl AudioFrontend {
                         .max_by(SupportedStreamConfigRange::cmp_default_heuristics);
                     if let Some(best_config) = best_config {
                         warn!("Attempting to force samplerate to {:?}", set_samplerate);
-                        supported_config =
-                            best_config.try_with_sample_rate(SampleRate(set_samplerate));
+                        supported_config = best_config.try_with_sample_rate(set_samplerate);
                         if supported_config.is_none() {
                             error!(
                                 "Could not set samplerate to {:?}, falling back to default.",
@@ -389,10 +388,7 @@ impl AudioFrontend {
         }
         let mut config = None;
         if let Some(supported_config) = supported_config {
-            info!(
-                "Samplerate is {:?}",
-                supported_config.config().sample_rate.0
-            );
+            info!("Samplerate is {:?}", supported_config.config().sample_rate);
             config = Some(supported_config.config())
         } else {
             info!("Samplerate is {:?}", samplerate)

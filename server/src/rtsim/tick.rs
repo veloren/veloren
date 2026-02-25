@@ -19,7 +19,7 @@ use common::{
     weather::WeatherGrid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use rand::Rng;
+use rand::RngExt;
 use rtsim::{
     ai::NpcSystemData,
     data::{

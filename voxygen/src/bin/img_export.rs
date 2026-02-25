@@ -22,7 +22,7 @@ use common::{
     util::Dir,
 };
 use image::RgbaImage;
-use rand::{Rng, SeedableRng};
+use rand::{RngExt, SeedableRng};
 use rand_chacha::ChaChaRng;
 use vek::{Mat4, Quaternion, Vec2, Vec3};
 

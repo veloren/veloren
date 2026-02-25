@@ -28,7 +28,7 @@ use crate::{
     uid::{IdMaps, Uid},
     util::Dir,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use specs::{Entity as EcsEntity, ReadStorage};
 use std::ops::{Mul, MulAssign};

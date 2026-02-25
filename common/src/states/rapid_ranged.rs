@@ -11,7 +11,7 @@ use crate::{
     },
     util::Dir,
 };
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use serde::{Deserialize, Serialize};
 use std::{f32::consts::TAU, time::Duration};
 

@@ -296,7 +296,7 @@ impl ServerEvent for MineBlockEvent {
             uids,
         ): Self::SystemData<'_>,
     ) {
-        use rand::Rng;
+        use rand::RngExt;
         let mut rng = rand::rng();
         let mut create_item_drop_emitter = create_item_drop_events.emitter();
         let mut sound_event_emitter = sound_events.emitter();
@@ -538,7 +538,7 @@ impl ServerEvent for CreateSpriteEvent {
                     block_change.set(ev.pos, new_block);
                     // Remove sprite after del_timeout and offset if specified
                     if let Some((timeout, del_offset)) = ev.del_timeout {
-                        use rand::Rng;
+                        use rand::RngExt;
                         let mut rng = rand::rng();
                         let offset = rng.random_range(0.0..del_offset);
                         let current_time: f64 = time.0;

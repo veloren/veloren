@@ -10,7 +10,7 @@ use fxhash::FxBuildHasher;
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
 use kiddo::{SquaredEuclidean, float::kdtree::KdTree, nearest_neighbour::NearestNeighbour}; /* For RRT paths (disabled for now) */
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 #[cfg(feature = "rrt_pathfinding")]
 use rand::{
     distr::{Distribution, Uniform},

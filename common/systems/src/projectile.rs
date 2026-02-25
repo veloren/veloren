@@ -26,7 +26,7 @@ use common::{
 use common::vol::ReadVol;
 use common_ecs::{Job, Origin, Phase, System};
 use itertools::Either;
-use rand::Rng;
+use rand::RngExt;
 use specs::{
     Entities, Entity as EcsEntity, Join, Read, ReadExpect, ReadStorage, SystemData, WriteStorage,
     shred,
@@ -811,7 +811,7 @@ fn handle_split_effect(
     init_projectile: &Projectile,
     init_dir: Vec3<f32>,
     pos: Pos,
-    rng: &mut impl Rng,
+    rng: &mut impl RngExt,
     projectile_owner: Option<EcsEntity>,
     body: &Body,
     speed: f32,

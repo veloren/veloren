@@ -1,7 +1,7 @@
 use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
 use hashbrown::HashSet;
-use rand::{Rng, seq::IndexedRandom};
+use rand::{RngExt, seq::IndexedRandom};
 use vek::*;
 
 #[derive(Clone, Debug)]
@@ -17,7 +17,7 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn generate(center: Vec2<i32>, rng: &mut impl Rng) -> Self {
+    pub fn generate(center: Vec2<i32>, rng: &mut impl RngExt) -> Self {
         Self {
             name: generate_name(rng),
             center,
@@ -37,7 +37,7 @@ pub struct Kingdom {
     region_name: String,
 }
 
-fn generate_name(rng: &mut impl Rng) -> String {
+fn generate_name(rng: &mut impl RngExt) -> String {
     let firstsyl = [
         "Eri", "Val", "Gla", "Wilde", "Cold", "Deep", "Dura", "Ester", "Fay", "Dark", "West",
         "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Sommer", "Black", "Iron", "Grey",

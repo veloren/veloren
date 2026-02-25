@@ -23,7 +23,7 @@ use crate::{
     vol::ReadVol,
 };
 use common_i18n::Content;
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::{PI, TAU},

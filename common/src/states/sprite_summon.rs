@@ -10,7 +10,7 @@ use crate::{
     terrain::{Block, SpriteKind},
     vol::ReadVol,
 };
-use rand::{Rng, rng};
+use rand::{RngExt, rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use vek::*;

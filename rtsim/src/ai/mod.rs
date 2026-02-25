@@ -1,7 +1,7 @@
 pub mod predicate;
 
 use predicate::Predicate;
-use rand::Rng;
+use rand::RngExt;
 
 use crate::data::{
     Data, ReportId, Sentiments,

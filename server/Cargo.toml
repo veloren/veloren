@@ -62,7 +62,7 @@ lazy_static = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-rand = { workspace = true, features = ["small_rng"] }
+rand = { workspace = true }
 hashbrown = { workspace = true }
 parking_lot = { version = "0.12" }
 rayon = { workspace = true }

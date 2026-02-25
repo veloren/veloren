@@ -21,7 +21,7 @@ rtsim = { package = "veloren-rtsim", path = "../../rtsim" }
 
 specs = { workspace = true, features = ["shred-derive"] }
 vek = { workspace = true }
-rand = { workspace = true, features = ["small_rng"] }
+rand = { workspace = true }
 itertools = { workspace = true }
 lazy_static = { workspace = true }
 tracing = { workspace = true }

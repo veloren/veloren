@@ -11,7 +11,7 @@ use common::{
     rtsim::{Actor, NpcInput},
     trade::{TradeAction, TradePhase, TradeResult},
 };
-use rand::Rng;
+use rand::RngExt;
 
 use crate::sys::agent::util::get_entity_by_id;
 

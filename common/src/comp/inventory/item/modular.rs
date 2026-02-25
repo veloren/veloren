@@ -10,7 +10,7 @@ use crate::{
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use rand::{Rng, prelude::IndexedRandom};
+use rand::{RngExt, prelude::IndexedRandom};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};
 
@@ -475,7 +475,7 @@ pub fn random_weapon_primary_component(
     tool: ToolKind,
     material: Material,
     hand_restriction: Option<Hands>,
-    mut rng: &mut impl Rng,
+    mut rng: &mut impl RngExt,
 ) -> Result<(Item, Option<Hands>), ModularWeaponCreationError> {
     let result = {
         if let Some(material_id) = material.asset_identifier() {
@@ -554,7 +554,7 @@ pub fn random_weapon(
     tool: ToolKind,
     material: Material,
     hand_restriction: Option<Hands>,
-    mut rng: &mut impl Rng,
+    mut rng: &mut impl RngExt,
 ) -> Result<Item, ModularWeaponCreationError> {
     let result = {
         // Loads default ability map and material stat manifest for later use

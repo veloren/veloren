@@ -65,7 +65,7 @@ use common::{
 use common_base::prof_span;
 use common_net::msg::{WorldMapMsg, world_msg};
 use enum_map::EnumMap;
-use rand::{Rng, prelude::*};
+use rand::{RngExt, prelude::*};
 use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
 use std::{borrow::Cow, time::Duration};
