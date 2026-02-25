@@ -15,13 +15,29 @@
         [
 
         // Overworld exploration tracks
-         Individual((
+
+        Individual((
+            title: "Soaring Skies",
+            path: "voxygen.audio.soundtrack.overworld.soaring_skies",
+            length: 239.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Mountain, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("unii", "https://www.youtube.com/@uniior"),
+        )),
+        Individual((
             title: "Desert At Night",
             path: "voxygen.audio.soundtrack.overworld.desert_at_night",
             length: 192.0,
             timing: Night,
             weather: None,
-            biomes: [(Desert, 1),],  
+            biomes: [
+                (Desert, 1),
+            ],  
             sites: [Void],
             music_state: Activity(Explore),
             artist: ("Federico Orfanó", "https://soundcloud.com/federico-orfano-1336105"),
