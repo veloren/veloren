@@ -1327,10 +1327,11 @@ fn handle_goto_rand(
         rng.random_range(0..(2_u32.pow(map_size.y) * chunk_side)) as f32,
     );
     let pos3d = pos2d.with_z(server.world.sim().get_surface_alt_approx(pos2d.as_()));
-    server.state.position_mut(
+    server.state.position_mut_reposition(
         target,
         parse_cmd_args!(args, bool).unwrap_or(true),
         |current_pos| current_pos.0 = pos3d,
+        true,
     )
 }
 
@@ -1449,11 +1450,12 @@ fn handle_site(
                 .world
                 .find_accessible_pos(server.index.as_index_ref(), site_pos, false);
 
-        server
-            .state
-            .position_mut(target, dismount_volume.unwrap_or(true), |current_pos| {
-                current_pos.0 = site_pos
-            })
+        server.state.position_mut_reposition(
+            target,
+            dismount_volume.unwrap_or(true),
+            |current_pos| current_pos.0 = site_pos,
+            true,
+        )
     } else {
         Err(action.help_content())
     }
@@ -1473,9 +1475,14 @@ fn handle_respawn(
         .ok_or(Content::localized("command-respawn-no-waypoint"))?
         .get_pos();
 
-    server.state.position_mut(target, true, |current_pos| {
-        current_pos.0 = waypoint;
-    })
+    server.state.position_mut_reposition(
+        target,
+        true,
+        |current_pos| {
+            current_pos.0 = waypoint;
+        },
+        true,
+    )
 }
 
 fn handle_kill(
@@ -1901,11 +1908,12 @@ fn handle_tp(
         return Err(action.help_content());
     };
     let player_pos = position(server, player, "player")?;
-    server
-        .state
-        .position_mut(target, dismount_volume.unwrap_or(true), |target_pos| {
-            *target_pos = player_pos
-        })
+    server.state.position_mut_reposition(
+        target,
+        dismount_volume.unwrap_or(true),
+        |target_pos| *target_pos = player_pos,
+        false,
+    )
 }
 
 fn handle_rtsim_tp(
@@ -1932,11 +1940,14 @@ fn handle_rtsim_tp(
     } else {
         return Err(action.help_content());
     };
-    server
-        .state
-        .position_mut(target, dismount_volume.unwrap_or(true), |target_pos| {
+    server.state.position_mut_reposition(
+        target,
+        dismount_volume.unwrap_or(true),
+        |target_pos| {
             target_pos.0 = pos;
-        })
+        },
+        false,
+    )
 }
 
 fn handle_rtsim_info(
@@ -6543,15 +6554,16 @@ fn handle_spot(
 
     if let Some(spot_chunk) = spot_chunk {
         let pos = spot_chunk.cpos_to_wpos_center();
-        // NOTE: teleport somewhere higher to avoid spawning inside the spot
-        //
-        // Get your glider ready!
-        let uplift = 100.0;
-        let pos = (pos.as_() + 0.5).with_z(world.sim().get_surface_alt_approx(pos) + uplift);
+        let pos = (pos.as_() + 0.5).with_z(world.sim().get_surface_alt_approx(pos));
         drop(world);
-        server.state.position_mut(target, true, |target_pos| {
-            *target_pos = comp::Pos(pos);
-        })?;
+        server.state.position_mut_reposition(
+            target,
+            true,
+            |target_pos| {
+                *target_pos = comp::Pos(pos);
+            },
+            true,
+        )?;
         Ok(())
     } else {
         Err(Content::localized("command-spot-spot_not_found"))

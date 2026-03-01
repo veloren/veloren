@@ -9,7 +9,7 @@ use world::{IndexOwned, World};
 #[cfg(feature = "worldgen")] use crate::rtsim;
 use crate::{
     ChunkRequest, Tick, chunk_generator::ChunkGenerator, chunk_serialize::ChunkSendEntry,
-    client::Client, presence::RepositionOnChunkLoad, settings::Settings,
+    client::Client, presence::RepositionToFreeSpace, settings::Settings,
 };
 use common::{
     SkillSetBuilder,
@@ -88,7 +88,7 @@ pub struct Data<'a> {
     presences: ReadStorage<'a, Presence>,
     clients: ReadStorage<'a, Client>,
     entities: Entities<'a>,
-    reposition_on_load: WriteStorage<'a, RepositionOnChunkLoad>,
+    reposition_entities: WriteStorage<'a, RepositionToFreeSpace>,
     forced_updates: WriteStorage<'a, ForceUpdate>,
     waypoints: WriteStorage<'a, Waypoint>,
     time: ReadExpect<'a, Time>,
@@ -237,7 +237,7 @@ impl<'a> System<'a> for Sys {
 
         // TODO: Consider putting this in another system since this forces us to take
         // positions by write rather than read access.
-        let repositioned = (&data.entities, &mut data.positions, (&mut data.forced_updates).maybe(), &data.reposition_on_load)
+        let repositioned = (&data.entities, &mut data.positions, (&mut data.forced_updates).maybe(), &data.reposition_entities)
             // TODO: Consider using par_bridge() because Rayon has very poor work splitting for
             // sparse joins.
             .par_join()
@@ -264,7 +264,7 @@ impl<'a> System<'a> for Sys {
             if let Some(waypoint) = data.waypoints.get_mut(entity) {
                 *waypoint = Waypoint::new(new_pos, *data.time);
             }
-            data.reposition_on_load.remove(entity);
+            data.reposition_entities.remove(entity);
         }
 
         let max_view_distance = data.server_settings.max_view_distance.unwrap_or(u32::MAX);
