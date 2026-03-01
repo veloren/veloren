@@ -20,10 +20,10 @@ impl Component for RegionSubscription {
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct RepositionOnChunkLoad {
+pub struct RepositionToFreeSpace {
     pub needs_ground: bool,
 }
 
-impl Component for RepositionOnChunkLoad {
+impl Component for RepositionToFreeSpace {
     type Storage = VecStorage<Self>;
 }

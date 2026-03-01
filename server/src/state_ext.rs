@@ -8,7 +8,7 @@ use crate::{
     events::{self, shared::update_map_markers},
     persistence::PersistedComponents,
     pet::restore_pet,
-    presence::RepositionOnChunkLoad,
+    presence::RepositionToFreeSpace,
     settings::Settings,
     sys::sentinel::DeletedEntities,
     wiring,
@@ -180,6 +180,25 @@ pub trait StateExt {
         entity: EcsEntity,
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+    ) -> Result<T, Content>;
+
+    /// Mutate the position of an entity or, if the entity is mounted, the
+    /// mount.
+    ///
+    /// If `needs_ground` is set to false, the entity will strictly be mutated
+    /// to the nearest available space on the ground
+    /// otherwise, the entity will be mutated to the nearest available space
+    /// regardless of it being the ground or the sky.
+    ///
+    /// If `dismount_volume` is `true`, an entity mounted on a volume entity
+    /// (such as an airship) will be dismounted to avoid teleporting the volume
+    /// entity.
+    fn position_mut_reposition<T>(
+        &mut self,
+        entity: EcsEntity,
+        dismount_volume: bool,
+        f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+        needs_ground: bool,
     ) -> Result<T, Content>;
 }
 
@@ -693,7 +712,7 @@ impl StateExt for State {
             }
 
             if let Some(waypoint) = waypoint {
-                self.write_component_ignore_entity_dead(entity, RepositionOnChunkLoad {
+                self.write_component_ignore_entity_dead(entity, RepositionToFreeSpace {
                     needs_ground: true,
                 });
                 self.write_component_ignore_entity_dead(entity, waypoint);
@@ -1218,6 +1237,18 @@ impl StateExt for State {
             ecs.read_storage(),
             ecs.read_storage(),
         )
+    }
+
+    fn position_mut_reposition<T>(
+        &mut self,
+        entity: EcsEntity,
+        dismount_volume: bool,
+        f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
+        needs_ground: bool,
+    ) -> Result<T, Content> {
+        self.position_mut(entity, dismount_volume, f).inspect(|_| {
+            self.write_component_ignore_entity_dead(entity, RepositionToFreeSpace { needs_ground });
+        })
     }
 }
 

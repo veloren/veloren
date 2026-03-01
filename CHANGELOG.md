@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
 - Internationalization feature for singleplayer MOTDs
 - Added bullet character (•) to EnterCommand font
+- Checks to prevent players from being teleported in the ground
+- Checks on certain server commands to prevent players from being teleported into the ground 
 
 ### Changed
 

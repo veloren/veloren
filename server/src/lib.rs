@@ -58,7 +58,7 @@ use crate::{
     location::Locations,
     login_provider::LoginProvider,
     persistence::PersistedComponents,
-    presence::{RegionSubscription, RepositionOnChunkLoad},
+    presence::{RegionSubscription, RepositionToFreeSpace},
     state_ext::StateExt,
     sys::sentinel::DeletedEntities,
 };
@@ -472,7 +472,7 @@ impl Server {
         state.ecs_mut().register::<Anchor>();
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
-        state.ecs_mut().register::<RepositionOnChunkLoad>();
+        state.ecs_mut().register::<RepositionToFreeSpace>();
         state.ecs_mut().register::<RtSimEntity>();
 
         // Load banned words list

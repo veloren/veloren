@@ -1,6 +1,6 @@
 use crate::{
     CharacterUpdater, Server, StateExt, client::Client, events::player::handle_exit_ingame,
-    persistence::PersistedComponents, pet::tame_pet, presence::RepositionOnChunkLoad, sys,
+    persistence::PersistedComponents, pet::tame_pet, presence::RepositionToFreeSpace, sys,
 };
 use common::{
     CachedSpatialGrid,
@@ -170,7 +170,7 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
 
     // Rtsim entity added to IdMaps below.
     let entity = if let Some(rtsim_entity) = rtsim_entity {
-        entity.with(rtsim_entity).with(RepositionOnChunkLoad {
+        entity.with(rtsim_entity).with(RepositionToFreeSpace {
             needs_ground: false,
         })
     } else {
