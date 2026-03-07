@@ -1148,20 +1148,49 @@ impl Airships {
         let blocks_per_chunk = 1 << TERRAIN_CHUNK_BLOCKS_LG;
         let max_route_leg_length = 1000.0 * blocks_per_chunk as f32;
 
-        // eulerized_route_segments is fairly expensive as the number of docking sites
-        // grows. Limit the number of iterations according to world size.
-        // pow2     world size   iterations
-        // 10       1024         50
-        // 11       2048         22
-        // 12       4096         10
-        // 13       8192          2
-        // Doing a least squares fit on the iterations gives the formula:
-        // 3742931.0 * e.powf(-1.113823 * pow2)
-        // 3742931.0 * 2.71828f32.powf(-1.113823 * pow2)
+        // eulerized_route_segments is fairly expensive as the number of graph nodes
+        // (docking sites) increases. The number of graph nodes grows linearly
+        // with the world area and is given by the number of airship docks,
+        // which is all_dock_points.len(). Experimentally, good results are
+        // obtained without excessive processing time by limiting the number of
+        // iterations based on the number of docking sites.
+        // Docking Sites    Iterations
+        //   35             50
+        //   175            25
+        //   415            5
+        //   850            2
+        //   1680           1
+        // The best fit for this data is a exponential decay function of the form:
+        // iterations = a0 * (1-alpha)^x, where x is the number of docking sites
+        // (all_dock_points.len()). a0 = 60, alpha = 0.005450282
+        /*
+           R code for fitting the curve:
+           rm(list = ls())
+           docks <- c(35, 175, 415, 850, 1680)
+           iter <- c(50, 25, 5, 1.5, 1)
+           df = data.frame(docks, iter)
+           plot(df$docks, df$iter, main="Number of Docks to Iterations", xlab="Docks", ylab="Iterations")
+           fit <- nls(iter ~ SSasymp(docks, yf, y0, log_alpha), data = df)
+           summary(fit)
+           lines(df$docks, predict(fit), col="red")
+           coefs <- coef(fit)
+           yf <- coefs["yf"]
+           y0 <- coefs["y0"]
+           alpha <- exp(coefs["log_alpha"])
+           cat("Final Value (yf):", yf, "\n")
+           cat("Initial Value (y0):", y0, "\n")
+           cat("Decay Rate (alpha):", alpha, "\n")
+           tdocks <- c(0, 1, 4, 5, 9, 10, 15, 20, 25, 45, 55, 85, 100, 200, 300, 500, 1500)
+           testfn <- function(t) {
+               result <- y0 * (1 - alpha) ^ t
+               return (result)
+           }
+           titers <- sapply(tdocks, testfn)
+           lines(tdocks, titers, type="l", col="blue")
+        */
 
-        let pow2 = map_size_lg.vec().x;
-        let max_iterations = (3742931.0 * std::f32::consts::E.powf(-1.113823 * pow2 as f32))
-            .clamp(1.0, 100.0)
+        let max_iterations = (60.0f32 * (1.0f32 - 0.005450282).powf(all_dock_points.len() as f32))
+            .clamp(1.0, 60.0)
             .round() as usize;
 
         if let Some((best_segments, _, _max_seg_len, _min_spread, _iteration)) = triangulation
@@ -2256,8 +2285,15 @@ fn best_eulerian_circuit_segments(
                 prev_value = value;
             }
 
-            // Stop cycling once we've looped back to the value before the starting index
-            if index == end_index {
+            // Stop cycling once we've looped back to the value before the starting index.
+            // There is a bug here if only checking for index == end_index, because
+            // sorted_node_ids may contain node ids that are no longer in the
+            // circuit. This happens for world maps where one or both dimensions
+            // are smaller than 2^8 or maybe 2^9 chunks because the tessellation
+            // algorithm produces a hull with fewer nodes, and the Eulerization
+            // process may not include all nodes. To prevent an infinite loop, also break if
+            // the index has cycled more than twice the circuit length.
+            if index == end_index || index > 2 * circuit_len {
                 break;
             }
         }
