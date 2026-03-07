@@ -425,10 +425,11 @@ impl Widget for Map<'_> {
                     .map(|scroll| scroll.y)
                     .sum();
                 if scrolled != 0.0 {
+                    let max_zoom = 16.0;
                     let min_zoom = map_size.x / worldsize.reduce_partial_max() as f64 / 2.0;
                     let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
                         .exp2()
-                        .clamp(min_zoom, 16.0);
+                        .clamp(min_zoom.min(max_zoom), max_zoom); // min_zoom can > 16 for small maps
                     events.push(Event::SettingsChange(MapZoom(new_zoom_lvl)));
                     let cursor_mouse_pos = ui
                         .widget_input(map_widget)
