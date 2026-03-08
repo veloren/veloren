@@ -88,6 +88,7 @@ main-server-rules-seen-before = These rules have changed since the last time you
 main-credits = Credits
 main-credits-created_by = created by
 main-credits-music = Music
+main-credits-sound = Sound
 main-credits-fonts = Fonts
 main-credits-other_art = Other Art
 main-credits-contributors = Contributors

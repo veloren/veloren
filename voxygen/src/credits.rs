@@ -41,6 +41,27 @@ pub struct Art {
     pub notes: String,
 }
 
+#[expect(dead_code)]
+#[derive(Clone, Deserialize, Debug)]
+pub struct Sounds {
+    /// List of authors in this credit
+    pub authors: Vec<String>,
+    /// List of files created by authors
+    pub files: Vec<PathBuf>,
+    /// License that the art is under, can be omitted, if not present assumed to
+    /// be GPL3.
+    #[serde(default)]
+    pub license: String,
+    /// Link to the license if one is available.
+    #[serde(default)]
+    pub license_link: String,
+    #[serde(default)]
+    /// Any additional attribution notes that may be desired and/or required by
+    /// the respective license that can't be conveyed or would be awkward to
+    /// convey with the other provided fields.
+    pub notes: String,
+}
+
 #[derive(Clone, Deserialize)]
 pub struct Contributor {
     pub name: String,
@@ -54,6 +75,7 @@ pub struct Contributor {
 #[derive(Clone, Deserialize)]
 pub struct Credits {
     pub music: Vec<Art>,
+    pub sounds: Vec<Sounds>,
     pub fonts: Vec<Art>,
     pub other_art: Vec<Art>,
     pub contributors: Vec<Contributor>,
@@ -81,5 +103,21 @@ mod tests {
                     art.asset_path.display(),
                 );
             });
+    }
+
+    #[test]
+    fn all_sounds_asset_paths_exists() {
+        let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
+        let sfx_path = assets::ASSETS_PATH.join(PathBuf::from("voxygen/audio/sfx/"));
+
+        credits.sounds.into_iter().for_each(|sounds| {
+            sounds.files.iter().for_each(|path| {
+                assert!(
+                    sfx_path.join(path).exists(),
+                    "assets/{} does not exist!",
+                    path.display(),
+                );
+            });
+        });
     }
 }

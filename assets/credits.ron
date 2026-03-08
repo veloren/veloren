@@ -32,253 +32,585 @@
     ///     notes: "Other information",
     /// )
     /// ```
+    
     music: [
-    (
-        name: "Life of a Background Mob",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/town/life_of_a_background_mob.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Moonlit Canopy",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/overworld/moonlit_canopy.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "A Heart's IceCold Protection",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/dungeon/a_hearts_ice-cold_protection.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Stargazing",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/overworld/stargazing.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Cavernous Hollow",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Cavernous Hollow",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Still Heart's Coffin",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/dungeon/still_hearts_coffin.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educational content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    ),
-    (
-        name: "Ballerine Macabre",
-        authors: ["GeekyGami"],
-        asset_path: "voxygen/audio/soundtrack/overworld/ballerine_macabre.ogg",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: 
-        "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay
-        - official releases of veloren on platforms that have relevant restrictions
-        - Appearances in content relevant to veloren
-        - Appearances in educative content
-        
-        Added restrictions: 
-        - Should not be used in other games than Veloren unless it is parody."
-    )
-
-
+        (
+            name: "Life of a Background Mob",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/town/life_of_a_background_mob.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Moonlit Canopy",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/overworld/moonlit_canopy.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "A Heart's IceCold Protection",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/dungeon/a_hearts_ice-cold_protection.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Stargazing",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/overworld/stargazing.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Cavernous Hollow",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Cavernous Hollow",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Still Heart's Coffin",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/dungeon/still_hearts_coffin.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educational content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
+        (
+            name: "Ballerine Macabre",
+            authors: ["GeekyGami"],
+            asset_path: "voxygen/audio/soundtrack/overworld/ballerine_macabre.ogg",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: 
+            "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay
+            - official releases of veloren on platforms that have relevant restrictions
+            - Appearances in content relevant to veloren
+            - Appearances in educative content
+            
+            Added restrictions: 
+            - Should not be used in other games than Veloren unless it is parody."
+        ),
     ],
-    fonts: [(
-        name: "Alkhemikal",
-        source_link: "https://fontenddev.com/fonts/alkhemikal/",
-        authors: ["jeti"],
-        asset_path: "voxygen/font/Alkhemikal.ttf",
-        license: "CC BY 4.0",
-        license_link: "https://creativecommons.org/licenses/by/4.0/",
-    ), (
-        name: "bdfUMplus outline",
-        authors: ["hikaen2"],
-        asset_path: "voxygen/font/bdfUMplus-outline.ttf",
-        // License text file included alongside font which should satisfy the requirements.
-        license: "MIT",
-    ), (
-        name: "HaxrCorp 4089 Cyrillic AltGr",
-        source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
-        authors: ["sahwar"],
-        asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr.ttf",
-        license: "CC BY-SA 3.0",
-        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
-    ), (
-        name: "HaxrCorp 4089 Cyrillic AltGr Extended",
-        // original
-        source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
-        authors: ["sahwar (original)"],
-        asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr_extended.ttf",
-        license: "CC BY-SA 3.0",
-        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
-        modifications: "Added additional characters.",
-        notes: "Derived from HaxrCorp 4089 Cyrillic AltGr",
-    ), (
-        name: "Metamorphous",
-        authors: ["Sorkin Type Co"],
-        asset_path: "voxygen/font/Metamorphous-Regular.ttf",
-        // License appears to be satisfied by inclusion of its text file.
-        license: "OFL",
-        license_link: "https://scripts.sil.org/OFL",
-    ), (
-        name: "Open Sans",
-        authors: [""],
-        asset_path: "voxygen/font/OpenSans-Regular.ttf",
-        // License appears to be satisfied by inclusion of its text file.
-        license: "Apache 2.0",
-        license_link: "http://www.apache.org/licenses/LICENSE-2.0",
-    ), (
-        name: "WenQuanYi Zen Hei",
-        source_link: "http://wenq.org/wqy2/index.cgi?ZenHei%28en%29",
-        authors: ["Qianqian Fang", "WenQuanYi project"],
-        asset_path: "voxygen/font/WenQuanYiZenHei.ttf",
-        license: "GPL2",
-        license_link: "http://wenq.org/wqy2/index.cgi?GPL",
-    ), (
-        name: "Wizard",
-        source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
-        authors: ["Omegaville"],
-        asset_path: "voxygen/font/wizard.ttf",
-        license: "CC BY-SA 3.0",
-        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
-    ), (
-        name: "Wizard Extended",
-        // original
-        source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
-        authors: ["Omegaville (original)"],
-        asset_path: "voxygen/font/wizard_extended.ttf",
-        license: "CC BY-SA 3.0",
-        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
-        modifications: "Added additional characters.",
-        notes: "Derived from Wizard",
-    ), (
-        name: "Sarabun",
-        authors: ["Suppakit Chalermlarp"],
-        asset_path: "voxygen/font/Sarabun-Regular.ttf",
-        // License appears to be satisfied by inclusion of its text file.
-        license: "OFL",
-        license_link: "https://scripts.sil.org/OFL",
-    ), (
-        name: "GoNotoCurrent",
-        authors: ["The Noto Project Authors"],
-        asset_path: "voxygen/font/GoNotoCurrent.ttf",
-        // License appears to be satisfied by inclusion of its text file.
-        license: "OFL",
-        license_link: "https://scripts.sil.org/OFL",
-    ), (
-        name: "EnterCommand",
-        authors: ["Font End Dev"],
-        asset_path: "voxygen/font/EnterCommand.ttf",
-        license: "CC BY 4.0",
-        license_link: "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
-    ),],
-    models: [(
-        name: "Vroom",
-        authors: ["horblegorble"],
-        asset_path: "voxygen/voxel/glider/vroom.vox",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: "exceptions (to the extent to which the license is prohibitive):
-        - appearances in images and videos (including streams) of veloren gameplay or model viewing/editing software
-        - official releases of veloren on platforms that have relevant restrictions"
-    ),  (
-        name: "mineral ingots",
-        authors : ["Supa"],
-        asset_path: "assets/voxygen/voxel/sprite/mineral/ingot",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: "A raplacement of a total of 10 ingot sprites by supa including:
-        bloodsteel, bronze, cobalt, copper, gold, iron, orichalcum, silver, steel, tin"
-    ),  (
-        name: "wood log",
-        authors : ["Supa"],
-        asset_path: "assets/voxygen/voxel/sprite/wood/log/wood.vox",
-        license: "CC-BY-NC-SA 4.0",
-        license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-        notes: "Wood log recolouring"
-    )],
+    
+    /// Entry format:
+    /// (   
+    ///     // 1 or more authors required.
+    ///     authors: ["Author 1, Author 2"],
+    ///     // 1 or more files required. Root is assumed to be `ASSETS_PATH/audio/sfx/`
+    ///     files: ["path/file_1.ogg", "path/file_2.ogg"],
+    ///     // Optional. If not provided, GPLv3 is assumed
+    ///     license: "CC BY 4.0",
+    ///     // Optional.
+    ///     license_link: "https://creativecommons.org/licenses/by/4.0/",
+    ///     // Optional. Use for things like additional attributions.
+    ///     notes: "Some notes and extra attributions",
+    /// ),
+    
+    sounds: [
+        (
+            authors: ["Ellinia"],
+            files: [],
+            notes: "Will fill out later. They made the greatest portion of contribution to Veloren's sounds, though.",
+        ),
+        (
+            authors: ["DaforLynx"],
+            files: [
+                "ambient/birdcall_01.ogg", "ambient/birdcall_02.ogg", "ambient/birdcall_03.ogg", 
+                "ambient/birdcall_04.ogg", "ambient/birdcall_05.ogg", "ambient/birdcall_06.ogg", 
+                "ambient/birdcall_07.ogg", "ambient/birdcall_08.ogg", "ambient/birdcall_09.ogg", 
+                "ambient/birdcall_10.ogg", 
+                "ambient/crickets_1.ogg", "ambient/crickets_2.ogg", "ambient/crickets_3.ogg", 
+                "ambient/river_sounds/running_water-001.ogg", "ambient/river_sounds/running_water-002.ogg", "ambient/river_sounds/running_water-003.ogg", 
+                "ambient/river_sounds/running_water-004.ogg", "ambient/river_sounds/running_water-005.ogg", "ambient/river_sounds/running_water-006.ogg", 
+                "ambient/river_sounds/running_water-007.ogg", "ambient/river_sounds/running_water-008.ogg", "ambient/river_sounds/running_water-009.ogg", 
+                "ambient/river_sounds/running_water-010.ogg", "ambient/river_sounds/running_water-011.ogg", "ambient/river_sounds/running_water-012.ogg", 
+                "ambient/river_sounds/running_water-013.ogg", "ambient/river_sounds/running_water-014.ogg", "ambient/river_sounds/running_water-015.ogg", 
+                "ambient/river_sounds/running_water-016.ogg", "ambient/river_sounds/running_water-017.ogg", "ambient/river_sounds/running_water-018.ogg", 
+                "ambient/river_sounds/running_water-019.ogg", "ambient/river_sounds/running_water-020.ogg", "ambient/river_sounds/running_water-021.ogg", 
+                "ambient/river_sounds/running_water-022.ogg", "ambient/river_sounds/running_water-023.ogg", "ambient/river_sounds/running_water-024.ogg", 
+                "ambient/river_sounds/running_water-025.ogg", "ambient/river_sounds/running_water-026.ogg", "ambient/river_sounds/running_water-027.ogg", 
+                "ambient/river_sounds/fast_water-001.ogg", "ambient/river_sounds/fast_water-002.ogg", "ambient/river_sounds/fast_water-003.ogg", 
+                "ambient/river_sounds/fast_water-004.ogg", "ambient/river_sounds/fast_water-005.ogg", "ambient/river_sounds/fast_water-006.ogg", 
+                "ambient/river_sounds/fast_water-007.ogg", "ambient/river_sounds/fast_water-008.ogg", "ambient/river_sounds/fast_water-009.ogg", 
+                "ambient/river_sounds/fast_water-010.ogg", "ambient/river_sounds/fast_water-011.ogg", "ambient/river_sounds/fast_water-012.ogg", 
+                "ambient/river_sounds/fast_water-013.ogg", "ambient/river_sounds/fast_water-014.ogg", "ambient/river_sounds/fast_water-015.ogg", 
+                "ambient/river_sounds/fast_water-016.ogg", "ambient/river_sounds/fast_water-017.ogg", "ambient/river_sounds/fast_water-018.ogg", 
+                "ambient/river_sounds/fast_water-019.ogg", "ambient/river_sounds/fast_water-020.ogg", "ambient/river_sounds/fast_water-021.ogg", 
+                "ambient/river_sounds/fast_water-022.ogg", "ambient/river_sounds/fast_water-023.ogg", "ambient/river_sounds/fast_water-024.ogg", 
+                "footsteps/splash_small.ogg", "footsteps/splash_medium.ogg", "footsteps/splash_big.ogg", 
+                "character/catch_air_1.ogg", "character/catch_air_2.ogg", "character/catch_air_3.ogg", "character/catch_air_4.ogg", 
+                "character/catch_air_5.ogg", "character/catch_air_6.ogg", "character/catch_air_7.ogg", "character/catch_air_8.ogg", 
+                "abilities/sceptre_aura.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_a.ogg", "instrument/viola_pizzicato/viola_pizzicato_ac1.ogg", 
+                "instrument/viola_pizzicato/viola_pizzicato_c.ogg", "instrument/viola_pizzicato/viola_pizzicato_c1.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_cde.ogg", "instrument/viola_pizzicato/viola_pizzicato_ce.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_ceac1c1.ogg", "instrument/viola_pizzicato/viola_pizzicato_ceg.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_d.ogg", "instrument/viola_pizzicato/viola_pizzicato_d1.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_dag.ogg", "instrument/viola_pizzicato/viola_pizzicato_e.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_edc.ogg", "instrument/viola_pizzicato/viola_pizzicato_eg.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_egc1.ogg", "instrument/viola_pizzicato/viola_pizzicato_g.ogg",
+                "instrument/viola_pizzicato/viola_pizzicato_gd1a.ogg", "instrument/viola_pizzicato/viola_pizzicato_ggc1a.ogg",
+                "character/interrupted_1.ogg", "character/interrupted_2.ogg", "character/interrupted_3.ogg", "character/interrupted_4.ogg",
+                "character/stunned_1.ogg", "character/stunned_2.ogg", "character/stunned_3.ogg",
+                "character/dazed_1.ogg", "character/dazed_2.ogg", "character/dazed_3.ogg",
+                "character/knockeddown_1.ogg", "character/knockeddown_2.ogg",
+                "abilities/minotaur_smash_1.ogg", "abilities/minotaur_smash_2.ogg",
+                "vehicle/train_chugg_steam.ogg",
+            ],
+            license: "CC BY 4.0",
+            license_link: "https://creativecommons.org/licenses/by/4.0/",
+            notes: "
+                Sources used (to my knowledge):
+                River sounds
+                    https://freesound.org/people/Pfannkuchn/sounds/459405/,
+                    https://freesound.org/people/Pfannkuchn/sounds/459406/,
+                    https://freesound.org/people/katfolker/sounds/426893/,
+                    https://freesound.org/people/poorenglishjuggler/sounds/367631/,
+                    https://freesound.org/people/pillwave/sounds/423959/
+                Splashes
+                    Bluezone - Splash
+                Glider fabric
+                    https://freesound.org/people/JonnyRuss01/sounds/478192/,
+                    https://freesound.org/people/PelicanPolice/sounds/580967/,
+                    https://freesound.org/people/leonelmail/sounds/330638/
+            ",
+        ),
+        (
+            authors: ["Oolnokk"],
+            files: [
+                "instrument/guitar/guitar_c.ogg",
+                "instrument/guitar/guitar_g.ogg",
+                "instrument/guitar/guitar_d.ogg",
+                "instrument/guitar/guitar_a.ogg",
+                "instrument/guitar/guitar_e.ogg",
+                "instrument/guitar/guitar_c1.ogg",
+                "instrument/guitar/guitar_ac1a.ogg",
+                "instrument/guitar/guitar_c1d1c1.ogg",
+                "instrument/guitar/guitar_cdc.ogg",
+                "instrument/guitar/guitar_ded.ogg",
+                "instrument/guitar/guitar_ege.ogg",
+                "instrument/guitar/guitar_gag.ogg",
+            ],
+        ),
+        (
+            authors: ["Oolnokk", "DaforLynx"],
+            files: [
+                "weapon/sword_in.ogg", "weapon/sword_out.ogg",
+            ],
+            notes: "Recordings by Oolnokk, edited by DaforLynx"
+        ),
+        (
+            authors: ["Eden"],
+            files: [
+                "weapon/dagger_out.ogg", "weapon/dagger_in.ogg", "crafting/hammer.ogg", "abilities/explosion.ogg",
+                "ui/click1.ogg", "ui/click2.ogg", 
+                "character/experience_gained_1.ogg", "character/experience_gained_2.ogg", "character/experience_gained_3.ogg",
+            ],
+        ),
+        (
+            authors: ["Zesterer"],
+            files: [
+                "character/arrow_hit.ogg", "character/arrow_miss.ogg",
+                "utterance/humanmale_greeting1.ogg",
+                "vehicle/train_chugg.ogg", "vehicle/train_ambience.ogg", "vehicle/train_tracks.ogg", "vehicle/train_speed.ogg",
+            ],
+            notes: "
+                vehicle/train_chugg.ogg - from Keith Burnett '4-6-0 Hall Class engine restored at Tyseley in the West Midlands'
+            "
+        ),
+        (
+            authors: ["GeekyGami"],
+            files: [
+                "utterance/wendigo_angry1.ogg", "utterance/wendigo_angry2.ogg", "utterance/wendigo_angry3.ogg", 
+                "utterance/wendigo_angry4.ogg", "utterance/wendigo_angry5.ogg", "utterance/wendigo_angry6.ogg",
+                "utterance/wendigo_calm1.ogg", "utterance/wendigo_calm2.ogg", "utterance/wendigo_calm3.ogg",
+                "utterance/wendigo_calm4.ogg", "utterance/wendigo_calm5.ogg",
+                "utterance/wolf_angry1.ogg", "utterance/wolf_angry2.ogg", "utterance/wolf_angry3.ogg",
+                "utterance/wolf_angry4.ogg", "utterance/wolf_angry5.ogg", "utterance/wolf_angry6.ogg",
+                "utterance/wolf_hurt1.ogg", "utterance/wolf_hurt2.ogg", "utterance/wolf_hurt3.ogg",
+                "utterance/wolf_hurt4.ogg", "utterance/wolf_hurt5.ogg",
+                "utterance/legoom_3.ogg", "utterance/legoom_4.ogg", "utterance/legoom_6.ogg", "utterance/legoom_11.ogg",
+                "utterance/legoom_15.ogg", "utterance/legoom_2.ogg", "utterance/legoom_9.ogg", "utterance/legoom_10.ogg",
+                "utterance/legoom_12.ogg", "utterance/legoom_13.ogg", "utterance/legoom_1.ogg", "utterance/legoom_5.ogg",
+                "utterance/legoom_7.ogg", "utterance/legoom_8.ogg", "utterance/legoom_14.ogg",
+            ],
+        ),
+        (
+            authors: ["Samstler"],
+            files: [
+                "abilities/barrel_organ.ogg", 
+            ],
+        ),
+        (
+            authors: ["Tjin"],
+            files: [
+                "utterance/fungome_calm1.ogg", "utterance/truffler_calm1.ogg", "utterance/truffler_calm2.ogg"
+            ],
+        ),
+        (
+            authors: ["Corvella"],
+            files: [
+                "utterance/humanfemale_greeting1.ogg",
+            ],
+        ),
+        (
+            authors: ["aylana"],
+            files: [
+                "utterance/asp_hurt1.ogg", "utterance/asp_angry1.ogg", "utterance/asp_angry2.ogg", "utterance/asp_calm1.ogg"
+            ],
+        ),
+        (
+            authors: ["Flashbang"],
+            files: [
+                "character/hit_1.ogg", "character/hit_2.ogg", "character/hit_3.ogg", "character/hit_4.ogg",
+            ],
+        ),
+        (
+            authors: ["floppy"],
+            files: [
+                "instrument/double_bass/double_bass_c.ogg", "instrument/double_bass/double_bass_g.ogg", "instrument/double_bass/double_bass_d.ogg",
+                "instrument/double_bass/double_bass_a.ogg", "instrument/double_bass/double_bass_e.ogg", "instrument/double_bass/double_bass_c1.ogg",
+                "instrument/double_bass/double_bass_ac1.ogg", "instrument/double_bass/double_bass_ag.ogg", "instrument/double_bass/double_bass_cec.ogg",
+                "instrument/double_bass/double_bass_de.ogg", "instrument/double_bass/double_bass_e1c1.ogg", "instrument/double_bass/double_bass_ge.ogg",
+                "instrument/flute/flute_c.ogg", "instrument/flute/flute_g.ogg", "instrument/flute/flute_d.ogg",
+                "instrument/flute/flute_a.ogg", "instrument/flute/flute_e.ogg", "instrument/flute/flute_c1.ogg",
+                "instrument/flute/flute_c1a.ogg", "instrument/flute/flute_c1ag.ogg", "instrument/flute/flute_c1d1c1.ogg",
+                "instrument/flute/flute_ceg.ogg", "instrument/flute/flute_dac1.ogg", "instrument/flute/flute_eg.ogg",
+                "instrument/glass_flute/glass_flute_c.ogg", "instrument/glass_flute/glass_flute_g.ogg", "instrument/glass_flute/glass_flute_d.ogg",
+                "instrument/glass_flute/glass_flute_a.ogg", "instrument/glass_flute/glass_flute_e.ogg", "instrument/glass_flute/glass_flute_c1.ogg",
+                "instrument/glass_flute/glass_flute_c1a.ogg", "instrument/glass_flute/glass_flute_c1ag.ogg", "instrument/glass_flute/glass_flute_c1d1c1.ogg",
+                "instrument/glass_flute/glass_flute_ceg.ogg", "instrument/glass_flute/glass_flute_dac1.ogg", "instrument/glass_flute/glass_flute_eg.ogg",
+                "instrument/lyre/lyre_c.ogg", "instrument/lyre/lyre_g.ogg", "instrument/lyre/lyre_d.ogg",
+                "instrument/lyre/lyre_a.ogg", "instrument/lyre/lyre_e.ogg", "instrument/lyre/lyre_c1.ogg",
+                "instrument/lyre/lyre_c1ag.ogg", "instrument/lyre/lyre_cde.ogg", "instrument/lyre/lyre_d1c1a.ogg",
+                "instrument/lyre/lyre_d1g.ogg", "instrument/lyre/lyre_ec1.ogg", "instrument/lyre/lyre_ega.ogg",
+                "instrument/kalimba/kalimba_c.ogg", "instrument/kalimba/kalimba_g.ogg", "instrument/kalimba/kalimba_d.ogg",
+                "instrument/kalimba/kalimba_a.ogg", "instrument/kalimba/kalimba_e.ogg", "instrument/kalimba/kalimba_c1.ogg",
+                "instrument/kalimba/kalimba_c1a.ogg", "instrument/kalimba/kalimba_c1d1c1.ogg", "instrument/kalimba/kalimba_c1ge.ogg",
+                "instrument/kalimba/kalimba_cdc.ogg", "instrument/kalimba/kalimba_ceg.ogg", "instrument/kalimba/kalimba_da.ogg",
+                "instrument/melodica/melodica_c.ogg", "instrument/melodica/melodica_g.ogg", "instrument/melodica/melodica_d.ogg",
+                "instrument/melodica/melodica_a.ogg", "instrument/melodica/melodica_e.ogg", "instrument/melodica/melodica_c1.ogg",
+                "instrument/melodica/melodica_ad1c1.ogg", "instrument/melodica/melodica_c1a.ogg", "instrument/melodica/melodica_d1a.ogg",
+                "instrument/melodica/melodica_ec.ogg", "instrument/melodica/melodica_ec1g.ogg", "instrument/melodica/melodica_ge.ogg",
+                "instrument/lute/lute_c.ogg", "instrument/lute/lute_g.ogg", "instrument/lute/lute_d.ogg",
+                "instrument/lute/lute_a.ogg", "instrument/lute/lute_e.ogg", "instrument/lute/lute_c1.ogg",
+                "instrument/lute/lute_ac1.ogg", "instrument/lute/lute_c1d1c1.ogg", "instrument/lute/lute_cdc.ogg",
+                "instrument/lute/lute_ege.ogg", "instrument/lute/lute_gag.ogg", "instrument/lute/lute_ded.ogg",
+                "instrument/oud/oud_cgc1.ogg", "instrument/oud/oud_cgc1.ogg", "instrument/oud/oud_cgc1.ogg",
+                "instrument/oud/oud_cgc1.ogg", "instrument/oud/oud_dad1.ogg", "instrument/oud/oud_ege1.ogg",
+                "instrument/oud/oud_gd1g1.ogg", "instrument/oud/oud_ac1a1.ogg",
+                "instrument/steeltonguedrum/steeltonguedrum_eg.ogg", "instrument/steeltonguedrum/steeltonguedrum_e.ogg", "instrument/steeltonguedrum/steeltonguedrum_d1c1.ogg",
+                "instrument/steeltonguedrum/steeltonguedrum_d1.ogg", "instrument/steeltonguedrum/steeltonguedrum_d.ogg", "instrument/steeltonguedrum/steeltonguedrum_ce.ogg",
+                "instrument/steeltonguedrum/steeltonguedrum_c1ag.ogg", "instrument/steeltonguedrum/steeltonguedrum_c1ae.ogg", "instrument/steeltonguedrum/steeltonguedrum_c1.ogg",
+                "instrument/steeltonguedrum/steeltonguedrum_c.ogg", "instrument/steeltonguedrum/steeltonguedrum_ac1.ogg", "instrument/steeltonguedrum/steeltonguedrum_a.ogg",
+                "instrument/steeltonguedrum/steeltonguedrum_c1c1.ogg", "instrument/steeltonguedrum/steeltonguedrum_g.ogg",
+                "instrument/shamisen/shamisen_a.ogg", "instrument/shamisen/shamisen_aec1.ogg", "instrument/shamisen/shamisen_c.ogg",
+                "instrument/shamisen/shamisen_c1.ogg", "instrument/shamisen/shamisen_c1c1a.ogg", "instrument/shamisen/shamisen_cc.ogg",
+                "instrument/shamisen/shamisen_cdc1.ogg", "instrument/shamisen/shamisen_cea.ogg", "instrument/shamisen/shamisen_ceg.ogg",
+                "instrument/shamisen/shamisen_cge.ogg", "instrument/shamisen/shamisen_d.ogg", "instrument/shamisen/shamisen_dac.ogg",
+                "instrument/shamisen/shamisen_e.ogg", "instrument/shamisen/shamisen_ea.ogg", "instrument/shamisen/shamisen_eac1c.ogg",
+                "instrument/shamisen/shamisen_g.ogg", "instrument/shamisen/shamisen_gg.ogg",
+                "instrument/starlight_conch/starlight_conch_c.ogg", "instrument/starlight_conch/starlight_conch_c.ogg", "instrument/starlight_conch/starlight_conch_c.ogg",
+                "instrument/starlight_conch/starlight_conch_c.ogg", "instrument/starlight_conch/starlight_conch_c.ogg", "instrument/starlight_conch/starlight_conch_c.ogg",
+                "instrument/starlight_conch/starlight_conch_a.ogg", "instrument/starlight_conch/starlight_conch_ac1.ogg", "instrument/starlight_conch/starlight_conch_c.ogg",
+                "instrument/starlight_conch/starlight_conch_c1.ogg", "instrument/starlight_conch/starlight_conch_cd.ogg", "instrument/starlight_conch/starlight_conch_cge.ogg",
+                "instrument/starlight_conch/starlight_conch_d.ogg", "instrument/starlight_conch/starlight_conch_d1.ogg", "instrument/starlight_conch/starlight_conch_e.ogg",
+                "instrument/starlight_conch/starlight_conch_ec.ogg", "instrument/starlight_conch/starlight_conch_ec1g.ogg", "instrument/starlight_conch/starlight_conch_g.ogg",
+                "instrument/starlight_conch/starlight_conch_ga.ogg", "instrument/starlight_conch/starlight_conch_gd1.ogg", "instrument/starlight_conch/starlight_conch_ge.ogg",
+                "instrument/sitar/sitar_c.ogg", "instrument/sitar/sitar_g.ogg", "instrument/sitar/sitar_d.ogg",
+                "instrument/sitar/sitar_a.ogg", "instrument/sitar/sitar_e.ogg", "instrument/sitar/sitar_c1.ogg",
+                "instrument/sitar/sitar_c1ae.ogg", "instrument/sitar/sitar_ce.ogg", "instrument/sitar/sitar_da.ogg",
+                "instrument/sitar/sitar_ec1.ogg", "instrument/sitar/sitar_gd1.ogg", "instrument/sitar/sitar_gec.ogg",
+                "instrument/dark_guitar/dark_guitar_a.ogg", "instrument/dark_guitar/dark_guitar_c.ogg", "instrument/dark_guitar/dark_guitar_c1.ogg",
+                "instrument/dark_guitar/dark_guitar_c1ae.ogg", "instrument/dark_guitar/dark_guitar_cce.ogg", "instrument/dark_guitar/dark_guitar_ceg.ogg",
+                "instrument/dark_guitar/dark_guitar_d.ogg", "instrument/dark_guitar/dark_guitar_d1c1a.ogg", "instrument/dark_guitar/dark_guitar_d1ge.ogg",
+                "instrument/dark_guitar/dark_guitar_dda.ogg", "instrument/dark_guitar/dark_guitar_e.ogg", "instrument/dark_guitar/dark_guitar_eeg.ogg",
+                "instrument/dark_guitar/dark_guitar_g.ogg", "instrument/dark_guitar/dark_guitar_gec.ogg",
+                "instrument/washboard/washboard_c.ogg", "instrument/washboard/washboard_g.ogg", "instrument/washboard/washboard_d.ogg",
+                "instrument/washboard/washboard_d.ogg", "instrument/washboard/washboard_d.ogg", "instrument/washboard/washboard_d.ogg",
+                "instrument/washboard/washboard_d_d.ogg", "instrument/washboard/washboard_dd.ogg", "instrument/washboard/washboard_d_dd.ogg",
+                "instrument/washboard/washboard_dd_d.ogg", "instrument/washboard/washboard_a.ogg", "instrument/washboard/washboard_e.ogg",
+                "instrument/wildskin_drum/wildskin_drum_c.ogg", "instrument/wildskin_drum/wildskin_drum_d.ogg", "instrument/wildskin_drum/wildskin_drum_e.ogg",
+                "instrument/wildskin_drum/wildskin_drum_f.ogg", "instrument/wildskin_drum/wildskin_drum_g.ogg", "instrument/wildskin_drum/wildskin_drum_a.ogg",
+                "instrument/wildskin_drum/wildskin_drum_b.ogg", "instrument/wildskin_drum/wildskin_drum_c1.ogg",
+                "instrument/kora/kora_c1e1c2.ogg", "instrument/kora/kora_cega.ogg", "instrument/kora/kora_deac1.ogg",
+                "instrument/kora/kora_eg.ogg", "instrument/kora/kora_c1e1g1.ogg", "instrument/kora/kora_ce.ogg",
+                "instrument/kora/kora_e1g1e2c2.ogg", "instrument/kora/kora_cdeg.ogg", "instrument/kora/kora_d1a1d2c2.ogg",
+                "instrument/kora/kora_egad1c1.ogg", "instrument/kora/kora_cec1.ogg", "instrument/kora/kora_dad1c1.ogg",
+                "instrument/kora/kora_ege1c1.ogg",
+                "instrument/banjo/banjo_c1e1d1c1.ogg", "instrument/banjo/banjo_cecgce.ogg", "instrument/banjo/banjo_ceeg.ogg",
+                "instrument/banjo/banjo_ceeg.ogg", "instrument/banjo/banjo_ceeg.ogg", "instrument/banjo/banjo_daece.ogg",
+                "instrument/banjo/banjo_egc1a.ogg", "instrument/banjo/banjo_egc1a.ogg", "instrument/banjo/banjo_egc1a.ogg",
+                "instrument/banjo/banjo_egegc1.ogg", "instrument/banjo/banjo_egegc1.ogg", "instrument/banjo/banjo_egegc1.ogg",
+                "instrument/banjo/banjo_egegc1.ogg", "instrument/banjo/banjo_egga.ogg", "instrument/banjo/banjo_gd1gd1ac1.ogg",
+                "instrument/banjo/banjo_c1e1c1e1d1g1.ogg", "instrument/banjo/banjo_c1e1c1e1d1g1.ogg", "instrument/banjo/banjo_c1e1c1e1d1g1.ogg",
+                "instrument/banjo/banjo_c1d1ae1e1.ogg", "instrument/banjo/banjo_c1d1ae1e1.ogg", "instrument/banjo/banjo_c1d1ae1e1.ogg",
+                "instrument/banjo/banjo_e1a1e1g12c2.ogg", "instrument/banjo/banjo_e1a1e1g12c2.ogg", "instrument/banjo/banjo_e1a1e1g12c2.ogg",
+                "instrument/banjo/banjo_ceceac1ce.ogg", "instrument/banjo/banjo_egegac1eg.ogg", "instrument/banjo/banjo_cecegd1ce.ogg",
+            ],
+            notes: "
+                Kora - Created with soundfont: Just t4 (fixed), by Milton Paredes, MP factory studios & RolandKnight
+                https://musical-artifacts.com/artifacts/650
+            "
+        ),
+        // These files will be categorized with known authors eventually. DO NOT ADD NEW FILES TO THIS ENTRY.
+        (
+            authors: ["Unknown"],
+            files: [
+                "abilities/arrow_shot_1.ogg", "abilities/arrow_shot_2.ogg", "abilities/arrow_shot_3.ogg", "abilities/arrow_shot_4.ogg", 
+                "abilities/bleep.ogg", "abilities/bloodmoon_heiress_summon.ogg", "abilities/cyclops_charge.ogg", "abilities/deep_laugh.ogg",
+                "abilities/fire_shot_1.ogg", "abilities/fire_shot_2.ogg", "abilities/flame_thrower.ogg", "abilities/fuse.ogg",
+                "abilities/gigas_frost_roar.ogg", "abilities/heal_bomb.ogg", "abilities/heal.ogg", "abilities/hiss.ogg",
+                "abilities/ice_crack.ogg", "abilities/klonk.ogg", "abilities/laser_beam.ogg", "abilities/long_hiss.ogg",
+                "abilities/pickaxe_damage_broken.ogg", "abilities/pickaxe_damage_stronk.ogg", "abilities/pickaxe_damage.ogg",
+                "abilities/sceptre_channeling.ogg", "abilities/separated_second_swing.ogg", "abilities/separated_third_swing.ogg",
+                "abilities/shovel.ogg", "abilities/smashklonk.ogg", "abilities/steam.ogg", "abilities/strigoi_head.ogg",
+                "abilities/surprise_egg_0.ogg", "abilities/surprise_egg_1.ogg", "abilities/surprise_egg_2.ogg", "abilities/surprise_egg_3.ogg", 
+                "abilities/swing_sword.ogg", "abilities/swing.ogg", "abilities/swoosh.ogg", "abilities/sword_dash.ogg",
+                "abilities/whoosh.ogg", "abilities/yeet.ogg",
+                "ambient/bees_1.ogg", "ambient/fire.ogg", "ambient/frog_croak_1.ogg", "ambient/lightning_1.ogg",
+                "ambient/owl_1.ogg", "ambient/portal_1.ogg", "ambient/portal_2.ogg",
+                "character/block_1.ogg", "character/block_2.ogg", "character/block_3.ogg",
+                "character/death_1.ogg", "character/death_2.ogg", "character/death_3.ogg",
+                "character/dive_roll_1.ogg", "character/dive_roll_2.ogg",
+                "character/dive_roll_cancel_1.ogg", "character/dive_roll_cancel_2.ogg",
+                "character/glider_close.ogg", "character/glider_open.ogg",
+                "character/level_up_sound_-_shorter_wind_up.ogg", "character/parry_1.ogg", "character/parry_2.ogg",
+                "footsteps/snow_step_1.ogg", "footsteps/snow_step_2.ogg", "footsteps/snow_step_3.ogg",
+                "footsteps/stepdirt_1.ogg", "footsteps/stepdirt_2.ogg", "footsteps/stepdirt_3.ogg", "footsteps/stepdirt_4.ogg", "footsteps/stepdirt_5.ogg", 
+                "footsteps/stepgrass_1.ogg", "footsteps/stepgrass_2.ogg", "footsteps/stepgrass_3.ogg",
+                "footsteps/stepgrass_4.ogg", "footsteps/stepgrass_5.ogg", "footsteps/stepgrass_6.ogg", 
+                "footsteps/stone_step_1.ogg", "footsteps/stone_step_2.ogg", "footsteps/stone_step_3.ogg", "footsteps/stone_step_4.ogg", 
+                "footsteps/stone_step_5.ogg", "footsteps/stone_step_6.ogg", "footsteps/stone_step_7.ogg", "footsteps/stone_step_8.ogg", 
+                "footsteps/stone_step_9.ogg", "footsteps/stone_step_10.ogg", "footsteps/stone_step_11.ogg", "footsteps/stone_step_12.ogg",
+                "footsteps/water_splash_1.ogg", "footsteps/water_splash_2.ogg", "footsteps/water_splash_3.ogg", "footsteps/water_splash_4.ogg", 
+                "footsteps/wood_step_1.ogg", "footsteps/wood_step_2.ogg", "footsteps/wood_step_3.ogg", "footsteps/wood_step_4.ogg",
+                "inventory/consumable/apple.ogg", "inventory/consumable/food.ogg", "inventory/consumable/liquid.ogg",
+                "inventory/add_failed.ogg", "inventory/add_item.ogg", "inventory/collect_gemstone.ogg", "inventory/drop_item.ogg",
+                "inventory/open_inventory.ogg", "inventory/pickup_staff.ogg", "inventory/pickup_sword.ogg",
+                "utterance/adlet_angry1.ogg", "utterance/adlet_angry2.ogg", "utterance/adlet_hurt1.ogg", "utterance/adlet_hurt2.ogg",
+                "utterance/alligator_angry1.ogg", "utterance/alligator_angry2.ogg", 
+                "utterance/antelope_angry1.ogg", "utterance/antelope_hurt1.ogg",
+                "utterance/bird_angry1.ogg",
+                "utterance/cat_calm1.ogg", "utterance/cat_calm2.ogg",
+                "utterance/cow_calm1.ogg", "utterance/cow_calm2.ogg", "utterance/cow_calm3.ogg",
+                "utterance/dagon_hurt1.ogg", "utterance/dagon_hurt2.ogg",
+                "utterance/fungome_calm1.ogg", "utterance/goat_calm1.ogg", "utterance/humanmale_hurt1.ogg", "utterance/lion_hurt1.ogg",
+                "utterance/mandragora_hurt1.ogg", "utterance/maneater_hurt1.ogg", "utterance/marlin_hurt1.ogg", "utterance/mindflayer_hurt1.ogg",
+                "utterance/ogre_angry1.ogg", "utterance/ogre_angry2.ogg", "utterance/ogre_hurt1.ogg",
+                "utterance/phoenix_angry_0.ogg", "utterance/phoenix_angry_1.ogg", "utterance/phoenix_hurt_0.ogg", "utterance/phoenix_hurt_1.ogg",
+                "utterance/pig_angry1.ogg", "utterance/pig_angry2.ogg", "utterance/pig_calm1.ogg", "utterance/pig_calm2.ogg", "utterance/pig_calm3.ogg", 
+                "utterance/saurok_angry1.ogg", "utterance/sea_crocodile_angry1.ogg", "utterance/sea_crocodile_angry2.ogg",
+                "utterance/sheep_calm1.ogg", "utterance/vampire_bat_angry.ogg", "utterance/vampire_bat_hurt.ogg",
+                "utterance/wyvern_angry.ogg", "utterance/wyvern_hurt.ogg",
+                "weapon/shield_out.ogg", "weapon/staff_in.ogg", "weapon/staff_out.ogg", "weapon/sword_in.ogg",
+                "weapon/sword_out.ogg", "weapon/weapon_in.ogg", "weapon/weapon_out.ogg",
+                "instrument/icy_talharpa/icy_talharpa_c.ogg", "instrument/icy_talharpa/icy_talharpa_g.ogg", "instrument/icy_talharpa/icy_talharpa_d.ogg",
+                "instrument/icy_talharpa/icy_talharpa_a.ogg", "instrument/icy_talharpa/icy_talharpa_e.ogg", "instrument/icy_talharpa/icy_talharpa_c1.ogg",
+                "instrument/icy_talharpa/icy_talharpa_c1ag.ogg", "instrument/icy_talharpa/icy_talharpa_cde.ogg", "instrument/icy_talharpa/icy_talharpa_d1c1a.ogg",
+                "instrument/icy_talharpa/icy_talharpa_d1g.ogg", "instrument/icy_talharpa/icy_talharpa_ec1.ogg", "instrument/icy_talharpa/icy_talharpa_ega.ogg",
+                "instrument/rhythmo/rhythmo.ogg",
+                "instrument/timbrel_of_chaos/timbrel_of_chaos_0.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_1.ogg", 
+                "instrument/timbrel_of_chaos/timbrel_of_chaos_2.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_3.ogg", 
+            ],
+            notes: "These files will be categorized with known authors eventually. DO NOT ADD NEW FILES TO THIS ENTRY.",
+        )
+    ],
+    
+    fonts: [
+        (
+            name: "Alkhemikal",
+            source_link: "https://fontenddev.com/fonts/alkhemikal/",
+            authors: ["jeti"],
+            asset_path: "voxygen/font/Alkhemikal.ttf",
+            license: "CC BY 4.0",
+            license_link: "https://creativecommons.org/licenses/by/4.0/",
+        ), (
+            name: "bdfUMplus outline",
+            authors: ["hikaen2"],
+            asset_path: "voxygen/font/bdfUMplus-outline.ttf",
+            // License text file included alongside font which should satisfy the requirements.
+            license: "MIT",
+        ), (
+            name: "HaxrCorp 4089 Cyrillic AltGr",
+            source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
+            authors: ["sahwar"],
+            asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr.ttf",
+            license: "CC BY-SA 3.0",
+            license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+        ), (
+            name: "HaxrCorp 4089 Cyrillic AltGr Extended",
+            // original
+            source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
+            authors: ["sahwar (original)"],
+            asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr_extended.ttf",
+            license: "CC BY-SA 3.0",
+            license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+            modifications: "Added additional characters.",
+            notes: "Derived from HaxrCorp 4089 Cyrillic AltGr",
+        ), (
+            name: "Metamorphous",
+            authors: ["Sorkin Type Co"],
+            asset_path: "voxygen/font/Metamorphous-Regular.ttf",
+            // License appears to be satisfied by inclusion of its text file.
+            license: "OFL",
+            license_link: "https://scripts.sil.org/OFL",
+        ), (
+            name: "Open Sans",
+            authors: [""],
+            asset_path: "voxygen/font/OpenSans-Regular.ttf",
+            // License appears to be satisfied by inclusion of its text file.
+            license: "Apache 2.0",
+            license_link: "http://www.apache.org/licenses/LICENSE-2.0",
+        ), (
+            name: "WenQuanYi Zen Hei",
+            source_link: "http://wenq.org/wqy2/index.cgi?ZenHei%28en%29",
+            authors: ["Qianqian Fang", "WenQuanYi project"],
+            asset_path: "voxygen/font/WenQuanYiZenHei.ttf",
+            license: "GPL2",
+            license_link: "http://wenq.org/wqy2/index.cgi?GPL",
+        ), (
+            name: "Wizard",
+            source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
+            authors: ["Omegaville"],
+            asset_path: "voxygen/font/wizard.ttf",
+            license: "CC BY-SA 3.0",
+            license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+        ), (
+            name: "Wizard Extended",
+            // original
+            source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
+            authors: ["Omegaville (original)"],
+            asset_path: "voxygen/font/wizard_extended.ttf",
+            license: "CC BY-SA 3.0",
+            license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+            modifications: "Added additional characters.",
+            notes: "Derived from Wizard",
+        ), (
+            name: "Sarabun",
+            authors: ["Suppakit Chalermlarp"],
+            asset_path: "voxygen/font/Sarabun-Regular.ttf",
+            // License appears to be satisfied by inclusion of its text file.
+            license: "OFL",
+            license_link: "https://scripts.sil.org/OFL",
+        ), (
+            name: "GoNotoCurrent",
+            authors: ["The Noto Project Authors"],
+            asset_path: "voxygen/font/GoNotoCurrent.ttf",
+            // License appears to be satisfied by inclusion of its text file.
+            license: "OFL",
+            license_link: "https://scripts.sil.org/OFL",
+        ), (
+            name: "EnterCommand",
+            authors: ["Font End Dev"],
+            asset_path: "voxygen/font/EnterCommand.ttf",
+            license: "CC BY 4.0",
+            license_link: "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
+        ),
+    ],
+    
+    models: [
+        (
+            name: "Vroom",
+            authors: ["horblegorble"],
+            asset_path: "voxygen/voxel/glider/vroom.vox",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: "exceptions (to the extent to which the license is prohibitive):
+            - appearances in images and videos (including streams) of veloren gameplay or model viewing/editing software
+            - official releases of veloren on platforms that have relevant restrictions"
+        ),  (
+            name: "mineral ingots",
+            authors : ["Supa"],
+            asset_path: "assets/voxygen/voxel/sprite/mineral/ingot",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: "A raplacement of a total of 10 ingot sprites by supa including:
+            bloodsteel, bronze, cobalt, copper, gold, iron, orichalcum, silver, steel, tin"
+        ),  (
+            name: "wood log",
+            authors : ["Supa"],
+            asset_path: "assets/voxygen/voxel/sprite/wood/log/wood.vox",
+            license: "CC-BY-NC-SA 4.0",
+            license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+            notes: "Wood log recolouring"
+        ),
+    ],
+    
     other_art: [],
+    
     /// Entry format:
     /// ```
     /// (
@@ -286,33 +618,37 @@
     ///     contributions: "Note about what contributor contributed", // optional, field can be omitted
     /// )
     /// ```
-    contributors: [(
-        name: "zesterer",
-    ), (
-        name: "XVar",
-    ), (
-        name: "xMAC94",
-    ), (
-        name: "Timo",
-    ), (
-        name: "Songtronix",
-    ), (
-        name: "Snowram",
-    ), (
-        name: "Slipped",
-    ), (
-        name: "Sharp",
-    ), (
-        name: "Sam",
-    ), (
-        name: "Pfau",
-    ), (
-        name: "imbris",
-    ), (
-        name: "Christof",
-    ),(
-        name: "GeekyGami",
-    ), (
-        name: "AngelOnFira",
-    )],
+    contributors: [
+        (
+            name: "zesterer",
+        ), (
+            name: "XVar",
+        ), (
+            name: "xMAC94",
+        ), (
+            name: "Timo",
+        ), (
+            name: "Songtronix",
+        ), (
+            name: "Snowram",
+        ), (
+            name: "Slipped",
+        ), (
+            name: "Sharp",
+        ), (
+            name: "Sam",
+        ), (
+            name: "Pfau",
+        ), (
+            name: "imbris",
+        ), (
+            name: "Christof",
+        ),(
+            name: "GeekyGami",
+        ), (
+            name: "AngelOnFira",
+        ), (
+            name: "DaforLynx",
+        ),
+    ],
 )

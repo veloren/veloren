@@ -804,7 +804,7 @@ impl SfxMgr {
                         } else {
                             SfxEvent::BreakBlock
                         });
-                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(3.0));
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(1.2));
             },
             Outcome::DamagedBlock {
                 pos,
@@ -820,11 +820,7 @@ impl SfxMgr {
                     (_, _) => SfxEvent::BreakBlock,
                 });
 
-                audio.emit_sfx(
-                    sfx_trigger_item,
-                    pos.map(|e| e as f32 + 0.5),
-                    Some(if *stage_changed { 3.0 } else { 2.0 }),
-                );
+                audio.emit_sfx(sfx_trigger_item, pos.map(|e| e as f32 + 0.5), Some(1.0));
             },
             Outcome::HealthChange { pos, info, .. } => {
                 // Ignore positive damage (healing) and buffs for now
@@ -979,8 +975,63 @@ impl SfxMgr {
 
 #[cfg(test)]
 mod tests {
+    use crate::credits::Credits;
+
     use super::*;
+    use chumsky::container::Seq;
+    use common::assets::{self, AssetExt, Ron};
+    use std::{fs, path::PathBuf};
 
     #[test]
     fn test_load_sfx_triggers() { let _ = SfxTriggers::load_expect("voxygen.audio.sfx"); }
+
+    #[test]
+    fn new_sfx_credited() {
+        let sfx_path = assets::ASSETS_PATH.join(std::path::PathBuf::from("voxygen/audio/sfx/"));
+        sfx_path.try_exists().unwrap_or_else(|_| {
+            panic!(
+                "{}/voxygen/audio/sfx does not exist",
+                assets::ASSETS_PATH.display()
+            )
+        });
+        let mut files = Vec::new();
+        list_files(sfx_path.clone(), &mut files);
+
+        let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
+        let mut sounds = Vec::new();
+        for credit in &credits.sounds {
+            sounds.append(
+                &mut credit
+                    .files
+                    .iter()
+                    .map(|f| sfx_path.clone().join(f))
+                    .collect::<Vec<PathBuf>>(),
+            )
+        }
+        for file in files.iter() {
+            if !sounds.contains(file) {
+                panic!(
+                    "{} was not found in credits. Credit the authors of the sound in \
+                     assets/credits.ron!",
+                    file.display(),
+                );
+            }
+        }
+    }
+
+    fn list_files(path: PathBuf, buffer: &mut Vec<PathBuf>) {
+        for dir in fs::read_dir(path).expect("Could not read directory") {
+            if dir
+                .as_ref()
+                .expect("Could not read file entry")
+                .file_type()
+                .expect("Could not read filetype")
+                .is_dir()
+            {
+                list_files(dir.unwrap().path(), buffer);
+            } else {
+                buffer.push(dir.as_ref().unwrap().path());
+            }
+        }
+    }
 }
