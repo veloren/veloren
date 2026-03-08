@@ -52,6 +52,22 @@ impl Screen {
 
             Ok::<_, core::fmt::Error>(text)
         };
+        let format_sounds_credit =
+            |credit: &crate::credits::Sounds| -> Result<String, core::fmt::Error> {
+                let mut text = String::new();
+                let mut authors = credit.authors.iter();
+
+                if let Some(author) = authors.next() {
+                    write!(&mut text, "{}", author)?;
+                }
+                authors.try_for_each(|author| write!(&mut text, ", {}", author))?;
+
+                if !credit.license.is_empty() {
+                    write!(&mut text, " ({})", &credit.license)?;
+                }
+
+                Ok::<_, core::fmt::Error>(text)
+            };
         let format_contributor_credit =
             |credit: &crate::credits::Contributor| -> Result<String, core::fmt::Error> {
                 let mut text = String::new();
@@ -116,6 +132,17 @@ impl Screen {
             )
         };
 
+        let sounds_section = |header_i18n_key, header_color, art: &[_]| {
+            credit_section(
+                header_i18n_key,
+                header_color,
+                art.iter(),
+                format_sounds_credit,
+                fonts,
+                i18n,
+            )
+        };
+
         Container::new(
             Container::new(
                 Column::with_children(vec![
@@ -131,6 +158,11 @@ impl Screen {
                             "main-credits-music",
                             music_header_color,
                             &credits.music,
+                        ))
+                        .push(sounds_section(
+                            "main-credits-sound",
+                            music_header_color,
+                            &credits.sounds,
                         ))
                         .push(art_section(
                             "main-credits-fonts",
