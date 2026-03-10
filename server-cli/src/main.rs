@@ -74,14 +74,14 @@ fn main() -> io::Result<()> {
     // Load settings
     let settings = settings::Settings::load().ok_or(io::ErrorKind::Other)?;
 
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[cfg(not(target_os = "windows"))]
     {
         for signal in &settings.shutdown_signals {
             let _ = signal_hook::flag::register(signal.to_signal(), Arc::clone(&shutdown_signal));
         }
     }
 
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    #[cfg(target_os = "windows")]
     if !settings.shutdown_signals.is_empty() {
         tracing::warn!(
             "Server configuration contains shutdown signals, but your platform does not support \

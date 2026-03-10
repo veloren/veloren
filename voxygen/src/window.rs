@@ -250,7 +250,7 @@ impl Window {
             ))
             .with_maximized(window.maximised);
 
-        #[cfg(target_os = "linux")]
+        #[cfg(not(any(target_os = "windows", target_os = "macos")))]
         {
             use winit::platform::wayland::WindowAttributesExtWayland;
             attributes = attributes.with_name("net.veloren.veloren", "veloren");
