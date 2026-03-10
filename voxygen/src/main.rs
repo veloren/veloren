@@ -47,7 +47,7 @@ fn main() {
             cli::Commands::ListWgpuBackends => {
                 #[cfg(target_os = "windows")]
                 let backends = &["opengl", "dx12", "vulkan"];
-                #[cfg(target_os = "linux")]
+                #[cfg(not(any(target_os = "windows", target_os = "macos")))]
                 let backends = &["opengl", "vulkan"];
                 #[cfg(target_os = "macos")]
                 let backends = &["metal"];

@@ -15,7 +15,7 @@ pub enum ShutdownSignal {
 }
 
 impl ShutdownSignal {
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[cfg(not(target_os = "windows"))]
     pub fn to_signal(self) -> core::ffi::c_int {
         match self {
             Self::SIGUSR1 => signal_hook::consts::SIGUSR1,
@@ -48,7 +48,7 @@ impl Default for Settings {
             web_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             web_chat_secret: None,
             ui_api_secret: None,
-            shutdown_signals: if cfg!(any(target_os = "linux", target_os = "macos")) {
+            shutdown_signals: if cfg!(not(target_os = "windows")) {
                 vec![ShutdownSignal::SIGUSR1]
             } else {
                 Vec::new()
