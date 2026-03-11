@@ -42,3 +42,4 @@ noun-role-hunter = en jägare
 noun-role-merchant = en handelsman
 noun-role-blacksmith = en smed
 noun-role-alchemist = en alkemist
+noun-role-chef = en kock

@@ -35,7 +35,7 @@ hud-free_look_indicator =
        *[other] 自由视角已激活。松开 { $key } 键关闭。
     }
 hud-camera_clamp_indicator = 启用锁定视角. 按下 { $key } 禁用.
-hud-auto_walk_indicator = 启用自动 行走/滑翔
+hud-auto_walk_indicator = 开关自动奔跑/滑翔
 hud-zoom_lock_indicator-remind = 缩放锁定
 hud-zoom_lock_indicator-enable = 摄像头缩放锁定
 hud-zoom_lock_indicator-disable = 摄像头缩放解锁

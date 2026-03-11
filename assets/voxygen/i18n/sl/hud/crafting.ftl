@@ -12,8 +12,45 @@ hud-crafting-tabs-glider = Jadralni zmaji
 hud-crafting-tabs-potion = Napoji
 hud-crafting-tabs-tool = Orodja
 hud-crafting-tabs-weapon = Orožja
-hud-crafting-tabs-bag = Vreče
+hud-crafting-tabs-bag = Torbe
 hud-crafting-tabs-processed_material = Materiali
 hud-crafting-dismantle_title = Razstavljanje
 hud-crafting-mod_comp_wood_prim_slot_title = Les
 hud-crafting-recipes = Recepti
+hud-crafting-ingredients = Sestavine:
+hud-crafting-craft = Sestavi
+hud-crafting-craft_all = Sestavi vse
+hud-crafting-repair-selection = Izbira
+hud-crafting-repair_equipped = Pripravljeno
+hud-crafting-repair_all = Vse
+hud-crafting-tool_cata = Orodja:
+hud-crafting-req_crafting_station = Postaja:
+hud-crafting-cooking_pot = Lonec
+hud-crafting-crafting_bench = Obrtniški pult
+hud-crafting-spinning_wheel = Kolovrat
+hud-crafting-tanning_rack = Stojalo za strojenje
+hud-crafting-salvaging_station = Miza za pretapljanje
+hud-crafting-repair_bench = Popravljalnica
+hud-crafting-tabs-utility = Uporabno
+hud-crafting-dismantle_explanation =
+    Z miško pokaži na predmete v torbi,
+    da vidiš, kaj lahko pretopiš.
+
+    Z dvoklikom pričneš postopek.
+hud-crafting-modular_desc = Sem povleci dele, da skuješ orožje
+hud-crafting-repair_desc = Sem povleci poškodovane predmete, da jih popraviš
+hud-crafting-mod_weap_prim_slot_title = Primarni sestavni del orožja
+hud-crafting-mod_weap_prim_slot_desc = Sem položi primarni sestavni del orožja (npr. rezilo meča, glavo sekire ali krake loka).
+hud-crafting-mod_weap_sec_slot_title = Sekundarni sestavni del orožja
+hud-crafting-mod_weap_sec_slot_desc = Sem položi sekundarni sestavni del orožja (npr. ročaj meča, držalo loka ali palice).
+hud-crafting-mod_comp_metal_prim_slot_title = Kovinski ingot
+hud-crafting-mod_comp_metal_prim_slot_desc = Sem položi kovinski ingot. Za izdelavo orožij lahko uporabiš le določene kovine.
+hud-crafting-mod_comp_wood_prim_slot_desc = Sem položi les. Samo določene vrste lesa lahko uporabiš za orožje.
+hud-crafting-mod_comp_sec_slot_title = Živalski material
+hud-crafting-mod_comp_sec_slot_desc = Če želiš, lahko sem položiš sestavino živalskega izvora. Le določene sestavine lahko uporabiš za izboljšanje orožij.
+hud-crafting-repair_slot_title = Poškodovani predmet
+hud-crafting-repair_slot_desc = Predmet položi sem, da vidiš, kakšna bo cena njegovega popravila pri trenutni stopnji trpežnosti.
+hud-crafting-recipe-uncraftable = Izdelava po tem receptu ni mogoča
+hud-crafting-recipe-unlearned = Najprej se moraš naučiti tega recepta.
+hud-crafting-show_unknown_recipes = Pokaži neznane recepte
+hud-crafting-hide_unknown_recipes = Skrij neznane recepte

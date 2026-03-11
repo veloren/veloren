@@ -62,7 +62,7 @@ sprite-crafting_ing-bowl = Skål
     .desc = En enkel skål till att förbereda måltider.
 sprite-crafting_ing-cotton_boll = Bomullsboll
     .desc = Plockad från en vanlig bomullsväxt.
-sprite-mineral-ore-coal = Kål
+sprite-mineral-ore-coal = Kol
     .desc = En mörk, förbränningsbar energikälla.
 sprite-mineral-ingot-cobalt = Kobolttacka
     .desc =
@@ -105,7 +105,7 @@ sprite-mineral-ingot-bloodsteel = Blodståltacka
         Kan användas när man tillverkar metallvapen.
 sprite-mineral-ingot-steel = Ståltacka
     .desc =
-        En legering av järn och kål som är mycket tuffare än dess komponenter.
+        En legering av järn och kol som är mycket tuffare än dess komponenter.
 
         Kan användas när man tillverkar metallvapen.
 sprite-wood-item-hardwood = Hårdträstockar

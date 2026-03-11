@@ -10,3 +10,7 @@ hud-group-link_group = Poveži skupine
 hud-group-in_menu = V meniju
 hud-group-members = Člani skupine
 hud-group-invite-timed_out = Skupinsko vabilo v { $target } je poteklo.
+hud-group-invite_to_join = { "[" }{ $name }] te je povabil_a v svojo skupino!
+hud-group-invite_to_trade = { "[" }{ $name }] želi skleniti kupčijo s tabo.
+hud-group-invite-accepted = { $target } je sprejel_a tvoje povabilo v skupino.
+hud-group-invite-declined = { $target } je odklonil_a tvoje povabilo v skupino.

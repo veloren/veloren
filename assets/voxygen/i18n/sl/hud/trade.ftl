@@ -30,3 +30,17 @@ hud-trade-tooltip_hint_2 = <Za samodejno poravnavo cene s tem pritisni Ctrl in k
 hud-trade-your_offer = Tvoja ponudba
 hud-trade-amount_input = Izberi predmet
 hud-confirm-trade-for-nothing = Ali res želiš podariti te predmete brez povračila?
+hud-trade-persons_offer = Ponudba od { $playername }
+hud-trade-has_accepted =
+    { $playername } 
+    je sprejel_a
+hud-trade-invite_sent = Prošnja za izmenjavo je bila poslana { $playername }.
+hud-trade-invite-accepted = { $target } je sprejel_a tvojo prošnjo za izmenjavo.
+hud-trade-invite-declined = { $target } je zavrnil_a tvojo prošnjo za izmenjavo.
+hud-trade-invite-timed_out = Prošnji za izmenjavo z { $target } je potekel rok.
+hud-trade-their_offer = Njegova/njena ponudba
+hud-trade-player_who =
+    { $player_gender ->
+        [she] Igralka { $player_who }
+       *[he] Igralec { $player_who }
+    }
