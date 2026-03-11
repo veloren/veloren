@@ -117,7 +117,12 @@ hud-chat-npc_other_kill_msg = { "[" }{ $attacker }] a tué [{ $victim }]
 
 ## Other deaths
 
-hud-chat-fall_kill_msg = { "[" }{ $name }] est mort de dégâts de chute
+hud-chat-fall_kill_msg =
+    { $victim_gender ->
+        [she] { "[" }{ $name }] est morte de dégâts de chute
+        [he] { "[" }{ $name }] est mort de dégâts de chute
+       *[other] { "[" }{ $name }] a fait une chute mortelle
+    }
 hud-chat-suicide_msg = { "[" }{ $name }] est mort des suites de ses propres blessures
 hud-chat-default_death_msg = { "[" }{ $name }] est mort
 

@@ -293,7 +293,7 @@ command-site-not-found = Le Site n'a pas été trouvé
 command-time_scale-current = L'échelle de temps actuelle est { $scale }.
 command-time_scale-changed = Échelle de temps définie à { $scale }.
 command-version-current = Le serveur est en version { $version }
-command-outcome-variant_expected = Variable de résultat attendue
+command-outcome-variant_expected = Variable de résultat attendue mais non fournie
 command-outcome-expected_entity_arg = Argument entité attendu mais non renseigné
 command-outcome-expected_integer = Nombre entier attendu
 command-outcome-invalid_outcome = { $outcome } n'est pas un résultat valide
@@ -305,3 +305,18 @@ command-waypoint-error = Votre Repère n'a pas pu être trouvé.
 command-unimplemented-spawn-special = Créer des entités spéciales n'est pas implémenté
 command-inventory-cant-fit-item = Impossible de placer l'objet dans l'inventaire
 command-spot-desc = Trouve et téléporte à un lieu d'un type spécifié le plus proche.
+command-time_scale-desc = Modifier la vitesse d'exécution de la boucle de jeu
+command-preprocess-target-error = { $expected_list } attendu après '@', { $target } trouvé à la place
+command-give-inventory-full =
+    Inventaire du joueur plein. { $given ->
+        [1] Un seul objet envoyé
+       *[other] { $given } objets envoyés
+    } sur un total de { $total }.
+command-buff-body-unknown = Spécification de corps inconnue : { $spec }
+command-unmute-desc = Retire la mise en sourdine d'un joueur ayant été mis en sourdine avec la commande "mute".
+command-preprocess-not-valid-viewpoint-entity = Ne regarde actuellement pas depuis une entité observatrice valide
+command-spawned-entities-config = Apparition de { $n } entités depuis la configuration suivante : { $config }
+command-spawned-entity = Apparition d'une entité avec l'ID : { $id }
+command-aura-invalid-buff-parameters = Paramètres d'effet invalides pour cette aura
+command-outcome-expected_body_arg = Argument attendu mais non fourni pour le corps
+command-aura-spawn = Apparition d'une nouvelle aura attachée à l'entité

@@ -28,9 +28,24 @@ hud-chat-npc_ranged_kill_msg = { $attacker } je ustrelil_a [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } je razstrelil_a [{ $victim }]
 hud-chat-npc_energy_kill_msg = { $attacker } je ubil_a [{ $victim }] s čarovnijo
 hud-chat-npc_other_kill_msg = { $attacker } je ubil_a [{ $victim }]
-hud-chat-fall_kill_msg = { "[" }{ $name }] died from fall damage
-hud-chat-suicide_msg = { "[" }{ $name }] died from self-inflicted wounds
-hud-chat-default_death_msg = { "[" }{ $name }] died
+hud-chat-fall_kill_msg =
+    { $victim_gender ->
+        [she] { "[" }{ $name }] je padla do smrti
+        [he] { "[" }{ $name }] je padel do smrti
+       *[other] { "[" }{ $name }] je padlo do smrti
+    }
+hud-chat-suicide_msg =
+    { $victim_gender ->
+        [she] { "[" }{ $name }] je podlegla samopoškodbi
+        [he] { "[" }{ $name }] je podlegel samopoškodbi
+       *[other] { "[" }{ $name }] je podleglo samopoškodbi
+    }
+hud-chat-default_death_msg =
+    { $victim_gender ->
+        [she] { "[" }{ $name }] je umrla
+        [he] { "[" }{ $name }] je umrl
+       *[other] { "[" }{ $name }] je umrlo
+    }
 hud-chat-all = Vse
 hud-chat-chat_tab_hover_tooltip = Desni klik za nastavitve
 hud-loot-pickup-msg-you =
@@ -53,3 +68,139 @@ hud-loot-pickup-msg =
     }
 hud-chat-singleplayer-motd1 = Ves svet imaš samo zase! Pretegni si noge ...
 hud-chat-singleplayer-motd2 = Mir in tišina ...
+hud-chat-died_of_pvp_buff_msg =
+    .burning =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla: [{ $attacker }] jo je
+           *[he] { "[" }{ $victim }] je umrl: [{ $attacker }] ga je
+        } { $attacker_gender ->
+            [she] zažgala.
+           *[he] zažgal.
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je izkrvavela.
+           *[he] { "[" }{ $victim }] je izkrvavel.
+        } { $attacker_gender ->
+            [she] Kriva je [{ $attacker }].
+           *[he] Kriv je [{ $attacker }].
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je podlegla prekletstvu,
+           *[he] { "[" }{ $victim }] je podlegel prekletstvu,
+        } { $attacker_gender ->
+            [she] ki ga je povzročila [{ $attacker }].
+           *[he] ki ga je povzročil [{ $attacker }].
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla zaradi hudih poškodb,
+           *[he] { "[" }{ $victim }] je umrl zaradi hudih poškodb,
+        } { $attacker_gender ->
+            [she] ki jih je povzročila [{ $attacker }].
+           *[he] ki jih je povzročil [{ $attacker }].
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je zmrznila do smrti,
+           *[he] { "[" }{ $victim }] je zmrznil do smrti,
+        } { $attacker_gender ->
+            [she] kriva je [{ $attacker }].
+           *[he] kriv je [{ $attacker }].
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla skrivnostne smrti,
+           *[he] { "[" }{ $victim }] je umrl skrivnostne smrti,
+        } { $attacker_gender ->
+            [she] ki jo je povzročila [{ $attacker }].
+           *[he] ki jo je povzročil [{ $attacker }].
+        }
+hud-chat-died_of_npc_buff_msg =
+    .burning =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je zgorela, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je zgorel, kriv_a je { $attacker }.
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je izkrvavela, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je izkrvavel, kriv_a je { $attacker }.
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je podlegla prekletstvu, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je podlegel prekletstvu, kriv_a je { $attacker }.
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla zaradi hudih poškodb, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je umrl zaradi hudih poškodb, kriv_a je { $attacker }.
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je zmrznila, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je zmrznil, kriv_a je { $attacker }.
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla skrivnostne smrti, kriv_a je  { $attacker }.
+           *[he] { "[" }{ $victim }] je umrl skrivnostne smrti, kriv_a je { $attacker }.
+        }
+hud-chat-died_of_buff_nonexistent_msg =
+    .burning =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je zgorela
+           *[he] { "[" }{ $victim }] je zgorel
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je izkrvavela
+           *[he] { "[" }{ $victim }] je izkrvavel
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je podlegla prekletstvu
+           *[he] { "[" }{ $victim }] je podlegel prekletstvu
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla od hudih poškodb
+           *[he] { "[" }{ $victim }] je umrl od hudih poškodb
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je zmrznila
+           *[he] { "[" }{ $victim }] je zmrznil
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] je umrla skrivnostne smrti
+           *[he] { "[" }{ $victim }] je umrl skrivnostne smrti
+        }
+hud-chat-pvp_melee_kill_msg =
+    { $attacker_gender ->
+        [she] { "[" }{ $attacker }] je porazila [{ $victim }]
+       *[he] { "[" }{ $attacker }] je porazil [{ $victim }]
+    }
+hud-chat-pvp_ranged_kill_msg =
+    { $attacker_gender ->
+        [she] { "[" }{ $attacker }] je ustrelila [{ $victim }]
+       *[he] { "[" }{ $attacker }] je ustrelil [{ $victim }]
+    }
+hud-chat-pvp_explosion_kill_msg =
+    { $attacker_gender ->
+        [she] { "[" }{ $attacker }] je razstrelila [{ $victim }]
+       *[he] { "[" }{ $attacker }] je ustrelil [{ $victim }]
+    }
+hud-chat-pvp_energy_kill_msg =
+    { $attacker_gender ->
+        [she] { "[" }{ $attacker }] je ubila [{ $victim }] s čarovnijo
+       *[he] { "[" }{ $attacker }] je ubil [{ $victim }] s čarovnijo
+    }
+hud-chat-pvp_other_kill_msg =
+    { $attacker_gender ->
+        [she] { "[" }{ $attacker }] je ubila [{ $victim }]
+       *[he] { "[" }{ $attacker }] je ubil [{ $victim }]
+    }
