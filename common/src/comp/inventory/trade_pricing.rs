@@ -592,7 +592,7 @@ impl TradePricing {
     // increase price a bit compared to sum of ingredients
     const INVEST_FACTOR: f32 = 0.33;
 
-    fn good_from_item(name: &ItemDefinitionIdOwned) -> Good {
+    pub fn good_from_item(name: &ItemDefinitionIdOwned) -> Good {
         match name {
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.armor.") => {
                 Good::Armor
@@ -609,7 +609,6 @@ impl TradePricing {
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.tool.") => {
                 Good::Tools
             },
-
             ItemDefinitionIdOwned::Simple(name)
                 if name.starts_with("common.items.crafting_ing.") =>
             {
@@ -661,7 +660,7 @@ impl TradePricing {
             ItemDefinitionIdOwned::Compound {
                 simple_base: _,
                 components: _,
-            } => Good::Ingredients,
+            } => Good::Tools,
             _ => {
                 warn!("unknown loot item {:?}", name);
                 Good::default()
@@ -955,7 +954,12 @@ impl TradePricing {
         selling: bool,
         always_coin: bool,
         limit: u32,
+        mut permitted: impl FnMut(Good) -> bool,
     ) -> Vec<(ItemDefinitionIdOwned, u32)> {
+        // 1. Pre-filter from all possible items to keep ones we want.
+        // * Sellable
+        // * Fit under good limit (would probably always be true here)
+        // * Permitted by good disriminant
         let mut candidates: Vec<&PriceEntry> = self
             .items
             .0
@@ -965,13 +969,16 @@ impl TradePricing {
                     .price
                     .iter()
                     .find(|j| j.0 >= stockmap.get(&j.1).cloned().unwrap_or_default());
-                excess.is_none()
+                permitted(TradePricing::good_from_item(&i.name))
+                    && excess.is_none()
                     && (!selling || i.sell)
                     && (!always_coin
                         || i.name != ItemDefinitionIdOwned::Simple(Self::COIN_ITEM.into()))
             })
             .collect();
+        // 2. Start putting items
         let mut result = Vec::new();
+        // 3. Put the coin stack
         if always_coin && number > 0 {
             let amount = stockmap.get(&Good::Coin).copied().unwrap_or_default() as u32;
             if amount > 0 {
@@ -982,6 +989,11 @@ impl TradePricing {
                 number -= 1;
             }
         }
+        // 4. At each step, roll an item (and its amount), then discard
+        // corresponding ingredients that the item is made of
+        //
+        // If all we have no more resources (in at least one category),
+        // break out of the loop and return.
         for _ in 0..number {
             candidates.retain(|i| {
                 let excess = i
@@ -1032,8 +1044,9 @@ impl TradePricing {
         selling: bool,
         always_coin: bool,
         limit: u32,
+        permitted: impl FnMut(Good) -> bool,
     ) -> Vec<(ItemDefinitionIdOwned, u32)> {
-        TRADE_PRICING.random_items_impl(stock, number, selling, always_coin, limit)
+        TRADE_PRICING.random_items_impl(stock, number, selling, always_coin, limit, permitted)
     }
 
     #[must_use]
@@ -1186,7 +1199,7 @@ mod tests {
         .copied()
         .collect();
 
-        let loadout = TradePricing::random_items(&mut stock, 20, false, false, 999);
+        let loadout = TradePricing::random_items(&mut stock, 20, false, false, 999, |_| true);
         for i in loadout.iter() {
             info!("Random item {:?}*{}", i.0, i.1);
         }

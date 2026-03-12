@@ -4,7 +4,9 @@ use common::{
     LoadoutBuilder,
     calendar::Calendar,
     comp::{
-        self, Body, Item, Presence, PresenceKind, inventory::trade_pricing::TradePricing,
+        self, Body, Item, Presence, PresenceKind,
+        inventory::trade_pricing::TradePricing,
+        item::{ItemDefinitionIdOwned, Quality},
         slot::ArmorSlot,
     },
     event::{CreateNpcEvent, CreateShipEvent, DeleteEvent, EventBus, NpcBuilder},
@@ -38,7 +40,8 @@ use tracing::error;
 pub fn trader_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&SiteInformation>,
-    mut permitted: impl FnMut(Good) -> bool,
+    permitted: impl FnMut(Good) -> bool,
+    mut permitted_quality: impl FnMut(Quality) -> bool,
     coin_range: Range<f32>,
 ) -> LoadoutBuilder {
     let rng = &mut rand::rng();
@@ -49,37 +52,52 @@ pub fn trader_loadout(
     let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
     let slots = backpack.slots().len() + 4 * bag1.slots().len();
     let mut stockmap: hashbrown::HashMap<Good, f32> = economy
-        .map(|e| {
-            e.unconsumed_stock
-                .clone()
-                .into_iter()
-                .filter(|(good, _)| permitted(*good))
-                .collect()
-        })
+        .map(|e| e.unconsumed_stock.clone().into_iter().collect())
         .unwrap_or_default();
     // modify stock for better gameplay
+    stockmap
+        .entry(Good::Ingredients)
+        .and_modify(|e| {
+            *e = e.max(10_000.0);
+            *e *= 100_000.0;
+            *e = e.min(2_000_000.0);
+        })
+        .or_insert(1_000_000.0);
+
+    // economy isn't economying sometimes
+    stockmap
+        .entry(Good::Wood)
+        .and_modify(|e| {
+            *e = e.max(10_000.0);
+            *e *= 100_000.0;
+            *e = e.min(2_000_000.0);
+        })
+        .or_insert(1_000_000.0);
+
+    // econsim doesn't produce recipes at all
+    stockmap
+        .entry(Good::Recipe)
+        .and_modify(|e| *e = e.max(10_000.0))
+        .or_insert(10_000.0);
 
     // TODO: currently econsim spends all its food on population, resulting in none
     // for the players to buy; the `.max` is temporary to ensure that there's some
     // food for sale at every site, to be used until we have some solution like NPC
     // houses as a limit on econsim population growth
-    if permitted(Good::Food) {
-        stockmap
-            .entry(Good::Food)
-            .and_modify(|e| *e = e.max(10_000.0))
-            .or_insert(10_000.0);
-    }
+    stockmap
+        .entry(Good::Food)
+        .and_modify(|e| *e = e.max(10_000.0))
+        .or_insert(10_000.0);
     // Reduce amount of potions so merchants do not oversupply potions.
     // TODO: Maybe remove when merchants and their inventories are rtsim?
     // Note: Likely without effect now that potions are counted as food
-    if permitted(Good::Potions) {
-        stockmap
-            .entry(Good::Potions)
-            .and_modify(|e| *e = e.powf(0.25));
-    }
+    stockmap
+        .entry(Good::Potions)
+        .and_modify(|e| *e = e.powf(0.25));
     stockmap
         .entry(Good::Coin)
         .and_modify(|e| *e = e.min(rng.random_range(coin_range)));
+
     // assume roughly 10 merchants sharing a town's stock (other logic for coins)
     stockmap
         .iter_mut()
@@ -88,18 +106,24 @@ pub fn trader_loadout(
     // Fill bags with stuff according to unclaimed stock
     let ability_map = &comp::tool::AbilityMap::load().read();
     let msm = &comp::item::MaterialStatManifest::load().read();
+
+    let mut allow_item = |n: ItemDefinitionIdOwned, a: &u32| -> Option<Item> {
+        let i = Item::new_from_item_definition_id(n.as_ref(), ability_map, msm).ok();
+        if !permitted_quality(i.as_ref()?.quality()) {
+            return None;
+        }
+        i.map(|mut i| {
+            i.set_amount(*a)
+                .map_err(|_| tracing::error!("merchant loadout amount failure"))
+                .ok();
+            i
+        })
+    };
+
     let mut wares: Vec<Item> =
-        TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16)
-            .iter()
-            .filter_map(|(n, a)| {
-                let i = Item::new_from_item_definition_id(n.as_ref(), ability_map, msm).ok();
-                i.map(|mut i| {
-                    i.set_amount(*a)
-                        .map_err(|_| tracing::error!("merchant loadout amount failure"))
-                        .ok();
-                    i
-                })
-            })
+        TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16, permitted)
+            .into_iter()
+            .filter_map(|(n, a)| allow_item(n, &a))
             .collect();
     sort_wares(&mut wares);
     transfer(&mut wares, &mut backpack);
@@ -191,7 +215,18 @@ fn merchant_loadout(
     economy: Option<&SiteInformation>,
     _time: Option<&(TimeOfDay, Calendar)>,
 ) -> LoadoutBuilder {
-    trader_loadout(loadout_builder, economy, |_| true, 1000.0..3000.0)
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| {
+            !matches!(
+                good,
+                Good::Ingredients | Good::Tools | Good::Armor | Good::Wood
+            )
+        },
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
+        1000.0..3000.0,
+    )
 }
 
 fn farmer_loadout(
@@ -203,6 +238,7 @@ fn farmer_loadout(
         loadout_builder,
         economy,
         |good| matches!(good, Good::Food | Good::Coin),
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
         200.0..300.0,
     )
 }
@@ -215,7 +251,13 @@ fn herbalist_loadout(
     trader_loadout(
         loadout_builder,
         economy,
-        |good| matches!(good, Good::Ingredients),
+        |good| {
+            matches!(
+                good,
+                Good::Potions | Good::Stone | Good::Wood | Good::Ingredients | Good::Coin
+            )
+        },
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
         200.0..300.0,
     )
 }
@@ -229,6 +271,7 @@ fn chef_loadout(
         loadout_builder,
         economy,
         |good| matches!(good, Good::Food | Good::Coin),
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
         200.0..300.0,
     )
 }
@@ -241,7 +284,22 @@ fn blacksmith_loadout(
     trader_loadout(
         loadout_builder,
         economy,
-        |good| matches!(good, Good::Tools | Good::Armor | Good::Coin),
+        |good| matches!(good, Good::Armor | Good::Coin),
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
+        200.0..300.0,
+    )
+}
+
+fn hunter_loadout(
+    loadout_builder: LoadoutBuilder,
+    economy: Option<&SiteInformation>,
+    _time: Option<&(TimeOfDay, Calendar)>,
+) -> LoadoutBuilder {
+    trader_loadout(
+        loadout_builder,
+        economy,
+        |good| matches!(good, Good::Tools | Good::Coin),
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
         200.0..300.0,
     )
 }
@@ -254,7 +312,13 @@ fn alchemist_loadout(
     trader_loadout(
         loadout_builder,
         economy,
-        |good| matches!(good, Good::Potions | Good::Coin),
+        |good| {
+            matches!(
+                good,
+                Good::Potions | Good::Stone | Good::Wood | Good::Ingredients | Good::Coin
+            )
+        },
+        |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
         200.0..300.0,
     )
 }
@@ -273,6 +337,7 @@ fn profession_extra_loadout(
         Some(Profession::Chef) => chef_loadout,
         Some(Profession::Blacksmith) => blacksmith_loadout,
         Some(Profession::Alchemist) => alchemist_loadout,
+        Some(Profession::Hunter) => hunter_loadout,
         _ => loadout_default,
     }
 }
@@ -285,6 +350,7 @@ fn profession_agent_mark(profession: Option<&Profession>) -> Option<comp::agent:
             | Profession::Herbalist
             | Profession::Chef
             | Profession::Blacksmith
+            | Profession::Hunter
             | Profession::Alchemist,
         ) => Some(comp::agent::Mark::Merchant),
         Some(Profession::Guard) => Some(comp::agent::Mark::Guard),

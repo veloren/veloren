@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added bullet character (•) to EnterCommand font
 - Checks to prevent players from being teleported in the ground
 - Checks on certain server commands to prevent players from being teleported into the ground 
+- Hunters now function as traders and sell weapons
 
 ### Changed
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Traders sell items they are supposed to sell, no herbalists selling swords
 - Chat command autocomplete now works correctly again.
 - Resources in spots are now tracked by rtsim.
 

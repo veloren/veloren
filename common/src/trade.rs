@@ -2,7 +2,10 @@ use std::cmp::Ordering;
 
 use crate::{
     comp::inventory::{
-        Inventory, item::ItemDefinitionIdOwned, slot::InvSlotId, trade_pricing::TradePricing,
+        Inventory,
+        item::{AbilityMap, Item, ItemDefinitionIdOwned, MaterialStatManifest, Quality},
+        slot::InvSlotId,
+        trade_pricing::TradePricing,
     },
     terrain::BiomeKind,
     uid::Uid,
@@ -348,15 +351,40 @@ impl Default for Good {
 
 impl Good {
     /// The discounting factor applied when selling goods back to a merchant
-    pub fn trade_margin(&self) -> f32 {
-        match self {
-            Good::Tools | Good::Armor => 0.5,
-            Good::Food | Good::Potions | Good::Ingredients | Good::Wood => 0.75,
-            Good::Coin | Good::Recipe => 1.0,
-            // Certain abstract goods (like Territory) shouldn't be attached to concrete items;
-            // give a sale price of 0 if the player is trying to sell a concrete item that somehow
-            // has one of these categories
-            _ => 0.0,
+    pub fn sell_discount(&self, quality: Quality) -> f32 {
+        let res = match self {
+            // Starts with less severe penalties, grows with quality
+            Good::Tools | Good::Armor => 0.9,
+            // Starts with less severe penalties, grows with quality
+            Good::Ingredients | Good::Wood | Good::Stone => 0.9,
+            // Mostly taxed by quality
+            Good::Food | Good::Potions => 1.0,
+            // Should have constant value, not even influenced by quality
+            Good::Coin | Good::Recipe => return 1.0,
+            // Certain abstract goods (like Territory) shouldn't be attached
+            // to concrete items.
+            //
+            // Give a sale price of 0 if the player is trying to sell a
+            // concrete item that somehow has one of these categories
+            _ => return 0.0,
+        };
+
+        res * Good::quality_sell_discount(quality)
+    }
+
+    /// The discounting factor applied when selling goods back to a merchant
+    /// based on item quality
+    ///
+    /// Gets added to the method above
+    fn quality_sell_discount(quality: Quality) -> f32 {
+        match quality {
+            Quality::Low => 1.0,
+            Quality::Common => 0.9,
+            Quality::Moderate => 0.8,
+            Quality::High => 0.6,
+            Quality::Epic => 0.5,
+            Quality::Legendary => 0.5,
+            Quality::Artifact | Quality::Debug => 0.0,
         }
     }
 }
@@ -391,15 +419,29 @@ impl SitePrices {
                     .map(|ri| {
                         let item = ri.inventory.get(slot)?;
                         let vec = TradePricing::get_materials(&item.name.as_ref())?;
+                        let good = TradePricing::good_from_item(&item.name);
                         Some(
                             vec.iter()
                                 .map(|(amount2, material)| {
                                     self.values.get(material).copied().unwrap_or_default()
                                         * *amount2
-                                        * (if reduce { material.trade_margin() } else { 1.0 })
                                 })
                                 .sum::<f32>()
-                                * (*amount as f32),
+                                * (*amount as f32)
+                                * (if reduce {
+                                    good.sell_discount(
+                                        // I wish I knew a better way to turn
+                                        // `ItemDefinitionIdOwned` into `Quality`
+                                        Item::new_from_item_definition_id(
+                                            item.name.as_ref(),
+                                            &AbilityMap::load().read(),
+                                            &MaterialStatManifest::load().read(),
+                                        )
+                                        .map_or(Quality::Low, |i| i.quality()),
+                                    )
+                                } else {
+                                    1.0
+                                }),
                         )
                     })
                     .unwrap_or(Some(0.0))

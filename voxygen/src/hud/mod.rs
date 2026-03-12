@@ -4489,7 +4489,11 @@ impl Hud {
                                         .map(|e| {
                                             prices.values.get(&e.1).cloned().unwrap_or_default()
                                                 * e.0
-                                                * (if ours { e.1.trade_margin() } else { 1.0 })
+                                                * (if ours {
+                                                    e.1.sell_discount(item.quality())
+                                                } else {
+                                                    1.0
+                                                })
                                         })
                                         .sum();
 

@@ -5,7 +5,7 @@ use common::{
         inventory::trade_pricing::TradePricing,
         item::{
             Effects, Item, ItemDefinitionId, ItemDesc, ItemI18n, ItemKind, MaterialKind,
-            MaterialStatManifest,
+            MaterialStatManifest, Quality,
             armor::{Armor, ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
         },
@@ -20,6 +20,7 @@ use std::{borrow::Cow, fmt::Write};
 pub fn price_desc<'a>(
     prices: &Option<SitePrices>,
     item_definition_id: ItemDefinitionId<'_>,
+    quality: Quality,
     i18n: &'a Localization,
 ) -> Option<(Cow<'a, str>, Cow<'a, str>, f32)> {
     let prices = prices.as_ref()?;
@@ -31,7 +32,9 @@ pub fn price_desc<'a>(
         .sum();
     let sellprice: f32 = materials
         .iter()
-        .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.trade_margin())
+        .map(|e| {
+            prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.sell_discount(quality)
+        })
         .sum();
 
     let deal_goodness: f32 = materials
