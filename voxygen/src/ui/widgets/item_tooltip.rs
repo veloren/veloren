@@ -881,9 +881,9 @@ impl Widget for ItemTooltip<'_> {
                 if armor_stats.precision_power.is_some() {
                     stat_text(
                         format!(
-                            "{} : {:.3}",
+                            "{} : {:.1}%",
                             i18n.get_msg("common-stats-precision_power"),
-                            armor_stats.precision_power.unwrap_or(0.0)
+                            armor_stats.precision_power.map_or(0.0, |x| x * 100.0)
                         ),
                         index,
                     );
