@@ -127,7 +127,7 @@ impl Widget for PromptDialog<'_> {
             .label_font_id(self.fonts.cyri.conrod_id)
             .label_y(conrod_core::position::Relative::Scalar(2.5))
             .label_x(conrod_core::position::Relative::Scalar(0.5))
-            .bottom_left_with_margins_on(state.ids.bot, 4.0, 6.0)
+            .bottom_right_with_margins_on(state.ids.bot, 4.0, 6.0)
             .set(state.ids.accept_key, ui)
             .was_clicked()
             || self
@@ -146,7 +146,7 @@ impl Widget for PromptDialog<'_> {
             "Ok"
         };
         Text::new(accept_txt)
-            .bottom_left_with_margins_on(state.ids.accept_key, 4.0, 28.0)
+            .bottom_left_with_margins_on(state.ids.accept_key, 4.0, -65.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(18))
             .color(TEXT_COLOR)
@@ -164,7 +164,7 @@ impl Widget for PromptDialog<'_> {
                 .label_font_id(self.fonts.cyri.conrod_id)
                 .label_y(conrod_core::position::Relative::Scalar(2.5))
                 .label_x(conrod_core::position::Relative::Scalar(0.5))
-                .bottom_right_with_margins_on(state.ids.bot, 4.0, 6.0)
+                .bottom_left_with_margins_on(state.ids.bot, 4.0, 6.0)
                 .set(state.ids.decline_key, ui)
                 .was_clicked()
                 || self
@@ -177,7 +177,7 @@ impl Widget for PromptDialog<'_> {
                 ));
             }
             Text::new("Decline")
-                .bottom_left_with_margins_on(state.ids.decline_key, 4.0, -65.0)
+                .bottom_left_with_margins_on(state.ids.decline_key, 4.0, 28.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(18))
                 .color(TEXT_COLOR)

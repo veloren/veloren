@@ -850,7 +850,7 @@ impl Widget for Group<'_> {
                 .map_or_else(|| "".into(), |key| key.display_string());
             if Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
-                .bottom_left_with_margins_on(state.ids.bg, 15.0, 15.0)
+                .bottom_right_with_margins_on(state.ids.bg, 15.0, 15.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label(&format!(
@@ -875,7 +875,7 @@ impl Widget for Group<'_> {
                 .map_or_else(|| "".into(), |key| key.display_string());
             if Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
-                .bottom_right_with_margins_on(state.ids.bg, 15.0, 15.0)
+                .bottom_left_with_margins_on(state.ids.bg, 15.0, 15.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label(&format!(
