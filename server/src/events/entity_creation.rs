@@ -172,6 +172,7 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
     let entity = if let Some(rtsim_entity) = rtsim_entity {
         entity.with(rtsim_entity).with(RepositionToFreeSpace {
             needs_ground: false,
+            modify_waypoints: true,
         })
     } else {
         entity

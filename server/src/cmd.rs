@@ -1332,6 +1332,7 @@ fn handle_goto_rand(
         parse_cmd_args!(args, bool).unwrap_or(true),
         |current_pos| current_pos.0 = pos3d,
         true,
+        false,
     )
 }
 
@@ -1455,6 +1456,7 @@ fn handle_site(
             dismount_volume.unwrap_or(true),
             |current_pos| current_pos.0 = site_pos,
             true,
+            false,
         )
     } else {
         Err(action.help_content())
@@ -1482,6 +1484,7 @@ fn handle_respawn(
             current_pos.0 = waypoint;
         },
         true,
+        false,
     )
 }
 
@@ -1913,6 +1916,7 @@ fn handle_tp(
         dismount_volume.unwrap_or(true),
         |target_pos| *target_pos = player_pos,
         false,
+        false,
     )
 }
 
@@ -1946,6 +1950,7 @@ fn handle_rtsim_tp(
         |target_pos| {
             target_pos.0 = pos;
         },
+        false,
         false,
     )
 }
@@ -6563,6 +6568,7 @@ fn handle_spot(
                 *target_pos = comp::Pos(pos);
             },
             true,
+            false,
         )?;
         Ok(())
     } else {

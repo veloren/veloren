@@ -22,6 +22,7 @@ impl Component for RegionSubscription {
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct RepositionToFreeSpace {
     pub needs_ground: bool,
+    pub modify_waypoints: bool,
 }
 
 impl Component for RepositionToFreeSpace {

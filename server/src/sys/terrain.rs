@@ -256,14 +256,15 @@ impl<'a> System<'a> for Sys {
                 }.map(|x| x.as_::<f32>()).unwrap_or_else(|| chunk.find_accessible_pos(entity_pos.xy(), false));
                 pos.0 = new_pos;
                 force_update.map(|force_update| force_update.update());
-                Some((entity, new_pos))
+                Some((entity, new_pos, reposition.modify_waypoints))
             })
             .collect::<Vec<_>>();
 
-        for (entity, new_pos) in repositioned {
-            if let Some(waypoint) = data.waypoints.get_mut(entity) {
+        for (entity, new_pos, modify_waypoints) in repositioned {
+            if modify_waypoints && let Some(waypoint) = data.waypoints.get_mut(entity) {
                 *waypoint = Waypoint::new(new_pos, *data.time);
             }
+
             data.reposition_entities.remove(entity);
         }
 
