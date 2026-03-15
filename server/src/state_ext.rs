@@ -199,6 +199,7 @@ pub trait StateExt {
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
         needs_ground: bool,
+        modify_waypoints: bool,
     ) -> Result<T, Content>;
 }
 
@@ -714,6 +715,7 @@ impl StateExt for State {
             if let Some(waypoint) = waypoint {
                 self.write_component_ignore_entity_dead(entity, RepositionToFreeSpace {
                     needs_ground: true,
+                    modify_waypoints: true,
                 });
                 self.write_component_ignore_entity_dead(entity, waypoint);
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
@@ -1245,9 +1247,13 @@ impl StateExt for State {
         dismount_volume: bool,
         f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
         needs_ground: bool,
+        modify_waypoints: bool,
     ) -> Result<T, Content> {
         self.position_mut(entity, dismount_volume, f).inspect(|_| {
-            self.write_component_ignore_entity_dead(entity, RepositionToFreeSpace { needs_ground });
+            self.write_component_ignore_entity_dead(entity, RepositionToFreeSpace {
+                needs_ground,
+                modify_waypoints,
+            });
         })
     }
 }
