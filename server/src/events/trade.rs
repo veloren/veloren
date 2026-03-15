@@ -432,6 +432,12 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     for who in [0, 1].into_iter() {
         if let Some(updates) = inventory_update.get_mut(entities[who]) {
             updates.push(comp::InventoryUpdateEvent::Given)
+        } else {
+            // Not supposed to happen, but does, resulting in #1859, #2150, and #2045.
+            let _ = inventory_update.insert(
+                entities[who],
+                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
+            );
         }
     }
     TradeResult::Completed
