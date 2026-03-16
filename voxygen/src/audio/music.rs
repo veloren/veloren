@@ -171,6 +171,8 @@ pub struct MusicMgr {
     current_artist: String,
     track_length: f32,
     loop_points: Option<(f32, f32)>,
+    /// The last known site the player was in, used to detect site transition
+    last_site: SiteKindMeta,
 }
 
 #[derive(Deserialize)]
@@ -222,6 +224,7 @@ impl MusicMgr {
             current_artist: String::from("None"),
             track_length: 0.0,
             loop_points: None,
+            last_site: SiteKindMeta::Void,
         }
     }
 
@@ -303,11 +306,35 @@ impl MusicMgr {
         let song_end = *self.song_end.get_or_insert(now);
         let time_since_began_playing = time_f64(now) - time_f64(began_playing);
 
+        // Detect site transitions
+        let current_site = client.current_site();
+        let site_changed = current_site != self.last_site;
+        self.last_site = current_site;
+
+        // On site transition override the music state to Transition(Explore, Explore)
+        // so the interrupt path triggers an immediate crossfade to a
+        // context-appropriate track.
+        if (site_changed)
+            && !matches!(
+                music_state,
+                MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
+            )
+        {
+            music_state = MusicState::Transition(MusicActivity::Explore, MusicActivity::Explore);
+        }
+
         // TODO: Instead of a constant tick, make this a timer that starts only when
         // combat might end, providing a proper "buffer".
-        // interrupt_delay dictates the time between attempted interrupts
+        // interrupt_delay dictates the time between attempted interrupts.
+        // Transition(Explore, Explore) bypasses the delay.
+        // Site changes should always switch immediately regardless of when the last
+        // interrupt was.
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
-            && time_f64(now) - time_f64(last_interrupt_attempt) > mtm.0.interrupt_delay as f64;
+            && (matches!(
+                music_state,
+                MusicState::Transition(MusicActivity::Explore, MusicActivity::Explore)
+            ) || time_f64(now) - time_f64(last_interrupt_attempt)
+                > mtm.0.interrupt_delay as f64);
 
         // Hack to end combat music since there is currently nothing that detects
         // transitions away
@@ -337,8 +364,21 @@ impl MusicMgr {
 
             if interrupt {
                 self.last_interrupt_attempt = Some(now);
+                self.is_gap = false;
+                self.gap_time = 0.0;
+                self.gap_length = 0.0;
+                // Transition(Explore, Explore) is an internal signal only.
+                // Resolve it to Activity(Explore) so the track filter in play_random_track
+                // finds matching soundtrack entries.
+                let track_state = if music_state
+                    == MusicState::Transition(MusicActivity::Explore, MusicActivity::Explore)
+                {
+                    MusicState::Activity(MusicActivity::Explore)
+                } else {
+                    music_state
+                };
                 if let Ok(next_activity) =
-                    self.play_random_track(audio, state, client, &music_state, &mut rng)
+                    self.play_random_track(audio, state, client, &track_state, &mut rng)
                 {
                     trace!(
                         "pre-play_random_track: {:?} {:?}",
@@ -554,7 +594,11 @@ impl MusicMgr {
                 self.current_artist = String::from("None");
             }
 
-            let tag = if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+            let tag = if matches!(
+                music_state,
+                MusicState::Activity(MusicActivity::Explore)
+                    | MusicState::Transition(MusicActivity::Explore, MusicActivity::Explore)
+            ) {
                 MusicChannelTag::Exploration
             } else {
                 self.last_combat_track = String::from(&track.title);

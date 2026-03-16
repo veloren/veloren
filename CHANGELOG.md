@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Can now swim through lillypads.
+- Music changes when entering a new site.
 
 ### Removed
 
