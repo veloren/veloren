@@ -1239,9 +1239,9 @@ impl Widget for Diary<'_> {
                             .as_ref()
                             .cloned()
                             .unwrap_or_else(|| "Unknown".to_string()),
-                        CharacterStat::Hitpoints => format!("{}", self.health.base_max() as u32),
-                        CharacterStat::Energy => format!("{}", self.energy.base_max() as u32),
-                        CharacterStat::Poise => format!("{}", self.poise.base_max() as u32),
+                        CharacterStat::Hitpoints => format!("{}", self.health.maximum() as u32),
+                        CharacterStat::Energy => format!("{}", self.energy.maximum() as u32),
+                        CharacterStat::Poise => format!("{}", self.poise.maximum() as u32),
                         CharacterStat::CombatRating => {
                             let cr = combat::combat_rating(
                                 self.inventory,
