@@ -47,7 +47,7 @@ pub struct Gradient {
     pub(super) size: f32,
     /// The shape that the distance is computed to to get the gradient color.
     pub(super) shape: Shape,
-    /// How the graduint should repeat when the distance from the shape is
+    /// How the gradient should repeat when the distance from the shape is
     /// greater than size
     pub(super) repeat: WrapMode,
     /// The colors the gradient is lerped between

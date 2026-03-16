@@ -208,8 +208,25 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
 }
 
 fn render_flat(bridge: &Bridge, painter: &Painter) {
+    let light_rock_color = Rgb::gray(130);
+    let surface_color = bridge.surface_color.map(|e| (e * 255.0) as u8);
+    let gradient_center = Vec3::new(
+        bridge.center.x as f32,
+        bridge.center.y as f32,
+        (bridge.center.z + 1) as f32,
+    );
+
+    let light_rock = Fill::GradientBrick(
+        util::gradient::Gradient::new(
+            gradient_center,
+            8.0,
+            util::gradient::Shape::plane(Vec3::unit_z()),
+            (surface_color, light_rock_color),
+        ),
+        BlockKind::Rock,
+        25,
+    );
     let rock = Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(50)));
-    let light_rock = Fill::Block(Block::new(BlockKind::Rock, Rgb::gray(130)));
 
     let orth_dir = bridge.dir.orthogonal();
 
@@ -883,6 +900,7 @@ pub struct Bridge {
     center: Vec3<i32>,
     kind: BridgeKind,
     biome: BiomeKind,
+    surface_color: Rgb<f32>,
 }
 
 impl Bridge {
@@ -948,6 +966,7 @@ impl Bridge {
         let center = (start.xy() + end.xy()) / 2;
         let col = land.column_sample(center, index).unwrap();
         let center = center.with_z(col.alt as i32);
+        let surface_color = col.surface_color;
         let water_alt = col.water_level as i32;
         let bridge = BridgeKind::random(rng, start, start_dist, end, end_dist, water_alt);
         Self {
@@ -961,6 +980,7 @@ impl Bridge {
             biome: land
                 .get_chunk_wpos(center.xy())
                 .map_or(BiomeKind::Void, |chunk| chunk.get_biome()),
+            surface_color,
         }
     }
 
