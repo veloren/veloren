@@ -241,6 +241,7 @@ pub enum Fill {
     Brick(BlockKind, Rgb<u8>, u8),
     PlankWall(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
+    GradientBrick(util::gradient::Gradient, BlockKind, u8),
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
     // we probably need an evaluator for the primitive tree that gets which point is queried at
     // leaf nodes given an input point to make Translate/Rotate work generally
@@ -579,6 +580,20 @@ impl Fill {
                     None,
                     None,
                 ),
+                Fill::GradientBrick(gradient, bk, range) => {
+                    let col = gradient.sample(pos.as_());
+                    let pos = (pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1);
+                    (
+                        Some(Block::new(
+                            *bk,
+                            col + ((((pos.x ^ pos.y ^ pos.z) as u8).reverse_bits() as u16
+                                * *range as u16)
+                                >> 8) as u8,
+                        )),
+                        None,
+                        None,
+                    )
+                },
                 Fill::Prefab(p, tr, seed) => {
                     let sb_result = p.get(pos - tr);
                     if sb_result.is_err() {
