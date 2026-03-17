@@ -4,6 +4,8 @@ use specs::Entity;
 use std::ops::{Mul, MulAssign};
 use vek::Vec3;
 
+pub const DAY: f64 = 3600.0 * 24.0;
+
 /// A resource that stores the time of day.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TimeOfDay(pub f64);
@@ -23,8 +25,13 @@ impl TimeOfDay {
 
     /// Computes the direction of light from the moon based on the time of day.
     pub fn get_moon_dir(self) -> Vec3<f32> {
-        let angle_rad = self.get_angle_rad();
-        -Vec3::new(-angle_rad.sin(), 0.0, angle_rad.cos() - 0.5).normalized()
+        let moon_phase = crate::time::MoonPeriod::from(self.0);
+        let phase_angle = moon_phase.0 as f32 * 2.0 * std::f32::consts::PI;
+        const MOON_ORBIT_AXIS: Vec3<f32> = Vec3::new(0.09901, 0.99015, 0.09901);
+
+        vek::Quaternion::rotation_3d(phase_angle, MOON_ORBIT_AXIS)
+            * vek::Quaternion::rotation_y(-self.get_angle_rad() + std::f32::consts::PI)
+            * Vec3::unit_z()
     }
 
     /// Get the current [`DayPeriod`].
@@ -47,7 +54,7 @@ impl Time {
     // Note that this applies in 'game time' and does not respect either real time
     // or in-game time of day.
     pub fn add_days(self, days: f64, server_constants: &ServerConstants) -> Self {
-        self.add_seconds(days * 3600.0 * 24.0 / server_constants.day_cycle_coefficient)
+        self.add_seconds(days * DAY / server_constants.day_cycle_coefficient)
     }
 }
 

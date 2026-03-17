@@ -91,7 +91,7 @@ void main() {
             vec3(1, 1, 0), // MAT_BLOCK
             vec3(0, 0, 1), // MAT_WATER
             vec3(1, 0, 1), // MAT_FIGURE
-            vec3(0.5, 1, 0) // MAT_LOD
+            vec3(0.5, 1, 0), // MAT_LOD
             vec3(0, 0.5, 1) // MAT_PUDDLE
         );
         tgt_color = vec4(mat_colors[mat.a % 6u], 1);
@@ -242,7 +242,7 @@ void main() {
                             uvec4 new_mat = texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(new_uv * mat_sz), ivec2(0), ivec2(mat_sz) - 1), 0);
                             // If it's the sky, just go determine the sky color analytically to avoid sampling the incomplete skybox
                             // Otherwise, pull the color from the screen-space color buffer
-                            vec3 sky_col = min(get_sky_color(refl_dir, wpos, vec3(-100000), 0.125, false, 0.0, true, 0.0), vec3(1)) * not_underground;
+                            vec3 sky_col = min(get_sky_color(refl_dir, wpos, vec3(-100000), 0.125, true, 1.0, true, 1.0) * not_underground, vec3(1));
                             if (new_mat.a == MAT_SKY) {
                                 refl_col = sky_col;
                             } else {

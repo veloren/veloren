@@ -215,7 +215,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, con
     float moon_scatter = dot(-dir, moon_dir.xyz) * 0.5 + 0.7;
     float net_light = get_sun_brightness() + get_moon_brightness();
     vec3 sky_color = RAYLEIGH * net_light;
-    vec3 sky_light = get_sky_light(dir, false);
+    vec3 sky_light = get_sky_light(dir, false, 0.0);
     vec3 sun_color = get_sun_color();
     vec3 moon_color = get_moon_color();
 
