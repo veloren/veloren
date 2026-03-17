@@ -533,12 +533,12 @@ float is_star_at(vec3 dir) {
     return power * max(sun_dir.z, 0.1) / (1.0 + pow(dist * 750, 8));
 }
 
-vec3 get_sky_light(vec3 dir, bool with_stars) {
+vec3 get_sky_light(vec3 dir, bool with_stars, float is_moon) {
     // Add white dots for stars. Note these flicker and jump due to FXAA
     float star = 0.0;
     if (with_stars) {
         vec3 star_dir = sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y;
-        star = is_star_at(star_dir);
+        star = is_star_at(star_dir) * (1.0 - is_moon);
     }
 
     vec3 sky_twilight_top = vec3(0.0, 0.0, 0.0);
@@ -649,20 +649,59 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
     float moon_halo_power = 20.0;
 
     vec3 moon_surf = vec3(0);
-    if (with_features) {
-        float angle = 0.00035;
-        moon_surf = clamp((dot(dir, -moon_dir) - (1.0 - angle)) * 4 / angle, 0, 1) * MOON_SURF_COLOR;
-    }
+
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         if (true) {
     #else
         if (fake_clouds || medium.x == MEDIUM_WATER) {
     #endif
         moon_halo_power = 50.0;
+    }
+
+    float is_moon = 0.0;
+
+    if (with_features) {
+        float moon_radius = 0.035;
+        
+        float tca = dot(moon_dir, dir);
+
+        float radius2 = moon_radius * moon_radius;
+        float d2 = 1.0 - tca * tca;
+
+        float diff = radius2 - d2;
+
+        is_moon = clamp(tca * 2000.0, 0.0, 1.0) * clamp(diff * 4000.0, 0.0, 1.0);
+
+        if (is_moon > 0.0) {
+            float thc = sqrt(diff);
+
+            float t0 = tca - thc;
+
+            vec3 moon_normal = (t0 * dir - moon_dir) * (1.0 / moon_radius);
+
+            float noise = snoise3(moon_normal * 8.2) + snoise3(moon_normal * 25.0) * 0.4;
+
+            float direct_sunlight = max(dot(moon_normal, -sun_dir), 0.0);
+
+            float planet_albedo = 0.12;
+            float planet_reflected_light = (1.0 - abs(dot(moon_dir, sun_dir))) * max(dot(moon_normal, -moon_dir), 0.0) * planet_albedo;
+            float light = max(direct_sunlight + planet_reflected_light, 0.001);
+
+            // ~sun is the same direction from the moon as it is to us.
+            float surface_light = pow(light * (0.4 + 0.3 * noise), 2.0);
+
+            moon_surf = MOON_SURF_COLOR * surface_light * is_moon;
+        }
+    }
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        if (true) {
+    #else
+        if (fake_clouds || medium.x == MEDIUM_WATER) {
+    #endif
         moon_halo_color *= 0.2;
         moon_surf *= 0.05;
     }
-    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0), moon_halo_power);
+    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, moon_dir), 0) * max(dot(sun_dir, moon_dir), 0), moon_halo_power);
     vec3 moon_light = moon_halo + moon_surf;
 
     // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
@@ -673,26 +712,18 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
     #else
         if (fake_clouds || medium.x == MEDIUM_WATER) {
     #endif
-        sky_color = get_sky_light(dir, !fake_clouds);
+        sky_color = get_sky_light(dir, !fake_clouds, is_moon);
     } else {
         if (medium.x == MEDIUM_WATER) {
-            sky_color = get_sky_light(dir, true);
+            sky_color = get_sky_light(dir, true, is_moon);
         } else {
             vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
-            float star = is_star_at(star_dir);
+            float star = is_star_at(star_dir) * (1.0 - is_moon);
             sky_color = vec3(0) + star;
         }
     }
 
     return sky_color + sun_light + moon_light;
-}
-
-vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_features, float refractionIndex) {
-    return get_sky_color(dir, origin, f_pos, quality, with_features, refractionIndex, false, 1.0);
-}
-
-vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_stars) {
-    return get_sky_color(dir, origin, f_pos, quality, with_stars, 1.0, false, 1.0);
 }
 
 float fog(vec3 f_pos, vec3 focus_pos, uint medium) {

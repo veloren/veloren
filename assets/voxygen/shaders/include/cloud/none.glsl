@@ -6,7 +6,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, float max_dist, flo
     surf_color = water_diffuse(surf_color, dir, max_dist);
 
     if (max_dist < DIST_CAP) {
-        vec3 sky_light = get_sky_light(dir, false);
+        vec3 sky_light = get_sky_light(dir, false, 0.0);
         surf_color = mix(sky_light, surf_color, 1.0 / exp(max_dist / 5000.0));
     }
 
