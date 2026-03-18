@@ -60,3 +60,5 @@ glider-cultists = Skullgrin
     .desc = Död från ovan.
 lantern-delvers_lamp = Grävarens lampa
     .desc = Perfekt för att gräva med.
+glider-butterfly-moonlit_love = Månbelyst kärlek
+    .desc = Kärlek är i luften.

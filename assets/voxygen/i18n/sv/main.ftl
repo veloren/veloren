@@ -67,8 +67,8 @@ main-credits-fonts = Typsnitt
 main-credits-other_art = Annan konst
 main-credits-contributors = Bidragare
 loading-tips =
-    .a0 = Tryck ”{ $gameinput-togglelantern }” för att tända din lykta.
-    .a1 = Tryck ”{ $gameinput-controls }” för att se alla standardtangentbordsgenvägar.
+    .a0 = Tryck på ”{ $gameinput-togglelantern }” för att tända din lykta.
+    .a1 = Tryck på ”{ $gameinput-controls }” för att se alla standardtangentbordsgenvägar.
     .a2 = Du kan skriva /say eller /s för att bara prata med spelare i din närhet.
     .a3 = Du kan skriva /region eller /r to för att bara prata med spelare några hundra block omkring dig.
     .a4 = Administratörer kan använda kommandot /build för att växla till byggläget.
@@ -87,7 +87,7 @@ loading-tips =
     .a17 = Sitt nära en lägereld (med ”{ $gameinput-sit }”-knappen) för att långsamt återhämta dig från skador.
     .a18 = Behöver du fler väskor eller bättre rustning för din fortsatta färd? Tryck på ”{ $gameinput-crafting }” för att öppna tillverkningsmenyn!
     .a19 = Tryck på ”{ $gameinput-roll }” för att rulla. Rullning kan användas för att röra sig fortare och undvika fiendernas attacker.
-    .a20 = Undrar du vad ett föremål används till? Sök ”input:<item name>” i tillverkningmenyn för att se vilka recept det används i.
+    .a20 = Undrar du vad ett föremål används till? Sök på ”input:<item name>” i tillverkningmenyn för att se vilka recept det används i.
     .a21 = Du kan ta skärmbilder med ”{ $gameinput-screenshot }”.
 main-singleplayer-new = Ny
 main-singleplayer-regenerate = Omgenerera
@@ -114,3 +114,4 @@ main-login-banned_until =
     Du har blivit temporärt blockerad med följande anledning: { $reason }
     Fram till: { $end_date }
 main-singleplayer-map_large_extra_warning = Detta skulle ta ungefär samma mängd resurser som att generera { $count } världar med standardinställningar.
+main-credits-sound = Ljud
