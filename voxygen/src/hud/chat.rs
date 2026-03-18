@@ -11,6 +11,7 @@ use crate::{
         fonts::{Font, Fonts},
     },
 };
+use chrono::{DateTime, Local};
 use client::Client;
 use common::{
     cmd::ServerChatCommand,
@@ -219,7 +220,7 @@ struct InputState {
 }
 
 pub struct State {
-    messages: VecDeque<ChatMsg>,
+    messages: VecDeque<(ChatMsg, DateTime<Local>)>,
     input: InputState,
     ids: Ids,
     history: VecDeque<String>,
@@ -359,7 +360,10 @@ impl Widget for Chat<'_> {
                 }
             }
             // new messages - update chat w/ them & scroll down if at bottom of chat
-            state.update(|s| s.messages.extend(self.new_messages.drain(..)));
+            state.update(|s| {
+                s.messages
+                    .extend(self.new_messages.drain(..).map(|m| (m, Local::now())))
+            });
             // Prevent automatic scroll upon new messages if not already scrolled to bottom
             if Self::scrolled_to_bottom(state, ui) {
                 ui.scroll_widget(state.ids.message_box, [0.0, f64::MAX]);
@@ -615,17 +619,18 @@ impl Widget for Chat<'_> {
             })
             .collect::<HashSet<_>>();
         let show_char_name = chat_settings.chat_character_name;
+        let show_timestamp = chat_settings.show_chat_timestamp;
         let messages = &state
             .messages
             .iter()
-            .filter(|m| {
+            .filter(|(m, _)| {
                 if let Some(chat_tab) = current_chat_tab {
                     chat_tab.filter.satisfies(m, &group_members)
                 } else {
                     true
                 }
             })
-            .map(|m| {
+            .map(|(m, ts)| {
                 let is_moderator = m
                     .uid()
                     .and_then(|uid| self.client.player_list().get(&uid).map(|i| i.is_moderator))
@@ -636,6 +641,11 @@ impl Widget for Chat<'_> {
                     self.localized_strings,
                     show_char_name,
                 );
+                let text = if show_timestamp {
+                    format!("[{}] {}", ts.format("%H:%M"), text)
+                } else {
+                    text
+                };
                 (is_moderator, chat_type, text)
             })
             .collect::<Vec<_>>();

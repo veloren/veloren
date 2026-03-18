@@ -74,6 +74,7 @@ pub struct ChatSettings {
     pub chat_opacity: f32,
     pub lock_chat: bool,
     pub chat_character_name: bool,
+    pub show_chat_timestamp: bool,
     pub chat_tabs: Vec<ChatTab>,
     pub chat_tab_index: Option<usize>,
     pub chat_cmd_prefix: char,
@@ -96,6 +97,7 @@ impl Default for ChatSettings {
             chat_pos_y: 10.0,
             chat_size_x: DEFAULT_CHAT_BOX_WIDTH,
             chat_size_y: DEFAULT_CHAT_BOX_HEIGHT,
+            show_chat_timestamp: false,
         }
     }
 }

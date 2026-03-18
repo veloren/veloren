@@ -70,6 +70,9 @@ widget_ids! {
 
         text_death,
         list_death,
+
+        show_chat_timestamp_label,
+        show_chat_timestamp_toggle,
     }
 }
 
@@ -238,12 +241,41 @@ impl Widget for Chat<'_> {
             )));
         }
 
+        // "Show chat message timestamp" toggle button
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-show_chat_timestamp"),
+        )
+        .down_from(state.ids.char_name_text, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.show_chat_timestamp_label, ui);
+
+        if chat_settings.show_chat_timestamp
+            != ToggleButton::new(
+                chat_settings.show_chat_timestamp,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .right_from(state.ids.show_chat_timestamp_label, 10.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.show_chat_timestamp_toggle, ui)
+        {
+            events.push(Event::ChatChange(ShowChatTimestamp(
+                !chat_settings.show_chat_timestamp,
+            )));
+        }
+
         // Reset the chat settings to the default settings
         if Button::image(self.imgs.button)
             .w_h(RESET_BUTTONS_WIDTH, RESET_BUTTONS_HEIGHT)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .down_from(state.ids.char_name_text, 20.0)
+            .down_from(state.ids.show_chat_timestamp_label, 20.0)
             .label(&self.localized_strings.get_msg("hud-settings-reset_chat"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)

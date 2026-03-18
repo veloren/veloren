@@ -41,6 +41,7 @@ pub enum Chat {
     Transparency(f32),
     LockChat(bool),
     CharName(bool),
+    ShowChatTimestamp(bool),
     ChangeChatTab(Option<usize>),
     ChatTabUpdate(usize, ChatTab),
     ChatTabInsert(usize, ChatTab),
@@ -367,6 +368,9 @@ impl SettingsChange {
                     },
                     Chat::CharName(chat_char_name) => {
                         settings.chat.chat_character_name = chat_char_name;
+                    },
+                    Chat::ShowChatTimestamp(show_chat_timestamp) => {
+                        settings.chat.show_chat_timestamp = show_chat_timestamp;
                     },
                     Chat::ChangeChatTab(chat_tab_index) => {
                         settings.chat.chat_tab_index =
