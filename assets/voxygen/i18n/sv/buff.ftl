@@ -1,11 +1,11 @@
 ## Regeneration
 
 buff-heal = Läk
-    .desc = Återfå liv över tid.
+    .desc = Återfå hälsa över tid.
     .stat =
         { $duration ->
-            [1] Återger { $str_total } livpoäng under { $duration } sekund.
-           *[other] Återger { $str_total } livpoäng under { $duration } sekunder.
+            [1] Återger { $str_total } hälsopoäng under { $duration } sekund.
+           *[other] Återger { $str_total } hälsopoäng under { $duration } sekunder.
         }
 
 ## Potion
@@ -264,7 +264,7 @@ buff-combo_generation = Kombogenerering
            *[other] Genererar { $str_total } kombo under { $duration } sekunder.
         }
 buff-resting_heal = Villäkning
-    .desc = Vilande läker { $rate } % liv per sekund.
+    .desc = Vilande läker { $rate } % hälsopoäng per sekund.
 buff-heartseeker = Hjärtsökare
     .desc = Din nästa pil kommer träffa din fiende som om det orsakade ett hjärtsår, vilket leder till ett mer allvarligt sår och ger dig energi.
 buff-eagleeye = Örnöga

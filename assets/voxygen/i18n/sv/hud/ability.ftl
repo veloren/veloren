@@ -304,11 +304,14 @@ common-abilities-hammer-tenacity = Tenacitet
         Varje mottaget slag ökar din energi.
 # Axe abilities
 common-abilities-hammer-earthshaker = Jordskakare
-    .desc = Slå huvudet av din bloddränkta hammare i marken, och utlös en chockvåg som slår vinden ur alla omkring dig.
+    .desc =
+        Slå din hammare in i marken för att släppa loss en chockvåg runt dig.
+        Minskar rörelsehastigheten och energivinsterna hos dina fiender.
+        Kräver { $min_combo } kombo för att använda.
 # Axe abilities
 common-abilities-hammer-judgement = Dömning
     .desc =
-        Ta din hammare ner på din fiende med all din vikt,.
+        Ta din hammare ner på din fiende med all din vikt.
         Ökar skadan mycket om ditt mål vacklar.
         Kräver { $min_combo } för att använda.
 # Axe abilities
@@ -351,7 +354,9 @@ common-abilities-hammer-thunderclap = Åskklapp
         Kräver { $min_combo } kombo att använda.
 # Axe abilities
 common-abilities-hammer-dual_upheaval = Omstörtning
-    .desc = Slå dina hammare in i dina fiender, och knocka dem upp i luften och lämna dem sårbara för vacklanden.
+    .desc =
+        Slå dina hammare in i din fiende och knocka dem upp i luften.
+        Ökar poise-skadan emottagen av målet.
 # Axe abilities
 common-abilities-hammer-seismic_shock = Seismisk chock
     .desc =
@@ -375,7 +380,7 @@ common-abilities-axe-bulkhead = Bulkhead
 common-abilities-axe-capsize = Kapsejsa
     .desc =
         Vackla allt i närheten med ett tungt snurrande slag.
-        Uppgraderar automatiskt från bulkhead vid 50 kombo.
+        Uppgraderar automatiskt från bulkhead vid { $min_combo_upg } kombo.
 # Axe abilities
 common-abilities-axe-sunder = Söndra
     .desc = Genom att ändra ditt grepp kan du kringgå din fiendes utrustning medan du återhämtar din energi mer effektivt.
@@ -392,3 +397,5 @@ common-abilities-sceptre-healingaura = Läkande aura
     .desc = Läker dina allierade. Kräver kombo för att aktivera.
 common-abilities-sceptre-lifestealbeam = Livsstöld
     .desc = Skjuter en stråle som dränerar livet från dina fiender.
+common-abilities-hammer-leap = Nederslag
+    .desc = En attack som träffar ett område och knuffar fiender. Hoppar mot pekarens position.
