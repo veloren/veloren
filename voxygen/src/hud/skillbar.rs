@@ -784,8 +784,8 @@ impl<'a> Skillbar<'a> {
 
         // Exp Type and Level Display
 
-        // Unspent SP indicator
-        let unspent_sp = self.skillset.has_available_sp();
+        // Unspent SP indicator (only show if we can spend SP)
+        let unspent_sp = self.skillset.can_unlock_any_skill();
         if unspent_sp {
             let arrow_ani = animation_timer(self.pulse); //Animation timer
             Image::new(self.imgs.sp_indicator_arrow)

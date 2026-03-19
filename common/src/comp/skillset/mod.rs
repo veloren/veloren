@@ -525,6 +525,23 @@ impl SkillSet {
         })
     }
 
+    /// Checks if the player can actually spend SP to unlock a skill
+    pub fn can_unlock_any_skill(&self) -> bool {
+        SKILL_GROUP_DEFS.iter().any(|(skill_group_kind, def)| {
+            let available_sp = self.available_sp(*skill_group_kind);
+
+            if available_sp == 0 {
+                return false;
+            }
+
+            def.skills.iter().any(|skill| {
+                !self.is_at_max_level(*skill)
+                    && self.prerequisites_met(*skill)
+                    && self.skill_cost(*skill) <= available_sp
+            })
+        })
+    }
+
     /// Checks if the skill is at max level in a skill set
     pub fn is_at_max_level(&self, skill: Skill) -> bool {
         if let Ok(level) = self.skill_level(skill) {
