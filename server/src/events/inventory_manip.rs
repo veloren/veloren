@@ -9,7 +9,7 @@ use vek::*;
 
 use common::{
     comp::{
-        self, InventoryUpdate, LootOwner, PickupItem,
+        self, LootOwner, PickupItem,
         group::members,
         item::{self, Lantern, MaterialStatManifest, flatten_counted_items, tool::AbilityMap},
         loot_owner::{LootOwnerKind, ONWERSHIP_TIMEOUT_FAST, ONWERSHIP_TIMEOUT_SLOW},
@@ -96,7 +96,7 @@ pub struct InventoryManipData<'a> {
     rbm: ReadExpect<'a, RecipeBookManifest>,
     inventories: WriteStorage<'a, comp::Inventory>,
     items: WriteStorage<'a, comp::PickupItem>,
-    inventory_updates: WriteStorage<'a, comp::InventoryUpdate>,
+    inventory_update_buffers: WriteStorage<'a, comp::InventoryUpdateBuffer>,
     light_emitters: WriteStorage<'a, comp::LightEmitter>,
     positions: ReadStorage<'a, comp::Pos>,
     scales: ReadStorage<'a, comp::Scale>,
@@ -209,18 +209,16 @@ impl ServerEvent for InventoryManipEvent {
                                 data.players.get(entity),
                             );
                             if !can_pickup {
-                                let event = comp::InventoryUpdate::new(
-                                    InventoryUpdateEvent::EntityCollectFailed {
-                                        entity: pickup_uid,
-                                        reason: CollectFailedReason::LootOwned {
-                                            owner: loot_owner.owner(),
-                                            expiry_secs: loot_owner
-                                                .time_until_expiration()
-                                                .as_secs(),
-                                        },
+                                let event = InventoryUpdateEvent::EntityCollectFailed {
+                                    entity: pickup_uid,
+                                    reason: CollectFailedReason::LootOwned {
+                                        owner: loot_owner.owner(),
+                                        expiry_secs: loot_owner.time_until_expiration().as_secs(),
                                     },
-                                );
-                                data.inventory_updates.insert(entity, event).unwrap();
+                                };
+                                if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                                    buf.push(event);
+                                }
                             }
                             can_pickup
                         });
@@ -306,16 +304,12 @@ impl ServerEvent for InventoryManipEvent {
                                         &data.msm,
                                     );
                                 }
-                                comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(
-                                    item_msg,
-                                ))
+                                InventoryUpdateEvent::Collected(item_msg)
                             } else {
-                                comp::InventoryUpdate::new(
-                                    InventoryUpdateEvent::EntityCollectFailed {
-                                        entity: pickup_uid,
-                                        reason: CollectFailedReason::InventoryFull,
-                                    },
-                                )
+                                InventoryUpdateEvent::EntityCollectFailed {
+                                    entity: pickup_uid,
+                                    reason: CollectFailedReason::InventoryFull,
+                                }
                             }
                         },
                         Ok(_) => {
@@ -343,13 +337,13 @@ impl ServerEvent for InventoryManipEvent {
                                     &data.msm,
                                 );
                             }
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Collected(item_msg))
+                            InventoryUpdateEvent::Collected(item_msg)
                         },
                     };
 
-                    data.inventory_updates
-                        .insert(entity, event)
-                        .expect("We know entity exists since we got its inventory.");
+                    if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                        buf.push(event);
+                    }
                 },
                 comp::InventoryManip::Collect {
                     sprite_pos,
@@ -357,11 +351,7 @@ impl ServerEvent for InventoryManipEvent {
                 } => {
                     let block = data.terrain.get(sprite_pos).ok().copied();
                     let mut drop_items = Vec::new();
-                    let inventory_update = data
-                        .inventory_updates
-                        .entry(entity)
-                        .expect("We know entity exists since we got its inventory.")
-                        .or_insert_with(InventoryUpdate::default);
+                    let mut inventory_update_buffer = data.inventory_update_buffers.get_mut(entity);
 
                     if let Some(block) = block {
                         // If there are items to be reclaimed from the block, add it to the
@@ -433,8 +423,9 @@ impl ServerEvent for InventoryManipEvent {
                                                 &data.msm,
                                             );
                                         }
-                                        inventory_update
-                                            .push(InventoryUpdateEvent::Collected(item_msg));
+                                        if let Some(ref mut buf) = inventory_update_buffer {
+                                            buf.push(InventoryUpdateEvent::Collected(item_msg));
+                                        }
                                     }
                                 }
                             }
@@ -507,8 +498,10 @@ impl ServerEvent for InventoryManipEvent {
                             );
                         }
                     }
-                    if !drop_items.is_empty() {
-                        inventory_update.push(InventoryUpdateEvent::BlockCollectFailed {
+                    if !drop_items.is_empty()
+                        && let Some(ref mut buf) = inventory_update_buffer
+                    {
+                        buf.push(InventoryUpdateEvent::BlockCollectFailed {
                             pos: sprite_pos,
                             reason: CollectFailedReason::InventoryFull,
                         })
@@ -791,10 +784,10 @@ impl ServerEvent for InventoryManipEvent {
                             },
                         }
                     }
-                    if let Some(event) = event {
-                        data.inventory_updates
-                            .insert(entity, comp::InventoryUpdate::new(event))
-                            .expect("We know entity exists since we got its inventory.");
+                    if let Some(event) = event
+                        && let Some(buf) = data.inventory_update_buffers.get_mut(entity)
+                    {
+                        buf.push(event);
                     }
                 },
                 comp::InventoryManip::Swap(a, b) => {
@@ -838,12 +831,9 @@ impl ServerEvent for InventoryManipEvent {
                         }
                     }
 
-                    data.inventory_updates
-                        .insert(
-                            entity,
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Swapped),
-                        )
-                        .expect("We know entity exists since we got its inventory.");
+                    if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                        buf.push(InventoryUpdateEvent::Swapped);
+                    }
                 },
                 comp::InventoryManip::SplitSwap(slot, target) => {
                     // If both slots have items and we're attempting to split from one stack
@@ -875,12 +865,9 @@ impl ServerEvent for InventoryManipEvent {
                         inventory.insert_or_stack_at(target, item).ok();
                     }
 
-                    data.inventory_updates
-                        .insert(
-                            entity,
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Swapped),
-                        )
-                        .expect("We know entity exists since we got its inventory.");
+                    if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                        buf.push(InventoryUpdateEvent::Swapped);
+                    }
                 },
                 comp::InventoryManip::Drop(slot) => {
                     let item = match slot {
@@ -899,12 +886,9 @@ impl ServerEvent for InventoryManipEvent {
                             *uid,
                         ));
                     }
-                    data.inventory_updates
-                        .insert(
-                            entity,
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Dropped),
-                        )
-                        .expect("We know entity exists since we got its inventory.");
+                    if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                        buf.push(InventoryUpdateEvent::Dropped);
+                    }
                 },
                 comp::InventoryManip::SplitDrop(slot) => {
                     let item = match slot {
@@ -927,12 +911,9 @@ impl ServerEvent for InventoryManipEvent {
                             *uid,
                         ));
                     }
-                    data.inventory_updates
-                        .insert(
-                            entity,
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Dropped),
-                        )
-                        .expect("We know entity exists since we got its inventory.");
+                    if let Some(buf) = data.inventory_update_buffers.get_mut(entity) {
+                        buf.push(InventoryUpdateEvent::Dropped);
+                    }
                 },
                 comp::InventoryManip::CraftRecipe {
                     craft_event,
@@ -1143,11 +1124,10 @@ impl ServerEvent for InventoryManipEvent {
                     };
 
                     // FIXME: We should really require the drop and write to be atomic!
-                    if items_were_crafted {
-                        let _ = data.inventory_updates.insert(
-                            entity,
-                            comp::InventoryUpdate::new(InventoryUpdateEvent::Craft),
-                        );
+                    if items_were_crafted
+                        && let Some(buf) = data.inventory_update_buffers.get_mut(entity)
+                    {
+                        buf.push(InventoryUpdateEvent::Craft);
                     }
                 },
                 comp::InventoryManip::Sort(sort_order) => {

@@ -135,7 +135,7 @@ impl ServerEvent for DialogueEvent {
         WriteStorage<'a, comp::Inventory>,
         ReadExpect<'a, AbilityMap>,
         ReadExpect<'a, MaterialStatManifest>,
-        WriteStorage<'a, comp::InventoryUpdate>,
+        WriteStorage<'a, comp::InventoryUpdateBuffer>,
     );
 
     fn handle(
@@ -148,7 +148,7 @@ impl ServerEvent for DialogueEvent {
             mut inventories,
             ability_map,
             msm,
-            mut inventory_updates,
+            mut inventory_update_buffers,
         ): Self::SystemData<'_>,
     ) {
         for DialogueEvent(sender, target, dialogue) in events {
@@ -193,10 +193,8 @@ impl ServerEvent for DialogueEvent {
                                      inventory claiming to have space, dropping remaining items..."
                                 );
                                 break;
-                            } else {
-                                inventory_updates
-                                    .insert(target, comp::InventoryUpdate::new(item_event))
-                                    .expect("The entity must exist because we have its inventory");
+                            } else if let Some(buf) = inventory_update_buffers.get_mut(target) {
+                                buf.push(item_event);
                             }
                         }
                     } else {

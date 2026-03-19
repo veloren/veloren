@@ -684,20 +684,14 @@ fn handle_give_item(
                 server.notify_client(client, msg);
             }
 
-            let mut inventory_update = server
+            let mut inventory_update_buffers = server
                 .state
                 .ecs_mut()
-                .write_storage::<comp::InventoryUpdate>();
-            if let Some(update) = inventory_update.get_mut(target) {
-                update.push(comp::InventoryUpdateEvent::Given);
-            } else {
-                inventory_update
-                    .insert(
-                        target,
-                        comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
-                    )
-                    .map_err(|_| Content::Plain("Entity target is dead!".to_string()))?;
+                .write_storage::<comp::InventoryUpdateBuffer>();
+            if let Some(buf) = inventory_update_buffers.get_mut(target) {
+                buf.push(comp::InventoryUpdateEvent::Given);
             }
+
             res
         } else {
             Err(Content::localized_with_args("command-invalid-item", [(
@@ -3248,13 +3242,16 @@ fn push_kit<I>(kit: I, count: usize, server: &mut Server, target: EcsEntity) -> 
 where
     I: Iterator<Item = (KitEntry, u32)>,
 {
-    if let (Some(mut target_inventory), mut target_inv_update) = (
+    if let (Some(mut target_inventory), mut inv_update_buffers) = (
         server
             .state()
             .ecs()
             .write_storage::<Inventory>()
             .get_mut(target),
-        server.state.ecs().write_storage::<comp::InventoryUpdate>(),
+        server
+            .state
+            .ecs()
+            .write_storage::<comp::InventoryUpdateBuffer>(),
     ) {
         // TODO: implement atomic `insert_all_or_nothing` on Inventory
         if target_inventory.free_slots() < count {
@@ -3264,10 +3261,9 @@ where
         for (item_id, quantity) in kit {
             push_item(item_id, quantity, server, &mut |item| {
                 let res = target_inventory.push(item);
-                let _ = target_inv_update.insert(
-                    target,
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Debug),
-                );
+                if let Some(buf) = inv_update_buffers.get_mut(target) {
+                    buf.push(comp::InventoryUpdateEvent::Debug);
+                }
 
                 res
             })?;

@@ -79,7 +79,7 @@ pub use self::{
     hardcore::Hardcore,
     inputs::CanBuild,
     inventory::{
-        CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
+        CollectFailedReason, Inventory, InventoryUpdateBuffer, InventoryUpdateEvent,
         item::{
             self, FrontendItem, Item, ItemConfig, ItemDrops, PickupItem, ThrownItem,
             item_key::ItemKey,

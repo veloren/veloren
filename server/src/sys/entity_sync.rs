@@ -3,7 +3,7 @@ use crate::{EditableSettings, Tick, client::Client, presence::RegionSubscription
 use common::{
     calendar::Calendar,
     comp::{
-        Collider, ForceUpdate, InventoryUpdate, Last, Ori, Player, Pos, Presence, Vel,
+        Collider, ForceUpdate, InventoryUpdateBuffer, Last, Ori, Player, Pos, Presence, Vel,
         presence::SpectatingEntity,
     },
     event::EventBus,
@@ -16,6 +16,7 @@ use common::{
     uid::Uid,
     vol::RectVolSize,
 };
+use common_base::dev_panic;
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use itertools::Either;
@@ -54,7 +55,7 @@ impl<'a> System<'a> for Sys {
             WriteStorage<'a, Last<Vel>>,
             WriteStorage<'a, Last<Ori>>,
             WriteStorage<'a, ForceUpdate>,
-            WriteStorage<'a, InventoryUpdate>,
+            WriteStorage<'a, InventoryUpdateBuffer>,
         ),
     );
 
@@ -91,7 +92,7 @@ impl<'a> System<'a> for Sys {
                 mut last_vel,
                 mut last_ori,
                 mut force_updates,
-                mut inventory_updates,
+                mut inventory_update_buffers,
             ),
         ): Self::SystemData,
     ) {
@@ -432,12 +433,46 @@ impl<'a> System<'a> for Sys {
             }
         }
 
+        let mut entities_to_remove_buf = Vec::new();
+
         // Sync inventories
-        for (inventory, update, client) in (inventories, &mut inventory_updates, &clients).join() {
-            client.send_fallible(ServerGeneral::InventoryUpdate(
-                inventory.clone(),
-                update.take_events(),
-            ));
+        for (entity, buf, inventory, client) in (
+            &entities,
+            &mut inventory_update_buffers,
+            inventories.maybe(),
+            clients.maybe(),
+        )
+            .join()
+        {
+            let Some(inventory) = inventory else {
+                dev_panic!(format!(
+                    "Entity without Inventory has InventoryUpdateBuffer component. This is a bug. \
+                     entity={:?}",
+                    entity
+                ));
+                entities_to_remove_buf.push(entity);
+                continue;
+            };
+            let Some(client) = client else {
+                dev_panic!(format!(
+                    "Entity without Client has InventoryUpdateBuffer component. This is a bug. \
+                     entity={:?}",
+                    entity
+                ));
+                entities_to_remove_buf.push(entity);
+                continue;
+            };
+
+            let events = buf.take_events();
+            if !events.is_empty() {
+                client.send_fallible(ServerGeneral::InventoryUpdate(inventory.clone(), events));
+            }
+        }
+
+        // In optimized builds, remove InventoryUpdateBuffer component from entities
+        // that shouldn't have it (builds with debug assertions will panic)
+        for entity in entities_to_remove_buf {
+            inventory_update_buffers.remove(entity);
         }
 
         // Consume/clear the current outcomes and convert them to a vec
@@ -469,7 +504,6 @@ impl<'a> System<'a> for Sys {
         for force_update in (&mut force_updates).join() {
             force_update.clear();
         }
-        inventory_updates.clear();
 
         // Sync resources
         // TODO: doesn't really belong in this system (rename system or create another
