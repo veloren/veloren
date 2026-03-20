@@ -132,6 +132,47 @@ impl Animation for ComboAnimation {
                     init_biped_small_alpha(&mut next, s_a);
                     biped_small_alpha_axe(&mut next, s_a, move1abs, move2abs);
                 },
+                Some("common.abilities.custom.umber_legoom.doublestrike") => {
+                    let anim_time = anim_time.min(1.0);
+                    let (move1base, move2base) = if strike == current_strike {
+                        match stage_section {
+                            StageSection::Buildup => (anim_time.sqrt(), 0.0),
+                            StageSection::Action => (1.0, anim_time.powi(4)),
+                            StageSection::Recover => (1.0, 1.0),
+                            _ => (0.0, 0.0),
+                        }
+                    } else {
+                        (1.0, 1.0)
+                    };
+                    let move1 = move1base * multi_strike_pullback;
+                    let move2 = move2base * multi_strike_pullback;
+                    next.chest.orientation =
+                        Quaternion::rotation_z(PI * 0.45 * move1 - PI * 1.0 * move2);
+                    next.hand_r.position = Vec3::new(0.5, 2.0, 0.5);
+                    next.hand_r.orientation = Quaternion::rotation_x(PI * 0.45);
+                    next.hand_l.position = Vec3::new(-0.5, 2.0, 0.5);
+                    next.hand_l.orientation = Quaternion::rotation_x(PI * 0.45);
+                    match strike {
+                        0 => {
+                            next.head.orientation =
+                                Quaternion::rotation_z(-PI * 0.3 * move1 + PI * 0.6 * move2);
+
+                            next.main.position = Vec3::new(-1.0, 10.0, -3.0);
+                        },
+                        _ => {
+                            next.head.orientation =
+                                Quaternion::rotation_z(-PI * 0.3 * move1 + PI * 0.6 * move2)
+                                    * Quaternion::rotation_x(PI / 8.0 * move1 - PI / 8.0 * move2);
+
+                            next.control
+                                .orientation
+                                .rotate_x(PI / 8.0 * move1 - PI / 8.0 * move2);
+
+                            next.main.position = Vec3::new(-1.0 + 4.0 * move2, 10.0, -3.0);
+                            next.main.orientation = Quaternion::rotation_y(-PI / 3.0 * move2);
+                        },
+                    }
+                },
                 Some("common.abilities.custom.ashen_warrior.axe.doublestrike") => {
                     let anim_time = anim_time.min(1.0);
                     let (move1base, move2base) = if strike == current_strike {

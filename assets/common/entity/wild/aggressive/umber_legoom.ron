@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("umber_legoom"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.biped_small.legoom"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.world.legoom.umber_legoom"),
+        )),    ),
+    meta: [],
+)

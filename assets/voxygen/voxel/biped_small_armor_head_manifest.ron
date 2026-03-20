@@ -123,6 +123,9 @@
         ),
         "common.items.npc_armor.biped_small.red_legoom.head.red_legoom": (
             vox_spec: ("npc.red_legoom.head", (-7.0, -5.0, -2.0)),
-        ),                                
+        ),
+        "common.items.npc_armor.biped_small.umber_legoom.head.umber_legoom": (
+            vox_spec: ("npc.umber_legoom.head", (-6.0, -5.0, -2.0)),
+        ),
     },
 ))

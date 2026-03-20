@@ -178,6 +178,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (0.0, 3.5),
                 (PurpleLegoom, _) => (-0.5, 3.5),
                 (RedLegoom, _) => (0.0, 3.5),
+                (UmberLegoom, _) => (0.0, 3.5),
             },
             chest: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 9.0),
@@ -211,6 +212,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (0.0, 7.0),
                 (PurpleLegoom, _) => (0.0, 7.5),
                 (RedLegoom, _) => (0.0, 7.0),
+                (UmberLegoom, _) => (0.0, 7.0),
             },
             pants: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, -3.0),
@@ -244,6 +246,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (0.0, -3.5),
                 (PurpleLegoom, _) => (0.0, -4.0),
                 (RedLegoom, _) => (0.0, -3.5),
+                (UmberLegoom, _) => (0.0, -3.5),
             },
             tail: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0),
@@ -277,6 +280,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (0.0, 0.0),
                 (PurpleLegoom, _) => (0.0, 0.0),
                 (RedLegoom, _) => (0.0, 0.0),
+                (UmberLegoom, _) => (0.0, 0.0),
             },
             hand: match (body.species, body.body_type) {
                 (Gnome, _) => (4.0, 0.5, -1.0),
@@ -310,6 +314,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (3.0, 0.0, 1.5),
                 (PurpleLegoom, _) => (3.0, 0.0, 1.5),
                 (RedLegoom, _) => (3.0, 0.0, 1.5),
+                (UmberLegoom, _) => (3.0, 0.0, 1.5),
             },
             foot: match (body.species, body.body_type) {
                 (Gnome, _) => (3.0, 0.0, 4.0),
@@ -343,6 +348,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (2.0, -0.5, 4.0),
                 (PurpleLegoom, _) => (2.0, -0.5, 4.0),
                 (RedLegoom, _) => (2.0, -0.5, 4.0),
+                (UmberLegoom, _) => (2.0, -0.5, 4.0),
             },
             grip: match (body.species, body.body_type) {
                 (Gnome, _) => (0.0, 0.0, 5.0),
@@ -376,6 +382,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => (0.0, 0.0, 8.0),
                 (PurpleLegoom, _) => (0.0, 0.0, 8.0),
                 (RedLegoom, _) => (0.0, 0.0, 8.0),
+                (UmberLegoom, _) => (0.0, 0.0, 8.0),
             },
             scaler: match (body.species, body.body_type) {
                 (Gnome, _) => 0.8,
@@ -409,6 +416,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (OchreLegoom, _) => 0.65,
                 (PurpleLegoom, _) => 0.65,
                 (RedLegoom, _) => 0.65,
+                (UmberLegoom, _) => 0.65,
             },
             wing_for_foot: matches!((body.species, body.body_type), (BloodmoonHeiress, _)),
         }
@@ -707,6 +715,7 @@ pub fn mount_transform(
         (OchreLegoom, _) => (0.0, -4.5, 3.0),
         (PurpleLegoom, _) => (0.0, -3.5, 7.5),
         (RedLegoom, _) => (0.0, -3.5, 5.0),
+        (UmberLegoom, _) => (0.0, -3.5, 5.0),
     }
     .into();
 

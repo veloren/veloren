@@ -981,6 +981,9 @@ pub fn default_main_tool(body: &Body) -> Option<&'static str> {
             (biped_small::Species::RedLegoom, _) => {
                 Some("common.items.npc_weapons.unique.red_legoom_hoe")
             },
+            (biped_small::Species::UmberLegoom, _) => {
+                Some("common.items.npc_weapons.unique.umber_legoom_hook")
+            },
             _ => Some("common.items.npc_weapons.biped_small.adlet.hunter"),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {

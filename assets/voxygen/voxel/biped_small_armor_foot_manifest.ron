@@ -343,6 +343,14 @@
             right: (
                  vox_spec: ("npc.red_legoom.foot_r", (-1.0, -1.5, -4.0)),
             )
-        ),                                
+        ),
+        "common.items.npc_armor.biped_small.umber_legoom.foot.umber_legoom": (
+            left: (
+                vox_spec: ("npc.umber_legoom.foot_r", (-1.0, -1.5, -4.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.umber_legoom.foot_r", (-1.0, -1.5, -4.0)),
+            )
+        ),
     },
 ))

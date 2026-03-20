@@ -639,6 +639,7 @@ impl Body {
                 biped_small::Species::OchreLegoom => Vec3::new(0.9, 0.8, 1.15),
                 biped_small::Species::PurpleLegoom => Vec3::new(0.9, 0.8, 1.15),
                 biped_small::Species::RedLegoom => Vec3::new(0.9, 0.8, 1.15),
+                biped_small::Species::UmberLegoom => Vec3::new(0.9, 0.8, 1.15),
                 biped_small::Species::Gnome => Vec3::new(1.0, 0.75, 1.4),
                 // TODO: doublecheck, derived from default
                 biped_small::Species::Mandragora => Vec3::new(1.0, 0.75, 1.4),
@@ -1136,7 +1137,8 @@ impl Body {
                 biped_small::Species::GreenLegoom
                 | biped_small::Species::OchreLegoom
                 | biped_small::Species::PurpleLegoom
-                | biped_small::Species::RedLegoom => 25,
+                | biped_small::Species::RedLegoom
+                | biped_small::Species::UmberLegoom => 25,
                 biped_small::Species::Cactid => 50,
                 biped_small::Species::Gnarling => 50,
                 biped_small::Species::GnarlingChieftain => 150,
@@ -1435,7 +1437,8 @@ impl Body {
                 biped_small::Species::GreenLegoom
                 | biped_small::Species::OchreLegoom
                 | biped_small::Species::PurpleLegoom
-                | biped_small::Species::RedLegoom => 0.8,
+                | biped_small::Species::RedLegoom
+                | biped_small::Species::UmberLegoom => 0.8,
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {
@@ -1816,6 +1819,7 @@ impl Body {
                 (biped_small::Species::OchreLegoom, _) => (0.0, -0.4, 1.2),
                 (biped_small::Species::PurpleLegoom, _) => (0.0, -0.36, 1.66),
                 (biped_small::Species::RedLegoom, _) => (0.0, -0.3, 1.4),
+                (biped_small::Species::UmberLegoom, _) => (0.0, -0.3, 1.4),
             },
             Body::Golem(b) => match (b.species, b.body_type) {
                 (golem::Species::StoneGolem, _) => (0.0, 0.2, 8.8),

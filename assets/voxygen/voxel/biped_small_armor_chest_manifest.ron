@@ -131,6 +131,9 @@
         ),
         "common.items.npc_armor.biped_small.red_legoom.chest.red_legoom": (
             vox_spec: ("npc.red_legoom.chest", (-3.0, -4.0, -2.5)),
-        ),                                
+        ),
+        "common.items.npc_armor.biped_small.umber_legoom.chest.umber_legoom": (
+            vox_spec: ("npc.umber_legoom.chest", (-3.0, -4.0, -2.5)),
+        ),
     },
 ))
