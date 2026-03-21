@@ -19,7 +19,7 @@ DashMelee(
         multi_target: Some(Normal),
     ),
     energy_drain: 0,
-    forward_speed: 9.0,
+    forward_speed: 5.0,
     buildup_duration: 0.8,
     charge_duration: 2.0,
     swing_duration: 0.1,
