@@ -160,7 +160,7 @@ vec3 magnetosphere_tint() {
 
 #if (CLOUD_MODE > CLOUD_MODE_NONE)
 float emission_strength() {
-    return clamp((magnetosphere() - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
+    return clamp((magnetosphere() - 0.3) * 1.3, 0, 1) * max(sun_dir.z, 0);
 }
 
 float emission_br() {
@@ -178,7 +178,7 @@ float get_sun_brightness(/*vec3 sun_dir*/) {
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
+    return max(sun_dir.z + 0.6, 0.0) * 0.1;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -339,7 +339,10 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     /* vec3 sun_dir = sun_info.dir;
     vec3 moon_dir = moon_info.dir; */
     vec3 sun_dir = sun_dir.xyz;
-    vec3 moon_dir = moon_dir.xyz;
+    // TODO: Use real moon dir here and have other ways to light up night.
+    // So this is a hack to just pretend the moon is still opposite to the sun
+    // for this and `get_moon_brightness`.
+    vec3 moon_dir = -sun_dir.xyz;
 
     float sun_light = get_sun_brightness(/*sun_dir*/) * sun_info.block;//sun_info.brightness;;
     float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block * ambiance;//moon_info.brightness;
@@ -663,7 +666,7 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
     if (with_features) {
         float moon_radius = 0.035;
         
-        float tca = dot(moon_dir, dir);
+        float tca = dot(-moon_dir, dir);
 
         float radius2 = moon_radius * moon_radius;
         float d2 = 1.0 - tca * tca;
@@ -677,14 +680,14 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
 
             float t0 = tca - thc;
 
-            vec3 moon_normal = (t0 * dir - moon_dir) * (1.0 / moon_radius);
+            vec3 moon_normal = (t0 * dir + moon_dir) * (1.0 / moon_radius);
 
             float noise = snoise3(moon_normal * 8.2) + snoise3(moon_normal * 25.0) * 0.4;
 
             float direct_sunlight = max(dot(moon_normal, -sun_dir), 0.0);
 
             float planet_albedo = 0.12;
-            float planet_reflected_light = (1.0 - abs(dot(moon_dir, sun_dir))) * max(dot(moon_normal, -moon_dir), 0.0) * planet_albedo;
+            float planet_reflected_light = (1.0 - abs(dot(moon_dir, sun_dir))) * max(dot(moon_normal, moon_dir), 0.0) * planet_albedo;
             float light = max(direct_sunlight + planet_reflected_light, 0.001);
 
             // ~sun is the same direction from the moon as it is to us.
@@ -701,7 +704,7 @@ vec3 get_sky_color(vec3 dir, vec3 origin, vec3 f_pos, float quality, bool with_f
         moon_halo_color *= 0.2;
         moon_surf *= 0.05;
     }
-    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, moon_dir), 0) * max(dot(sun_dir, moon_dir), 0), moon_halo_power);
+    vec3 moon_halo = moon_halo_color * pow(max(dot(dir, -moon_dir), 0) * max(dot(sun_dir, -moon_dir), 0), moon_halo_power);
     vec3 moon_light = moon_halo + moon_surf;
 
     // Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
