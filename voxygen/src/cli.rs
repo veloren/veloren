@@ -39,6 +39,9 @@ pub enum Commands {
     /// List available wgpu backends. This is called by Airshipper to show a
     /// dropbox of available backends.
     ListWgpuBackends,
+    /// List available wgpu devices. This is called by Airshipper to show a
+    /// dropbox of available devices.
+    ListWgpuDevices,
 }
 
 #[derive(Clone)]
