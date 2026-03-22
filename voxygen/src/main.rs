@@ -36,6 +36,7 @@ use std::{panic, path::PathBuf};
 use tracing::{info, warn};
 #[cfg(feature = "egui-ui")]
 use veloren_voxygen::ui::egui::EguiState;
+use wgpu::{Backends, Instance};
 
 fn main() {
     // Process CLI arguments
@@ -54,6 +55,14 @@ fn main() {
 
                 for backend in backends {
                     println!("{backend}");
+                }
+                return;
+            },
+            cli::Commands::ListWgpuDevices => {
+                let adapters = Instance::new(&wgpu::InstanceDescriptor::from_env_or_default())
+                    .enumerate_adapters(Backends::default());
+                for adapter in adapters {
+                    println!("{:?}", adapter.get_info().name);
                 }
                 return;
             },
