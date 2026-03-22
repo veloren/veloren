@@ -9,12 +9,15 @@ pub use common::event::{
     InitializeSpectatorEvent, InitiateInviteEvent, InventoryManipEvent, InviteResponseEvent,
     KillEvent, KnockbackEvent, LandOnGroundEvent, MakeAdminEvent, MineBlockEvent, MountEvent,
     NpcInteractEvent, ParryHookEvent, PoiseChangeEvent, PossessEvent, ProcessTradeActionEvent,
-    RegrowHeadEvent, RemoveLightEmitterEvent, RequestPluginsEvent, RequestSiteInfoEvent,
-    RespawnEvent, SetBattleModeEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent,
-    SoundEvent, StartInteractionEvent, StartTeleportingEvent, SummonBeamPillarsEvent, TamePetEvent,
+    RegrowHeadEvent, RemoveLightEmitterEvent, RequestSiteInfoEvent, RespawnEvent,
+    SetBattleModeEvent, SetLanternEvent, SetPetStayEvent, ShockwaveEvent, ShootEvent, SoundEvent,
+    StartInteractionEvent, StartTeleportingEvent, SummonBeamPillarsEvent, TamePetEvent,
     TeleportToEvent, TeleportToPositionEvent, ThrowEvent, ToggleSpriteLightEvent, TransformEvent,
     UpdateCharacterDataEvent, UpdateMapMarkerEvent,
 };
+
+#[cfg(feature = "plugins")]
+pub use common::event::RequestPluginsEvent;
 
 /// X-macro that provides list of server events to the macro this is called
 /// with.
@@ -85,12 +88,16 @@ macro_rules! server_events {
             ToggleSpriteLightEvent
             TransformEvent
             StartInteractionEvent
-            RequestPluginsEvent
             CreateAuraEntityEvent
             RegrowHeadEvent
             SetBattleModeEvent
             SummonBeamPillarsEvent
             ArcingEvent
+        }
+
+        #[cfg(feature = "plugins")]
+        $macro! {
+            RequestPluginsEvent
         }
     };
 }

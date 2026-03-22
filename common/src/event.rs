@@ -279,6 +279,7 @@ pub struct TeleportToPositionEvent {
     pub position: Vec3<f32>,
 }
 
+#[cfg(feature = "plugins")]
 pub struct RequestPluginsEvent {
     pub entity: EcsEntity,
     pub plugins: Vec<PluginHash>,
@@ -687,38 +688,40 @@ pub trait EmitExt<E> {
 /// ```
 #[macro_export]
 macro_rules! event_emitters {
-    ($($vis:vis struct $read_data:ident[$emitters:ident] { $($ev_ident:ident: $ty:ty),+ $(,)? })+) => {
+    ($($vis:vis struct $read_data:ident[$emitters:ident] { $($(#[$($tt:tt)*])? $ev_ident:ident: $ty:ty),+ $(,)? })+) => {
         mod event_emitters {
             use super::*;
             use specs::shred;
             $(
             #[derive(specs::SystemData)]
             pub struct $read_data<'a> {
-                $($ev_ident: Option<specs::Read<'a, $crate::event::EventBus<$ty>>>),+
+                $($(#[$($tt)*])? $ev_ident: Option<specs::Read<'a, $crate::event::EventBus<$ty>>>),+
             }
 
             impl<'a> $read_data<'a> {
                 pub fn get_emitters(&self) -> $emitters<'_> {
                     $emitters {
-                        $($ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
+                        $($(#[$($tt)*])? $ev_ident: self.$ev_ident.as_ref().map(|e| e.emitter())),+
                     }
                 }
             }
 
             pub struct $emitters<'a> {
-                $($ev_ident: Option<$crate::event::Emitter<'a, $ty>>),+
+                $($(#[$($tt)*])? $ev_ident: Option<$crate::event::Emitter<'a, $ty>>),+
             }
 
             impl<'a> $emitters<'a> {
                 #[expect(unused)]
                 pub fn append(&mut self, mut other: Self) {
                     $(
-                        self.$ev_ident.as_mut().zip(other.$ev_ident).map(|(a, mut b)| a.append(&mut b.events));
+                        $(#[$($tt)*])?
+                        {self.$ev_ident.as_mut().zip(other.$ev_ident).map(|(a, mut b)| a.append(&mut b.events));}
                     )+
                 }
             }
 
             $(
+                $(#[$($tt)*])?
                 impl<'a> $crate::event::EmitExt<$ty> for $emitters<'a> {
                     fn emit(&mut self, event: $ty) { self.$ev_ident.as_mut().map(|e| e.emit(event)); }
                     fn emit_many(&mut self, events: impl IntoIterator<Item = $ty>) { self.$ev_ident.as_mut().map(|e| e.emit_many(events)); }
