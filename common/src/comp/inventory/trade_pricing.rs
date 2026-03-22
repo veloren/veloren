@@ -626,6 +626,9 @@ impl TradePricing {
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.consumable.") => {
                 Good::Potions
             },
+            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.charms.") => {
+                Good::Potions
+            },
             ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.food.") => {
                 Good::Food
             },
