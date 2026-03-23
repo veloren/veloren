@@ -123,7 +123,7 @@ impl Screen {
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .center_x()
-                    .align_y(Align::End)
+                    .align_y(Align::Center)
                     .into()
                 } else {
                     Space::new(Length::Fill, Length::Fill).into()
@@ -293,7 +293,7 @@ impl Screen {
                     bottom_content.into(),
                     right_art.into(),
                 ]))
-                .height(Length::Units(85))
+                .height(Length::Units(90))
                 .style(style::container::Style::image(imgs.loading_art));
 
                 vec![
