@@ -3296,10 +3296,11 @@ impl Hud {
         }
 
         // Buffs
-        if let (Some(player_buffs), Some(health), Some(energy)) = (
+        if let (Some(player_buffs), Some(health), Some(energy), Some(poise)) = (
             buffs.get(info.viewpoint_entity),
             healths.get(entity),
             energies.get(entity),
+            poises.get(entity),
         ) {
             for event in BuffsBar::new(
                 &self.imgs,
@@ -3313,6 +3314,7 @@ impl Hud {
                 global_state,
                 health,
                 energy,
+                poise,
                 &time,
             )
             .set(self.ids.buffs, ui_widgets)

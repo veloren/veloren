@@ -10,7 +10,7 @@ use crate::{
 use i18n::Localization;
 
 use common::{
-    comp::{BuffKind, Buffs, Energy, Health, Stance},
+    comp::{BuffKind, Buffs, Energy, Health, Poise, Stance},
     resources::Time,
 };
 use conrod_core::{
@@ -52,6 +52,7 @@ pub struct BuffsBar<'a> {
     global_state: &'a GlobalState,
     health: &'a Health,
     energy: &'a Energy,
+    poise: &'a Poise,
     time: &'a Time,
 }
 
@@ -68,6 +69,7 @@ impl<'a> BuffsBar<'a> {
         global_state: &'a GlobalState,
         health: &'a Health,
         energy: &'a Energy,
+        poise: &'a Poise,
         time: &'a Time,
     ) -> Self {
         Self {
@@ -83,6 +85,7 @@ impl<'a> BuffsBar<'a> {
             global_state,
             health,
             energy,
+            poise,
             time,
         }
     }
@@ -145,15 +148,25 @@ impl Widget for BuffsBar<'_> {
             let show_health = self.global_state.settings.interface.always_show_bars
                 || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON
                 || decayed_health > 0.0;
+            let show_poise = self.global_state.settings.interface.always_show_bars
+                || (self.poise.current() - self.poise.maximum()).abs() > Poise::POISE_EPSILON;
             let show_energy = self.global_state.settings.interface.always_show_bars
                 || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
-            let offset = if show_energy && show_health {
-                140.0
-            } else if show_health || show_energy {
-                95.0
+
+            let offset = if show_health {
+                if show_energy {
+                    128.0
+                } else if show_poise {
+                    112.0
+                } else {
+                    96.0
+                }
+            } else if show_energy {
+                96.0
             } else {
                 55.0
             };
+
             // Alignment
             Rectangle::fill_with([484.0, 100.0], color::TRANSPARENT)
                 .mid_bottom_with_margin_on(ui.window, offset)
