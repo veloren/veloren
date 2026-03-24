@@ -182,3 +182,5 @@ armor-mail-iron-belt = Järnbälte
     .desc = Sturdy and unyielding, across ages of war.
 armor-pirate-chest = Piratväst
     .desc = Sliten till remsor från oräkneliga slagsmål.
+armor-misc-shoulder-leather_strip = Läderstrimlor
+    .desc = Tanned animal hide strips formed into loose shoulder pads.

@@ -182,3 +182,5 @@ common-abilities-sword-cleaving_sky_splitter = Divisor Celestial
     .desc =
         Un poderoso ataque que supuestamente puede incluso dividir el cielo, pero también dividirá a los enemigos
         Requiere postura de corte
+common-abilities-debug-evolve = Evolucionar
+    .desc = Te conviertes en tu mejor versión.

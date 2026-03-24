@@ -502,3 +502,4 @@ weapon-component-sword-ornate-cobalt = Лезо карбованого меча 
     .desc = { "" }
 weapon-component-sword-sabre-cobalt = Лезо шаблі з Кобальту
     .desc = { "" }
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }
