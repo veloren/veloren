@@ -482,3 +482,5 @@ armor-adventurer-shoulder = Мандрівницькі Наплічники
     .desc = На Ваші плечі лягає важка ноша.
 armor-cloth_blue-belt = Блакитний Лляний Пояс
     .desc = Пофарбований в блакитний колір пояс з грубої тканини.
+armor-misc-head-gnarling_mask = Ватажа Маска
+    .desc = Пахне димом і деревом.

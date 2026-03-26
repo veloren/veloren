@@ -103,3 +103,8 @@ command-help-list =
 
     Додатково ви можете використовувати наступні скорочення:
     { $additional-shortcuts }
+command-airship-desc = Створює повітряний корабель
+command-alias-desc = Змінює ваш псевдонім
+command-area_add-desc = Додає нову зону будівництва
+command-area_list-desc = Виводить список усіх зон будівництва
+command-area_remove-desc = Видаляє вказану зону будівництва

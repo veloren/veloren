@@ -175,3 +175,13 @@ sprite-crafting_ing-animal_misc-large_horn = Stort horn
         Vapen gjorda med det har ökade smidighetseffekter.
 sprite-crafting_ing-animal_misc-venom_sac = Giftsäck
     .desc = En giftig säck från ett giftigt djur.
+sprite-crafting_ing-leather-leather_strips = Läderstrimlor
+    .desc = Enkla och versatila.
+sprite-velorite-lodestone = Lodsten
+    .desc = En kristallisk sten som verkar vara lite magnetisk.
+object-potion_empty = Tom vial
+    .desc = En enkel glasvial som används för att hålla olika vätskor.
+sprite-crafting_ing-animal_misc-lively_vine = Livliga lianer
+    .desc = Jag tror att det just rörde sig...
+sprite-crafting_ing-cloth-cloth_strips = Tygstrimlor
+    .desc = Små och mjuka, men ändå användbara.
