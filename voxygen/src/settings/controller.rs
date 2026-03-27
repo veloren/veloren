@@ -838,12 +838,12 @@ impl ControllerSettings {
                 mod2: Button::Simple(GilButton::Unknown),
             }),
             GameInput::AcceptGroupInvite => Some(LayerEntry {
-                button: Button::Simple(GilButton::DPadLeft),
+                button: Button::Simple(GilButton::DPadRight),
                 mod1: Button::Simple(GilButton::RightTrigger),
                 mod2: Button::Simple(GilButton::Unknown),
             }),
             GameInput::DeclineGroupInvite => Some(LayerEntry {
-                button: Button::Simple(GilButton::DPadRight),
+                button: Button::Simple(GilButton::DPadLeft),
                 mod1: Button::Simple(GilButton::RightTrigger),
                 mod2: Button::Simple(GilButton::Unknown),
             }),

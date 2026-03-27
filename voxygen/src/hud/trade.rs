@@ -673,10 +673,25 @@ impl<'a> Trade<'a> {
         };
         if Button::image(self.imgs.button)
             .w_h(31.0 * 5.0, 12.0 * 2.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .bottom_left_with_margins_on(state.ids.bg, 90.0, 47.0)
+            .label(&self.localized_strings.get_msg("hud-trade-decline"))
+            .label_font_size(self.fonts.cyri.scale(14))
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_y(Relative::Scalar(2.0))
+            .set(state.ids.decline_button, ui)
+            .was_clicked()
+        {
+            event = Some(TradeEvent::TradeAction(TradeAction::Decline));
+        }
+        if Button::image(self.imgs.button)
+            .w_h(31.0 * 5.0, 12.0 * 2.0)
             .hover_image(hover_img)
             .press_image(press_img)
             .image_color(accept_button_luminance)
-            .bottom_left_with_margins_on(state.ids.bg, 90.0, 47.0)
+            .right_from(state.ids.decline_button, 20.0)
             .label(&self.localized_strings.get_msg("hud-trade-accept"))
             .label_font_size(self.fonts.cyri.scale(14))
             .label_color(TEXT_COLOR)
@@ -696,22 +711,6 @@ impl<'a> Trade<'a> {
             } else {
                 event = Some(TradeEvent::TradeAction(TradeAction::Accept(trade.phase())));
             }
-        }
-
-        if Button::image(self.imgs.button)
-            .w_h(31.0 * 5.0, 12.0 * 2.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .right_from(state.ids.accept_button, 20.0)
-            .label(&self.localized_strings.get_msg("hud-trade-decline"))
-            .label_font_size(self.fonts.cyri.scale(14))
-            .label_color(TEXT_COLOR)
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_y(Relative::Scalar(2.0))
-            .set(state.ids.decline_button, ui)
-            .was_clicked()
-        {
-            event = Some(TradeEvent::TradeAction(TradeAction::Decline));
         }
         event
     }

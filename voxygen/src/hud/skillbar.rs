@@ -637,7 +637,7 @@ impl<'a> Skillbar<'a> {
         }
         if show_energy && !self.health.is_dead {
             let offset = if show_health || decayed_health > 0.0 {
-                34.0
+                33.0
             } else {
                 1.0
             };
@@ -660,7 +660,7 @@ impl<'a> Skillbar<'a> {
                 .set(state.ids.frame_energy, ui);
         }
         if show_poise && !self.health.is_dead {
-            let offset = 17.0;
+            let offset = 16.0;
 
             let poise_colour = match self.poise.previous_state {
                 self::PoiseState::KnockedDown => BLACK,
