@@ -1320,9 +1320,8 @@ pub enum CollectFailedReason {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
-    #[default]
     Init,
     Used,
     Consumed(ItemKey),
@@ -1345,11 +1344,11 @@ pub enum InventoryUpdateEvent {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct InventoryUpdate {
+pub struct InventoryUpdateBuffer {
     events: Vec<InventoryUpdateEvent>,
 }
 
-impl InventoryUpdate {
+impl InventoryUpdateBuffer {
     pub fn new(event: InventoryUpdateEvent) -> Self {
         Self {
             events: vec![event],
@@ -1361,8 +1360,6 @@ impl InventoryUpdate {
     pub fn take_events(&mut self) -> Vec<InventoryUpdateEvent> { std::mem::take(&mut self.events) }
 }
 
-impl Component for InventoryUpdate {
-    // TODO: This could probabably be `DenseVecStorage` (except we call clear on
-    // this and that essentially leaks for `DenseVecStorage` atm afaict).
-    type Storage = specs::VecStorage<Self>;
+impl Component for InventoryUpdateBuffer {
+    type Storage = specs::DenseVecStorage<Self>;
 }

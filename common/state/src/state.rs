@@ -316,7 +316,7 @@ impl State {
         ecs.register::<comp::Agent>();
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();
-        ecs.register::<comp::InventoryUpdate>();
+        ecs.register::<comp::InventoryUpdateBuffer>();
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::MapMarker>();
         ecs.register::<comp::Projectile>();

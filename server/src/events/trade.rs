@@ -428,16 +428,10 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
 
     // Notify clients about trade event, to they can update recipe book and
     // do all other necessary book-keeping
-    let mut inventory_update = ecs.write_storage::<comp::InventoryUpdate>();
+    let mut inventory_update_buffers = ecs.write_storage::<comp::InventoryUpdateBuffer>();
     for who in [0, 1].into_iter() {
-        if let Some(updates) = inventory_update.get_mut(entities[who]) {
-            updates.push(comp::InventoryUpdateEvent::Given)
-        } else {
-            // Not supposed to happen, but does, resulting in #1859, #2150, and #2045.
-            let _ = inventory_update.insert(
-                entities[who],
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Given),
-            );
+        if let Some(buf) = inventory_update_buffers.get_mut(entities[who]) {
+            buf.push(comp::InventoryUpdateEvent::Given)
         }
     }
     TradeResult::Completed
@@ -449,7 +443,7 @@ mod tests {
 
     use super::*;
     use common::{
-        comp::{InventoryUpdate, slot::InvSlotId},
+        comp::{InventoryUpdateBuffer, slot::InvSlotId},
         uid::IdMaps,
     };
 
@@ -469,7 +463,7 @@ mod tests {
         mockworld.insert(AbilityMap::load().cloned());
         mockworld.register::<Inventory>();
         mockworld.register::<Uid>();
-        mockworld.register::<InventoryUpdate>();
+        mockworld.register::<InventoryUpdateBuffer>();
 
         let player: EcsEntity = mockworld
             .create_entity()

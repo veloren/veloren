@@ -562,12 +562,14 @@ pub fn handle_possess(
         let mut subscriptions = ecs.write_storage::<RegionSubscription>();
         let mut admins = ecs.write_storage::<comp::Admin>();
         let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+        let mut inventory_update_buffers = ecs.write_storage::<comp::InventoryUpdateBuffer>();
         let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
 
         transfer_component(&mut players, possessor, possessee, |x| x);
         transfer_component(&mut subscriptions, possessor, possessee, |x| x);
         transfer_component(&mut admins, possessor, possessee, |x| x);
         transfer_component(&mut waypoints, possessor, possessee, |x| x);
+        transfer_component(&mut inventory_update_buffers, possessor, possessee, |x| x);
         let mut update_counter = 0;
         transfer_component(&mut force_updates, possessor, possessee, |mut x| {
             x.update();

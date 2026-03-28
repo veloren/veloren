@@ -705,7 +705,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, inventory);
             self.write_component_ignore_entity_dead(
                 entity,
-                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::default()),
+                comp::InventoryUpdateBuffer::new(comp::InventoryUpdateEvent::Init),
             );
 
             if let Some(hardcore) = hardcore {
