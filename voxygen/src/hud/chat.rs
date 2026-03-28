@@ -714,11 +714,24 @@ impl Widget for Chat<'_> {
 
                 // If the user is a moderator display a moderator icon with their alias.
                 if *is_moderator {
+                    let offset_with_timestamp = show_timestamp
+                        .then(|| {
+                            Text::new("[00:00] ")
+                                .font_size(self.fonts.universal.scale(15))
+                                .font_id(self.fonts.universal.conrod_id)
+                                .get_w(ui)
+                        })
+                        .flatten()
+                        .unwrap_or(0.0);
                     let group_width =
                         group_width(chat_type, ui, &self.fonts.universal).unwrap_or(0.0);
                     Image::new(self.imgs.chat_moderator_badge)
                         .w_h(CHAT_ICON_WIDTH, CHAT_ICON_HEIGHT)
-                        .top_left_with_margins_on(item.widget_id, 2.0, 7.0 + group_width)
+                        .top_left_with_margins_on(
+                            item.widget_id,
+                            2.0,
+                            9.0 + group_width + offset_with_timestamp,
+                        )
                         .parent(state.ids.message_box_bg)
                         .set(state.ids.chat_badges[badge_id], ui);
 
