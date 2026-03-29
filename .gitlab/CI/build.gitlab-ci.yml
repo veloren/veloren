@@ -26,7 +26,8 @@ translation:
     - echo 'SET veloren.timestamp = "'"$(git show --no-patch --no-notes --pretty='%cd' HEAD)"'";' > upload.sql;
     - echo "SET veloren.branch = \$${TAGUUID}\$${CI_COMMIT_REF_NAME}\$${TAGUUID}\$;" >> upload.sql;
     - echo "SET veloren.sha = \$${TAGUUID}\$${CI_COMMIT_SHA}\$${TAGUUID}\$;" >> upload.sql;
-    - echo '\copy translations ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql;
+    - echo '\copy translations_stage ("country_code", "file_name", "translation_key", "status", "git_commit") from '"'translation_analysis.csv' csv header" >> upload.sql;
+    - echo 'CALL public.load_translations_from_stage();' >> upload.sql;
     - cat upload.sql;
     - PGPASSWORD="${CIDBPASSWORD}" PGSSLROOTCERT="./.gitlab/ci-db.crt" psql "sslmode=verify-ca host=cidb.veloren.net port=30432 dbname=translations" -U hgseehzjtsrghtjdcqw -f upload.sql;
   retry:
