@@ -33,18 +33,24 @@ hud-crafting-dismantle_explanation =
     para reciclarlo.
 hud-crafting-modular_desc = Arrastra aquí componentes de objetos para fabricar un arma
 hud-crafting-mod_weap_prim_slot_title = Componente primario del arma
-hud-crafting-mod_weap_prim_slot_desc = Coloca aquí el componente primario del arma.
-    Por ejemplo, una hoja de espada, una cabeza de hacha o palas de arco.
+hud-crafting-mod_weap_prim_slot_desc = Coloca aquí un componente primario de arma. (Ej. una hoja de espada, una cabeza de hacha o brazos de arco.).
 hud-crafting-mod_weap_sec_slot_title = Componente secundario del arma
-hud-crafting-mod_weap_sec_slot_desc = Coloca aquí el componente secundario del arma.
-    Por ejemplo, una empuñadura de espada, una empuñadura de arco o un nucleo de bastón.
+hud-crafting-mod_weap_sec_slot_desc = Coloca aquí el componente secundario del arma. (Ej. una empuñadura de espada, una empuñadura de arco o un nucleo de bastón).
 hud-crafting-mod_comp_metal_prim_slot_title = Lingote de metal
-hud-crafting-mod_comp_metal_prim_slot_desc = Coloca aquí un lingote de metal.
-    Sólo se pueden usar ciertos metales para fabricar armas.
+hud-crafting-mod_comp_metal_prim_slot_desc = Coloca aquí un lingote de metal, sólo ciertos metales se pueden usar para fabricar armas.
 hud-crafting-mod_comp_wood_prim_slot_title = Madera
-hud-crafting-mod_comp_wood_prim_slot_desc = Coloca aquí madera.
-    Sólo se pueden usar ciertos tipos de madera para fabricar armas.
+hud-crafting-mod_comp_wood_prim_slot_desc = Coloca aquí un tipo de madera, sólo se pueden usar ciertos tipos de madera para fabricar armas.
 hud-crafting-mod_comp_sec_slot_title = Material de origen animal
 hud-crafting-mod_comp_sec_slot_desc = A modo opcional, puedes colocar como ingrediente ciertos materiales de origen animal.
 hud-crafting-repair_slot_title = Objeto dañado
 hud-crafting-repair_slot_desc = Coloca aquí un objeto para ver cuánto costaría repararlo con su nivel de durabilidad actual.
+hud-crafting-repair-selection = Selección
+hud-crafting-repair_equipped = Equipado
+hud-crafting-tool_cata = Herramientas:
+hud-crafting-req_crafting_station = Estación:
+hud-crafting-repair_all = Todo
+hud-crafting-recipe-uncraftable = La Receta no se Puede Fabricar
+hud-crafting-repair_desc = Arrastra objetos dañados aquí para repararlos
+hud-crafting-recipe-unlearned = Primero debes aprender a fabricar esta receta.
+hud-crafting-show_unknown_recipes = Mostrar recetas desconocidas
+hud-crafting-hide_unknown_recipes = Ocultar recetas desconocidas

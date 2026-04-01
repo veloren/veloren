@@ -63,10 +63,10 @@ common-abilities-sword-basic_crescent_slash = Tajo creciente
 
 ## Posición de hendedura
 
-veloren-core-pseudo_abilities-sword-cleaving_stance = Posición de hendedura
-    .desc = Te permite golpear a varios enemigos con ataques amplios.
-common-abilities-sword-cleaving_double_slash = Golpe doble de hendedura
-    .desc = Una sucesión de dos golpes que pueden golpear a varios enemigos.
+veloren-core-pseudo_abilities-sword-cleaving_stance = Posición de corte
+    .desc = Ataques en esta posición pueden golpear a múltiples enemigos.
+common-abilities-sword-cleaving_double_slash = Golpe doble de corte
+    .desc = Un combo de dos golpes que pueden cortar múltiples enemigos.
 common-abilities-sword-cleaving_spiral_slash = Tajo circular
     .desc = Golpea a los enemigos que te rodean con un ataque giratorio.
 common-abilities-sword-cleaving_bladestorm = Lluvia de espadas
@@ -74,31 +74,31 @@ common-abilities-sword-cleaving_bladestorm = Lluvia de espadas
         Destroza a tus enemigos con varios ataques giratorios de tu espada.
         Requiere una cantidad moderada de combo para utilizarse.
 common-abilities-sword-cleaving_cross_cut = Tajo cruzado de hendedura
-    .desc = Un tajo doble de izquierda a derecha que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_skewer = Estocada de hendedura
-    .desc = Golpe perforante que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_cascade = Cascada de hendedura
-    .desc = Golpe descendente que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_fell_strike = Tajo horizontal de hendedura
-    .desc = Golpe fuerte y rápido con la espada en dirección horizontal que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_crescent_slash = Tajo creciente de hendedura
+    .desc = Un tajo doble de izquierda a derecha que puede cortar a través de enemigos.
+common-abilities-sword-cleaving_skewer = Estocada de Corte
+    .desc = Una estocada punzante capaz de atravesar a los enemigos.
+common-abilities-sword-cleaving_cascade = Cascada de Corte
+    .desc = Golpe descendente que puede cortar a través de enemigos.
+common-abilities-sword-cleaving_fell_strike = Tajo horizontal de Corte
+    .desc = Golpe fuerte y rápido con la espada que puede cortar a través de enemigos.
+common-abilities-sword-cleaving_crescent_slash = Tajo creciente de Corte
     .desc = Golpe ascendente con la espada en dirección vertical que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_blade_fever = Ira del espadachín
+common-abilities-sword-cleaving_blade_fever = Fiebre de la espada
     .desc =
-        Golpea con la espada sin llevar nada de cuidado, lo que aumenta la potencia de tus golpes, pero disminuye tu capacidad defensiva.
-        Requiere estar en la posición de hendedura.
+        Ataca con más imprudencia, aumentando la potencia de tus golpes, aunque te expongas a los ataques del rival.
+        Requiere postura de corte.
 common-abilities-sword-cleaving_whirlwind_slice = Hendedura
     .desc =
         Golpea a todos los enemigos que te rodean.
-        Cambia a la posición de hendedura.
+        Entra en postura de corte.
 common-abilities-sword-cleaving_sky_splitter = Corte celestial
     .desc =
-        Un tajo tan potente que se dice que puede llegar a cortar el cielo, aunque también sirve para partir en dos a tus enemigos.
-        Requiere estar en la posición de hendedura.
+        Un tajo tan potente que se dice que puede llegar a cortar el cielo, también sirve para partir en dos tus enemigos.
+        Requiere postura de corte.
 common-abilities-sword-cleaving_earth_splitter = Divisor de la tierra
     .desc =
         Parte el suelo. El impacto del golpe será mucho mayor si se utiliza durante una caída.
-        Cambia a la posición de hendedura.
+        Entra en postura de corte.
 
 ## Posición ágil
 
@@ -180,41 +180,41 @@ common-abilities-sword-crippling_eviscerate = Destripamiento
 
 ## Posición intensa
 
-veloren-core-pseudo_abilities-sword-heavy_stance = Posición intensa
+veloren-core-pseudo_abilities-sword-heavy_stance = Posición Robusta
     .desc = Tus ataques pueden aturdir a los enemigos y se vuelven más potentes y lentos.
 common-abilities-sword-heavy_double_slash = Golpe doble fuerte
     .desc = Una sucesión de dos golpes lentos que pueden aturdir.
-common-abilities-sword-heavy_slam = Presa
+common-abilities-sword-heavy_slam = Cuerpo Pesado
     .desc = Golpe potente descendiente que se puede cargar para aumentar aún más su fuerza.
 common-abilities-sword-heavy_guillotine = Guillotina
     .desc =
         Tajo fuerte con gran probabilidad de aturdir a aquello que no consiga matar.
         Requiere una cantidad moderada de combo para utilizarse.
-common-abilities-sword-heavy_fortitude = Gran fortaleza
+common-abilities-sword-heavy_fortitude = Fortaleza
     .desc =
-        Los ataques que recibes no te aturden.
-        Requiere estar en la posición intensa.
+        Aumenta la resistencia al aturdimiento y, cuanto más daño recibas, más aturdidores serán tus ataques.
+        Requiere la postura robusta.
 common-abilities-sword-heavy_pillar_thrust = Caída en picado
     .desc =
         Atraviesa a tu enemigo con la espada hasta llegar al suelo. El golpe será más potente si se utiliza durante una caída.
-        Requiere estar en la posición intensa.
-common-abilities-sword-heavy_sweep = Golpe potente
+        Requiere postura robusta.
+common-abilities-sword-heavy_sweep = Barrido Potente
     .desc =
-        Golpea con fuerza y gran amplitud para infligir daño adicional a enemigos aturdidos.
-        Cambia a la posición intensa.
-common-abilities-sword-heavy_pommel_strike = Golpe de empuñadura
+        Un golpe potente, amplio y de gran alcance que inflige más daño a un enemigo aturdido.
+        Entra a la posición robusta.
+common-abilities-sword-heavy_pommel_strike = Golpe de Empuñadura
     .desc =
-        Golpea al enemigo en la cabeza con la empuñadura de la espada para tratar de aturdirlo.
-        Requiere estar en la posición intensa.
-common-abilities-sword-heavy_cross_cut = Tajo cruzado potente
+        Golpea a tu enemigo con un golpe contundente en la cabeza; el efecto aturdidor será mayor si está bloqueando.
+        Entra en postura robusta.
+common-abilities-sword-heavy_cross_cut = Tajo Cruzado Pesado
     .desc = Un tajo doble de izquierda a derecha que puede aturdir.
-common-abilities-sword-heavy_skewer = Estocada potente
+common-abilities-sword-heavy_skewer = Estocada Potente
     .desc = Golpe perforante que puede aturdir.
-common-abilities-sword-heavy_cascade = Cascada potente
+common-abilities-sword-heavy_cascade = Cascada Pesada
     .desc = Golpe descendente que puede aturdir.
-common-abilities-sword-heavy_fell_strike = Tajo horizontal potente
+common-abilities-sword-heavy_fell_strike = Tajo Horizontal Pesado
     .desc = Golpe fuerte y rápido con la espada en dirección horizontal que puede aturdir.
-common-abilities-sword-heavy_crescent_slash = Tajo creciente potente
+common-abilities-sword-heavy_crescent_slash = Tajo Creciente Pesado
     .desc = Golpe ascendente con la espada en dirección vertical que puede aturdir.
 
 ## Posición defensiva
@@ -259,7 +259,7 @@ common-abilities-sword-defensive_disengage = Retirada defensiva
 common-abilities-debug-possess = Flecha de posesión
     .desc = Dispara una flecha que te permite controlar a tu objetivo.
 # Habilidades de bastón
-common-abilities-staff-fireshockwave = Anillo de fuego
+common-abilities-staff-fireshockwave = Onda de choque
     .desc = Incendia el suelo con una ardiente onda de choque.
 # Habilidades de cetro
 common-abilities-sceptre-wardingaura = Aura del guardián
@@ -270,8 +270,8 @@ common-abilities-sword-agile_dual_flurry = Ráfaga de estocadas
         Arremete con una serie de estocadas usando ambas espadas.
         Requiere estar en la posición ágil.
 # Debug abilities
-common-abilities-debug-glide_speeder = Bbrrrum
-    .desc = Consigues el poder para llegar hasta dónde alcance tu mirada.
+common-abilities-debug-glide_speeder = Brrrum
+    .desc = Te otorga la fuerza para llegar hasta dónde alcance tu mirada
 # Sword abilities
 common-abilities-sword-agile_dual_perforate = Torrente de estocadas
     .desc = Arremete con una gran serie de golpes ligeros con ambas espadas.
@@ -279,7 +279,7 @@ common-abilities-sword-agile_dual_perforate = Torrente de estocadas
 common-abilities-sword-basic_dual_cross_cut = Tajo cruzado básico.
     .desc = Golpea al mismo tiempo tanto por la izquierda como por la derecha.
 # Sword abilities
-common-abilities-sword-heavy_dual_cross_cut = Tajo cruzado pesado.
+common-abilities-sword-heavy_dual_cross_cut = Tajo Cruzado Pesado.
     .desc = Un tajo doble que puede aturdir al objetivo.
 # Sword abilities
 common-abilities-sword-agile_dual_cross_cut = Tajo cruzado ágil
@@ -292,13 +292,13 @@ common-abilities-sword-crippling_dual_cross_cut = Tajo cruzado de incapacitació
     .desc = Un golpe que ataca por ambos lados al mismo tiempo y puede producir hemorragia.
 # Sword abilities
 common-abilities-sword-cleaving_dual_cross_cut = Tajo cruzado de hendedura
-    .desc = Un golpe que ataca por ambos lados al mismo tiempo y puede atravesar a varios enemigos.
+    .desc = Un golpe que ataca por ambos lados y puede cortar a través de enemigos.
 # Axe abilities
 common-abilities-axe-berserk = Berséker
     .desc = Aumenta tu poder ofensivo a cambio de disminuir tu defensa.
 # Axe abilities
 common-abilities-axe-rising_tide = Marea creciente
-    .desc = Golpe ascendente que bonifica en gran medida el combo.
+    .desc = Golpe ascendente incrementa en gran medida el combo, incluso más si el objetivo está sangrando.
 # Axe abilities
 common-abilities-axe-savage_sense = Sentido salvaje
     .desc = Identifica un punto débil de tu objetivo para asegurarte de que el próximo ataque hará daño crítico.
@@ -311,13 +311,15 @@ common-abilities-axe-adrenaline_rush = Subidón de adrenalina
 common-abilities-axe-maelstrom = Torbellino
     .desc =
         Golpea a todo cuanto te rodee con un ataque en círculos devastador.
-        Esta habilidad es la evolución de "Ejecución" cuando se tiene suficiente combo.
+        Se actualiza automáticamente desde Ejecución en { $min_combo_upg } de combo.
 # Axe abilities
 common-abilities-axe-rake = Rastrillo
     .desc = Restriega tu hacha en el objetivo, lo que provoca hemorragia.
 # Axe abilities
-common-abilities-axe-bloodfeast = Sed de sangre
-    .desc = Tu hacha sacia su sed y te sana con la sangre en los golpes a enemigos que sufren de hemorragia.
+common-abilities-axe-bloodfeast = Festín de Sangre
+    .desc =
+        Tu hacha tiene sed de la sangre de tus enemigos, recargándote con cada golpe a un enemigo sangrando.
+        Requiere 10 de combo para usar.
 # Axe abilities
 common-abilities-axe-fierce_raze = Arremetida feroz
     .desc = Una serie veloz de golpes sobre el objetivo.
@@ -328,13 +330,13 @@ common-abilities-axe-furor = Frenesí
 common-abilities-axe-lacerate = Laceración
     .desc =
         Desolla a tu objetivo para provocarles hemorragia.
-        Requiere 30 de combo para usarse.
-        Esta habilidad se convierte en "Rompeolas" si tienes al menos 50 de combo.
+        Requiere { $min_combo } de combo para usarse.
+        Esta habilidad se convierte en Rompeolas en { $min_combo_upg } de combo si está desbloqueado.
 # Axe abilities
 common-abilities-axe-riptide = Rompeolas
     .desc =
-        Desolla a todo lo que te rodee.
-        Esta habilidad es la evolución de "Laceración" cuando se tiene suficiente combo.
+        Desuella a todos los enemigos cercanos, despojándolos de su sangre.
+        Se mejora automáticamente a partir de Laceración en { $min_combo_upg } de combo.
 # Axe abilities
 common-abilities-axe-skull_bash = Rompecráneos
     .desc = Golpe con el ojo de tu hacha que puede aturdir al objetivo.
@@ -350,11 +352,11 @@ common-abilities-axe-defiance = Desafío
 # Axe abilities
 common-abilities-axe-capsize = Vuelco
     .desc =
-        Llévate por delante a todo lo que tengas alrededor con un ataque devastador.
-        Esta habilidad es la evolución de "Rompeolas" cuando se tiene suficiente combo.
+        Aturde todo lo que esté cerca con un potente golpe giratorio.
+        Se actualiza automáticamente desde Mamparo en { $min_combo_upg } de combo.
 # Debug abilities
 common-abilities-debug-glide_boost = Bbrrrum
-    .desc = Consigues suficiente fuerza para alcanzar el cielo.
+    .desc = Te otorga la fuerza para alcanzar el cielo
 # Debug abilities
 common-abilities-debug-evolve = Evolucionar
     .desc = Conviértete en un mejor tú.
@@ -367,25 +369,24 @@ common-abilities-sword-cleaving_dual_bladestorm = Filotormenta
 common-abilities-axe-execute = Ejecución
     .desc =
         Un golpe devastador que suele ser letal.
-        Requiere 30 de combo para usarse.
-        Esta habilidad se convierte en "Torbellino" si tienes al menos 50 de combo.
+        Requiere { $min_combo } de combo para usarse.
+        Esta habilidad se convierte en Torbellino en { $min_combo_upg } de combo si está desbloqueado.
 # Sword abilities
-common-abilities-sword-cleaving_dual_spiral_slash = Torbellino carmesí
+common-abilities-sword-cleaving_dual_spiral_slash = Tajo circular
     .desc = Gira con ambas espadas para golpear a todo cuánto te rodee.
 # Sword abilities
 common-abilities-sword-cleaving_dual_whirlwind_slice = Tempestad afilada
     .desc =
         Golpea a todos los enemigos que te rodean con ataques circulares usando ambas espadas.
-        Cambia a la posición de hendedura.
+        Entra en postura de corte.
 # Axe abilities
 common-abilities-axe-triple_chop = Corte triple
     .desc = Una sucesión rápida de tres golpes.
 # Axe abilities
-common-abilities-axe-keelhaul = Pasar por la quilla
+common-abilities-axe-keelhaul = Bajo la Quilla
     .desc =
-        Agarra a tu enemigo y tráelo hacia ti.
-        Consume la mitad de tu combo actual.
-        Su efecto es más potente cuanto más combo se haya consumido.
+        Engancha tu oponente para halarlo hacia ti.
+        Escala con el combo tras activarlo, consume la mitad del combo.
 # Axe abilities
 common-abilities-axe-dual_fierce_raze = Arremetida feroz
     .desc = Una serie veloz de golpes sobre el objetivo usando dos hachas.
@@ -399,11 +400,108 @@ common-abilities-axe-plunder = Saqueo
 common-abilities-axe-fracture = Rotura
     .desc =
         Golpea a tu enemigo para incapacitar su movimiento.
-        Consume la mitad de tu combo actual.
-        Su efecto es más potente cuanto más combo se haya consumido.
+        Escala con combo al activarse, Consume la mitad de tu combo actual.
 # Axe abilities
-common-abilities-axe-bulkhead = Rompebarcos
+common-abilities-axe-bulkhead = Mamparo
     .desc =
-        Golpe potente que incluso se dice que puede herir a titanes.
-        Requiere 30 de combo para usarse.
-        Esta habilidad se convierte en "Vuelco" si tienes al menos 50 de combo.
+        Golpe potente que algunos dicen que puede hacer tambalear a titanes.
+        Requiere { $min_combo } de combo para usarse.
+        Esta habilidad se actualiza a Vuelco en { $min_combo_upg } de combo si está desbloqueado.
+common-abilities-hammer-leap = Golpe Infernal
+    .desc = Un ataque que hace daño de área y empuja hacia atrás a los objetivos. Salta a la posición del cursor.
+common-abilities-staff-firebomb = Bomba incendiaria
+    .desc = Lanza una bola de fuego que estalla al impacto.
+common-abilities-sceptre-lifestealbeam = Ladrón de vida
+    .desc = Lanza un rayo que drena la vida de tus enemigos.
+common-abilities-staff-flamethrower = Lanzallamas
+    .desc = Esparce llamas justo en frente tuyo.
+common-abilities-sceptre-healingaura = Aura curativa
+    .desc = Cura a tus aliados. Necesita combo para activarse.
+common-abilities-hammer-solid_smash = Golpe Contundente
+    .desc = Un golpe contundente, que hará daño
+common-abilities-hammer-wide_wallop = Gran Impacto
+    .desc = Retrocede y mándalos a volar
+common-abilities-hammer-scornful_swipe = Golpe Despectivo
+    .desc =
+        Aumenta tu resistencia al desequilibrio y la recompensa de energía.
+        Si caes ante un enemigo, su daño de ataque y su vulnerabilidad al daño aumentan.
+common-abilities-hammer-tremor = Tremor
+    .desc = Golpea la tierra con suficiente fuerza para hacer que el suelo bajo tus enemigos tiemble.
+common-abilities-hammer-vigorous_bash = Golpe Vigoroso
+    .desc =
+        Usa la cabeza de tu martillo para golpear rápidamente a tus enemigos.
+        Otorga un bono de 4 en combo si el enemigo está aturdido.
+common-abilities-hammer-heavy_whorl = Remolino Pesado
+    .desc = Golpeas con tu martillo a todos los enemigos rodeándote.
+common-abilities-hammer-dual_heavy_whorl = Remolino Pesado
+    .desc = Golpeas con tus martillos a todos los enemigos rodeándote.
+common-abilities-hammer-intercept = Intercepción
+    .desc = Carga hacia adelante con tu martillo, lanzando todo tu peso tras el golpe.
+common-abilities-hammer-retaliate = Represalia
+    .desc = ¡Bloquea y contraataca el ataque de tu enemigo con un solo movimiento rápido!
+common-abilities-hammer-spine_cracker = Rompe Columnas
+    .desc =
+        ¡Colócate detrás de tu enemigo y dale un buen golpe por la espalda!
+        Multiplica tu daño significativamente y reduce el equilibrio del objetivo.
+        Requiere { $min_combo } de combo para usarlo.
+common-abilities-hammer-dual_intercept = Intercepción
+    .desc = Carga hacia adelante con tus martillos, lanzando todo tu peso tras el golpe.
+common-abilities-hammer-breach = Brecha
+    .desc =
+        Rompe el intento de defensa de tu enemigo con un pesado golpe de tu martillo.
+        Inflinge daño extra y reduce el equilibrio del objetivo.
+common-abilities-hammer-pile_driver = Martinete
+    .desc =
+        Golpea a tu enemigo contra el suelo, deteniendo su movimiento hasta que libere sus piernas.
+        Reduce la velocidad de movimiento de tu enemigo.
+common-abilities-hammer-lung_pummel = Golpe Pulmonar
+    .desc =
+        Asesta con el martillo en el costado de tu enemigo dejándolo sin aliento.
+        Requiere { $min_combo } de combo para usarse.
+common-abilities-hammer-helm_crusher = Triturador de Yelmos
+    .desc =
+        Golpea la cabeza de tu enemigo con tu martillo, aturdiéndole.
+        Requiere { $min_combo } de combo para su uso.
+common-abilities-hammer-iron_tempest = Tempestad de Hierro
+    .desc = Balancea tu martillo tan rápido que es como una tormenta, dispersando a tus enemigos.
+common-abilities-hammer-dual_iron_tempest = Tempestad de Hierro
+    .desc = Balancea tus martillos tan rápido que son como una tormenta, dispersando a tus enemigos.
+common-abilities-hammer-upheaval = Conmoción
+    .desc =
+        Estrella tu martillo contra tu enemigo, lanzándolo al aire.
+        Incrementa el daño de equilibrio recibido por el objetivo.
+common-abilities-hammer-dual_upheaval = Conmoción
+    .desc =
+        Estrella tus martillos contra tu enemigo, lanzándolo al aire.
+        Incrementa el daño de equilibrio recibido por el objetivo.
+common-abilities-hammer-rampart = Muralla
+    .desc =
+        Golpea el suelo, causando un leve levantamiento tectónico.
+        Reduce el daño recibido para todos los miembros de tu grupo.
+common-abilities-hammer-tenacity = Tenacidad
+    .desc =
+        Mantente fuerte mientras resistes ataque tras ataque
+        Incrementa tu resistencia al daño y reduce la velocidad de movimiento.
+        Cada golpe recibido potencia tu energía.
+common-abilities-hammer-thunderclap = Trueno
+    .desc =
+        Libera un devastador y lleno de adrenalina golpe descendente contra tu enemigo.
+        Requiere { $min_combo } de combo para usarlo.
+common-abilities-hammer-seismic_shock = Choque Sísmico
+    .desc =
+        Golpea el suelo con suficiente fuerza para lanzar a tus enemigos por los aires.
+        Requiere { $min_combo } de combo para usarlo.
+common-abilities-hammer-earthshaker = Sacudidor de Tierra
+    .desc =
+        Golpea el suelo con tu martillo para desatar una onda de choque a tu alrededor.
+        Reduce la velocidad de movimiento y la recompensa de energía de tus enemigos.
+        Requiere{ $min_combo } de combo para usarlo.
+common-abilities-hammer-judgement = Juicio
+    .desc =
+        Deja caer tu martillo sobre tu enemigo con todo tu peso.
+        Se incrementa grandemente el daño si el objetivo está aturdido.
+        Requiere { $min_combo } de combo para usarlo.
+common-abilities-bow-heavy_nock = Golpe fuerte
+    .desc = Dispara con tu arco una flecha pesada para empujar el objetivo. Entre más ligero sea y más cerca estés, mayor será el empuje.
+common-abilities-bow-death_volley_heavy_shot = Muerte en Abanico
+    .desc = Lanza una ráfaga de flechas al aire que se dispersarán en una lluvia mortal.

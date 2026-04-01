@@ -13,12 +13,12 @@ hud-chat-default_death_msg = { $name } ha muerto
 hud-chat-suicide_msg = { $name } se ha suicidado
 hud-chat-fall_kill_msg = { $name } ha muerto por caer desde demasiada altura
 hud-chat-died_of_buff_nonexistent_msg =
-    .burning = { $victim } se ha quemado hasta morir
-    .bleeding = { $victim } ha muerto desangrado
-    .curse = { $victim } ha sido víctima de una maldición
-    .crippled = { $victim } ha muerto por heridas graves
-    .frozen = { $victim } ha muerto de hipotermia
-    .mysterious = { $victim } ha muerto de manera misteriosa
+    .burning = { $victim } murió de: quemado
+    .bleeding = { $victim } murió de: desangrado
+    .curse = { $victim } murió de: una maldición
+    .crippled = { $victim } murió de: heridas graves
+    .frozen = { $victim } murió de: congelado
+    .mysterious = { $victim } murió de: manera misteriosa
 
 ## PvE
 
@@ -28,12 +28,12 @@ hud-chat-npc_ranged_kill_msg = { $attacker } ha matado a { $victim } con un arma
 hud-chat-npc_explosion_kill_msg = { $attacker } ha hecho explotar a { $victim }
 hud-chat-npc_energy_kill_msg = { $attacker } ha matado a { $victim } con magia
 hud-chat-died_of_npc_buff_msg =
-    .burning = { $victim } se ha quemado hasta morir a manos de { $attacker }
-    .bleeding = { $victim } ha muerto desangrado a manos de { $attacker }
-    .curse = { $victim } ha sido víctima de una maldición a manos de { $attacker }
-    .crippled = { $victim } ha muerto por heridas graves a manos de { $attacker }
-    .frozen = { $victim } ha muerto de hipotermia a manos de { $attacker }
-    .mysterious = { $victim } ha muerto de manera misteriosa a manos de { $attacker }
+    .burning = { "[" }{ $victim }] murió de: quemado causado por { $attacker }
+    .bleeding = { "[" }{ $victim }] murió de: desangrado causado por { $attacker }
+    .curse = { "[" }{ $victim }] murió de: una maldición causada por { $attacker }
+    .crippled = { "[" }{ $victim }] murió de: heridas graves causadas por { $attacker }
+    .frozen = { "[" }{ $victim }] murió de: congelado causado por { $attacker }
+    .mysterious = { "[" }{ $victim }] murió de: manera misteriosa causado por { $attacker }
 
 ## PvP
 
@@ -43,22 +43,19 @@ hud-chat-pvp_ranged_kill_msg = { $attacker } ha matado a { $victim } con un arma
 hud-chat-pvp_explosion_kill_msg = { $attacker } ha hecho explotar a { $victim }
 hud-chat-pvp_energy_kill_msg = { $attacker } ha matado a { $victim } con magia
 hud-chat-died_of_pvp_buff_msg =
-    .burning = { $victim } se ha quemado hasta morir a manos de { $attacker }
-    .bleeding = { $victim } ha muerto desangrado a manos de { $attacker }
-    .curse = { $victim } ha sido víctima de una maldición a manos de { $attacker }
-    .crippled = { $victim } ha muerto por heridas graves a manos de { $attacker }
-    .frozen = { $victim } ha muerto de hipotermia a manos de { $attacker }
-    .mysterious = { $victim } ha muerto de manera misteriosa a manos de { $attacker }
+    .burning = { $victim } murió de: quemado causado por { $attacker }
+    .bleeding = { $victim } murió de: desangrado causado por { $attacker }
+    .curse = { $victim } murió de: una maldición causada por { $attacker }
+    .crippled = { $victim } murió de: heridas graves causadas por { $attacker }
+    .frozen = { $victim } murió de: congelado causado por { $attacker }
+    .mysterious = { $victim } murió de: manera misteriosa causado por { $attacker }
 
 ## Inventario
 
 hud-loot-pickup-msg =
-    { $actor ->
-        [You] { "\u0000" }
-       *[other] { $actor } ha obtenido
-    } { $amount ->
-        [1] { $item }
-       *[other] { $amount }x { $item }
+    { $amount ->
+        [1] { $actor } picked up { $item }
+       *[other] { $actor } picked up { $amount }x { $item }
     }
 # Player /tell messages, $user_gender should be available
 hud-chat-tell-from = De [{ $alias }]: { $msg }
@@ -82,3 +79,5 @@ hud-loot-pickup-msg-you =
         [1] { $item }
        *[other] { $amount }x { $item }
     }
+hud-chat-singleplayer-motd1 = ¡Todo un mundo para ti! Hora de estirar...
+hud-chat-singleplayer-motd2 = ¿Qué tal la serenidad?
