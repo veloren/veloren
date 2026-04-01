@@ -61,3 +61,5 @@ object-sunflower_ice_tea = Té helado de girasol
     .desc = Hecho a base de semillas de girasol recién peladas.
 sprite-food-meat-beast_small_cooked = Trozo de carne cocinada
     .desc = Poco hecha.
+sprite-lettuce-lettuce = Lechuga
+    .desc = Una verdura con hojas verde vibrante. ¡La lechuga hace algunas ensaladas!

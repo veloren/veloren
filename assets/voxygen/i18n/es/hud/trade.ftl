@@ -3,32 +3,36 @@ hud-trade-phase1_description =
     Arrastra los objetos que quieras comerciar
     al área correspondiente.
 hud-trade-phase2_description =
-    La transacción se ha bloqueado para 
-    que tengas tiempo a revisarla.
-hud-trade-phase3_description = La transacción está siendo procesada.
+    El comercio se ha bloqueado para darte 
+     tiempo para revisarla.
+hud-trade-phase3_description = El comercio está siendo procesado.
 hud-trade-persons_offer = Oferta de { $playername }
 hud-trade-has_accepted =
     { $playername }
     ha aceptado
 hud-trade-accept = Aceptar
-hud-trade-decline = Rechazar
+hud-trade-decline = Declinar
 hud-trade-invite_sent = Solicitud de comercio enviada a { $playername }.
-hud-trade-result-completed = Trato hecho con éxito.
-hud-trade-result-declined = Trato rechazado.
-hud-trade-result-nospace = No hay suficiente espacio para completar la transacción.
-hud-trade-tooltip_hint_1 = <Shift-Click para añadir/retirar del trato.>
-hud-trade-tooltip_hint_2 = <Ctrl-Click para igualar el valor del trato.>
+hud-trade-result-completed = Comercio completado con éxito.
+hud-trade-result-declined = Comercio declinado.
+hud-trade-result-nospace = No hay suficiente espacio para completar el comercio.
+hud-trade-tooltip_hint_1 = <Shift-Click para añadir/retirar del comercio.>
+hud-trade-tooltip_hint_2 = <Ctrl-Click para Auto-Balancear el valor del comercio.>
 hud-trade-your_offer = Tu oferta
 hud-trade-their_offer = Su oferta
 hud-trade-amount_input = Selecciona un objeto
 hud-trade-buy =
     Precio de compra: { $coin_num ->
-        [one] 1 moneda
+        [one] una moneda
        *[other] { $coin_formatted } monedas
     }
 hud-trade-sell =
     Precio de venta: { $coin_num ->
-        [one] 1 moneda
+        [one] una moneda
        *[other] { $coin_formatted } monedas
     }
 hud-confirm-trade-for-nothing = ¿Seguro que quieres regalar estos objetos a cambio de nada?
+hud-trade-invite-accepted = { $target } aceptó tu solicitud de comercio.
+hud-trade-invite-declined = { $target } declinó tu solicitud de comercio.
+hud-trade-invite-timed_out = Se agotó el tiempo para la oferta de comercio a { $target }.
+hud-trade-player_who = Jugador { $player_who }

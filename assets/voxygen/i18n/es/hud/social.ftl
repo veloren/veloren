@@ -1,4 +1,4 @@
-hud-social = Otros jugadores
+hud-social = Jugadores
 hud-social-online = Conectados:
 hud-social-friends = Amigos
 hud-social-not_yet_available = No disponible todavía

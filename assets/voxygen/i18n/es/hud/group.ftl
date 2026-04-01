@@ -11,3 +11,6 @@ hud-group-add_friend = Agregar a amigos
 hud-group-link_group = Conectar grupos
 hud-group-in_menu = En el menú
 hud-group-members = Miembros del grupo
+hud-group-invite-accepted = { $target } aceptó tu invitación al grupo.
+hud-group-invite-declined = { $target } ha rechazado tu invitación para grupo.
+hud-group-invite-timed_out = La invitación para grupo a { $target } ha caducado.

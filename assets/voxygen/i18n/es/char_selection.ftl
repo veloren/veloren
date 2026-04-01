@@ -21,3 +21,9 @@ char_selection-create_info_name = ¡Tu personaje necesita un nombre!
 char_selection-version_mismatch = ¡AVISO! Este servidor se está ejecutando en una versión diferente a la de tu cliente. Por favor, actualiza el juego.
 char_selection-joining_character = Entrando al mundo...
 char_selection-rules = Normas
+char_selection-editing_character = Guardando el Personaje...
+char_selection-hardcore_tooltip =
+    Los personajes en modo extremo serán eliminados al morir, no hay otros cambios en la dificultad.
+
+    El modo extremo es recomendado únicamente para jugadores experimentados.
+char_selection-hardcore = Modo Extremo

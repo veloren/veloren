@@ -502,3 +502,4 @@ weapon-component-axe-poleaxe-bronze = Cabeza de alabarda de bronce
     .desc = { "" }
 weapon-component-staff-brand-ironwood = Asta de enseña de maderaférrea
     .desc = { "" }
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }

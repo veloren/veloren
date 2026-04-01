@@ -29,7 +29,11 @@ hud-temp_quest_text =
     Cuando te sientas preparado, ¡intenta conseguir equipamiento aún mejor dentro de las mazmorras y las cuevas marcadas en tu mapa!
 hud-spell = Conjuros
 hud-diary = Diario
-hud-free_look_indicator = Vista libre activa. Pulsa { $key } para desactivarla.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] Vista libre activa. Pulsa { $key } para desactivarla.
+       *[other] Vista libre activa. Deja de presionar { $key } para desactivarla.
+    }
 hud-camera_clamp_indicator = Cámara fija vertical activa. Pulsa { $key } para desactivarla.
 hud-auto_walk_indicator = Avance automático activo
 hud-zoom_lock_indicator-remind = Zoom fijado
@@ -76,3 +80,38 @@ hud-init-stage-client-starting-client = { "[" }{ -client }]: Preparando al clien
 hud-steer = Conducir
 hud-init-stage-server-spotgen = { "[" }{ -server }]: Generando sitios...
 hud-pet = Acariciar
+hud-items_lost_dur = Tus objetos equipados han perdido durabilidad.
+hud-items_will_lose_dur = Tus objetos equipados perderán durabilidad.
+hud-hardcore_will_char_deleted = Este personaje extremo será eliminado.
+hud-hardcore_char_deleted = Este personaje extremo ha sido eliminado.
+hud-press_key_to_return_to_char_menu = Presiona { $key } para volver al menú de personajes.
+hud-press_key_to_give_up = Mantén pulsado { $key } para rendirte y morir.
+hud-downed_recieving_help = Recibiendo ayuda.
+hud-steal-requires = Roba con { $item }
+hud-steal-consumes = Usa { $item } para robar
+hud-help = Ayuda
+hud-waypoint_interact = Establecer Punto de Referencia
+hud-rest = Descansa
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~{ $n } día restante
+           *[other] ~{ $n } días restantes
+        }
+    .hours =
+        { $n ->
+            [one] ~{ $n } hora restante
+           *[other] ~{ $n } horas restantes
+        }
+    .minutes =
+        { $n ->
+            [one] ~{ $n } minuto restante
+           *[other] ~{ $n } minutos restantes
+        }
+    .seconds =
+        { $n ->
+            [one] ~{ $n } segundo restante
+           *[other] ~{ $n } segundos restantes
+        }
+hud-tutorial-disable = Desactivar permanentemente las sugerencias del tutorial
+hud-steal = Robar

@@ -16,8 +16,9 @@ hud-map-town = Aldea
 hud-map-castle = Castillo
 hud-map-dungeon = Mazmorra
 hud-map-difficulty_dungeon =
-    Dificultad de mazmorra:
-    { $difficulty }
+    Mazmorra
+
+    Dificultad: { $difficulty }
 hud-map-drag = Arrastrar
 hud-map-zoom = Zoom
 hud-map-mid_click = Poner marcador
@@ -29,7 +30,7 @@ hud-map-toggle_minimap_voxel = Alternar vista voxel del minimapa
 hud-map-zoom_minimap_explanation =
     Haz zoom sobre el minimapa para ver
     la zona a tu alrededor con mayor detalle
-hud-map-gnarling = Fortaleza de gnarlings
+hud-map-gnarling = Fortaleza de Retorcidos
 hud-map-chapel_site = Capilla marina
 hud-map-placed_by = Colocado por { $name }
 hud-map-bridge = Puente
@@ -37,3 +38,19 @@ hud-map-df_mine = Mina
 hud-map-haniwa = Catacumbas haniwa
 hud-map-terracotta = Ruinas terracota
 hud-map-adlet = Fortaleza adlet
+hud-map-airship_dock = Muelle de dirigibles
+hud-map-unknown = Desconocido
+hud-map-bridges = Puentes
+hud-map-cultist = Mazmorra de los Cultistas
+hud-map-sahagin = Isla Sahagin
+hud-map-quests = Misiones
+hud-map-plaza = Plaza del pueblo
+hud-map-workshop = Taller
+hud-map-character = Personaje
+hud-map-character-label = Última ubicación conocida de { $name }
+hud-map-creature-label = Última ubicación conocida de { $body }
+hud-map-escort-label = Acompañar a { $name } a { $place }.
+hud-map-glider_course = Ruta de Planeador
+hud-map-glider_courses = Rutas de Planeador
+hud-map-myrmidon = Mazmorra Mirmidón
+hud-map-vampire_castle = Castillo Vampiro
