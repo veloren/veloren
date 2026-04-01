@@ -13,7 +13,6 @@ pub use self::{
     genstat::{GenStatPlotKind, GenStatSiteKind, SitesGenMeta},
     plot::{Plot, PlotKind, foreach_plot},
     tile::TileKind,
-    util::Dir,
 };
 use crate::{
     Canvas, IndexRef, Land,
@@ -34,6 +33,7 @@ use common::{
         Block, BlockKind, SiteKindMeta, SpriteKind, TerrainChunkSize,
         site::{DungeonKindMeta, SettlementKindMeta},
     },
+    util::Dir2,
     vol::RectVolSize,
 };
 use hashbrown::DefaultHashBuilder;
@@ -1340,13 +1340,13 @@ impl Site {
                         });
 
                         let wall_north = Tile {
-                            kind: TileKind::Wall(Dir::Y),
+                            kind: TileKind::Wall(Dir2::Y),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
 
                         let wall_east = Tile {
-                            kind: TileKind::Wall(Dir::X),
+                            kind: TileKind::Wall(Dir2::X),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
@@ -1429,7 +1429,7 @@ impl Site {
                                 max: aabr.center() + 3,
                             },
                             Tile {
-                                kind: TileKind::Wall(Dir::Y),
+                                kind: TileKind::Wall(Dir2::Y),
                                 plot: Some(plot),
                                 hard_alt: Some(castle_alt),
                             },
@@ -1522,7 +1522,7 @@ impl Site {
                             &mut reseed(&mut rng),
                             &site,
                             door_tile,
-                            Dir::from_vec2(door_dir),
+                            Dir2::from_vec2(door_dir),
                             aabr,
                             alt,
                         );
@@ -1595,11 +1595,11 @@ impl Site {
             }
         }
         let dir = match cardinal {
-            0 => Dir::X,
-            1 => Dir::Y,
-            2 => Dir::NegX,
-            3 => Dir::NegY,
-            _ => Dir::X,
+            0 => Dir2::X,
+            1 => Dir2::Y,
+            2 => Dir2::NegX,
+            3 => Dir2::NegY,
+            _ => Dir2::X,
         };
         let size = 2.0;
 
@@ -1699,7 +1699,7 @@ impl Site {
                         // Point each ring after 1 towards the next ring
                         // This provides a subtle guide through the course
                         let dir = if i > 1 {
-                            Dir::from_vec2(next_pos - pos)
+                            Dir2::from_vec2(next_pos - pos)
                         } else {
                             dir
                         };
@@ -1729,7 +1729,7 @@ impl Site {
                         // last ring (ring 9) and finish platform
                         // Separate condition due to window iterator to ensure
                         // the finish platform is generated
-                        let dir = Dir::from_vec2(next_pos - pos);
+                        let dir = Dir2::from_vec2(next_pos - pos);
                         let aabr = Aabr {
                             min: Vec2::broadcast(-size as i32) + tile_pos,
                             max: Vec2::broadcast(size as i32) + tile_pos,
@@ -2989,7 +2989,7 @@ impl Site {
                         if let Some(PlotKind::Road(road)) = tile.plot.map(|p| &self.plot(p).kind) {
                             let start = road.path.nodes[a as usize];
                             let end = road.path.nodes[b as usize];
-                            let dir = Dir::from_vec2(end - start);
+                            let dir = Dir2::from_vec2(end - start);
                             let orth = dir.orthogonal();
                             let aabr = Aabr {
                                 min: self.tile_center_wpos(start)

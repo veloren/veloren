@@ -5,6 +5,7 @@ use common::{
     lottery::Lottery,
     store::{Id, Store},
     terrain::{BlockKind, SpriteCfg, SpriteKind},
+    util::Dir3,
 };
 use enum_map::EnumMap;
 use enumset::EnumSet;
@@ -18,7 +19,7 @@ use vek::*;
 
 use crate::{
     IndexRef, Land,
-    site::{Dir, Fill, Site, Structure, generation::PrimitiveTransform, namegen, util::Dir3},
+    site::{Dir2, Fill, Site, Structure, generation::PrimitiveTransform, namegen},
     util::RandomField,
 };
 
@@ -31,13 +32,13 @@ pub struct Wall {
     top_alt: i32,
     from: Neighbor,
     to: Neighbor,
-    to_dir: Dir,
+    to_dir: Dir2,
     door: Option<(i32, i32)>,
 }
 
 impl Wall {
     pub fn door_pos(&self) -> Option<Vec3<f32>> {
-        let wall_dir = Dir::from_vec2(self.end - self.start);
+        let wall_dir = Dir2::from_vec2(self.end - self.start);
 
         self.door.map(|(door_min, door_max)| {
             (self.start.as_() + wall_dir.to_vec2().as_() * (door_min + door_max) as f32 / 2.0 + 0.5)
@@ -46,7 +47,7 @@ impl Wall {
     }
 
     pub fn door_bounds(&self) -> Option<Aabr<i32>> {
-        let wall_dir = Dir::from_vec2(self.end - self.start);
+        let wall_dir = Dir2::from_vec2(self.end - self.start);
 
         self.door.map(|(door_min, door_max)| {
             Aabr {
@@ -61,9 +62,9 @@ impl Wall {
 #[derive(Copy, Clone)]
 enum RoofStyle {
     Flat,
-    FlatBars { dir: Dir },
-    LeanTo { dir: Dir, max_z: i32 },
-    Gable { dir: Dir, max_z: i32 },
+    FlatBars { dir: Dir2 },
+    LeanTo { dir: Dir2, max_z: i32 },
+    Gable { dir: Dir2, max_z: i32 },
     Hip { max_z: i32 },
     Floor,
 }
@@ -72,7 +73,7 @@ struct Roof {
     bounds: Aabr<i32>,
     min_z: i32,
     style: RoofStyle,
-    stairs: Option<(Aabb<i32>, Dir)>,
+    stairs: Option<(Aabb<i32>, Dir2)>,
 }
 
 #[derive(Clone, Copy, EnumIter, enum_map::Enum)]
@@ -217,7 +218,7 @@ pub enum Detail {
     },
     Table {
         pos: Vec2<i32>,
-        chairs: EnumSet<Dir>,
+        chairs: EnumSet<Dir2>,
     },
     Stage {
         aabr: Aabr<i32>,
@@ -229,7 +230,7 @@ pub struct Room {
     pub bounds: Aabb<i32>,
     kind: RoomKind,
     // stairs: Option<Id<Stairs>>,
-    walls: EnumMap<Dir, Vec<Id<Wall>>>,
+    walls: EnumMap<Dir2, Vec<Id<Wall>>>,
     floors: Vec<Id<Roof>>,
     roofs: Vec<Id<Roof>>,
     detail_areas: Vec<Aabr<i32>>,
@@ -283,7 +284,7 @@ impl Tavern {
         rng: &mut impl RngExt,
         site: &Site,
         door_tile: Vec2<i32>,
-        door_dir: Dir,
+        door_dir: Dir2,
         tile_aabr: Aabr<i32>,
         alt: Option<i32>,
     ) -> Self {
@@ -324,7 +325,7 @@ impl Tavern {
         fn place_side_room(
             room: RoomKind,
             max_bounds: Aabr<i32>,
-            in_dir: Dir,
+            in_dir: Dir2,
             in_pos: Vec2<i32>,
             rng: &mut impl RngExt,
         ) -> Option<Aabr<i32>> {
@@ -377,7 +378,7 @@ impl Tavern {
                 max_bounds.size().h,
             );
             let target_size = Vec2::new(size_x, size_y);
-            let dir = Dir::choose(rng);
+            let dir = Dir2::choose(rng);
             let orth = *[dir.orthogonal(), dir.orthogonal().opposite()]
                 .choose(rng)
                 .unwrap();
@@ -412,7 +413,7 @@ impl Tavern {
 
         struct RoomMeta {
             id: Id<Room>,
-            free_walls: EnumSet<Dir>,
+            free_walls: EnumSet<Dir2>,
             can_add_basement: bool,
         }
 
@@ -460,7 +461,7 @@ impl Tavern {
 
             room_metas.push(RoomMeta {
                 id: entrance_id,
-                free_walls: Dir::iter().filter(|d| *d != door_dir).collect(),
+                free_walls: Dir2::iter().filter(|d| *d != door_dir).collect(),
                 can_add_basement: false,
             });
 
@@ -493,7 +494,7 @@ impl Tavern {
                 min_z: i32,
                 max_z: i32,
                 mut max_bounds: Aabr<i32>,
-                mut max_shrink_dir: impl FnMut(Dir) -> Option<i32>,
+                mut max_shrink_dir: impl FnMut(Dir2) -> Option<i32>,
             ) -> Option<Aabr<i32>> {
                 // Take other rooms into account when calculating `max_bounds`. We don't care
                 // about this room if it's the originating room or at another
@@ -506,7 +507,7 @@ impl Tavern {
                     let intersection = bounds.intersection(max_bounds);
                     if intersection.is_valid() {
                         // Find the direction to shrink in that yields the highest area.
-                        let bounds = Dir::iter()
+                        let bounds = Dir2::iter()
                             .filter(|dir| {
                                 dir.select_aabr(intersection) * dir.signum()
                                     < dir.select_aabr(max_bounds) * dir.signum()
@@ -679,7 +680,7 @@ impl Tavern {
 
                     room_metas.push(RoomMeta {
                         id,
-                        free_walls: Dir::iter().filter(|d| *d != -in_dir).collect(),
+                        free_walls: Dir2::iter().filter(|d| *d != -in_dir).collect(),
                         can_add_basement: !room_kind.basement_rooms().is_empty(),
                     });
                     room_counts[room_kind] += 1;
@@ -749,14 +750,14 @@ impl Tavern {
             let room_bounds = to_aabr(rooms[from_id].bounds);
             let mut skip = HashSet::new();
             skip.insert(from_id);
-            let mut wall_ranges = EnumMap::<Dir, Vec<_>>::default();
-            for dir in Dir::iter() {
+            let mut wall_ranges = EnumMap::<Dir2, Vec<_>>::default();
+            for dir in Dir2::iter() {
                 let orth = dir.orthogonal();
                 let range = (orth.select(room_bounds.min), orth.select(room_bounds.max));
                 wall_ranges[dir].push(range);
             }
             // Split the wall into parts.
-            let mut split_range = |dir: Dir, min: i32, max: i32| {
+            let mut split_range = |dir: Dir2, min: i32, max: i32| {
                 debug_assert!(min <= max);
                 let mut new_ranges = Vec::new();
                 wall_ranges[dir].retain_mut(|(r_min, r_max)| {
@@ -783,7 +784,7 @@ impl Tavern {
                 });
                 wall_ranges[dir].extend(new_ranges);
             };
-            for dir in Dir::iter() {
+            for dir in Dir2::iter() {
                 let connected_walls = &mut rooms[from_id].walls[dir];
                 skip.extend(
                     connected_walls
@@ -822,7 +823,7 @@ impl Tavern {
                 let p1 = n_room_bounds.projected_point(room_bounds.center());
                 let p0 = room_bounds.projected_point(p1);
 
-                let to_dir = Dir::from_vec2(p1 - p0);
+                let to_dir = Dir2::from_vec2(p1 - p0);
 
                 let intersection = to_dir
                     .extend_aabr(room_bounds, 1)
@@ -897,7 +898,7 @@ impl Tavern {
             let mut roof_bounds = to_aabr(room.bounds);
             roof_bounds.min -= 2;
             roof_bounds.max += 2;
-            let mut dirs = Vec::from(Dir::ALL);
+            let mut dirs = Vec::from(Dir2::ALL);
 
             let mut over_rooms = vec![room_id];
             let mut under_rooms = vec![];
@@ -947,17 +948,17 @@ impl Tavern {
 
                 // If we just have gardens, we can use FlatBars style.
                 if gardens == over_rooms.len() {
-                    let ratio = Dir::X.select(roof_bounds.size()) as f32
-                        / Dir::Y.select(roof_bounds.size()) as f32;
+                    let ratio = Dir2::X.select(roof_bounds.size()) as f32
+                        / Dir2::Y.select(roof_bounds.size()) as f32;
                     valid_styles.extend([
-                        (5.0 * ratio, RoofStyle::FlatBars { dir: Dir::X }),
-                        (5.0 / ratio, RoofStyle::FlatBars { dir: Dir::Y }),
+                        (5.0 * ratio, RoofStyle::FlatBars { dir: Dir2::X }),
+                        (5.0 / ratio, RoofStyle::FlatBars { dir: Dir2::Y }),
                     ]);
                 }
 
                 // Find heights of possible adjecent rooms.
                 let mut dir_zs = EnumMap::default();
-                for dir in Dir::iter() {
+                for dir in Dir2::iter() {
                     let orth = dir.orthogonal();
                     for room in rooms.values() {
                         let room_aabr = to_aabr(room.bounds);
@@ -973,7 +974,7 @@ impl Tavern {
                     }
                 }
 
-                for dir in [Dir::X, Dir::Y] {
+                for dir in [Dir2::X, Dir2::Y] {
                     if dir_zs[dir.orthogonal()].is_none() && dir_zs[-dir.orthogonal()].is_none() {
                         let max_z = roof_min_z
                             + (dir.orthogonal().select(roof_bounds.size()) / 2 - 1).min(7);
@@ -995,7 +996,7 @@ impl Tavern {
                     }
                 }
 
-                for dir in Dir::iter() {
+                for dir in Dir2::iter() {
                     if let (Some(h), None) = (dir_zs[dir], dir_zs[-dir]) {
                         for max_z in roof_min_z + 2..=h {
                             valid_styles.push((1.0, RoofStyle::LeanTo { dir, max_z }))
@@ -1003,7 +1004,7 @@ impl Tavern {
                     }
                 }
 
-                if Dir::iter().all(|d| dir_zs[d].is_none()) {
+                if Dir2::iter().all(|d| dir_zs[d].is_none()) {
                     for max_z in roof_min_z + 3..=roof_min_z + 7 {
                         valid_styles.push((0.8, RoofStyle::Hip { max_z }))
                     }
@@ -1044,7 +1045,7 @@ impl Tavern {
                             let in_aabr = to_aabr(in_room_bounds);
                             let to_aabr = to_aabr(to_room_bounds);
 
-                            let valid_dirs = Dir::iter().filter(move |dir| {
+                            let valid_dirs = Dir2::iter().filter(move |dir| {
                                 dir.select_aabr(in_aabr) == dir.select_aabr(max_bounds)
                                     || dir.select_aabr(to_aabr) == dir.select_aabr(max_bounds)
                             });
@@ -1199,7 +1200,7 @@ impl Tavern {
             let room_aabr = to_aabr(room.bounds);
             let table = |pos: Vec2<i32>, aabr: Aabr<i32>| Detail::Table {
                 pos,
-                chairs: Dir::iter()
+                chairs: Dir2::iter()
                     .filter(|dir| aabr.contains_point(pos + dir.to_vec2()))
                     .collect(),
             };
@@ -1217,7 +1218,7 @@ impl Tavern {
                     let mut best = None;
                     let mut best_score = 0;
                     for (i, aabr) in room.detail_areas.iter().enumerate() {
-                        let edges = Dir::iter()
+                        let edges = Dir2::iter()
                             .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
                             .count() as i32;
                         let test_score = edges * aabr.size().product();
@@ -1242,7 +1243,7 @@ impl Tavern {
                     let mut best = None;
                     let mut best_score = 0;
                     for (i, aabr) in room.detail_areas.iter().enumerate() {
-                        let test_score = Dir::iter()
+                        let test_score = Dir2::iter()
                             .any(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
                             as i32
                             * aabr.size().product();
@@ -1567,7 +1568,7 @@ impl Structure for Tavern {
                 min: wall.start.with_z(wall.base_alt),
                 max: wall.end.with_z(wall.top_alt),
             };
-            let wall_dir = Dir::from_vec2(wall.end - wall.start);
+            let wall_dir = Dir2::from_vec2(wall.end - wall.start);
             match (wall.from.map(get_kind), wall.to.map(get_kind)) {
                 (Some(RoomKind::Garden), None) | (None, Some(RoomKind::Garden)) => {
                     let hgt = wall_aabb.min.z..=wall_aabb.max.z;
@@ -1660,7 +1661,7 @@ impl Structure for Tavern {
                 RoomKind::Garden => {},
                 RoomKind::Cellar => {
                     for aabr in room.detail_areas.iter().copied() {
-                        for dir in Dir::iter()
+                        for dir in Dir2::iter()
                             .filter(|dir| dir.select_aabr(aabr) == dir.select_aabr(room_aabr))
                         {
                             let pos = dir
@@ -1693,7 +1694,7 @@ impl Structure for Tavern {
                 },
                 RoomKind::Stage => {
                     for aabr in room.detail_areas.iter().copied() {
-                        for dir in Dir::iter().filter(|dir| {
+                        for dir in Dir2::iter().filter(|dir| {
                             dir.select_aabr(aabr) == dir.select_aabr(room_aabr)
                                 && dir.rotated_cw().select_aabr(aabr)
                                     == dir.rotated_cw().select_aabr(room_aabr)
@@ -1708,7 +1709,7 @@ impl Structure for Tavern {
                 },
                 RoomKind::Bar | RoomKind::Seating => {
                     for aabr in room.detail_areas.iter().copied() {
-                        for dir in Dir::iter()
+                        for dir in Dir2::iter()
                             .filter(|dir| dir.select_aabr(aabr) == dir.select_aabr(room_aabr))
                         {
                             let pos = dir
@@ -1734,7 +1735,7 @@ impl Structure for Tavern {
                 },
                 RoomKind::Entrance => {
                     for aabr in room.detail_areas.iter() {
-                        let edges = Dir::iter()
+                        let edges = Dir2::iter()
                             .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
                             .count();
                         let hanger_pos = if edges == 2 {
@@ -1745,7 +1746,7 @@ impl Structure for Tavern {
                             None
                         };
 
-                        for dir in Dir::iter()
+                        for dir in Dir2::iter()
                             .filter(|dir| dir.select_aabr(*aabr) == dir.select_aabr(room_aabr))
                         {
                             let pos = dir
@@ -1765,7 +1766,7 @@ impl Structure for Tavern {
             for detail in room.details.iter() {
                 match *detail {
                     Detail::Bar { aabr } => {
-                        for dir in Dir::iter() {
+                        for dir in Dir2::iter() {
                             let edge = dir.select_aabr(aabr);
                             let rot_dir = if field.chance(aabr.center().with_z(0), 0.5) {
                                 dir.rotated_cw()
@@ -1825,7 +1826,7 @@ impl Structure for Tavern {
                                 max: (aabr.max - 1).with_z(room.bounds.min.z),
                             }))
                             .fill(wall_fill.clone());
-                        for dir in Dir::iter().filter(|dir| {
+                        for dir in Dir2::iter().filter(|dir| {
                             dir.select_aabr(aabr) != dir.select_aabr(room_aabr)
                                 && dir.rotated_cw().select_aabr(aabr)
                                     != dir.rotated_cw().select_aabr(room_aabr)
@@ -1838,7 +1839,7 @@ impl Structure for Tavern {
                                 .column(pos, room.bounds.min.z..=room.bounds.max.z)
                                 .fill(wall_detail_fill.clone());
 
-                            for dir in Dir::iter() {
+                            for dir in Dir2::iter() {
                                 painter.rotated_sprite(
                                     pos.with_z(room.bounds.center().z + 1) + dir.to_vec2(),
                                     SpriteKind::WallSconce,

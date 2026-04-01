@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     IndexRef, Land,
     assets::AssetHandle,
-    site::{generation::PrimitiveTransform, util::Dir},
+    site::generation::PrimitiveTransform,
     util::{
         FastNoise, NEIGHBORS, NEIGHBORS3, RandomField, attempt, sampler::Sampler, within_distance,
     },
@@ -25,14 +25,14 @@ pub struct AdletStronghold {
     surface_radius: i32,
     // Structure indicates the kind of structure it is, vec2 is relative position of structure
     // compared to wall_center, dir tells which way structure should face
-    outer_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
+    outer_structures: Vec<(AdletStructure, Vec2<i32>, Dir2)>,
     tunnel_length: i32,
     cavern_center: Vec2<i32>,
     cavern_alt: f32,
     cavern_radius: i32,
     // Structure indicates the kind of structure it is, vec2 is relative position of structure
     // compared to cavern_center, dir tells which way structure should face
-    cavern_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
+    cavern_structures: Vec<(AdletStructure, Vec2<i32>, Dir2)>,
 }
 
 #[derive(Copy, Clone)]
@@ -129,9 +129,9 @@ impl AdletStronghold {
         let cavern_alt = (land.get_alt_approx(cavern_center) - cavern_radius as f32)
             .min(land.get_alt_approx(entrance));
 
-        let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
+        let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir2)>::new();
 
-        let entrance_dir = Dir::from_vec2(entrance - cavern_center);
+        let entrance_dir = Dir2::from_vec2(entrance - cavern_center);
         outer_structures.push((AdletStructure::TunnelEntrance, Vec2::zero(), entrance_dir));
 
         let desired_structures = surface_radius.pow(2) / 100;
@@ -178,7 +178,7 @@ impl AdletStronghold {
                     Some((structure_center, structure_kind))
                 }
             }) {
-                let dir_to_wall = Dir::from_vec2(rpos);
+                let dir_to_wall = Dir2::from_vec2(rpos);
                 let door_rng: u32 = rng.random_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_wall,
@@ -191,10 +191,10 @@ impl AdletStronghold {
             }
         }
 
-        let mut cavern_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
+        let mut cavern_structures = Vec::<(AdletStructure, Vec2<i32>, Dir2)>::new();
 
         fn valid_cavern_struct_pos(
-            structures: &[(AdletStructure, Vec2<i32>, Dir)],
+            structures: &[(AdletStructure, Vec2<i32>, Dir2)],
             structure: AdletStructure,
             rpos: Vec2<i32>,
         ) -> bool {
@@ -217,7 +217,7 @@ impl AdletStronghold {
                     .then_some(rpos)
             }) {
                 // Dir doesn't matter since these are directionless
-                cavern_structures.push((AdletStructure::SpeleothemCluster, rpos, Dir::X));
+                cavern_structures.push((AdletStructure::SpeleothemCluster, rpos, Dir2::X));
                 let desired_adjacent_clusters = rng.random_range(1..5);
                 for _ in 0..desired_adjacent_clusters {
                     // Choose a relative position adjacent to initial speleothem cluster
@@ -235,7 +235,7 @@ impl AdletStronghold {
                         cavern_structures.push((
                             AdletStructure::SpeleothemCluster,
                             adj_rpos,
-                            Dir::X,
+                            Dir2::X,
                         ));
                         // Set new rpos to next cluster is adjacent to most recently placed
                         rpos = adj_rpos;
@@ -272,7 +272,7 @@ impl AdletStronghold {
             })
         }) {
             // Direction doesn't matter for boss bonehut
-            cavern_structures.push((AdletStructure::BossBoneHut, rpos, Dir::X));
+            cavern_structures.push((AdletStructure::BossBoneHut, rpos, Dir2::X));
         }
 
         // Attempt to place yetipit near the cavern edge
@@ -299,7 +299,7 @@ impl AdletStronghold {
             })
         }) {
             // Direction doesn't matter for yetipit
-            cavern_structures.push((AdletStructure::YetiPit, rpos, Dir::X));
+            cavern_structures.push((AdletStructure::YetiPit, rpos, Dir2::X));
         }
 
         // Attempt to place big bonfire
@@ -313,7 +313,7 @@ impl AdletStronghold {
                 .then_some(rpos)
         }) {
             // Direction doesn't matter for central bonfire
-            cavern_structures.push((AdletStructure::Bonfire, rpos, Dir::X));
+            cavern_structures.push((AdletStructure::Bonfire, rpos, Dir2::X));
         }
 
         // Attempt to place some rock huts around the outer edge
@@ -329,7 +329,7 @@ impl AdletStronghold {
                     .then_some(rpos)
             }) {
                 // Rock huts need no direction
-                cavern_structures.push((AdletStructure::RockHut, rpos, Dir::X));
+                cavern_structures.push((AdletStructure::RockHut, rpos, Dir2::X));
             }
         }
 
@@ -354,7 +354,7 @@ impl AdletStronghold {
                     .then_some((structure, rpos))
             }) {
                 // Direction facing the central bonfire
-                let dir = Dir::from_vec2(rpos).opposite();
+                let dir = Dir2::from_vec2(rpos).opposite();
                 cavern_structures.push((structure, rpos, dir));
             }
         }
@@ -495,12 +495,12 @@ impl Structure for AdletStronghold {
 
         // Tunnel
         let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
-        let dir = Dir::from_vec2(self.entrance - self.cavern_center);
+        let dir = Dir2::from_vec2(self.entrance - self.cavern_center);
         let tunnel_start: Vec3<f32> = match dir {
-            Dir::X => Vec2::new(self.entrance.x + 7, self.entrance.y),
-            Dir::Y => Vec2::new(self.entrance.x, self.entrance.y + 7),
-            Dir::NegX => Vec2::new(self.entrance.x - 7, self.entrance.y),
-            Dir::NegY => Vec2::new(self.entrance.x, self.entrance.y - 7),
+            Dir2::X => Vec2::new(self.entrance.x + 7, self.entrance.y),
+            Dir2::Y => Vec2::new(self.entrance.x, self.entrance.y + 7),
+            Dir2::NegX => Vec2::new(self.entrance.x - 7, self.entrance.y),
+            Dir2::NegY => Vec2::new(self.entrance.x, self.entrance.y - 7),
         }
         .as_()
         .with_z(self.cavern_alt - 1.0);
@@ -512,10 +512,10 @@ impl Structure for AdletStronghold {
 
         let offset = 15.0;
         let tunnel_end = match dir {
-            Dir::X => Vec3::new(raw_tunnel_end.x - offset, tunnel_start.y, raw_tunnel_end.z),
-            Dir::Y => Vec3::new(tunnel_start.x, raw_tunnel_end.y - offset, raw_tunnel_end.z),
-            Dir::NegX => Vec3::new(raw_tunnel_end.x + offset, tunnel_start.y, raw_tunnel_end.z),
-            Dir::NegY => Vec3::new(tunnel_start.x, raw_tunnel_end.y + offset, raw_tunnel_end.z),
+            Dir2::X => Vec3::new(raw_tunnel_end.x - offset, tunnel_start.y, raw_tunnel_end.z),
+            Dir2::Y => Vec3::new(tunnel_start.x, raw_tunnel_end.y - offset, raw_tunnel_end.z),
+            Dir2::NegX => Vec3::new(raw_tunnel_end.x + offset, tunnel_start.y, raw_tunnel_end.z),
+            Dir2::NegY => Vec3::new(tunnel_start.x, raw_tunnel_end.y + offset, raw_tunnel_end.z),
         };
         // Platform
         painter
@@ -569,17 +569,17 @@ impl Structure for AdletStronghold {
             .line(
                 tunnel_start
                     + match dir {
-                        Dir::X => Vec3::new(0.0, 4.0, 7.0),
-                        Dir::Y => Vec3::new(4.0, 0.0, 7.0),
-                        Dir::NegX => Vec3::new(0.0, 4.0, 7.0),
-                        Dir::NegY => Vec3::new(4.0, 0.0, 7.0),
+                        Dir2::X => Vec3::new(0.0, 4.0, 7.0),
+                        Dir2::Y => Vec3::new(4.0, 0.0, 7.0),
+                        Dir2::NegX => Vec3::new(0.0, 4.0, 7.0),
+                        Dir2::NegY => Vec3::new(4.0, 0.0, 7.0),
                     },
                 tunnel_end
                     + match dir {
-                        Dir::X => Vec3::new(0.0, 4.0, 7.0),
-                        Dir::Y => Vec3::new(4.0, 0.0, 7.0),
-                        Dir::NegX => Vec3::new(0.0, 4.0, 7.0),
-                        Dir::NegY => Vec3::new(4.0, 0.0, 7.0),
+                        Dir2::X => Vec3::new(0.0, 4.0, 7.0),
+                        Dir2::Y => Vec3::new(4.0, 0.0, 7.0),
+                        Dir2::NegX => Vec3::new(0.0, 4.0, 7.0),
+                        Dir2::NegY => Vec3::new(4.0, 0.0, 7.0),
                     },
                 8.0,
             )
@@ -589,17 +589,17 @@ impl Structure for AdletStronghold {
             .line(
                 tunnel_start
                     + match dir {
-                        Dir::X => Vec3::new(0.0, -4.0, 7.0),
-                        Dir::Y => Vec3::new(-4.0, 0.0, 7.0),
-                        Dir::NegX => Vec3::new(0.0, -4.0, 7.0),
-                        Dir::NegY => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir2::X => Vec3::new(0.0, -4.0, 7.0),
+                        Dir2::Y => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir2::NegX => Vec3::new(0.0, -4.0, 7.0),
+                        Dir2::NegY => Vec3::new(-4.0, 0.0, 7.0),
                     },
                 tunnel_end
                     + match dir {
-                        Dir::X => Vec3::new(0.0, -4.0, 7.0),
-                        Dir::Y => Vec3::new(-4.0, 0.0, 7.0),
-                        Dir::NegX => Vec3::new(0.0, -4.0, 7.0),
-                        Dir::NegY => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir2::X => Vec3::new(0.0, -4.0, 7.0),
+                        Dir2::Y => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir2::NegX => Vec3::new(0.0, -4.0, 7.0),
+                        Dir2::NegY => Vec3::new(-4.0, 0.0, 7.0),
                     },
                 8.0,
             )
@@ -2099,7 +2099,7 @@ impl Structure for AdletStronghold {
 }
 
 struct RibCageGenerator {
-    dir: Dir,
+    dir: Dir2,
     length: u32,
     spine_height: f32,
     spine_radius: f32,
@@ -2212,12 +2212,12 @@ impl RibCageGenerator {
         );
 
         let rotation_origin = Vec3::new(spine_start.x, spine_start.y + 0.5, spine_start.z);
-        let rotate = |prim: PrimitiveRef<'a>, dir: &Dir| -> PrimitiveRef<'a> {
+        let rotate = |prim: PrimitiveRef<'a>, dir: &Dir2| -> PrimitiveRef<'a> {
             match dir {
-                Dir::X => prim,
-                Dir::Y => prim.rotate_about(Mat3::rotation_z(0.5 * PI).as_(), rotation_origin),
-                Dir::NegX => prim.rotate_about(Mat3::rotation_z(PI).as_(), rotation_origin),
-                Dir::NegY => prim.rotate_about(Mat3::rotation_z(1.5 * PI).as_(), rotation_origin),
+                Dir2::X => prim,
+                Dir2::Y => prim.rotate_about(Mat3::rotation_z(0.5 * PI).as_(), rotation_origin),
+                Dir2::NegX => prim.rotate_about(Mat3::rotation_z(PI).as_(), rotation_origin),
+                Dir2::NegY => prim.rotate_about(Mat3::rotation_z(1.5 * PI).as_(), rotation_origin),
             }
         };
 

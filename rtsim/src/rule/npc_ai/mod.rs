@@ -67,7 +67,7 @@ use common::{
     store::Id,
     terrain::{CoordinateConversions, TerrainChunkSize, sprite},
     time::DayPeriod,
-    util::Dir,
+    util::{Dir, Dir2},
 };
 use core::ops::ControlFlow;
 use fxhash::FxHasher64;
@@ -1089,7 +1089,7 @@ fn go_to_tavern(site_id: SiteId, tavern_plot: Id<site::Plot>) -> impl Action<Def
                 .flat_map(|room| {
                     room.details.iter().filter_map(|detail| match_some!(detail,
                         tavern::Detail::Bar { aabr } => {
-                            let side = site::util::Dir::from_vec2(
+                            let side = Dir2::from_vec2(
                                 room.bounds.center().xy() - aabr.center(),
                             );
                             let pos = side.select_aabr_with(*aabr, aabr.center()) + side.to_vec2();

@@ -1166,7 +1166,7 @@ impl Structure for VampireCastle {
                     max: Vec2::new(center.x - castle_length - 2, center.y + 5)
                         .with_z(entry_base + 15),
                 },
-                Dir::NegX,
+                Dir2::NegX,
             )
             .fill(onewaydoor.clone());
         // castle cellar
@@ -1959,7 +1959,7 @@ impl Structure for VampireCastle {
                             ),
                         },
                         (2 * side_bldg_length) + 20,
-                        Dir::X,
+                        Dir2::X,
                     )
                     .fill(brick.clone());
                 painter
@@ -1979,7 +1979,7 @@ impl Structure for VampireCastle {
                             ),
                         },
                         (2 * side_bldg_length) + 20,
-                        Dir::NegX,
+                        Dir2::NegX,
                     )
                     .fill(brick.clone());
             }
@@ -2039,7 +2039,7 @@ impl Structure for VampireCastle {
                     max: Vec2::new(side_bldg_pos_1.x + 5, side_bldg_pos_1.y + entry_side + 1)
                         .with_z(side_bldg_base_raw + (2 * castle_height) + 7),
                 },
-                Dir::NegY,
+                Dir2::NegY,
             )
             .fill(key_door.clone());
         painter

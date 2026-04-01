@@ -371,7 +371,7 @@ impl Structure for CoastalHouse {
             let random_index_1 = (RandomField::new(0).get(center.with_z(base + s)) % 4) as usize;
             let random_index_2 = 3 - random_index_1;
             // add beds and tables at random corners
-            for (d, dir) in Dir::iter().enumerate() {
+            for (d, dir) in Dir2::iter().enumerate() {
                 let diagonal = dir.diagonal();
                 let bed_pos = center + diagonal * ((length / 2) - 2);
                 let table_pos = Vec2::new(
@@ -385,7 +385,7 @@ impl Structure for CoastalHouse {
                     painter.rotated_sprite(table_pos.with_z(alt), SpriteKind::TableCoastalLarge, 2);
                     painter.sprite(table_pos.with_z(alt + 1), SpriteKind::JugAndCupsCoastal);
 
-                    for dir in Dir::iter() {
+                    for dir in Dir2::iter() {
                         let vec = dir.to_vec2();
                         let bench_pos = Vec2::new(table_pos.x + vec.x * 2, table_pos.y + vec.y);
                         painter.rotated_sprite(

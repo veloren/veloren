@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GradientBrick` fill allows structures to have a brick pattern while also having a gradient between two colors
 - Moon phases
 - CLI Command to list every available graphics devices
+- Some sprites are now destroyed instead of left floating after block changes.
 
 ### Changed
 

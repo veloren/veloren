@@ -1,12 +1,14 @@
 use crate::site::{Fill, Painter};
 
-use super::Dir;
-use common::terrain::{
-    Block, SpriteKind,
-    sprite::{MirrorX, Ori},
+use common::{
+    terrain::{
+        Block, SpriteKind,
+        sprite::{MirrorX, Ori},
+    },
+    util::Dir2,
 };
 use enum_map::EnumMap;
-use strum::IntoEnumIterator;
+use strum::IntoEnumIterator as _;
 use vek::*;
 
 /// A struct to make it easier to create sprites that tile on a 2d plane. Both
@@ -17,10 +19,10 @@ pub struct Tileable2 {
     alt: i32,
     bounds: Aabr<i32>,
     center: Block,
-    side: EnumMap<Dir, Block>,
+    side: EnumMap<Dir2, Block>,
     /// The corner selected is `Dir::diagonal()`.
-    corner: EnumMap<Dir, Block>,
-    rotation: Dir,
+    corner: EnumMap<Dir2, Block>,
+    rotation: Dir2,
 }
 
 impl Tileable2 {
@@ -31,7 +33,7 @@ impl Tileable2 {
             center: Block::empty(),
             side: EnumMap::from_fn(|_| Block::empty()),
             corner: EnumMap::from_fn(|_| Block::empty()),
-            rotation: Dir::X,
+            rotation: Dir2::X,
         }
     }
 
@@ -50,7 +52,7 @@ impl Tileable2 {
             .with_corner_sprite(corner)
     }
 
-    pub fn two_by(len: i32, pos: Vec3<i32>, dir: Dir) -> Self {
+    pub fn two_by(len: i32, pos: Vec3<i32>, dir: Dir2) -> Self {
         Self::empty()
             .with_rotation(dir)
             .with_center_size(pos, Vec2::new(len, 2))
@@ -103,12 +105,12 @@ impl Tileable2 {
         self
     }
 
-    pub fn with_side_dir(mut self, dir: Dir, sprite: SpriteKind) -> Self {
+    pub fn with_side_dir(mut self, dir: Dir2, sprite: SpriteKind) -> Self {
         self.side[dir] = self.side[dir].with_sprite(sprite);
         self
     }
 
-    pub fn with_side_axis(self, axis: Dir, sprite: SpriteKind) -> Self {
+    pub fn with_side_axis(self, axis: Dir2, sprite: SpriteKind) -> Self {
         self.with_side_dir(axis, sprite)
             .with_side_dir(-axis, sprite)
     }
@@ -121,28 +123,28 @@ impl Tileable2 {
     }
 
     /// The corner selected is `Dir::diagonal()`.
-    pub fn with_corner_dir(mut self, dir: Dir, block: Block) -> Self {
+    pub fn with_corner_dir(mut self, dir: Dir2, block: Block) -> Self {
         self.corner[dir] = block;
         self
     }
 
     /// The corner selected is `Dir::diagonal()`.
-    pub fn with_corner_sprite_dir(mut self, dir: Dir, sprite: SpriteKind) -> Self {
+    pub fn with_corner_sprite_dir(mut self, dir: Dir2, sprite: SpriteKind) -> Self {
         self.corner[dir] = self.corner[dir].with_sprite(sprite);
         self
     }
 
-    pub fn with_corner_side(self, axis: Dir, sprite: Block) -> Self {
+    pub fn with_corner_side(self, axis: Dir2, sprite: Block) -> Self {
         self.with_corner_dir(axis, sprite)
             .with_corner_dir(axis.rotated_ccw(), sprite)
     }
 
-    pub fn with_corner_sprite_side(self, axis: Dir, sprite: SpriteKind) -> Self {
+    pub fn with_corner_sprite_side(self, axis: Dir2, sprite: SpriteKind) -> Self {
         self.with_corner_sprite_dir(axis, sprite)
             .with_corner_sprite_dir(axis.rotated_ccw(), sprite)
     }
 
-    pub fn with_rotation(mut self, dir: Dir) -> Self {
+    pub fn with_rotation(mut self, dir: Dir2) -> Self {
         self.rotation = dir;
         self
     }
@@ -153,9 +155,9 @@ impl Tileable2 {
 
     pub fn center(&self) -> Block { self.center }
 
-    pub fn side(&self, dir: Dir) -> Block { self.side[dir.relative_to(self.rotation)] }
+    pub fn side(&self, dir: Dir2) -> Block { self.side[dir.relative_to(self.rotation)] }
 
-    pub fn corner(&self, dir: Dir) -> Block { self.corner[dir.relative_to(self.rotation)] }
+    pub fn corner(&self, dir: Dir2) -> Block { self.corner[dir.relative_to(self.rotation)] }
 }
 
 fn single_block(painter: &Painter, pos: Vec3<i32>, block: Block) {
@@ -169,10 +171,10 @@ fn single_block(painter: &Painter, pos: Vec3<i32>, block: Block) {
 
 /// Only applies changes if the block can have the attributes `Ori` and
 /// `MirrorX`.
-fn ori_mirror(mut block: Block, dir: Dir, x: bool, y: bool) -> Block {
+fn ori_mirror(mut block: Block, dir: Dir2, x: bool, y: bool) -> Block {
     let dir_res = block.get_attr::<Ori>().map(|old_ori| {
         let (old_dir, offset) =
-            Dir::from_sprite_ori(old_ori.0).expect("We got this from the Ori attr");
+            Dir2::from_sprite_ori(old_ori.0).expect("We got this from the Ori attr");
         let new_dir = dir.relative_to(old_dir);
         Ori(new_dir.sprite_ori() + offset)
     });
@@ -197,26 +199,26 @@ fn ori_mirror(mut block: Block, dir: Dir, x: bool, y: bool) -> Block {
 }
 
 pub trait PainterSpriteExt {
-    fn lanternpost_wood(&self, pos: Vec3<i32>, dir: Dir);
+    fn lanternpost_wood(&self, pos: Vec3<i32>, dir: Dir2);
 
     fn bed(
         &self,
         pos: Vec3<i32>,
-        dir: Dir,
+        dir: Dir2,
         head: SpriteKind,
         middle: SpriteKind,
         tail: SpriteKind,
     ) -> Aabr<i32> {
         let bed = Tileable2::two_by(3, pos, dir)
-            .with_corner_sprite_side(Dir::Y, head)
-            .with_corner_sprite_side(Dir::NegY, tail)
+            .with_corner_sprite_side(Dir2::Y, head)
+            .with_corner_sprite_side(Dir2::NegY, tail)
             .with_side_sprite(middle);
         self.tileable2(&bed);
 
         bed.bounds()
     }
 
-    fn bed_wood_woodland(&self, pos: Vec3<i32>, dir: Dir) -> Aabr<i32> {
+    fn bed_wood_woodland(&self, pos: Vec3<i32>, dir: Dir2) -> Aabr<i32> {
         self.bed(
             pos,
             dir,
@@ -226,7 +228,7 @@ pub trait PainterSpriteExt {
         )
     }
 
-    fn bed_desert(&self, pos: Vec3<i32>, dir: Dir) -> Aabr<i32> {
+    fn bed_desert(&self, pos: Vec3<i32>, dir: Dir2) -> Aabr<i32> {
         self.bed(
             pos,
             dir,
@@ -236,7 +238,7 @@ pub trait PainterSpriteExt {
         )
     }
 
-    fn bed_cliff(&self, pos: Vec3<i32>, dir: Dir) -> Aabr<i32> {
+    fn bed_cliff(&self, pos: Vec3<i32>, dir: Dir2) -> Aabr<i32> {
         self.bed(
             pos,
             dir,
@@ -246,7 +248,7 @@ pub trait PainterSpriteExt {
         )
     }
 
-    fn bed_savannah(&self, pos: Vec3<i32>, dir: Dir) -> Aabr<i32> {
+    fn bed_savannah(&self, pos: Vec3<i32>, dir: Dir2) -> Aabr<i32> {
         self.bed(
             pos,
             dir,
@@ -256,7 +258,7 @@ pub trait PainterSpriteExt {
         )
     }
 
-    fn bed_coastal(&self, pos: Vec3<i32>, dir: Dir) -> Aabr<i32> {
+    fn bed_coastal(&self, pos: Vec3<i32>, dir: Dir2) -> Aabr<i32> {
         self.bed(
             pos,
             dir,
@@ -266,7 +268,7 @@ pub trait PainterSpriteExt {
         )
     }
 
-    fn table_wood_fancy_woodland(&self, pos: Vec3<i32>, axis: Dir) -> Aabr<i32> {
+    fn table_wood_fancy_woodland(&self, pos: Vec3<i32>, axis: Dir2) -> Aabr<i32> {
         let table = Tileable2::two_by(3, pos, axis)
             .with_side_sprite(SpriteKind::TableWoodFancyWoodlandBody)
             .with_corner_sprite(SpriteKind::TableWoodFancyWoodlandCorner);
@@ -285,14 +287,14 @@ pub trait PainterSpriteExt {
     fn tileable1(
         &self,
         pos: Vec3<i32>,
-        dir: Dir,
+        dir: Dir2,
         size: i32,
         middle_sprite: SpriteKind,
         side_sprite: SpriteKind,
     );
 
     /// This will be placed with the "right side" looking forward at `pos`.
-    fn mirrored2(&self, pos: Vec3<i32>, dir: Dir, sprite: SpriteKind) {
+    fn mirrored2(&self, pos: Vec3<i32>, dir: Dir2, sprite: SpriteKind) {
         self.tileable1(pos, dir, 2, SpriteKind::Empty, sprite);
     }
 
@@ -303,7 +305,7 @@ pub trait PainterSpriteExt {
 }
 
 impl PainterSpriteExt for Painter {
-    fn lanternpost_wood(&self, pos: Vec3<i32>, dir: Dir) {
+    fn lanternpost_wood(&self, pos: Vec3<i32>, dir: Dir2) {
         let sprite_ori = dir.sprite_ori();
         self.rotated_sprite(pos, SpriteKind::LanternpostWoodBase, sprite_ori);
         self.column(pos.xy(), pos.z + 1..pos.z + 4).clear();
@@ -320,7 +322,7 @@ impl PainterSpriteExt for Painter {
     }
 
     fn chairs_around(&self, chair: SpriteKind, spacing: usize, bounds: Aabr<i32>, alt: i32) {
-        for dir in Dir::iter() {
+        for dir in Dir2::iter() {
             let s = dir.orthogonal().select(bounds.size());
             // We skip small sides
             if s <= 2 && dir.select(bounds.size()) > s {
@@ -349,7 +351,7 @@ impl PainterSpriteExt for Painter {
     fn tileable1(
         &self,
         pos: Vec3<i32>,
-        dir: Dir,
+        dir: Dir2,
         size: i32,
         middle_sprite: SpriteKind,
         side_sprite: SpriteKind,
@@ -417,13 +419,13 @@ impl PainterSpriteExt for Painter {
         }
 
         if size.h > 2 {
-            let rot = Dir::NegY;
+            let rot = Dir2::NegY;
             self.aabb(Aabb {
                 min: Vec3::new(bounds.min.x, bounds.min.y + 1, alt),
                 max: Vec3::new(bounds.min.x, bounds.max.y - 1, alt) + 1,
             })
             .fill(Fill::Sprite(ori_mirror(
-                tileable.side(Dir::NegX),
+                tileable.side(Dir2::NegX),
                 rot,
                 false,
                 false,
@@ -434,7 +436,7 @@ impl PainterSpriteExt for Painter {
                 max: Vec3::new(bounds.max.x, bounds.max.y - 1, alt) + 1,
             })
             .fill(Fill::Sprite(ori_mirror(
-                tileable.side(Dir::X),
+                tileable.side(Dir2::X),
                 rot,
                 false,
                 // Mirror is applied before rotation so we mirror Y
@@ -443,13 +445,13 @@ impl PainterSpriteExt for Painter {
         }
 
         if size.w > 2 {
-            let rot = Dir::X;
+            let rot = Dir2::X;
             self.aabb(Aabb {
                 min: Vec3::new(bounds.min.x + 1, bounds.min.y, alt),
                 max: Vec3::new(bounds.max.x - 1, bounds.min.y, alt) + 1,
             })
             .fill(Fill::Sprite(ori_mirror(
-                tileable.side(Dir::NegY),
+                tileable.side(Dir2::NegY),
                 rot,
                 false,
                 false,
@@ -460,7 +462,7 @@ impl PainterSpriteExt for Painter {
                 max: Vec3::new(bounds.max.x - 1, bounds.max.y, alt) + 1,
             })
             .fill(Fill::Sprite(ori_mirror(
-                tileable.side(Dir::Y),
+                tileable.side(Dir2::Y),
                 rot,
                 false,
                 true,
@@ -473,7 +475,7 @@ impl PainterSpriteExt for Painter {
             self,
             bounds.min.with_z(alt),
             ori_mirror(
-                tileable.corner(Dir::NegX),
+                tileable.corner(Dir2::NegX),
                 rot,
                 rot.is_negative(),
                 orth.is_negative(),
@@ -483,7 +485,7 @@ impl PainterSpriteExt for Painter {
             self,
             Vec3::new(bounds.max.x, bounds.min.y, alt),
             ori_mirror(
-                tileable.corner(Dir::NegY),
+                tileable.corner(Dir2::NegY),
                 rot,
                 orth.is_positive(),
                 rot.is_negative(),
@@ -493,7 +495,7 @@ impl PainterSpriteExt for Painter {
             self,
             Vec3::new(bounds.min.x, bounds.max.y, alt),
             ori_mirror(
-                tileable.corner(Dir::Y),
+                tileable.corner(Dir2::Y),
                 rot,
                 orth.is_negative(),
                 rot.is_positive(),
@@ -503,7 +505,7 @@ impl PainterSpriteExt for Painter {
             self,
             bounds.max.with_z(alt),
             ori_mirror(
-                tileable.corner(Dir::X),
+                tileable.corner(Dir2::X),
                 rot,
                 rot.is_positive(),
                 orth.is_positive(),

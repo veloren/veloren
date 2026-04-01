@@ -8616,6 +8616,7 @@ dependencies = [
  "csv",
  "dot_vox",
  "enum-map",
+ "enumset",
  "fxhash",
  "hashbrown 0.16.0",
  "indexmap 2.12.0",

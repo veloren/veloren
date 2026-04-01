@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     assets::AssetHandle,
-    site::{generation::PrimitiveTransform, util::Dir},
+    site::generation::PrimitiveTransform,
     util::{RandomField, attempt, sampler::Sampler, within_distance},
 };
 use common::{
@@ -25,7 +25,7 @@ pub struct GnarlingFortification {
     wall_towers: Vec<Vec3<i32>>,
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
-    structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Dir)>,
+    structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Dir2)>,
     tunnels: Tunnels,
 }
 
@@ -168,7 +168,7 @@ impl GnarlingFortification {
         ];
 
         let desired_structures = wall_radius.pow(2) / 100;
-        let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Dir)>::new();
+        let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Dir2)>::new();
         for _ in 0..desired_structures {
             if let Some((hut_loc, kind)) = attempt(50, || {
                 // Choose structure kind
@@ -235,7 +235,7 @@ impl GnarlingFortification {
                     ))
                 }
             }) {
-                let dir_to_center = Dir::from_vec2(hut_loc.xy()).opposite();
+                let dir_to_center = Dir2::from_vec2(hut_loc.xy()).opposite();
                 let door_rng: u32 = rng.random_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
@@ -260,7 +260,7 @@ impl GnarlingFortification {
         let chieftain_hut_loc = ((inner_tower_locs[0] + inner_tower_locs[1])
             + 2 * outer_wall_corners[chieftain_indices[1]])
             / 4;
-        let chieftain_hut_ori = Dir::from_vec2(chieftain_hut_loc).opposite();
+        let chieftain_hut_ori = Dir2::from_vec2(chieftain_hut_loc).opposite();
         structure_locations.push((
             GnarlingStructure::ChieftainHut,
             chieftain_hut_loc.with_z(rpos_height(chieftain_hut_loc)),
@@ -281,7 +281,7 @@ impl GnarlingFortification {
             structure_locations.push((
                 GnarlingStructure::WatchTower,
                 loc.with_z(rpos_height(*loc)),
-                Dir::Y,
+                Dir2::Y,
             ));
         });
 
@@ -406,19 +406,19 @@ impl GnarlingFortification {
                             let x_offset;
                             let y_offset;
                             match _ori {
-                                Dir::X => {
+                                Dir2::X => {
                                     x_offset = 8;
                                     y_offset = 8;
                                 },
-                                Dir::NegX => {
+                                Dir2::NegX => {
                                     x_offset = -8;
                                     y_offset = 8;
                                 },
-                                Dir::Y => {
+                                Dir2::Y => {
                                     x_offset = 8;
                                     y_offset = -8;
                                 },
-                                Dir::NegY => {
+                                Dir2::NegY => {
                                     x_offset = -8;
                                     y_offset = -8;
                                 },
@@ -474,8 +474,8 @@ impl GnarlingFortification {
                         const GROUND_OFFSET: i32 = 24;
                         let height = wpos.z + GROUND_HEIGHT;
                         let x_or_y = match _ori {
-                            Dir::X | Dir::NegX => true,
-                            Dir::Y | Dir::NegY => false,
+                            Dir2::X | Dir2::NegX => true,
+                            Dir2::Y | Dir2::NegY => false,
                         };
                         for pm in plus_minus {
                             let mut pos_ori =
@@ -861,7 +861,7 @@ impl Structure for GnarlingFortification {
                     painter: &Painter,
                     wpos: Vec2<i32>,
                     alt: i32,
-                    door_dir: Dir,
+                    door_dir: Dir2,
                     hut_radius: f32,
                     hut_wall_height: f32,
                     door_height: i32,
@@ -905,15 +905,15 @@ impl Structure for GnarlingFortification {
                     // Door
                     let aabb_min = |dir| {
                         match dir {
-                            Dir::X | Dir::Y => wpos - Vec2::one(),
-                            Dir::NegX | Dir::NegY => wpos + randx / 5 + 1,
+                            Dir2::X | Dir2::Y => wpos - Vec2::one(),
+                            Dir2::NegX | Dir2::NegY => wpos + randx / 5 + 1,
                         }
                         .with_z(alt + 1)
                     };
                     let aabb_max = |dir| {
                         (match dir {
-                            Dir::X | Dir::Y => wpos + randx / 5 + 1,
-                            Dir::NegX | Dir::NegY => wpos - Vec2::one(),
+                            Dir2::X | Dir2::Y => wpos + randx / 5 + 1,
+                            Dir2::NegX | Dir2::NegY => wpos - Vec2::one(),
                         } + dir.to_vec2() * hut_radius as i32)
                             .with_z(alt + 1 + door_height)
                     };
@@ -1656,7 +1656,7 @@ impl Structure for GnarlingFortification {
                                     max: (wpos + 9).with_z(alt + roof_height + 4),
                                 },
                                 0,
-                                Dir::Y,
+                                Dir2::Y,
                             )
                             .without(
                                 painter.gable(
@@ -1667,7 +1667,7 @@ impl Structure for GnarlingFortification {
                                             .with_z(alt + roof_height + 3),
                                     },
                                     0,
-                                    Dir::Y,
+                                    Dir2::Y,
                                 ),
                             );
 

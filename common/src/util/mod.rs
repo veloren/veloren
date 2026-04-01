@@ -1,3 +1,4 @@
+mod cardinal_directions;
 mod color;
 pub mod dir;
 pub mod div;
@@ -45,6 +46,7 @@ fn append_date(version: &str, timestamp: i64) -> String {
     }
 }
 
+pub use cardinal_directions::*;
 pub use color::*;
 pub use dir::*;
 pub use grid_hasher::GridHasher;

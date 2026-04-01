@@ -196,7 +196,7 @@ impl Structure for JungleRuin {
                             .with_z(plot_base - height_handle - room_size + 1),
                         max: Vec2::new(center.x, center.y + 3).with_z(plot_base),
                     },
-                    Dir::NegX,
+                    Dir2::NegX,
                 )
                 .fill(stone_broken);
             let chest_pos = Vec2::new(center.x + room_size - 2, center.y - 3)

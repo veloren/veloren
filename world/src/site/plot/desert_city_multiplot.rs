@@ -11,6 +11,7 @@ use crate::{
 use common::{
     generation::{EntityInfo, SpecialEntity},
     terrain::{Block, BlockKind, SpriteKind, Structure as PrefabStructure, StructuresGroup},
+    util::Dir2,
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
@@ -383,7 +384,7 @@ impl Structure for DesertCityMultiPlot {
                                     .with_z(floor_level + room_height),
                             },
                             2 * room_length,
-                            Dir::X,
+                            Dir2::X,
                         )
                         .fill(sandstone.clone());
                     //interior room compartment with entries
@@ -1054,7 +1055,7 @@ impl Structure for DesertCityMultiPlot {
                                             .with_z(floor_level + room_height),
                                         },
                                         2 * room_length,
-                                        Dir::X,
+                                        Dir2::X,
                                     )
                                     .fill(sandstone.clone());
                                 // Carve Roof Terrace
@@ -1285,7 +1286,8 @@ impl Structure for DesertCityMultiPlot {
                                                 subplot_center.y - room_length + 4,
                                             );
 
-                                            painter.bed_desert(bed_pos.with_z(floor_level), Dir::X);
+                                            painter
+                                                .bed_desert(bed_pos.with_z(floor_level), Dir2::X);
 
                                             for d in 0..2 {
                                                 // other sprites
@@ -1580,22 +1582,22 @@ impl Structure for DesertCityMultiPlot {
                                             .sprite(sprite_pos, SpriteKind::CoatrackWoodWoodland),
                                         4 => painter.mirrored2(
                                             sprite_pos,
-                                            Dir::X,
+                                            Dir2::X,
                                             SpriteKind::BenchWoodWoodland,
                                         ),
                                         5 => painter.mirrored2(
                                             sprite_pos,
-                                            Dir::X,
+                                            Dir2::X,
                                             SpriteKind::BenchWoodWoodlandGreen1,
                                         ),
                                         6 => painter.mirrored2(
                                             sprite_pos,
-                                            Dir::X,
+                                            Dir2::X,
                                             SpriteKind::BenchWoodWoodlandGreen2,
                                         ),
                                         7 => painter.mirrored2(
                                             sprite_pos,
-                                            Dir::X,
+                                            Dir2::X,
                                             SpriteKind::BenchWoodWoodlandGreen3,
                                         ),
                                         _ => painter.sprite(
@@ -1693,7 +1695,7 @@ impl Structure for DesertCityMultiPlot {
                                         )
                                         .with_z(base + tower_height + 1),
                                     },
-                                    Dir::NegX,
+                                    Dir2::NegX,
                                 )
                                 .fill(sandstone.clone());
                             // Library Top Room

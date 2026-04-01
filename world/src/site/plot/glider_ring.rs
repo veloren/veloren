@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    Land,
-    site::{generation::PrimitiveTransform, util::Dir},
-};
+use crate::{Land, site::generation::PrimitiveTransform};
 use common::terrain::BlockKind;
 use rand::prelude::*;
 use vek::*;
@@ -12,7 +9,7 @@ pub struct GliderRing {
     /// Location of center of ring post
     center: Vec2<i32>,
     /// Represents the direction the ring is facing
-    direction: Dir,
+    direction: Dir2,
     /// The numeral on the ring sign
     number: usize,
     /// Starting altitude
@@ -32,7 +29,7 @@ impl GliderRing {
         _site: &Site,
         wpos: &Vec2<i32>,
         number: usize,
-        direction: Dir,
+        direction: Dir2,
     ) -> Self {
         Self {
             center: *wpos,
@@ -53,10 +50,10 @@ impl Structure for GliderRing {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_glider_ring"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let rotate_turns = match self.direction {
-            Dir::X => 0,
-            Dir::Y => 1,
-            Dir::NegX => 2,
-            Dir::NegY => 3,
+            Dir2::X => 0,
+            Dir2::Y => 1,
+            Dir2::NegX => 2,
+            Dir2::NegY => 3,
         };
         let rotation_center = Vec3::new(self.center.x, self.center.y, self.base);
 
@@ -83,7 +80,7 @@ impl Structure for GliderRing {
                     .with_z(ring_base),
                 max: Vec2::new(self.center.x, self.center.y + self.ring_radius).with_z(ring_top),
             },
-            Dir::X,
+            Dir2::X,
         );
         let red_ring = painter.horizontal_cylinder(
             Aabb {
@@ -91,7 +88,7 @@ impl Structure for GliderRing {
                 max: Vec2::new(self.center.x + 2, self.center.y + self.ring_radius)
                     .with_z(ring_top),
             },
-            Dir::X,
+            Dir2::X,
         );
         let front_white_ring = painter.horizontal_cylinder(
             Aabb {
@@ -106,7 +103,7 @@ impl Structure for GliderRing {
                 )
                 .with_z(ring_top - self.ring_thickness + 1),
             },
-            Dir::X,
+            Dir2::X,
         );
         let back_white_ring = painter.horizontal_cylinder(
             Aabb {
@@ -121,7 +118,7 @@ impl Structure for GliderRing {
                 )
                 .with_z(ring_top - self.ring_thickness + 1),
             },
-            Dir::X,
+            Dir2::X,
         );
         let mut black_fills = Vec::new();
         for y in self.center.y - self.ring_radius + self.ring_thickness - 1
@@ -169,7 +166,7 @@ impl Structure for GliderRing {
                 )
                 .with_z(ring_top - self.ring_thickness),
             },
-            Dir::X,
+            Dir2::X,
         );
         // Sign
         let sign_base = ring_top - self.ring_thickness - 1;

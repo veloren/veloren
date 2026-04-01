@@ -183,6 +183,10 @@ macro_rules! sprites {
                             Ok(())
                         }
 
+                        pub fn from_block(_block: &Block) -> Self {
+                            Self $(($(_block.get_attr::<$attr>().unwrap_or_default()),*))?
+                        }
+
                         pub fn visitor<'de, O, F: FnOnce($category_name) -> O>(f: F, expecting: &str) -> Visitor<'_, 'de, O, F> {
                             Visitor {
                                 f,
@@ -216,6 +220,14 @@ macro_rules! sprites {
                         }),
                     )*)*
                 }
+            }
+
+            pub fn from_block(block: &Block) -> Option<Self> {
+                let sprite = block.get_sprite()?;
+
+                Some(match sprite {
+                    $($(SpriteKind::$sprite_name => Self::$sprite_name(categories::$category_name::from_block(block)),)*)*
+                })
             }
         }
 

@@ -1026,20 +1026,20 @@ impl Structure for AirshipDock {
         let edge = painter.aabb(edge_fill);
         let stair_cap_even =
             painter
-                .ramp(stair, Dir::X)
-                .intersect(painter.ramp(stair, Dir::X).rotate_about(
+                .ramp(stair, Dir2::X)
+                .intersect(painter.ramp(stair, Dir2::X).rotate_about(
                     Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, -1),
                     center.with_z(stairtop - 4),
                 ));
         let stair_cap_odd =
             stair_cap_even.rotate_about(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1), stair.center());
         let stair_base_even = painter
-            .ramp(stair, Dir::X)
-            .intersect(painter.ramp(stair, Dir::X).translate(Vec3::new(1, 0, 0)))
+            .ramp(stair, Dir2::X)
+            .intersect(painter.ramp(stair, Dir2::X).translate(Vec3::new(1, 0, 0)))
             .union(painter.aabb(middirt))
             .union(
                 painter
-                    .ramp(stair, Dir::X)
+                    .ramp(stair, Dir2::X)
                     .rotate_about(
                         Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, -1),
                         center.with_z(stairtop - 4),

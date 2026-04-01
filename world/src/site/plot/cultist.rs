@@ -241,7 +241,7 @@ impl Structure for Cultist {
                             max: Vec2::new(tower_center.x + 8 + size, tower_center.y + 4 + size)
                                 .with_z(room_base + height),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .clear();
 
@@ -253,7 +253,7 @@ impl Structure for Cultist {
                             max: Vec2::new(tower_center.x + 4 + size, tower_center.y + 8 + size)
                                 .with_z(room_base + height),
                         },
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .clear();
                 // vault carves floor 1
@@ -271,7 +271,7 @@ impl Structure for Cultist {
                             )
                             .with_z(room_base + 10 + height + 5 + (height / 4) + (size / 2)),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .clear();
 
@@ -289,7 +289,7 @@ impl Structure for Cultist {
                             )
                             .with_z(room_base + 10 + height + 5 + (height / 4) + (size / 2)),
                         },
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .clear();
             }
@@ -439,7 +439,7 @@ impl Structure for Cultist {
                                             + ((room_size / 3) * f),
                                     ),
                                 },
-                                Dir::Y,
+                                Dir2::Y,
                             )
                             .clear();
 
@@ -504,7 +504,7 @@ impl Structure for Cultist {
                                             + ((room_size / 3) * f),
                                     ),
                                 },
-                                Dir::X,
+                                Dir2::X,
                             )
                             .clear();
 

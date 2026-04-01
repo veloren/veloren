@@ -97,6 +97,10 @@ impl StructureSprite {
     pub fn apply_to_block(self, block: Block) -> Result<Block, Block> {
         self.0.apply_to_block(block)
     }
+
+    pub fn from_block(block: &Block) -> Option<Self> {
+        StructureSpriteKind::from_block(block).map(Self)
+    }
 }
 
 sprites! {
@@ -636,6 +640,14 @@ pub struct Damage(pub u8);
 #[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Deserialize)]
 pub struct SnowCovered(pub bool);
 
+#[derive(Clone, Copy, Debug)]
+pub enum SpriteAdjecencyRequirement {
+    /// Considers sprite rotation
+    AllSolid(&'static [Vec3<i32>]),
+    /// Considers sprite rotation
+    AnySolid(&'static [Vec3<i32>]),
+}
+
 impl SpriteKind {
     #[inline]
     //#[tweak_fn]
@@ -897,6 +909,31 @@ impl SpriteKind {
             SpriteKind::BenchWood2Middle
             | SpriteKind::BenchWood2Side
             | SpriteKind::BenchWood2Middle2 => 0.636,
+            _ => return None,
+        })
+    }
+
+    pub const fn adjecency_requirement(&self) -> Option<SpriteAdjecencyRequirement> {
+        use SpriteAdjecencyRequirement::*;
+        const NEG_X: Vec3<i32> = Vec3::new(-1, 0, 0);
+        const Z: Vec3<i32> = Vec3::new(0, 0, 1);
+        const NEG_Z: Vec3<i32> = Vec3::new(0, 0, -1);
+
+        Some(match self {
+            Self::Beehive
+            | Self::CeilingMushroom
+            | Self::CeilingLanternPlant
+            | Self::CeilingLanternFlower
+            | Self::CeilingJungleLeafyPlant => AllSolid(&[Z]),
+            Self::Apple | Self::Coconut => AnySolid(&[Z, NEG_Z]),
+
+            _ if matches!(self.category(), Category::Plant) => AllSolid(&[NEG_Z]),
+            Self::Lantern | Self::LanternpostWoodBase | Self::LanternpostWoodUpper | Self::Bomb => {
+                AllSolid(&[NEG_Z])
+            },
+
+            Self::LanternpostWoodLantern => AllSolid(&[NEG_X]),
+
             _ => return None,
         })
     }

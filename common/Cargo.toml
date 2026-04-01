@@ -31,6 +31,7 @@ serde = { workspace = true, features = ["rc"] }
 
 # Util
 enum-map = { workspace = true, features = ["serde"] }
+enumset = { workspace = true }
 vek = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }

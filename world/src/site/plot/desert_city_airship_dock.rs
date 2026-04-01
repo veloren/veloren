@@ -292,7 +292,7 @@ impl Structure for DesertCityAirshipDock {
                             )
                             .with_z(bldg_base + height - 1),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .intersect(clear_limit_1)
                     .clear();
@@ -310,7 +310,7 @@ impl Structure for DesertCityAirshipDock {
                             )
                             .with_z(bldg_base + height - 1),
                         },
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .intersect(clear_limit_2)
                     .clear();

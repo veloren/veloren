@@ -20,9 +20,9 @@ impl CornerMeta {
 pub struct Plaza {
     pub aabr: Aabr<i32>,
     pub kind: RoadKind,
-    corner_meta: EnumMap<Dir, CornerMeta>,
+    corner_meta: EnumMap<Dir2, CornerMeta>,
     pub hard_alt: Option<i32>,
-    dir: Dir,
+    dir: Dir2,
 }
 
 impl Plaza {
@@ -51,7 +51,7 @@ impl Plaza {
 
         let center = get_corner_meta(iaabr.center());
 
-        let corner_meta: EnumMap<Dir, CornerMeta> = Dir::iter()
+        let corner_meta: EnumMap<Dir2, CornerMeta> = Dir2::iter()
             .map(|d| {
                 let o = d.rotated_cw();
                 let pos = d.select_aabr_with(iaabr, o.select_aabr(iaabr));
@@ -71,7 +71,7 @@ impl Plaza {
                 None
             },
             dir: *RandomField::new(51)
-                .choose(aabr.center().with_z(center.alt), &Dir::ALL)
+                .choose(aabr.center().with_z(center.alt), &Dir2::ALL)
                 .expect("Dir::ALL has len 4"),
         }
     }
@@ -121,7 +121,7 @@ impl Structure for Plaza {
             max: site.wpos_tile_pos(self.aabr.max) - 1,
         };
 
-        for dir in Dir::iter() {
+        for dir in Dir2::iter() {
             let orth = dir.orthogonal();
 
             for i in (orth.select(tile_aabr.min) + 1)..orth.select(tile_aabr.max) {
