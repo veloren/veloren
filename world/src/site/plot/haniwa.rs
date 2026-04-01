@@ -187,7 +187,7 @@ impl Structure for Haniwa {
                     max: Vec2::new(center.x + (outside_radius / 2) + 8, center.y + 16)
                         .with_z(base + 28),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(grass.clone());
@@ -198,7 +198,7 @@ impl Structure for Haniwa {
                     max: Vec2::new(center.x + (outside_radius / 2) + 8, center.y + 16)
                         .with_z(base + 27),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(rock_broken.clone());
@@ -317,7 +317,7 @@ impl Structure for Haniwa {
                     min: Vec2::new(center.x + (diameter / 4), center.y - 12).with_z(base - 5),
                     max: Vec2::new(center.x + (diameter / 2) + 9, center.y + 12).with_z(base + 22),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .fill(rock_broken.clone());
@@ -330,7 +330,7 @@ impl Structure for Haniwa {
                         max: Vec2::new(center.x + (diameter / 2) + 9 + v, center.y + 10 - v)
                             .with_z(base + 22 - v),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
                 .fill(rock_broken.clone());
@@ -341,7 +341,7 @@ impl Structure for Haniwa {
                     min: Vec2::new(center.x + (diameter / 4), center.y - 4).with_z(base),
                     max: Vec2::new(center.x + (diameter / 2) + 25, center.y + 4).with_z(base + 16),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
             .clear();
@@ -455,7 +455,7 @@ impl Structure for Haniwa {
                         )
                         .with_z(floor + (room_size / 8)),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .clear();
             painter
@@ -472,7 +472,7 @@ impl Structure for Haniwa {
                         )
                         .with_z(floor + (room_size / 8)),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .clear();
             // room lanterns inner
@@ -720,7 +720,7 @@ impl Structure for Haniwa {
                             max: Vec2::new(stairs_start.x + s, stairs_start.y + 4)
                                 .with_z(stairs_floor + 12 - s + 2),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .fill(rock_broken.clone());
             }
@@ -733,7 +733,7 @@ impl Structure for Haniwa {
                             max: Vec2::new(stairs_start.x + s, stairs_start.y + 2)
                                 .with_z(stairs_floor + 10 - s),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .clear();
                 painter
@@ -763,7 +763,7 @@ impl Structure for Haniwa {
                                 max: Vec2::new(stairs_start.x + s, stairs_start.y + 2)
                                     .with_z(stairs_floor + 10 - s),
                             },
-                            Dir::X,
+                            Dir2::X,
                         )
                         .fill(key_door.clone());
                     painter
@@ -796,7 +796,7 @@ impl Structure for Haniwa {
                         max: Vec2::new(center.x + (diameter / 4) - s, center.y + 5)
                             .with_z(base + 16 - s + 1),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
                 .fill(rock_broken.clone());
@@ -809,7 +809,7 @@ impl Structure for Haniwa {
                         max: Vec2::new(center.x + (diameter / 4) - s, center.y + 4)
                             .with_z(base + 16 - s),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .rotate_about(Mat3::rotation_z(self.rotation).as_(), center.with_z(base))
                 .clear();

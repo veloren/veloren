@@ -2,12 +2,13 @@ use std::{f32::consts::TAU, sync::Arc};
 
 use crate::{
     Land,
-    site::{Dir, Fill, Painter, Site, Structure, generation::spiral_staircase},
+    site::{Fill, Painter, Site, Structure, generation::spiral_staircase},
     util::{CARDINALS, DIAGONALS, RandomField, Sampler},
 };
 use common::{
     generation::{EntityInfo, SpecialEntity},
     terrain::{Block, BlockKind, SpriteKind},
+    util::Dir2,
 };
 use rand::RngExt;
 use vek::*;
@@ -303,7 +304,7 @@ impl Structure for DesertCityArena {
                             )
                             .with_z(base + pillar_height),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .fill(sandstone.clone());
                 painter
@@ -320,7 +321,7 @@ impl Structure for DesertCityArena {
                             )
                             .with_z(base + pillar_height - 1),
                         },
-                        Dir::X,
+                        Dir2::X,
                     )
                     .clear();
 
@@ -339,7 +340,7 @@ impl Structure for DesertCityArena {
                             )
                             .with_z(base + pillar_height),
                         },
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .fill(sandstone.clone());
                 painter
@@ -356,7 +357,7 @@ impl Structure for DesertCityArena {
                             )
                             .with_z(base + pillar_height - 1),
                         },
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .clear();
             }
@@ -376,7 +377,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size) + 2),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .fill(sandstone.clone());
             painter
@@ -393,7 +394,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size)),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .clear();
             // a2
@@ -411,7 +412,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size)),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .fill(sandstone.clone());
             painter
@@ -428,7 +429,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size) - 2),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .clear();
             // b1
@@ -446,7 +447,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size) + 2),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .fill(sandstone.clone());
             painter
@@ -463,7 +464,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size)),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .clear();
             // b2
@@ -481,7 +482,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size)),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .fill(sandstone.clone());
             painter
@@ -498,7 +499,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + (4 * pillar_size) - 2),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .clear();
             // top
@@ -667,7 +668,7 @@ impl Structure for DesertCityArena {
                     max: Vec2::new(center.x + (length / 2) + wall_th, center.y + 10)
                         .with_z(base + (height / 2) + 8),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .fill(sandstone.clone());
         painter
@@ -678,7 +679,7 @@ impl Structure for DesertCityArena {
                     max: Vec2::new(center.x + 10, center.y + (width / 2) + corner + wall_th)
                         .with_z(base + (height / 2) + 8),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(sandstone.clone());
         painter
@@ -689,7 +690,7 @@ impl Structure for DesertCityArena {
                     max: Vec2::new(center.x + (length / 2) + wall_th, center.y + 10 - wall_th)
                         .with_z(base + (height / 2) + 8 - wall_th),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .clear();
         painter
@@ -706,7 +707,7 @@ impl Structure for DesertCityArena {
                     )
                     .with_z(base + (height / 2) + 8 - wall_th),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .clear();
         // center clear
@@ -765,7 +766,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 1),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .fill(sandstone.clone());
             painter
@@ -792,7 +793,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 1),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .clear();
             painter
@@ -819,7 +820,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 2),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .fill(color.clone());
             painter
@@ -846,7 +847,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 2),
                     },
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .clear();
         }
@@ -876,7 +877,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 1),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .fill(sandstone.clone());
             painter
@@ -903,7 +904,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 1),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .clear();
             painter
@@ -930,7 +931,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 2),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .fill(color.clone());
             painter
@@ -957,7 +958,7 @@ impl Structure for DesertCityArena {
                         )
                         .with_z(base + height + wall_th + top_height - 2),
                     },
-                    Dir::X,
+                    Dir2::X,
                 )
                 .clear();
         }
@@ -1036,7 +1037,7 @@ impl Structure for DesertCityArena {
                             .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::NegY,
+                        Dir2::NegY,
                     )
                     .fill(color.clone());
                 painter
@@ -1051,7 +1052,7 @@ impl Structure for DesertCityArena {
                             .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::NegY,
+                        Dir2::NegY,
                     )
                     .fill(sandstone.clone());
                 painter
@@ -1066,7 +1067,7 @@ impl Structure for DesertCityArena {
                                 .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .fill(color.clone());
 
@@ -1082,7 +1083,7 @@ impl Structure for DesertCityArena {
                                 .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::Y,
+                        Dir2::Y,
                     )
                     .fill(sandstone.clone());
                 painter
@@ -1097,7 +1098,7 @@ impl Structure for DesertCityArena {
                             .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::NegX,
+                        Dir2::NegX,
                     )
                     .fill(color.clone());
                 painter
@@ -1112,7 +1113,7 @@ impl Structure for DesertCityArena {
                             .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::NegX,
+                        Dir2::NegX,
                     )
                     .fill(sandstone.clone());
                 painter
@@ -1127,7 +1128,7 @@ impl Structure for DesertCityArena {
                                 .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::X,
+                        Dir2::X,
                     )
                     .fill(color.clone());
                 painter
@@ -1142,7 +1143,7 @@ impl Structure for DesertCityArena {
                                 .with_z(base + (length / 16) - 1 + floor),
                         },
                         length / 16,
-                        Dir::X,
+                        Dir2::X,
                     )
                     .fill(sandstone.clone());
             }

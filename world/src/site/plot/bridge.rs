@@ -144,7 +144,7 @@ fn render_short(bridge: &Bridge, painter: &Painter) {
 
     // let outset = 7;
 
-    let up_ramp = |point: Vec3<i32>, dir: Dir, side_len: i32| {
+    let up_ramp = |point: Vec3<i32>, dir: Dir2, side_len: i32| {
         let forward = dir.to_vec2();
         let side = dir.orthogonal().to_vec2() * side_len;
         let ramp_in = top - point.z;
@@ -367,7 +367,7 @@ fn render_heightened_viaduct(bridge: &Bridge, painter: &Painter, data: &Heighten
             .dir
             .split_aabr_offset(bridge_aabr, bridge.dir.select(bridge_aabr.size()) / 2);
 
-        let ramp_in_aabr = |aabr: Aabr<i32>, dir: Dir, zmin, zmax| {
+        let ramp_in_aabr = |aabr: Aabr<i32>, dir: Dir2, zmin, zmax| {
             let inset = dir.select(aabr.size());
             painter.ramp_inset(
                 aabb(aabr.min.with_z(zmin), aabr.max.with_z(zmax)),
@@ -646,7 +646,7 @@ fn render_tower(bridge: &Bridge, painter: &Painter, roof_kind: &RoofKind) {
     for i in 1..=n {
         let c = tower_aabr.center().with_z(bridge.start.z + i * p);
 
-        for dir in Dir::ALL {
+        for dir in Dir2::ALL {
             painter.rotated_sprite(
                 c + dir.to_vec2(),
                 SpriteKind::WallSconce,
@@ -896,7 +896,7 @@ pub struct Bridge {
 
     pub(crate) start: Vec3<i32>,
     pub(crate) end: Vec3<i32>,
-    pub(crate) dir: Dir,
+    pub(crate) dir: Dir2,
     center: Vec3<i32>,
     kind: BridgeKind,
     biome: BiomeKind,
@@ -918,7 +918,7 @@ impl Bridge {
         let min_water_dist = 5;
         let find_edge = |start: Vec2<i32>, end: Vec2<i32>| {
             let mut test_start = start;
-            let dir = Dir::from_vec2(end - start).to_vec2();
+            let dir = Dir2::from_vec2(end - start).to_vec2();
             let mut last_alt = if let Some(col) = land.column_sample(start, index) {
                 col.alt as i32
             } else {
@@ -975,7 +975,7 @@ impl Bridge {
             start,
             end,
             center,
-            dir: Dir::from_vec2(end.xy() - start.xy()),
+            dir: Dir2::from_vec2(end.xy() - start.xy()),
             kind: bridge,
             biome: land
                 .get_chunk_wpos(center.xy())

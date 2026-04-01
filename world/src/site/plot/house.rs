@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     Land,
     all::ForestKind,
-    site::util::{Dir, sprites::PainterSpriteExt},
+    site::util::sprites::PainterSpriteExt,
     util::{DIRS, RandomField, Sampler},
 };
 use common::{
@@ -48,7 +48,7 @@ pub struct House {
     overhang: i32,
     /// Color of the roof
     roof_color: Rgb<u8>,
-    front: Dir,
+    front: Dir2,
     christmas_decorations: bool,
     lower_style: Style,
     upper_style: Style,
@@ -73,10 +73,10 @@ impl House {
         };
 
         let front = match door_dir {
-            dir if dir.y < 0 => Dir::NegY,
-            dir if dir.x < 0 => Dir::NegX,
-            dir if dir.y > 0 => Dir::Y,
-            _ => Dir::X,
+            dir if dir.y < 0 => Dir2::NegY,
+            dir if dir.x < 0 => Dir2::NegX,
+            dir if dir.y > 0 => Dir2::Y,
+            _ => Dir2::X,
         };
 
         let christmas_decorations = calendar.is_some_and(|c| c.is_event(CalendarEvent::Christmas));
@@ -197,7 +197,7 @@ impl Structure for House {
             + 1;
 
         let (roof_primitive, roof_empty) = match self.front {
-            Dir::Y => {
+            Dir2::Y => {
                 (
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -212,7 +212,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height),
                         },
                         inset: roof_height,
-                        dir: Dir::Y,
+                        dir: Dir2::Y,
                     }),
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -229,11 +229,11 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                         },
                         inset: roof_height - 1,
-                        dir: Dir::Y,
+                        dir: Dir2::Y,
                     }),
                 )
             },
-            Dir::X => {
+            Dir2::X => {
                 (
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -248,7 +248,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height),
                         },
                         inset: roof_height,
-                        dir: Dir::X,
+                        dir: Dir2::X,
                     }),
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -265,11 +265,11 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                         },
                         inset: roof_height - 1,
-                        dir: Dir::X,
+                        dir: Dir2::X,
                     }),
                 )
             },
-            Dir::NegY => (
+            Dir2::NegY => (
                 painter.prim(Primitive::Gable {
                     aabb: Aabb {
                         min: Vec2::new(
@@ -284,7 +284,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height),
                     },
                     inset: roof_height,
-                    dir: Dir::Y,
+                    dir: Dir2::Y,
                 }),
                 painter.prim(Primitive::Gable {
                     aabb: Aabb {
@@ -297,7 +297,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                     },
                     inset: roof_height - 1,
-                    dir: Dir::Y,
+                    dir: Dir2::Y,
                 }),
             ),
             _ => (
@@ -315,7 +315,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height),
                     },
                     inset: roof_height,
-                    dir: Dir::X,
+                    dir: Dir2::X,
                 }),
                 painter.prim(Primitive::Gable {
                     aabb: Aabb {
@@ -331,13 +331,13 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                     },
                     inset: roof_height - 1,
-                    dir: Dir::X,
+                    dir: Dir2::X,
                 }),
             ),
         };
 
         let (roof_front_wall, roof_rear_wall) = match self.front {
-            Dir::Y => (
+            Dir2::Y => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: (Vec2::new(
                         self.bounds.min.x,
@@ -356,7 +356,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height)),
                 })),
             ),
-            Dir::X => (
+            Dir2::X => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(
                         self.bounds.max.x + (self.levels as i32 - 1) * self.overhang,
@@ -375,7 +375,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height),
                 })),
             ),
-            Dir::NegY => (
+            Dir2::NegY => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(
                         self.bounds.min.x,
@@ -425,7 +425,7 @@ impl Structure for House {
         painter.fill(roof_walls, wall_fill_gable.clone());
         let max_overhang = (self.levels as i32 - 1) * self.overhang;
         let (roof_beam, roof_beam_right, roof_beam_left) = match self.front {
-            Dir::Y => (
+            Dir2::Y => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(self.bounds.min.x, self.bounds.min.y).with_z(alt + roof),
                     max: Vec2::new(self.bounds.max.x + 1, self.bounds.max.y + 1 + max_overhang)
@@ -442,7 +442,7 @@ impl Structure for House {
                         .with_z(alt + roof + 1),
                 })),
             ),
-            Dir::X => (
+            Dir2::X => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(self.bounds.min.x, self.bounds.min.y).with_z(alt + roof),
                     max: Vec2::new(self.bounds.max.x + max_overhang + 1, self.bounds.max.y + 1)
@@ -459,7 +459,7 @@ impl Structure for House {
                         .with_z(alt + roof + 1),
                 })),
             ),
-            Dir::NegY => (
+            Dir2::NegY => (
                 painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(self.bounds.min.x, self.bounds.min.y - max_overhang)
                         .with_z(alt + roof),
@@ -592,17 +592,17 @@ impl Structure for House {
             // Walls
             let inner_level = if self.overhang < -4 && i > 1 {
                 match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: (self.bounds.min + 1).with_z(alt + previous_height),
                         max: Vec2::new(self.bounds.max.x, self.bounds.max.y + storey_increase + 1)
                             .with_z(alt + height),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: (self.bounds.min + 1).with_z(alt + previous_height),
                         max: Vec2::new(self.bounds.max.x + storey_increase + 1, self.bounds.max.y)
                             .with_z(alt + height),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.min.x + 1,
                             self.bounds.min.y - storey_increase + 1,
@@ -621,17 +621,17 @@ impl Structure for House {
                 }
             } else {
                 match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: (self.bounds.min + 1).with_z(alt + previous_height),
                         max: Vec2::new(self.bounds.max.x, self.bounds.max.y + storey_increase)
                             .with_z(alt + height),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: (self.bounds.min + 1).with_z(alt + previous_height),
                         max: (Vec2::new(self.bounds.max.x + storey_increase, self.bounds.max.y))
                             .with_z(alt + height),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.min.x + 1,
                             self.bounds.min.y - storey_increase + 1,
@@ -650,7 +650,7 @@ impl Structure for House {
                 }
             };
             let outer_level = match self.front {
-                Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                     min: self.bounds.min.with_z(alt + previous_height),
                     max: (Vec2::new(
                         self.bounds.max.x + 1,
@@ -658,7 +658,7 @@ impl Structure for House {
                     ))
                     .with_z(alt + height),
                 })),
-                Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                     min: self.bounds.min.with_z(alt + previous_height),
                     max: Vec2::new(
                         self.bounds.max.x + storey_increase + 1,
@@ -666,7 +666,7 @@ impl Structure for House {
                     )
                     .with_z(alt + height),
                 })),
-                Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                     min: Vec2::new(self.bounds.min.x, self.bounds.min.y - storey_increase)
                         .with_z(alt + previous_height),
                     max: Vec2::new(self.bounds.max.x + 1, self.bounds.max.y + 1)
@@ -707,7 +707,7 @@ impl Structure for House {
                 for x in self.tile_aabr.min.x - 2..self.tile_aabr.max.x + 2 {
                     if self.overhang >= 2 && self.front.is_y() {
                         let temp = match self.front {
-                            Dir::Y => site.tile_wpos(Vec2::new(x, self.tile_aabr.max.y)),
+                            Dir2::Y => site.tile_wpos(Vec2::new(x, self.tile_aabr.max.y)),
                             //2 => site.tile_wpos(Vec2::new(x, self.tile_aabr.min.y)),
                             _ => Vec2::zero(),
                         };
@@ -715,7 +715,7 @@ impl Structure for House {
                         // something to do with AABBs with min and max not smaller in the right
                         // order. The same thing is true for orientation 3.
                         let support = match self.front {
-                            Dir::Y => painter.line(
+                            Dir2::Y => painter.line(
                                 Vec2::new(
                                     temp.x,
                                     self.bounds.max.y + storey_increase - self.overhang + 1,
@@ -756,14 +756,14 @@ impl Structure for House {
                 for y in self.tile_aabr.min.y - 2..self.tile_aabr.max.y + 2 {
                     if self.overhang >= 2 && !self.front.is_y() {
                         let temp = match self.front {
-                            Dir::Y => Vec2::zero(),
-                            Dir::X => site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y)),
-                            Dir::NegY => Vec2::zero(),
+                            Dir2::Y => Vec2::zero(),
+                            Dir2::X => site.tile_wpos(Vec2::new(self.tile_aabr.max.x, y)),
+                            Dir2::NegY => Vec2::zero(),
                             _ => site.tile_wpos(Vec2::new(self.tile_aabr.min.x, y)),
                         };
                         let support = match self.front {
-                            Dir::Y => painter.prim(Primitive::Empty),
-                            Dir::X => painter.line(
+                            Dir2::Y => painter.prim(Primitive::Empty),
+                            Dir2::X => painter.line(
                                 Vec2::new(
                                     self.bounds.max.x + storey_increase - self.overhang + 1,
                                     temp.y,
@@ -776,7 +776,7 @@ impl Structure for House {
                                 .with_z(alt + previous_height),
                                 0.75,
                             ),
-                            Dir::NegY => painter.prim(Primitive::Empty),
+                            Dir2::NegY => painter.prim(Primitive::Empty),
                             _ => painter.line(
                                 Vec2::new(
                                     self.bounds.min.x - storey_increase + self.overhang - 1,
@@ -810,7 +810,7 @@ impl Structure for House {
                     painter.prim(Primitive::Empty)
                 } else {
                     match self.front {
-                        Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
                                 self.bounds.max.y + storey_increase,
@@ -822,7 +822,7 @@ impl Structure for House {
                             )
                             .with_z(alt + height),
                         })),
-                        Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 self.bounds.max.x + storey_increase,
                                 self.bounds.min.y - 1,
@@ -834,7 +834,7 @@ impl Structure for House {
                             )
                             .with_z(alt + height),
                         })),
-                        Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
                                 self.bounds.min.y - storey_increase,
@@ -868,7 +868,7 @@ impl Structure for House {
                 let pillars2 = painter.prim(Primitive::intersect(pillars_x, pillars_y));
                 let pillars3 = painter.prim(Primitive::union(pillars1, pillars2));
                 let pillars4 = match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.min.x - 1, self.bounds.min.y - 1)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -877,7 +877,7 @@ impl Structure for House {
                         )
                         .with_z(alt + previous_height + 1),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.min.x - 1, self.bounds.min.y - 1)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -886,7 +886,7 @@ impl Structure for House {
                         )
                         .with_z(alt + previous_height + 1),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.min.x - 1,
                             self.bounds.min.y - storey_increase - 1,
@@ -930,11 +930,11 @@ impl Structure for House {
                     .with_z(alt + previous_height + 2 + window_height);
                     let window = painter.prim(Primitive::Aabb(Aabb { min, max }));
                     let add_windows = match self.front {
-                        Dir::Y => {
+                        Dir2::Y => {
                             max.y < self.bounds.max.y + storey_increase && min.y > self.bounds.min.y
                         },
-                        Dir::X => max.y < self.bounds.max.y && min.y > self.bounds.min.y,
-                        Dir::NegY => {
+                        Dir2::X => max.y < self.bounds.max.y && min.y > self.bounds.min.y,
+                        Dir2::NegY => {
                             max.y < self.bounds.max.y && min.y > self.bounds.min.y - storey_increase
                         },
                         _ => max.y < self.bounds.max.y && min.y > self.bounds.min.y,
@@ -994,11 +994,11 @@ impl Structure for House {
                     .with_z(alt + previous_height + 2 + window_height);
                     let window = painter.prim(Primitive::Aabb(Aabb { min, max }));
                     let add_windows = match self.front {
-                        Dir::Y => max.x < self.bounds.max.x && min.x > self.bounds.min.x,
-                        Dir::X => {
+                        Dir2::Y => max.x < self.bounds.max.x && min.x > self.bounds.min.x,
+                        Dir2::X => {
                             max.x < self.bounds.max.x + storey_increase && min.x > self.bounds.min.x
                         },
-                        Dir::NegY => max.x < self.bounds.max.x && min.x > self.bounds.min.x,
+                        Dir2::NegY => max.x < self.bounds.max.x && min.x > self.bounds.min.x,
                         _ => {
                             max.x < self.bounds.max.x && min.x > self.bounds.min.x - storey_increase
                         },
@@ -1050,7 +1050,7 @@ impl Structure for House {
             // Shed roof on negative overhangs
             if self.overhang < -4 && i > 1 {
                 let shed = match self.front {
-                    Dir::Y => painter.prim(Primitive::Ramp {
+                    Dir2::Y => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
@@ -1064,9 +1064,9 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: Dir::NegY,
+                        dir: Dir2::NegY,
                     }),
-                    Dir::X => painter.prim(Primitive::Ramp {
+                    Dir2::X => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.max.x + storey_increase + 1,
@@ -1080,9 +1080,9 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: Dir::NegX,
+                        dir: Dir2::NegX,
                     }),
-                    Dir::NegY => painter.prim(Primitive::Ramp {
+                    Dir2::NegY => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
@@ -1096,7 +1096,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: Dir::Y,
+                        dir: Dir2::Y,
                     }),
                     _ => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -1112,11 +1112,11 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: Dir::X,
+                        dir: Dir2::X,
                     }),
                 };
                 let shed_empty = match self.front {
-                    Dir::Y => painter.prim(Primitive::Ramp {
+                    Dir2::Y => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
@@ -1130,9 +1130,9 @@ impl Structure for House {
                             .with_z(alt + height - 1),
                         },
                         inset: storey - 1,
-                        dir: Dir::NegY,
+                        dir: Dir2::NegY,
                     }),
-                    Dir::X => painter.prim(Primitive::Ramp {
+                    Dir2::X => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.max.x + storey_increase + 1,
@@ -1146,9 +1146,9 @@ impl Structure for House {
                             .with_z(alt + height - 1),
                         },
                         inset: storey - 1,
-                        dir: Dir::NegX,
+                        dir: Dir2::NegX,
                     }),
-                    Dir::NegY => painter.prim(Primitive::Ramp {
+                    Dir2::NegY => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x - 1,
@@ -1162,7 +1162,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey - 1,
-                        dir: Dir::Y,
+                        dir: Dir2::Y,
                     }),
                     _ => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -1178,13 +1178,13 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey - 1,
-                        dir: Dir::X,
+                        dir: Dir2::X,
                     }),
                 };
                 painter.fill(shed, Fill::Brick(BlockKind::Wood, self.roof_color, 24));
                 painter.fill(shed_empty, Fill::Block(Block::empty()));
                 let shed_left_wall = match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.min.x, self.bounds.max.y + storey_increase + 1)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1193,7 +1193,7 @@ impl Structure for House {
                         )
                         .with_z(alt + height - 1),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.max.x + storey_increase + 1, self.bounds.min.y)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1202,7 +1202,7 @@ impl Structure for House {
                         )
                         .with_z(alt + height - 1),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.max.x,
                             self.bounds.min.y - storey_increase - self.overhang.abs() + 1,
@@ -1228,7 +1228,7 @@ impl Structure for House {
                     })),
                 };
                 let shed_right_wall = match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.max.x, self.bounds.max.y + storey_increase + 1)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1237,7 +1237,7 @@ impl Structure for House {
                         )
                         .with_z(alt + height - 1),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.max.x + storey_increase + 1, self.bounds.max.y)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1246,7 +1246,7 @@ impl Structure for House {
                         )
                         .with_z(alt + height - 1),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.min.x,
                             self.bounds.min.y - storey_increase - self.overhang.abs() + 1,
@@ -1272,7 +1272,7 @@ impl Structure for House {
                     })),
                 };
                 let shed_wall_beams = match self.front {
-                    Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.min.x, self.bounds.max.y + storey_increase + 1)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1281,7 +1281,7 @@ impl Structure for House {
                         )
                         .with_z(alt + previous_height + 1),
                     })),
-                    Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.max.x + storey_increase + 1, self.bounds.min.y)
                             .with_z(alt + previous_height),
                         max: Vec2::new(
@@ -1290,7 +1290,7 @@ impl Structure for House {
                         )
                         .with_z(alt + previous_height + 1),
                     })),
-                    Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                    Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(
                             self.bounds.min.x,
                             self.bounds.min.y - storey_increase - self.overhang.abs() + 1,
@@ -1333,13 +1333,13 @@ impl Structure for House {
                 };
                 for n in range {
                     let temp = match self.front {
-                        Dir::Y => site.tile_wpos(Vec2::new(n, self.tile_aabr.max.y)) - 4,
-                        Dir::X => site.tile_wpos(Vec2::new(self.tile_aabr.max.x, n)) - 4,
-                        Dir::NegY => site.tile_wpos(Vec2::new(n, self.tile_aabr.min.y)) - 4,
+                        Dir2::Y => site.tile_wpos(Vec2::new(n, self.tile_aabr.max.y)) - 4,
+                        Dir2::X => site.tile_wpos(Vec2::new(self.tile_aabr.max.x, n)) - 4,
+                        Dir2::NegY => site.tile_wpos(Vec2::new(n, self.tile_aabr.min.y)) - 4,
                         _ => site.tile_wpos(Vec2::new(self.tile_aabr.min.x, n)) - 4,
                     };
                     let dormer_box = match self.front {
-                        Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(temp.x - 1, self.bounds.max.y + storey_increase + 1)
                                 .with_z(alt + previous_height),
                             max: Vec2::new(
@@ -1348,7 +1348,7 @@ impl Structure for House {
                             )
                             .with_z(alt + height - 1),
                         })),
-                        Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(self.bounds.max.x + storey_increase + 1, temp.y - 1)
                                 .with_z(alt + previous_height),
                             max: Vec2::new(
@@ -1357,7 +1357,7 @@ impl Structure for House {
                             )
                             .with_z(alt + height - 1),
                         })),
-                        Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 temp.x - 1,
                                 self.bounds.min.y - storey_increase - self.overhang.abs() + 1,
@@ -1377,7 +1377,7 @@ impl Structure for House {
                         })),
                     };
                     let dormer_roof = match self.front {
-                        Dir::Y => painter.prim(Primitive::Gable {
+                        Dir2::Y => painter.prim(Primitive::Gable {
                             aabb: Aabb {
                                 min: Vec2::new(temp.x - 1, self.bounds.max.y + storey_increase + 1)
                                     .with_z(alt + height - 2),
@@ -1388,9 +1388,9 @@ impl Structure for House {
                                 .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: Dir::Y,
+                            dir: Dir2::Y,
                         }),
-                        Dir::X => painter.prim(Primitive::Gable {
+                        Dir2::X => painter.prim(Primitive::Gable {
                             aabb: Aabb {
                                 min: Vec2::new(self.bounds.max.x + storey_increase + 1, temp.y - 1)
                                     .with_z(alt + height - 2),
@@ -1401,9 +1401,9 @@ impl Structure for House {
                                 .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: Dir::X,
+                            dir: Dir2::X,
                         }),
-                        Dir::NegY => painter.prim(Primitive::Gable {
+                        Dir2::NegY => painter.prim(Primitive::Gable {
                             aabb: Aabb {
                                 min: Vec2::new(
                                     temp.x - 1,
@@ -1414,7 +1414,7 @@ impl Structure for House {
                                     .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: Dir::Y,
+                            dir: Dir2::Y,
                         }),
                         _ => painter.prim(Primitive::Gable {
                             aabb: Aabb {
@@ -1427,21 +1427,21 @@ impl Structure for House {
                                     .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: Dir::X,
+                            dir: Dir2::X,
                         }),
                     };
                     let window_min = match self.front {
-                        Dir::Y => Vec2::new(
+                        Dir2::Y => Vec2::new(
                             temp.x,
                             self.bounds.max.y + storey_increase + self.overhang.abs() - 1,
                         )
                         .with_z(alt + previous_height + 2),
-                        Dir::X => Vec2::new(
+                        Dir2::X => Vec2::new(
                             self.bounds.max.x + storey_increase + self.overhang.abs() - 1,
                             temp.y,
                         )
                         .with_z(alt + previous_height + 2),
-                        Dir::NegY => Vec2::new(
+                        Dir2::NegY => Vec2::new(
                             temp.x,
                             self.bounds.min.y - storey_increase - self.overhang.abs() + 1,
                         )
@@ -1453,17 +1453,17 @@ impl Structure for House {
                         .with_z(alt + previous_height + 2),
                     };
                     let window_max = match self.front {
-                        Dir::Y => Vec2::new(
+                        Dir2::Y => Vec2::new(
                             temp.x + 3,
                             self.bounds.max.y + storey_increase + self.overhang.abs(),
                         )
                         .with_z(alt + previous_height + 2 + window_height),
-                        Dir::X => Vec2::new(
+                        Dir2::X => Vec2::new(
                             self.bounds.max.x + storey_increase + self.overhang.abs(),
                             temp.y + 3,
                         )
                         .with_z(alt + previous_height + 2 + window_height),
-                        Dir::NegY => Vec2::new(
+                        Dir2::NegY => Vec2::new(
                             temp.x + 3,
                             self.bounds.min.y - storey_increase - self.overhang.abs() + 2,
                         )
@@ -1479,7 +1479,7 @@ impl Structure for House {
                         max: window_max,
                     }));
                     let window_cavity = match self.front {
-                        Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(temp.x, self.bounds.max.y + storey_increase)
                                 .with_z(alt + previous_height),
                             max: Vec2::new(
@@ -1488,7 +1488,7 @@ impl Structure for House {
                             )
                             .with_z(alt + previous_height + 2 + window_height),
                         })),
-                        Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(self.bounds.max.x + storey_increase, temp.y)
                                 .with_z(alt + previous_height),
                             max: Vec2::new(
@@ -1497,7 +1497,7 @@ impl Structure for House {
                             )
                             .with_z(alt + previous_height + 2 + window_height),
                         })),
-                        Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 temp.x,
                                 self.bounds.min.y - storey_increase - self.overhang.abs() + 2,
@@ -1549,7 +1549,7 @@ impl Structure for House {
             if i > 1 {
                 let floor = if self.overhang < -1 && i > 1 {
                     match self.front {
-                        Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                             min: (self.bounds.min + 1).with_z(alt + previous_height),
                             max: Vec2::new(
                                 self.bounds.max.x,
@@ -1557,7 +1557,7 @@ impl Structure for House {
                             )
                             .with_z(alt + previous_height + 1),
                         })),
-                        Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(self.bounds.min.x + 1, self.bounds.min.y + 1)
                                 .with_z(alt + previous_height),
                             max: Vec2::new(
@@ -1566,7 +1566,7 @@ impl Structure for House {
                             )
                             .with_z(alt + previous_height + 1),
                         })),
-                        Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x + 1,
                                 self.bounds.min.y + 1 - storey_increase - self.overhang.abs(),
@@ -1587,7 +1587,7 @@ impl Structure for House {
                     }
                 } else {
                     match self.front {
-                        Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                             min: (self.bounds.min + 1).with_z(alt + previous_height),
                             max: (Vec2::new(
                                 self.bounds.max.x,
@@ -1595,7 +1595,7 @@ impl Structure for House {
                             ))
                             .with_z(alt + previous_height + 1),
                         })),
-                        Dir::X => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                             min: (self.bounds.min + 1).with_z(alt + previous_height),
                             max: (Vec2::new(
                                 self.bounds.max.x + storey_increase,
@@ -1603,7 +1603,7 @@ impl Structure for House {
                             ))
                             .with_z(alt + previous_height + 1),
                         })),
-                        Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+                        Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                             min: Vec2::new(
                                 self.bounds.min.x + 1,
                                 self.bounds.min.y + 1 - storey_increase,
@@ -1634,8 +1634,8 @@ impl Structure for House {
             if i % 2 == 0 {
                 // bedroom on even-leveled floors
                 let bed_pos = match self.front {
-                    Dir::X => Vec2::new(half_x, quarter_y),
-                    Dir::NegY => Vec2::new(three_quarter_x, half_y),
+                    Dir2::X => Vec2::new(half_x, quarter_y),
+                    Dir2::NegY => Vec2::new(three_quarter_x, half_y),
                     _ => Vec2::new(half_x, half_y),
                 };
                 let bed_dir = self.front;
@@ -1711,7 +1711,7 @@ impl Structure for House {
                         table_pos.with_z(base),
                         SpriteKind::DiningtableWoodWoodlandRound,
                     );
-                    for dir in Dir::iter() {
+                    for dir in Dir2::iter() {
                         let chair_pos = table_pos + dir.to_vec2();
                         painter.rotated_sprite(
                             chair_pos.with_z(base),
@@ -1722,24 +1722,24 @@ impl Structure for House {
                 } else {
                     // room is bigger, so use large table + chair positions
                     let table_pos = match self.front {
-                        Dir::Y => Vec2::new(half_x, three_quarter_y),
-                        Dir::X => Vec2::new(half_x, half_y),
+                        Dir2::Y => Vec2::new(half_x, three_quarter_y),
+                        Dir2::X => Vec2::new(half_x, half_y),
                         _ => Vec2::new(quarter_x, half_y),
                     }
                     .with_z(base);
                     let table_axis = if RandomField::new(0).chance(table_pos, 0.5) {
-                        Dir::X
+                        Dir2::X
                     } else {
-                        Dir::Y
+                        Dir2::Y
                     };
                     let table_bounds = painter.table_wood_fancy_woodland(table_pos, table_axis);
                     painter.chairs_around(SpriteKind::ChairWoodWoodland, 1, table_bounds, base);
                 }
                 // drawer along a wall
                 let (drawer_pos, drawer_ori) = match self.front {
-                    Dir::Y => (Vec2::new(self.bounds.max.x - 1, self.bounds.max.y - 2), 6),
-                    Dir::X => (Vec2::new(self.bounds.max.x - 2, self.bounds.max.y - 1), 0),
-                    Dir::NegY => (Vec2::new(self.bounds.max.x - 1, self.bounds.min.y + 2), 6),
+                    Dir2::Y => (Vec2::new(self.bounds.max.x - 1, self.bounds.max.y - 2), 6),
+                    Dir2::X => (Vec2::new(self.bounds.max.x - 2, self.bounds.max.y - 1), 0),
+                    Dir2::NegY => (Vec2::new(self.bounds.max.x - 1, self.bounds.min.y + 2), 6),
                     _ => (Vec2::new(self.bounds.min.x + 2, self.bounds.max.y - 1), 0),
                 };
                 painter.rotated_sprite(
@@ -1754,9 +1754,9 @@ impl Structure for House {
                 let stair_width = 3;
                 let previous_floor_height = (storey * (i as i32 - 2)).max(0);
                 let stair_origin = match self.front {
-                    Dir::Y => self.bounds.min + 1,
-                    Dir::X => self.bounds.min + 1,
-                    Dir::NegY => {
+                    Dir2::Y => self.bounds.min + 1,
+                    Dir2::X => self.bounds.min + 1,
+                    Dir2::NegY => {
                         Vec2::new(self.bounds.max.x - 12, self.bounds.max.y - stair_width * 2)
                     },
                     _ => Vec2::new(self.bounds.max.x - 12, self.bounds.min.y + 1),
@@ -1772,7 +1772,7 @@ impl Structure for House {
                                     max: Vec2::new(stair_origin.x + 10, stair_origin.y + stair_width).with_z(alt + previous_height + 1),
                                 },
                                 inset: storey,
-                                dir: Dir::X,
+                                dir: Dir2::X,
                             })
                         /*},
                         1 => {
@@ -1851,7 +1851,7 @@ impl Structure for House {
                                     max: Vec2::new(stair_origin.x + 8, stair_origin.y + 2 * stair_width).with_z(alt + previous_height + 1),
                                 },
                                 inset: storey,
-                                dir: Dir::NegX,
+                                dir: Dir2::NegX,
                             })
                         /*},
                         1 => {
@@ -2048,13 +2048,13 @@ impl Structure for House {
             }
         } else */{
             match self.front {
-                Dir::Y => {
+                Dir2::Y => {
                     Vec2::new(half_x, self.bounds.min.y + 1)
                 },
-                Dir::X => {
+                Dir2::X => {
                     Vec2::new(self.bounds.min.x + 1, half_y)
                 },
-                Dir::NegY => {
+                Dir2::NegY => {
                     Vec2::new(half_x - 4, self.bounds.max.y - 3)
                 },
                 _ => {
@@ -2063,17 +2063,17 @@ impl Structure for House {
             }
         };
         let chimney = match self.front {
-            Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x, fireplace_origin.y).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 4, fireplace_origin.y + 3)
                     .with_z(alt + roof + roof_height + 2),
             })),
-            Dir::X => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x, fireplace_origin.y).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 4)
                     .with_z(alt + roof + roof_height + 2),
             })),
-            Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x, fireplace_origin.y).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 4, fireplace_origin.y + 3)
                     .with_z(alt + roof + roof_height + 2),
@@ -2086,17 +2086,17 @@ impl Structure for House {
         };
 
         let chimney_cavity = match self.front {
-            Dir::Y => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::Y => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 2)
                     .with_z(alt + roof + roof_height + 2),
             })),
-            Dir::X => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::X => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 2, fireplace_origin.y + 3)
                     .with_z(alt + roof + roof_height + 2),
             })),
-            Dir::NegY => painter.prim(Primitive::Aabb(Aabb {
+            Dir2::NegY => painter.prim(Primitive::Aabb(Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 2)
                     .with_z(alt + roof + roof_height + 2),
@@ -2108,15 +2108,15 @@ impl Structure for House {
             })),
         };
         let fire_embers = match self.front {
-            Dir::Y => Aabb {
+            Dir2::Y => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 2).with_z(alt + 1),
             },
-            Dir::X => Aabb {
+            Dir2::X => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 2, fireplace_origin.y + 3).with_z(alt + 1),
             },
-            Dir::NegY => Aabb {
+            Dir2::NegY => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 2).with_z(alt + 1),
             },
@@ -2126,15 +2126,15 @@ impl Structure for House {
             },
         };
         let fireplace_cavity = match self.front {
-            Dir::Y => Aabb {
+            Dir2::Y => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 3).with_z(alt + 2),
             },
-            Dir::X => Aabb {
+            Dir2::X => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 1).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 3).with_z(alt + 2),
             },
-            Dir::NegY => Aabb {
+            Dir2::NegY => Aabb {
                 min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y).with_z(alt),
                 max: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 2).with_z(alt + 2),
             },
@@ -2165,16 +2165,16 @@ impl Structure for House {
                 || self.bounds.max.y - self.bounds.min.y < 16
             {
                 match self.front {
-                    Dir::Y => Vec2::new(self.bounds.min.x + 4, self.bounds.min.y + 2),
-                    Dir::X => Vec2::new(self.bounds.min.x + 2, self.bounds.min.y + 4),
-                    Dir::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
+                    Dir2::Y => Vec2::new(self.bounds.min.x + 4, self.bounds.min.y + 2),
+                    Dir2::X => Vec2::new(self.bounds.min.x + 2, self.bounds.min.y + 4),
+                    Dir2::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
                     _ => Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2),
                 }
             } else {
                 match self.front {
-                    Dir::Y => Vec2::new(self.bounds.max.x - 4, self.bounds.min.y + 2),
-                    Dir::X => Vec2::new(self.bounds.min.x + 8, self.bounds.max.y - 2),
-                    Dir::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
+                    Dir2::Y => Vec2::new(self.bounds.max.x - 4, self.bounds.min.y + 2),
+                    Dir2::X => Vec2::new(self.bounds.min.x + 8, self.bounds.max.y - 2),
+                    Dir2::NegY => Vec2::new(self.bounds.max.x - 4, self.bounds.max.y - 2),
                     _ => Vec2::new(self.bounds.max.x - 8, self.bounds.max.y - 2),
                 }
             };
@@ -2185,7 +2185,7 @@ impl Structure for House {
 
         if self.christmas_decorations {
             let (wreath_pos, wreath_ori) = match self.front {
-                Dir::Y => (
+                Dir2::Y => (
                     Aabb {
                         min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y + 3)
                             .with_z(alt + 2),
@@ -2194,7 +2194,7 @@ impl Structure for House {
                     },
                     4,
                 ),
-                Dir::X => (
+                Dir2::X => (
                     Aabb {
                         min: Vec2::new(fireplace_origin.x + 3, fireplace_origin.y + 1)
                             .with_z(alt + 2),
@@ -2203,7 +2203,7 @@ impl Structure for House {
                     },
                     2,
                 ),
-                Dir::NegY => (
+                Dir2::NegY => (
                     Aabb {
                         min: Vec2::new(fireplace_origin.x + 1, fireplace_origin.y - 1)
                             .with_z(alt + 2),
@@ -2233,15 +2233,15 @@ impl Structure for House {
         // Door
         // Fill around the door with wall
         let doorway1 = match self.front {
-            Dir::Y => Aabb {
+            Dir2::Y => Aabb {
                 min: Vec2::new(door_tile_wpos.x - 1, self.bounds.max.y).with_z(alt),
                 max: Vec2::new(door_tile_wpos.x + 3, self.bounds.max.y + 1).with_z(alt + 4),
             },
-            Dir::X => Aabb {
+            Dir2::X => Aabb {
                 min: Vec2::new(self.bounds.max.x, door_tile_wpos.y - 1).with_z(alt),
                 max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 3).with_z(alt + 4),
             },
-            Dir::NegY => Aabb {
+            Dir2::NegY => Aabb {
                 min: Vec2::new(door_tile_wpos.x - 1, self.bounds.min.y).with_z(alt),
                 max: Vec2::new(door_tile_wpos.x + 3, self.bounds.min.y + 1).with_z(alt + 4),
             },
@@ -2254,15 +2254,15 @@ impl Structure for House {
 
         // Carve out the doorway with air
         let doorway2 = match self.front {
-            Dir::Y => Aabb {
+            Dir2::Y => Aabb {
                 min: Vec2::new(door_tile_wpos.x, self.bounds.max.y).with_z(alt),
                 max: Vec2::new(door_tile_wpos.x + 2, self.bounds.max.y + 1).with_z(alt + 3),
             },
-            Dir::X => Aabb {
+            Dir2::X => Aabb {
                 min: Vec2::new(self.bounds.max.x, door_tile_wpos.y).with_z(alt),
                 max: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + 2).with_z(alt + 3),
             },
-            Dir::NegY => Aabb {
+            Dir2::NegY => Aabb {
                 min: Vec2::new(door_tile_wpos.x, self.bounds.min.y).with_z(alt),
                 max: Vec2::new(door_tile_wpos.x + 2, self.bounds.min.y + 1).with_z(alt + 3),
             },
@@ -2278,7 +2278,7 @@ impl Structure for House {
 
         // Fill in the right and left side doors
         let (door_gap, door1, door1_ori, door2, door2_ori) = match self.front {
-            Dir::Y => (
+            Dir2::Y => (
                 Aabb {
                     min: Vec2::new(door_tile_wpos.x - 1, self.bounds.max.y + 1).with_z(alt),
                     max: Vec2::new(door_tile_wpos.x + 3, self.bounds.max.y + 4).with_z(alt + 3),
@@ -2294,7 +2294,7 @@ impl Structure for House {
                 },
                 4,
             ),
-            Dir::X => (
+            Dir2::X => (
                 Aabb {
                     min: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y - 1).with_z(alt),
                     max: Vec2::new(self.bounds.max.x + 4, door_tile_wpos.y + 3).with_z(alt + 3),
@@ -2310,7 +2310,7 @@ impl Structure for House {
                 },
                 6,
             ),
-            Dir::NegY => (
+            Dir2::NegY => (
                 Aabb {
                     min: Vec2::new(door_tile_wpos.x - 1, self.bounds.min.y - 4).with_z(alt),
                     max: Vec2::new(door_tile_wpos.x + 3, self.bounds.min.y).with_z(alt + 3),
@@ -2360,7 +2360,7 @@ impl Structure for House {
             let rng = RandomField::new(0).get(door_tile_wpos.with_z(alt + 3));
             let right = (rng % 2) as i32;
             let (door_light_pos, door_light_ori) = match self.front {
-                Dir::Y => (
+                Dir2::Y => (
                     Aabb {
                         min: Vec2::new(door_tile_wpos.x + right, self.bounds.max.y + 1)
                             .with_z(alt + 3),
@@ -2369,7 +2369,7 @@ impl Structure for House {
                     },
                     4,
                 ),
-                Dir::X => (
+                Dir2::X => (
                     Aabb {
                         min: Vec2::new(self.bounds.max.x + 1, door_tile_wpos.y + right)
                             .with_z(alt + 3),
@@ -2378,7 +2378,7 @@ impl Structure for House {
                     },
                     2,
                 ),
-                Dir::NegY => (
+                Dir2::NegY => (
                     Aabb {
                         min: Vec2::new(door_tile_wpos.x + right, self.bounds.min.y - 1)
                             .with_z(alt + 3),

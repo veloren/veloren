@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    Land,
-    site::{generation::PrimitiveTransform, util::Dir},
-};
+use crate::{Land, site::generation::PrimitiveTransform};
 use common::terrain::BlockKind;
 use rand::prelude::*;
 use vek::*;
@@ -11,7 +8,7 @@ use vek::*;
 pub struct GliderPlatform {
     /// Location of center of ring post
     center: Vec2<i32>,
-    direction: Dir,
+    direction: Dir2,
     /// Approximate altitude of the door tile
     pub(crate) alt: i32,
 }
@@ -22,7 +19,7 @@ impl GliderPlatform {
         _rng: &mut impl Rng,
         _site: &Site,
         wpos: Vec2<i32>,
-        direction: Dir,
+        direction: Dir2,
     ) -> Self {
         // FIXME this should be fed into this function
         Self {
@@ -40,10 +37,10 @@ impl Structure for GliderPlatform {
     #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_glider_platform"))]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let rotate_turns = match self.direction {
-            Dir::X => 0,
-            Dir::Y => 1,
-            Dir::NegX => 2,
-            Dir::NegY => 3,
+            Dir2::X => 0,
+            Dir2::Y => 1,
+            Dir2::NegX => 2,
+            Dir2::NegY => 3,
         };
         let rotation_center = Vec3::new(self.center.x, self.center.y, self.alt);
 

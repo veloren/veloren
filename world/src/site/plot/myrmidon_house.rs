@@ -225,7 +225,7 @@ impl Structure for MyrmidonHouse {
                         .with_z(base + bldg_height + 4),
                 })
                 .fill(sandstone.clone());
-            let roof_dir = if rand > 0 { Dir::X } else { Dir::Y };
+            let roof_dir = if rand > 0 { Dir2::X } else { Dir2::Y };
             painter
                 .gable(
                     Aabb {
@@ -375,7 +375,7 @@ impl Structure for MyrmidonHouse {
                         for s in 0..3 {
                             let room_var =
                                 RandomField::new(0).get(room_pos.with_z(base + r + s)) % 6;
-                            let room_dir = if room_var < 3 { Dir::Y } else { Dir::X };
+                            let room_dir = if room_var < 3 { Dir2::Y } else { Dir2::X };
 
                             let room = painter.vault(
                                 Aabb {

@@ -185,7 +185,7 @@ pub enum TileKind {
     Path { closest_pos: Vec2<f32>, path: Path },
     Building,
     Castle,
-    Wall(Dir),
+    Wall(Dir2),
     Tower(RoofKind),
     Keep(KeepKind),
     Gate,
@@ -286,7 +286,7 @@ pub enum HazardKind {
 pub enum KeepKind {
     Middle,
     Corner,
-    Wall(Dir),
+    Wall(Dir2),
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

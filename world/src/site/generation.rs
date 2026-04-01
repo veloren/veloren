@@ -6,7 +6,6 @@ use crate::{
     CanvasInfo, ColumnSample,
     block::block_from_structure,
     column::ColInfo,
-    site::util::Dir,
     util::{RandomField, Sampler},
 };
 use common::{
@@ -16,6 +15,7 @@ use common::{
         Block, BlockKind, SpriteCfg,
         structure::{Structure as PrefabStructure, StructureBlock},
     },
+    util::Dir2,
     vol::ReadVol,
 };
 use num::cast::AsPrimitive;
@@ -39,13 +39,13 @@ pub enum Primitive {
     Ramp {
         aabb: Aabb<i32>,
         inset: i32,
-        dir: Dir,
+        dir: Dir2,
     },
     Gable {
         aabb: Aabb<i32>,
         inset: i32,
         // X axis parallel or Y axis parallel
-        dir: Dir,
+        dir: Dir2,
     },
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
@@ -308,19 +308,19 @@ impl Fill {
             Primitive::Ramp { aabb, inset, dir } => {
                 let inset = (*inset).max(aabb.size().reduce_min());
                 let inner = match dir {
-                    Dir::X => Aabr {
+                    Dir2::X => Aabr {
                         min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
                         max: Vec2::new(aabb.max.x, aabb.max.y),
                     },
-                    Dir::NegX => Aabr {
+                    Dir2::NegX => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y),
                         max: Vec2::new(aabb.max.x - inset, aabb.max.y),
                     },
-                    Dir::Y => Aabr {
+                    Dir2::Y => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y - 1 + inset),
                         max: Vec2::new(aabb.max.x, aabb.max.y),
                     },
-                    Dir::NegY => Aabr {
+                    Dir2::NegY => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y),
                         max: Vec2::new(aabb.max.x, aabb.max.y - inset),
                     },
@@ -949,7 +949,7 @@ impl Painter {
 
     /// Returns a `PrimitiveRef` of the largest horizontal cylinder that fits in
     /// the provided Aabb.
-    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
+    pub fn horizontal_cylinder(&self, aabb: Aabb<i32>, dir: Dir2) -> PrimitiveRef<'_> {
         let aabr = Aabr::from(aabb);
         let length = dir.select(aabr.size());
         let height = aabb.max.z - aabb.min.z;
@@ -1159,12 +1159,12 @@ impl Painter {
     /// Returns a `PrimitiveRef` of an Aabb with a slope cut into it. The
     /// `inset` governs the slope. The `dir` determines which direction the
     /// ramp points.
-    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef<'_> {
+    pub fn ramp_inset(&self, aabb: Aabb<i32>, inset: i32, dir: Dir2) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp { aabb, inset, dir })
     }
 
-    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
+    pub fn ramp(&self, aabb: Aabb<i32>, dir: Dir2) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp {
             aabb,
@@ -1176,7 +1176,7 @@ impl Painter {
     /// Returns a `PrimitiveRef` of a triangular prism with the base being
     /// vertical. A gable is a tent shape. The `inset` governs the slope of
     /// the gable. The `dir` determines which way the gable points.
-    pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef<'_> {
+    pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir2) -> PrimitiveRef<'_> {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Gable { aabb, inset, dir })
     }
@@ -1245,22 +1245,22 @@ impl Painter {
         self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: Dir::X,
+            dir: Dir2::X,
         })
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: Dir::NegX,
+            dir: Dir2::NegX,
         }))
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: Dir::Y,
+            dir: Dir2::Y,
         }))
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: Dir::NegY,
+            dir: Dir2::NegY,
         }))
     }
 
@@ -1297,7 +1297,7 @@ impl Painter {
     /// |_____|/
     /// ```
     /// A horizontal half cylinder on top of an `Aabb`.
-    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir) -> PrimitiveRef<'_> {
+    pub fn vault(&self, aabb: Aabb<i32>, dir: Dir2) -> PrimitiveRef<'_> {
         let h = dir.orthogonal().select(Vec3::from(aabb.size()).xy());
 
         let mut prim = self.horizontal_cylinder(
@@ -1347,7 +1347,7 @@ impl Painter {
         &self,
         aabb: Aabb<i32>,
         thickness: i32,
-        start_dir: Dir,
+        start_dir: Dir2,
     ) -> PrimitiveRef<'_> {
         let mut forward = start_dir;
         let mut z = aabb.max.z - 1;

@@ -255,7 +255,7 @@ impl Structure for SavannahHut {
         // draws a random index
         let random_index = (RandomField::new(0).get(center.with_z(base)) % 4) as usize;
         // add bed at random diagonal
-        let dir = *Dir::ALL.get(random_index).unwrap();
+        let dir = *Dir2::ALL.get(random_index).unwrap();
         let diagonal = dir.diagonal();
         let bed_pos = center + diagonal * (length - 9);
         painter.bed_savannah(bed_pos.with_z(base - 2), dir);

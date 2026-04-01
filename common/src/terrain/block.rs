@@ -137,10 +137,28 @@ impl BlockKind {
 /// Why is the sprite ID at the end? Simply put, it makes masking faster and
 /// easier, which is important because extracting the `SpriteKind` is a more
 /// commonly performed operation than extracting attributes.
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     kind: BlockKind,
     data: [u8; 3],
+}
+
+impl std::fmt::Debug for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = f.debug_struct("Block");
+
+        s.field("kind", &self.kind);
+
+        if let Some(sprite) = super::StructureSprite::from_block(self) {
+            s.field("sprite", &sprite);
+        }
+
+        if self.is_filled() {
+            s.field("color", &self.data);
+        }
+
+        s.finish()
+    }
 }
 
 impl FilledVox for Block {
@@ -251,6 +269,20 @@ impl Block {
             Some(category) => category.read_attr(*self),
             None => Err(sprite::AttributeError::NotPresent),
         }
+    }
+
+    pub fn rotation_mat(&self) -> Mat3<i32> {
+        let dir = crate::util::Dir2::from_sprite_ori(
+            self.get_attr::<sprite::Ori>().unwrap_or_default().0,
+        )
+        .map(|(d, _)| d)
+        .unwrap_or(crate::util::Dir2::X);
+
+        let mut rot_mat = dir.to_mat3();
+
+        rot_mat.cols *= self.sprite_mirror_vec().map(|f| f as i32);
+
+        rot_mat
     }
 
     pub fn sprite_z_rot(&self) -> Option<f32> {

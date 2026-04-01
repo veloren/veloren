@@ -8,7 +8,7 @@ use common::uid::IdMaps;
 use common::{
     calendar::Calendar,
     comp::{self, gizmos::RtsimGizmos},
-    event::{EventBus, LocalEvent},
+    event::{BonkEvent, EventBus, LocalEvent},
     interaction,
     link::Is,
     mounting::{Mount, Rider, VolumeRider, VolumeRiders},
@@ -19,10 +19,11 @@ use common::{
     },
     shared_server_config::ServerConstants,
     slowjob::SlowJobPool,
-    terrain::{Block, MapSizeLg, TerrainChunk, TerrainGrid},
+    terrain::{Block, MapSizeLg, TerrainChunk, TerrainGrid, sprite::SpriteAdjecencyRequirement},
     tether,
     time::DayPeriod,
     trade::Trades,
+    util::Dir2,
     vol::{ReadVol, WriteVol},
     weather::{Weather, WeatherGrid},
 };
@@ -655,6 +656,10 @@ impl State {
         // Apply block modifications
         // Only include in `TerrainChanges` if successful
         let mut updated_blocks = Vec::with_capacity(modified_blocks.len());
+
+        // All positions that should recieve a block update.
+        let mut block_updates = HashSet::<Vec3<i32>>::default();
+
         modified_blocks.retain(|wpos, new| {
             let res = terrain.map(*wpos, |old| {
                 updated_blocks.push(BlockDiff {
@@ -664,6 +669,7 @@ impl State {
                 });
                 *new
             });
+
             if let (&Ok(old), true) = (&res, during_tick) {
                 // NOTE: If the changes are applied during the tick, we push the *old* value as
                 // the modified block (since it otherwise can't be recovered after the tick).
@@ -671,11 +677,117 @@ impl State {
                 // value.
                 *new = old;
             }
+
+            if let (&Ok(old), false) = (&res, during_tick) {
+                let h = old
+                    .get_sprite()
+                    .and_then(|s| s.solid_height())
+                    .unwrap_or(1.0)
+                    .max(
+                        new.get_sprite()
+                            .and_then(|s| s.solid_height())
+                            .unwrap_or(1.0),
+                    )
+                    .ceil() as i32;
+
+                block_updates.extend((-1..=h + 1).map(|z| wpos + Vec3::unit_z() * z).chain(
+                    (0..=h).flat_map(|z| {
+                        Dir2::ALL
+                            .iter()
+                            .map(move |d| wpos + Vec3::unit_z() * z + d.to_vec2())
+                    }),
+                ));
+            };
+
             res.is_ok()
         });
 
         if !updated_blocks.is_empty() {
             block_update(&self.ecs, updated_blocks);
+        }
+
+        // Only do block updates not during the tick since that's when actual
+        // terrain changes are applied.
+        //
+        // Clients will get these changes since they're just normal block updates
+        // next tick.
+        if !during_tick {
+            prof_span!(_guard, "Indirectly modified sprites");
+
+            // Collects all blocks that are neighbors with a modified block,
+            // where the `adjecency_requirement` is no longer upheld.
+            let indirectly_modified = block_updates
+                .into_iter()
+                // Filter for blocks that have an adjecency requirement.
+                .filter_map(|wpos| {
+                    let block = terrain.get(wpos).ok()?;
+                    Some((wpos, block.get_sprite()?.adjecency_requirement()?, block))
+                })
+                // Check if said adjecency requirement is upheld.
+                .filter(|(wpos, adjecency_requirement, block)| {
+                    let rot_mat = block.rotation_mat();
+                    // Tries to find a solid block for the given adjecent block.
+                    let find_solid = |adj: Vec3<i32>| {
+                        let wpos = wpos + adj;
+
+                        let res = terrain.get(wpos).copied().unwrap_or(Block::empty());
+
+                        // Don't check for sprites if we're checking for a block
+                        // directly above.
+                        let not_above = adj.z <= 0 || adj.x != 0 || adj.y != 0;
+
+                        if not_above && !res.is_solid() {
+                            // Sprites can be taller than 1 block.
+                            for z in 1..=Block::MAX_HEIGHT.ceil() as i32 {
+                                if let Ok(block) = terrain.get(wpos - Vec3::unit_z() * z)
+                                    && let Some(sprite) = block.get_sprite()
+                                    && let Some(h) = sprite.solid_height()
+                                    && h.ceil() as i32 > z
+                                {
+                                    return *block;
+                                }
+                            }
+                        }
+
+                        res
+                    };
+
+                    // Same as `find_solid` but first rotates with the sprites rotation
+                    // and mirroring.
+                    let rel_solid = |adj: Vec3<i32>| find_solid(rot_mat * adj);
+
+                    let valid = match adjecency_requirement {
+                        SpriteAdjecencyRequirement::AllSolid(v) => {
+                            v.iter().all(|v| rel_solid(*v).is_solid())
+                        },
+                        SpriteAdjecencyRequirement::AnySolid(v) => {
+                            v.iter().any(|v| rel_solid(*v).is_solid())
+                        },
+                    };
+
+                    !valid
+                })
+                .map(|(wpos, _, block)| (wpos, block))
+                .collect::<Vec<_>>();
+
+            // If the sprite is bonkable, bonk it.
+            let bonk_event_bus = self.ecs.write_resource::<EventBus<BonkEvent>>();
+            let mut bonk_emitter = bonk_event_bus.emitter();
+
+            let mut block_change = self.ecs.write_resource::<BlockChange>();
+
+            for (wpos, block) in indirectly_modified {
+                if block.is_bonkable() {
+                    bonk_emitter.emit(BonkEvent {
+                        pos: wpos.as_::<f32>() + 0.5,
+                        // TODO: Pass who destroyed the block?
+                        owner: None,
+                        target: None,
+                    });
+                } else {
+                    block_change.blocks.insert(wpos, block.into_vacant());
+                }
+            }
         }
 
         self.ecs.write_resource::<TerrainChanges>().modified_blocks = modified_blocks;

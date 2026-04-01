@@ -374,7 +374,7 @@ impl Structure for MyrmidonArena {
                     max: Vec2::new(entry_pos.x + 15, entry_pos.y + 12)
                         .with_z(base + platform_2_height),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(sandstone.clone());
         painter
@@ -384,7 +384,7 @@ impl Structure for MyrmidonArena {
                     max: Vec2::new(entry_pos.x + 10, entry_pos.y + 12)
                         .with_z(base + platform_2_height - 5),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .clear();
         let height_handle = 5;
@@ -431,7 +431,7 @@ impl Structure for MyrmidonArena {
                         .with_z(base + platform_2_height + 4 + height_handle),
                 },
                 16,
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(sandstone.clone());
 
@@ -444,7 +444,7 @@ impl Structure for MyrmidonArena {
                         .with_z(base + platform_2_height + 5 + height_handle),
                 },
                 16,
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(roof_color.clone());
         for g in 0..8 {
@@ -457,7 +457,7 @@ impl Structure for MyrmidonArena {
                             .with_z(base + platform_2_height + 6 + height_handle),
                     },
                     16,
-                    Dir::Y,
+                    Dir2::Y,
                 )
                 .fill(roof_color.clone());
         }
@@ -468,7 +468,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(entry_pos.x - 3, entry_pos.y - 19).with_z(base - 20),
                     max: Vec2::new(entry_pos.x + 3, entry_pos.y + 5).with_z(base - 12),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .clear();
         painter
@@ -540,7 +540,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(boss_pos.x - 4, boss_pos.y - 10).with_z(base - 22),
                     max: Vec2::new(boss_pos.x + 4, boss_pos.y + 18).with_z(base - 12),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .clear();
         painter
@@ -549,7 +549,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(boss_pos.x - 52, boss_pos.y - 4).with_z(base - 22),
                     max: Vec2::new(boss_pos.x, boss_pos.y + 4).with_z(base - 12),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .clear();
         painter
@@ -558,7 +558,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(boss_pos.x - 4, boss_pos.y - 4).with_z(base - 22),
                     max: Vec2::new(boss_pos.x - 3, boss_pos.y + 4).with_z(base - 12),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .fill(Fill::Block(Block::air(SpriteKind::MyrmidonKeyDoor)));
         painter
@@ -573,7 +573,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(boss_pos.x - 4, boss_pos.y + 17).with_z(base - 20),
                     max: Vec2::new(boss_pos.x + 4, boss_pos.y + 18).with_z(base - 12),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(Fill::Block(Block::air(SpriteKind::MyrmidonKeyDoor)));
         painter
@@ -582,7 +582,7 @@ impl Structure for MyrmidonArena {
                     min: Vec2::new(boss_pos.x, boss_pos.y + 17).with_z(base - 18),
                     max: Vec2::new(boss_pos.x + 1, boss_pos.y + 18).with_z(base - 17),
                 },
-                Dir::Y,
+                Dir2::Y,
             )
             .fill(Fill::Block(Block::air(SpriteKind::MinotaurKeyhole)));
 
@@ -651,7 +651,7 @@ impl Structure for MyrmidonArena {
 
                 for s in 0..3 {
                     let room_var = RandomField::new(0).get(room_pos.with_z(base + r + s)) % 6;
-                    let room_dir = if room_var < 3 { Dir::Y } else { Dir::X };
+                    let room_dir = if room_var < 3 { Dir2::Y } else { Dir2::X };
                     let room = painter.vault(
                         Aabb {
                             min: (room_pos - (radius / 8)).with_z(base - 79 + (18 * s)),
@@ -687,7 +687,7 @@ impl Structure for MyrmidonArena {
                     min: (cyclops_pos_high - (radius / 8)).with_z(base - 40),
                     max: (cyclops_pos_high + (radius / 8)).with_z(base - 25),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .clear();
         painter.spawn(EntityInfo::at(cyclops_pos_high.as_()).with_asset_expect(
@@ -702,7 +702,7 @@ impl Structure for MyrmidonArena {
                     min: (cyclops_pos_low - (radius / 8)).with_z(base - 79),
                     max: (cyclops_pos_low + (radius / 8)).with_z(base - 64),
                 },
-                Dir::X,
+                Dir2::X,
             )
             .clear();
         painter.spawn(EntityInfo::at(cyclops_pos_low.as_()).with_asset_expect(

@@ -544,7 +544,7 @@ impl Structure for CliffTower {
                                                 .with_z(floor_level + 5),
                                             })
                                             .clear();
-                                        let dir = Dir::from_vec2(plot_center - pos);
+                                        let dir = Dir2::from_vec2(plot_center - pos);
                                         match (RandomField::new(0).get(pos.with_z(floor_level - d)))
                                             % 3
                                         {

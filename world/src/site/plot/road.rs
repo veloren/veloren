@@ -32,7 +32,7 @@ pub struct RoadKind {
 
 impl RoadKind {
     /// Intended to be placed at `riverless_alt`.
-    pub fn place_light(&self, pos: Vec3<i32>, dir: Dir, painter: &Painter) {
+    pub fn place_light(&self, pos: Vec3<i32>, dir: Dir2, painter: &Painter) {
         let wood_corner = Fill::Brick(BlockKind::Wood, Rgb::new(86, 50, 50), 10);
         painter
             .column(pos.xy(), pos.z - 4..pos.z)
@@ -44,7 +44,7 @@ impl RoadKind {
         }
     }
 
-    pub fn block(&self, col: &ColumnSample, wpos: Vec3<i32>, dir: Dir) -> Block {
+    pub fn block(&self, col: &ColumnSample, wpos: Vec3<i32>, dir: Dir2) -> Block {
         match self.material {
             RoadMaterial::Dirt => Block::new(
                 BlockKind::Earth,
@@ -107,11 +107,11 @@ impl Structure for Road {
 
             let center = site.tile_center_wpos(*p);
 
-            let light_wpos = |dir: Dir| {
+            let light_wpos = |dir: Dir2| {
                 let width = w as i32 * 2 - 1 - (dir.signum() + 1) / 2;
                 center + dir.to_vec2() * width
             };
-            let available_dirs: EnumSet<Dir> = Dir::iter()
+            let available_dirs: EnumSet<Dir2> = Dir2::iter()
                 .filter(|dir| {
                     let light_wpos = light_wpos(*dir);
                     let tpos = site.wpos_tile_pos(light_wpos);
@@ -178,7 +178,7 @@ impl Structure for Road {
                         let is_end = *b == path.len() as u16 - 1;
                         let a = path.nodes()[*a as usize];
                         let b = path.nodes()[*b as usize];
-                        let path_dir = Dir::from_vec2(b - a);
+                        let path_dir = Dir2::from_vec2(b - a);
                         Some((
                             LineSegment2 {
                                 start: site.tile_center_wpos(a)
@@ -209,7 +209,7 @@ impl Structure for Road {
             if let Some((line, _)) =
                 near_roads.find(|(line, w)| line.distance_to_point(wposf) < *w as f32 * 2.0)
             {
-                let dir = Dir::from_vec2((line.start - line.end).as_());
+                let dir = Dir2::from_vec2((line.start - line.end).as_());
                 Some(self.kind.block(col, wpos.with_z(z), dir))
             } else {
                 None
