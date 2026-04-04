@@ -6,6 +6,9 @@
 //
 // Please keep it sorted by rarity so it's easier to reason about things
 [
+    // Luxury
+    (0.01, Item("common.items.food.spore_corruption")),
+
     // Meats
     (0.1, Item("common.items.food.meat.bird_large_raw")),
     (0.5, Item("common.items.food.meat.beast_large_raw")),
@@ -13,6 +16,7 @@
     (0.75, Item("common.items.food.meat.fish_raw")),
     (0.75, Item("common.items.food.meat.tough_raw")),
     (1.5, Item("common.items.food.meat.beast_small_raw")),
+
     // Gatherables
     (0.5, Item("common.items.food.coconut")),
     (0.75, Item("common.items.food.cheese")),

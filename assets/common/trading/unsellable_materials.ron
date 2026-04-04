@@ -12,6 +12,7 @@
     (0.18, Item("common.items.mineral.ore.silver")),
     (0.2, Item("common.items.mineral.ore.cobalt")),
     (0.5, Item("common.items.mineral.ore.coal")),
+    (0.5, Item("common.items.mineral.ore.lodestone")),
     (1.0, Item("common.items.mineral.ore.iron")),
 
     // High tier Gems
