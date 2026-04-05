@@ -9,7 +9,10 @@ use super::{
 use crate::{
     GlobalState,
     game_input::GameInput,
-    hud::{ComboFloater, Position, PositionSpecifier, animation::animation_timer},
+    hud::{
+        ComboFloater, Position, PositionSpecifier, animation::animation_timer,
+        controller_icons as icon_utils,
+    },
     key_state::GIVE_UP_HOLD_TIME,
     ui::{
         ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable, Tooltip, TooltipManager,
@@ -1260,6 +1263,23 @@ impl<'a> Skillbar<'a> {
                     .set(id_bg, ui);
             }
         }
+        // M1 is primary slot on mouse, M2 is primary slot on controller
+        let (primary_id, primary_bg, secondary_id, secondary_bg) =
+            match self.global_state.window.last_input() {
+                LastInput::KeyboardMouse => (
+                    state.ids.m1_content,
+                    state.ids.m1_slot_bg,
+                    state.ids.m2_content,
+                    state.ids.m2_slot_bg,
+                ),
+                LastInput::Controller => (
+                    state.ids.m2_content,
+                    state.ids.m2_slot_bg,
+                    state.ids.m1_content,
+                    state.ids.m1_slot_bg,
+                ),
+            };
+
         // Slot M1
         Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
@@ -1282,7 +1302,7 @@ impl<'a> Skillbar<'a> {
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
         )
         .w_h(36.0, 36.0)
-        .middle_of(state.ids.m1_slot_bg)
+        .middle_of(primary_bg)
         .with_tooltip(
             self.tooltip_manager,
             &primary_ability_title,
@@ -1290,7 +1310,7 @@ impl<'a> Skillbar<'a> {
             &tooltip,
             TEXT_COLOR,
         )
-        .set(state.ids.m1_content, ui);
+        .set(primary_id, ui);
         // Slot M2
         Image::new(self.imgs.skillbar_slot)
             .w_h(40.0, 40.0)
@@ -1313,7 +1333,7 @@ impl<'a> Skillbar<'a> {
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
         )
         .w_h(36.0, 36.0)
-        .middle_of(state.ids.m2_slot_bg)
+        .middle_of(secondary_bg)
         .image_color(
             if self
                 .active_abilities
@@ -1348,17 +1368,37 @@ impl<'a> Skillbar<'a> {
             &tooltip,
             TEXT_COLOR,
         )
-        .set(state.ids.m2_content, ui);
+        .set(secondary_id, ui);
 
         // M1 and M2 icons
-        Image::new(self.imgs.m1_ico)
-            .w_h(16.0, 18.0)
-            .mid_bottom_with_margin_on(state.ids.m1_content, -11.0)
-            .set(state.ids.m1_ico, ui);
-        Image::new(self.imgs.m2_ico)
-            .w_h(16.0, 18.0)
-            .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
-            .set(state.ids.m2_ico, ui);
+        match self.global_state.window.last_input() {
+            LastInput::KeyboardMouse => {
+                Image::new(self.imgs.m1_ico)
+                    .w_h(16.0, 18.0)
+                    .mid_bottom_with_margin_on(state.ids.m1_content, -11.0)
+                    .set(state.ids.m1_ico, ui);
+                Image::new(self.imgs.m2_ico)
+                    .w_h(16.0, 18.0)
+                    .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
+                    .set(state.ids.m2_ico, ui);
+            },
+            LastInput::Controller => {
+                Image::new(icon_utils::fetch_skillbar_gamepad_left(
+                    self.global_state.window.controller_type(),
+                    self.imgs,
+                ))
+                .w_h(18.0, 18.0)
+                .mid_bottom_with_margin_on(state.ids.m1_content, -11.0)
+                .set(state.ids.m1_ico, ui);
+                Image::new(icon_utils::fetch_skillbar_gamepad_right(
+                    self.global_state.window.controller_type(),
+                    self.imgs,
+                ))
+                .w_h(18.0, 18.0)
+                .mid_bottom_with_margin_on(state.ids.m2_content, -11.0)
+                .set(state.ids.m2_ico, ui);
+            },
+        }
     }
 
     fn show_combo_counter(&self, combo_floater: ComboFloater, state: &State, ui: &mut UiCell) {

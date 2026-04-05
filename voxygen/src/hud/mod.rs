@@ -25,12 +25,14 @@ mod social;
 mod subtitles;
 mod trade;
 
+pub mod controller_icons;
 pub mod img_ids;
 pub mod item_imgs;
 pub mod tutorial;
 pub mod util;
 
 pub use chat::MessageBacklog;
+pub use controller_icons::IconHandler;
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -2058,10 +2060,11 @@ impl Hud {
                         distance,
                         fonts,
                         i18n,
-                        &global_state.settings.controls,
                         properties,
                         pulse,
                         interaction_options,
+                        &self.imgs,
+                        global_state,
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(pos)
@@ -2298,13 +2301,14 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         &self.fonts,
                         i18n,
-                        &global_state.settings.controls,
                         overitem_properties,
                         self.pulse,
                         interactions
                             .iter()
                             .map(|interaction| interaction_text(interaction))
                             .collect(),
+                        &self.imgs,
+                        global_state,
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -2357,7 +2361,6 @@ impl Hud {
                     pos.distance_squared(player_pos),
                     &self.fonts,
                     i18n,
-                    &global_state.settings.controls,
                     overitem_properties,
                     self.pulse,
                     vec![(
@@ -2365,6 +2368,8 @@ impl Hud {
                         i18n.get_msg(interaction_text).to_string(),
                         overitem::TEXT_COLOR,
                     )],
+                    &self.imgs,
+                    global_state,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(over_pos)
@@ -2553,14 +2558,13 @@ impl Hud {
                     info,
                     bubble,
                     in_group,
-                    &global_state.settings.interface,
                     self.pulse,
+                    interaction_options,
                     i18n,
-                    &global_state.settings.controls,
                     &self.imgs,
                     &self.fonts,
-                    interaction_options,
                     &time,
+                    global_state,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(ingame_pos)
@@ -2700,14 +2704,13 @@ impl Hud {
                     None,
                     Some(bubble),
                     false,
-                    &global_state.settings.interface,
                     self.pulse,
+                    Vec::new(),
                     i18n,
-                    &global_state.settings.controls,
                     &self.imgs,
                     &self.fonts,
-                    Vec::new(),
                     &time,
+                    global_state,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(*pos)

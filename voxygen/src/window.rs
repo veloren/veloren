@@ -190,6 +190,15 @@ pub enum RemappingMode {
     None,
 }
 
+// TODO: implement controller layout detection/configuration
+#[derive(Clone, Copy, Debug)]
+pub enum ControllerType {
+    Xbox,
+    Nintendo,
+    Playstation,
+    None,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum LastInput {
     KeyboardMouse,
@@ -219,6 +228,7 @@ pub struct Window {
     pub controller_modifiers: Vec<Button>,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
     mouse_emulation_vec: Vec2<f32>,
+    controller_type: ControllerType,
     last_input: LastInput,
     // Currently used to send and receive screenshot result messages
     message_sender: channel::Sender<String>,
@@ -332,6 +342,7 @@ impl Window {
             controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
             mouse_emulation_vec: Vec2::zero(),
+            controller_type: ControllerType::Xbox,
             last_input: LastInput::KeyboardMouse,
             // Currently used to send and receive screenshot result messages
             message_sender,
@@ -1314,6 +1325,8 @@ impl Window {
     pub fn scale_factor(&self) -> f64 { self.scale_factor }
 
     pub fn last_input(&self) -> LastInput { self.last_input }
+
+    pub fn controller_type(&self) -> ControllerType { self.controller_type }
 }
 
 #[derive(Default, Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]

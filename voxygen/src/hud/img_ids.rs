@@ -186,6 +186,62 @@ image_ids! {
 
         sp_indicator_arrow: "voxygen.element.ui.generic.buttons.arrow_down_gold",
 
+        // Controller Buttons/Icons
+        south_button_a: "voxygen.element.ui.generic.controller.south_button_a",
+        south_button_ps_cross: "voxygen.element.ui.generic.controller.south_button_ps_cross",
+        east_button_b: "voxygen.element.ui.generic.controller.east_button_b",
+        east_button_ps_circle: "voxygen.element.ui.generic.controller.east_button_ps_circle",
+        west_button_x: "voxygen.element.ui.generic.controller.west_button_x",
+        west_button_ps_square: "voxygen.element.ui.generic.controller.west_button_ps_square",
+        north_button_y: "voxygen.element.ui.generic.controller.north_button_y",
+        north_button_ps_triangle: "voxygen.element.ui.generic.controller.north_button_ps_triangle",
+
+        left_axis: "voxygen.element.ui.generic.controller.left_axis_l",
+        left_axis_button: "voxygen.element.ui.generic.controller.left_axis_button_lb",
+        right_axis: "voxygen.element.ui.generic.controller.right_axis_r",
+        right_axis_button: "voxygen.element.ui.generic.controller.right_axis_button_rb",
+
+        left_shoulder_xbox_lb: "voxygen.element.ui.generic.controller.left_shoulder_xbox_lb",
+        left_shoulder_nin_l: "voxygen.element.ui.generic.controller.left_shoulder_nin_l",
+        left_shoulder_ps_l1: "voxygen.element.ui.generic.controller.left_shoulder_ps_l1",
+        right_shoulder_xbox_rb: "voxygen.element.ui.generic.controller.right_shoulder_xbox_rb",
+        right_shoulder_nin_r: "voxygen.element.ui.generic.controller.right_shoulder_nin_r",
+        right_shoulder_ps_r1: "voxygen.element.ui.generic.controller.right_shoulder_ps_r1",
+
+        left_trigger_xbox_lt: "voxygen.element.ui.generic.controller.left_trigger_xbox_lt",
+        left_trigger_nin_zl: "voxygen.element.ui.generic.controller.left_trigger_nin_zl",
+        left_trigger_ps_l2: "voxygen.element.ui.generic.controller.left_trigger_ps_l2",
+        right_trigger_xbox_rt: "voxygen.element.ui.generic.controller.right_trigger_xbox_rt",
+        right_trigger_nin_zr: "voxygen.element.ui.generic.controller.right_trigger_nin_zr",
+        right_trigger_ps_r2: "voxygen.element.ui.generic.controller.right_trigger_ps_r2",
+
+        dpad_down: "voxygen.element.ui.generic.controller.dpad_down",
+        dpad_down_ps: "voxygen.element.ui.generic.controller.dpad_down_ps",
+        dpad_left: "voxygen.element.ui.generic.controller.dpad_left",
+        dpad_left_ps: "voxygen.element.ui.generic.controller.dpad_left_ps",
+        dpad_right: "voxygen.element.ui.generic.controller.dpad_right",
+        dpad_right_ps: "voxygen.element.ui.generic.controller.dpad_right_ps",
+        dpad_up: "voxygen.element.ui.generic.controller.dpad_up",
+        dpad_up_ps: "voxygen.element.ui.generic.controller.dpad_up_ps",
+
+        start_button_xbox: "voxygen.element.ui.generic.controller.start_button_xbox",
+        start_button_nin: "voxygen.element.ui.generic.controller.start_button_nin_+",
+        start_button_ps: "voxygen.element.ui.generic.controller.start_button_ps",
+        select_button_xbox: "voxygen.element.ui.generic.controller.select_button_xbox",
+        select_button_nin: "voxygen.element.ui.generic.controller.select_button_nin_-",
+        select_button_ps: "voxygen.element.ui.generic.controller.select_button_ps",
+
+        no_button: "voxygen.element.ui.generic.controller.no_button_warning",
+        transparant_button: "voxygen.element.ui.generic.controller.transparant_icon",
+
+        // Controller dark outlines for skillbar
+        left_trigger_xbox_dark: "voxygen.element.ui.generic.controller.left_trigger_xbox_lt_dark",
+        left_trigger_nin_dark: "voxygen.element.ui.generic.controller.left_trigger_nin_zl_dark",
+        left_trigger_ps_dark: "voxygen.element.ui.generic.controller.left_trigger_ps_l2_dark",
+        right_trigger_xbox_dark: "voxygen.element.ui.generic.controller.right_trigger_xbox_rt_dark",
+        right_trigger_nin_dark: "voxygen.element.ui.generic.controller.right_trigger_nin_zr_dark",
+        right_trigger_ps_dark: "voxygen.element.ui.generic.controller.right_trigger_ps_r2_dark",
+
         // Skill Icons
         onehdagger_m1: "voxygen.element.weapons.daggers",
         onehdagger_m2: "voxygen.element.skills.skill_slice_2",
