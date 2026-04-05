@@ -1,0 +1,38 @@
+BasicRanged(
+    energy_cost: 50.0,
+    buildup_duration: 0.5,
+    recover_duration: 0.5,
+    projectile: (
+        kind: Explosive(
+            radius: 6,
+            min_falloff: 0.3,
+            reagent: Some(Red),
+            terrain: None,
+        ),
+        attack: Some((
+            damage: 15,
+            energy: None,
+            knockback: Some(35),
+            buff: Some((
+                kind: Burning,
+                dur_secs: 6.0,
+                strength: DamageFraction(0.1),
+                chance: 0.8,
+            )),
+        )),
+        override_collider: Some((
+            p0: (x: 0.5, y: 0.5),
+            p1: (x: 0, y: 0),
+            radius: 2.0,
+            z_min: -1.0,
+            z_max: 1.0,
+        )),
+    ),
+    projectile_body: Object(FireRing),
+    projectile_speed: 22.0,
+    num_projectiles: Value(1),
+    movement_modifier: (
+        buildup: Some(0.3),
+        recover: Some(0.5),
+    ),
+)

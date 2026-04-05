@@ -805,6 +805,8 @@ pub enum CharacterAbility {
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
         #[serde(default)]
+        launch_vertical_speed: f32,
+        #[serde(default)]
         num_projectiles: Amount,
         projectile_spread: Option<ProjectileSpread>,
         #[serde(default)]
@@ -857,6 +859,8 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
         auto_charge: bool,
+        #[serde(default)]
+        charge_through: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -1520,6 +1524,7 @@ impl CharacterAbility {
                 projectile_body: _,
                 projectile_light: _,
                 ref mut projectile_speed,
+                launch_vertical_speed: _,
                 num_projectiles: _,
                 projectile_spread: _,
                 auto_aim: _,
@@ -1576,6 +1581,7 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 ori_modifier: _,
                 auto_charge: _,
+                charge_through: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2346,7 +2352,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Staff) => self.adjusted_by_staff_skills(skillset),
             Some(ToolKind::Sceptre) => self.adjusted_by_sceptre_skills(skillset),
             Some(ToolKind::Pick) => self.adjusted_by_mining_skills(skillset),
             None | Some(_) => {},
@@ -2371,74 +2376,6 @@ impl CharacterAbility {
             *buildup_duration /= speed;
             *swing_duration /= speed;
             *recover_duration /= speed;
-        }
-    }
-
-    fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
-        use skills::{Skill::Staff, StaffSkill::*};
-
-        match self {
-            CharacterAbility::BasicRanged { projectile, .. } => {
-                let modifiers = SKILL_MODIFIERS.staff_tree.fireball;
-                let damage_level = skillset.skill_level(Staff(BDamage)).unwrap_or(0);
-                let regen_level = skillset.skill_level(Staff(BRegen)).unwrap_or(0);
-                let range_level = skillset.skill_level(Staff(BRadius)).unwrap_or(0);
-                let power = modifiers.power.powi(damage_level.into());
-                let regen = modifiers.regen.powi(regen_level.into());
-                let range = modifiers.range.powi(range_level.into());
-                *projectile = projectile
-                    .clone()
-                    .legacy_modified_by_skills(power, regen, range, 1_f32);
-            },
-            CharacterAbility::BasicBeam {
-                damage,
-                range,
-                energy_drain,
-                beam_duration,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.staff_tree.flamethrower;
-                if let Ok(level) = skillset.skill_level(Staff(FDamage)) {
-                    *damage *= modifiers.damage.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Staff(FRange)) {
-                    let range_mod = modifiers.range.powi(level.into());
-                    *range *= range_mod;
-                    // Duration modified to keep velocity constant
-                    *beam_duration *= range_mod as f64;
-                }
-                if let Ok(level) = skillset.skill_level(Staff(FDrain)) {
-                    *energy_drain *= modifiers.energy_drain.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Staff(FVelocity)) {
-                    let velocity_increase = modifiers.velocity.powi(level.into());
-                    let duration_mod = 1.0 / (1.0 + velocity_increase);
-                    *beam_duration *= duration_mod as f64;
-                }
-            },
-            CharacterAbility::Shockwave {
-                damage,
-                knockback,
-                shockwave_duration,
-                energy_cost,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.staff_tree.shockwave;
-                if let Ok(level) = skillset.skill_level(Staff(SDamage)) {
-                    *damage *= modifiers.damage.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Staff(SKnockback)) {
-                    let knockback_mod = modifiers.knockback.powi(level.into());
-                    *knockback = knockback.modify_strength(knockback_mod);
-                }
-                if let Ok(level) = skillset.skill_level(Staff(SRange)) {
-                    *shockwave_duration *= modifiers.duration.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Staff(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-            },
-            _ => {},
         }
     }
 
@@ -2585,6 +2522,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 projectile_body,
                 projectile_light,
                 projectile_speed,
+                launch_vertical_speed,
                 energy_cost: _,
                 num_projectiles,
                 projectile_spread,
@@ -2600,6 +2538,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     projectile_body: *projectile_body,
                     projectile_light: *projectile_light,
                     projectile_speed: *projectile_speed,
+                    launch_vertical_speed: *launch_vertical_speed,
                     num_projectiles: *num_projectiles,
                     projectile_spread: *projectile_spread,
                     auto_aim: *auto_aim,
@@ -2647,12 +2586,14 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 melee_constructor,
                 ori_modifier,
                 auto_charge,
+                charge_through,
                 meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
                     auto_charge: *auto_charge,
+                    charge_through: *charge_through,
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),

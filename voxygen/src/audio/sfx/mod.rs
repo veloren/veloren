@@ -160,6 +160,12 @@ pub enum SfxEvent {
     ArrowMiss,
     ArrowShot,
     FireShot,
+    NapalmShot,
+    NapalmImpact,
+    FireBreathShot,
+    FireBreathCharge,
+    PyroclasmCharge,
+    PyroclasmBolt,
     FlameThrower,
     PoiseChange(PoiseState),
     GroundSlam,
@@ -527,6 +533,15 @@ impl SfxMgr {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::CyclopsCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
+            Outcome::PyroclasmCharge { pos, .. } => {
+                let sfx_trigger_item =
+                    triggers.0.get_key_value(&SfxEvent::PyroclasmCharge);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
+            },
+            Outcome::FireBreathCharge { pos, .. } => {
+                let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FireBreathCharge);
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
+            },
             Outcome::FuseCharge { pos, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FuseCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
@@ -657,6 +672,16 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::FireShot);
                         audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
+                    Body::Object(object::Body::NapalmShot) => {
+                        let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::NapalmShot);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
+                    },
+                    Body::Object(object::Body::FireRing) => {},
+                    Body::Object(object::Body::PyroclasmBolt) => {
+                        let sfx_trigger_item =
+                            triggers.0.get_key_value(&SfxEvent::PyroclasmBolt);
+                        audio.emit_sfx(sfx_trigger_item, *pos, None);
+                    },
                     Body::Object(
                         object::Body::IronPikeBomb
                         | object::Body::BubbleBomb
@@ -744,6 +769,10 @@ impl SfxMgr {
                         let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::SmashKlonk);
                         audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                     }
+                },
+                Body::Object(object::Body::NapalmShot) => {
+                    let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::NapalmImpact);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
                 },
                 _ => {},
             },

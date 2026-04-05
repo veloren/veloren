@@ -66,6 +66,8 @@ pub struct Aura {
     /// Contains data about the original state of the aura that does not change
     /// over time
     pub data: AuraData,
+    //Specifies if there should be a persistent visual effect during the aura
+    pub persistent_visual: Option<Specifier>,
 }
 
 /// Information about whether aura addition or removal was requested.
@@ -141,6 +143,7 @@ impl Aura {
         duration: Option<Secs>,
         target: AuraTarget,
         time: Time,
+        persistent_visual: Option<Specifier>,
     ) -> Self {
         Self {
             aura_kind,
@@ -148,6 +151,7 @@ impl Aura {
             end_time: duration.map(|dur| Time(time.0 + dur.0)),
             target,
             data: AuraData::new(duration),
+            persistent_visual,
         }
     }
 }
@@ -189,6 +193,7 @@ impl AuraBuffConstructor {
         duration: Option<Secs>,
         target: AuraTarget,
         time: Time,
+        persistent_visual: Option<Specifier>,
     ) -> Aura {
         let aura_kind = AuraKind::Buff {
             kind: self.kind,
@@ -199,7 +204,7 @@ impl AuraBuffConstructor {
                 tool_kind: entity_info.1,
             },
         };
-        Aura::new(aura_kind, radius, duration, target, time)
+        Aura::new(aura_kind, radius, duration, target, time, persistent_visual)
     }
 }
 

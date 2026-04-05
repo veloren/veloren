@@ -5258,6 +5258,7 @@ fn handle_aura(
         aura_duration.map(|duration| Secs(duration as f64)),
         aura_target,
         time,
+        None,
     );
 
     if new_entity {

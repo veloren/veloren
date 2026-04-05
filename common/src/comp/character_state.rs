@@ -1393,6 +1393,7 @@ impl AttackFilters {
             AttackSource::UndodgeableShockwave => false,
             AttackSource::Explosion => self.explosions,
             AttackSource::Arc => self.arcs,
+            AttackSource::Pool => false,
         }
     }
 }

@@ -3127,7 +3127,10 @@ impl Animation for BasicAction {
                         * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.4);
                 }
             },
-            Some("common.abilities.staff.firebomb") => {
+            Some(
+                "common.abilities.staff.firebomb" 
+                | "common.abilities.staff.napalm_strike",
+            ) => {
                 let move1 = move1base;
                 let move2 = move2base.powf(0.25);
                 let move3 = move3base;
@@ -3181,6 +3184,49 @@ impl Animation for BasicAction {
                     );
                 next.chest.orientation = Quaternion::rotation_z(swivel * 0.8);
                 next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
+            },
+            Some("common.abilities.staff.fire_breath") => {
+                let move1 = move1base.powf(0.5) * pullback;
+                let move2 = move2base * pullback;
+
+                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.sthl.3) * Quaternion::rotation_y(s_a.sthl.4);
+                next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+
+                next.control.position = Vec3::new(
+                    s_a.stc.0 + move1 * -2.0,
+                    s_a.stc.1 + move1 * 6.0,
+                    s_a.stc.2 + d.look_dir.z * 3.0 + move1 * 3.0,
+                );
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.stc.3 + d.look_dir.z * 0.8 + move1 * -0.4)
+                        * Quaternion::rotation_y(s_a.stc.4 + move1 * 0.1)
+                        * Quaternion::rotation_z(s_a.stc.5 + move1 * 0.1);
+
+                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+                next.head.orientation = Quaternion::rotation_x(
+                    d.look_dir.z * 0.6 + move1 * 0.1 + (move2 * 4.0).sin() * 0.03,
+                );
+
+                next.chest.orientation =
+                    Quaternion::rotation_x(move1 * -0.15 + (move2 * 4.0).sin() * 0.04);
+                next.belt.orientation = Quaternion::rotation_x(move1 * 0.08);
+                next.shorts.orientation = Quaternion::rotation_x(move1 * 0.12);
+
+                if d.velocity.magnitude_squared() < 0.5_f32.powi(2) && !d.is_riding {
+                    next.foot_l.position =
+                        Vec3::new(-s_a.foot.0, s_a.foot.1 + move1 * -2.0, s_a.foot.2);
+                    next.foot_l.orientation = Quaternion::rotation_x(move1 * -0.3);
+
+                    next.foot_r.position =
+                        Vec3::new(s_a.foot.0, s_a.foot.1 + move1 * 3.0, s_a.foot.2);
+                    next.foot_r.orientation = Quaternion::rotation_x(move1 * 0.2);
+                }
             },
             // ==================================
             //           NATURE SCEPTRE

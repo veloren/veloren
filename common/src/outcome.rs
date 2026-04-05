@@ -121,6 +121,12 @@ pub enum Outcome {
     FlamethrowerCharge {
         pos: Vec3<f32>,
     },
+    FireBreathCharge {
+        pos: Vec3<f32>,
+    },
+    PyroclasmCharge {
+        pos: Vec3<f32>,
+    },
     FuseCharge {
         pos: Vec3<f32>,
     },
@@ -233,6 +239,8 @@ impl Outcome {
             | Outcome::Utterance { pos, .. }
             | Outcome::CyclopsCharge { pos }
             | Outcome::FlamethrowerCharge { pos }
+            | Outcome::FireBreathCharge { pos }
+            | Outcome::PyroclasmCharge { pos }
             | Outcome::FuseCharge { pos }
             | Outcome::TerracottaStatueCharge { pos }
             | Outcome::SurpriseEgg { pos }

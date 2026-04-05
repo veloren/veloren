@@ -64,6 +64,7 @@ pub enum AttackSource {
     UndodgeableShockwave,
     Explosion,
     Arc,
+    Pool,
 }
 
 pub const FULL_FLANK_ANGLE: f32 = std::f32::consts::PI / 4.0;

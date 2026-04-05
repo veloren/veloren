@@ -4,7 +4,7 @@ use crate::{
         Body, CharacterState, LightEmitter, Pos, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
-        object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
+        object::Body::{FireRing, GrenadeClay, LaserBeam, LaserBeamSmall},
         projectile::{ProjectileConstructor, aim_projectile},
     },
     event::{LocalEvent, ShootEvent},
@@ -33,6 +33,8 @@ pub struct StaticData {
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_speed: f32,
+    /// Extra upward velocity added to the projectile at launch
+    pub launch_vertical_speed: f32,
     /// How many projectiles are simultaneously fired
     pub num_projectiles: Amount,
     /// What key is used to press ability
@@ -100,6 +102,14 @@ impl CharacterBehavior for Data {
                         Body::Object(LaserBeamSmall) => {
                             output_events.emit_local(LocalEvent::CreateOutcome(
                                 Outcome::TerracottaStatueCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
+                        Body::Object(FireRing) if self.timer == Duration::default() => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FireBreathCharge {
                                     pos: data.pos.0
                                         + *data.ori.look_dir() * (data.body.max_radius()),
                                 },
@@ -175,11 +185,18 @@ impl CharacterBehavior for Data {
                         Either::Right((0..num_projectiles).map(|_| aim_dir))
                     };
 
+                    //Adds additional vertical launch velocity if present
+                    let initial_vel = {
+                        let mut v = *data.vel;
+                        v.0.z += self.static_data.launch_vertical_speed;
+                        v
+                    };
+
                     for dir in dirs {
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
-                            source_vel: Some(*data.vel),
+                            source_vel: Some(initial_vel),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,

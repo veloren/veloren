@@ -102,6 +102,13 @@ pub trait StateExt {
         owner: Option<Uid>,
         pos: comp::Pos,
     ) -> EcsEntityBuilder<'_>;
+    fn create_pool(
+        &mut self,
+        properties: comp::pool::PoolProperties,
+        owner: Option<Uid>,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder<'_>;
     /// Creates a safezone
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder<'_>;
     fn create_wiring(
@@ -450,6 +457,40 @@ impl StateExt for State {
                 owner,
             })
     }
+    fn create_pool(
+        &mut self,
+        properties: comp::pool::PoolProperties,
+        owner: Option<Uid>,
+        pos: comp::Pos,
+        ori: comp::Ori,
+    ) -> EcsEntityBuilder<'_> {
+        let time = self.get_time();
+        let tick_dur = properties.tick_dur;
+
+        let body = comp::Body::Object(comp::object::Body::NapalmPool);
+        self.ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(ori)
+            .with(comp::Vel(Vec3::zero()))
+            .with(body.mass())
+            .with(body.density())
+            .with(body.collider())
+            .with(body)
+            .with(comp::LightEmitter {
+                col: Rgb::new(1.0, 0.35, 0.05),
+                strength: 3.5,
+                flicker: 1.0,
+                animated: true,
+                dir: None,
+            })
+            .with(comp::pool::Pool {
+                properties,
+                start_time: Time(time),
+                last_tick: Time(time - tick_dur.0),
+                owner,
+            })
+    }
 
     fn create_safezone(&mut self, range: Option<f32>, pos: comp::Pos) -> EcsEntityBuilder<'_> {
         use comp::{
@@ -472,6 +513,7 @@ impl StateExt for State {
                 None,
                 AuraTarget::All,
                 Time(time),
+                None,
             )]))
     }
 

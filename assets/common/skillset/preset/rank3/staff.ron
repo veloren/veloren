@@ -1,15 +1,4 @@
 [
     Group(Weapon(Staff)),
 
-    // Fireball
-    Skill((Staff(BDamage), 2)),
-    Skill((Staff(BRegen), 2)),
-    Skill((Staff(BRadius), 2)),
-
-    // Flamethrower
-    Skill((Staff(FRange), 2)),
-    Skill((Staff(FDamage), 3)),
-    Skill((Staff(FDrain), 2)),
-    Skill((Staff(FVelocity), 1)),
-
 ]

@@ -7,6 +7,7 @@ use crate::{
         ArcProperties, CapsulePrism,
         ability::Dodgeable,
         item::{Reagent, tool},
+        pool::PoolProperties,
     },
     consts::GRAVITY,
     explosion::{ColorPreset, Explosion, RadiusEffect},
@@ -34,6 +35,7 @@ pub enum Effect {
     TrainingDummy,
     Arc(ArcProperties),
     Split(SplitOptions),
+    BecomePool(PoolProperties),
 }
 
 #[derive(Clone, Debug)]
@@ -184,6 +186,11 @@ pub enum ProjectileConstructorKind {
     Firework(Reagent),
     SurpriseEgg,
     TrainingDummy,
+    Pool {
+        radius: f32,
+        tick_dur: Secs,
+        pool_duration: Secs,
+    },
 }
 
 impl ProjectileConstructor {
@@ -246,6 +253,7 @@ impl ProjectileConstructor {
                     DamageKind::Piercing
                 },
                 ProjectileConstructorKind::Arcing { .. } => DamageKind::Energy,
+                ProjectileConstructorKind::Pool { .. } => DamageKind::Energy,
             };
 
             let mut damage = AttackDamage::new(
@@ -617,6 +625,62 @@ impl ProjectileConstructor {
                     override_collider: self.override_collider,
                 }
             },
+            ProjectileConstructorKind::Pool {
+                radius,
+                tick_dur,
+                pool_duration,
+            } => {
+                let pool_props = attack.map(|atk| PoolProperties {
+                    attack: atk,
+                    radius,
+                    tick_dur,
+                    duration: pool_duration,
+                });
+
+                if let Some(props) = pool_props {
+                    hit_solid.push(Effect::BecomePool(props.clone()));
+                    hit_solid.push(Effect::Vanish);
+
+                    let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
+
+                    return Projectile {
+                        hit_solid,
+                        hit_entity: vec![Effect::BecomePool(props), Effect::Vanish],
+                        timeout,
+                        time_left: Duration::from_secs_f64(lifetime.0),
+                        init_time: lifetime,
+                        owner,
+                        ignore_group: true,
+                        is_sticky: true,
+                        is_point: true,
+                        homing,
+                        pierce_entities: false,
+                        hit_entities: Vec::new(),
+                        limit_per_ability: self.limit_per_ability,
+                        override_collider: self.override_collider,
+                    };
+                }
+
+                
+                let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
+
+                Projectile {
+                    hit_solid,
+                    hit_entity: vec![Effect::Vanish],
+                    timeout,
+                    time_left: Duration::from_secs_f64(lifetime.0),
+                    init_time: lifetime,
+                    owner,
+                    ignore_group: true,
+                    is_sticky: true,
+                    is_point: true,
+                    homing,
+                    pierce_entities: false,
+                    hit_entities: Vec::new(),
+                    limit_per_ability: self.limit_per_ability,
+                    override_collider: self.override_collider,
+                }
+            },
             ProjectileConstructorKind::TrainingDummy => {
                 hit_solid.push(Effect::TrainingDummy);
                 hit_solid.push(Effect::Vanish);
@@ -718,7 +782,8 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::SurpriseEgg
             | ProjectileConstructorKind::TrainingDummy => {},
             ProjectileConstructorKind::Explosive { ref mut radius, .. }
-            | ProjectileConstructorKind::ExplosiveHazard { ref mut radius, .. } => {
+            | ProjectileConstructorKind::ExplosiveHazard { ref mut radius, .. }
+            | ProjectileConstructorKind::Pool { ref mut radius, .. } => {
                 *radius *= stats.range;
             },
             ProjectileConstructorKind::Arcing {
@@ -773,7 +838,8 @@ impl ProjectileConstructor {
             | ProjectileConstructorKind::Firework(_)
             | ProjectileConstructorKind::SurpriseEgg
             | ProjectileConstructorKind::TrainingDummy
-            | ProjectileConstructorKind::Arcing { .. } => false,
+            | ProjectileConstructorKind::Arcing { .. }
+            | ProjectileConstructorKind::Pool { .. } => false,
             ProjectileConstructorKind::Explosive { .. }
             | ProjectileConstructorKind::ExplosiveHazard { .. } => true,
         }

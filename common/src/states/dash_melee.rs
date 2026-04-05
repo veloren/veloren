@@ -30,6 +30,8 @@ pub struct StaticData {
     pub ori_modifier: f32,
     /// Controls whether charge should always go until end or enemy hit
     pub auto_charge: bool,
+    /// If true, hitting an enemy does not stop the charge
+    pub charge_through: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -117,11 +119,18 @@ impl CharacterBehavior for Data {
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
                             }
-                        } else {
+                        } else if !self.static_data.charge_through {
                             // Stop charging now and go to swing stage section
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = Duration::default();
                                 c.stage_section = StageSection::Action;
+                            }
+                        } else{
+                            // charge_through: reset the melee so it can hit again next frame
+                            // TODO: Prevent entities from getting double-hit
+                            data.updater.insert(data.entity, create_melee(charge_frac));
+                            if let CharacterState::DashMelee(c) = &mut update.character {
+                                c.timer = tick_attack_or_default(data, self.timer, None);
                             }
                         }
                     } else {

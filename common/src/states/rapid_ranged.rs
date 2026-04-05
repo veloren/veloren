@@ -4,7 +4,8 @@ use crate::{
         Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate,
         character_state::OutputEvents,
     },
-    event::{EnergyChangeEvent, ShootEvent},
+    event::{EnergyChangeEvent, LocalEvent, ShootEvent},
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
@@ -46,6 +47,10 @@ pub struct Options {
     pub offset: Option<OffsetOptions>,
     #[serde(default)]
     pub fire_all: bool,
+    #[serde(default)]
+    pub projectile_spread: Option<f32>,
+    #[serde(default)]
+    pub spawn_z_offset: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -89,6 +94,15 @@ impl CharacterBehavior for Data {
                     // Buildup to attack
                     if let CharacterState::RapidRanged(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
+                    if matches!(
+                        self.static_data.specifier,
+                        Some(FrontendSpecifier::PyroclasmCharge)
+                    ) && self.timer == Duration::default()
+                    {
+                        output_events.emit_local(LocalEvent::CreateOutcome(
+                            Outcome::PyroclasmCharge { pos: data.pos.0 },
+                        ));
                     }
                 } else {
                     // Transition to shoot
@@ -135,10 +149,28 @@ impl CharacterBehavior for Data {
                             data.scale.map_or(1.0, |s| s.0),
                         )
                     };
-                    let pos = Pos(data.pos.0 + offset);
+                    let pos = Pos(data.pos.0 + offset + vek::Vec3::unit_z() * self.static_data.options.spawn_z_offset);
 
                     let direction: Dir = if self.static_data.projectile_speed < 1.0 {
                         Dir::down()
+                    } else if let (Some(spread_deg), Some(max)) = (
+                        self.static_data.options.projectile_spread,
+                        self.static_data.options.max_projectiles,
+                    ) {
+                        let t = if max <= 1 {
+                            0.5
+                        } else {
+                            self.projectiles_fired as f32 / (max - 1) as f32
+                        };
+                        let angle = (t - 0.5) * spread_deg.to_radians();
+                        let (sin_a, cos_a) = angle.sin_cos();
+                        let look = *data.inputs.look_dir;
+                        let fanned = vek::Vec3::new(
+                            look.x * cos_a - look.y * sin_a,
+                            look.x * sin_a + look.y * cos_a,
+                            look.z,
+                        );
+                        Dir::from_unnormalized(fanned).unwrap_or(data.inputs.look_dir)
                     } else {
                         data.inputs.look_dir
                     };
@@ -222,4 +254,5 @@ impl CharacterBehavior for Data {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum FrontendSpecifier {
     FireRainPhoenix,
+    PyroclasmCharge,
 }
