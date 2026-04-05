@@ -469,6 +469,12 @@ impl CharacterSkeleton {
             self.hand_r.orientation = Quaternion::rotation_z(yaw * 1.0)
                 * Quaternion::rotation_x(2.25 + pitch + breathe * 0.3)
                 * Quaternion::rotation_z(0.9);
+
+            self.control_r.position = Vec3::zero();
+            self.control_r.orientation = Quaternion::rotation_x(0.0)
+                * Quaternion::rotation_y(0.0)
+                * Quaternion::rotation_z(0.0);
+
             self.shoulder_r.position.z += 3.0;
             self.shoulder_r.orientation = Quaternion::rotation_z(yaw.min(0.0) * 1.0)
                 * Quaternion::rotation_x(2.25 + breathe * 0.1);

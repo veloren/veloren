@@ -1860,6 +1860,7 @@ impl FigureMgr {
                                 look_dir,
                                 velocity: rel_vel,
                                 is_riding,
+                                last_ori,
                             },
                             progress,
                             &mut state_animation_rate,
