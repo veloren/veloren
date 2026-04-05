@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moon phases
 - CLI Command to list every available graphics devices
 - Some sprites are now destroyed instead of left floating after block changes.
+- Sword dual wielding animation
 
 ### Changed
 
