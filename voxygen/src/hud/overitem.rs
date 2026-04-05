@@ -1,7 +1,14 @@
+use super::img_ids::Imgs;
+
 use crate::{
+    GlobalState,
     game_input::GameInput,
-    settings::ControlSettings,
+    hud::{
+        CollectFailedData, HudCollectFailedReason, HudLootOwner, IconHandler,
+        controller_icons::LayerIconIds,
+    },
     ui::{Ingameable, fonts::Fonts},
+    window::LastInput,
 };
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, color,
@@ -10,8 +17,6 @@ use conrod_core::{
 };
 use i18n::Localization;
 use std::borrow::Cow;
-
-use crate::hud::{CollectFailedData, HudCollectFailedReason, HudLootOwner};
 
 pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
 pub const NEGATIVE_TEXT_COLOR: Color = Color::Rgba(0.91, 0.15, 0.17, 1.0);
@@ -25,6 +30,7 @@ widget_ids! {
         // Interaction hints
         btn_bg,
         btns[],
+        icns[], // controller icons
         // Inventory full
         inv_full_bg,
         inv_full,
@@ -40,13 +46,14 @@ pub struct Overitem<'a> {
     distance_from_player_sqr: f32,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
-    controls: &'a ControlSettings,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     properties: OveritemProperties,
     pulse: f32,
     // GameInput optional so we can just show stuff like "needs pickaxe"
     interaction_options: Vec<(Option<GameInput>, String, Color)>,
+    imgs: &'a Imgs,
+    global_state: &'a GlobalState,
 }
 
 impl<'a> Overitem<'a> {
@@ -56,10 +63,11 @@ impl<'a> Overitem<'a> {
         distance_from_player_sqr: f32,
         fonts: &'a Fonts,
         localized_strings: &'a Localization,
-        controls: &'a ControlSettings,
         properties: OveritemProperties,
         pulse: f32,
         interaction_options: Vec<(Option<GameInput>, String, Color)>,
+        imgs: &'a Imgs,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             name,
@@ -67,11 +75,12 @@ impl<'a> Overitem<'a> {
             distance_from_player_sqr,
             fonts,
             localized_strings,
-            controls,
             common: widget::CommonBuilder::default(),
             properties,
             pulse,
             interaction_options,
+            imgs,
+            global_state,
         }
     }
 }
@@ -89,20 +98,38 @@ impl Ingameable for Overitem<'_> {
     fn prim_count(&self) -> usize {
         // Number of conrod primitives contained in the overitem display.
         // TODO maybe this could be done automatically?
-        // - 2 Text for name
-        // - 0 or 2 Rectangle and Text for button
-        2 + match self
-            .controls
-            .get_binding(GameInput::Interact)
-            .filter(|_| self.properties.active)
-        {
-            Some(_) => 2,
-            None => 0,
-        } + if self.properties.pickup_failed_pulse.is_some() {
+
+        // + 2 Text for name
+        let base = 2;
+
+        // + 0 or 2 Rectangle and Text for button
+        let interaction_ids = match self.global_state.window.last_input() {
+            LastInput::KeyboardMouse => self
+                .global_state
+                .settings
+                .controls
+                .get_binding(GameInput::Interact)
+                .filter(|_| self.properties.active)
+                .map_or(0, |_| 2),
+            LastInput::Controller => {
+                // + 3 more than keyboard for icon ids (main icon, mod1, mod2)
+                self.global_state
+                    .settings
+                    .controller
+                    .get_game_button_binding(GameInput::Interact)
+                    .filter(|_| self.properties.active)
+                    .map_or(3, |_| 5)
+            },
+        };
+
+        // + 0 or 2 for pickup failed pulse
+        let pulse = if self.properties.pickup_failed_pulse.is_some() {
             2
         } else {
             0
-        }
+        };
+
+        base + interaction_ids + pulse
     }
 }
 
@@ -171,60 +198,139 @@ impl Widget for Overitem<'_> {
 
         // Interaction hints
         if !self.interaction_options.is_empty() && self.properties.active {
-            let texts = self
-                .interaction_options
-                .iter()
-                .filter_map(|(input, action, color)| {
-                    let binding = if let Some(input) = input {
-                        Some(self.controls.get_binding(*input)?)
-                    } else {
-                        None
-                    };
-                    Some((binding, action, color))
-                })
-                .map(|(input, action, color)| {
-                    if let Some(input) = input {
-                        let input = input.display_string();
-                        (format!("{}  {action}", input.as_str()), color)
-                    } else {
-                        (action.to_string(), color)
-                    }
-                })
-                .collect::<Vec<_>>();
-            if state.ids.btns.len() < texts.len() {
-                state.update(|state| {
-                    state
-                        .ids
-                        .btns
-                        .resize(texts.len(), &mut ui.widget_id_generator());
-                })
-            }
-
             let mut max_w = btn_rect_size;
             let mut max_h = 0.0;
+            let mut box_offset = 0.0;
 
-            for (idx, (text, color)) in texts.iter().enumerate() {
-                let hints_text = Text::new(text)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(btn_font_size as u32)
-                    .color(**color)
-                    .x_y(0.0, btn_text_pos_y + max_h)
-                    .depth(self.distance_from_player_sqr + 1.0)
-                    .parent(id);
-                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
-                max_w = max_w.max(w);
-                max_h += h;
-                hints_text.set(state.ids.btns[idx], ui);
+            match self.global_state.window.last_input() {
+                LastInput::KeyboardMouse => {
+                    let texts = self
+                        .interaction_options
+                        .iter()
+                        .filter_map(|(input, action, color)| {
+                            let binding = if let Some(input) = input {
+                                Some(self.global_state.settings.controls.get_binding(*input)?)
+                            } else {
+                                None
+                            };
+                            Some((binding, action, color))
+                        })
+                        .map(|(input, action, color)| {
+                            if let Some(input) = input {
+                                let input = input.display_string();
+                                (format!("{}  {action}", input.as_str()), color)
+                            } else {
+                                (action.to_string(), color)
+                            }
+                        })
+                        .collect::<Vec<_>>();
+                    if state.ids.btns.len() < texts.len() {
+                        state.update(|state| {
+                            state
+                                .ids
+                                .btns
+                                .resize(texts.len(), &mut ui.widget_id_generator());
+                        })
+                    }
+
+                    for (idx, (text, color)) in texts.iter().enumerate() {
+                        let hints_text = Text::new(text)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(btn_font_size as u32)
+                            .color(**color)
+                            .x_y(0.0, btn_text_pos_y + max_h)
+                            .depth(self.distance_from_player_sqr + 1.0)
+                            .parent(id);
+                        let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                        max_w = max_w.max(w);
+                        max_h += h;
+                        hints_text.set(state.ids.btns[idx], ui);
+                    }
+
+                    max_h = max_h.max(btn_rect_size);
+                },
+                LastInput::Controller => {
+                    // because in-line images are not easily supported, the controller icons are
+                    // manually rendered left of the text
+
+                    let controller_texts = self.interaction_options.iter().collect::<Vec<_>>(); // &Option<GameInput>, &String, &Color
+                    if state.ids.btns.len() < controller_texts.len() {
+                        state.update(|state| {
+                            state
+                                .ids
+                                .btns
+                                .resize(controller_texts.len(), &mut ui.widget_id_generator());
+                        })
+                    }
+                    let icns_size = controller_texts.len() * 3; // main icon + 2 modifier buttons
+                    if state.ids.icns.len() < icns_size {
+                        state.update(|state| {
+                            state
+                                .ids
+                                .icns
+                                .resize(icns_size, &mut ui.widget_id_generator());
+                        })
+                    }
+
+                    let icon_handler = IconHandler::new(self.global_state, self.imgs);
+                    let mut icons_w: u8 = 0;
+
+                    // render text here, call button next to it
+                    for (idx, (inputs, action, color)) in controller_texts.iter().enumerate() {
+                        // render text widget first
+                        let text_widget_id = state.ids.btns[idx];
+                        let hints_text = Text::new(action)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(btn_font_size as u32)
+                            .color(*color)
+                            .x_y(0.0, btn_text_pos_y + max_h)
+                            .depth(self.distance_from_player_sqr + 1.0)
+                            .parent(id);
+                        let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                        max_w = max_w.max(w);
+                        max_h += h;
+                        hints_text.set(text_widget_id, ui);
+
+                        // render controller icon left of the text
+                        let idx_icns = idx * 3;
+                        let icon_ids = LayerIconIds {
+                            main: state.ids.icns[idx_icns],
+                            modifier1: state.ids.icns[idx_icns + 1],
+                            modifier2: state.ids.icns[idx_icns + 2],
+                        };
+                        if let Some(input) = inputs {
+                            let count = icon_handler.set_controller_icons_left(
+                                *input,
+                                17.0,
+                                text_widget_id,
+                                &icon_ids,
+                                ui,
+                            );
+                            icons_w = icons_w.max(count);
+                        } else {
+                            // render transparant widgets to keep conrod from freaking out
+                            icon_handler.set_controller_icons_left_none(
+                                17.0,
+                                text_widget_id,
+                                &icon_ids,
+                                ui,
+                            );
+                        }
+                    }
+
+                    let icon_largest_width = icons_w as f64 * 21.0;
+                    box_offset = icon_largest_width / 2.0;
+                    max_w += icon_largest_width;
+                    max_h = max_h.max(btn_rect_size);
+                },
             }
-
-            max_h = max_h.max(btn_rect_size);
 
             RoundedRectangle::fill_with(
                 [max_w + btn_radius * 2.0, max_h + btn_radius * 2.0],
                 btn_radius,
                 btn_color,
             )
-            .x_y(0.0, btn_rect_pos_y)
+            .x_y(0.0 - box_offset, btn_rect_pos_y)
             .depth(self.distance_from_player_sqr + 2.0)
             .parent(id)
             .set(state.ids.btn_bg, ui);

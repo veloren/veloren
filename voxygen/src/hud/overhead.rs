@@ -4,10 +4,11 @@ use super::{
     cr_color, img_ids::Imgs,
 };
 use crate::{
+    GlobalState,
     game_input::GameInput,
-    hud::BuffIcon,
-    settings::{ControlSettings, InterfaceSettings},
+    hud::{BuffIcon, IconHandler, controller_icons::LayerIconIds},
     ui::{Ingameable, fonts::Fonts},
+    window::LastInput,
 };
 use common::{
     comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType, Stance},
@@ -62,6 +63,8 @@ widget_ids! {
         // Interaction hints
         interaction_hints,
         interaction_hints_bg,
+        btns[], // interaction options
+        icns[], // controller icons
     }
 }
 
@@ -91,14 +94,14 @@ pub struct Overhead<'a> {
     info: Option<Info<'a>>,
     bubble: Option<&'a SpeechBubble>,
     in_group: bool,
-    settings: &'a InterfaceSettings,
     pulse: f32,
+    interaction_options: Vec<(GameInput, String)>,
+
     i18n: &'a Localization,
-    controls: &'a ControlSettings,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
-    interaction_options: Vec<(GameInput, String)>,
     time: &'a Time,
+    global_state: &'a GlobalState,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -109,27 +112,25 @@ impl<'a> Overhead<'a> {
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
         in_group: bool,
-        settings: &'a InterfaceSettings,
         pulse: f32,
+        interaction_options: Vec<(GameInput, String)>,
         i18n: &'a Localization,
-        controls: &'a ControlSettings,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
-        interaction_options: Vec<(GameInput, String)>,
         time: &'a Time,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             info,
             bubble,
             in_group,
-            settings,
             pulse,
+            interaction_options,
             i18n,
-            controls,
             imgs,
             fonts,
-            interaction_options,
             time,
+            global_state,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -143,44 +144,63 @@ impl Ingameable for Overhead<'_> {
     fn prim_count(&self) -> usize {
         // Number of conrod primitives contained in the overhead display. TODO maybe
         // this could be done automatically?
-        // - 2 Text::new for name
-        //
-        // If HP Info is shown:
-        // - 1 for level: either Text or Image <-- Not used currently, will be replaced
-        //   by something else
-        // - 1 if hardcore
-        // - 3 for HP + fg + bg
-        // - 1 for HP text
-        // - If there's mana
-        //   - 1 Rect::new for mana
-        // If there are Buffs
-        // - 1 Alignment Rectangle
-        // - 2 per buff (1 for buff and 1 for timer overlay) (only if there is no speech
-        //   bubble)
-        //   - 22 total with current max of 11 displayed buffs
-        // If there's a speech bubble
-        // - 2 Text::new for speech bubble
-        // - 1 Image::new for icon
-        // - 10 Image::new for speech bubble (9-slice + tail)
-        self.info.as_ref().map_or(0, |info| {
-            2 + 1
-                + if self.bubble.is_none() {
-                    2 * info
-                        .buffs
-                        .as_ref()
-                        .map_or(0, |buffs| BuffIcon::icons_vec(buffs, info.stance).len())
-                        .min(11)
-                } else {
-                    0
-                }
-                + if info.health.is_some_and(should_show_healthbar) {
-                    5 + usize::from(info.energy.is_some()) + usize::from(info.hardcore)
-                } else {
-                    0
-                }
-                + usize::from(info.health.is_some_and(decayed_health_displayed))
-                + (!self.interaction_options.is_empty()) as usize * 2
-        }) + if self.bubble.is_some() { 13 } else { 0 }
+
+        // HP related info
+        let info_ids = self.info.as_ref().map_or(0, |info| {
+            // + 2 Text::new for name
+            // + 1 Alignment Rectangle
+            let mut count_ids = 2 + 1;
+
+            // If Buff Info is shown:
+            // + 2 per buff (1 for buff and 1 for timer overlay) (only if there is no speech
+            //   bubble)
+            //   + 22 total with current max of 11 displayed buffs
+            if self.bubble.is_none() {
+                let buff_ids = info
+                    .buffs
+                    .as_ref()
+                    .map_or(0, |buffs| BuffIcon::icons_vec(buffs, info.stance).len());
+                count_ids += buff_ids.min(11) * 2;
+            }
+
+            // If HP Info is shown:
+            // + 3 for HP + fg + bg
+            // + 1 for level: either Text or Image <-- Not used currently, will be replaced
+            //   by something else
+            // + 1 for HP text
+            // If there's mana
+            //   + 1 Rect::new for mana
+            // + 1 if hardcore
+            if info.health.is_some_and(should_show_healthbar) {
+                count_ids += 5;
+                count_ids += info.energy.is_some() as usize;
+                count_ids += info.hardcore as usize;
+            }
+
+            // - 1 for decayed health overlay
+            count_ids += info.health.is_some_and(decayed_health_displayed) as usize;
+
+            // For KeyboardMouse:
+            // + 2 for text + bg
+            // For Controller:
+            // + 1 (anchor/alignment) + 4 (text lines) + 12 (icons) + 1 (bg) icons
+            //   calculated as (3 icons * 4 text lines)
+            if !self.interaction_options.is_empty() {
+                count_ids += match self.global_state.window.last_input() {
+                    LastInput::KeyboardMouse => 2,
+                    LastInput::Controller => 18,
+                };
+            }
+
+            count_ids
+        });
+
+        // + 2 Text::new for speech bubble
+        // + 1 Image::new for icon
+        // + 10 Image::new for speech bubble (9-slice + tail)
+        let bubble = if self.bubble.is_some() { 13 } else { 0 };
+
+        info_ids + bubble
     }
 }
 
@@ -227,7 +247,7 @@ impl Widget for Overhead<'_> {
             let font_size = if hp_percentage.abs() > 99.9 { 24 } else { 20 };
             // Show K for numbers above 10^3 and truncate them
             // Show M for numbers above 10^6 and truncate them
-            let health_cur_txt = if self.settings.use_health_prefixes {
+            let health_cur_txt = if self.global_state.settings.interface.use_health_prefixes {
                 match health_current as u32 {
                     0..=999 => format!("{:.0}", health_current.max(1.0)),
                     1000..=999999 => format!("{:.0}K", (health_current / 1000.0).max(1.0)),
@@ -236,7 +256,7 @@ impl Widget for Overhead<'_> {
             } else {
                 format!("{:.0}", health_current.max(1.0))
             };
-            let health_max_txt = if self.settings.use_health_prefixes {
+            let health_max_txt = if self.global_state.settings.interface.use_health_prefixes {
                 match health_max as u32 {
                     0..=999 => format!("{:.0}", health_max.max(1.0)),
                     1000..=999999 => format!("{:.0}K", (health_max / 1000.0).max(1.0)),
@@ -495,63 +515,210 @@ impl Widget for Overhead<'_> {
 
             // Interaction hints
             if !self.interaction_options.is_empty() {
-                let text = self
-                    .interaction_options
-                    .iter()
-                    .filter_map(|(input, action)| {
-                        Some((self.controls.get_binding(*input)?, action))
-                    })
-                    .map(|(input, action)| format!("{}  {}", input.display_string(), action))
-                    .collect::<Vec<_>>()
-                    .join("\n");
-
                 let scale = 30.0;
                 let btn_rect_size = scale * 0.8;
                 let btn_font_size = scale * 0.6;
+                let btn_rect_pos_y;
                 let btn_radius = btn_rect_size / 5.0;
                 let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.8);
+                let mut max_w = btn_rect_size;
+                let mut max_h = 0.0;
+                let mut box_offset = 0.0;
 
-                let hints_text = Text::new(&text)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(btn_font_size as u32)
-                    .color(TEXT_COLOR)
-                    .parent(id)
-                    .down_from(
-                        self.info.map_or(state.ids.name, |info| {
-                            if info.health.is_some_and(should_show_healthbar) {
-                                if info.energy.is_some() {
-                                    state.ids.mana_bar
-                                } else {
-                                    state.ids.health_bar
-                                }
+                match self.global_state.window.last_input() {
+                    LastInput::KeyboardMouse => {
+                        let texts = self
+                            .interaction_options
+                            .iter()
+                            .filter_map(|(input, action)| {
+                                Some((
+                                    self.global_state.settings.controls.get_binding(*input)?,
+                                    action,
+                                ))
+                            })
+                            .map(|(input, action)| {
+                                format!("{}  {}", input.display_string(), action)
+                            })
+                            .collect::<Vec<_>>()
+                            .join("\n");
+
+                        let hints_text = Text::new(&texts)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(btn_font_size as u32)
+                            .color(TEXT_COLOR)
+                            .parent(id)
+                            .down_from(
+                                self.info.map_or(state.ids.name, |info| {
+                                    if info.health.is_some_and(should_show_healthbar) {
+                                        if info.energy.is_some() {
+                                            state.ids.mana_bar
+                                        } else {
+                                            state.ids.health_bar
+                                        }
+                                    } else {
+                                        state.ids.name
+                                    }
+                                }),
+                                12.0,
+                            )
+                            .align_middle_x_of(state.ids.name)
+                            .depth(1.0);
+
+                        let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                        max_w = max_w.max(w);
+                        max_h += h;
+                        hints_text.set(state.ids.interaction_hints, ui);
+                        btn_rect_pos_y = 0.0;
+                    },
+                    LastInput::Controller => {
+                        // because in-line images are not easily supported, the controller icons are
+                        // rendered left of the text; thus, the text has to be listed line by line
+                        // instead of all being joined together.
+                        // There can be up to 4 lines of text, and up to 3 icons. Because we don't
+                        // know which npc is being interacted with and that we allow input
+                        // rebinding, we don't know how many lines of text or icons to expect.
+                        // Therefore, we reserve the maximum possible number of widget id's from
+                        // conrod, and use up any we don't use with blank spaces.
+
+                        let max_controller_text = 4; // 4 npc interactions at most (e.g., mount, stay, trade, pet)
+                        if state.ids.btns.len() < max_controller_text {
+                            state.update(|state| {
+                                state
+                                    .ids
+                                    .btns
+                                    .resize(max_controller_text, &mut ui.widget_id_generator());
+                            })
+                        }
+
+                        let icns_size = max_controller_text * 3; // main icon + 2 modifier buttons
+                        if state.ids.icns.len() < icns_size {
+                            state.update(|state| {
+                                state
+                                    .ids
+                                    .icns
+                                    .resize(icns_size, &mut ui.widget_id_generator());
+                            })
+                        }
+
+                        let icon_handler = IconHandler::new(self.global_state, self.imgs);
+
+                        // anchors the text under the appropriate UI elements
+                        let anchor_text = Text::new("")
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(btn_font_size as u32)
+                            .color(TEXT_COLOR)
+                            .parent(id)
+                            .down_from(
+                                self.info.map_or(state.ids.name, |info| {
+                                    if info.health.is_some_and(should_show_healthbar) {
+                                        if info.energy.is_some() {
+                                            state.ids.mana_bar
+                                        } else {
+                                            state.ids.health_bar
+                                        }
+                                    } else {
+                                        state.ids.name
+                                    }
+                                }),
+                                12.0,
+                            )
+                            .align_middle_x_of(state.ids.name)
+                            .depth(1.0);
+
+                        anchor_text.set(state.ids.interaction_hints, ui);
+                        let mut down_from_id = state.ids.interaction_hints;
+                        let mut icons_w: u8 = 0;
+                        let mut first_text_w = 0.0;
+
+                        // loops through all reserved id's for max_controller_text
+                        // even if the text is not used, the id should be used to keep conrod from
+                        // freaking out
+                        for i in 0..max_controller_text {
+                            let text_id = state.ids.btns[i];
+                            let idx_icns = i * 3;
+                            let icon_ids = LayerIconIds {
+                                main: state.ids.icns[idx_icns],
+                                modifier1: state.ids.icns[idx_icns + 1],
+                                modifier2: state.ids.icns[idx_icns + 2],
+                            };
+
+                            // get the data for this row if it exists
+                            let row_data = self.interaction_options.get(i);
+                            let action_text =
+                                row_data.map(|(_, action)| action.as_str()).unwrap_or("");
+
+                            // draw the text (actual action or empty string)
+                            let mut hints_text = Text::new(action_text)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .font_size(btn_font_size as u32)
+                                .color(TEXT_COLOR)
+                                .parent(id)
+                                .depth(1.0);
+
+                            if i == 0 {
+                                // position the first line on the anchor
+                                hints_text = hints_text.middle_of(down_from_id);
                             } else {
-                                state.ids.name
+                                // position subsequent lines below the previous
+                                hints_text = hints_text.down_from(down_from_id, 1.0);
                             }
-                        }),
-                        12.0,
-                    )
-                    .align_middle_x_of(state.ids.name)
-                    .depth(1.0);
 
-                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                            // update math only if there's real data
+                            if let Some((input, _)) = row_data {
+                                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                                max_w = max_w.max(w);
+                                max_h += h;
 
-                hints_text.set(state.ids.interaction_hints, ui);
+                                if i == 0 {
+                                    first_text_w = w;
+                                }
+
+                                hints_text.set(text_id, ui);
+                                down_from_id = text_id;
+
+                                let count = icon_handler.set_controller_icons_left(
+                                    *input, 17.0, text_id, &icon_ids, ui,
+                                );
+                                icons_w = icons_w.max(count);
+                            } else {
+                                hints_text.set(text_id, ui);
+                                down_from_id = text_id;
+
+                                // render transparant widgets to keep conrod from freaking out
+                                icon_handler
+                                    .set_controller_icons_left_none(17.0, text_id, &icon_ids, ui);
+                            }
+                        }
+
+                        let icon_largest_width = icons_w as f64 * 21.0;
+                        let centroid_difference = (max_w / 2.0) - (first_text_w / 2.0);
+                        let offset = icon_largest_width / 2.0;
+                        box_offset = -(centroid_difference - offset);
+
+                        max_w += icon_largest_width;
+                        max_h = max_h.max(btn_rect_size);
+                        btn_rect_pos_y = (max_h - btn_font_size + 2.0) / 2.0;
+                    },
+                }
 
                 RoundedRectangle::fill_with(
-                    [w + btn_radius * 2.0, h + btn_radius * 2.0],
+                    [max_w + btn_radius * 2.0, max_h + btn_radius * 2.0],
                     btn_radius,
                     btn_color,
                 )
                 .depth(2.0)
-                .middle_of(state.ids.interaction_hints)
-                .align_middle_y_of(state.ids.interaction_hints)
+                .x_y_relative_to(
+                    state.ids.interaction_hints,
+                    0.0 - box_offset,
+                    0.0 - btn_rect_pos_y,
+                )
                 .parent(id)
                 .set(state.ids.interaction_hints_bg, ui);
             }
         }
         // Speech bubble
         if let Some(bubble) = self.bubble {
-            let dark_mode = self.settings.speech_bubble_dark_mode;
+            let dark_mode = self.global_state.settings.interface.speech_bubble_dark_mode;
             let bubble_contents: String = self.i18n.get_content(bubble.content());
             let (text_color, shadow_color) = bubble_color(bubble, dark_mode);
             let mut text = Text::new(&bubble_contents)
@@ -683,7 +850,7 @@ impl Widget for Overhead<'_> {
                 text_shadow = text_shadow.w(MAX_BUBBLE_WIDTH);
             }
             text_shadow.set(state.ids.speech_bubble_shadow, ui);
-            let icon = if self.settings.speech_bubble_icon {
+            let icon = if self.global_state.settings.interface.speech_bubble_icon {
                 bubble_icon(bubble, self.imgs)
             } else {
                 self.imgs.nothing
