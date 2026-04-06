@@ -3228,6 +3228,34 @@ impl Animation for BasicAction {
                     next.foot_r.orientation = Quaternion::rotation_x(move1 * 0.2);
                 }
             },
+            Some("common.abilities.staff.flame_cloak") => {
+                let buildup_frac = 0.30;
+                let t = match d.stage_section {
+                    Some(StageSection::Buildup) => move1base * buildup_frac,
+                    Some(StageSection::Action) => buildup_frac + move2base * (1.0 - buildup_frac),
+                    _ => 0.0,
+                };
+                let circle_angle = (t * std::f32::consts::PI * 0.5).sin() * TAU;
+
+                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
+                next.hand_l.orientation =
+                    Quaternion::rotation_x(s_a.sthl.3) * Quaternion::rotation_y(s_a.sthl.4);
+                next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
+                next.hand_r.orientation =
+                    Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
+                next.main.position = Vec3::new(0.0, 0.0, 0.0);
+                next.main.orientation = Quaternion::rotation_x(0.0);
+                let forward_nudge = (1.0 - t) * 6.0; 
+                next.control.position = Vec3::new(
+                    s_a.stc.0 + circle_angle.sin() * 1.5,
+                    s_a.stc.1 + forward_nudge,
+                    s_a.stc.2 + circle_angle.cos() * 5.5,
+                );
+                next.control.orientation =
+                    Quaternion::rotation_x(s_a.stc.3 + circle_angle.cos() * 0.55)
+                        * Quaternion::rotation_y(s_a.stc.4 + circle_angle.sin() * 0.35)
+                        * Quaternion::rotation_z(s_a.stc.5);
+            },
             // ==================================
             //           NATURE SCEPTRE
             // ==================================
@@ -3305,34 +3333,6 @@ impl Animation for BasicAction {
                     next.shorts.orientation =
                         Quaternion::rotation_x(move1 * 0.2) * Quaternion::rotation_z(move1 * -0.2);
                 };
-            },
-            Some("common.abilities.staff.flame_cloak") => {
-                let buildup_frac = 0.50;
-                let t = match d.stage_section {
-                    Some(StageSection::Buildup) => move1base * buildup_frac,
-                    Some(StageSection::Action) => buildup_frac + move2base * (1.0 - buildup_frac),
-                    _ => 0.0,
-                };
-                let circle_angle = t.powf(2.5) * TAU;
-
-                next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.sthl.3) * Quaternion::rotation_y(s_a.sthl.4);
-                next.hand_r.position = Vec3::new(s_a.sthr.0, s_a.sthr.1, s_a.sthr.2);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-
-                next.control.position = Vec3::new(
-                    s_a.stc.0 + circle_angle.sin() * 2.5,
-                    s_a.stc.1,
-                    s_a.stc.2 + circle_angle.cos() * 4.5,
-                );
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.stc.3 + circle_angle.cos() * 0.55)
-                        * Quaternion::rotation_y(s_a.stc.4 + circle_angle.sin() * 0.35)
-                        * Quaternion::rotation_z(s_a.stc.5);
             },
             Some(
                 "common.abilities.sceptre.healingaura" | "common.abilities.sceptre.wardingaura",

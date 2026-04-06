@@ -1027,11 +1027,12 @@ impl ParticleMgr {
                 };
 
                 // Zero wind velocity so the torus holds its shape regardless of wind.
+                let lifespan: Duration = Duration::from_millis(220);
                 Particle {
-                    alive_until: time + 0.22,
+                    alive_until: time + lifespan.as_secs_f64(),
                     instance: ParticleInstance::new_directed(
                         time,
-                        0.22,
+                        lifespan.as_secs_f32(),
                         mode,
                         tube_pos,
                         tube_pos + radial * flame_reach,
@@ -1127,14 +1128,19 @@ impl ParticleMgr {
                     } else {
                         ParticleMode::FlamethrowerBlue
                     };
-                    Particle::new_directed(
-                        Duration::from_millis(110),
-                        time,
-                        mode,
-                        spawn,
-                        end_pos,
-                        scene_data,
-                    )
+                    //No wind interaction
+                    let lifespan: Duration = Duration::from_millis(110);
+                    Particle {
+                        alive_until: time + lifespan.as_secs_f64(),
+                        instance: ParticleInstance::new_directed(
+                            time,
+                            lifespan.as_secs_f32(),
+                            mode,
+                            spawn,
+                            end_pos,
+                            Vec2::zero(),
+                        ),
+                    }
                 },
             );
         }
