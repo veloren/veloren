@@ -1488,6 +1488,7 @@ impl CharacterAbility {
                 air_shockwaves: true,
                 explosions: true,
                 arcs: true,
+                pools: true,
             },
             was_cancel: remaining_duration > 0.0,
             meta: Default::default(),

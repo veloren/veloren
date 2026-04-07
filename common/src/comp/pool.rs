@@ -1,5 +1,6 @@
 use crate::{
     combat::Attack,
+    comp::ability::Dodgeable,
     resources::{Secs, Time},
     uid::Uid,
 };
@@ -16,10 +17,12 @@ pub struct PoolProperties {
     pub tick_dur: Secs,
     /// Total lifespan of the pool before it despawns
     pub duration: Secs,
+    #[serde(default)]
+    pub dodgeable: Dodgeable,
 }
 
 /// A lingering area-of-effect hazard.  Placed at impact point by
-/// projectiles with Effect::BecomePool  
+/// projectiles with Effect::Pool  
 //  Each tick it performs a line-of-sight check against entities in range
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Pool {

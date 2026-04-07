@@ -350,7 +350,7 @@ impl<'a> System<'a> for Sys {
                             // If the projectile splits, the original projectile should vanish
                             projectile_vanished = true;
                         },
-                        projectile::Effect::BecomePool(pool_props) => {
+                        projectile::Effect::Pool(pool_props) => {
                             emitters.emit(CreatePoolEvent {
                                 properties: pool_props,
                                 owner: projectile.owner,
@@ -770,7 +770,7 @@ fn dispatch_hit(
                 pos: *projectile_info.pos,
             });
         },
-        projectile::Effect::BecomePool(pool_props) => {
+        projectile::Effect::Pool(pool_props) => {
             emitters.emit(CreatePoolEvent {
                 properties: pool_props,
                 owner: projectile_info.owner_uid,

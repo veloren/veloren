@@ -2,8 +2,8 @@ use common::{
     GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
-        Ori, Player, Pos, Scale, Stats,
+        Alignment, Body, Buffs, CharacterState, Combo, ability::Dodgeable, Energy, Group, Health, Inventory, Mass,
+        Ori, PhysicsState, Player, Pos, Scale, Stats,
         aura::EnteredAuras,
         pool::Pool,
     },
@@ -67,6 +67,7 @@ pub struct ReadData<'a> {
     scales: ReadStorage<'a, Scale>,
     entered_auras: ReadStorage<'a, EnteredAuras>,
     outcomes: Read<'a, EventBus<Outcome>>,
+    physics_states: ReadStorage<'a, PhysicsState>,
 }
 
 #[derive(Default)]
@@ -191,7 +192,19 @@ impl<'a> System<'a> for Sys {
                         player: read_data.players.get(target),
                     };
 
-                    let target_dodging = false;
+                    //TODO: Consider making pool hardcoded jump dodgeable only (like ground shockwaves)
+                    let target_dodging = match pool.properties.dodgeable {
+                        Dodgeable::Roll => read_data
+                            .character_states
+                            .get(target)
+                            .and_then(|cs| cs.roll_attack_immunities())
+                            .is_some_and(|i| i.pools),
+                        Dodgeable::Jump => read_data
+                            .physics_states
+                            .get(target)
+                            .is_some_and(|ps| ps.on_ground.is_none()),
+                        Dodgeable::No => false,
+                    };
 
                     let permit_pvp = combat::permit_pvp(
                         &read_data.alignments,

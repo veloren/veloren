@@ -35,7 +35,7 @@ pub enum Effect {
     TrainingDummy,
     Arc(ArcProperties),
     Split(SplitOptions),
-    BecomePool(PoolProperties),
+    Pool(PoolProperties),
 }
 
 #[derive(Clone, Debug)]
@@ -189,7 +189,9 @@ pub enum ProjectileConstructorKind {
     Pool {
         radius: f32,
         tick_dur: Secs,
-        pool_duration: Secs,
+        duration: Secs,
+        #[serde(default)]
+        dodgeable: Dodgeable,
     },
 }
 
@@ -628,24 +630,26 @@ impl ProjectileConstructor {
             ProjectileConstructorKind::Pool {
                 radius,
                 tick_dur,
-                pool_duration,
+                duration,
+                dodgeable,
             } => {
                 let pool_props = attack.map(|atk| PoolProperties {
                     attack: atk,
                     radius,
                     tick_dur,
-                    duration: pool_duration,
+                    duration,
+                    dodgeable,
                 });
 
                 if let Some(props) = pool_props {
-                    hit_solid.push(Effect::BecomePool(props.clone()));
+                    hit_solid.push(Effect::Pool(props.clone()));
                     hit_solid.push(Effect::Vanish);
 
                     let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
 
                     return Projectile {
                         hit_solid,
-                        hit_entity: vec![Effect::BecomePool(props), Effect::Vanish],
+                        hit_entity: vec![Effect::Pool(props), Effect::Vanish],
                         timeout,
                         time_left: Duration::from_secs_f64(lifetime.0),
                         init_time: lifetime,

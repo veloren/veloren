@@ -1380,6 +1380,8 @@ pub struct AttackFilters {
     pub explosions: bool,
     #[serde(default)]
     pub arcs: bool,
+    #[serde(default)]
+    pub pools: bool,
 }
 
 impl AttackFilters {
@@ -1393,7 +1395,7 @@ impl AttackFilters {
             AttackSource::UndodgeableShockwave => false,
             AttackSource::Explosion => self.explosions,
             AttackSource::Arc => self.arcs,
-            AttackSource::Pool => false,
+            AttackSource::Pool => self.pools,
         }
     }
 }
