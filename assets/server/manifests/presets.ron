@@ -106,7 +106,7 @@
 
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
-        (Staff(UnlockShockwave), 1),
+        (Staff(FireShockwave), 1),
         (Staff(FireDash), 1),
         (Staff(FireBreath), 1),
         (Staff(Pyroclasm), 1),
@@ -168,7 +168,7 @@
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
-        (Staff(UnlockShockwave), 1),
+        (Staff(FireShockwave), 1),
         (Staff(FireDash), 1),
         (Staff(FlameCloak), 1),
         (Staff(NapalmStrike), 1),
@@ -211,7 +211,7 @@
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
-        (Staff(UnlockShockwave), 1),
+        (Staff(FireShockwave), 1),
 
         // Sceptre
         (UnlockGroup(Weapon(Sceptre)), 1),

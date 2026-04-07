@@ -2495,7 +2495,7 @@ impl Diary<'_> {
         use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
             SkillIcon::Ability {
-                skill: Skill::Staff(UnlockShockwave),
+                skill: Skill::Staff(FireShockwave),
                 ability_id: "common.abilities.staff.fireshockwave",
                 position: TopLeftWithMarginsOn(state.ids.staff_bg, 436.0, 421.0),
             },
@@ -2990,9 +2990,8 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
 
 fn staff_skill_strings(skill: StaffSkill) -> SkillStrings<'static> {
     match skill {
-        // Shockwave upgrades
-        StaffSkill::UnlockShockwave => SkillStrings::plain(
-            "hud-skill-st_shockwave_unlock_title",
+        StaffSkill::FireShockwave => SkillStrings::plain(
+            "hud-skill-st_fire_shockwave_unlock_title",
             "hud-skill-st_shockwave_unlock",
         ),
         StaffSkill::NapalmStrike => SkillStrings::plain(
@@ -3005,7 +3004,7 @@ fn staff_skill_strings(skill: StaffSkill) -> SkillStrings<'static> {
         ),
         StaffSkill::FireDash => SkillStrings::plain(
             "hud-skill-st_fire_dash_title",
-            "hud-skill-st_fire_dash_",
+            "hud-skill-st_fire_dash",
         ),
         StaffSkill::FireBreath => SkillStrings::plain(
             "hud-skill-st_fire_breath_title",

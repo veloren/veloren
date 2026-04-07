@@ -124,10 +124,7 @@ pub enum BowSkill {
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum StaffSkill {
-    // Shockwave 
-    UnlockShockwave,
-    // New fire spells
-    
+    FireShockwave,
     NapalmStrike,
     FlameCloak,
     FireDash,

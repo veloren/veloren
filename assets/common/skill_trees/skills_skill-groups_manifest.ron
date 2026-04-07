@@ -102,7 +102,7 @@
         Bow(DeathVolley),
     ],
     Weapon(Staff): [
-        Staff(UnlockShockwave),
+        Staff(FireShockwave),
         Staff(NapalmStrike),
         Staff(FlameCloak),
         Staff(FireDash),

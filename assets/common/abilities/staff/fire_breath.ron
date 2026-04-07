@@ -7,11 +7,9 @@ BasicRanged(
             radius: 6,
             min_falloff: 0.3,
             reagent: Some(Red),
-            terrain: None,
         ),
         attack: Some((
             damage: 15,
-            energy: None,
             knockback: Some(35),
             buff: Some((
                 kind: Burning,
