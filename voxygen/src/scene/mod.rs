@@ -540,6 +540,7 @@ impl Scene {
         scene_data: &SceneData,
         client: &Client,
         settings: &Settings,
+        mmap_face_north: bool,
     ) {
         span!(_guard, "maintain", "Scene::maintain");
         // Get player position.
@@ -930,6 +931,25 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let focus_off = focus_pos.map(|e| e.trunc());
 
+        let player_dir = client
+            .state()
+            .ecs()
+            .read_storage::<comp::Ori>()
+            .get(client.entity())
+            .copied()
+            .unwrap_or_default()
+            .look_dir()
+            .to_vec();
+
+        // atan2(x,y) instead of (y,x) so that north is 0
+        let player_mmap_ori = player_dir.x.atan2(player_dir.y)
+            - if !mmap_face_north {
+                // If the map follows the camera, subtract the camera's angle from player angle
+                self.camera.get_orientation().x
+            } else {
+                0.0
+            };
+
         // Update global constants.
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
@@ -964,6 +984,7 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance - 20.0,
+            player_mmap_ori,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));

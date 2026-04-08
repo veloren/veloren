@@ -230,6 +230,9 @@ impl Ui {
             // This is an easy way to get around Conrod's lack of rotation data for images (for this
             // specific use case).
             target_north: self.image_map.insert((graphic_id, Rotation::TargetNorth)),
+            // rotates rectangle to always point in the characters orientation adjusted by the
+            // minimaps rotation (if the minimap is being rotated based on camera position).
+            target_player: self.image_map.insert((graphic_id, Rotation::TargetPlayer)),
         }
     }
 
@@ -901,6 +904,7 @@ impl Ui {
                         },
                         Rotation::SourceNorth => UiMode::ImageSourceNorth { scale },
                         Rotation::TargetNorth => UiMode::ImageTargetNorth { scale },
+                        Rotation::TargetPlayer => UiMode::ImageTargetPlayer { scale },
                     }));
                 },
                 PrimitiveKind::Text { .. } => {

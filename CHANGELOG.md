@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internationalization feature for singleplayer MOTDs
 - Added bullet character (•) to EnterCommand font
 - Checks to prevent players from being teleported in the ground
-- Checks on certain server commands to prevent players from being teleported into the ground 
+- Checks on certain server commands to prevent players from being teleported into the ground
 - Hunters now function as traders and sell weapons
 - `GradientBrick` fill allows structures to have a brick pattern while also having a gradient between two colors
 - Moon phases
@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Can now swim through lillypads.
 - Music changes when entering a new site.
 - Flat bridge exteriors are gradients from surface block color to the construction stone color
+- Player icon on (mini)map now reflects the player orientation, not camera orientation.
 
 ### Removed
 
