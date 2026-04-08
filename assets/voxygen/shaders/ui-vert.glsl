@@ -41,7 +41,7 @@ void main() {
         vec4 projected_pos = all_mat * vec4(w_pos.xyz - focus_off.xyz, 1.0);
         // Note, if screen_res is odd this won't actually be snapped to a
         // pixel, but we are using it as an offset so we just need to ensure
-        // that it is a multiple of a whole pixel. 
+        // that it is a multiple of a whole pixel.
         vec2 snapped_pos = round((projected_pos.xy / projected_pos.w) * screen_res.xy / 2.0) * 2.0 / screen_res.xy;
         gl_Position = vec4(snapped_pos + v_pos, 0.5, 1.0);
     } else if (v_mode == uint(3)) {
@@ -58,6 +58,16 @@ void main() {
         // HACK: North facing target rectangle.
         f_uv = v_uv;
         vec2 look_at_dir = normalize(vec2(-view_mat[0][2], -view_mat[1][2]));
+        // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
+        vec2 aspect_ratio = screen_res.yx;
+        mat2 look_at = mat2(look_at_dir.y, -look_at_dir.x, look_at_dir.x, look_at_dir.y);
+        vec2 v_centered = (v_pos - v_center) / aspect_ratio;
+        vec2 v_rotated = look_at * v_centered;
+        gl_Position = vec4(aspect_ratio * v_rotated + v_center, 0.5, 1.0);
+    } else if (v_mode == uint(7)) {
+        // Rotates rectangle with regard to aspect ratio
+        f_uv = v_uv;
+        vec2 look_at_dir = vec2(sin(u_rotation), cos(u_rotation));
         // TODO: Consider cleaning up matrix to something more efficient (e.g. a mat3).
         vec2 aspect_ratio = screen_res.yx;
         mat2 look_at = mat2(look_at_dir.y, -look_at_dir.x, look_at_dir.x, look_at_dir.y);

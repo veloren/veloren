@@ -1589,9 +1589,9 @@ impl Widget for Map<'_> {
         {
             let ind = {
                 if colored_player_marker {
-                    self.rot_imgs.indicator_mmap_colored.target_north
+                    self.rot_imgs.indicator_mmap_colored.target_player
                 } else {
-                    self.rot_imgs.indicator_mmap.target_north
+                    self.rot_imgs.indicator_mmap.target_player
                 }
             };
             Image::new(ind)

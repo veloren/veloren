@@ -391,6 +391,7 @@ widget_ids! {
         mmap_minus,
         mmap_north_button,
         map_layers[],
+        camera,
         indicator,
         mmap_north,
         mmap_east,
@@ -941,18 +942,30 @@ impl Widget for MiniMap<'_> {
                     .parent(ui.window)
                     .set(state.ids.location_marker, ui)
             }
-            // Indicator
-            let ind_scale = 0.4;
-            let ind_rotation = if is_facing_north {
-                if colored_player_marker {
-                    self.rot_imgs.indicator_mmap_colored.target_north
-                } else {
-                    self.rot_imgs.indicator_mmap.target_north
-                }
-            } else if colored_player_marker {
-                self.rot_imgs.indicator_mmap_colored.none
+
+            // Camera direction
+            let (cam_scale, cam_rotation) = if is_facing_north {
+                // shows camera cone when map is locked north
+                // target north targets the camera direction
+                // none targests the games true north direction (confusing, I know)
+                (1.0, self.rot_imgs.view_mmap.target_north)
             } else {
-                self.rot_imgs.indicator_mmap.none
+                // hides camera cone when mmap is locked north
+                (0.0, self.rot_imgs.view_mmap.none)
+            };
+            Image::new(cam_rotation)
+                .middle_of(state.ids.map_layers[0])
+                .w_h(100.0 * cam_scale, 100.0 * cam_scale)
+                .color(Some(UI_HIGHLIGHT_0))
+                .parent(ui.window)
+                .set(state.ids.camera, ui);
+
+            // Player indicator/direction
+            let ind_scale = 0.4;
+            let ind_rotation = if colored_player_marker {
+                self.rot_imgs.indicator_mmap_colored.target_player
+            } else {
+                self.rot_imgs.indicator_mmap.target_player
             };
             Image::new(ind_rotation)
                 .middle_of(state.ids.map_layers[0])
