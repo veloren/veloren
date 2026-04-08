@@ -13,6 +13,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    util::Dir,
 };
 use itertools::Either;
 use rand::rng;
@@ -33,8 +34,6 @@ pub struct StaticData {
     pub projectile_body: Body,
     pub projectile_light: Option<LightEmitter>,
     pub projectile_speed: f32,
-    /// Extra upward velocity added to the projectile at launch
-    pub launch_vertical_speed: f32,
     /// How many projectiles are simultaneously fired
     pub num_projectiles: Amount,
     /// What key is used to press ability
@@ -46,6 +45,10 @@ pub struct StaticData {
     /// Automatically aims to account for distance and elevation to target the
     /// selected pos
     pub auto_aim: bool,
+    //Extra upward angle added to firing direction.
+    //This makes it so that, for heavy-parabolic projectiles,
+    //the player does not have to flick the camera up to aim properly.
+    pub vertical_angle_offset: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -150,6 +153,19 @@ impl CharacterBehavior for Data {
                         data.inputs.look_dir
                     };
 
+                    //Adds the vertical angle offset if present.
+                    //Unwrap clause fires iff the cross product is degenerate,
+                    //Which should only occur during a perfectly upwards or downwards shot.
+                    let aim_dir = if self.static_data.vertical_angle_offset != 0.0{
+                        let cross = vek::Vec3::unit_z().cross(*aim_dir).normalized();
+                        Dir::from_unnormalized(
+                            vek::Quaternion::rotation_3d(-self.static_data.vertical_angle_offset, cross)
+                                * *aim_dir
+                        ).unwrap_or(aim_dir)
+                    } else{
+                        aim_dir
+                    };
+
                     // Gets offsets
                     let body_offsets = data
                         .body
@@ -185,18 +201,12 @@ impl CharacterBehavior for Data {
                         Either::Right((0..num_projectiles).map(|_| aim_dir))
                     };
 
-                    //Adds additional vertical launch velocity if present
-                    let initial_vel = {
-                        let mut v = *data.vel;
-                        v.0.z += self.static_data.launch_vertical_speed;
-                        v
-                    };
 
                     for dir in dirs {
                         // Tells server to create and shoot the projectile
                         output_events.emit_server(ShootEvent {
                             entity: Some(data.entity),
-                            source_vel: Some(initial_vel),
+                            source_vel: Some(*data.vel),
                             pos,
                             dir,
                             body: self.static_data.projectile_body,
