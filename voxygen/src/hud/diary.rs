@@ -34,7 +34,7 @@ use common::{
         },
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SKILL_MODIFIERS,
-            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill,
+            SceptreSkill, Skill, SwimSkill, SwordSkill,
         },
         skillset::{SkillGroupKind, SkillSet},
     },
@@ -2936,7 +2936,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         // general tree
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
         // movement trees
         Skill::Climb(s) => climb_skill_strings(s),
@@ -2988,34 +2987,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
     }
 }
 
-fn staff_skill_strings(skill: StaffSkill) -> SkillStrings<'static> {
-    match skill {
-        StaffSkill::FireShockwave => SkillStrings::plain(
-            "hud-skill-st_fire_shockwave_unlock_title",
-            "hud-skill-st_shockwave_unlock",
-        ),
-        StaffSkill::NapalmStrike => SkillStrings::plain(
-            "hud-skill-st_napalm_strike_title",
-            "hud-skill-st_napalm_strike",
-        ),
-        StaffSkill::FlameCloak => SkillStrings::plain(
-            "hud-skill-st_flame_cloak_title",
-            "hud-skill-st_flame_cloak",
-        ),
-        StaffSkill::FireDash => SkillStrings::plain(
-            "hud-skill-st_fire_dash_title",
-            "hud-skill-st_fire_dash",
-        ),
-        StaffSkill::FireBreath => SkillStrings::plain(
-            "hud-skill-st_fire_breath_title",
-            "hud-skill-st_fire_breath",
-        ),
-        StaffSkill::Pyroclasm => SkillStrings::plain(
-            "hud-skill-st_pyroclasm_title",
-            "hud-skill-st_pyroclasm",
-        ),
-    }
-}
 
 fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.sceptre_tree;

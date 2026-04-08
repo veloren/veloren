@@ -2,10 +2,11 @@ use common::{
     GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        Alignment, Body, Buffs, CharacterState, Combo, ability::Dodgeable, Energy, Group, Health, Inventory, Mass,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
         Ori, PhysicsState, Player, Pos, Scale, Stats,
         aura::EnteredAuras,
         pool::Pool,
+        ability::Dodgeable,
     },
     event::{
         BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, EnergyChangeEvent,
