@@ -2918,59 +2918,64 @@ impl ParticleMgr {
                         ..
                     } => {
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        if aura.persistent_visual == Some(aura::Specifier::FieryAura) {
+                        match aura.frontend_specifier{
+                        Some(aura::Specifier::FieryAura) => {
                             //Flame Cloak
-                            self.particles.resize_with(
-                                self.particles.len()
-                                    + aura.radius.powi(2) as usize * usize::from(heartbeats) / 3,
-                                || {
-                                    let orbit_speed = 1.0_f32;
-                                    let theta = time as f32 * orbit_speed
-                                        + rng.random::<f32>() * std::f32::consts::TAU;
-                                    let r = aura.radius * (0.25 + rng.random::<f32>() * 0.2);
-                                    let spawn_pos = (Vec2::new(r * theta.sin(), r * theta.cos())
-                                        + pos.xy())
-                                    .with_z(pos.z + rng.random::<f32>() * 0.5);
-                                    let duration = Duration::from_secs_f64(
-                                        aura.end_time
-                                            .map_or(0.3, |end| (end.0 - time).clamp(0.0, 0.3)),
-                                    );
-                                    Particle::new(
-                                        duration,
-                                        time,
-                                        ParticleMode::FlameCloakOrbit,
-                                        spawn_pos,
-                                        scene_data,
-                                    )
-                                },
-                            );
-                        } else {
-                            self.particles.resize_with(
-                                self.particles.len()
+                                self.particles.resize_with(
+                                    self.particles.len()
+                                        + aura.radius.powi(2) as usize * usize::from(heartbeats) / 3,
+                                    || {
+                                        let orbit_speed = 1.0_f32;
+                                        let theta = time as f32 * orbit_speed
+                                            + rng.random::<f32>() * std::f32::consts::TAU;
+                                        let r = aura.radius * (0.25 + rng.random::<f32>() * 0.2);
+                                        let spawn_pos = (Vec2::new(r * theta.sin(), r * theta.cos())
+                                            + pos.xy())
+                                        .with_z(pos.z + rng.random::<f32>() * 0.5);
+                                        let duration = Duration::from_secs_f64(
+                                            aura.end_time
+                                                .map_or(0.3, |end| (end.0 - time).clamp(0.0, 0.3)),
+                                        );
+                                        Particle::new(
+                                            duration,
+                                            time,
+                                            ParticleMode::FlameCloakOrbit,
+                                            spawn_pos,
+                                            scene_data,
+                                        )
+                                    },
+                                );
+                            }
+                        None => {
+                            //Pheonix
+                                self.particles.resize_with(
+                                    self.particles.len()
                                     + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
-                                || {
-                                    let rand_pos = {
-                                        let theta = rng.random::<f32>() * TAU;
-                                        let radius = aura.radius * rng.random::<f32>().sqrt();
-                                        let x = radius * theta.sin();
-                                        let y = radius * theta.cos();
-                                        Vec2::new(x, y) + pos.xy()
-                                    };
-                                    let duration = Duration::from_secs_f64(
-                                        aura.end_time
-                                            .map_or(1.0, |end| end.0 - time)
-                                            .clamp(0.0, 1.0),
-                                    );
-                                    Particle::new_directed(
-                                        duration,
-                                        time,
-                                        ParticleMode::FlameThrower,
-                                        rand_pos.with_z(pos.z),
-                                        rand_pos.with_z(pos.z + 1.0),
-                                        scene_data,
-                                    )
-                                },
-                            );
+                                    || {
+                                        let rand_pos = {
+                                            let theta = rng.random::<f32>() * TAU;
+                                            let radius = aura.radius * rng.random::<f32>().sqrt();
+                                            let x = radius * theta.sin();
+                                            let y = radius * theta.cos();
+                                            Vec2::new(x, y) + pos.xy()
+                                        };
+                                        let duration = Duration::from_secs_f64(
+                                            aura.end_time
+                                                .map_or(1.0, |end| end.0 - time)
+                                                .clamp(0.0, 1.0),
+                                        );
+                                        Particle::new_directed(
+                                            duration,
+                                            time,
+                                            ParticleMode::FlameThrower,
+                                            rand_pos.with_z(pos.z),
+                                            rand_pos.with_z(pos.z + 1.0),
+                                            scene_data,
+                                        )
+                                    },
+                                );
+                            }
+                        _ => (),
                         }
                     },
                     aura::AuraKind::Buff {

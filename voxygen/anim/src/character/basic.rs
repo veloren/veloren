@@ -3245,15 +3245,24 @@ impl Animation for BasicAction {
                     Quaternion::rotation_x(s_a.sthr.3) * Quaternion::rotation_y(s_a.sthr.4);
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
-                let forward_nudge = (1.0 - t) * 6.0; 
+
+                let (sin_offset, cos_offset, forward_nudge) =
+                    if matches!(d.stage_section, Some(StageSection::Recover)) {
+                        let r = (move3base * std::f32::consts::PI * 0.5).cos();
+                        (0.0_f32, r, 0.0_f32)
+                    } else {
+                        (circle_angle.sin(), circle_angle.cos(), (1.0 - t) * 6.0)
+                    };
+
+                let tilt = 0.7; 
                 next.control.position = Vec3::new(
-                    s_a.stc.0 + circle_angle.sin() * 1.5,
-                    s_a.stc.1 + forward_nudge,
-                    s_a.stc.2 + circle_angle.cos() * 5.5,
+                    s_a.stc.0 + sin_offset * 1.5,
+                    s_a.stc.1 + forward_nudge + cos_offset * 5.5 * tilt,
+                    s_a.stc.2 + cos_offset * 5.5 * (1.0 - tilt),
                 );
                 next.control.orientation =
-                    Quaternion::rotation_x(s_a.stc.3 + circle_angle.cos() * 0.55)
-                        * Quaternion::rotation_y(s_a.stc.4 + circle_angle.sin() * 0.35)
+                    Quaternion::rotation_x(s_a.stc.3 + cos_offset * 0.55)
+                        * Quaternion::rotation_y(s_a.stc.4 + sin_offset * 0.35)
                         * Quaternion::rotation_z(s_a.stc.5);
             },
             // ==================================
