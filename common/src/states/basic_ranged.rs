@@ -6,6 +6,8 @@ use crate::{
         character_state::OutputEvents,
         object::Body::{FireRing, GrenadeClay, LaserBeam, LaserBeamSmall},
         projectile::{ProjectileConstructor, aim_projectile},
+        FrontendMarker, 
+        visual::TorusMode,
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
@@ -49,6 +51,8 @@ pub struct StaticData {
     //This makes it so that, for heavy-parabolic projectiles,
     //the player does not have to flick the camera up to aim properly.
     pub vertical_angle_offset: f32,
+    //For particle effects
+    pub marker: Option<FrontendMarker>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -154,8 +158,7 @@ impl CharacterBehavior for Data {
                     };
 
                     //Adds the vertical angle offset if present.
-                    //Unwrap clause fires iff the cross product is degenerate,
-                    //Which should only occur during a perfectly upwards or downwards shot.
+                    //Unwrap clause fires if the cross product is degenerate.
                     let aim_dir = if self.static_data.vertical_angle_offset != 0.0{
                         let cross = vek::Vec3::unit_z().cross(*aim_dir).normalized();
                         Dir::from_unnormalized(
@@ -214,7 +217,7 @@ impl CharacterBehavior for Data {
                             light: self.static_data.projectile_light,
                             speed: self.static_data.projectile_speed,
                             object: None,
-                            marker: None,
+                            marker: self.static_data.marker,
                         });
                     }
 

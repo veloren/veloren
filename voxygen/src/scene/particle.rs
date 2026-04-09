@@ -968,9 +968,6 @@ impl ParticleMgr {
                 Body::Object(object::Body::NapalmPool) => {
                     self.maintain_napalmpool_particles(scene_data, interpolated.pos)
                 },
-                Body::Object(object::Body::FireRing) => {
-                    self.maintain_fire_ring_particles(scene_data, interpolated.pos, vel)
-                },
                 Body::Object(object::Body::PyroclasmBolt) => {
                     self.maintain_pyroclasm_bolt_particles(scene_data, interpolated.pos, vel)
                 },
@@ -981,66 +978,6 @@ impl ParticleMgr {
                 _ => {},
             }
         }
-    }
-    fn maintain_fire_ring_particles(
-        &mut self,
-        scene_data: &SceneData,
-        pos: Vec3<f32>,
-        vel: Option<&Vel>,
-    ) {
-        let time = scene_data.state.get_time();
-        let mut rng = rand::rng();
-        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-
-        //Torus' orientation
-        let fwd = vel
-            .map(|v| v.0)
-            .unwrap_or(Vec3::unit_y())
-            .try_normalized()
-            .unwrap_or(Vec3::unit_y());
-        let right = fwd
-            .cross(Vec3::unit_z())
-            .try_normalized()
-            .unwrap_or(Vec3::unit_x());
-        let up = right.cross(fwd);
-
-        let major_r: f32 = 1.2; // Ring radius
-        let minor_r: f32 = 0.65; // Tube thickness
-        let flame_reach: f32 = 1.1; // How far flames shoot radially outward
-
-        self.particles.resize_with(
-            self.particles.len() + usize::from(heartbeats) * 8,
-            || {
-                let u = rng.random_range(0.0..TAU); // Angle around ring
-                let v = rng.random_range(0.0..TAU); // Angle within tube
-
-                let radial = u.cos() * right + u.sin() * up;
-                let ring_center = pos + major_r * radial;
-                let tube_pos = ring_center
-                    + minor_r * v.cos() * radial
-                    + minor_r * v.sin() * fwd;
-
-                let mode = if rng.random_bool(0.4) {
-                    ParticleMode::FlamethrowerBlue
-                } else {
-                    ParticleMode::FlameThrower
-                };
-
-                // Zero wind velocity so the torus holds its shape regardless of wind.
-                let lifespan: Duration = Duration::from_millis(220);
-                Particle {
-                    alive_until: time + lifespan.as_secs_f64(),
-                    instance: ParticleInstance::new_directed(
-                        time,
-                        lifespan.as_secs_f32(),
-                        mode,
-                        tube_pos,
-                        tube_pos + radial * flame_reach,
-                        Vec2::zero(),
-                    ),
-                }
-            },
-        );
     }
 
     fn maintain_pyroclasm_bolt_particles(
@@ -4305,9 +4242,10 @@ impl ParticleMgr {
         let time = state.get_time();
         let mut rng = rand::rng();
 
-        for (interp, pos, marker) in (
+        for (interp, pos, vel, marker) in (
             ecs.read_storage::<Interpolated>().maybe(),
             &ecs.read_storage::<Pos>(),
+            ecs.read_storage::<Vel>().maybe(),
             &ecs.read_storage::<comp::FrontendMarker>(),
         )
             .join()
@@ -4315,6 +4253,7 @@ impl ParticleMgr {
             let pos = interp.map_or(pos.0, |i| i.pos);
 
             use comp::FrontendMarker;
+            use comp::visual::TorusMode;
             match marker {
                 FrontendMarker::JoltArrow => {
                     self.particles.resize_with(
@@ -4342,6 +4281,65 @@ impl ParticleMgr {
                         },
                     );
                 },
+                FrontendMarker::Torus(major_r,torus_mode) => {
+                    let time = scene_data.state.get_time();
+                    let mut rng = rand::rng();
+                    let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+
+                    //Torus' orientation
+                    let fwd = vel
+                        .map(|v| v.0)
+                        .unwrap_or(Vec3::unit_y())
+                        .try_normalized()
+                        .unwrap_or(Vec3::unit_y());
+                    let right = fwd
+                        .cross(Vec3::unit_z())
+                        .try_normalized()
+                        .unwrap_or(Vec3::unit_x());
+                    let up = right.cross(fwd);
+
+                    let major_r = *major_r;
+                    let minor_r: f32 = major_r/1.5; 
+                    let flame_reach: f32 = fwd.magnitude(); 
+
+                    self.particles.resize_with(
+                        self.particles.len() + usize::from(heartbeats) * 8,
+                        || {
+                            let u = rng.random_range(0.0..TAU); // Angle around ring
+                            let v = rng.random_range(0.0..TAU); // Angle within tube
+
+                            let radial = u.cos() * right + u.sin() * up;
+                            let ring_center = pos + major_r * radial;
+                            let tube_pos = ring_center
+                                + minor_r * v.cos() * radial
+                                + minor_r * v.sin() * fwd;
+
+                            let mode = match torus_mode{
+                                TorusMode::RedBlueFire => 
+                                    if rng.random_bool(0.4) {
+                                        ParticleMode::FlamethrowerBlue
+                                    } else {
+                                        ParticleMode::FlameThrower
+                                },
+                                _ => ParticleMode::Death,
+                            };
+
+                            // Zero wind velocity so the torus holds its shape regardless of wind.
+                            let lifespan: Duration = Duration::from_millis(220);
+                            Particle {
+                                alive_until: time + lifespan.as_secs_f64(),
+                                instance: ParticleInstance::new_directed(
+                                    time,
+                                    lifespan.as_secs_f32(),
+                                    mode,
+                                    tube_pos,
+                                    tube_pos + radial * flame_reach,
+                                    Vec2::zero(),
+                                ),
+                            }
+                        },
+                    );
+                }
             }
         }
     }

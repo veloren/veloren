@@ -816,6 +816,8 @@ pub enum CharacterAbility {
         #[serde(default)]
         ori_modifier: OrientationModifier,
         #[serde(default)]
+        marker: Option<comp::FrontendMarker>,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     RapidRanged {
@@ -1533,6 +1535,7 @@ impl CharacterAbility {
                 auto_aim: _,
                 movement_modifier: _,
                 ori_modifier: _,
+                marker: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2533,6 +2536,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 auto_aim,
                 movement_modifier,
                 ori_modifier,
+                marker,
                 meta: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
@@ -2549,6 +2553,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     ability_info,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
+                    marker: *marker
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
