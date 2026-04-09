@@ -26,4 +26,5 @@ DashMelee(
     ori_modifier: 0.4,
     auto_charge: true,
     charge_through: true,
+    frontend_specifier: Some(FireDash),
 )

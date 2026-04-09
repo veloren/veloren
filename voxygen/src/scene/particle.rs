@@ -2398,81 +2398,77 @@ impl ParticleMgr {
                 },
                 CharacterState::DashMelee(s) => {
                     if matches!(s.stage_section, StageSection::Charge) {
-                        let ability_id = character_state
-                            .ability_info()
-                            .and_then(|info| {
-                                info.ability
-                                    .map(|a| a.ability_id(Some(character_state), inventory))
-                            });
+                        match s.static_data.frontend_specifier{
+                            Some(states::dash_melee::FrontendSpecifier::FireDash) => {
+                                let look_dir = ori.to_horizontal().look_dir().to_vec();
+                                let back_dir = -look_dir;
+                                let time = scene_data.state.get_time();
+                                let mut rng = rand::rng();
+                                let heartbeats =
+                                    self.scheduler.heartbeats(Duration::from_millis(5));
+                                let pos = interpolated.pos + Vec3::unit_z() * 0.9;
 
-                        if ability_id == Some(Some("common.abilities.staff.fire_dash")) {
-                            let look_dir = ori.to_horizontal().look_dir().to_vec();
-                            let back_dir = -look_dir;
-                            let time = scene_data.state.get_time();
-                            let mut rng = rand::rng();
-                            let heartbeats =
-                                self.scheduler.heartbeats(Duration::from_millis(5));
-                            let pos = interpolated.pos + Vec3::unit_z() * 0.9;
+                                // Rotation matrix to align the Z-axis cone with back_dir
+                                let m = Mat3::<f32>::rotation_from_to_3d(
+                                    Vec3::<f32>::unit_z(),
+                                    back_dir,
+                                );
 
-                            // Rotation matrix to align the Z-axis cone with back_dir
-                            let m = Mat3::<f32>::rotation_from_to_3d(
-                                Vec3::<f32>::unit_z(),
-                                back_dir,
-                            );
+                                let tail_angle: f32 = 0.4;
+                                let tail_range = 3.5_f32;
+                                self.particles.resize_with(
+                                    self.particles.len() + usize::from(heartbeats) * 3,
+                                    || {
+                                        let phi = rng.random_range(0.0..tail_angle);
+                                        let theta = rng.random_range(0.0..TAU);
+                                        let offset_z = Vec3::new(
+                                            phi.sin() * theta.cos(),
+                                            phi.sin() * theta.sin(),
+                                            phi.cos(),
+                                        );
+                                        let dir = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                                        let mode = if rng.random_bool(0.5) {
+                                            ParticleMode::FlamethrowerBlue
+                                        } else {
+                                            ParticleMode::FlameThrower
+                                        };
+                                        Particle::new_directed(
+                                            Duration::from_millis(300),
+                                            time,
+                                            mode,
+                                            pos,
+                                            pos + dir * tail_range,
+                                            scene_data,
+                                        )
+                                    },
+                                );
 
-                            let tail_angle: f32 = 0.4;
-                            let tail_range = 3.5_f32;
-                            self.particles.resize_with(
-                                self.particles.len() + usize::from(heartbeats) * 3,
-                                || {
-                                    let phi = rng.random_range(0.0..tail_angle);
-                                    let theta = rng.random_range(0.0..TAU);
-                                    let offset_z = Vec3::new(
-                                        phi.sin() * theta.cos(),
-                                        phi.sin() * theta.sin(),
-                                        phi.cos(),
-                                    );
-                                    let dir = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                                    let mode = if rng.random_bool(0.5) {
-                                        ParticleMode::FlamethrowerBlue
-                                    } else {
-                                        ParticleMode::FlameThrower
-                                    };
-                                    Particle::new_directed(
-                                        Duration::from_millis(300),
-                                        time,
-                                        mode,
-                                        pos,
-                                        pos + dir * tail_range,
-                                        scene_data,
-                                    )
-                                },
-                            );
-
-                            let nose_pos = pos + look_dir * 3.0;
-                            let nose_angle: f32 = 2.8; // 
-                            let nose_range = 3.0_f32;
-                            self.particles.resize_with(
-                                self.particles.len() + usize::from(heartbeats) * 6,
-                                || {
-                                    let phi = rng.random_range(0.0..nose_angle);
-                                    let theta = rng.random_range(0.0..TAU);
-                                    let offset_z = Vec3::new(
-                                        phi.sin() * theta.cos(),
-                                        phi.sin() * theta.sin(),
-                                        phi.cos(),
-                                    );
-                                    let dir = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                                    Particle::new_directed(
-                                        Duration::from_millis(180),
-                                        time,
-                                        ParticleMode::FlameThrower,
-                                        nose_pos,
-                                        nose_pos + dir * nose_range,
-                                        scene_data,
-                                    )
-                                },
-                            );
+                                let nose_pos = pos + look_dir * 3.0;
+                                let nose_angle: f32 = 2.8; // 
+                                let nose_range = 3.0_f32;
+                                self.particles.resize_with(
+                                    self.particles.len() + usize::from(heartbeats) * 6,
+                                    || {
+                                        let phi = rng.random_range(0.0..nose_angle);
+                                        let theta = rng.random_range(0.0..TAU);
+                                        let offset_z = Vec3::new(
+                                            phi.sin() * theta.cos(),
+                                            phi.sin() * theta.sin(),
+                                            phi.cos(),
+                                        );
+                                        let dir = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
+                                        Particle::new_directed(
+                                            Duration::from_millis(180),
+                                            time,
+                                            ParticleMode::FlameThrower,
+                                            nose_pos,
+                                            nose_pos + dir * nose_range,
+                                            scene_data,
+                                        )
+                                    },
+                                );
+                            }
+                            None => (),
                         }
                     }
                 },
@@ -2947,7 +2943,7 @@ impl ParticleMgr {
                                 );
                             }
                         None => {
-                            //Pheonix
+                            //Gnarling Totem Red
                                 self.particles.resize_with(
                                     self.particles.len()
                                     + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
@@ -2975,7 +2971,7 @@ impl ParticleMgr {
                                     },
                                 );
                             }
-                        _ => (),
+                         _=>{},
                         }
                     },
                     aura::AuraKind::Buff {

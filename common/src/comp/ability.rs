@@ -862,6 +862,8 @@ pub enum CharacterAbility {
         #[serde(default)]
         charge_through: bool,
         #[serde(default)]
+        frontend_specifier: Option<dash_melee::FrontendSpecifier>,
+        #[serde(default)]
         meta: AbilityMeta,
     },
     BasicBlock {
@@ -1583,6 +1585,7 @@ impl CharacterAbility {
                 ori_modifier: _,
                 auto_charge: _,
                 charge_through: _,
+                frontend_specifier: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -2588,6 +2591,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                 ori_modifier,
                 auto_charge,
                 charge_through,
+                frontend_specifier,
                 meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
@@ -2601,6 +2605,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: melee_constructor.clone(),
                     ori_modifier: *ori_modifier,
+                    frontend_specifier: *frontend_specifier,
                     ability_info,
                 },
                 auto_charge: false,

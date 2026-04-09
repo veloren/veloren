@@ -34,6 +34,8 @@ pub struct StaticData {
     pub charge_through: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
+    //For particle effects
+    pub frontend_specifier: Option<FrontendSpecifier>
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -194,4 +196,9 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum FrontendSpecifier {
+    FireDash,
 }
