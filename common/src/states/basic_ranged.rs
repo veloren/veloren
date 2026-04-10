@@ -7,7 +7,6 @@ use crate::{
         object::Body::{FireRing, GrenadeClay, LaserBeam, LaserBeamSmall},
         projectile::{ProjectileConstructor, aim_projectile},
         FrontendMarker, 
-        visual::TorusMode,
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
