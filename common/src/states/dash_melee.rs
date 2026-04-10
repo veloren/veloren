@@ -116,12 +116,12 @@ impl CharacterBehavior for Data {
                     // detects a hit, at which point the charge ends
                     if let Some(melee) = data.melee_attack {
                         if melee.sustained || !melee.applied {
-                            //Keep ticking and track hit entites
+                            // If melee attack has not applied, or is sustained, just tick duration
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
                             }
-                        } else if melee.hit_count == 0{
-                            // If not yet applied, reset melee
+                        } else if melee.hit_count == 0 {
+                            // If melee attack has applied, but not hit anything, reset melee attack
                             data.updater.insert(data.entity, create_melee(charge_frac));
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
