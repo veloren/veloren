@@ -101,14 +101,15 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if melee_attack.applied {
+            if melee_attack.applied && !melee_attack.sustained{
                 continue;
             }
             emitters.emit(event::SoundEvent {
                 sound: Sound::new(SoundKind::Melee, pos.0, 2.0, read_data.time.0),
             });
+            if !melee_attack.sustained{
             melee_attack.applied = true;
-
+            }
             // Scales
             let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
             let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
@@ -146,8 +147,15 @@ impl<'a> System<'a> for Sys {
             {
                 // Unless the melee attack can hit multiple targets, stop the attack if it has
                 // already hit 1 target
-                if melee_attack.multi_target.is_none() && melee_attack.hit_count > 0 {
+                if melee_attack.multi_target.is_none() 
+                    && melee_attack.hit_count > 0 
+                    && !melee_attack.sustained {
                     break;
+                }
+
+                //Skip already hit entities on sustained attacks to prevent duplicate hits
+                if melee_attack.sustained && melee_attack.hit_entities.contains(uid_b){
+                    continue;
                 }
 
                 let look_dir = *ori.look_dir();
@@ -318,6 +326,9 @@ impl<'a> System<'a> for Sys {
 
                     if is_applied {
                         melee_attack.hit_count += melee_attack.simultaneous_hits;
+                        if melee_attack.sustained{
+                            melee_attack.hit_entities.push(*uid_b);
+                        }
                     }
                 }
             }

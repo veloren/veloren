@@ -9,6 +9,7 @@ use crate::{
     },
     resources::Secs,
     states::utils::AbilityInfo,
+    uid::Uid,
 };
 use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
@@ -30,6 +31,8 @@ pub struct Melee {
     pub precision_flank_multipliers: FlankMults,
     pub precision_flank_invert: bool,
     pub dodgeable: Dodgeable,
+    pub sustained: bool,
+    pub hit_entities: Vec<Uid>
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -409,6 +412,8 @@ impl MeleeConstructor {
             precision_flank_multipliers: self.precision_flank_multipliers,
             precision_flank_invert: self.precision_flank_invert,
             dodgeable: self.dodgeable,
+            sustained: false,
+            hit_entities: Vec::new(),
         }
     }
 

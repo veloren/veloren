@@ -61,11 +61,16 @@ impl CharacterBehavior for Data {
         let create_melee = |charge_frac: f32| {
             let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
             let tool_stats = get_tool_stats(data, self.static_data.ability_info);
-            self.static_data
+            let mut melee = self.
+                static_data
                 .melee_constructor
                 .clone()
                 .handle_scaling(charge_frac)
-                .create_melee(precision_mult, tool_stats, self.static_data.ability_info)
+                .create_melee(precision_mult, tool_stats, self.static_data.ability_info);
+            if self.static_data.charge_through{
+                melee.sustained = true;
+            }
+            melee
         };
 
         match self.stage_section {
@@ -110,29 +115,22 @@ impl CharacterBehavior for Data {
                     // Determines if charge ends by continually refreshing melee component until it
                     // detects a hit, at which point the charge ends
                     if let Some(melee) = data.melee_attack {
-                        if !melee.applied {
-                            // If melee attack has not applied, just tick duration
+                        if melee.sustained || !melee.applied {
+                            //Keep ticking and track hit entites
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
                             }
-                        } else if melee.hit_count == 0 {
-                            // If melee attack has applied, but not hit anything, reset melee attack
+                        } else if melee.hit_count == 0{
+                            // If not yet applied, reset melee
                             data.updater.insert(data.entity, create_melee(charge_frac));
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
                             }
-                        } else if !self.static_data.charge_through {
-                            // Stop charging now and go to swing stage section
+                        } else {
+                            // Stop charging now and go to swing stage section; unless sustained
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = Duration::default();
                                 c.stage_section = StageSection::Action;
-                            }
-                        } else{
-                            // charge_through: reset the melee so it can hit again next frame
-                            // TODO: Prevent entities from getting double-hit
-                            data.updater.insert(data.entity, create_melee(charge_frac));
-                            if let CharacterState::DashMelee(c) = &mut update.character {
-                                c.timer = tick_attack_or_default(data, self.timer, None);
                             }
                         }
                     } else {
