@@ -1027,28 +1027,36 @@ impl ParticleMgr {
         scene_data: &SceneData,
         pos: Vec3<f32>,
         progress: f32,
+        height: f32,
+        radius: f32,
     ) {
         let time = scene_data.state.get_time();
         let mut rng = rand::rng();
         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(8));
 
-        const RINGS: [(f32, f32, f32); 5] = [
-            (2.20, 0.55,  1.0), 
-            (2.55, 0.80, -1.0),
-            (2.85, 0.95,  1.0),
-            (3.15, 0.80, -1.0),
-            (3.45, 0.55,  1.0),
+        //[Height Modifier, Radius Modifier, Direction of rotation] for each circle of latitude.
+        const LATITUDE_MODIFIERS: [(f32, f32, f32); 5] = [
+            (-0.85, 0.50,  1.0), 
+            (-0.50, 0.80, -1.0),
+            ( 0.00, 0.95,  1.0),
+            ( 0.50, 0.80, -1.0),
+            ( 0.85, 0.50,  1.0),
         ];
 
         let scale = 1.0 - progress;
-        let equator_z = 2.85_f32;
+        let center_z = height;
 
-        for &(z_off, radius, dir) in &RINGS {
-            let r = radius * scale;
-            let z = z_off + (equator_z - z_off) * progress;
+        for &(sin_lat, cos_lat, dir) in &LATITUDE_MODIFIERS {
+            //Sphere implodes 
+            let r = radius * cos_lat * scale;
+            let z = center_z + radius * sin_lat * (1.0 - progress);
+
+            //Bigger spheres have more/longer lasting particles so they do not look sparse.
+            let particle_density_hb: usize = (radius * 4.0).floor() as usize;
+            let particle_density_lifespan: u64 = (radius * 75.0).floor() as u64;
 
             self.particles.resize_with(
-                self.particles.len() + usize::from(heartbeats) * 4,
+                self.particles.len() + usize::from(heartbeats) * particle_density_hb,
                 || {
                     let theta = rng.random_range(0.0..TAU);
                     let spawn = pos + Vec3::new(theta.cos() * r, theta.sin() * r, z);
@@ -1060,13 +1068,15 @@ impl ParticleMgr {
                     let end_pos = spawn + tangent * 0.55;
 
                     let blue_prob = (progress / 0.9).clamp(0.0, 1.0) as f64;
+
                     let mode = if rng.random_bool(1.0 - blue_prob) {
                         ParticleMode::FlameThrower
                     } else {
                         ParticleMode::FlamethrowerBlue
                     };
+
                     //No wind interaction
-                    let lifespan: Duration = Duration::from_millis(110);
+                    let lifespan: Duration = Duration::from_millis(particle_density_lifespan);
                     Particle {
                         alive_until: time + lifespan.as_secs_f64(),
                         instance: ParticleInstance::new_directed(
@@ -1909,7 +1919,7 @@ impl ParticleMgr {
                                     },
                                 );
                             },
-                            states::rapid_ranged::FrontendSpecifier::PyroclasmCharge => {
+                            states::rapid_ranged::FrontendSpecifier::PyroclasmCharge{height: z, radius: r} => {
                                 const TAIL_SECS: f32 = 1.0;
                                 match repeater.stage_section {
                                     StageSection::Buildup => {
@@ -1924,6 +1934,8 @@ impl ParticleMgr {
                                             scene_data,
                                             interpolated.pos,
                                             progress,
+                                            z,
+                                            r,
                                         );
                                     },
                                     StageSection::Action => {
@@ -1932,6 +1944,8 @@ impl ParticleMgr {
                                                 scene_data,
                                                 interpolated.pos,
                                                 0.9,
+                                                z,
+                                                r,
                                             );
                                         }
                                     },
@@ -4320,8 +4334,7 @@ impl ParticleMgr {
                                         ParticleMode::FlamethrowerBlue
                                     } else {
                                         ParticleMode::FlameThrower
-                                },
-                                _ => ParticleMode::Death,
+                                }
                             };
 
                             // Zero wind velocity so the torus holds its shape regardless of wind.

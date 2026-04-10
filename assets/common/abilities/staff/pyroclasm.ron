@@ -1,13 +1,11 @@
 RapidRanged(
     energy_cost: 10.0,
     buildup_duration: 0.6,
-    shoot_duration: 0.08,
+    shoot_duration: 0.05,
     recover_duration: 0.8,
     options: (
         fire_all: true,
         max_projectiles: Some(7),
-        projectile_spread: Some(45.0),
-        spawn_z_offset: 1.4,
     ),
     projectile: (
         kind: Explosive(
@@ -33,5 +31,5 @@ RapidRanged(
         ),
     )),
     projectile_speed: 80.0,
-    specifier: Some(PyroclasmCharge),
+    specifier: Some(PyroclasmCharge(height: 3.5, radius: 2)),
 )

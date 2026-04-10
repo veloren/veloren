@@ -318,6 +318,7 @@ impl Body {
 
                 // frictionless 
                 object::Body::FireRing => 0.0,
+                | object::Body::PyroclasmBolt => 0.0,
 
                 _ => {
                     let dim = self.dimensions().map(|a| a * scale);

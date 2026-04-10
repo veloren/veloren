@@ -10,7 +10,9 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
     },
+    terrain::Block,
     util::Dir,
+    vol::ReadVol,
 };
 use rand::{RngExt, rng};
 use serde::{Deserialize, Serialize};
@@ -47,10 +49,6 @@ pub struct Options {
     pub offset: Option<OffsetOptions>,
     #[serde(default)]
     pub fire_all: bool,
-    #[serde(default)]
-    pub projectile_spread: Option<f32>,
-    #[serde(default)]
-    pub spawn_z_offset: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -97,7 +95,7 @@ impl CharacterBehavior for Data {
                     }
                     if matches!(
                         self.static_data.specifier,
-                        Some(FrontendSpecifier::PyroclasmCharge)
+                        Some(FrontendSpecifier::PyroclasmCharge{ .. })
                     ) && self.timer == Duration::default()
                     {
                         output_events.emit_local(LocalEvent::CreateOutcome(
@@ -149,31 +147,41 @@ impl CharacterBehavior for Data {
                             data.scale.map_or(1.0, |s| s.0),
                         )
                     };
-                    let pos = Pos(data.pos.0 + offset + vek::Vec3::unit_z() * self.static_data.options.spawn_z_offset);
 
-                    let direction: Dir = if self.static_data.projectile_speed < 1.0 {
-                        Dir::down()
-                    } else if let (Some(spread_deg), Some(max)) = (
-                        self.static_data.options.projectile_spread,
-                        self.static_data.options.max_projectiles,
-                    ) {
-                        let t = if max <= 1 {
-                            0.5
-                        } else {
-                            self.projectiles_fired as f32 / (max - 1) as f32
-                        };
-                        let angle = (t - 0.5) * spread_deg.to_radians();
-                        let (sin_a, cos_a) = angle.sin_cos();
-                        let look = *data.inputs.look_dir;
-                        let fanned = vek::Vec3::new(
-                            look.x * cos_a - look.y * sin_a,
-                            look.x * sin_a + look.y * cos_a,
-                            look.z,
-                        );
-                        Dir::from_unnormalized(fanned).unwrap_or(data.inputs.look_dir)
+                    //Ability fired from an offset origin.
+                    //Computes a raycast from eye_pos <-> terrain
+                    //And aims the projectile such that it points to the same spot on terrain.
+                    let (pos, direction): (Pos,Dir) = if let Some(FrontendSpecifier::PyroclasmCharge{
+                        height: z,
+                        radius: _,
+                    }) = self.static_data.specifier
+                    {
+                        let offset_pos = Pos(data.pos.0 + vek::Vec3::unit_z() * z);
+                        const MAX_RANGE: f32 = 200.0;
+                        let ray_start = data.pos.0 + vek::Vec3::unit_z() * data.body.eye_height(data.scale.map_or(1.0, |s| s.0)); //Eye pos
+                        let ray_end = ray_start + *data.inputs.look_dir * MAX_RANGE;
+                        let (dist, _) = data
+                            .terrain
+                            .ray(ray_start,ray_end)
+                            .until(Block::is_solid)
+                            .cast();
+
+                        let terrain_point = ray_start + *data.inputs.look_dir * dist;
+                        let projectile_dir = Dir::from_unnormalized(terrain_point - offset_pos.0)
+                            .unwrap_or(data.inputs.look_dir);
+
+                        (offset_pos, projectile_dir)
                     } else {
-                        data.inputs.look_dir
+                        //Standard abilities
+                        let base_pos = Pos(data.pos.0 + offset);
+                        let base_dir: Dir = if self.static_data.projectile_speed < 1.0{
+                            Dir::down()
+                        } else {
+                            data.inputs.look_dir
+                        };
+                        (base_pos,base_dir)
                     };
+
 
                     let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
@@ -251,8 +259,10 @@ impl CharacterBehavior for Data {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum FrontendSpecifier {
     FireRainPhoenix,
-    PyroclasmCharge,
+    //The height of the implosion effect; along with the height at which the projectiles spawn.
+    PyroclasmCharge{height: f32, radius: f32},
 }
+    

@@ -213,7 +213,7 @@ impl Body {
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
             Body::Pebble => 1000.0,
-            Body::Crux | Body::FireRing => AIR_DENSITY,
+            Body::Crux | Body::FireRing | Body::PyroclasmBolt => AIR_DENSITY,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
