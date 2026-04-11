@@ -1515,7 +1515,7 @@ impl AgentData<'_> {
                 })
             },
             CharacterState::RapidRanged(c) => {
-                    let offset_z = match c.static_data.projectile_body {
+                    let offset_z = match c.static_data.projectile.kind {
                     // Aim explosives and hazards at feet instead of eyes for splash damage
                     ProjectileConstructorKind::Explosive { .. }
                     | ProjectileConstructorKind::ExplosiveHazard { .. }
