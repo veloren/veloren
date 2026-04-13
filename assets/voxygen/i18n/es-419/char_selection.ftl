@@ -1,22 +1,29 @@
 char_selection-loading_characters = Cargando personajes...
-char_selection-delete_permanently = ¿Borrar este personaje permanentemente?
-char_selection-enter_world = Entrar al Mundo
-char_selection-spectate = Espectar Mundo
-char_selection-joining_character = Entrando al Mundo...
-char_selection-logout = Volver
-char_selection-create_new_character = Crear Nuevo Personaje
-char_selection-creating_character = Creando Personaje...
-char_selection-uncanny_valley = Valle Misterioso
+char_selection-delete_permanently = ¿Quieres eliminar a este personaje para siempre?
+char_selection-enter_world = Entrar al mundo
+char_selection-spectate = Observar mundo
+char_selection-joining_character = Entrando al mundo...
+char_selection-logout = Salir
+char_selection-create_new_character = Crear nuevo personaje
+char_selection-creating_character = Creando personaje...
+char_selection-uncanny_valley = Naturaleza salvaje
 char_selection-beard = Barba
 char_selection-hair_style = Peinado
-char_selection-hair_color = Color de Pelo
-char_selection-eye_color = Color de Ojos
-char_selection-skin = Color de Piel
-char_selection-eyeshape = Detalles de los Ojos
+char_selection-hair_color = Color de pelo
+char_selection-eye_color = Color de ojos
+char_selection-skin = Piel
+char_selection-eyeshape = Detalle de los ojos
 char_selection-accessories = Accesorios
-char_selection-starting_site = Selecciona el area de inicio
+char_selection-starting_site = Elige la zona donde comenzar
 char_selection-starting_site_next = Siguiente
 char_selection-starting_site_prev = Anterior
-char_selection-starting_site_kind = Kind: { $kind }
-char_selection-create_info_name = Tu Personaje necesita un nombre!
-char_selection-version_mismatch = ¡ADVERTENCIA! Este servidor está ejecutando una versión de juego diferente, posiblemente incompatible. Actualice su juego.
+char_selection-starting_site_kind = Tipo: { $kind }
+char_selection-create_info_name = ¡Tu personaje necesita un nombre!
+char_selection-version_mismatch = ¡AVISO! Este servidor se está ejecutando en una versión diferente a la de tu cliente. Por favor, actualiza el juego.
+char_selection-editing_character = Guardando el Personaje...
+char_selection-hardcore = Modo Extremo
+char_selection-hardcore_tooltip =
+    Los personajes en modo extremo serán eliminados al morir, no hay otros cambios en la dificultad.
+
+    El modo extremo es recomendado únicamente para jugadores experimentados.
+char_selection-rules = Normas

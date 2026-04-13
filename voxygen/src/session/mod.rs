@@ -2300,6 +2300,7 @@ impl PlayState for SessionState {
                         &scene_data,
                         &client,
                         &global_state.settings,
+                        global_state.settings.interface.minimap_face_north,
                     );
 
                     // Process outcomes from client

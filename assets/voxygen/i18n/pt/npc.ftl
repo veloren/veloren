@@ -41,3 +41,5 @@ npc-speech-villager_extroverted =
 # Generic NPC messages
 npc-speech-villager_worried =
     .a0 = Tenha cuidado, certo? Existem tantos perigos por aí.
+npc-speech-villager_busybody =
+    .a0 = As pessoas deviam falar menos e trabalhar mais.

@@ -119,6 +119,7 @@ pub struct Rotations {
     pub cw270: conrod_core::image::Id,
     pub source_north: conrod_core::image::Id,
     pub target_north: conrod_core::image::Id,
+    pub target_player: conrod_core::image::Id,
 }
 
 /// This macro will automatically load all specified assets, get the

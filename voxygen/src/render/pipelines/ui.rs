@@ -92,6 +92,11 @@ pub const MODE_IMAGE_SOURCE_NORTH: u32 = 3;
 ///
 /// FIXME: Make more principled.
 pub const MODE_IMAGE_TARGET_NORTH: u32 = 5;
+/// Draw an image from the texture at 'tex' in the fragment shader, with the
+/// target rectangle rotated to face the characters orientation.
+///
+/// FIXME: Make more pricipled.
+pub const MODE_IMAGE_TARGET_PLAYER: u32 = 7;
 
 #[derive(Clone, Copy)]
 pub enum Mode {
@@ -112,6 +117,11 @@ pub enum Mode {
     ImageTargetNorth {
         scale: Vec2<f32>,
     },
+    /// Draw an image from the texture at 'tex' in the fragment shader, with the
+    /// target rectangle rotated to face the players orientation.
+    ImageTargetPlayer {
+        scale: Vec2<f32>,
+    },
 }
 
 impl Mode {
@@ -122,13 +132,16 @@ impl Mode {
             Mode::Geometry => MODE_GEOMETRY,
             Mode::ImageSourceNorth { .. } => MODE_IMAGE_SOURCE_NORTH,
             Mode::ImageTargetNorth { .. } => MODE_IMAGE_TARGET_NORTH,
+            Mode::ImageTargetPlayer { .. } => MODE_IMAGE_TARGET_PLAYER,
         }
     }
 
     /// Gets the scaling of the displayed image compared to the source.
     fn scale(self) -> Vec2<f32> {
         match self {
-            Mode::ImageSourceNorth { scale } | Mode::ImageTargetNorth { scale } => scale,
+            Mode::ImageSourceNorth { scale }
+            | Mode::ImageTargetNorth { scale }
+            | Mode::ImageTargetPlayer { scale } => scale,
             Mode::Image { scale } => scale,
             Mode::Text | Mode::Geometry => Vec2::one(),
         }

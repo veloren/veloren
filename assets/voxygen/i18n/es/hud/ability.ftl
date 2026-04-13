@@ -15,30 +15,30 @@ veloren-core-pseudo_abilities-sword-double_slash = Golpe doble
     .desc = Una sucesión de dos golpes.
 veloren-core-pseudo_abilities-sword-secondary_ability = Habilidad de espada secundaria
     .desc = Habilidad asociada con la tecla de ataque secundaria.
-veloren-core-pseudo_abilities-sword-finisher = Remate
+veloren-core-pseudo_abilities-sword-finisher = Exterminador
     .desc =
-        Golpe con la espada que busca poner fin a la batalla.
-        Esta habilidad cambia según la posición de combate adoptada.
-veloren-core-pseudo_abilities-sword-cross_cut = Tajo cruzado
+        Una habilidad que consume combo y fue pensada para poner fin a la batalla.
+        Esta habilidad cambia según la postura de combate adoptada.
+veloren-core-pseudo_abilities-sword-cross_cut = Tajo Cruzado
     .desc =
         Un tajo doble de izquierda a derecha.
-        Esta habilidad cambia según la posición de combate adoptada.
+        Esta habilidad cambia según la postura de combate adoptada.
 veloren-core-pseudo_abilities-sword-skewer = Estocada
     .desc =
-        Golpe perforante.
-        Esta habilidad cambia según la posición de combate adoptada.
+        Un golpe perforante.
+        Esta habilidad cambia según la postura de combate adoptada.
 veloren-core-pseudo_abilities-sword-cascade = Cascada
     .desc =
         Golpe descendente.
-        Esta habilidad cambia según la posición de combate adoptada.
-veloren-core-pseudo_abilities-sword-fell_strike = Tajo horizontal
+        Esta habilidad cambia según la postura de combate adoptada.
+veloren-core-pseudo_abilities-sword-fell_strike = Tajo Horizontal
     .desc =
         Golpe fuerte y rápido con la espada en dirección horizontal.
-        Esta habilidad cambia según la posición de combate adoptada.
-veloren-core-pseudo_abilities-sword-crescent_slash = Tajo creciente
+        Esta habilidad cambia según la postura de combate adoptada.
+veloren-core-pseudo_abilities-sword-crescent_slash = Tajo Creciente
     .desc =
         Golpe ascendente con la espada en dirección vertical.
-        Esta habilidad cambia según la posición de combate adoptada.
+        Esta habilidad cambia según la postura de combate adoptada.
 
 ## Habilidades cuando no se ha adoptado ninguna posición de combate
 
@@ -63,8 +63,8 @@ common-abilities-sword-basic_crescent_slash = Tajo creciente
 
 ## Posición de hendedura
 
-veloren-core-pseudo_abilities-sword-cleaving_stance = Posición de corte
-    .desc = Ataques en esta posición pueden golpear a múltiples enemigos.
+veloren-core-pseudo_abilities-sword-cleaving_stance = Postura de Corte
+    .desc = Ataques en esta postura pueden golpear a múltiples enemigos.
 common-abilities-sword-cleaving_double_slash = Golpe doble de corte
     .desc = Un combo de dos golpes que pueden cortar múltiples enemigos.
 common-abilities-sword-cleaving_spiral_slash = Tajo circular
@@ -83,13 +83,13 @@ common-abilities-sword-cleaving_fell_strike = Tajo horizontal de Corte
     .desc = Golpe fuerte y rápido con la espada que puede cortar a través de enemigos.
 common-abilities-sword-cleaving_crescent_slash = Tajo creciente de Corte
     .desc = Golpe ascendente con la espada en dirección vertical que puede golpear a varios enemigos.
-common-abilities-sword-cleaving_blade_fever = Fiebre de la espada
+common-abilities-sword-cleaving_blade_fever = Fiebre de la Espada
     .desc =
         Ataca con más imprudencia, aumentando la potencia de tus golpes, aunque te expongas a los ataques del rival.
         Requiere postura de corte.
-common-abilities-sword-cleaving_whirlwind_slice = Hendedura
+common-abilities-sword-cleaving_whirlwind_slice = Corte de Torbellino
     .desc =
-        Golpea a todos los enemigos que te rodean.
+        Golpea en círculo a todos los enemigos que te rodean.
         Entra en postura de corte.
 common-abilities-sword-cleaving_sky_splitter = Corte celestial
     .desc =
@@ -102,8 +102,8 @@ common-abilities-sword-cleaving_earth_splitter = Divisor de la tierra
 
 ## Posición ágil
 
-veloren-core-pseudo_abilities-sword-agile_stance = Posición ágil
-    .desc = Tus ataques son más rápidos y débiles.
+veloren-core-pseudo_abilities-sword-agile_stance = Postura Ágil
+    .desc = Tus ataques son más rápidos pero débiles.
 common-abilities-sword-agile_double_slash = Golpe doble ágil
     .desc = Una sucesión rápida de dos golpes ligeros.
 common-abilities-sword-agile_perforate = Perforación
@@ -122,27 +122,27 @@ common-abilities-sword-agile_fell_strike = Tajo horizontal ágil
     .desc = Golpe fuerte y muy rápido con la espada en dirección horizontal.
 common-abilities-sword-agile_crescent_slash = Tajo creciente ágil
     .desc = Golpe ligero ascendente con la espada en dirección vertical.
-common-abilities-sword-agile_dancing_edge = Baile de espadas
+common-abilities-sword-agile_dancing_edge = Filo Danzante
     .desc =
         Te mueves y atacas con mayor rapidez.
         Requiere estar en la posición ágil.
-common-abilities-sword-agile_flurry = Ráfaga de estocadas
+common-abilities-sword-agile_flurry = Ráfaga
     .desc =
-        Arremete con una serie veloz de estocadas.
-        Requiere estar en la posición ágil.
-common-abilities-sword-agile_quick_draw = Destello letal
+        Múltiples estocadas veloces.
+        Requiere la postura ágil.
+common-abilities-sword-agile_quick_draw = Desenvaina Rápido
     .desc =
-        Avanza al mismo tiempo que desenvainas tu espada para realizar un golpe rápido.
-        Cambia a la posición ágil.
+        Avanza mientras desenvainas tu espada para realizar un ataque rápido.
+        Cambia a la postura ágil.
 common-abilities-sword-agile_feint = Floritura
     .desc =
         Hace creer a tu enemigo que vas a atacar por un lado, para luego golpearle por el otro.
-        Cambia a la posición ágil.
+        Cambia a la postura ágil.
 
 ## Posición de incapacitación
 
 veloren-core-pseudo_abilities-sword-crippling_stance = Posición de incapacitación
-    .desc = Tus ataques mutilan a tus enemigos.
+    .desc = Tus ataques incapacitan a tus enemigos.
 common-abilities-sword-crippling_double_slash = Golpe doble incapacitante
     .desc = Una sucesión de dos golpes que puede prolongar el sangrado de un enemigo.
 common-abilities-sword-crippling_deep_rend = Desgarre profundo
@@ -163,25 +163,25 @@ common-abilities-sword-crippling_crescent_slash = Tajo creciente incapacitante
     .desc = Golpe ascendente con la espada en dirección vertical que puede producir hemorragia.
 common-abilities-sword-crippling_gouge = Golpe profundo
     .desc =
-        Inflige heridas mayores a tu enemigo.
-        Cambia a la posición de incapacitación.
-common-abilities-sword-crippling_bloody_gash = Tajo sangriento
+        Inflige una herida duradera a tu enemigo que seguirá sangrando.
+        Cambia a la postura de incapacitación.
+common-abilities-sword-crippling_bloody_gash = Tajo Sangriento
     .desc =
-        Ataca sin piedad a enemigos que se estén desangrando para hacerles daño adicional.
-        Requiere estar en la posición de incapacitación.
+        Ataca cruelmente una herida ya sangrante, causa daño adicional a enemigos sangrantes.
+        Requiere la postura de incapacitación.
 common-abilities-sword-crippling_hamstring = Desgarre
     .desc =
-        Golpea los tendones en las piernas de tus enemigos para reducir su movilidad.
-        Cambia a la posición de incapacitación.
+        Golpea a tus enemigos en los tendones, reduciendo su movilidad.
+        Cambia a la postura de incapacitación.
 common-abilities-sword-crippling_eviscerate = Destripamiento
     .desc =
-        Golpe que empeora las heridas de enemigos incapacitados y les inflige daño adicional.
-        Requiere estar en la posición de incapacitación.
+        Golpe que empeora las heridas, causa más daño a enemigos incapacitados.
+        Requiere la postura de incapacitación.
 
 ## Posición intensa
 
-veloren-core-pseudo_abilities-sword-heavy_stance = Posición Robusta
-    .desc = Tus ataques pueden aturdir a los enemigos y se vuelven más potentes y lentos.
+veloren-core-pseudo_abilities-sword-heavy_stance = Postura Robusta
+    .desc = Los ataques en esta postura pueden aturdir a los enemigos y dañar más a enemigos aturdidos, pero más lento.
 common-abilities-sword-heavy_double_slash = Golpe doble fuerte
     .desc = Una sucesión de dos golpes lentos que pueden aturdir.
 common-abilities-sword-heavy_slam = Cuerpo Pesado
@@ -194,14 +194,14 @@ common-abilities-sword-heavy_fortitude = Fortaleza
     .desc =
         Aumenta la resistencia al aturdimiento y, cuanto más daño recibas, más aturdidores serán tus ataques.
         Requiere la postura robusta.
-common-abilities-sword-heavy_pillar_thrust = Caída en picado
+common-abilities-sword-heavy_pillar_thrust = Caída de Pilar
     .desc =
         Atraviesa a tu enemigo con la espada hasta llegar al suelo. El golpe será más potente si se utiliza durante una caída.
-        Requiere postura robusta.
+        Requiere la postura robusta.
 common-abilities-sword-heavy_sweep = Barrido Potente
     .desc =
         Un golpe potente, amplio y de gran alcance que inflige más daño a un enemigo aturdido.
-        Entra a la posición robusta.
+        Entra a la postura robusta.
 common-abilities-sword-heavy_pommel_strike = Golpe de Empuñadura
     .desc =
         Golpea a tu enemigo con un golpe contundente en la cabeza; el efecto aturdidor será mayor si está bloqueando.
@@ -220,7 +220,7 @@ common-abilities-sword-heavy_crescent_slash = Tajo Creciente Pesado
 ## Posición defensiva
 
 veloren-core-pseudo_abilities-sword-defensive_stance = Posición defensiva
-    .desc = Los ataques con la espada también sirven para bloquear pequeños ataques y realizar paradas.
+    .desc = Los ataques en esta postura pueden actuar como un bloqueo débil o desvío.
 common-abilities-sword-defensive_double_slash = Golpe doble defensivo
     .desc = Una sucesión de dos golpes que pueden reducir el impacto de ataques enemigos.
 common-abilities-sword-defensive_vital_jab = Pinchazo crítico defensivo
@@ -239,22 +239,22 @@ common-abilities-sword-defensive_fell_strike = Tajo horizontal defensivo
     .desc = Golpe fuerte y rápido con la espada en dirección horizontal que puede proteger de ataques enemigos.
 common-abilities-sword-defensive_crescent_slash = Tajo creciente defensivo
     .desc = Golpe ascendente con la espada en dirección vertical que puede proteger de ataques enemigos.
-common-abilities-sword-defensive_stalwart_sword = Espada inquebrantable
+common-abilities-sword-defensive_stalwart_sword = Espada Inquebrantable
     .desc =
-        Los ataques te hacen menos daño.
-        Requiere estar en la posición defensiva.
-common-abilities-sword-defensive_deflect = Parada
+        Sé indiferente a los ataques. el daño recibido es reducido.
+        Requiere la postura defensiva.
+common-abilities-sword-defensive_deflect = Desvío
     .desc =
-        Realiza una maniobra tan ágil que puedes llegar a bloquear proyectiles.
-        Requiere estar en la posición defensiva.
+        Una maniobra tan ágil que puede bloquear proyectiles.
+        Requiere la postura defensiva.
 common-abilities-sword-defensive_riposte = Réplica de duelo
     .desc =
-        Repele un ataque enemigo e inmediatamente golpea de vuelta.
-        Cambia a la posición defensiva.
+        Repele un ataque e inmediatamente contraataca.
+        Cambia a la postura defensiva.
 common-abilities-sword-defensive_disengage = Retirada defensiva
     .desc =
         Golpea a tu enemigo a la vez que retrocedes.
-        Cambia a la posición defensiva.
+        Cambia a la postura defensiva.
 # Habilidades de arco
 common-abilities-debug-possess = Flecha de posesión
     .desc = Dispara una flecha que te permite controlar a tu objetivo.
@@ -265,10 +265,10 @@ common-abilities-staff-fireshockwave = Onda de choque
 common-abilities-sceptre-wardingaura = Aura del guardián
     .desc = Emana de ti un aura que te protege a ti y a tus aliados.
 # Sword abilities
-common-abilities-sword-agile_dual_flurry = Ráfaga de estocadas
+common-abilities-sword-agile_dual_flurry = Ráfaga
     .desc =
-        Arremete con una serie de estocadas usando ambas espadas.
-        Requiere estar en la posición ágil.
+        Múltiples estocadas veloces con ambas espadas.
+        Requiere la postura ágil.
 # Debug abilities
 common-abilities-debug-glide_speeder = Brrrum
     .desc = Te otorga la fuerza para llegar hasta dónde alcance tu mirada
@@ -375,7 +375,7 @@ common-abilities-axe-execute = Ejecución
 common-abilities-sword-cleaving_dual_spiral_slash = Tajo circular
     .desc = Gira con ambas espadas para golpear a todo cuánto te rodee.
 # Sword abilities
-common-abilities-sword-cleaving_dual_whirlwind_slice = Tempestad afilada
+common-abilities-sword-cleaving_dual_whirlwind_slice = Corte de Torbellino
     .desc =
         Golpea a todos los enemigos que te rodean con ataques circulares usando ambas espadas.
         Entra en postura de corte.
@@ -505,3 +505,5 @@ common-abilities-bow-heavy_nock = Golpe fuerte
     .desc = Dispara con tu arco una flecha pesada para empujar el objetivo. Entre más ligero sea y más cerca estés, mayor será el empuje.
 common-abilities-bow-death_volley_heavy_shot = Muerte en Abanico
     .desc = Lanza una ráfaga de flechas al aire que se dispersarán en una lluvia mortal.
+common-abilities-bow-fusillade = Ráfaga
+    .desc = Prepara varias flechas a la vez para disparar una ráfaga corta de flechas a larga distancia.

@@ -118,3 +118,4 @@ loading-tips =
     .a20 = Se morda sprašuješ, kaj lahko sestaviš z določenim predmetom? V meni za sestavljanje vpiši poizvedbo 'input:<ime predmeta>'.
     .a21 = S pritiskom na '{ $gameinput-screenshot }' lahko zajameš posnetek zaslona.
 main-username = Uporabniško ime
+main-credits-sound = Zvok

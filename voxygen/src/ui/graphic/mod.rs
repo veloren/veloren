@@ -48,6 +48,12 @@ pub enum Rotation {
     /// Simple hack to get around Conrod not having space for proper
     /// rotation data (though it should be possible to add in other ways).
     TargetNorth,
+    /// Orientation of object that always faces the characters orientation
+    /// adjusted by the minimaps rotation (only if the minimap is being
+    /// rotated based on camera position). Simple hack to get around Conrod
+    /// not having space for proper rotation data (though it should be
+    /// possible to add in other ways).
+    TargetPlayer,
 }
 
 /// Images larger than this are stored in individual textures
@@ -372,7 +378,7 @@ impl GraphicCache {
                 Rotation::None | Rotation::Cw180 => Some((w, h)),
                 Rotation::Cw90 | Rotation::Cw270 => Some((h, w)),
                 // TODO: need dims for these?
-                Rotation::SourceNorth | Rotation::TargetNorth => None,
+                Rotation::SourceNorth | Rotation::TargetNorth | Rotation::TargetPlayer => None,
             })
     }
 
@@ -414,11 +420,15 @@ impl GraphicCache {
             Rotation::None | Rotation::Cw180 => requested_dims,
             Rotation::SourceNorth => requested_dims,
             Rotation::TargetNorth => requested_dims,
+            Rotation::TargetPlayer => requested_dims,
         };
 
         // Rotate aabr according to requested rotation.
         let rotated_aabr = |Aabr { min, max }| match rotation {
-            Rotation::None | Rotation::SourceNorth | Rotation::TargetNorth => Aabr { min, max },
+            Rotation::None
+            | Rotation::SourceNorth
+            | Rotation::TargetNorth
+            | Rotation::TargetPlayer => Aabr { min, max },
             Rotation::Cw90 => Aabr {
                 min: Vec2::new(min.x, max.y),
                 max: Vec2::new(max.x, min.y),
@@ -853,7 +863,7 @@ impl Default for PremultiplyLookupTable {
                 //  <= 10 means the transform is linear!
                 color as f32 / 255.0
             } else {
-                // Here the transform into linear srgb isn't linear but the transform out of it is. 
+                // Here the transform into linear srgb isn't linear but the transform out of it is.
                 //
                 // This is transform into and out of linear srgb with the theoretical alpha
                 // multiplication factored out.
@@ -977,7 +987,7 @@ impl PremultiplyStrategy {
         // Thresholds below are based on the timing measurements of the CPU based premultiplication
         // vs ovehead of interacting with the GPU API to perform premultiplication on the GPU.
         // These timings are quite circumstantial and could vary between machines, wgpu updates,
-        // and changes to the structure of the GPU based path.  
+        // and changes to the structure of the GPU based path.
         //
         // GPU path costs (For calculations I used `57.6 us` as a roughly reasonable estimate of
         // total time here but that can vary lower and higher. Everything is a bit imprecise here

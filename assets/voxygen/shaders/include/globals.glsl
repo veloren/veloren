@@ -31,6 +31,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     // 1 - ThirdPerson
     uint cam_mode;
     float sprite_render_distance;
+    float u_rotation;
     float globals_dummy; // Fix alignment.
 };
 

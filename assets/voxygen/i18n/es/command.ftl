@@ -71,3 +71,7 @@ command-make_npc-desc =
     Para ver un ejemplo o autocompletar, pulsa Tab.
 command-set_body_type-desc = Selecciona tu tipo de cuerpo, Femenino o Masculino.
 command-battlemode_force-desc = Cambia tu estado de combate sin ninguna comprobación
+command-experimental-shaders-enabled = Habilitado { $shader }
+command-set-build-mode-on-persistent = Se ha activado el modo de construcción. La persistencia experimental del terreno está habilitada. El servidor intentará guardar los cambios, pero no se garantiza que esto funcione.
+command-server-no-experimental-terrain-persistence = El servidor se compiló sin la persistencia del terreno habilitada
+command-spot-world_feature = Para ejecutar este comando, es necesario habilitar la función `worldgen`.

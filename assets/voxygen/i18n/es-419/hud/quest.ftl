@@ -1,8 +1,9 @@
 hud-quest = Misión
 hud-quest-accept = Aceptar
 hud-quest-decline = Rechazar
-hud-quest-intro = ¡Saludos, { $playername }!
-hud-quest-desc-fetch = Por favor, ayúdeme a encontrar:
-hud-quest-desc-kill = Me ayudarías a eliminar
-hud-quest-reward = Te recompensaré con:
+hud-quest-intro = Bienvenido { $playername }!
+hud-quest-desc-fetch = Por favor, ayúdame a encontrar:
+hud-quest-desc-kill = Podrías ayudarme a matar a
+hud-quest-reward = Tu recompensa será:
 hud-dialogue = Diálogo
+hud-dialogue-ack = Presiona [{ $key }] para aceptar
