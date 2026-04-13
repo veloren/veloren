@@ -1,22 +1,22 @@
 RapidRanged(
-    energy_cost: 10.0,
-    buildup_duration: 0.6,
-    shoot_duration: 0.05,
+    energy_cost: 15.0,
+    buildup_duration: 1.0,
+    shoot_duration: 0.15,
     recover_duration: 0.8,
     options: (
         fire_all: true,
-        max_projectiles: Some(7),
+        max_projectiles: Some(8),
     ),
     projectile: (
         kind: Explosive(
-            radius: 6,
-            min_falloff: 0.0,
+            radius: 3,
+            min_falloff: 15.0,
             reagent: Some(Yellow),
             terrain: Some((0, Black))
         ),
         attack: Some((
-            damage: 5,
-            knockback: Some(2),
+            damage: 25,
+            knockback: Some(3),
         )),
     ),
     projectile_body: Object(PyroclasmBolt),
@@ -30,6 +30,6 @@ RapidRanged(
             b: 1.0,
         ),
     )),
-    projectile_speed: 80.0,
-    specifier: Some(PyroclasmCharge(height: 3.5, radius: 2)),
+    projectile_speed: 60.0,
+    specifier: Some(PyroclasmCharge(height: 3.5, radius: 1.5)),
 )

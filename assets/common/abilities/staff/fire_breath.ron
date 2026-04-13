@@ -1,16 +1,17 @@
 BasicRanged(
-    energy_cost: 50.0,
+    energy_cost: 45.0,
     buildup_duration: 0.5,
     recover_duration: 0.5,
     projectile: (
         kind: Explosive(
-            radius: 6,
-            min_falloff: 0.3,
+            radius: 8,
+            min_falloff: 0.0,
             reagent: Some(Red),
         ),
         attack: Some((
-            damage: 15,
-            knockback: Some(35),
+            damage: 40,
+            knockback: Some(30),
+            poise: Some(100),
             buff: Some((
                 kind: Burning,
                 dur_secs: 6.0,
@@ -28,7 +29,7 @@ BasicRanged(
     ),
     projectile_body: Object(FireRing),
     marker: Some(Torus(1.25,RedBlueFire)),
-    projectile_speed: 22.0,
+    projectile_speed: 20.0,
     num_projectiles: Value(1),
     movement_modifier: (
         buildup: Some(0.3),

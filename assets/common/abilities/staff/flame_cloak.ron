@@ -6,14 +6,14 @@ BasicAura(
     auras: [
         (
             kind: Burning,
-            strength: 2.0,
+            strength: 3.0,
             duration: Some(6),
             category: Magical,
         ),
     ],
     aura_duration: Some(8.0),
     range: 3.0,
-    energy_cost: 30.0,
+    energy_cost: 25.0,
     scales_with_combo: false,
     specifier: Some(FieryAura),
 )

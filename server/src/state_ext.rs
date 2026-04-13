@@ -473,6 +473,8 @@ impl StateExt for State {
             .with(pos)
             .with(ori)
             .with(comp::Vel(Vec3::zero()))
+            .with(body.mass())
+            .with(body.density())
             .with(body.collider())
             .with(body)
             .with(comp::LightEmitter {
