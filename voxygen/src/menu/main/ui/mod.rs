@@ -169,6 +169,10 @@ pub enum Event {
     #[cfg(feature = "singleplayer")]
     InitSingleplayer,
     #[cfg(feature = "singleplayer")]
+    StartLanCoop,
+    #[cfg(feature = "singleplayer")]
+    InitLanCoop,
+    #[cfg(feature = "singleplayer")]
     SinglePlayerChange(WorldsChange),
     Quit,
     // Note: Keeping in case we re-add the disclaimer
@@ -254,6 +258,12 @@ pub struct Controls {
 
     time: f64,
 
+    /// Tracks whether the world selector was entered via "Host LAN Game"
+    /// (true) or "Singleplayer" (false), so the Play button fires the
+    /// correct event.
+    #[cfg(feature = "singleplayer")]
+    lan_mode: bool,
+
     screen: Screen,
 }
 
@@ -267,6 +277,8 @@ enum Message {
     Singleplayer,
     #[cfg(feature = "singleplayer")]
     SingleplayerPlay,
+    #[cfg(feature = "singleplayer")]
+    LanCoop,
     #[cfg(feature = "singleplayer")]
     WorldChanged(WorldsChange),
     #[cfg(feature = "singleplayer")]
@@ -349,6 +361,9 @@ impl Controls {
             selected_language_index,
 
             time: 0.0,
+
+            #[cfg(feature = "singleplayer")]
+            lan_mode: false,
 
             screen,
         }
@@ -466,6 +481,10 @@ impl Controls {
         match message {
             Message::Quit => events.push(Event::Quit),
             Message::Back => {
+                #[cfg(feature = "singleplayer")]
+                {
+                    self.lan_mode = false;
+                }
                 self.screen = Screen::Login {
                     screen: Box::default(),
                     error: None,
@@ -487,10 +506,19 @@ impl Controls {
             },
             #[cfg(feature = "singleplayer")]
             Message::Singleplayer => {
+                self.lan_mode = false;
                 self.screen = Screen::WorldSelector {
                     screen: world_selector::Screen::default(),
                 };
                 events.push(Event::InitSingleplayer);
+            },
+            #[cfg(feature = "singleplayer")]
+            Message::LanCoop => {
+                self.lan_mode = true;
+                self.screen = Screen::WorldSelector {
+                    screen: world_selector::Screen::default(),
+                };
+                events.push(Event::InitLanCoop);
             },
             #[cfg(feature = "singleplayer")]
             Message::SingleplayerPlay => {
@@ -499,7 +527,11 @@ impl Controls {
                     connection_state: ConnectionState::InProgress,
                     init_stage: DetailedInitializationStage::Singleplayer,
                 };
-                events.push(Event::StartSingleplayer);
+                if self.lan_mode {
+                    events.push(Event::StartLanCoop);
+                } else {
+                    events.push(Event::StartSingleplayer);
+                }
             },
             #[cfg(feature = "singleplayer")]
             Message::WorldChanged(change) => {

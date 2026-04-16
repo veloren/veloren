@@ -85,6 +85,7 @@ main-servers-persistence_error = Server persistence error (Probably Asset/Charac
 main-servers-other_error = Server general error: { $raw_error }
 main-server-rules = This server has rules that must be accepted.
 main-server-rules-seen-before = These rules have changed since the last time you accepted them.
+main-lan_coop = Host LAN Game
 main-credits = Credits
 main-credits-created_by = created by
 main-credits-music = Music
