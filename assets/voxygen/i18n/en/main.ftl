@@ -6,29 +6,25 @@ main-creating_world = Creating world
 main-tip = Tip:
 main-unbound_key_tip = unbound
 main-notice =
-    Welcome to the alpha version of Veloren!
+    Welcome to Nova-Forge!
 
-    Before you dive into the fun, please keep a few things in mind:
+    Nova-Forge is a standalone, LAN-first action-adventure RPG built on the Veloren engine.
 
-    - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features.
+    A few things to keep in mind:
 
-    - If you have constructive feedback or bug reports, you can contact us on our GitLab repository and on our Discord or Matrix server.
+    - No account required. Play singleplayer, host a LAN game, or join a local server using any username you like.
 
-    - Veloren is open source. You are free to play, modify, and redistribute the game in accordance to version 3 of the GNU General Public license.
+    - This is early development. Expect bugs and unfinished features.
 
-    - Veloren is a non-profit community project, and everybody working on it is a volunteer.
-    If you like what you see, you are welcome to join any of our working groups!
+    - Nova-Forge is open source and free to play, modify, and redistribute under the GNU General Public License v3.0.
 
-    Thanks for taking the time to read this notice, we hope you enjoy the game!
+    Thanks for playing — enjoy the forge!
 
-    ~ The development team
+    ~ The Nova-Forge team
 main-login_process =
-    About multiplayer mode:
+    About multiplayer:
 
-    Please note that you need an account to play on servers with authentication enabled.
-
-    You can create an account at:
-    https://veloren.net/account/
+    No account is needed to play Nova-Forge. Enter any username and connect to a server on your local network, or host your own with "Host LAN Game".
 main-singleplayer-new = New
 main-singleplayer-delete = Delete
 main-singleplayer-regenerate = Regenerate
@@ -108,8 +104,8 @@ loading-tips =
     .a11 = Playing with others is fun! Press '{ $gameinput-social }' to see who is online.
     .a12 = Press '{ $gameinput-dance }' to dance. Party!
     .a13 = Press '{ $gameinput-glide }' to open your Glider and conquer the skies.
-    .a14 = Veloren is still in Pre-Alpha. We do our best to improve it every day!
-    .a15 = If you want to join the dev team or just have a chat with us, join our Discord server.
+    .a14 = Nova-Forge is in early development. We do our best to improve it every day!
+    .a15 = Want to contribute? Check out the Nova-Forge repository on GitHub.
     .a16 = You can toggle showing your amount of health on the health bar in the settings.
     .a17 = Sit near a campfire (with the '{ $gameinput-sit }' key) to slowly recover from your injuries.
     .a18 = Need more bags or better armor to continue your journey? Press '{ $gameinput-crafting }' to open the crafting menu!
