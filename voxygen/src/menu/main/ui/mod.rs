@@ -481,6 +481,10 @@ impl Controls {
         match message {
             Message::Quit => events.push(Event::Quit),
             Message::Back => {
+                #[cfg(feature = "singleplayer")]
+                {
+                    self.lan_mode = false;
+                }
                 self.screen = Screen::Login {
                     screen: Box::default(),
                     error: None,

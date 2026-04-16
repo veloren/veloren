@@ -137,7 +137,7 @@ impl PlayState for MainMenuState {
                                 prefer_ipv6: false,
                             }
                         } else {
-                            ConnectionArgs::Mpsc(14004)
+                            ConnectionArgs::Mpsc(server::settings::LAN_COOP_PORT as u64)
                         };
                         let username = if is_lan {
                             global_state.settings.networking.username.clone()
