@@ -33,6 +33,9 @@ pub struct Singleplayer {
     pub init_stage_receiver: Receiver<ServerInitStage>,
     // Wether the server is stopped or not
     paused: Arc<AtomicBool>,
+    /// True when the server is listening on all interfaces (LAN co-op mode)
+    /// rather than localhost only.
+    pub is_lan: bool,
 }
 
 impl Singleplayer {
@@ -175,9 +178,117 @@ impl SingleplayerState {
                 init_stage_receiver: server_stage_rx,
                 receiver: result_receiver,
                 paused,
+                is_lan: false,
             });
         } else {
             error!("SingleplayerState::run was called, but singleplayer is already running!");
+        }
+    }
+
+    /// Start a LAN co-op server that listens on all network interfaces so
+    /// other players on the local network can join.
+    pub fn run_lan_coop(
+        &mut self,
+        runtime: &Arc<Runtime>,
+        selected_language: &String,
+        i18n: &LocalizationHandle,
+    ) {
+        if let Self::Init(worlds) = self {
+            let Some(world) = worlds.current() else {
+                error!("Failed to get the current world.");
+                return;
+            };
+            let server_data_dir = world.path.clone();
+
+            let mut settings = server::Settings::lan_coop(&server_data_dir);
+            let mut editable_settings = server::EditableSettings::lan_coop(&server_data_dir);
+
+            let i18n = i18n.read();
+            let motd = ["hud-chat-singleplayer-motd1", "hud-chat-singleplayer-motd2"]
+                .iter()
+                .choose(&mut rand::rng())
+                .expect("Message of the day don't wanna play.");
+
+            editable_settings.server_description.descriptions.insert(
+                selected_language.to_string(),
+                ServerDescription {
+                    motd: i18n.get_msg(motd).to_string(),
+                    rules: None,
+                },
+            );
+
+            let file_opts = if let Some(gen_opts) = &world.gen_opts
+                && !world.is_generated
+            {
+                server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
+            } else {
+                if !world.is_generated && world.gen_opts.is_none() {
+                    world.copy_default_world();
+                }
+                server::FileOpts::Load(world.map_path.clone())
+            };
+
+            settings.map_file = Some(file_opts);
+            settings.world_seed = world.seed;
+            settings.day_length = world.day_length;
+
+            let (stop_server_s, stop_server_r) = unbounded();
+            let (server_stage_tx, server_stage_rx) = unbounded();
+
+            const PERSISTENCE_DB_DIR: &str = "saves";
+            let database_settings = DatabaseSettings {
+                db_dir: server_data_dir.join(PERSISTENCE_DB_DIR),
+                sql_log_mode: SqlLogMode::Disabled,
+            };
+
+            let paused = Arc::new(AtomicBool::new(false));
+            let paused1 = Arc::clone(&paused);
+
+            let (result_sender, result_receiver) = bounded(1);
+
+            let builder = thread::Builder::new().name("lan-coop-server-thread".into());
+            let runtime = Arc::clone(runtime);
+            let thread = builder
+                .spawn(move || {
+                    trace!("starting LAN co-op server thread");
+
+                    let (server, init_result) = match Server::new(
+                        settings,
+                        editable_settings,
+                        database_settings,
+                        &server_data_dir,
+                        &|init_stage| {
+                            let _ = server_stage_tx.send(init_stage);
+                        },
+                        runtime,
+                    ) {
+                        Ok(server) => (Some(server), Ok(())),
+                        Err(err) => (None, Err(err)),
+                    };
+
+                    match (result_sender.send(init_result), server) {
+                        (Err(e), _) => warn!(
+                            ?e,
+                            "Failed to send LAN co-op server initialization result."
+                        ),
+                        (Ok(()), None) => (),
+                        (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                    }
+
+                    trace!("ending LAN co-op server thread");
+                })
+                .unwrap();
+
+            *self = SingleplayerState::Running(Singleplayer {
+                _server_thread: thread,
+                stop_server_s,
+                init_stage_receiver: server_stage_rx,
+                receiver: result_receiver,
+                paused,
+                is_lan: true,
+            });
+        } else {
+            error!("SingleplayerState::run_lan_coop called, but server is already running!");
         }
     }
 

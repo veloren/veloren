@@ -123,12 +123,32 @@ impl PlayState for MainMenuState {
 
                 match singleplayer.receiver.try_recv() {
                     Ok(Ok(())) => {
-                        // Attempt login after the server is finished initializing
+                        // Attempt login after the server is finished initializing.
+                        // For LAN co-op the host connects via TCP so other LAN players
+                        // can reach the same server; singleplayer uses the in-process
+                        // MPSC channel (no network overhead).
+                        let is_lan = singleplayer.is_lan;
+                        let connection_args = if is_lan {
+                            ConnectionArgs::Tcp {
+                                hostname: format!(
+                                    "127.0.0.1:{}",
+                                    server::settings::LAN_COOP_PORT
+                                ),
+                                prefer_ipv6: false,
+                            }
+                        } else {
+                            ConnectionArgs::Mpsc(14004)
+                        };
+                        let username = if is_lan {
+                            global_state.settings.networking.username.clone()
+                        } else {
+                            "singleplayer".to_owned()
+                        };
                         attempt_login(
                             &mut global_state.info_message,
-                            "singleplayer".to_owned(),
+                            username,
                             "".to_owned(),
-                            ConnectionArgs::Mpsc(14004),
+                            connection_args,
                             &mut self.init,
                             &global_state.tokio_runtime,
                             global_state.settings.language.send_to_server.then_some(
@@ -490,6 +510,18 @@ impl PlayState for MainMenuState {
                 },
                 #[cfg(feature = "singleplayer")]
                 MainMenuEvent::InitSingleplayer => {
+                    global_state.singleplayer = SingleplayerState::init();
+                },
+                #[cfg(feature = "singleplayer")]
+                MainMenuEvent::StartLanCoop => {
+                    global_state.singleplayer.run_lan_coop(
+                        &global_state.tokio_runtime,
+                        &global_state.settings.language.selected_language,
+                        &global_state.i18n,
+                    );
+                },
+                #[cfg(feature = "singleplayer")]
+                MainMenuEvent::InitLanCoop => {
                     global_state.singleplayer = SingleplayerState::init();
                 },
                 #[cfg(feature = "singleplayer")]

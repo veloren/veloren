@@ -45,6 +45,8 @@ const ADMINS_FILENAME: &str = "admins.ron";
 const SERVER_PHYSICS_FORCE_FILENAME: &str = "server_physics_force.ron";
 
 pub const SINGLEPLAYER_SERVER_NAME: &str = "Singleplayer";
+pub const LAN_COOP_SERVER_NAME: &str = "LAN Co-op";
+pub const LAN_COOP_PORT: u16 = 14004;
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum ServerBattleMode {
@@ -219,7 +221,7 @@ impl Default for Settings {
                     address: SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14004)),
                 },
             ],
-            auth_server_address: Some("https://auth.veloren.net".into()),
+            auth_server_address: None,
             query_address: Some(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14006))),
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Server".into(),
@@ -311,6 +313,28 @@ impl Settings {
             max_view_distance: None,
             client_timeout: Duration::from_secs(180),
             ..load // Fill in remaining fields from server_settings.ron.
+        }
+    }
+
+    /// Settings for a LAN co-op session: listens on all interfaces at the
+    /// well-known port so other players on the local network can connect.
+    pub fn lan_coop(path: &Path) -> Self {
+        let load = Self::load(path);
+        Self {
+            gameserver_protocols: vec![Protocol::Tcp {
+                address: SocketAddr::from((Ipv4Addr::UNSPECIFIED, LAN_COOP_PORT)),
+            }],
+            auth_server_address: None,
+            world_seed: if load.map_file.is_some() {
+                load.world_seed
+            } else {
+                DEFAULT_WORLD_SEED
+            },
+            server_name: LAN_COOP_SERVER_NAME.to_owned(),
+            max_players: 8,
+            max_view_distance: None,
+            client_timeout: Duration::from_secs(180),
+            ..load
         }
     }
 
@@ -415,4 +439,8 @@ impl EditableSettings {
             ..load
         }
     }
+
+    /// Editable settings for a LAN co-op session. Uses default settings
+    /// without pre-assigned admins; the host connects as a regular player.
+    pub fn lan_coop(data_dir: &Path) -> Self { Self::load(data_dir) }
 }
