@@ -365,8 +365,8 @@ impl FileOpts {
                     x_lg, y_lg, scale, ..
                 } = opts;
                 let map = match map {
-                    WorldFile::Veloren0_7_0(map) => map,
-                    WorldFile::Veloren0_5_0(_) => {
+                    WorldFile::Map0_7_0(map) => map,
+                    WorldFile::Map0_5_0(_) => {
                         panic!("World file v0.5.0 isn't supported with LoadOrGenerate.")
                     },
                 };
@@ -482,7 +482,7 @@ pub struct WorldFileLegacy {
     pub basement: Box<[Alt]>,
 }
 
-/// Version of the world map originally from upstream Veloren 0.5.0.
+/// Version of the world map originally from upstream 0.5.0.
 #[derive(Serialize, Deserialize)]
 #[repr(C)]
 pub struct WorldMap_0_5_0 {
@@ -492,7 +492,7 @@ pub struct WorldMap_0_5_0 {
     pub basement: Box<[Alt]>,
 }
 
-/// Version of the world map originally from upstream Veloren 0.7.0.
+/// Version of the world map originally from upstream 0.7.0.
 #[derive(Serialize, Deserialize)]
 #[repr(C)]
 pub struct WorldMap_0_7_0 {
@@ -525,7 +525,7 @@ pub enum WorldFileError {
 /// invalidation or make sure that the map is synchronized with updates to
 /// noise-rs, changes to other parameters, etc.
 ///
-/// The map is versioned to enable format detection between upstream Veloren versions,
+/// The map is versioned to enable format detection between world versions,
 /// so that when we update the map format we don't break existing maps (or at
 /// least, we will try hard not to break maps between versions; if we can't
 /// avoid it, we can at least give a reasonable error message).
@@ -546,8 +546,8 @@ pub enum WorldFileError {
 #[derive(Serialize, Deserialize)]
 #[repr(u32)]
 pub enum WorldFile {
-    Veloren0_5_0(WorldMap_0_5_0) = 0,
-    Veloren0_7_0(WorldMap_0_7_0) = 1,
+    Map0_5_0(WorldMap_0_5_0) = 0,
+    Map0_7_0(WorldMap_0_7_0) = 1,
 }
 
 impl FileAsset for WorldFile {
@@ -654,15 +654,15 @@ impl WorldFile {
     /// for serialization. Whenever a new map is updated, just change the
     /// variant we construct here to make sure we're using the latest map
     /// version.
-    pub fn new(map: ModernMap) -> Self { WorldFile::Veloren0_7_0(map) }
+    pub fn new(map: ModernMap) -> Self { WorldFile::Map0_7_0(map) }
 
     #[inline]
     /// Turns a WorldFile into the latest version.  Whenever a new map version
     /// is added, just add it to this match statement.
     pub fn into_modern(self) -> Result<ModernMap, WorldFileError> {
         match self {
-            WorldFile::Veloren0_5_0(map) => map.into_modern(),
-            WorldFile::Veloren0_7_0(map) => map.into_modern(),
+            WorldFile::Map0_5_0(map) => map.into_modern(),
+            WorldFile::Map0_7_0(map) => map.into_modern(),
         }
     }
 }
