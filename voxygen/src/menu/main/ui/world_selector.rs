@@ -71,6 +71,7 @@ impl Screen {
         worlds: &crate::singleplayer::SingleplayerWorlds,
         i18n: &Localization,
         button_style: style::button::Style,
+        lan_mode: bool,
     ) -> Element<'_, Message> {
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
@@ -570,11 +571,15 @@ impl Screen {
 
             let play_button = Container::new(neat_button(
                 &mut self.play_button,
-                i18n.get_msg(if world.is_generated || world.gen_opts.is_none() {
-                    "main-singleplayer-play"
+                if lan_mode {
+                    i18n.get_msg("main-lan_coop-play")
                 } else {
-                    "main-singleplayer-generate_and_play"
-                }),
+                    i18n.get_msg(if world.is_generated || world.gen_opts.is_none() {
+                        "main-singleplayer-play"
+                    } else {
+                        "main-singleplayer-generate_and_play"
+                    })
+                },
                 FILL_FRAC_TWO,
                 button_style,
                 Some(Message::SingleplayerPlay),

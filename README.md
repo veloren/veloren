@@ -69,12 +69,21 @@ Runs a fully self-contained server. Players connect with any username — no ext
 # Dev build (fast iteration)
 ./nova-forge.sh build
 
-# Optimised release build
+# Optimised release build (also copies assets/ beside the binaries)
 ./nova-forge.sh release
+
+# Launch the release client
+./nova-forge.sh run-release
 
 # Run tests
 ./nova-forge.sh test
 ```
+
+> **Windows note:** After `./nova-forge.sh release`, the `assets/` folder is copied into
+> `target/release/` so you can run `veloren-voxygen.exe` directly from that directory
+> (e.g. by double-clicking). If you move the binary elsewhere, copy the `assets/` folder
+> alongside it, or set the `VELOREN_ASSETS` environment variable to point to the assets
+> directory in the repository root.
 
 ---
 
@@ -95,6 +104,14 @@ Runs a fully self-contained server. Players connect with any username — no ext
 ### **Q:** What platforms are supported?
 
 **A:** Linux (x86_64, ARM64), macOS, and Windows. x86_64 is the primary development target.
+
+### **Q:** The game crashes with "Asset directory not found" when I launch it.
+
+**A:** The client needs the `assets/` folder to be next to the executable. If you built with
+`./nova-forge.sh release`, run `./nova-forge.sh run-release` instead of launching the binary
+directly, or copy the `assets/` folder from the repository root into the same directory as
+`veloren-voxygen.exe`. Alternatively, set the `VELOREN_ASSETS` environment variable to the
+full path of the repository's `assets/` directory before launching.
 
 ---
 
