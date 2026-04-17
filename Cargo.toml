@@ -139,7 +139,6 @@ systems = ["x86_64-linux"]
 
 [workspace.metadata.nix.cachix]
 name = "nova-forge-nix"
-key = "nova-forge-nix.cachix.org-1:"
 
 ### DEPENDENCIES ###
 
