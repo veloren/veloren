@@ -9,6 +9,13 @@ rustflags = [
     "-C", "link-arg=-fuse-ld=mold",
 ]
 
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    # Disable MSVC incremental linking to avoid LNK1318 (Unexpected PDB error)
+    # which occurs on large workspaces with many object files
+    "-C", "link-arg=/INCREMENTAL:NO",
+]
+
 [target.x86_64-pc-windows-gnu]
 rustflags = [
     # Required for mimalloc
