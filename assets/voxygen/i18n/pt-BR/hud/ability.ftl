@@ -4,17 +4,17 @@ common-abilities-staff-fireshockwave = Anel de Fogo
     .desc = Incendeia o chão com uma onda de chamas.
 common-abilities-sceptre-wardingaura = Aura Protetora
     .desc = Protege seus aliados contra ataques inimigos.
-veloren-core-pseudo_abilities-sword-heavy_stance = Postura Pesada
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Postura Pesada
     .desc = Ataques com esta postura podem atordoar o adversário e causam dano extra a inimigos atordoados, mas são mais lentos.
-veloren-core-pseudo_abilities-sword-agile_stance = Postura Ágil
+nova-forge-core-pseudo_abilities-sword-agile_stance = Postura Ágil
     .desc = Ataques com esta postura são mais rápidos, porém mais fracos.
-veloren-core-pseudo_abilities-sword-defensive_stance = Postura Defensiva
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Postura Defensiva
     .desc = Ataques nessa postura podem funcionar como um bloqueio fraco ou contra-ataque.
-veloren-core-pseudo_abilities-sword-crippling_stance = Postura debilitante
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Postura debilitante
     .desc = Ataques nessa postura causam e acumulam ferimentos, que causam dano ao longo do tempo.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Postura dilacerante
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Postura dilacerante
     .desc = Ataques nessa postura são mais amplos e podem atingir múltiplos inimigos.
-veloren-core-pseudo_abilities-sword-double_slash = Combo duplo
+nova-forge-core-pseudo_abilities-sword-double_slash = Combo duplo
     .desc = Um combo de dois ataques.
 common-abilities-sword-basic_double_slash = Golpe Duplo Básico
     .desc = Um combo de dois ataques básicos.
@@ -28,7 +28,7 @@ common-abilities-sword-crippling_double_slash = Golpe Duplo Debilitante
     .desc = Combinação de dois ataques que agravam ferimentos.
 common-abilities-sword-cleaving_double_slash = Golpe Duplo Dilacerante
     .desc = Combinação de dois ataques que atingem múltiplos alvos.
-veloren-core-pseudo_abilities-sword-secondary_ability = Habilidade de Ataque Secundário
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Habilidade de Ataque Secundário
     .desc = A habilidade adicionada ao ataque secundário da espada.
 common-abilities-sword-basic_thrust = Estocada Básica
     .desc = Carregar a estocada a torna mais poderosa.
@@ -47,7 +47,7 @@ common-abilities-sword-cleaving_spiral_slash = Golpe em Espiral
 common-abilities-sword-cleaving_dual_spiral_slash = Golpe Duplo em Espiral
     .desc = Gire ambas as suas lâminas completamente ao seu redor para atingir qualquer um próximo.
 # Crescent
-veloren-core-pseudo_abilities-sword-crescent_slash = Golpe Crescente
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Golpe Crescente
     .desc =
         Um golpe diagonal para cima
         Esta habilidade muda dependendo da postura adotada.
@@ -64,7 +64,7 @@ common-abilities-sword-crippling_crescent_slash = Golpe Crescente Debilitante
 common-abilities-sword-cleaving_crescent_slash = Golpe Crescente Dilacerante
     .desc = Um golpe diagonal para cima que pode atravessar inimigos.
 # Fell strike
-veloren-core-pseudo_abilities-sword-fell_strike = Golpe Fatal
+nova-forge-core-pseudo_abilities-sword-fell_strike = Golpe Fatal
     .desc =
         Um golpe rápido e forte
         Esta habilidade muda dependendo da postura adotada.
@@ -81,7 +81,7 @@ common-abilities-sword-crippling_fell_strike = Golpe Fatal Debilitante
 common-abilities-sword-cleaving_fell_strike = Golpe Fatal Dilacerante
     .desc = Um golpe rápido e forte que pode atravessar inimigos.
 # Skewer
-veloren-core-pseudo_abilities-sword-skewer = Perfuração
+nova-forge-core-pseudo_abilities-sword-skewer = Perfuração
     .desc =
         Uma estocada
         Esta habilidade muda dependendo da postura adotada.
@@ -98,7 +98,7 @@ common-abilities-sword-crippling_skewer = Perfuração Debilitante
 common-abilities-sword-cleaving_skewer = Perfuração Dilacerante
     .desc = Uma estocada que pode atravessar inimigos.
 # Cascade
-veloren-core-pseudo_abilities-sword-cascade = Cascata
+nova-forge-core-pseudo_abilities-sword-cascade = Cascata
     .desc =
         Um golpe de cima para baixo
         Esta habilidade muda dependendo da postura adotada.
@@ -115,7 +115,7 @@ common-abilities-sword-crippling_cascade = Cascata Debilitante
 common-abilities-sword-cleaving_cascade = Cascata Dilacerante
     .desc = Um golpe de cima para baixo que pode atravessar inimigos.
 # Cross cut
-veloren-core-pseudo_abilities-sword-cross_cut = Corte Cruzado
+nova-forge-core-pseudo_abilities-sword-cross_cut = Corte Cruzado
     .desc =
         Golpe cortante de ambas direções
         Esta habilidade muda dependendo da postura adotada.
@@ -145,7 +145,7 @@ common-abilities-sword-crippling_dual_cross_cut = Corte Duplo Cruzado Debilitant
 common-abilities-sword-cleaving_dual_cross_cut = Corte Duplo Cruzado Dilacerante
     .desc = Um golpe cortante de ambas direções simultaneamente que pode atravessar inimigos.
 # Finisher
-veloren-core-pseudo_abilities-sword-finisher = Finalizador
+nova-forge-core-pseudo_abilities-sword-finisher = Finalizador
     .desc =
         Uma habilidade poderosa que consome combo e utilizada para finalizar o inimigo.
         Esta habilidade muda dependendo da postura adotada.

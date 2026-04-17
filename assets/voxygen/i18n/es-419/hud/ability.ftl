@@ -5,17 +5,17 @@ common-abilities-staff-fireshockwave = Onda de choque
 common-abilities-sceptre-wardingaura = Aura del guardián
     .desc = Emana de ti un aura que te protege a ti y a tus aliados.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Posición Robusta
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Posición Robusta
     .desc = Tus ataques pueden aturdir a los enemigos y se vuelven más potentes y lentos.
-veloren-core-pseudo_abilities-sword-agile_stance = Posición ágil
+nova-forge-core-pseudo_abilities-sword-agile_stance = Posición ágil
     .desc = Tus ataques son más rápidos y débiles.
-veloren-core-pseudo_abilities-sword-defensive_stance = Posición defensiva
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Posición defensiva
     .desc = Los ataques con la espada también sirven para bloquear pequeños ataques y realizar paradas.
-veloren-core-pseudo_abilities-sword-crippling_stance = Posición de incapacitación
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Posición de incapacitación
     .desc = Tus ataques mutilan a tus enemigos.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Posición de corte
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Posición de corte
     .desc = Ataques en esta posición pueden golpear a múltiples enemigos.
-veloren-core-pseudo_abilities-sword-double_slash = Golpe doble
+nova-forge-core-pseudo_abilities-sword-double_slash = Golpe doble
     .desc = Una sucesión de dos golpes.
 common-abilities-sword-basic_double_slash = Golpe doble
     .desc = Una sucesión básica de dos golpes.
@@ -29,7 +29,7 @@ common-abilities-sword-crippling_double_slash = Golpe doble incapacitante
     .desc = Una sucesión de dos golpes que puede prolongar el sangrado de un enemigo.
 common-abilities-sword-cleaving_double_slash = Golpe doble de corte
     .desc = Un combo de dos golpes que pueden cortar múltiples enemigos.
-veloren-core-pseudo_abilities-sword-secondary_ability = Habilidad de espada secundaria
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Habilidad de espada secundaria
     .desc = Habilidad asociada con la tecla de ataque secundaria.
 common-abilities-sword-basic_thrust = Estocada
     .desc = La estocada se puede mantener en posición para aumentar su potencia.
@@ -43,7 +43,7 @@ common-abilities-sword-crippling_deep_rend = Desgarre profundo
     .desc = Golpe que busca empeorar las heridas abiertas del objetivo. Inflige daño adicional a enemigos que están sufriendo una hemorragia.
 common-abilities-sword-cleaving_spiral_slash = Tajo circular
     .desc = Golpea a los enemigos que te rodean con un ataque giratorio.
-veloren-core-pseudo_abilities-sword-crescent_slash = Tajo creciente
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Tajo creciente
     .desc =
         Golpe ascendente con la espada en dirección vertical.
         Esta habilidad cambia según la posición de combate adoptada.
@@ -59,7 +59,7 @@ common-abilities-sword-crippling_crescent_slash = Tajo creciente incapacitante
     .desc = Golpe ascendente con la espada en dirección vertical que puede producir hemorragia.
 common-abilities-sword-cleaving_crescent_slash = Tajo creciente de Corte
     .desc = Golpe ascendente con la espada en dirección vertical que puede golpear a varios enemigos.
-veloren-core-pseudo_abilities-sword-fell_strike = Tajo horizontal
+nova-forge-core-pseudo_abilities-sword-fell_strike = Tajo horizontal
     .desc =
         Golpe fuerte y rápido con la espada en dirección horizontal.
         Esta habilidad cambia según la posición de combate adoptada.
@@ -75,7 +75,7 @@ common-abilities-sword-crippling_fell_strike = Tajo horizontal incapacitante
     .desc = Golpe fuerte y rápido con la espada en dirección horizontal que puede producir hemorragia.
 common-abilities-sword-cleaving_fell_strike = Tajo horizontal de Corte
     .desc = Golpe fuerte y rápido con la espada que puede cortar a través de enemigos.
-veloren-core-pseudo_abilities-sword-skewer = Estocada
+nova-forge-core-pseudo_abilities-sword-skewer = Estocada
     .desc =
         Golpe perforante.
         Esta habilidad cambia según la posición de combate adoptada.
@@ -91,7 +91,7 @@ common-abilities-sword-crippling_skewer = Estocada incapacitante
     .desc = Golpe perforante que puede producir hemorragia.
 common-abilities-sword-cleaving_skewer = Estocada de Corte
     .desc = Una estocada punzante capaz de atravesar a los enemigos.
-veloren-core-pseudo_abilities-sword-cascade = Cascada
+nova-forge-core-pseudo_abilities-sword-cascade = Cascada
     .desc =
         Golpe descendente.
         Esta habilidad cambia según la posición de combate adoptada.
@@ -107,7 +107,7 @@ common-abilities-sword-crippling_cross_cut = Tajo cruzado incapacitante
     .desc = Un tajo doble de izquierda a derecha que puede producir hemorragia.
 common-abilities-sword-cleaving_cross_cut = Tajo cruzado de hendedura
     .desc = Un tajo doble de izquierda a derecha que puede cortar a través de enemigos.
-veloren-core-pseudo_abilities-sword-finisher = Remate
+nova-forge-core-pseudo_abilities-sword-finisher = Remate
     .desc =
         Golpe con la espada que busca poner fin a la batalla.
         Esta habilidad cambia según la posición de combate adoptada.
@@ -247,7 +247,7 @@ common-abilities-sword-crippling_cascade = Cascada incapacitante
     .desc = Golpe descendente que puede producir hemorragia.
 common-abilities-sword-cleaving_cascade = Cascada de Corte
     .desc = Golpe descendente que puede cortar a través de enemigos.
-veloren-core-pseudo_abilities-sword-cross_cut = Tajo cruzado
+nova-forge-core-pseudo_abilities-sword-cross_cut = Tajo cruzado
     .desc =
         Un tajo doble de izquierda a derecha.
         Esta habilidad cambia según la posición de combate adoptada.

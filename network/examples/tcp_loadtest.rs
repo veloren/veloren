@@ -26,7 +26,7 @@ fn setup() -> Result<SocketAddr, u32> {
     println!("You provided address: {}", &a);
     Ok(a)
 }
-/// This example file is not running veloren-network at all,
+/// This example file is not running nova-forge-network at all,
 /// instead it's just trying to create 4 threads and pump as much bytes as
 /// possible through a specific listener, the listener needs to be created
 /// before this program is started.

@@ -11,31 +11,31 @@
 ## Estas son las habilidades mostradas en el centro del árbol de habilidades de la espada,
 ## excepto las dos primeras listadas.
 
-veloren-core-pseudo_abilities-sword-double_slash = Golpe doble
+nova-forge-core-pseudo_abilities-sword-double_slash = Golpe doble
     .desc = Una sucesión de dos golpes.
-veloren-core-pseudo_abilities-sword-secondary_ability = Habilidad de espada secundaria
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Habilidad de espada secundaria
     .desc = Habilidad asociada con la tecla de ataque secundaria.
-veloren-core-pseudo_abilities-sword-finisher = Exterminador
+nova-forge-core-pseudo_abilities-sword-finisher = Exterminador
     .desc =
         Una habilidad que consume combo y fue pensada para poner fin a la batalla.
         Esta habilidad cambia según la postura de combate adoptada.
-veloren-core-pseudo_abilities-sword-cross_cut = Tajo Cruzado
+nova-forge-core-pseudo_abilities-sword-cross_cut = Tajo Cruzado
     .desc =
         Un tajo doble de izquierda a derecha.
         Esta habilidad cambia según la postura de combate adoptada.
-veloren-core-pseudo_abilities-sword-skewer = Estocada
+nova-forge-core-pseudo_abilities-sword-skewer = Estocada
     .desc =
         Un golpe perforante.
         Esta habilidad cambia según la postura de combate adoptada.
-veloren-core-pseudo_abilities-sword-cascade = Cascada
+nova-forge-core-pseudo_abilities-sword-cascade = Cascada
     .desc =
         Golpe descendente.
         Esta habilidad cambia según la postura de combate adoptada.
-veloren-core-pseudo_abilities-sword-fell_strike = Tajo Horizontal
+nova-forge-core-pseudo_abilities-sword-fell_strike = Tajo Horizontal
     .desc =
         Golpe fuerte y rápido con la espada en dirección horizontal.
         Esta habilidad cambia según la postura de combate adoptada.
-veloren-core-pseudo_abilities-sword-crescent_slash = Tajo Creciente
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Tajo Creciente
     .desc =
         Golpe ascendente con la espada en dirección vertical.
         Esta habilidad cambia según la postura de combate adoptada.
@@ -63,7 +63,7 @@ common-abilities-sword-basic_crescent_slash = Tajo creciente
 
 ## Posición de hendedura
 
-veloren-core-pseudo_abilities-sword-cleaving_stance = Postura de Corte
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Postura de Corte
     .desc = Ataques en esta postura pueden golpear a múltiples enemigos.
 common-abilities-sword-cleaving_double_slash = Golpe doble de corte
     .desc = Un combo de dos golpes que pueden cortar múltiples enemigos.
@@ -102,7 +102,7 @@ common-abilities-sword-cleaving_earth_splitter = Divisor de la tierra
 
 ## Posición ágil
 
-veloren-core-pseudo_abilities-sword-agile_stance = Postura Ágil
+nova-forge-core-pseudo_abilities-sword-agile_stance = Postura Ágil
     .desc = Tus ataques son más rápidos pero débiles.
 common-abilities-sword-agile_double_slash = Golpe doble ágil
     .desc = Una sucesión rápida de dos golpes ligeros.
@@ -141,7 +141,7 @@ common-abilities-sword-agile_feint = Floritura
 
 ## Posición de incapacitación
 
-veloren-core-pseudo_abilities-sword-crippling_stance = Posición de incapacitación
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Posición de incapacitación
     .desc = Tus ataques incapacitan a tus enemigos.
 common-abilities-sword-crippling_double_slash = Golpe doble incapacitante
     .desc = Una sucesión de dos golpes que puede prolongar el sangrado de un enemigo.
@@ -180,7 +180,7 @@ common-abilities-sword-crippling_eviscerate = Destripamiento
 
 ## Posición intensa
 
-veloren-core-pseudo_abilities-sword-heavy_stance = Postura Robusta
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Postura Robusta
     .desc = Los ataques en esta postura pueden aturdir a los enemigos y dañar más a enemigos aturdidos, pero más lento.
 common-abilities-sword-heavy_double_slash = Golpe doble fuerte
     .desc = Una sucesión de dos golpes lentos que pueden aturdir.
@@ -219,7 +219,7 @@ common-abilities-sword-heavy_crescent_slash = Tajo Creciente Pesado
 
 ## Posición defensiva
 
-veloren-core-pseudo_abilities-sword-defensive_stance = Posición defensiva
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Posición defensiva
     .desc = Los ataques en esta postura pueden actuar como un bloqueo débil o desvío.
 common-abilities-sword-defensive_double_slash = Golpe doble defensivo
     .desc = Una sucesión de dos golpes que pueden reducir el impacto de ataques enemigos.

@@ -349,7 +349,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
 fn main() -> Result<(), Box<dyn Error>> {
     let mut app = Command::new("world_block_statistics")
         .version(common::util::DISPLAY_VERSION.as_str())
-        .author("The veloren devs <https://gitlab.com/veloren/veloren>")
+        .author("Nova-Forge contributors <https://github.com/shifty81/Nova-Forge>")
         .about("Compute and process block statistics on generated chunks")
         .subcommand(
             Command::new("generate")

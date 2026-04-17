@@ -18,7 +18,7 @@ fn main() {
     let matches = Command::new("File Server")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
-        .about("example file server implemented with veloren-network")
+        .about("example file server implemented with nova-forge-network")
         .arg(
             Arg::new("port")
                 .short('p')

@@ -46,12 +46,12 @@ pub(crate) type EntityId = i64;
 
 pub(crate) use conversions::convert_waypoint_from_database_json as parse_waypoint;
 
-const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.character";
-const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.inventory";
-const LOADOUT_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.loadout";
+const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "nova-forge.core.pseudo_containers.character";
+const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "nova-forge.core.pseudo_containers.inventory";
+const LOADOUT_PSEUDO_CONTAINER_DEF_ID: &str = "nova-forge.core.pseudo_containers.loadout";
 const OVERFLOW_ITEMS_PSEUDO_CONTAINER_DEF_ID: &str =
-    "veloren.core.pseudo_containers.overflow_items";
-const RECIPE_BOOK_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.recipe_book";
+    "nova-forge.core.pseudo_containers.overflow_items";
+const RECIPE_BOOK_PSEUDO_CONTAINER_DEF_ID: &str = "nova-forge.core.pseudo_containers.recipe_book";
 const INVENTORY_PSEUDO_CONTAINER_POSITION: &str = "inventory";
 const LOADOUT_PSEUDO_CONTAINER_POSITION: &str = "loadout";
 const OVERFLOW_ITEMS_PSEUDO_CONTAINER_POSITION: &str = "overflow_items";

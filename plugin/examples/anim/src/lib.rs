@@ -1,11 +1,11 @@
 mod bindings;
 
 use bindings::{
-    exports::veloren::plugin::{
+    exports::nova_forge::plugin::{
         animation::{self, GuestBody},
         events::Guest,
     },
-    veloren::plugin::{
+    nova_forge::plugin::{
         actions,
         types::{self, Dependency, GameMode, Quaternion, Skeleton, Transform, Vec3},
     },

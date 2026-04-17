@@ -1742,7 +1742,7 @@
     ),
     // Other
     Simple("common.items.utility.coins"): VoxTrans(
-        "voxel.item.utility.veloren_coin",
+        "voxel.item.utility.nova_forge_coin",
         (0.0, 0.0, 0.0), (-20.0, 25.0, 10.0), 0.9,
     ),
     Simple("common.items.utility.collar"): VoxTrans(

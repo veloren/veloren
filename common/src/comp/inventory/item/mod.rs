@@ -784,7 +784,7 @@ pub struct ItemDef {
     #[serde(default)]
     /// The string that refers to the filepath to the asset, relative to the
     /// assets folder, which the ItemDef is loaded from. The name space
-    /// prepended with `veloren.core` is reserved for veloren functions.
+    /// prepended with `nova-forge.core` is reserved for nova-forge functions.
     item_definition_id: String,
     #[deprecated = "since item i18n"]
     legacy_name: String,
@@ -941,7 +941,7 @@ impl PartialEq for Item {
 
 impl Asset for ItemDef {
     fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
-        if specifier.starts_with("veloren.core.") {
+        if specifier.starts_with("nova-forge.core.") {
             return Err(format!(
                 "Attempted to load an asset from a specifier reserved for core nova-forge functions. \
                  Specifier: {}",

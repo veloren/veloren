@@ -31,7 +31,7 @@ main-login_process =
 
     Стварыць уліковы запіс можна па спасылцы:
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Сервер не знойдзены.
 main-login-authentication_error = Памылка аўтэнтыфікацыі на серверы.
 main-login-internal_error = Унутраная памылка кліента. Падказка: Мабыць персанаж гульца быў выдалены.

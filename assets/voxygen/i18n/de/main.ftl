@@ -29,7 +29,7 @@ main-login_process =
     auf Servern mit aktivierter Authentifizierung zu spielen.
 
     Du kannst deinen Account hier erstellen:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Server nicht gefunden.
 main-login-authentication_error = Authentifizierungsfehler auf dem Server.
 main-login-internal_error = Interner Fehler beim Client. Hinweis: Vielleicht wurde der Charakter gelöscht.

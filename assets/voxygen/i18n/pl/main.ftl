@@ -31,7 +31,7 @@ main-login_process =
 
     Możesz to zrobić na stronie:
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Serwer nie został znaleziony
 main-login-authentication_error = Błąd autoryzacji na serwerze
 main-login-internal_error = Wewnętrzny błąd klienta (najprawdopodobniej postać gracza została usunięta)

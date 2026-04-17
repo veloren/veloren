@@ -3721,16 +3721,16 @@ pub enum Stance {
 impl Stance {
     pub fn pseudo_ability_id(&self) -> &str {
         match self {
-            Stance::Sword(SwordStance::Heavy) => "veloren.core.pseudo_abilities.sword.heavy_stance",
-            Stance::Sword(SwordStance::Agile) => "veloren.core.pseudo_abilities.sword.agile_stance",
+            Stance::Sword(SwordStance::Heavy) => "nova-forge.core.pseudo_abilities.sword.heavy_stance",
+            Stance::Sword(SwordStance::Agile) => "nova-forge.core.pseudo_abilities.sword.agile_stance",
             Stance::Sword(SwordStance::Defensive) => {
-                "veloren.core.pseudo_abilities.sword.defensive_stance"
+                "nova-forge.core.pseudo_abilities.sword.defensive_stance"
             },
             Stance::Sword(SwordStance::Crippling) => {
-                "veloren.core.pseudo_abilities.sword.crippling_stance"
+                "nova-forge.core.pseudo_abilities.sword.crippling_stance"
             },
             Stance::Sword(SwordStance::Cleaving) => {
-                "veloren.core.pseudo_abilities.sword.cleaving_stance"
+                "nova-forge.core.pseudo_abilities.sword.cleaving_stance"
             },
             Stance::Bow(BowStance::Barrage) => "common.abilities.bow.barrage",
             Stance::Bow(BowStance::Scatterburst) => "common.abilities.bow.scatterburst",
@@ -3742,7 +3742,7 @@ impl Stance {
             Stance::Bow(BowStance::Hawkstrike) => "common.abilities.bow.hawkstrike",
             Stance::Bow(BowStance::Fusillade) => "common.abilities.bow.fusillade",
             Stance::Bow(BowStance::DeathVolley) => "common.abilities.bow.death_volley",
-            Stance::None => "veloren.core.pseudo_abilities.no_stance",
+            Stance::None => "nova-forge.core.pseudo_abilities.no_stance",
         }
     }
 }

@@ -1,8 +1,8 @@
 mod bindings;
 
 use bindings::{
-    exports::veloren::plugin::events::Guest,
-    veloren::plugin::{
+    exports::nova_forge::plugin::events::Guest,
+    nova_forge::plugin::{
         actions,
         information::Entity,
         types::{self, GameMode, Health, JoinResult, PlayerId, Uid},
@@ -26,7 +26,7 @@ impl Guest for Component {
     }
 }
 
-impl bindings::exports::veloren::plugin::server_events::Guest for Component {
+impl bindings::exports::nova_forge::plugin::server_events::Guest for Component {
     fn join(player_name: String, player_id: PlayerId) -> JoinResult {
         if COUNTER.fetch_not(Ordering::SeqCst) {
             JoinResult::Kick(format!("Rejected user {player_name}, id {player_id:?}"))

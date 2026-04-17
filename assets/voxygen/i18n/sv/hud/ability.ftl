@@ -5,17 +5,17 @@ common-abilities-staff-fireshockwave = Chockvåg
 common-abilities-sceptre-wardingaura = Vårdande aura
     .desc = Skyddar dina allierade mot fiendens attacker.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Tung hållning
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Tung hållning
     .desc = Attacker i denna hållning kan göra att fiender vacklar och ge mer skada på vacklande fiender men är långsammare.
-veloren-core-pseudo_abilities-sword-agile_stance = Smidig hållning
+nova-forge-core-pseudo_abilities-sword-agile_stance = Smidig hållning
     .desc = Attacker är snabbare men svagare i denna hållning.
-veloren-core-pseudo_abilities-sword-defensive_stance = Defensiv hållning
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Defensiv hållning
     .desc = Attacker i denna hållning kan användas som en svag blockering eller parering.
-veloren-core-pseudo_abilities-sword-crippling_stance = Förlamande hållning
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Förlamande hållning
     .desc = Attacker i denna hållning skapar eller förvärrar varaktiga skador.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Klyvande hållning
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Klyvande hållning
     .desc = Attacker i denna hållning kan träffa flera fiender.
-veloren-core-pseudo_abilities-sword-double_slash = Dubbelhugg
+nova-forge-core-pseudo_abilities-sword-double_slash = Dubbelhugg
     .desc = En kombo med två träffar.
 common-abilities-sword-basic_double_slash = Grundläggande dubbelhugg
     .desc = En grundläggande tvåslagskombo.
@@ -29,7 +29,7 @@ common-abilities-sword-crippling_double_slash = Förlamande dubbelhugg
     .desc = En tvåslagskombo som kan förlänga fiendens blödande.
 common-abilities-sword-cleaving_double_slash = Klyvande dubbelhugg
     .desc = En tvåslagskombo som kan klyva genom flera fiender.
-veloren-core-pseudo_abilities-sword-secondary_ability = Sekundär svärdförmåga
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Sekundär svärdförmåga
     .desc = Förmågan bunden till sekundär attackknapp.
 common-abilities-sword-basic_thrust = Grundläggande stöt
     .desc = Laddar man upp stöten blir den kraftfullare.
@@ -47,7 +47,7 @@ common-abilities-sword-cleaving_spiral_slash = Spiralhugg
     .desc = Svep ditt blad hela vägen runt dig för att träffa alla i närheten.
 common-abilities-sword-cleaving_dual_spiral_slash = Spiralhugg
     .desc = Svep båda dina blad hela vägen runt dig för att träffa alla i närheten.
-veloren-core-pseudo_abilities-sword-crescent_slash = Halvmåneshugg
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Halvmåneshugg
     .desc =
         Ett uppåtriktat diagonellt hugg.
         Denna skill ändras beroende på din antagna hållning.
@@ -63,7 +63,7 @@ common-abilities-sword-crippling_crescent_slash = Förlamande halvmåneshugg
     .desc = Ett uppåtriktat diagonellt hugg som kan blöda.
 common-abilities-sword-cleaving_crescent_slash = Klyvande halvmåneshugg
     .desc = Ett uppåtriktat diagonellt hugg som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-fell_strike = Dödligt hugg
+nova-forge-core-pseudo_abilities-sword-fell_strike = Dödligt hugg
     .desc =
         Ett snabbt starkt hugg.
         Denna skill ändras beroende på din antagna hållning.
@@ -79,7 +79,7 @@ common-abilities-sword-crippling_fell_strike = Förlamande dödligt hugg
     .desc = Ett snabbt starkt hugg som kan blöda.
 common-abilities-sword-cleaving_fell_strike = Klyvande dödligt hugg
     .desc = Ett snabbt starkt hugg som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-skewer = Spetsning
+nova-forge-core-pseudo_abilities-sword-skewer = Spetsning
     .desc =
         Ett spetsande utfall.
         Denna skill ändras beroende på din antagna hållning.
@@ -95,7 +95,7 @@ common-abilities-sword-crippling_skewer = Förlamande spetsning
     .desc = Ett spetsande utfall som kan blöda.
 common-abilities-sword-cleaving_skewer = Klyvande spetsning
     .desc = Ett spetsande utfall som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-cascade = Kaskad
+nova-forge-core-pseudo_abilities-sword-cascade = Kaskad
     .desc =
         Ett hugg över huvudet.
         Denna skill ädnras beroende på din antagna hållning.
@@ -111,7 +111,7 @@ common-abilities-sword-crippling_cascade = Förlamande kaskad
     .desc = Ett hugg över huvudet som kan blöda.
 common-abilities-sword-cleaving_cascade = Klyvande kaskad
     .desc = Ett hugg över huvudet som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-cross_cut = Korshugg
+nova-forge-core-pseudo_abilities-sword-cross_cut = Korshugg
     .desc =
         Ett hugg åt höger och vänster.
         Denna skill ändras beroende på din antagna hållning.
@@ -139,7 +139,7 @@ common-abilities-sword-crippling_dual_cross_cut = Förlamande korshugg
     .desc = Ett hugg åt höger och vänster samtidigt som kan blöda.
 common-abilities-sword-cleaving_dual_cross_cut = Klyvande korshugg
     .desc = Ett hugg åt höger och vänster samtidigt som kan klyva genom fiender.
-veloren-core-pseudo_abilities-sword-finisher = Avslutare
+nova-forge-core-pseudo_abilities-sword-finisher = Avslutare
     .desc =
         En förmåga som konsumerar kombo och är menat för att avsluta en strid.
         Denna skill ändras beroende på din antagna hållning.

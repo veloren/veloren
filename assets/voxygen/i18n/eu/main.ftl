@@ -29,7 +29,7 @@ main-login_process =
     erabiltzen duten zerbitzarietan jokatzeko.
 
     Helbide honetan sortu dezakezu:    
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Ezin izan da zerbitzaria aurkitu
 main-login-authentication_error = Autentikazio errorea zerbitzarian
 main-login-internal_error = Barneko errorea bezeroan (baliteke jokalaria ezabatu izana)

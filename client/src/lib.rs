@@ -3566,7 +3566,7 @@ mod tests {
         let runtime2 = Arc::clone(&runtime);
         let username = "Foo";
         let password = "Bar";
-        let auth_server = "auth.veloren.net";
+        let auth_server = "auth.nova-forge.net";
         let nova_forge_client: Result<Client, Error> = runtime.block_on(Client::new(
             ConnectionArgs::Tcp {
                 hostname: "127.0.0.1:9000".to_owned(),

@@ -25,37 +25,37 @@ use wasmtime_wasi::{
 
 pub(crate) mod types_mod {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/nova-forge.wit",
         world: "common-types",
     });
 }
 
 wasmtime::component::bindgen!({
-    path: "../../plugin/wit/veloren.wit",
+    path: "../../plugin/wit/nova-forge.wit",
     world: "plugin",
     with: {
-        "veloren:plugin/types@0.0.1": types_mod::veloren::plugin::types,
-        "veloren:plugin/information@0.0.1.entity": Entity,
+        "nova-forge:plugin/types@0.0.1": types_mod::nova_forge::plugin::types,
+        "nova-forge:plugin/information@0.0.1.entity": Entity,
     },
 });
 
 mod animation_plugin {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/nova-forge.wit",
         world: "animation-plugin",
         with: {
-            "veloren:plugin/types@0.0.1": super::types_mod::veloren::plugin::types,
+            "nova-forge:plugin/types@0.0.1": super::types_mod::nova_forge::plugin::types,
         },
     });
 }
 
 mod server_plugin {
     wasmtime::component::bindgen!({
-        path: "../../plugin/wit/veloren.wit",
+        path: "../../plugin/wit/nova-forge.wit",
         world: "server-plugin",
         with: {
-            "veloren:plugin/types@0.0.1": super::types_mod::veloren::plugin::types,
-            "veloren:plugin/information@0.0.1.entity": super::Entity,
+            "nova-forge:plugin/types@0.0.1": super::types_mod::nova_forge::plugin::types,
+            "nova-forge:plugin/information@0.0.1.entity": super::Entity,
         },
     });
 }
@@ -65,11 +65,11 @@ pub struct Entity {
 }
 
 pub use animation::Body;
-use exports::veloren::plugin::animation;
-pub use types_mod::veloren::plugin::types::{
+use exports::nova_forge::plugin::animation;
+pub use types_mod::nova_forge::plugin::types::{
     self, CharacterState, Dependency, Skeleton, Transform,
 };
-use veloren::plugin::{actions, information};
+use nova_forge::plugin::{actions, information};
 
 type StoreType = wasmtime::Store<WasiHostCtx>;
 
@@ -95,9 +95,9 @@ impl PluginWrapper {
             common::resources::GameMode::Singleplayer => types::GameMode::SinglePlayer,
         };
         match self {
-            PluginWrapper::Full(pl) => pl.veloren_plugin_events().call_load(store, mode),
-            PluginWrapper::Animation(pl) => pl.veloren_plugin_events().call_load(store, mode),
-            PluginWrapper::Server(pl) => pl.veloren_plugin_events().call_load(store, mode),
+            PluginWrapper::Full(pl) => pl.nova_forge_plugin_events().call_load(store, mode),
+            PluginWrapper::Animation(pl) => pl.nova_forge_plugin_events().call_load(store, mode),
+            PluginWrapper::Server(pl) => pl.nova_forge_plugin_events().call_load(store, mode),
         }
     }
 
@@ -113,11 +113,11 @@ impl PluginWrapper {
     {
         match self {
             PluginWrapper::Full(pl) => pl
-                .veloren_plugin_server_events()
+                .nova_forge_plugin_server_events()
                 .call_command(store, name, args, player),
             PluginWrapper::Animation(_) => Ok(Err("not implemented".into())),
             PluginWrapper::Server(pl) => pl
-                .veloren_plugin_server_events()
+                .nova_forge_plugin_server_events()
                 .call_command(store, name, args, player),
         }
     }
@@ -130,11 +130,11 @@ impl PluginWrapper {
     ) -> wasmtime::Result<types::JoinResult> {
         match self {
             PluginWrapper::Full(pl) => pl
-                .veloren_plugin_server_events()
+                .nova_forge_plugin_server_events()
                 .call_join(store, name, uuid),
             PluginWrapper::Animation(_) => Ok(types::JoinResult::None),
             PluginWrapper::Server(pl) => pl
-                .veloren_plugin_server_events()
+                .nova_forge_plugin_server_events()
                 .call_join(store, name, uuid),
         }
     }
@@ -142,11 +142,11 @@ impl PluginWrapper {
     fn create_body(&self, store: &mut StoreType, bodytype: i32) -> Option<animation::Body> {
         match self {
             PluginWrapper::Full(pl) => {
-                let body_iface = pl.veloren_plugin_animation().body();
+                let body_iface = pl.nova_forge_plugin_animation().body();
                 body_iface.call_constructor(store, bodytype).ok()
             },
             PluginWrapper::Animation(pl) => {
-                let body_iface = pl.veloren_plugin_animation().body();
+                let body_iface = pl.nova_forge_plugin_animation().body();
                 body_iface.call_constructor(store, bodytype).ok()
             },
             PluginWrapper::Server(_) => None,
@@ -162,11 +162,11 @@ impl PluginWrapper {
     ) -> Option<types::Skeleton> {
         match self {
             PluginWrapper::Full(pl) => {
-                let body_iface = pl.veloren_plugin_animation().body();
+                let body_iface = pl.nova_forge_plugin_animation().body();
                 body_iface.call_update_skeleton(store, body, dep, time).ok()
             },
             PluginWrapper::Animation(pl) => {
-                let body_iface = pl.veloren_plugin_animation().body();
+                let body_iface = pl.nova_forge_plugin_animation().body();
                 body_iface.call_update_skeleton(store, body, dep, time).ok()
             },
             PluginWrapper::Server(_) => None,
@@ -418,7 +418,7 @@ impl PluginModule {
 
     pub fn name(&self) -> &str { &self.name }
 
-    // Implementation of the commands called from veloren and provided in plugins
+    // Implementation of the commands called from nova-forge and provided in plugins
     pub fn load_event(
         &mut self,
         ecs: &EcsWorld,

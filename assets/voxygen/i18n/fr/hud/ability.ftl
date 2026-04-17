@@ -12,16 +12,16 @@ common-abilities-sword-heavy_fortitude = Fortitude
     .desc =
         Augmente la résistance à l'étourdissement et plus vous subissez de dégâts, plus vos attaques sont étourdissantes.
         Nécessite d'être en Posture lourde.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Posture tranchante
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Posture tranchante
     .desc = Les attaques avec cette posture peuvent toucher plusieurs ennemis.
-veloren-core-pseudo_abilities-sword-crippling_stance = Posture incapacitante
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Posture incapacitante
     .desc = Les attaques avec cette posture créent ou aggravent des blessures.
-veloren-core-pseudo_abilities-sword-agile_stance = Posture agile
+nova-forge-core-pseudo_abilities-sword-agile_stance = Posture agile
     .desc = Les attaques avec cette posture sont plus rapides mais plus faibles.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Posture lourde
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Posture lourde
     .desc = Les attaques avec cette posture peuvent étourdir les ennemis et infliger plus de dégâts aux ennemis étourdis, mais sont plus lentes.
-veloren-core-pseudo_abilities-sword-defensive_stance = Posture défensive
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Posture défensive
     .desc = Les attaques avec cette posture peuvent agir comme des parades ou des blocages.
 common-abilities-sword-basic_thrust = Frappe basique
     .desc = Charger le coup le rendra plus puissant.
@@ -47,7 +47,7 @@ common-abilities-sword-crippling_double_slash = Double coup incapacitant
     .desc = Un combo en deux coups qui peut prolonger le saignement d'un ennemi.
 common-abilities-sword-heavy_double_slash = Double coup lourd
     .desc = Un combo plus lent en deux coups pouvant étourdir.
-veloren-core-pseudo_abilities-sword-double_slash = Double entaille
+nova-forge-core-pseudo_abilities-sword-double_slash = Double entaille
     .desc = Un combo en deux coups.
 common-abilities-sword-cleaving_dual_spiral_slash = Coup en spirale
     .desc = Fait tournoyer vos deux lames autour de vous pour toucher n'importe qui de proche.
@@ -61,7 +61,7 @@ common-abilities-sword-basic_crescent_slash = Coup ascendant basique
     .desc = Un coup diagonal basique vers le haut.
 common-abilities-sword-defensive_double_slash = Double coup défensif
     .desc = Un combo en deux coups qui réduit les effets des frappes ennemies.
-veloren-core-pseudo_abilities-sword-secondary_ability = Capacité de la deuxième épée
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Capacité de la deuxième épée
     .desc = La capacité liée à la deuxième touche d'attaque.
 common-abilities-sword-heavy_crescent_slash = Coup ascendant lourd
     .desc = Un coup diagonal vers le haut pouvant étourdir.
@@ -69,7 +69,7 @@ common-abilities-sword-cleaving_spiral_slash = Coup en spirale
     .desc = Fait tournoyer votre lame autour de vous pour toucher n'importe qui de proche.
 common-abilities-sword-basic_skewer = Embrochage basique
     .desc = Une fente poignardante basique.
-veloren-core-pseudo_abilities-sword-cascade = Cascade
+nova-forge-core-pseudo_abilities-sword-cascade = Cascade
     .desc =
         Un coup aérien.
         Cette compétence change en fonction de la Posture adoptée.
@@ -77,7 +77,7 @@ common-abilities-sword-basic_cascade = Cascade basique
     .desc = Un coup aérien basique.
 common-abilities-sword-agile_cascade = Cascade Agile
     .desc = Un coup aérien rapide.
-veloren-core-pseudo_abilities-sword-fell_strike = Frappe tombante
+nova-forge-core-pseudo_abilities-sword-fell_strike = Frappe tombante
     .desc =
         Un coup fort et rapide.
         Cette compétence change en fonction de la Posture adoptée.
@@ -89,7 +89,7 @@ common-abilities-sword-crippling_skewer = Embrochage incapacitant
     .desc = Une fente poignardante qui peut faire saigner.
 common-abilities-sword-agile_cross_cut = Coup croix agile
     .desc = Un coup rapide à droite et gauche.
-veloren-core-pseudo_abilities-sword-crescent_slash = Coup ascendant
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Coup ascendant
     .desc =
         Un coup diagonal vers le haut.
         Cette compétence change en fonction de la Posture adoptée.
@@ -109,7 +109,7 @@ common-abilities-sword-cleaving_fell_strike = Frappe tombante tranchante
     .desc = Un rapide coup fort qui peut trancher au travers des ennemis.
 common-abilities-sword-crippling_fell_strike = Frappe tombante incapacitante
     .desc = Un rapide coup fort qui peut faire saigner.
-veloren-core-pseudo_abilities-sword-cross_cut = Coup croix
+nova-forge-core-pseudo_abilities-sword-cross_cut = Coup croix
     .desc =
         Un coup de taille à droite et à gauche.
         Cette compétence change en fonction de la Posture adoptée.
@@ -119,7 +119,7 @@ common-abilities-sword-defensive_cross_cut = Coup croix défensif
     .desc = Un coup parant à droite et gauche.
 common-abilities-sword-crippling_cross_cut = Coup croix incapacitant
     .desc = Un coup à droite et gauche qui peuvent faire saigner.
-veloren-core-pseudo_abilities-sword-skewer = Embrochage
+nova-forge-core-pseudo_abilities-sword-skewer = Embrochage
     .desc =
         Une fente poignardante.
         Cette compétence change en fonction de la Posture adoptée.
@@ -287,7 +287,7 @@ common-abilities-sword-defensive_dual_cross_cut = Coup croix défensif
     .desc = Un coup simultané parant à droite et gauche.
 common-abilities-sword-crippling_dual_cross_cut = Coup croix incapacitant
     .desc = Un coup simultané à droite et gauche qui peuvent faire saigner.
-veloren-core-pseudo_abilities-sword-finisher = Coup de grâce
+nova-forge-core-pseudo_abilities-sword-finisher = Coup de grâce
     .desc =
         Une capacité consommant le combo et faite pour terminer un combat.
         Cette compétence change en fonction de la Posture adoptée.

@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Nova-Forge
+
+- Rebranded project from Veloren to Nova-Forge: all crate names, binary names,
+  environment variables, and UI strings updated.
+- Removed mandatory authentication: all play modes (singleplayer, LAN co-op, dedicated
+  server) work without an account or internet connection.
+- Added built-in LAN co-op hosting from the main menu.
+- Updated `/wiki` command to open the Nova-Forge GitHub repository.
+- Added database migration (V71) to rename `veloren.core.*` item definition IDs to
+  `nova-forge.core.*`, ensuring existing character databases continue to work.
+- Replaced Veloren GitLab CI configuration with Nova-Forge GitHub-native workflows.
+- Updated desktop integration files to `io.nova-forge.nova-forge.*` identifiers.
+
 ### Added
 
 - Translators can now use fragment-based templates for modular weapons.
@@ -1627,7 +1640,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Note: 0.1.0 was part of the legacy engine.
 
-[unreleased]: https://gitlab.com/veloren/veloren/compare?from=v0.18.0&to=master
+[unreleased]: https://github.com/shifty81/Nova-Forge/compare/v0.18.0...HEAD
 [0.18.0]: https://gitlab.com/veloren/veloren/compare?from=v0.17.0&to=v0.18.0
 [0.17.0]: https://gitlab.com/veloren/veloren/compare?from=v0.16.0&to=v0.17.0
 [0.16.0]: https://gitlab.com/veloren/veloren/compare?from=v0.15.0&to=v0.16.0

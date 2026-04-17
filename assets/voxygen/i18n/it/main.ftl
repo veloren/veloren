@@ -31,7 +31,7 @@ main-login_process =
 
     Puoi creare un account su
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-singleplayer-new = Nuovo
 main-singleplayer-delete = Cancella
 main-singleplayer-regenerate = Rigenera

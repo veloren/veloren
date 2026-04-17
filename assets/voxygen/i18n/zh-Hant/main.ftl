@@ -28,7 +28,7 @@ main-login_process =
     請注意，您需要一個帳號才能在啟用了認證的伺服器上遊玩
 
     您可以在以下網址創建帳號：
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-singleplayer-new = 新遊戲
 main-singleplayer-delete = 刪除
 main-singleplayer-regenerate = 重新生成

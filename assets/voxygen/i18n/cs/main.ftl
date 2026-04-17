@@ -27,7 +27,7 @@ main-login_process =
     Nezapomeňte, že k připojení na server se zapnutým ověřením potřebujete účet.
 
     Účet si můžete vytvořit na webu:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Server nenalezen.
 main-login-authentication_error = Chyba ověření na serveru.
 main-login-internal_error = Interní chyba klienta. Nápověda: Hráčova postava mohla být smazána.

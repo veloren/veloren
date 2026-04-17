@@ -577,7 +577,7 @@ pub type ModernMap = WorldMap_0_7_0;
 // seed: 3582734543
 //
 // The biome seed can found below
-pub const DEFAULT_WORLD_MAP: &str = "world.map.veloren_0_18_0_0";
+pub const DEFAULT_WORLD_MAP: &str = "world.map.nova_forge_0_18_0_0";
 /// This is *not* the seed used to generate the default map, this seed was used
 /// to generate a better set of biomes on it as the original ones were
 /// unsuitable.

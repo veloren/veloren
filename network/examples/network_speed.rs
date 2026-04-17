@@ -24,13 +24,13 @@ enum Msg {
     Pong { id: u64, data: Vec<u8> },
 }
 
-/// This utility tests the speed of veloren network by creating a client that
+/// This utility tests the speed of nova-forge-network by creating a client that
 /// opens a stream and pipes as many messages through it as possible.
 fn main() {
     let matches = Command::new("Nova-Forge Speed Test Utility")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
-        .about("Runs speedtests regarding different parameter to benchmark veloren-network")
+        .about("Runs speedtests regarding different parameter to benchmark nova-forge-network")
         .arg(
             Arg::new("mode")
                 .short('m')

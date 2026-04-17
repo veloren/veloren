@@ -1790,32 +1790,32 @@ impl Diary<'_> {
         let skill_buttons = &[
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::CrescentSlash),
-                ability_id: "veloren.core.pseudo_abilities.sword.crescent_slash",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.crescent_slash",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 537.0, 429.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::FellStrike),
-                ability_id: "veloren.core.pseudo_abilities.sword.fell_strike",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.fell_strike",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 457.0, 527.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::Skewer),
-                ability_id: "veloren.core.pseudo_abilities.sword.skewer",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.skewer",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 368.0, 527.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::Cascade),
-                ability_id: "veloren.core.pseudo_abilities.sword.cascade",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.cascade",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 457.0, 332.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::CrossCut),
-                ability_id: "veloren.core.pseudo_abilities.sword.cross_cut",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.cross_cut",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 368.0, 332.0),
             },
             SkillIcon::Ability {
                 skill: Skill::Sword(SwordSkill::Finisher),
-                ability_id: "veloren.core.pseudo_abilities.sword.finisher",
+                ability_id: "nova-forge.core.pseudo_abilities.sword.finisher",
                 position: TopLeftWithMarginsOn(state.ids.sword_bg, 263.0, 429.0),
             },
             SkillIcon::Ability {

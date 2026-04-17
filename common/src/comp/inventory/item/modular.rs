@@ -20,7 +20,7 @@ use std::{borrow::Cow, sync::Arc};
 #[macro_export]
 macro_rules! modular_item_id_prefix {
     () => {
-        "veloren.core.pseudo_items.modular."
+        "nova-forge.core.pseudo_items.modular."
     };
 }
 

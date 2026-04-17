@@ -31,7 +31,7 @@ main-login_process =
 
     Pots crear un compte a
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = No s'ha trobat el Servidor
 main-login-authentication_error = Error d'Autentificació al Servidor
 main-login-internal_error = Error intern en el client (probablement el personatge del jugador ha estat esborrat)

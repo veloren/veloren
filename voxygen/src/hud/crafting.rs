@@ -356,7 +356,7 @@ impl Widget for Crafting<'_> {
         // more than 1 field.
         if self.show.crafting_fields.initialize_repair {
             state.update(|s| {
-                s.selected_recipe = Some(String::from("veloren.core.pseudo_recipe.repair"))
+                s.selected_recipe = Some(String::from("nova-forge.core.pseudo_recipe.repair"))
             });
         }
         self.show.crafting_fields.initialize_repair = false;
@@ -585,7 +585,7 @@ impl Widget for Crafting<'_> {
         let pseudo_entries = {
             let mut pseudo_entries = BTreeMap::new();
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon"),
                 (
                     &weapon_recipe,
                     self.localized_strings
@@ -595,7 +595,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.sword"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.sword"),
                 (
                     &metal_comp_recipe,
                     self.localized_strings
@@ -605,7 +605,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.axe"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.axe"),
                 (
                     &metal_comp_recipe,
                     self.localized_strings
@@ -615,7 +615,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.hammer"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.hammer"),
                 (
                     &metal_comp_recipe,
                     self.localized_strings
@@ -625,7 +625,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.bow"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.bow"),
                 (
                     &wood_comp_recipe,
                     self.localized_strings
@@ -635,7 +635,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.staff"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.staff"),
                 (
                     &wood_comp_recipe,
                     self.localized_strings
@@ -645,7 +645,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.modular_weapon_component.sceptre"),
+                String::from("nova-forge.core.pseudo_recipe.modular_weapon_component.sceptre"),
                 (
                     &wood_comp_recipe,
                     self.localized_strings
@@ -655,7 +655,7 @@ impl Widget for Crafting<'_> {
                 ),
             );
             pseudo_entries.insert(
-                String::from("veloren.core.pseudo_recipe.repair"),
+                String::from("nova-forge.core.pseudo_recipe.repair"),
                 (
                     &repair_recipe,
                     self.localized_strings
@@ -1018,26 +1018,26 @@ impl Widget for Crafting<'_> {
             }
 
             let recipe_kind = match recipe_name.as_str() {
-                "veloren.core.pseudo_recipe.modular_weapon" => RecipeKind::ModularWeapon,
-                "veloren.core.pseudo_recipe.modular_weapon_component.sword" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon" => RecipeKind::ModularWeapon,
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.sword" => {
                     RecipeKind::Component(ToolKind::Sword)
                 },
-                "veloren.core.pseudo_recipe.modular_weapon_component.axe" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.axe" => {
                     RecipeKind::Component(ToolKind::Axe)
                 },
-                "veloren.core.pseudo_recipe.modular_weapon_component.hammer" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.hammer" => {
                     RecipeKind::Component(ToolKind::Hammer)
                 },
-                "veloren.core.pseudo_recipe.modular_weapon_component.bow" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.bow" => {
                     RecipeKind::Component(ToolKind::Bow)
                 },
-                "veloren.core.pseudo_recipe.modular_weapon_component.staff" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.staff" => {
                     RecipeKind::Component(ToolKind::Staff)
                 },
-                "veloren.core.pseudo_recipe.modular_weapon_component.sceptre" => {
+                "nova-forge.core.pseudo_recipe.modular_weapon_component.sceptre" => {
                     RecipeKind::Component(ToolKind::Sceptre)
                 },
-                "veloren.core.pseudo_recipe.repair" => RecipeKind::Repair,
+                "nova-forge.core.pseudo_recipe.repair" => RecipeKind::Repair,
                 _ => RecipeKind::Simple,
             };
 

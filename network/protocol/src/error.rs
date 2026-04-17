@@ -18,7 +18,7 @@ pub enum ProtocolError<E: std::fmt::Debug + Send> {
     /// Custom Error on the underlying I/O,
     /// e.g. the TCP, UDP or MPSC connection is dropped by the OS
     Custom(E),
-    /// Violated indicates the veloren_network_protocol was violated
+    /// Violated indicates the nova_forge_network_protocol was violated
     /// the underlying I/O connection is still valid, but the remote side
     /// send WRONG (e.g. Invalid, or wrong order) data on the protocol layer.
     Violated,

@@ -13,17 +13,17 @@ common-abilities-staff-fireshockwave = Anello di fuoco
 common-abilities-sceptre-wardingaura = Aura protettiva
     .desc = Proteggi i tuoi alleati dagli attacchi nemici.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Posizione possente
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Posizione possente
     .desc = Gli attacchi in questa posizione possono stordire i nemici e infliggere più danni ai nemici storditi ma sono più lenti
-veloren-core-pseudo_abilities-sword-agile_stance = Posizione agile
+nova-forge-core-pseudo_abilities-sword-agile_stance = Posizione agile
     .desc = Gli attacchi in questa posizione sono più veloci ma più deboli
-veloren-core-pseudo_abilities-sword-defensive_stance = Posizione difensiva
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Posizione difensiva
     .desc = Gli attacchi in questa posizione possono agire come un debole blocco o una parata
-veloren-core-pseudo_abilities-sword-crippling_stance = Posizione devastante
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Posizione devastante
     .desc = Gli attacchi in questa posizione creano o peggiorano lesioni durature
-veloren-core-pseudo_abilities-sword-cleaving_stance = Posizione tagliente
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Posizione tagliente
     .desc = Gli attacchi in questa posizione possono colpire più nemici
-veloren-core-pseudo_abilities-sword-double_slash = Doppio colpo
+nova-forge-core-pseudo_abilities-sword-double_slash = Doppio colpo
     .desc = Una combinazione di due colpi
 common-abilities-sword-basic_double_slash = Doppio colpo base
     .desc = Una combinazione base di due colpi
@@ -37,7 +37,7 @@ common-abilities-sword-crippling_double_slash = Doppio colpo devastante
     .desc = Un combo di due colpi che può prolungare il sanguinamento dell'avversario
 common-abilities-sword-cleaving_double_slash = Doppio colpo fendente
     .desc = Un combo di due colpi che può dividersi tra più nemici
-veloren-core-pseudo_abilities-sword-secondary_ability = Abilità secondaria della spada
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Abilità secondaria della spada
     .desc = L'abilità assegnata al tasto di attacco secondario
 common-abilities-sword-basic_thrust = Spinta base
     .desc = Caricando la spinta sarà più potente
@@ -55,7 +55,7 @@ common-abilities-sword-cleaving_spiral_slash = Taglio a spirale
     .desc = Rotea completamente la tua spada intorno a te per colpire chiunque sia nelle vicinanze
 common-abilities-sword-cleaving_dual_spiral_slash = Taglio a spirale
     .desc = Rotea completamente entrambe le spade intorno a te per colpire chiunque sia nelle vicinanze
-veloren-core-pseudo_abilities-sword-crescent_slash = Taglio a mezzaluna
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Taglio a mezzaluna
     .desc =
         Un taglio diagonale verso l'alto
         Viene modificato a seconda della tua postura
@@ -71,7 +71,7 @@ common-abilities-sword-crippling_crescent_slash = Taglio a mezzaluna devastante
     .desc = Un taglio diagonale verso l'alto che può causare sanguinamento
 common-abilities-sword-cleaving_crescent_slash = Fendente crescente a mezza luna
     .desc = Un taglio diagonale verso l'alto che può squarciare i nemici
-veloren-core-pseudo_abilities-sword-fell_strike = Colpo mortale
+nova-forge-core-pseudo_abilities-sword-fell_strike = Colpo mortale
     .desc =
         Un rapido e potente taglio
         Viene modificato a seconda della tua postura
@@ -87,7 +87,7 @@ common-abilities-sword-crippling_fell_strike = Colpo deciso devastante
     .desc = Un taglio forte e veloce che può far sanguinare l'avversario
 common-abilities-sword-cleaving_fell_strike = Colpo deciso fendente
     .desc = Un taglio forte e veloce che può squarciare i nemici
-veloren-core-pseudo_abilities-sword-skewer = Pugnalata
+nova-forge-core-pseudo_abilities-sword-skewer = Pugnalata
     .desc =
         Una stoccata
         Viene modificata a seconda della posizione di guardia
@@ -103,7 +103,7 @@ common-abilities-sword-crippling_skewer = Pugnalata devastante
     .desc = Una pugnalata che può far sanguinare l'avversario
 common-abilities-sword-cleaving_skewer = Pugnalata fendente
     .desc = Una pugnalata che può squarciare gli avversari
-veloren-core-pseudo_abilities-sword-cascade = Cascata
+nova-forge-core-pseudo_abilities-sword-cascade = Cascata
     .desc =
         Una fendente dall'alto
         Viene modificata a seconda della postura
@@ -119,7 +119,7 @@ common-abilities-sword-crippling_cascade = Cascata devastante
     .desc = Un colpo di spada dall'alto che può far sanguinare l'avversario
 common-abilities-sword-cleaving_cascade = Cascata fendente
     .desc = Un colpo di spada dall'alto che può spaccare i nemici
-veloren-core-pseudo_abilities-sword-cross_cut = Taglio incrociato
+nova-forge-core-pseudo_abilities-sword-cross_cut = Taglio incrociato
     .desc =
         Un taglio destro e sinistro
         È modificato a seconda della tua postura
@@ -147,7 +147,7 @@ common-abilities-sword-crippling_dual_cross_cut = Taglio incrociato debilitante
     .desc = Un attacco simultaneo di taglio destro e sinistro che può lacerare il nemico
 common-abilities-sword-cleaving_dual_cross_cut = Taglio incrociato fendente
     .desc = Un attacco simultaneo di taglio destro e sinistro che può colpire più nemici
-veloren-core-pseudo_abilities-sword-finisher = Colpo di grazia
+nova-forge-core-pseudo_abilities-sword-finisher = Colpo di grazia
     .desc =
         Un'abilità che usa le combo con lo scopo di porre fine a un combattimento
         Il finisher sarà diverso a seconda della tua posizione

@@ -29,7 +29,7 @@ main-login_process =
     з увімкненою авторизацією.
 
     Створити обліковий запис можна тут:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-singleplayer-new = Нова
 main-singleplayer-delete = Видалити
 main-singleplayer-regenerate = Перегенерувати
