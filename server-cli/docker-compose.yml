@@ -2,10 +2,10 @@ version: "3.5"
 
 services:
   game-server:
-    image: registry.gitlab.com/veloren/veloren/server-cli:weekly
+    build: .
     stdin_open: true
     tty: true
-    container_name: veloren-game-server-master
+    container_name: nova-forge-game-server
     ports:
       - "14004:14004"
       - "14005:14005"
@@ -19,5 +19,5 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30 --stop-timeout 130s --cleanup veloren-game-server-master
+    command: --interval 30 --stop-timeout 130s --cleanup nova-forge-game-server
     restart: on-failure:0
