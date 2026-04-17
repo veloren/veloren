@@ -6,7 +6,7 @@ main-creating_world = Skapar värld
 main-tip = Tips:
 main-unbound_key_tip = obunden
 main-notice =
-    Välkommen till alfaversionen av Veloren!
+    Välkommen till alfaversionen av Nova-Forge!
 
     Innan du dyker in i det roliga ber vi dig att hålla några saker i åtanke:
 
@@ -14,9 +14,9 @@ main-notice =
 
     – Om du har konstruktiva synpunkter eller buggrapporter kan du kontakta oss på vår GitLab-repo och på vår Discord- eller Matrix-server.
 
-    – Veloren är öppen källkod. Du får spela, modifiera, och sprida spelet vidare som du vill i enlighet med version 3 av GNU General Public License.
+    – Nova-Forge är öppen källkod. Du får spela, modifiera, och sprida spelet vidare som du vill i enlighet med version 3 av GNU General Public License.
 
-    – Veloren är ett ideellt community-projekt, och alla som jobbar på det är en volontär.
+    – Nova-Forge är ett ideellt community-projekt, och alla som jobbar på det är en volontär.
     Om du gillar det du ser får du gärna gå med i någon av våra arbetsgrupper!
 
     Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer gilla spelet!
@@ -81,7 +81,7 @@ loading-tips =
     .a11 = Att spela med andra är kul! Tryck på ”{ $gameinput-social }” för att se vilka som är online.
     .a12 = Tryck på ”{ $gameinput-dance }” för att dansa. Party!
     .a13 = Tryck på ”{ $gameinput-glide }” för att använda din glidare och bli himlarnas härskare.
-    .a14 = Veloren är fortfarande i pre-alpha. Vi gör vårt bästa för att förbättra det varje dag!
+    .a14 = Nova-Forge är fortfarande i pre-alpha. Vi gör vårt bästa för att förbättra det varje dag!
     .a15 = Om du vill gå med i utvecklargruppen eller bara snacka med oss, gå med i vår Discord-server.
     .a16 = Du kan välja att visa din hälsostatus i inställningarna.
     .a17 = Sitt nära en lägereld (med ”{ $gameinput-sit }”-knappen) för att långsamt återhämta dig från skador.

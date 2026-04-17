@@ -5,7 +5,7 @@ main-connecting = Připojování
 main-creating_world = Tvorba Světa
 main-tip = Tip:
 main-notice =
-    Vítejte v alfa verzi Velorenu!
+    Vítejte v alfa verzi Nova-Forgeu!
 
     Než začnete, mějte na paměti, že:
 
@@ -14,13 +14,13 @@ main-notice =
     - Pokud se chcete podělit o svůj názor, máte návrhy nebo nápady nebo chcete nahlásit chybu,
     můžete nás kontaktovat prostřednictvím GitLabu, Discordu, nebo na našem Matrix serveru.
 
-    - Veloren je s otevřeným zdrojem. Můžete hrát, modifikovat a sdílet hru v souladu s Obecnou veřejnou licencí GNU v.3.
+    - Nova-Forge je s otevřeným zdrojem. Můžete hrát, modifikovat a sdílet hru v souladu s Obecnou veřejnou licencí GNU v.3.
 
-    - Veloren je neziskový projekt, kde je každý spolupracující člověk dobrovolníkem.Pokud se vám tato hra líbí, připojte se k našemu týmu!
+    - Nova-Forge je neziskový projekt, kde je každý spolupracující člověk dobrovolníkem.Pokud se vám tato hra líbí, připojte se k našemu týmu!
 
     Děkujeme za přečtení této zprávy a doufáme, že se vám tato hra bude líbit!
 
-    ~ Tvůrci Veloren
+    ~ Tvůrci Nova-Forge
 main-login_process =
     O režimu více hráčů:
 
@@ -64,7 +64,7 @@ loading-tips =
     .a11 = Hraní s hráči je zábava! Klávesou '{ $gameinput-social }' se podívej kdo je Online.
     .a12 = Klávesou '{ $gameinput-dance }' začneš Tancovat. Párty!
     .a13 = Klávesou '{ $gameinput-glide }' otevřeš Kluzák a můžeš dobýt nebesa.
-    .a14 = Veloren je stále v Pre-Alpha. Snažíme se hru zlepšit co to jde!
+    .a14 = Nova-Forge je stále v Pre-Alpha. Snažíme se hru zlepšit co to jde!
     .a15 = Jestli se chceš napojit k dev teamu nebo si popovídat, připoj se na náš Discord server.
     .a16 = Můžeš povolit zobrazení svého života v healthbaru v Nastavení.
     .a17 = Sedni si k Táboráku (Klávesa '{ $gameinput-sit }') pro pomalé léčení.

@@ -8,7 +8,7 @@ main-unbound_key_tip = unbound
 main-notice =
     Welcome to Nova-Forge!
 
-    Nova-Forge is a standalone, LAN-first action-adventure RPG built on the Veloren engine.
+    Nova-Forge is a standalone, LAN-first action-adventure RPG built on the Nova-Forge engine.
 
     A few things to keep in mind:
 

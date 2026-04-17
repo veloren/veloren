@@ -6,7 +6,7 @@ main-creating_world = Creazione mondo
 main-tip = Consiglio:
 main-unbound_key_tip = Slega
 main-notice =
-    Benvenuto nella versione Alpha di Veloren!
+    Benvenuto nella versione Alpha di Nova-Forge!
 
     Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
 
@@ -14,15 +14,15 @@ main-notice =
 
     - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab o il server Discord della nostra community.
 
-    - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare e ridistribuire il gioco come
+    - Nova-Forge è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare e ridistribuire il gioco come
      tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
 
-    - Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
+    - Nova-Forge è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
     Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e artistico!
 
     Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti divertirai col gioco!
 
-    ~ Il team di sviluppo di Veloren
+    ~ Il team di sviluppo di Nova-Forge
 main-login_process =
     Informazioni sul processo di autenticazione:
 
@@ -103,7 +103,7 @@ loading-tips =
     .a11 = Giocare con altri è divertente! Premi '{ $gameinput-social }' per vedere chi è online.
     .a12 = Premi '{ $gameinput-dance }' per ballare. Festeggia!
     .a13 = Premi '{ $gameinput-glide }' per aprire il tuo deltaplano e conquistare i cieli.
-    .a14 = Veloren è ancora in pre-alpha. Facciamo del nostro meglio per migliorarlo ogni giorno!
+    .a14 = Nova-Forge è ancora in pre-alpha. Facciamo del nostro meglio per migliorarlo ogni giorno!
     .a15 = Se vuoi unirti al team di sviluppo o se vuoi solamente chattare con noi, unisciti al nostro server Discord.
     .a16 = Puoi scegliere di mostrare la tua quantità di vita sulla barra della vita dalle impostazioni.
     .a17 = Siedi vicino a un fuoco (col tasto '{ $gameinput-sit }') per riprenderti lentamente dalle lesioni.

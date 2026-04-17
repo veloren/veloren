@@ -6,7 +6,7 @@ main-creating_world = Tworzenie świata
 main-tip = Porada:
 main-unbound_key_tip = nieprzypisany
 main-notice =
-    Witaj w wersji alfa Veloren!
+    Witaj w wersji alfa Nova-Forge!
 
     Zanim zanurzysz się w tym świecie, prosimy pamiętać o kilku rzeczach:
 
@@ -14,15 +14,15 @@ main-notice =
 
     - Jeśli chcesz podzielić się konstruktywną krytyką lub zgłosić błędy, możesz skontakować się z nami na Reddicie, Gitlabie lub Discordzie.
 
-    - Veloren jest objęte licencją typu open-source 'GNU GPLv3'.
+    - Nova-Forge jest objęte licencją typu open-source 'GNU GPLv3'.
     Oznacza to że gra jest darmowa, oraz że możesz ją modyfikować i udostępniać na zasadach określonych w licencji (zmodyfikowane wersje muszą również używać licencji GNU GPLv3).
 
-    - Veloren jest projektem non-profit, w całości tworzonym przez wolontariuszy w wolnym czasie.
-    Jeśli polubisz Veloren, zapraszamy cię do dołączenia do naszego zespołu! Nowi programiści, artyści, tłumacze i inni są zawsze mile widziani!
+    - Nova-Forge jest projektem non-profit, w całości tworzonym przez wolontariuszy w wolnym czasie.
+    Jeśli polubisz Nova-Forge, zapraszamy cię do dołączenia do naszego zespołu! Nowi programiści, artyści, tłumacze i inni są zawsze mile widziani!
 
     Dziękujemy za przeczytanie tej notki i życzymy miłej gry!
 
-    ~ Zespół Twórców Veloren
+    ~ Zespół Twórców Nova-Forge
 main-login_process =
     Informacje o procesie logowania:
 
@@ -84,7 +84,7 @@ loading-tips =
     .a11 = Gra jest lepsza z innymi! Wciśnij '{ $gameinput-social }' by sprawdzić kto jest zalogowany.
     .a12 = Użyj '{ $gameinput-dance }' by zatańczyć :)
     .a13 = Użyj '{ $gameinput-glide }' by wyciągnąć lotnię! Spokojnie, nie jest lepiona woskiem.
-    .a14 = Veloren dalej jest w fazie Pre-Alpha. Staramy się ulepszać go dzień w dzień!
+    .a14 = Nova-Forge dalej jest w fazie Pre-Alpha. Staramy się ulepszać go dzień w dzień!
     .a15 = Jeśli chcesz pomóc w rozwijaniu projektu, albo porozmawiać z nami - wpadnij na naszego Discorda [EN]
     .a16 = Możesz przełączać typ paska zdrowia w opcjach.
     .a17 = Usiądź obok ogniska (używając '{ $gameinput-sit }') by powoli wyleczyć się z obrażeń.

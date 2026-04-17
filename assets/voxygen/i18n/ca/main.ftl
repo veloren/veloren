@@ -6,7 +6,7 @@ main-creating_world = Creant món
 main-tip = Consell:
 main-unbound_key_tip = deslligar
 main-notice =
-    Benvingut a la versió alfa de Veloren!
+    Benvingut a la versió alfa de Nova-Forge!
 
     Abans de començar a divertir-te, si us plau tingues les següents coses en ment:
 
@@ -14,15 +14,15 @@ main-notice =
 
     - Si tens algun feedback constructiu o vols reportar un error, pot posar-te en contacte amb nosaltres mitjançant Reddit, GitLab, o el nostre servidor de Discord.
 
-    - Veloren està llicenciat sota una llicència de codi obert GPL 3. Això significa que ets lliure de jugar, modificar, i redistribuir el joc de la manera
+    - Nova-Forge està llicenciat sota una llicència de codi obert GPL 3. Això significa que ets lliure de jugar, modificar, i redistribuir el joc de la manera
      que desitges (sempre que aquest producte derivat es trobi sota una llicència GPL 3).
 
-    - Veloren és un projecte comunitari sense ànim de lucre i tothom qui hi treballa en ell és un voluntari.
+    - Nova-Forge és un projecte comunitari sense ànim de lucre i tothom qui hi treballa en ell és un voluntari.
     Si t'agrada el que hi veus, ets benvingut a unir-te a l'equip de desenvolupament o artístic!
 
     Gràcies per prendre't el temps per llegir aquest avís, esperem que gaudeixis del joc!
 
-    ~ Els Desenvolupadors de Veloren
+    ~ Els Desenvolupadors de Nova-Forge
 main-login_process =
     Informació sobre el procés d'Inici de Sessió:
 
@@ -84,7 +84,7 @@ loading-tips =
     .a11 = Jugar amb altres jugadors és divertit! Prem '{ $gameinput-social }' per veure qui és connectat.
     .a12 = Prem '{ $gameinput-dance }' per ballar. Que comenci la festa!
     .a13 = Prem '{ $gameinput-glide }' per obrir el teu planador i conquerir els cels!
-    .a14 = Veloren roman encara en estat pre-Alfa. Estem fent tot el possible per millorar-lo cada dia!
+    .a14 = Nova-Forge roman encara en estat pre-Alfa. Estem fent tot el possible per millorar-lo cada dia!
     .a15 = Si vols unir-te a l'equip de desenvolupadors o sols xarrar amb nosaltres, uneix-te al nostre servidor de Discord.
     .a16 = Pots tirar si mostrar la teva quantitat de salut a la barra de salut o no des de les opcions.
     .a17 = Seu prop d'una foguera (prement '{ $gameinput-sit }') i recuperaràs salut lentament.

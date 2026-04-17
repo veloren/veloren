@@ -23,7 +23,7 @@ main-notice =
 
     ~ ด้วยความเคารพ ทีมผู้พัฒนา
 
-    Welcome to the alpha version of Veloren!
+    Welcome to the alpha version of Nova-Forge!
 
     Before you dive into the fun, please keep a few things in mind:
 
@@ -31,15 +31,15 @@ main-notice =
 
     - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.
 
-    - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
+    - Nova-Forge is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however
      you wish (provided derived work is also under GPL 3).
 
-    - Veloren is a non-profit community project, and everybody working on it is a volunteer.
+    - Nova-Forge is a non-profit community project, and everybody working on it is a volunteer.
     If you like what you see, you're welcome to join the development or art teams!
 
     Thanks for taking the time to read this notice, we hope you enjoy the game!
 
-    ~ The Veloren Devs
+    ~ The Nova-Forge Devs
 main-login_process =
     ขั้นตอนการเข้าเกม:
 

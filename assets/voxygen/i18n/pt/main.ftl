@@ -1,7 +1,7 @@
 main-connecting = Conectando
 main-creating_world = Criando o mundo
 main-notice =
-    Bem vindo a versão alpha de Veloren!
+    Bem vindo a versão alpha de Nova-Forge!
 
     Antes de começar a jogar, por favor tenha em mente que:
 
@@ -9,9 +9,9 @@ main-notice =
     adicionar.
     - Se tiver comentários construtivos ou defeitos para reportar, pode contactar-nos através  do Reddit, GitLab ou o nosso servidor comunitário de
     Discord.
-    - Veloren está licenciado sob a licensa código aberto GPL 3. Isto significa que pode jogar, modificar e redistribuir como quiser
+    - Nova-Forge está licenciado sob a licensa código aberto GPL 3. Isto significa que pode jogar, modificar e redistribuir como quiser
      (Contanto que o trabalho derivado seja também GPL 3).
-    - Veloren é um projeto comunitário sem lucro, e toda a gente que trabalha nele é um voluntário. Se gostar do que ve, considere juntar-se a equipa
+    - Nova-Forge é um projeto comunitário sem lucro, e toda a gente que trabalha nele é um voluntário. Se gostar do que ve, considere juntar-se a equipa
     de desenvolvimento ou a de artes!
     - 'Voxel RPG' é um género em si mesmo. First-person shooters costumavam ser chamados de clones do DOOM.
 
@@ -20,7 +20,7 @@ main-notice =
 
     Obrigado por ler este aviso, nós esperamos que goste do jogo!
 
-    ~ A equipa do Veloren
+    ~ A equipa do Nova-Forge
 main-login_process =
     Informação sobre o processo de Login:
 

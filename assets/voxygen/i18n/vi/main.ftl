@@ -5,21 +5,21 @@ main-connecting = Đang kết nối
 main-creating_world = Đang tạo thế giới mới
 main-tip = Mẹo:
 main-notice =
-    Chào mừng đến với Veloren phiên bản alpha!
+    Chào mừng đến với Nova-Forge phiên bản alpha!
 
-    Trước khi bạn bắt đầu chơi Veloren, bạn cần chú ý những điều sau:
+    Trước khi bạn bắt đầu chơi Nova-Forge, bạn cần chú ý những điều sau:
 
     - Đây là một phiên bản alpha chưa hoàn thiện. Trò chơi còn nhiều lỗi, cơ chế và tính năng cũng còn nhiều thiết sót.
 
     - Nếu bạn muốn phản hồi hoặc báo lỗi, hãy liên hệ với chúng tôi trên Reddit, GitLab, hoặc trên Discord của chúng tôi.
 
-    - Veloren được cấp phép theo giấy phép GPL 3 open-source. Có nghĩa là bạn được phép chơi miễn phí, sửa đổi, và phân phối lại trò chơi theo cách bạn muốn (miễn là nó cũng theo giấy phép GPL 3).
+    - Nova-Forge được cấp phép theo giấy phép GPL 3 open-source. Có nghĩa là bạn được phép chơi miễn phí, sửa đổi, và phân phối lại trò chơi theo cách bạn muốn (miễn là nó cũng theo giấy phép GPL 3).
 
-    - Veloren là một dự án cộng đồng phi lợi nhuận, mọi người cùng tình nguyện đóng góp. Nếu bạn thích, hãy tham gia đội phát triển hoặc đội mỹ thuật của chúng tôi!
+    - Nova-Forge là một dự án cộng đồng phi lợi nhuận, mọi người cùng tình nguyện đóng góp. Nếu bạn thích, hãy tham gia đội phát triển hoặc đội mỹ thuật của chúng tôi!
 
     Cảm ơn bạn đã dành thời gian đọc thông báo này, chúng tôi hy vọng bạn thích trò chơi này!
 
-    ~ The Veloren Devs
+    ~ The Nova-Forge Devs
 main-login_process =
     Thông tin về quá trình đăng nhập:
 
@@ -67,7 +67,7 @@ loading-tips =
     .a12 = Kẻ thù có đầu lâu bên dưới thanh máu mạnh hơn so với chính bạn.
     .a13 = Nhấn '{ $gameinput-dance }' để nhảy múa. Quẩy lên!
     .a14 = Nhấn '{ $gameinput-glide }' để bật dù lượn và chinh phục bầu trời.
-    .a15 = Veloren vẫn đang trong giai đoạn Pre-Alpha. Chúng tôi đang cố gắng hết sức để cải thiện nó mỗi ngày!
+    .a15 = Nova-Forge vẫn đang trong giai đoạn Pre-Alpha. Chúng tôi đang cố gắng hết sức để cải thiện nó mỗi ngày!
     .a16 = Nếu bạn muốn tham gia nhóm phát triển hoặc chỉ đơn giản là trò chuyện, hãy tham gia Discord-Server.
     .a17 = Bạn có thể thay đổi hiển thị lượng máu của mình trên thanh máu trong cài đặt.
     .a18 = Để xem chỉ số của bạn, hãy nhấn vào nút 'Stats' trong kho.

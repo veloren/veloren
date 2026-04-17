@@ -6,7 +6,7 @@ main-creating_world = 创建世界中
 main-tip = 小提示:
 main-unbound_key_tip = 自由
 main-notice =
-    欢迎来到 Veloren Alpha 版本！
+    欢迎来到 Nova-Forge Alpha 版本！
 
     在你开始享受游戏之前，请注意以下几点：
 
@@ -14,9 +14,9 @@ main-notice =
 
     - 如果你有建设性的意见反馈或是bug汇报，可以通过 Reddit、GitLab 或者我们的 Discord 服务器联系我们。
 
-    - Veloren是开源的。你可以基于GPL3协议免费游玩、修改和重新发布游戏。
+    - Nova-Forge是开源的。你可以基于GPL3协议免费游玩、修改和重新发布游戏。
 
-    - Veloren 是一个非营利的社区项目， 参与该项目的都是志愿者。
+    - Nova-Forge 是一个非营利的社区项目， 参与该项目的都是志愿者。
     如果想在项目中看到你的身影，欢迎加入我们的开发团队！
 
     感谢你抽出宝贵的时间阅读此通知，希望你喜欢这款游戏！
@@ -100,7 +100,7 @@ loading-tips =
     .a11 = 和其他人一起游玩时! 按下 '{ $gameinput-social }' 查看在线玩家.
     .a12 = 按下 '{ $gameinput-dance }' 跳舞!
     .a13 = 按下 '{ $gameinput-glide }' 可以打开滑翔翼并立刻起飞
-    .a14 = Veloren 处于Pre-Alpha阶段. 我们每天都在努力改善它!
+    .a14 = Nova-Forge 处于Pre-Alpha阶段. 我们每天都在努力改善它!
     .a15 = 如果您想加入开发团队或与我们聊天,请加入我们的Discord服务器.
     .a16 = 你可以在设置中的生命栏中切换显示你的生命状态.
     .a17 = 坐在篝火旁(同时按下 '{ $gameinput-sit }' 键),会缓慢恢复血量.

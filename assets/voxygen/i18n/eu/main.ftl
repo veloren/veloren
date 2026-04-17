@@ -6,7 +6,7 @@ main-creating_world = Mundua sortzen
 main-tip = Aholkua:
 main-unbound_key_tip = lotu gabe
 main-notice =
-    Ongi etorri Velorenen alpha bertsiora!
+    Ongi etorri Nova-Forgeen alpha bertsiora!
 
     Jokatzen hasi aurretik, kontuan izan honako ohar hauek:
 
@@ -14,14 +14,14 @@ main-notice =
 
     - Zure iritzia adierazi edo akats baten berri eman nahi baduzu, Reddit, Gitlab, Discord eta Matrixen aurkituko gaituzu.
 
-    - Veloren GPL-3 lizentzia librean banatzen da. Horrek esan nahi du libre zarela jokatu, aldatu eta nahi bezala banatzeko (betiere GPL-3 lizentziaren baldintzak betetzen badituzu)
+    - Nova-Forge GPL-3 lizentzia librean banatzen da. Horrek esan nahi du libre zarela jokatu, aldatu eta nahi bezala banatzeko (betiere GPL-3 lizentziaren baldintzak betetzen badituzu)
 
-    - Veloren irabazi asmorik gabeko proiektua da, eta guztiok bertan modu boluntarioan egiten dugu lan.
+    - Nova-Forge irabazi asmorik gabeko proiektua da, eta guztiok bertan modu boluntarioan egiten dugu lan.
       Zuk ere parte hartu nahi baduzu, ongi etorria izango zara garatzaile zein arte taldeetan!
 
     Eskerrik asko ohar hau irakurtzeko denbora hartzeagatik. Espero dugu jokoa zure gustukoa izatea!
 
-    ~ Velorenen garatzaile taldea
+    ~ Nova-Forgeen garatzaile taldea
 main-login_process =
     Saioa hasteko jarraibideak:
 
@@ -82,7 +82,7 @@ loading-tips =
     .a11 = Jokalari gehiagorekin jokatzea oso dibertigarria da! Sakatu 'O' nor dagoen online ikusteko.
     .a12 = Sakatu 'J' dantza egiteko.
     .a13 = Sakatu 'Ezkerreko-Shift' planeatzailea ireki eta zerua konkistatzeko.
-    .a14 = Veloren oraindik Pre-Alpha bertsioan dago. Ahalegin handia egiten dugu egunero hobetzeko!
+    .a14 = Nova-Forge oraindik Pre-Alpha bertsioan dago. Ahalegin handia egiten dugu egunero hobetzeko!
     .a15 = Garatzaile taldean parte hartu edo besterik gabe gurekin hitz egin nahi baduzu, sartu gure Discord zerbitzarian!
     .a16 = Ezarpenetan osasun barratik kopuru zehatza erakutsi edo ezkutatu dezakezu.
     .a17 = Eseri sutondoan ('K' tekla sakatuta) pixkanaka osasuna berreskuratzeko.

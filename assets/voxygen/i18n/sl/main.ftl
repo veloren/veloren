@@ -5,7 +5,7 @@ main-creating_world = Ustvarjam svet
 main-tip = Namig:
 main-unbound_key_tip = ni nastavljeno
 main-notice =
-    Dobrodošel_a v alfa različico Velorena!
+    Dobrodošel_a v alfa različico Nova-Forgea!
 
     Preden se prepustiš zabavi, še nekaj pripomb.
 
@@ -13,9 +13,9 @@ main-notice =
 
     - Če želiš podati konstruktivne pripombe ali prijaviti napake, nam lahko javiš na naš GitLab repozitorij, na Discord ali na Matrix.
 
-    - Veloren je odprtokoden. Igro lahko prostor igraš, spreminjaš in deliš naprej v skladu z različico 3 Splošne javne licence GNU.
+    - Nova-Forge je odprtokoden. Igro lahko prostor igraš, spreminjaš in deliš naprej v skladu z različico 3 Splošne javne licence GNU.
 
-    - Veloren je neprofiten javni projekt. Vsi, ki se ukvarjamo z njim, smo prostovoljci.
+    - Nova-Forge je neprofiten javni projekt. Vsi, ki se ukvarjamo z njim, smo prostovoljci.
     Če ti je naše delo všeč, te vabimo, da se pridružiš kateri od naših delovnih skupin!
 
     Hvala, da si si vzel_a čas in prebral_a tale zapisek. Upamo, da boš užival_a v igri!
@@ -109,7 +109,7 @@ loading-tips =
     .a11 = Igranje z drugimi je zabavno! S pritiskom na '{ $gameinput-social }' si lahko ogledaš, kdo je povezan v igro.
     .a12 = S pritiskom na '{ $gameinput-dance }' lahko zaplešeš. Žurka!
     .a13 = S pritiskom na '{ $gameinput-glide }' razpri svojega zmaja in poleti v nebo.
-    .a14 = Veloren je še vedno v zgodnjem razvoju. Vsak dan ga izboljšujemo!
+    .a14 = Nova-Forge je še vedno v zgodnjem razvoju. Vsak dan ga izboljšujemo!
     .a15 = Če se želiš pridružiti naši razvijalski ekipi ali pa bi rad_a le poklepetal_a z nami, pridi na naš Discord strežnik.
     .a16 = V nastavitvah lahko spremeniš način prikaza svoje življenjske energije.
     .a17 = Ob tabornem ognju lahko počakaš, da se ti rane zacelijo (k ognju se usedeš s pritiskom na '{ $gameinput-sit }').

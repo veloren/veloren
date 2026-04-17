@@ -5,7 +5,7 @@ main-connecting = Bağlanılıyor
 main-creating_world = Dünya oluşturuluyor
 main-tip = İpucu:
 main-notice =
-    Veloren Alfa sürümüne hoşgeldin!
+    Nova-Forge Alfa sürümüne hoşgeldin!
 
     Eğlenmeye başlamadan önce, lütfen bir kaç şeyi aklında tut:
 
@@ -13,15 +13,15 @@ main-notice =
 
     - Yapıcı geri bildirim veya hata raporların varsa bize Reddit, GitLab veya Discord kullanarak ulaşabilirsin.
 
-    - Veloren GPL 3 açık kaynak lisansı ile lisanslıdır. Bunun anlamı, oyunu istediğin gibi oynayabilir, değiştirebilir ve dağıtabilirsin
+    - Nova-Forge GPL 3 açık kaynak lisansı ile lisanslıdır. Bunun anlamı, oyunu istediğin gibi oynayabilir, değiştirebilir ve dağıtabilirsin
     (türetilmiş çalışmalarda GPL 3 ile lisanslanmış olduğu sürece)
 
-    - Veloren kar gütmeyen bir topluluk projesidir ve üzerinde çalışan herkes birer gönüllüdür.
+    - Nova-Forge kar gütmeyen bir topluluk projesidir ve üzerinde çalışan herkes birer gönüllüdür.
     Gördüklerini beğendiysen, geliştirme veya sanat takımlarına katılabilirsin!
 
     Bu bildiriyi okumaya zaman ayırdığın için teşekkür ederiz, umarız ki oyundan memnun kalırsın!
 
-    ~ Veloren Geliştiricileri
+    ~ Nova-Forge Geliştiricileri
 main-login_process =
     Giriş işlemi hakkında bilgi:
 
@@ -69,7 +69,7 @@ loading-tips =
     .a11 = Can barının yanında kurukafa olan bir NPC senden hayli bir güçlüdür.
     .a12 = '{ $gameinput-dance }'ye basarak dans et. Parti!
     .a13 = '{ $gameinput-glide }'e basarak Planörünü aç ve gökyüzünü fethet.
-    .a14 = Veloren hala Pre-Alpha'da. Onu geliştirmek için her gün elimizden geleni yapıyoruz!
+    .a14 = Nova-Forge hala Pre-Alpha'da. Onu geliştirmek için her gün elimizden geleni yapıyoruz!
     .a15 = Geliştirme Takımına katılmak istiyorsan veya sadece sohbet etmek istiyorsan Discord sunucumuza katıl.
     .a16 = Can barında canı sayı olarak görmek istiyorsan, bunu ayarlardan aktifleştirebilirsin.
     .a17 = Niteliklerini görmek için envanterindeki 'Nitelikler' düğmesine tıklayabilirsin.
