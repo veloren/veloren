@@ -173,7 +173,8 @@ cmd_server() {
     info "LAN clients can connect to port 14004."
     cargo run \
         --bin veloren-server-cli \
-        "${CARGO_ARGS[@]}"
+        "${CARGO_ARGS[@]}" \
+        -- --no-auth
 }
 
 cmd_release() {

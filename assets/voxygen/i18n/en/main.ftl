@@ -25,6 +25,8 @@ main-login_process =
     About multiplayer:
 
     No account is needed to play Nova-Forge. Enter any username and connect to a server on your local network, or host your own with "Host LAN Game".
+main-singleplayer-select_world = Select World
+main-singleplayer-select_world-lan = Host LAN Game — Select World
 main-singleplayer-new = New
 main-singleplayer-delete = Delete
 main-singleplayer-regenerate = Regenerate
