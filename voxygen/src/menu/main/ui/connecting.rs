@@ -83,6 +83,7 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
         controls: &ControlSettings,
+        lan_hint: Option<String>,
     ) -> Element<'_, Message> {
         // TODO: add built in support for animated images
         let frame_index = (time * self.loading_animation.speed_factor as f64)
@@ -241,12 +242,29 @@ impl Screen {
                             ),
                     };
 
-                    Container::new(Text::new(stage_message).size(fonts.cyri.scale(20)))
+                    let stage_text = Container::new(Text::new(stage_message).size(fonts.cyri.scale(20)))
                         .width(Length::Fill)
-                        .height(Length::Fill)
+                        .height(Length::Shrink)
                         .padding(10)
-                        .align_x(Align::Start)
+                        .align_x(Align::Start);
+
+                    if let Some(hint) = lan_hint {
+                        Column::with_children(vec![
+                            stage_text.into(),
+                            Container::new(
+                                Text::new(hint)
+                                    .size(fonts.cyri.scale(14))
+                                    .color(iced::Color::from_rgb(0.7, 0.9, 0.7)),
+                            )
+                            .width(Length::Fill)
+                            .padding(10)
+                            .align_x(Align::Start)
+                            .into(),
+                        ])
                         .into()
+                    } else {
+                        stage_text.height(Length::Fill).into()
+                    }
                 };
 
                 let cancel = Container::new(neat_button(

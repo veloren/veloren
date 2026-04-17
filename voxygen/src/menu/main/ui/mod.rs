@@ -27,6 +27,10 @@ use common::assets::{AssetExt, Image, Ron};
 use rand::{rng, seq::IndexedRandom};
 use std::time::Duration;
 use tracing::warn;
+#[cfg(feature = "singleplayer")]
+use common_base;
+#[cfg(feature = "singleplayer")]
+use server;
 
 use super::DetailedInitializationStage;
 
@@ -437,17 +441,47 @@ impl Controls {
                 screen,
                 connection_state,
                 init_stage,
-            } => screen.view(
-                &self.fonts,
-                &self.imgs,
-                connection_state,
-                init_stage,
-                self.time,
-                &self.i18n.read(),
-                button_style,
-                settings.interface.loading_tips,
-                &settings.controls,
-            ),
+            } => {
+                #[cfg(feature = "singleplayer")]
+                let lan_hint: Option<String> = if self.lan_mode {
+                    let i18n = self.i18n.read();
+                    Some(match common_base::local_lan_ip() {
+                        Some(ip) => i18n
+                            .get_msg_ctx(
+                                "main-lan_coop-join_hint",
+                                &i18n::fluent_args! {
+                                    "address" => format!("{}:{}", ip, server::settings::LAN_COOP_PORT)
+                                },
+                            )
+                            .into_owned(),
+                        None => i18n
+                            .get_msg_ctx(
+                                "main-lan_coop-join_hint_unknown_ip",
+                                &i18n::fluent_args! {
+                                    "port" => server::settings::LAN_COOP_PORT.to_string()
+                                },
+                            )
+                            .into_owned(),
+                    })
+                } else {
+                    None
+                };
+                #[cfg(not(feature = "singleplayer"))]
+                let lan_hint: Option<String> = None;
+
+                screen.view(
+                    &self.fonts,
+                    &self.imgs,
+                    connection_state,
+                    init_stage,
+                    self.time,
+                    &self.i18n.read(),
+                    button_style,
+                    settings.interface.loading_tips,
+                    &settings.controls,
+                    lan_hint,
+                )
+            },
             #[cfg(feature = "singleplayer")]
             Screen::WorldSelector { screen } => screen.view(
                 &self.fonts,
@@ -455,6 +489,7 @@ impl Controls {
                 worlds,
                 &self.i18n.read(),
                 button_style,
+                self.lan_mode,
             ),
         };
 
