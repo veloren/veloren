@@ -80,7 +80,12 @@ impl Screen {
             self.worlds_buttons = vec![Default::default(); worlds_count];
         }
 
-        let title = Text::new(i18n.get_msg("gameinput-map"))
+        let title_key = if lan_mode {
+            "main-singleplayer-select_world-lan"
+        } else {
+            "main-singleplayer-select_world"
+        };
+        let title = Text::new(i18n.get_msg(title_key))
             .size(fonts.cyri.scale(35))
             .horizontal_alignment(iced::HorizontalAlignment::Center);
 

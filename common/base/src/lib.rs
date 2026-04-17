@@ -4,14 +4,33 @@ pub use userdata_dir::userdata_dir;
 
 /// Best-effort discovery of the host's LAN IP address.
 ///
-/// Opens a temporary UDP socket and "connects" it to a well-known external
-/// address so the OS routing table resolves the outgoing interface.  No
-/// packets are actually sent.  Returns `None` when no suitable interface
-/// can be found (e.g. the machine has no network connectivity at all).
+/// Opens a temporary UDP socket and "connects" it to a well-known address so
+/// the OS routing table resolves the outgoing interface.  No packets are
+/// actually sent.  Returns `None` when no suitable interface can be found.
+///
+/// First tries an external address (works when a default gateway exists), then
+/// falls back to common private gateway addresses for fully offline / air-gapped
+/// networks.
 pub fn local_lan_ip() -> Option<std::net::IpAddr> {
+    use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+
+    // Addresses tried in order.  UDP connect() just consults the routing table;
+    // no packets are sent, so none of these addresses need to be reachable.
+    const PROBE_ADDRS: &[SocketAddr] = &[
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(8, 8, 8, 8), 80)),    // public DNS
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(192, 168, 1, 1), 80)), // common home gateway
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(10, 0, 0, 1), 80)),    // corporate/VPN gateway
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(172, 16, 0, 1), 80)),  // less common private range
+    ];
     let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
-    socket.connect("8.8.8.8:80").ok()?;
-    socket.local_addr().ok().map(|a| a.ip())
+    for &addr in PROBE_ADDRS {
+        if socket.connect(addr).is_ok() {
+            if let Some(ip) = socket.local_addr().ok().map(|a| a.ip()) {
+                return Some(ip);
+            }
+        }
+    }
+    None
 }
 
 /// Panic in debug or tests, log error/warn in release
