@@ -40,6 +40,9 @@ pub struct Singleplayer {
     /// rather than localhost only.
     pub is_lan: bool,
     /// Signals the LAN discovery broadcaster thread to stop (set on Drop).
+    /// For singleplayer-only (non-LAN) servers this is a no-op `AtomicBool`
+    /// that starts `false` and is never set, so the broadcaster is never
+    /// started and no thread is created.
     stop_broadcast: Arc<AtomicBool>,
 }
 

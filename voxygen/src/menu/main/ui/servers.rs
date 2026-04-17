@@ -143,7 +143,7 @@ impl Screen {
                 .iter_mut()
                 .zip(lan_servers)
                 .map(|(state, server)| {
-                    let label = format!("{}  —  {}", server.name, server.address);
+                    let label = format!("{} — {}", server.name, server.address);
                     let button = Button::new(
                         state,
                         Row::with_children(vec![

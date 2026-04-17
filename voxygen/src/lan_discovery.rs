@@ -177,7 +177,10 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     if port == 0 {
         return None;
     }
-    let name = std::str::from_utf8(&data[2..]).ok()?.trim().to_owned();
+    // Cap the name field at 64 bytes to match encode_packet's upper bound, even
+    // if a malformed packet tries to send more.
+    let name_bytes = &data[2..data[2..].len().min(64) + 2];
+    let name = std::str::from_utf8(name_bytes).ok()?.trim().to_owned();
     Some(ParsedPacket { port, name })
 }
 
