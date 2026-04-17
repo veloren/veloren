@@ -30,7 +30,8 @@ Commands:
   build          Fast dev build of both the client and server (default)
   run            Build & launch the game client (singleplayer / LAN host)
   server         Build & launch the dedicated server (standalone, no auth)
-  release        Optimised release build of both binaries
+  release        Optimised release build; copies assets beside the binaries
+  run-release    Launch the already-built release client
   test           Run the workspace unit-test suite
   clean          Remove all Cargo build artifacts (target/ directory)
   rebuild        Clean all build artifacts then perform a fresh dev build
@@ -54,7 +55,8 @@ Examples:
   ./nova-forge.sh run                       # build & launch client
   ./nova-forge.sh run --no-egui             # launch without debug overlay
   ./nova-forge.sh server                    # run dedicated LAN server
-  ./nova-forge.sh release                   # optimised release build
+  ./nova-forge.sh release                   # optimised release build (assets copied to target/release/)
+  ./nova-forge.sh run-release               # launch the release client
   ./nova-forge.sh test                      # run all workspace tests
   ./nova-forge.sh build --shaderc-from-source  # build shaderc from source (needs ninja)
   ./nova-forge.sh clean                         # wipe all build artifacts
@@ -187,6 +189,34 @@ cmd_release() {
     info "Release build complete."
     info "  Client : target/release/veloren-voxygen"
     info "  Server : target/release/veloren-server-cli"
+
+    # Copy the assets directory next to the release binaries so the client can
+    # find them when launched directly (e.g. by double-clicking on Windows).
+    # We use cp -rn / xcopy /E /I /Y to avoid re-copying unchanged files where
+    # the destination already exists.
+    local dest="target/release/assets"
+    if [[ -d "$dest" ]]; then
+        info "Assets already present at $dest — skipping copy."
+    else
+        section "Copying assets → $dest"
+        cp -r assets "$dest"
+        info "Assets copied to $dest."
+    fi
+    info ""
+    info "To run the release client:"
+    info "  ./nova-forge.sh run-release"
+    info "Or launch the binary directly — assets are now bundled beside it."
+}
+
+cmd_run_release() {
+    local exe="target/release/veloren-voxygen"
+    if [[ ! -x "$exe" ]]; then
+        die "Release binary not found at $exe. Run './nova-forge.sh release' first."
+    fi
+    section "Launching Nova-Forge (release client)"
+    info "Assets  : $VELOREN_ASSETS"
+    info "Data dir: userdata/ (relative to binary)"
+    "$exe"
 }
 
 cmd_test() {
@@ -211,13 +241,14 @@ cmd_rebuild() {
 check_toolchain
 
 case "$COMMAND" in
-    build)   cmd_build   ;;
-    run)     cmd_run     ;;
-    server)  cmd_server  ;;
-    release) cmd_release ;;
-    test)    cmd_test    ;;
-    clean)   cmd_clean   ;;
-    rebuild) cmd_rebuild ;;
+    build)       cmd_build       ;;
+    run)         cmd_run         ;;
+    server)      cmd_server      ;;
+    release)     cmd_release     ;;
+    run-release) cmd_run_release ;;
+    test)        cmd_test        ;;
+    clean)       cmd_clean       ;;
+    rebuild)     cmd_rebuild     ;;
     help|-h|--help) usage ;;
     *) die "Unknown command '$COMMAND'. Run './nova-forge.sh help' for usage." ;;
 esac
