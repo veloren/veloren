@@ -129,6 +129,7 @@ pub enum WorldChange {
     MapKind(common::resources::MapKind),
     ErosionQuality(f32),
     DefaultGenOps,
+    MaxPlayers(u16),
 }
 
 #[cfg(feature = "singleplayer")]
@@ -146,6 +147,7 @@ impl WorldChange {
             WorldChange::MapKind(kind) => gen_opts.map_kind = kind,
             WorldChange::ErosionQuality(q) => gen_opts.erosion_quality = q,
             WorldChange::DefaultGenOps => world.gen_opts = Some(Default::default()),
+            WorldChange::MaxPlayers(n) => world.max_players = n,
         }
     }
 }

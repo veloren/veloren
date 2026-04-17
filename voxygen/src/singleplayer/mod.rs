@@ -210,6 +210,8 @@ impl SingleplayerState {
                 return;
             };
             let server_data_dir = world.path.clone();
+            let world_name = world.name.clone();
+            let world_max_players = world.max_players;
 
             let mut settings = server::Settings::lan_coop(&server_data_dir);
             let mut editable_settings = server::EditableSettings::lan_coop(&server_data_dir);
@@ -242,6 +244,8 @@ impl SingleplayerState {
             settings.map_file = Some(file_opts);
             settings.world_seed = world.seed;
             settings.day_length = world.day_length;
+            settings.server_name = world_name.clone();
+            settings.max_players = world_max_players;
 
             let (stop_server_s, stop_server_r) = unbounded();
             let (server_stage_tx, server_stage_rx) = unbounded();
@@ -315,7 +319,7 @@ impl SingleplayerState {
                     let stop = Arc::new(AtomicBool::new(false));
                     lan_discovery::start_broadcaster(
                         server::settings::LAN_COOP_PORT,
-                        server::settings::LAN_COOP_SERVER_NAME.to_owned(),
+                        world_name,
                         Arc::clone(&stop),
                     );
                     stop

@@ -56,6 +56,8 @@ pub struct Screen {
     shape_buttons: enum_map::EnumMap<MapKind, button::State>,
     map_erosion_quality: slider::State,
 
+    max_players: slider::State,
+
     delete_world: button::State,
     regenerate_map: button::State,
     generate_map: button::State,
@@ -526,6 +528,41 @@ impl Screen {
                         .into(),
                     );
                 }
+            }
+
+            // Max-players slider — only relevant when hosting a LAN co-op game.
+            if lan_mode {
+                const MAX_PLAYERS_MIN: u16 = 2;
+                const MAX_PLAYERS_MAX: u16 = 16;
+
+                gen_content.push(
+                    Text::new(format!(
+                        "{}: {}",
+                        i18n.get_msg("main-singleplayer-max_players"),
+                        world.max_players
+                    ))
+                    .size(SLIDER_TEXT_SIZE)
+                    .horizontal_alignment(iced::HorizontalAlignment::Center)
+                    .into(),
+                );
+                gen_content.push(
+                    Row::with_children(vec![Slider::new(
+                        &mut self.max_players,
+                        MAX_PLAYERS_MIN..=MAX_PLAYERS_MAX,
+                        world.max_players,
+                        move |n| message(WorldChange::MaxPlayers(n)),
+                    )
+                    .height(SLIDER_HEIGHT)
+                    .style(style::slider::Style::images(
+                        imgs.slider_indicator,
+                        imgs.slider_range,
+                        SLIDER_BAR_PAD,
+                        SLIDER_CURSOR_SIZE,
+                        SLIDER_BAR_HEIGHT,
+                    ))
+                    .into()])
+                    .into(),
+                );
             }
 
             let mut world_buttons = vec![];
