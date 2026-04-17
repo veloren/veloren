@@ -27,7 +27,7 @@ pub struct Args {
     ///
     /// The only supported values are currently `game` and `silent_spectator`,
     /// the latter one only being usable by moderators.
-    #[clap(short, long, env = "VELOREN_CLIENT_TYPE", default_value_t = VoxygenClientType(ClientType::Game))]
+    #[clap(short, long, env = "NOVA_FORGE_CLIENT_TYPE", default_value_t = VoxygenClientType(ClientType::Game))]
     pub client_type: VoxygenClientType,
 
     #[clap(subcommand)]

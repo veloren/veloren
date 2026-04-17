@@ -15,7 +15,7 @@ use tracing_subscriber::{
     filter::{EnvFilter, LevelFilter},
 };
 use vek::*;
-use veloren_world::{
+use nova_forge_world::{
     CONFIG, ColumnSample, World,
     sim::{self, DEFAULT_WORLD_SEED, WorldOpts, get_horizon_map, sample_pos, sample_wpos},
     util::Sampler,
@@ -32,7 +32,7 @@ fn main() {
     let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
 
     // To load a map file of your choice, replace map_file with the name of your map
-    // (stored locally in the map directory of your Veloren root), and swap the
+    // (stored locally in the map directory of your Nova-Forge root), and swap the
     // sim::FileOpts::Save line below for the sim::FileOpts::Load one.
     let map_file =
         // "map_1575990726223.bin";

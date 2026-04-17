@@ -8551,7 +8551,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-client"
+name = "nova-forge-client"
 version = "0.18.0"
 dependencies = [
  "async-channel",
@@ -8572,20 +8572,20 @@ dependencies = [
  "tokio",
  "tracing",
  "vek 0.17.2",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-frontend",
- "veloren-common-i18n",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-network",
- "veloren-voxygen-i18n-helpers",
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-frontend",
+ "nova-forge-common-i18n",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-network",
+ "nova-forge-voxygen-i18n-helpers",
 ]
 
 [[package]]
-name = "veloren-client-i18n"
+name = "nova-forge-client-i18n"
 version = "0.18.0"
 dependencies = [
  "clap",
@@ -8597,12 +8597,12 @@ dependencies = [
  "serde",
  "tracing",
  "unic-langid",
- "veloren-common-assets",
- "veloren-common-i18n",
+ "nova-forge-common-assets",
+ "nova-forge-common-i18n",
 ]
 
 [[package]]
-name = "veloren-common"
+name = "nova-forge-common"
 version = "0.18.0"
 dependencies = [
  "ahash 0.8.12",
@@ -8646,13 +8646,13 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "vek 0.17.2",
- "veloren-common-assets",
- "veloren-common-base",
- "veloren-common-i18n",
+ "nova-forge-common-assets",
+ "nova-forge-common-base",
+ "nova-forge-common-i18n",
 ]
 
 [[package]]
-name = "veloren-common-assets"
+name = "nova-forge-common-assets"
 version = "0.18.0"
 dependencies = [
  "assets_manager",
@@ -8668,7 +8668,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-base"
+name = "nova-forge-common-base"
 version = "0.18.0"
 dependencies = [
  "directories-next",
@@ -8677,7 +8677,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-dynlib"
+name = "nova-forge-common-dynlib"
 version = "0.18.0"
 dependencies = [
  "find_folder",
@@ -8687,17 +8687,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-ecs"
+name = "nova-forge-common-ecs"
 version = "0.18.0"
 dependencies = [
  "float-cmp",
  "specs",
  "tracing",
- "veloren-common-base",
+ "nova-forge-common-base",
 ]
 
 [[package]]
-name = "veloren-common-frontend"
+name = "nova-forge-common-frontend"
 version = "0.18.0"
 dependencies = [
  "termcolor",
@@ -8705,11 +8705,11 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "tracing-tracy",
- "veloren-common-base",
+ "nova-forge-common-base",
 ]
 
 [[package]]
-name = "veloren-common-i18n"
+name = "nova-forge-common-i18n"
 version = "0.18.0"
 dependencies = [
  "hashbrown 0.16.0",
@@ -8718,7 +8718,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-common-net"
+name = "nova-forge-common-net"
 version = "0.18.0"
 dependencies = [
  "bincode",
@@ -8731,11 +8731,11 @@ dependencies = [
  "sum_type",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
+ "nova-forge-common",
 ]
 
 [[package]]
-name = "veloren-common-state"
+name = "nova-forge-common-state"
 version = "0.18.0"
 dependencies = [
  "async-trait",
@@ -8756,17 +8756,17 @@ dependencies = [
  "toml 1.0.3+spec-1.1.0",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-assets",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
+ "nova-forge-common",
+ "nova-forge-common-assets",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
  "wasmtime",
  "wasmtime-wasi",
 ]
 
 [[package]]
-name = "veloren-common-systems"
+name = "nova-forge-common-systems"
 version = "0.18.0"
 dependencies = [
  "itertools 0.14.0",
@@ -8776,15 +8776,15 @@ dependencies = [
  "specs",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
- "veloren-common-state",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
 ]
 
 [[package]]
-name = "veloren-network"
+name = "nova-forge-network"
 version = "0.3.0"
 dependencies = [
  "async-channel",
@@ -8811,11 +8811,11 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "tracing-subscriber",
- "veloren-network-protocol",
+ "nova-forge-network-protocol",
 ]
 
 [[package]]
-name = "veloren-network-protocol"
+name = "nova-forge-network-protocol"
 version = "0.6.1"
 dependencies = [
  "async-channel",
@@ -8831,7 +8831,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-query-server"
+name = "nova-forge-query-server"
 version = "0.1.2"
 dependencies = [
  "clap",
@@ -8843,7 +8843,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-rtsim"
+name = "nova-forge-rtsim"
 version = "0.18.0"
 dependencies = [
  "anymap2",
@@ -8864,12 +8864,12 @@ dependencies = [
  "take-once",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
- "veloren-world",
+ "nova-forge-common",
+ "nova-forge-world",
 ]
 
 [[package]]
-name = "veloren-server"
+name = "nova-forge-server"
 version = "0.18.0"
 dependencies = [
  "atomicwrites",
@@ -8907,21 +8907,21 @@ dependencies = [
  "tokio",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-network",
- "veloren-query-server",
- "veloren-rtsim",
- "veloren-server-agent",
- "veloren-world",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-network",
+ "nova-forge-query-server",
+ "nova-forge-rtsim",
+ "nova-forge-server-agent",
+ "nova-forge-world",
 ]
 
 [[package]]
-name = "veloren-server-agent"
+name = "nova-forge-server-agent"
 version = "0.18.0"
 dependencies = [
  "itertools 0.14.0",
@@ -8930,15 +8930,15 @@ dependencies = [
  "specs",
  "tracing",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-dynlib",
- "veloren-rtsim",
- "veloren-world",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-dynlib",
+ "nova-forge-rtsim",
+ "nova-forge-world",
 ]
 
 [[package]]
-name = "veloren-server-cli"
+name = "nova-forge-server-cli"
 version = "0.18.0"
 dependencies = [
  "axum",
@@ -8961,17 +8961,17 @@ dependencies = [
  "specs",
  "tokio",
  "tracing",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-frontend",
- "veloren-common-net",
- "veloren-server",
- "veloren-server-agent",
- "veloren-world",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-frontend",
+ "nova-forge-common-net",
+ "nova-forge-server",
+ "nova-forge-server-agent",
+ "nova-forge-world",
 ]
 
 [[package]]
-name = "veloren-voxygen"
+name = "nova-forge-voxygen"
 version = "0.18.0"
 dependencies = [
  "backtrace",
@@ -9028,21 +9028,21 @@ dependencies = [
  "tracing",
  "treeculler",
  "vek 0.17.2",
- "veloren-client",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-ecs",
- "veloren-common-frontend",
- "veloren-common-i18n",
- "veloren-common-net",
- "veloren-common-state",
- "veloren-common-systems",
- "veloren-server",
- "veloren-voxygen-anim",
- "veloren-voxygen-egui",
- "veloren-voxygen-i18n-helpers",
- "veloren-world",
+ "nova-forge-client",
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-frontend",
+ "nova-forge-common-i18n",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-server",
+ "nova-forge-voxygen-anim",
+ "nova-forge-voxygen-egui",
+ "nova-forge-voxygen-i18n-helpers",
+ "nova-forge-world",
  "wgpu",
  "wgpu-profiler",
  "window_clipboard",
@@ -9051,46 +9051,46 @@ dependencies = [
 ]
 
 [[package]]
-name = "veloren-voxygen-anim"
+name = "nova-forge-voxygen-anim"
 version = "0.18.0"
 dependencies = [
  "bytemuck",
  "inline_tweak",
  "lazy_static",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-dynlib",
- "veloren-common-state",
+ "nova-forge-common",
+ "nova-forge-common-dynlib",
+ "nova-forge-common-state",
 ]
 
 [[package]]
-name = "veloren-voxygen-egui"
+name = "nova-forge-voxygen-egui"
 version = "0.18.0"
 dependencies = [
  "egui",
  "egui-winit",
  "egui_plot",
  "lazy_static",
- "veloren-client",
- "veloren-common",
- "veloren-common-dynlib",
+ "nova-forge-client",
+ "nova-forge-common",
+ "nova-forge-common-dynlib",
  "winit",
 ]
 
 [[package]]
-name = "veloren-voxygen-i18n-helpers"
+name = "nova-forge-voxygen-i18n-helpers"
 version = "0.18.0"
 dependencies = [
  "rand 0.10.0",
  "tracing",
  "vek 0.17.2",
- "veloren-client-i18n",
- "veloren-common",
- "veloren-common-net",
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-net",
 ]
 
 [[package]]
-name = "veloren-world"
+name = "nova-forge-world"
 version = "0.18.0"
 dependencies = [
  "arr_macro",
@@ -9133,11 +9133,11 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "vek 0.17.2",
- "veloren-common",
- "veloren-common-base",
- "veloren-common-dynlib",
- "veloren-common-frontend",
- "veloren-common-net",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-dynlib",
+ "nova-forge-common-frontend",
+ "nova-forge-common-net",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common-dynlib"
+name = "nova-forge-common-dynlib"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

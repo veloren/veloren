@@ -1,5 +1,5 @@
 [package]
-name = "veloren-voxygen-anim"
+name = "nova-forge-voxygen-anim"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -16,11 +16,11 @@ plugins = [ "dep:common-state", "common-state/plugins"]
 default = ["simd"]
 
 [dependencies]
-common = {package = "veloren-common", path = "../../common"}
-common-state = {package = "veloren-common-state", path = "../../common/state", optional = true}
+common = {package = "nova-forge-common", path = "../../common"}
+common-state = {package = "nova-forge-common-state", path = "../../common/state", optional = true}
 bytemuck = { version = "1.4", features=["derive"] }
 vek = { workspace = true }
-common-dynlib = {package = "veloren-common-dynlib", path = "../../common/dynlib", optional = true}
+common-dynlib = {package = "nova-forge-common-dynlib", path = "../../common/dynlib", optional = true}
 inline_tweak = { workspace = true, features = ["derive"] }
 
 # Hot Reloading

@@ -1,9 +1,9 @@
 use common::cmd::{ChatCommandData, ServerChatCommand};
 use i18n::{LocalizationGuard, LocalizationHandle};
-use veloren_voxygen::cmd::ClientChatCommand;
+use nova_forge_voxygen::cmd::ClientChatCommand;
 
 /// This binary generates the markdown tables used for the `players/commands.md`
-/// page in the Veloren Book. It can be run with `cargo cmd-doc-gen`.
+/// page in the Nova-Forge docs. It can be run with `cargo cmd-doc-gen`.
 fn main() {
     let i18n = LocalizationHandle::load(i18n::REFERENCE_LANG)
         .unwrap()

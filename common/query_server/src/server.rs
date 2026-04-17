@@ -15,7 +15,7 @@ use tracing::{debug, error, trace};
 use crate::{
     proto::{
         Init, MAX_REQUEST_SIZE, MAX_RESPONSE_SIZE, QueryServerRequest, QueryServerResponse,
-        RawQueryServerRequest, RawQueryServerResponse, ServerInfo, VELOREN_HEADER, VERSION,
+        RawQueryServerRequest, RawQueryServerResponse, ServerInfo, NOVA_FORGE_HEADER, VERSION,
     },
     ratelimit::{RateLimiter, ReducedIpAddr},
 };
@@ -58,7 +58,7 @@ impl QueryServer {
     /// level for this crate (when outside of debugging contexts).
     ///
     /// NOTE: TRACE and DEBUG levels are disabled by default for this crate when
-    /// using `veloren-common-frontend`.
+    /// using `nova-forge-common-frontend`.
     pub async fn run(&mut self, metrics: Arc<Mutex<Metrics>>) -> Result<(), tokio::io::Error> {
         let mut socket = UdpSocket::bind(self.addr).await?;
 
@@ -95,7 +95,7 @@ impl QueryServer {
             let raw_msg_buf = &buf[..len];
             let msg_buf = if Self::validate_datagram(raw_msg_buf) {
                 // Require 2 extra bytes for version (currently unused)
-                &raw_msg_buf[2..(raw_msg_buf.len() - VELOREN_HEADER.len())]
+                &raw_msg_buf[2..(raw_msg_buf.len() - NOVA_FORGE_HEADER.len())]
             } else {
                 new_metrics.dropped_packets += 1;
                 continue;
@@ -125,13 +125,13 @@ impl QueryServer {
     fn validate_datagram(data: &[u8]) -> bool {
         let len = data.len();
         // Require 2 extra bytes for version (currently unused)
-        if len < MAX_RESPONSE_SIZE.max(VELOREN_HEADER.len() + 2) {
+        if len < MAX_RESPONSE_SIZE.max(NOVA_FORGE_HEADER.len() + 2) {
             trace!(?len, "Datagram too short");
             false
         } else if len > MAX_REQUEST_SIZE {
             trace!(?len, "Datagram too large");
             false
-        } else if data[(len - VELOREN_HEADER.len())..] != VELOREN_HEADER {
+        } else if data[(len - NOVA_FORGE_HEADER.len())..] != NOVA_FORGE_HEADER {
             trace!(?len, "Datagram header invalid");
             false
         // TODO: Allow lower versions once proper versioning is added.

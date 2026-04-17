@@ -8,7 +8,7 @@ use vek::{Vec2, Vec3, approx};
 
 #[test]
 fn simple_run() {
-    let mut state = utils::setup(veloren_common_systems::add_local_systems);
+    let mut state = utils::setup(nova_forge_common_systems::add_local_systems);
     utils::create_player(&mut state);
     state.tick(
         DT,

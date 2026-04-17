@@ -80,9 +80,9 @@ Runs a fully self-contained server. Players connect with any username — no ext
 ```
 
 > **Windows note:** After `./nova-forge.sh release`, the `assets/` folder is copied into
-> `target/release/` so you can run `veloren-voxygen.exe` directly from that directory
+> `target/release/` so you can run `nova-forge-voxygen.exe` directly from that directory
 > (e.g. by double-clicking). If you move the binary elsewhere, copy the `assets/` folder
-> alongside it, or set the `VELOREN_ASSETS` environment variable to point to the assets
+> alongside it, or set the `NOVA_FORGE_ASSETS` environment variable to point to the assets
 > directory in the repository root.
 
 ---
@@ -110,7 +110,7 @@ Runs a fully self-contained server. Players connect with any username — no ext
 **A:** The client needs the `assets/` folder to be next to the executable. If you built with
 `./nova-forge.sh release`, run `./nova-forge.sh run-release` instead of launching the binary
 directly, or copy the `assets/` folder from the repository root into the same directory as
-`veloren-voxygen.exe`. Alternatively, set the `VELOREN_ASSETS` environment variable to the
+`nova-forge-voxygen.exe`. Alternatively, set the `NOVA_FORGE_ASSETS` environment variable to the
 full path of the repository's `assets/` directory before launching.
 
 ---

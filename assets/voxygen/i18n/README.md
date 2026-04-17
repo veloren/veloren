@@ -8,9 +8,9 @@ rules:
 - Append one blank line after multi-line strings and two blank lines after sections
 
 
-# Adding a new language in Veloren
+# Adding a new language in Nova-Forge
 
-To add a new language in Veloren, please follow these steps:
+To add a new language in Nova-Forge, please follow these steps:
 - Create a new folder into the `assets/voxygen/i18n` directory
 - Copy the content of the `en` directory in your new folder
 - Configure the language metadata in the `_manifest.ron` file

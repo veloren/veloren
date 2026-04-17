@@ -346,14 +346,14 @@ impl TickMetrics {
             "entity_count",
             "number of all entities currently active on the server",
         ))?;
-        let mut opts = Opts::new("veloren_build_info", "Build information")
+        let mut opts = Opts::new("nova_forge_build_info", "Build information")
             .const_label("hash", format!("{:x}", *common::util::GIT_HASH));
         if !common::util::GIT_TAG.is_empty() {
             opts = opts.const_label("tag", *common::util::GIT_TAG);
         }
         let build_info = IntGauge::with_opts(opts)?;
         let start_time = IntGauge::with_opts(Opts::new(
-            "veloren_start_time",
+            "nova_forge_start_time",
             "start time of the server in seconds since EPOCH",
         ))?;
         let time_of_day =
@@ -511,7 +511,7 @@ impl QueryServerMetrics {
 
     pub fn apply(
         &self,
-        veloren_query_server::server::Metrics {
+        nova_forge_query_server::server::Metrics {
             received_packets,
             dropped_packets,
             invalid_packets,
@@ -522,7 +522,7 @@ impl QueryServerMetrics {
             failed_responses,
             timed_out_responses,
             ratelimited,
-        }: veloren_query_server::server::Metrics,
+        }: nova_forge_query_server::server::Metrics,
     ) {
         self.received_packets.inc_by(received_packets as u64);
         self.dropped_packets.inc_by(dropped_packets as u64);

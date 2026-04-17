@@ -389,7 +389,7 @@ impl PluginModule {
         let module =
             Component::from_binary(&engine, wasm_data).map_err(PluginModuleError::Wasmtime)?;
 
-        // register WASI and Veloren methods with the runtime
+        // register WASI and Nova-Forge methods with the runtime
         let mut linker = Linker::new(&engine);
         wasmtime_wasi::p2::add_to_linker_sync(&mut linker).map_err(PluginModuleError::Wasmtime)?;
         Plugin::add_to_linker::<_, HasSelf<_>>(&mut linker, |x| x)

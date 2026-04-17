@@ -15,7 +15,7 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use vek::*;
-use veloren_client::{Client, ClientType, addr::ConnectionArgs};
+use nova_forge_client::{Client, ClientType, addr::ConnectionArgs};
 
 const CHUNK_SIZE: f32 = TerrainChunkSize::RECT_SIZE.x as f32;
 
@@ -107,7 +107,7 @@ fn run_client(
     runtime: Arc<Runtime>,
     opt: Opt,
     finished_init: Arc<AtomicU32>,
-) -> Result<(), veloren_client::Error> {
+) -> Result<(), nova_forge_client::Error> {
     let mut client = loop {
         // Connect to localhost
         let addr = ConnectionArgs::Tcp {
@@ -133,7 +133,7 @@ fn run_client(
 
     let mut clock = common::clock::Clock::new(Duration::from_secs_f32(1.0 / 30.0));
 
-    let mut tick = |client: &mut Client| -> Result<(), veloren_client::Error> {
+    let mut tick = |client: &mut Client| -> Result<(), nova_forge_client::Error> {
         clock.tick();
         client.tick_network(clock.dt())?;
         Ok(())
@@ -266,7 +266,7 @@ fn position(index: u32, opt: Opt) -> Vec3<f32> {
 
     let movement_offset: Vec2<_> = if opt.movement {
         // blocks per second
-        const SPEED: f32 = 9.0; // typical super fast veloren walking speed
+        const SPEED: f32 = 9.0; // typical super fast nova-forge walking speed
 
         // move in a square route
         // in blocks

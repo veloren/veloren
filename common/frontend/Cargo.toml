@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common-frontend"
+name = "nova-forge-common-frontend"
 description = "common stuff that is used by server-cli and voxygen directly"
 version.workspace = true
 edition.workspace = true
@@ -12,7 +12,7 @@ workspace = true
 tracy = ["common-base/tracy", "tracing-tracy"]
 
 [dependencies]
-common-base = { package = "veloren-common-base", path = "../base" }
+common-base = { package = "nova-forge-common-base", path = "../base" }
 
 # Logging
 termcolor = "1.1"

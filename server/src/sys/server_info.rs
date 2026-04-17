@@ -5,7 +5,7 @@ use common::{
 use common_ecs::{Origin, Phase, System};
 use specs::{Join, Read, ReadStorage};
 use tracing::warn;
-use veloren_query_server::proto::ServerInfo;
+use nova_forge_query_server::proto::ServerInfo;
 
 use crate::{Settings, Tick, client::Client};
 

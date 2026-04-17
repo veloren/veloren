@@ -811,7 +811,7 @@ impl AudioFrontend {
     }
 
     /// Switches the playing music to the title music, which is pinned to a
-    /// specific sound file (veloren_title_tune.ogg)
+    /// specific sound file (nova_forge_title_tune.ogg or veloren_title_tune.ogg)
     pub fn play_title_music(&mut self) {
         if self.music_enabled() {
             self.play_music(

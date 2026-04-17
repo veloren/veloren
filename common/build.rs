@@ -64,19 +64,19 @@ fn get_git_tag() -> Option<String> {
 
 fn main() {
     // If this env var exists, it'll be used instead
-    if option_env!("VELOREN_GIT_VERSION").is_none() {
+    if option_env!("NOVA_FORGE_GIT_VERSION").is_none() {
         let hash_timestamp = match get_git_hash_timestamp() {
             Ok(hash_timestamp) => hash_timestamp,
             Err(e) => {
                 println!("cargo::error={}", e);
                 println!(
-                    "cargo::error=It is highly recommended to build Veloren from the cloned git \
+                    "cargo::error=It is highly recommended to build Nova-Forge from the cloned git \
                      repository with the git command available in order to give the game access \
                      to proper versioning information."
                 );
                 println!(
-                    "cargo::error=However, if you wish to proceed building Veloren anyway, you \
-                     can set the environment variable \"VELOREN_GIT_VERSION\" to \"/0/0\" before \
+                    "cargo::error=However, if you wish to proceed building Nova-Forge anyway, you \
+                     can set the environment variable \"NOVA_FORGE_GIT_VERSION\" to \"/0/0\" before \
                      re-running the given cargo command (the specific procedure for this will \
                      depend on your shell). Note that this will compile the game with git commit \
                      hash and commit timestamp set to 0, which will cause version mismatch \
@@ -90,7 +90,7 @@ fn main() {
 
         // Format: <git-tag?>/<git-hash>/<git-timestamp>
         println!(
-            "cargo::rustc-env=VELOREN_GIT_VERSION={}/{}",
+            "cargo::rustc-env=NOVA_FORGE_GIT_VERSION={}/{}",
             &tag, &hash_timestamp
         );
     }

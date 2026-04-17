@@ -138,7 +138,7 @@ impl RtSim {
     }
 
     fn get_file_path(mut data_dir: PathBuf) -> PathBuf {
-        let mut path = std::env::var("VELOREN_RTSIM")
+        let mut path = std::env::var("NOVA_FORGE_RTSIM")
             .map(PathBuf::from)
             .unwrap_or_else(|_| {
                 data_dir.push("rtsim");

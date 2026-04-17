@@ -34,7 +34,7 @@ logs, and code as it's tough to read otherwise.)
 
 (Include important system details like OS and in case it's a graphical issue the gpu)
 
-#### Veloren version
+#### Nova-Forge version
 
 (What version the bug happened e.g. Nightly, Stable 0.X.0, master)
 

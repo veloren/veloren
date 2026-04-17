@@ -1,6 +1,6 @@
 [package]
-name = "veloren-common-assets"
-description = "Crate for game loading assets for veloren."
+name = "nova-forge-common-assets"
+description = "Crate for game loading assets for nova-forge."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

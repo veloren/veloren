@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common-base"
+name = "nova-forge-common-base"
 description = "minimal dependency for crates to now depend on whole common"
 version.workspace = true
 edition.workspace = true

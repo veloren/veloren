@@ -639,7 +639,7 @@ fn prepare_graphic<'graphic>(
             // need to resize it here.
             //
             // TODO: We could potentially push premultiplication even earlier (e.g. to the
-            // time of loading images or packaging veloren for distribution).
+            // time of loading images or packaging nova-forge for distribution).
             let mut rgba_cow = image.as_rgba8().map_or_else(
                 || {
                     // TODO: we may want to require loading in as the rgba8 format so we don't have

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use tracing::{error, info};
-use veloren_query_server::client::QueryClient;
+use nova_forge_query_server::client::QueryClient;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

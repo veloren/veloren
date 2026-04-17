@@ -183,7 +183,7 @@ macro_rules! prof_span_alloc {
 ///
 /// # Example
 /// ```rust
-/// # use veloren_common_base::enum_iter;
+/// # use nova_forge_common_base::enum_iter;
 /// enum_iter! {
 ///     ~const_array(ALL)
 ///     #[derive(Eq, PartialEq, Debug)]
@@ -408,8 +408,8 @@ fn test_enum_iter() {
 /// # Example
 ///
 /// ```rust
-/// # use veloren_common_base::struct_iter;
-/// # use veloren_common_base::enum_iter;
+/// # use nova_forge_common_base::struct_iter;
+/// # use nova_forge_common_base::enum_iter;
 ///
 /// enum_iter! {
 ///     #[derive(Eq, PartialEq, Debug, Clone)]

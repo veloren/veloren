@@ -304,13 +304,13 @@ impl PartialEq<ITFrame> for OTFrame {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{VELOREN_MAGIC_NUMBER, VELOREN_NETWORK_VERSION};
+    use crate::types::{NOVA_FORGE_MAGIC_NUMBER, NOVA_FORGE_NETWORK_VERSION};
 
     fn get_initframes() -> Vec<InitFrame> {
         vec![
             InitFrame::Handshake {
-                magic_number: VELOREN_MAGIC_NUMBER,
-                version: VELOREN_NETWORK_VERSION,
+                magic_number: NOVA_FORGE_MAGIC_NUMBER,
+                version: NOVA_FORGE_NETWORK_VERSION,
             },
             InitFrame::Init {
                 pid: Pid::fake(0),
@@ -440,8 +440,8 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(10);
 
         let frame1 = InitFrame::Handshake {
-            magic_number: VELOREN_MAGIC_NUMBER,
-            version: VELOREN_NETWORK_VERSION,
+            magic_number: NOVA_FORGE_MAGIC_NUMBER,
+            version: NOVA_FORGE_NETWORK_VERSION,
         };
         InitFrame::write_bytes(frame1, &mut buffer);
     }
@@ -451,8 +451,8 @@ mod tests {
         let mut buffer = BytesMut::with_capacity(20);
 
         let frame1 = InitFrame::Handshake {
-            magic_number: VELOREN_MAGIC_NUMBER,
-            version: VELOREN_NETWORK_VERSION,
+            magic_number: NOVA_FORGE_MAGIC_NUMBER,
+            version: NOVA_FORGE_NETWORK_VERSION,
         };
         InitFrame::write_bytes(frame1, &mut buffer);
         buffer.truncate(6); // simulate partial retrieve

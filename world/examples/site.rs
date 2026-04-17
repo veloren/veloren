@@ -1,5 +1,5 @@
 use svg_fmt::*;
-use veloren_world::site::test_site;
+use nova_forge_world::site::test_site;
 
 fn main() {
     let site = test_site();

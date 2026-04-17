@@ -1,14 +1,14 @@
 //! Manages individual sfx event system, listens for sfx events, and requests
 //! playback at the requested position and volume
 //!
-//! Veloren's sfx are managed through a configuration which lives in the
+//! Nova-Forge's sfx are managed through a configuration which lives in the
 //! codebase under `/assets/voxygen/audio/sfx.ron`.
 //!
 //! If there are errors while reading or deserialising the configuration file, a
 //! warning is logged and sfx will be disabled.
 //!
 //! Each entry in the configuration consists of an
-//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) item, with some
+//! [SfxEvent](../../../nova_forge_common/event/enum.SfxEvent.html) item, with some
 //! additional information to allow playback:
 //! - `files` - the paths to the `.wav` files to be played for the sfx. minus
 //!   the file extension. This can be a single item if the same sound can be
@@ -44,7 +44,7 @@
 //!
 //! These items (for example, the `Wield(Sword)` occasionally depend on some
 //! property which varies in game. The
-//! [SfxEvent](../../../veloren_common/event/enum.SfxEvent.html) documentation
+//! [SfxEvent](../../../nova_forge_common/event/enum.SfxEvent.html) documentation
 //! provides links to those variables, some examples are provided her for longer
 //! items:
 //!

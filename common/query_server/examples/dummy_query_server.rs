@@ -6,7 +6,7 @@ use std::{
 
 use tokio::sync::watch;
 use tracing::error;
-use veloren_query_server::{
+use nova_forge_query_server::{
     client::QueryClient,
     proto::{ServerBattleMode, ServerInfo},
     server::{Metrics, QueryServer},

@@ -4,7 +4,7 @@ use petgraph::{
     dot::{Config, Dot},
 };
 use std::{fs::File, io::Write};
-use veloren_common::{
+use nova_forge_common::{
     comp::item::ItemDesc,
     recipe::{RecipeBookManifest, RecipeInput},
 };

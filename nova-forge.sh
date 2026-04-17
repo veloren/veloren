@@ -47,7 +47,7 @@ Options (all commands):
   -- <args>            Anything after -- is forwarded directly to Cargo
 
 Environment variables honoured:
-  VELOREN_ASSETS   Path to the assets directory  (default: ./assets)
+  NOVA_FORGE_ASSETS   Path to the assets directory  (default: ./assets)
   RUST_LOG         Tracing filter                (default: info)
 
 Examples:
@@ -98,11 +98,11 @@ done
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
-export VELOREN_ASSETS="${VELOREN_ASSETS:-assets}"
+export NOVA_FORGE_ASSETS="${NOVA_FORGE_ASSETS:-assets}"
 export RUST_LOG="${RUST_LOG:-info}"
 # Store saves / config inside the repo tree so running from source doesn't
 # pollute the user's home directory.
-export VELOREN_USERDATA_STRATEGY=executable
+export NOVA_FORGE_USERDATA_STRATEGY=executable
 
 # ---------------------------------------------------------------------------
 # Verify toolchain
@@ -145,13 +145,13 @@ cmd_build() {
     section "Building Nova-Forge (dev) — client + server"
     info "Features: $feats"
     cargo build \
-        --bin veloren-voxygen \
-        --bin veloren-server-cli \
+        --bin nova-forge-voxygen \
+        --bin nova-forge-server-cli \
         --features "$feats" \
         "${CARGO_ARGS[@]}"
     info "Build complete."
-    info "  Client : target/debug/veloren-voxygen"
-    info "  Server : target/debug/veloren-server-cli"
+    info "  Client : target/debug/nova-forge-voxygen"
+    info "  Server : target/debug/nova-forge-server-cli"
 }
 
 cmd_run() {
@@ -159,10 +159,10 @@ cmd_run() {
     feats="$(build_features)"
     section "Building & launching Nova-Forge client"
     info "Features: $feats"
-    info "Assets  : $VELOREN_ASSETS"
+    info "Assets  : $NOVA_FORGE_ASSETS"
     info "Data dir: userdata/ (relative to binary)"
     cargo run \
-        --bin veloren-voxygen \
+        --bin nova-forge-voxygen \
         --features "$feats" \
         "${CARGO_ARGS[@]}"
 }
@@ -172,7 +172,7 @@ cmd_server() {
     info "No authentication required — any username accepted."
     info "LAN clients can connect to port 14004."
     cargo run \
-        --bin veloren-server-cli \
+        --bin nova-forge-server-cli \
         "${CARGO_ARGS[@]}"
 }
 
@@ -183,12 +183,12 @@ cmd_release() {
         --release \
         --no-default-features \
         --features default-publish \
-        --bin veloren-voxygen \
-        --bin veloren-server-cli \
+        --bin nova-forge-voxygen \
+        --bin nova-forge-server-cli \
         "${CARGO_ARGS[@]}"
     info "Release build complete."
-    info "  Client : target/release/veloren-voxygen"
-    info "  Server : target/release/veloren-server-cli"
+    info "  Client : target/release/nova-forge-voxygen"
+    info "  Server : target/release/nova-forge-server-cli"
 
     # Copy the assets directory next to the release binaries so the client can
     # find them when launched directly (e.g. by double-clicking on Windows).
@@ -209,13 +209,13 @@ cmd_release() {
 }
 
 cmd_run_release() {
-    local exe="target/release/veloren-voxygen"
+    local exe="target/release/nova-forge-voxygen"
     if [[ ! -x "$exe" ]]; then
         die "Release binary not found at $exe. Run './nova-forge.sh release' first."
     fi
     section "Launching Nova-Forge (release client)"
-    # VELOREN_ASSETS is set globally above (default: ./assets in the repo root).
-    info "Assets  : $VELOREN_ASSETS"
+    # NOVA_FORGE_ASSETS is set globally above (default: ./assets in the repo root).
+    info "Assets  : $NOVA_FORGE_ASSETS"
     info "Data dir: userdata/ (relative to binary)"
     "$exe"
 }

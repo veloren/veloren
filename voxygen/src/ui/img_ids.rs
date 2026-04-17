@@ -127,7 +127,7 @@ pub struct Rotations {
 ///
 /// Example usage:
 /// ```ignore
-/// use veloren_voxygen::{
+/// use nova_forge_voxygen::{
 ///     image_ids,
 ///     ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
 /// };

@@ -1,5 +1,5 @@
 {
-  description = "Flake providing Veloren, a multiplayer voxel RPG written in Rust.";
+  description = "Flake providing Nova-Forge, a multiplayer voxel RPG written in Rust.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -55,7 +55,7 @@
         lib.all (n: ! (lib.hasPrefix n _path)) pathsToIgnore;
     in
       builtins.path {
-        name = "veloren-source";
+        name = "nova-forge-source";
         path = toString ./.;
         # filter out unnecessary paths
         filter = ignorePaths;
@@ -83,14 +83,14 @@
                 - git-lfs was not installed before cloning this repository.
                 - This repository was not cloned from the primary GitLab mirror.
                 - The GitHub mirror does not support LFS.
-              See the book at https://book.veloren.net/ for details.
+              See the Nova-Forge repository README for setup instructions.
               Run 'nix-shell -p git git-lfs --run \"git lfs install --local && git lfs fetch && git lfs checkout\"'
               or 'nix shell nixpkgs#git-lfs nixpkgs#git -c sh -c \"git lfs install --local && git lfs fetch && git lfs checkout\"'.
             "
             false
           fi
         '';
-        assets = pkgs.runCommand "veloren-assets" {} ''
+        assets = pkgs.runCommand "nova-forge-assets" {} ''
           mkdir $out
           ln -sf ${./assets} $out/assets
           ${checkIfLfsIsSetup "$out/assets/voxygen/background/bg_main.jpg"}
@@ -110,42 +110,42 @@
           ''
             cp -rs --no-preserve=mode,ownership ${old} $out
             wrapProgram $out/bin/* \
-              --set VELOREN_ASSETS ${assets} \
-              --set VELOREN_GIT_VERSION "${git.version}" \
+              --set NOVA_FORGE_ASSETS ${assets} \
+              --set NOVA_FORGE_GIT_VERSION "${git.version}" \
           '';
-        veloren-common-env = {
+        nova-forge-common-env = {
           # We don't add in any information here because otherwise anything
           # that depends on common will be recompiled. We will set these in
           # our wrapper instead.
-          VELOREN_GIT_VERSION = "/0/0";
-          VELOREN_USERDATA_STRATEGY = "system";
+          NOVA_FORGE_GIT_VERSION = "/0/0";
+          NOVA_FORGE_USERDATA_STRATEGY = "system";
         };
-        voxygenOut = config.nci.outputs."veloren-voxygen";
-        serverCliOut = config.nci.outputs."veloren-server-cli";
+        voxygenOut = config.nci.outputs."nova-forge-voxygen";
+        serverCliOut = config.nci.outputs."nova-forge-server-cli";
       in {
-        packages.veloren-voxygen = wrapWithAssets voxygenOut.packages.release;
-        packages.veloren-voxygen-dev = wrapWithAssets voxygenOut.packages.dev;
-        packages.veloren-server-cli = wrapWithAssets serverCliOut.packages.release;
-        packages.veloren-server-cli-dev = wrapWithAssets serverCliOut.packages.dev;
-        packages.default = config.packages."veloren-voxygen";
+        packages.nova-forge-voxygen = wrapWithAssets voxygenOut.packages.release;
+        packages.nova-forge-voxygen-dev = wrapWithAssets voxygenOut.packages.dev;
+        packages.nova-forge-server-cli = wrapWithAssets serverCliOut.packages.release;
+        packages.nova-forge-server-cli-dev = wrapWithAssets serverCliOut.packages.dev;
+        packages.default = config.packages."nova-forge-voxygen";
 
-        devShells.default = config.nci.outputs."veloren".devShell.overrideAttrs (old: {
-          VELOREN_ASSETS = "";
+        devShells.default = config.nci.outputs."nova-forge".devShell.overrideAttrs (old: {
+          NOVA_FORGE_ASSETS = "";
           shellHook = ''
             ${checkIfLfsIsSetup "$PWD/assets/voxygen/background/bg_main.jpg"}
             if [ $? -ne 0 ]; then
               exit 1
             fi
-            export VELOREN_ASSETS="$PWD/assets"
-            export VELOREN_GIT_VERSION="${git.version}"
+            export NOVA_FORGE_ASSETS="$PWD/assets"
+            export NOVA_FORGE_GIT_VERSION="${git.version}"
           '';
         });
 
-        nci.projects."veloren" = {
+        nci.projects."nova-forge" = {
           export = false;
           path = filteredSource;
         };
-        nci.crates."veloren-server-cli" = rec {
+        nci.crates."nova-forge-server-cli" = rec {
           profiles = {
             release.features = ["default-publish"];
             release.runTests = false;
@@ -155,10 +155,10 @@
           depsDrvConfig.mkDerivation.nativeBuildInputs = [pkgs.mold];
           drvConfig = {
             mkDerivation = depsDrvConfig.mkDerivation;
-            env = veloren-common-env;
+            env = nova-forge-common-env;
           };
         };
-        nci.crates."veloren-voxygen" = rec {
+        nci.crates."nova-forge-voxygen" = rec {
           profiles = {
             release.features = ["default-publish"];
             release.runTests = false;
@@ -182,7 +182,7 @@
           ];
           depsDrvConfig = {
             env =
-              veloren-common-env
+              nova-forge-common-env
               // {
                 SHADERC_LIB_DIR = "${pkgs.shaderc.lib}/lib";
               };
@@ -219,7 +219,7 @@
                   voxygen/src/audio/soundcache.rs
                 '';
               };
-            rust-crane.buildFlags = ["--bin=veloren-voxygen"];
+            rust-crane.buildFlags = ["--bin=nova-forge-voxygen"];
           };
         };
       };

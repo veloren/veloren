@@ -3,8 +3,8 @@ use crate::{
     error::{InitProtocolError, ProtocolError},
     frame::InitFrame,
     types::{
-        Pid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, Sid, VELOREN_MAGIC_NUMBER,
-        VELOREN_NETWORK_VERSION,
+        Pid, STREAM_ID_OFFSET1, STREAM_ID_OFFSET2, Sid, NOVA_FORGE_MAGIC_NUMBER,
+        NOVA_FORGE_NETWORK_VERSION,
     },
 };
 use async_trait::async_trait;
@@ -52,7 +52,7 @@ where
     ) -> Result<(Pid, Sid, u128), InitProtocolError<E>> {
         #[cfg(debug_assertions)]
         const WRONG_NUMBER: &str = "Handshake does not contain the magic number required by \
-                                    veloren server.\nWe are not sure if you are a valid veloren \
+                                    nova-forge server.\nWe are not sure if you are a valid nova-forge \
                                     client.\nClosing the connection";
         #[cfg(debug_assertions)]
         const WRONG_VERSION: &str = "Handshake does contain a correct magic number, but invalid \
@@ -67,8 +67,8 @@ where
         if initializer {
             drain
                 .send(InitFrame::Handshake {
-                    magic_number: VELOREN_MAGIC_NUMBER,
-                    version: VELOREN_NETWORK_VERSION,
+                    magic_number: NOVA_FORGE_MAGIC_NUMBER,
+                    version: NOVA_FORGE_NETWORK_VERSION,
                 })
                 .await?;
         }
@@ -79,15 +79,15 @@ where
                 version,
             } => {
                 trace!(?magic_number, ?version, "Recv handshake");
-                if magic_number != VELOREN_MAGIC_NUMBER {
+                if magic_number != NOVA_FORGE_MAGIC_NUMBER {
                     error!(?magic_number, "Connection with invalid magic_number");
                     #[cfg(debug_assertions)]
                     drain
                         .send(InitFrame::Raw(WRONG_NUMBER.as_bytes().to_vec()))
                         .await?;
                     Err(InitProtocolError::WrongMagicNumber(magic_number))
-                } else if version[0] != VELOREN_NETWORK_VERSION[0]
-                    || version[1] != VELOREN_NETWORK_VERSION[1]
+                } else if version[0] != NOVA_FORGE_NETWORK_VERSION[0]
+                    || version[1] != NOVA_FORGE_NETWORK_VERSION[1]
                 {
                     error!(?version, "Connection with wrong network version");
                     #[cfg(debug_assertions)]
@@ -95,7 +95,7 @@ where
                         .send(InitFrame::Raw(
                             format!(
                                 "{} Our Version: {:?}\nYour Version: {:?}\nClosing the connection",
-                                WRONG_VERSION, VELOREN_NETWORK_VERSION, version,
+                                WRONG_VERSION, NOVA_FORGE_NETWORK_VERSION, version,
                             )
                             .as_bytes()
                             .to_vec(),
@@ -114,8 +114,8 @@ where
                     } else {
                         drain
                             .send(InitFrame::Handshake {
-                                magic_number: VELOREN_MAGIC_NUMBER,
-                                version: VELOREN_NETWORK_VERSION,
+                                magic_number: NOVA_FORGE_MAGIC_NUMBER,
+                                version: NOVA_FORGE_NETWORK_VERSION,
                             })
                             .await?;
                     }
@@ -192,7 +192,7 @@ mod tests {
             let _ = p2.1.recv().await?;
             p2.0.send(InitFrame::Handshake {
                 magic_number: *b"woopsie",
-                version: VELOREN_NETWORK_VERSION,
+                version: NOVA_FORGE_NETWORK_VERSION,
             })
             .await?;
             let _ = p2.1.recv().await?;
@@ -213,7 +213,7 @@ mod tests {
         let r2 = tokio::spawn(async move {
             let _ = p2.1.recv().await?;
             p2.0.send(InitFrame::Handshake {
-                magic_number: VELOREN_MAGIC_NUMBER,
+                magic_number: NOVA_FORGE_MAGIC_NUMBER,
                 version: [0, 1, 2],
             })
             .await?;
@@ -233,8 +233,8 @@ mod tests {
         let r2 = tokio::spawn(async move {
             let _ = p2.1.recv().await?;
             p2.0.send(InitFrame::Handshake {
-                magic_number: VELOREN_MAGIC_NUMBER,
-                version: VELOREN_NETWORK_VERSION,
+                magic_number: NOVA_FORGE_MAGIC_NUMBER,
+                version: NOVA_FORGE_NETWORK_VERSION,
             })
             .await?;
             let _ = p2.1.recv().await?;

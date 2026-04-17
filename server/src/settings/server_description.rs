@@ -140,7 +140,7 @@ mod v1 {
     pub struct ServerDescription(pub(super) String);
 
     impl Default for ServerDescription {
-        fn default() -> Self { Self("This is the best Veloren server".into()) }
+        fn default() -> Self { Self("This is the best Nova-Forge server".into()) }
     }
 
     impl Deref for ServerDescription {
@@ -214,7 +214,7 @@ mod v2 {
     impl Default for ServerDescription {
         fn default() -> Self {
             Self {
-                motd: "This is the best Veloren server".into(),
+                motd: "This is the best Nova-Forge server".into(),
                 rules: None,
             }
         }

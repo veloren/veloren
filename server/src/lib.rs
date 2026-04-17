@@ -121,7 +121,7 @@ use test_world::{IndexOwned, World};
 use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace, warn};
 use vek::*;
-use veloren_query_server::server::QueryServer;
+use nova_forge_query_server::server::QueryServer;
 pub use world::{WorldGenerateStage, civ::WorldCivStage, sim::WorldSimStage};
 
 use crate::{
@@ -633,7 +633,7 @@ impl Server {
         }
 
         if let Some(addr) = settings.query_address {
-            use veloren_query_server::proto::ServerInfo;
+            use nova_forge_query_server::proto::ServerInfo;
 
             const QUERY_SERVER_RATELIMIT: u16 = 120;
 
@@ -648,7 +648,7 @@ impl Server {
             let mut query_server =
                 QueryServer::new(addr, query_server_info_rx, QUERY_SERVER_RATELIMIT);
             let query_server_metrics =
-                Arc::new(Mutex::new(veloren_query_server::server::Metrics::default()));
+                Arc::new(Mutex::new(nova_forge_query_server::server::Metrics::default()));
             let query_server_metrics2 = Arc::clone(&query_server_metrics);
             runtime.spawn(async move {
                 let err = query_server.run(query_server_metrics2).await.err();
@@ -698,7 +698,7 @@ impl Server {
             event_dispatcher: Self::create_event_dispatcher(pools),
         };
 
-        debug!(?settings, "created veloren server with");
+        debug!(?settings, "created nova-forge server with");
 
         info!("Server version: {}", *common::util::DISPLAY_VERSION);
 
@@ -791,7 +791,7 @@ impl Server {
             .calendar_now();
         *self.state.ecs_mut().write_resource::<Calendar>() = new_calendar;
 
-        // This tick function is the centre of the Veloren universe. Most server-side
+        // This tick function is the centre of the Nova-Forge universe. Most server-side
         // things are managed from here, and as such it's important that it
         // stays organised. Please consult the core developers before making
         // significant changes to this code. Here is the approximate order of

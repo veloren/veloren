@@ -111,7 +111,7 @@ impl ShutdownCoordinator {
 
     /// Checks whether a shutdown (SIGUSR1 by default) signal has been set,
     /// which is used to trigger a graceful shutdown for an update. [Watchtower](https://containrrr.dev/watchtower/) is configured on the main
-    /// Veloren server to send SIGUSR1 instead of SIGTERM which allows us to
+    /// Nova-Forge server to send SIGUSR1 instead of SIGTERM which allows us to
     /// react specifically to shutdowns that are for an update.
     /// NOTE: SIGUSR1 is not supported on Windows
     fn check_shutdown_signal(&mut self, server: &mut Server, settings: &Settings) {

@@ -597,7 +597,7 @@ fn dock_sites_optimized_tesselation_map(
 /// * `pixmap`: The Pixmap on which to draw the segments.
 ///
 /// This draws circles around the docking locations and lines for the route
-/// legs. The coordinates must be pre-scaled to the pixmap size. The Veloren
+/// legs. The coordinates must be pre-scaled to the pixmap size. The Nova-Forge
 /// world uses a bottom-left origin with coordinates in world blocks, so world
 /// coordinates must be converted by inverting the y-axix and scaling to the
 /// pixmap size.

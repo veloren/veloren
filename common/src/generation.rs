@@ -102,7 +102,7 @@ pub enum Meta {
 /// # Example
 /// ```
 /// use vek::Vec3;
-/// use veloren_common::generation::EntityInfo;
+/// use nova_forge_common::generation::EntityInfo;
 ///
 /// // create new EntityInfo at dummy position
 /// // and fill it with template config

@@ -50,13 +50,13 @@ impl<E: std::fmt::Debug + Send> core::fmt::Display for InitProtocolError<E> {
                 f,
                 "Magic Number doesn't match, remote side send '{:?}' instead of '{:?}'",
                 &r,
-                &crate::types::VELOREN_MAGIC_NUMBER
+                &crate::types::NOVA_FORGE_MAGIC_NUMBER
             ),
             InitProtocolError::WrongVersion(r) => write!(
                 f,
                 "Network doesn't match, remote side send '{:?}' we are on '{:?}'",
                 &r,
-                &crate::types::VELOREN_NETWORK_VERSION
+                &crate::types::NOVA_FORGE_NETWORK_VERSION
             ),
         }
     }

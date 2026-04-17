@@ -13,10 +13,10 @@ use strum::EnumIter;
 /// To add a new spot, one must:
 ///
 /// 1. Add a new variant to the [`Spot`] enum.
-/// 2. Add a new entry to [`veloren-world::layer::spot::SpotGenerate::generate`]
+/// 2. Add a new entry to [`nova-forge-world::layer::spot::SpotGenerate::generate`]
 ///    that tells the system where to generate your new spot.
 /// 3. Add a new arm to the `match` expression in
-///    [`veloren-world::layer::spot::apply_spots_to`] that tells the generator
+///    [`nova-forge-world::layer::spot::apply_spots_to`] that tells the generator
 ///    how to generate a spot, including the base structure that composes the
 ///    spot and the entities that should be spawned there.
 ///

@@ -489,9 +489,9 @@ impl Client {
                     })
                     .build();
 
-                let quic_service_host = format!("_veloren._udp.{hostname}");
+                let quic_service_host = format!("_nova-forge._udp.{hostname}");
                 let quic_lookup_future = resolver.srv_lookup(quic_service_host);
-                let tcp_service_host = format!("_veloren._tcp.{hostname}");
+                let tcp_service_host = format!("_nova-forge._tcp.{hostname}");
                 let tcp_lookup_future = resolver.srv_lookup(tcp_service_host);
                 let (quic_rr, tcp_rr) = tokio::join!(quic_lookup_future, tcp_lookup_future);
 
@@ -2311,7 +2311,7 @@ impl Client {
     /// the given duration.
     pub fn tick(&mut self, inputs: ControllerInputs, dt: Duration) -> Result<Vec<Event>, Error> {
         span!(_guard, "tick", "Client::tick");
-        // This tick function is the centre of the Veloren universe. Most client-side
+        // This tick function is the centre of the nova-forge universe. Most client-side
         // things are managed from here, and as such it's important that it
         // stays organised. Please consult the core developers before making
         // significant changes to this code. Here is the approximate order of
@@ -3567,7 +3567,7 @@ mod tests {
         let username = "Foo";
         let password = "Bar";
         let auth_server = "auth.veloren.net";
-        let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
+        let nova_forge_client: Result<Client, Error> = runtime.block_on(Client::new(
             ConnectionArgs::Tcp {
                 hostname: "127.0.0.1:9000".to_owned(),
                 prefer_ipv6: false,
@@ -3585,7 +3585,7 @@ mod tests {
         ));
         let localisation = LocalizationHandle::load_expect("en");
 
-        let _ = veloren_client.map(|mut client| {
+        let _ = nova_forge_client.map(|mut client| {
             //clock
             let mut clock = Clock::new(Duration::from_secs_f64(SPT));
 

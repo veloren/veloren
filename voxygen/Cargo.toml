@@ -1,9 +1,9 @@
 [package]
-name = "veloren-voxygen"
+name = "nova-forge-voxygen"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-default-run = "veloren-voxygen"
+default-run = "nova-forge-voxygen"
 # Cargo thinks it should build the voxygen binary even when a specific bench is specified for building
 # Uncomment below and comment out default-run if you want to avoid this
 # autobins = false
@@ -14,9 +14,9 @@ workspace = true
 [package.metadata.nix]
 build = true
 app = true
-desktopFile = "./assets/voxygen/net.veloren.veloren.desktop"
+desktopFile = "./assets/voxygen/net.nova-forge.nova-forge.desktop"
 longDescription = """
-Veloren is a multiplayer voxel RPG written in Rust.
+Nova-Forge is a LAN-first, auth-free voxel RPG built on the Veloren engine.
 It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
 
 This package includes the official client, Voxygen.
@@ -48,20 +48,20 @@ default-publish = [
 default = ["default-publish", "hot-reloading", "egui-ui"]
 
 [dependencies]
-client = { package = "veloren-client", path = "../client" }
-common = { package = "veloren-common", path = "../common" }
-common-base = { package = "veloren-common-base", path = "../common/base" }
-common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
-common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
-common-i18n = { package = "veloren-common-i18n", path = "../common/i18n" }
-common-net = { package = "veloren-common-net", path = "../common/net" }
-common-state = { package = "veloren-common-state", path = "../common/state" }
-common-systems = { package = "veloren-common-systems", path = "../common/systems" }
+client = { package = "nova-forge-client", path = "../client" }
+common = { package = "nova-forge-common", path = "../common" }
+common-base = { package = "nova-forge-common-base", path = "../common/base" }
+common-ecs = { package = "nova-forge-common-ecs", path = "../common/ecs" }
+common-frontend = { package = "nova-forge-common-frontend", path = "../common/frontend" }
+common-i18n = { package = "nova-forge-common-i18n", path = "../common/i18n" }
+common-net = { package = "nova-forge-common-net", path = "../common/net" }
+common-state = { package = "nova-forge-common-state", path = "../common/state" }
+common-systems = { package = "nova-forge-common-systems", path = "../common/systems" }
 
-anim = { package = "veloren-voxygen-anim", path = "anim" }
-i18n = { package = "veloren-client-i18n", path = "../client/i18n" }
-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "i18n-helpers" }
-voxygen-egui = { package = "veloren-voxygen-egui", path = "egui", optional = true }
+anim = { package = "nova-forge-voxygen-anim", path = "anim" }
+i18n = { package = "nova-forge-client-i18n", path = "../client/i18n" }
+i18n-helpers = { package = "nova-forge-voxygen-i18n-helpers", path = "i18n-helpers" }
+voxygen-egui = { package = "nova-forge-voxygen-egui", path = "egui", optional = true }
 
 # Graphics
 winit = { version = "0.30.12", features = ["serde"] }
@@ -94,7 +94,7 @@ levenshtein = "1.0.5"
 gilrs = { version = "0.11.0", features = ["serde-serialize"] }
 
 # Singleplayer
-server = { package = "veloren-server", path = "../server", optional = true, default-features = false, features = [
+server = { package = "nova-forge-server", path = "../server", optional = true, default-features = false, features = [
     "worldgen",
 ] }
 
@@ -161,7 +161,7 @@ mumble-link = "0.2.0"
 
 [dev-dependencies]
 criterion = { workspace = true }
-world = { package = "veloren-world", path = "../world" }
+world = { package = "nova-forge-world", path = "../world" }
 rayon = { workspace = true }
 
 [[bench]]

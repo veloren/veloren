@@ -1,5 +1,5 @@
 [package]
-name = "veloren-server-cli"
+name = "nova-forge-server-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ workspace = true
 build = true
 app = true
 longDescription = """
-Veloren is a multiplayer voxel RPG written in Rust.
+Nova-Forge is a LAN-first, auth-free voxel RPG built on the Veloren engine.
 It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
 
 This package includes the official server CLI.
@@ -30,15 +30,15 @@ hot-agent = ["server/hot-agent", "agent"]
 hot-site = ["server/hot-site", "world"]
 
 [dependencies]
-server = { package = "veloren-server", path = "../server", default-features = false, features = [
+server = { package = "nova-forge-server", path = "../server", default-features = false, features = [
     "simd",
 ] }
-agent = { package = "veloren-server-agent", path = "../server/agent", optional = true }
-common = { package = "veloren-common", path = "../common" }
-common-base = { package = "veloren-common-base", path = "../common/base" }
-common-net = { package = "veloren-common-net", path = "../common/net" }
-common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
-world = { package = "veloren-world", path = "../world", optional = true }
+agent = { package = "nova-forge-server-agent", path = "../server/agent", optional = true }
+common = { package = "nova-forge-common", path = "../common" }
+common-base = { package = "nova-forge-common-base", path = "../common/base" }
+common-net = { package = "nova-forge-common-net", path = "../common/net" }
+common-frontend = { package = "nova-forge-common-frontend", path = "../common/frontend" }
+world = { package = "nova-forge-world", path = "../world", optional = true }
 
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 num_cpus = "1.0"

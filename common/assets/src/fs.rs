@@ -6,7 +6,7 @@ use assets_manager::{
     source::{DirEntry, FileContent, FileSystem as RawFs, Source},
 };
 
-/// Loads assets from the default path or `VELOREN_ASSETS_OVERRIDE` env if it is
+/// Loads assets from the default path or `NOVA_FORGE_ASSETS_OVERRIDE` env if it is
 /// set.
 #[derive(Debug, Clone)]
 pub struct FileSystem {
@@ -17,7 +17,7 @@ pub struct FileSystem {
 impl FileSystem {
     pub fn new() -> io::Result<Self> {
         let default = RawFs::new(&*super::ASSETS_PATH)?;
-        let override_dir = std::env::var_os("VELOREN_ASSETS_OVERRIDE").and_then(|path| {
+        let override_dir = std::env::var_os("NOVA_FORGE_ASSETS_OVERRIDE").and_then(|path| {
             RawFs::new(path)
                 .map_err(|err| tracing::error!("Error setting override assets directory: {}", err))
                 .ok()

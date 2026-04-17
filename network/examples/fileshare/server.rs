@@ -8,7 +8,7 @@ use tokio::{
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::*;
-use veloren_network::{ListenAddr, Network, Participant, Pid, Promises, Stream};
+use nova_forge_network::{ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 #[derive(Debug)]
 struct ControlChannels {

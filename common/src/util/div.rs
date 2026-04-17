@@ -5,7 +5,7 @@
 /// Here is an example:
 ///
 /// ```
-/// use veloren_common::util::div::checked_div;
+/// use nova_forge_common::util::div::checked_div;
 ///
 /// assert!(checked_div(50.0_f32, 0.0_f32).is_none());
 /// ```

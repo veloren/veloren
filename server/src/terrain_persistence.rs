@@ -39,10 +39,10 @@ pub struct LoadedChunk {
 impl TerrainPersistence {
     /// Create a new terrain persistence system using the given data directory.
     ///
-    /// If the `VELOREN_TERRAIN` environment variable is set, this will be used
+    /// If the `NOVA_FORGE_TERRAIN` environment variable is set, this will be used
     /// as the persistence directory instead.
     pub fn new(mut data_dir: PathBuf) -> Self {
-        let path = std::env::var("VELOREN_TERRAIN")
+        let path = std::env::var("NOVA_FORGE_TERRAIN")
             .map(PathBuf::from)
             .unwrap_or_else(|_| {
                 data_dir.push("terrain");

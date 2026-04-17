@@ -61,7 +61,7 @@ pub enum ClientChatCommand {
     /// Displays the name of the site or biome where the current waypoint is
     /// located.
     Waypoint,
-    /// Opens the Veloren wiki in a browser
+    /// Opens the Nova-Forge wiki in a browser
     Wiki,
 }
 

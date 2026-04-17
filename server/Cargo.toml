@@ -1,5 +1,5 @@
 [package]
-name = "veloren-server"
+name = "nova-forge-server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -19,24 +19,24 @@ hot-site = ["world/use-dyn-lib"]
 default = ["worldgen", "plugins", "persistent_world", "simd"]
 
 [dependencies]
-common = { package = "veloren-common", path = "../common" }
-common-base = { package = "veloren-common-base", path = "../common/base" }
-veloren-query-server = { package = "veloren-query-server", path = "../common/query_server", default-features = false, features = [
+common = { package = "nova-forge-common", path = "../common" }
+common-base = { package = "nova-forge-common-base", path = "../common/base" }
+nova-forge-query-server = { package = "nova-forge-query-server", path = "../common/query_server", default-features = false, features = [
     "server",
 ] }
-common-ecs = { package = "veloren-common-ecs", path = "../common/ecs" }
-common-state = { package = "veloren-common-state", path = "../common/state" }
-common-systems = { package = "veloren-common-systems", path = "../common/systems" }
-common-net = { package = "veloren-common-net", path = "../common/net" }
-world = { package = "veloren-world", path = "../world" }
-rtsim = { package = "veloren-rtsim", path = "../rtsim" }
-network = { package = "veloren-network", path = "../network", features = [
+common-ecs = { package = "nova-forge-common-ecs", path = "../common/ecs" }
+common-state = { package = "nova-forge-common-state", path = "../common/state" }
+common-systems = { package = "nova-forge-common-systems", path = "../common/systems" }
+common-net = { package = "nova-forge-common-net", path = "../common/net" }
+world = { package = "nova-forge-world", path = "../world" }
+rtsim = { package = "nova-forge-rtsim", path = "../rtsim" }
+network = { package = "nova-forge-network", path = "../network", features = [
     "metrics",
     "compression",
     "quic",
 ], default-features = false }
 
-server-agent = { package = "veloren-server-agent", path = "agent" }
+server-agent = { package = "nova-forge-server-agent", path = "agent" }
 
 #inline_tweak = "1.0.8"
 

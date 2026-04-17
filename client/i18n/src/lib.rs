@@ -238,7 +238,7 @@ impl assets::Asset for Language {
     }
 }
 
-/// The central data structure to handle localization in Veloren
+/// The central data structure to handle localization in Nova-Forge
 // inherit Copy + Clone from AssetHandle (what?)
 #[derive(Copy, Clone)]
 pub struct LocalizationHandle {
@@ -249,7 +249,7 @@ pub struct LocalizationHandle {
 }
 
 /// Read [`LocalizationGuard`]
-// arbitrary choice to minimize changing all of veloren
+// arbitrary choice to minimize changing all of nova-forge
 pub type Localization = LocalizationGuard;
 
 /// RAII guard returned from [`LocalizationHandle::read()`], resembles

@@ -5,7 +5,7 @@ use image::{
 use rayon::ThreadPoolBuilder;
 use std::{fs::File, io::Write};
 use vek::*;
-use veloren_world::{
+use nova_forge_world::{
     Land, World,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };

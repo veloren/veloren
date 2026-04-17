@@ -100,7 +100,7 @@ impl Source for CombinedSource {
         id: &str,
         f: &mut dyn FnMut(assets_manager::source::DirEntry),
     ) -> std::io::Result<()> {
-        // TODO: We should combine the sources, but this isn't used in veloren
+        // TODO: We should combine the sources, but this isn't used in nova-forge
         self.fs.read_dir(id, f)
     }
 

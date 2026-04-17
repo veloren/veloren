@@ -1,13 +1,13 @@
 use clap::{Arg, Command};
 use common_assets::find_root;
-use veloren_client_i18n::{
+use nova_forge_client_i18n::{
     REFERENCE_LANG,
     analysis::{Language, ReferenceLanguage},
 };
 
 fn main() {
     let args = Command::new("i18n-check")
-        .about("Tool to check your Veloren localisation for correctness and missing keys")
+        .about("Tool to check your Nova-Forge localisation for correctness and missing keys")
         .arg(
             Arg::new("CODE")
                 .required(true)

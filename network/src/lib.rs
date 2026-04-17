@@ -41,7 +41,7 @@
 //! ```rust
 //! use std::sync::Arc;
 //! use tokio::{join, runtime::Runtime, time::sleep};
-//! use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
+//! use nova_forge_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
 //!
 //! // Client
 //! async fn client(runtime: &Runtime) -> Result<(), Box<dyn std::error::Error>> {

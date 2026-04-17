@@ -128,7 +128,7 @@ impl House {
             levels,
             overhang: if levels > 3 {
                 // Overhangs of 3 at this building height are ill-advised.
-                // Failure to comply with Veloren building code will result
+                // Failure to comply with Nova-Forge building code will result
                 // in a fine and a revoked building permit.
                 *[-5, 1, 2].choose(rng).unwrap_or(&-5)
             } else if levels > 1 {

@@ -1,7 +1,7 @@
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{runtime::Runtime, sync::Mutex};
-use veloren_network::{
+use nova_forge_network::{
     ConnectAddr, ListenAddr, Message, Network, Participant, Pid, Promises, Stream,
 };
 

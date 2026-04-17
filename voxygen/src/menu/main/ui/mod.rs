@@ -46,7 +46,7 @@ pub const FILL_FRAC_TWO: f32 = 0.53;
 image_ids_ice! {
     struct Imgs {
         <ImageGraphic>
-        v_logo: "voxygen.element.v_logo",
+        nova_forge_logo: "voxygen.element.nova_forge_logo",
         bg: "voxygen.background.bg_main",
         banner_top: "voxygen.element.ui.generic.frames.banner_top",
         banner_gradient_bottom: "voxygen.element.ui.generic.frames.banner_gradient_bottom",
@@ -316,7 +316,7 @@ impl Controls {
         settings: &Settings,
         server: Option<String>,
     ) -> Self {
-        let version = format!("Veloren {}", *common::util::DISPLAY_VERSION);
+        let version = format!("Nova-Forge {}", *common::util::DISPLAY_VERSION);
 
         let credits = Ron::<Credits>::load_expect_cloned("credits").into_inner();
 

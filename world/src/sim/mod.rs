@@ -482,7 +482,7 @@ pub struct WorldFileLegacy {
     pub basement: Box<[Alt]>,
 }
 
-/// Version of the world map intended for use in Veloren 0.5.0.
+/// Version of the world map originally from upstream Veloren 0.5.0.
 #[derive(Serialize, Deserialize)]
 #[repr(C)]
 pub struct WorldMap_0_5_0 {
@@ -492,7 +492,7 @@ pub struct WorldMap_0_5_0 {
     pub basement: Box<[Alt]>,
 }
 
-/// Version of the world map intended for use in Veloren 0.7.0.
+/// Version of the world map originally from upstream Veloren 0.7.0.
 #[derive(Serialize, Deserialize)]
 #[repr(C)]
 pub struct WorldMap_0_7_0 {
@@ -525,7 +525,7 @@ pub enum WorldFileError {
 /// invalidation or make sure that the map is synchronized with updates to
 /// noise-rs, changes to other parameters, etc.
 ///
-/// The map is versioned to enable format detection between versions of Veloren,
+/// The map is versioned to enable format detection between upstream Veloren versions,
 /// so that when we update the map format we don't break existing maps (or at
 /// least, we will try hard not to break maps between versions; if we can't
 /// avoid it, we can at least give a reasonable error message).

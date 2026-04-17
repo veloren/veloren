@@ -69,7 +69,7 @@ impl Ori {
     ///
     /// ```
     /// use vek::{Quaternion, Vec3};
-    /// use veloren_common::{comp::Ori, util::Dir};
+    /// use nova_forge_common::{comp::Ori, util::Dir};
     ///
     /// let ang = 90_f32.to_radians();
     /// let roll_right = Quaternion::rotation_y(ang);
@@ -90,7 +90,7 @@ impl Ori {
     ///
     /// ```
     /// use vek::{Quaternion, Vec3};
-    /// use veloren_common::{comp::Ori, util::Dir};
+    /// use nova_forge_common::{comp::Ori, util::Dir};
     ///
     /// let ang = 90_f32.to_radians();
     /// let roll_right = Quaternion::rotation_y(ang);
@@ -110,7 +110,7 @@ impl Ori {
     ///
     /// ```
     /// use vek::Vec3;
-    /// use veloren_common::{comp::Ori, util::Dir};
+    /// use nova_forge_common::{comp::Ori, util::Dir};
     ///
     /// let ang = 90_f32.to_radians();
     /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());
@@ -132,7 +132,7 @@ impl Ori {
     ///
     /// ```
     /// use vek::Vec3;
-    /// use veloren_common::{comp::Ori, util::Dir};
+    /// use nova_forge_common::{comp::Ori, util::Dir};
     ///
     /// let ang = 90_f32.to_radians();
     /// let (fw, left, up) = (Dir::default(), Dir::left(), Dir::up());
@@ -273,7 +273,7 @@ impl Ori {
     /// Returns a version without sideways tilt (roll)
     ///
     /// ```
-    /// use veloren_common::comp::Ori;
+    /// use nova_forge_common::comp::Ori;
     ///
     /// let ang = 45_f32.to_radians();
     /// let zenith = vek::Vec3::unit_z();

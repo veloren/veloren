@@ -1,7 +1,7 @@
 //! # What is rtsim?
 //!
 //! Rtsim - originally 'Real-Time Simulation' - is a high-level simulation of a
-//! Veloren world that runs in real-time alongside the game. It represents an
+//! Nova-Forge world that runs in real-time alongside the game. It represents an
 //! abstract, 'low-resolution' model of the world and is designed for expressing
 //! and implementing long-running gameplay and behaviours.
 //!
@@ -28,7 +28,7 @@
 //!
 //! Rtsim balances several competing design goals against one-another. It must:
 //!
-//! - Be performant enough to simulate an entire Veloren world, containing tens
+//! - Be performant enough to simulate an entire Nova-Forge world, containing tens
 //!   of thousands of NPCs, in real-time
 //! - Have a data model that can be persisted and migrated fairly easily
 //! - Have simulation logic that is tolerant of unpredictability and imperfect [data migration](https://en.wikipedia.org/wiki/Schema_migration)
@@ -94,7 +94,7 @@
 //!
 //! ## Composition and complexity philosophy
 //!
-//! Veloren's world is complex, and complexity - at least, as experienced by
+//! Nova-Forge's world is complex, and complexity - at least, as experienced by
 //! players - is an explicit goal.
 //!
 //! However, it is crucially important to recognise the difference between
@@ -125,7 +125,7 @@
 //! event handlers to the events that they care about. These events get access
 //! to rtsim data and can mutate it in response to the event.
 //!
-//! Events are usually generated externally (such as by the Veloren game server)
+//! Events are usually generated externally (such as by the Nova-Forge game server)
 //! but may be generated internally too.
 //!
 //! See [`event`] for some examples of rtsim events.

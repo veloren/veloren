@@ -74,9 +74,9 @@ impl ServerBattleMode {
     }
 }
 
-impl From<ServerBattleMode> for veloren_query_server::proto::ServerBattleMode {
+impl From<ServerBattleMode> for nova_forge_query_server::proto::ServerBattleMode {
     fn from(value: ServerBattleMode) -> Self {
-        use veloren_query_server::proto::ServerBattleMode as QueryBattleMode;
+        use nova_forge_query_server::proto::ServerBattleMode as QueryBattleMode;
 
         match value {
             ServerBattleMode::Global(mode) => match mode {
@@ -224,7 +224,7 @@ impl Default for Settings {
             auth_server_address: None,
             query_address: Some(SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14006))),
             world_seed: DEFAULT_WORLD_SEED,
-            server_name: "Veloren Server".into(),
+            server_name: "Nova-Forge Server".into(),
             max_players: 100,
             day_length: DAY_LENGTH_DEFAULT,
             map_file: None,

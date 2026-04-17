@@ -1,6 +1,6 @@
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
-use veloren_world::layer::tree::{ProceduralTree, TreeConfig};
+use nova_forge_world::layer::tree::{ProceduralTree, TreeConfig};
 
 fn tree(c: &mut Criterion) {
     c.bench_function("generate", |b| {

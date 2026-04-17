@@ -1,5 +1,5 @@
 [package]
-name = "veloren-rtsim"
+name = "nova-forge-rtsim"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,8 +8,8 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-common = { package = "veloren-common", path = "../common" }
-world = { package = "veloren-world", path = "../world" }
+common = { package = "nova-forge-common", path = "../common" }
+world = { package = "nova-forge-world", path = "../world" }
 serde = { workspace = true }
 hashbrown = { workspace = true }
 enum-map = { workspace = true, features = ["serde"] }
