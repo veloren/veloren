@@ -14,7 +14,7 @@ common-abilities-sword-crippling_deep_rend = Hluboká rána
     .desc = Útok, zaměřený na už otevřené rány. Krvácejícím nepřátelům způsobí více poškození.
 common-abilities-hammer-leap = Úder zkázy
     .desc = Plošný útok s odhozením. Skočí na místo, kde je kurzor.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Sekací postoj
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Sekací postoj
     .desc = Útoky z tohoto postoje mohou trefit více nepřátel najednou.
 common-abilities-sword-crippling_fell_strike = Mrzačící sražení
     .desc = Rychlý, silný úder, který způsobí krvácení.
@@ -24,7 +24,7 @@ common-abilities-sword-agile_perforate = Proražení
     .desc = Rychlý nával lehkých útoků.
 common-abilities-sword-cleaving_dual_spiral_slash = Rotující řezy
     .desc = Máchni oběma čepelemi v kruhu kolem sebe a tref všechny, co stojí poblíž.
-veloren-core-pseudo_abilities-sword-heavy_stance = Pevný postoj
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Pevný postoj
     .desc = Útoky z tohoto postoje mohou omráčit nepřátele a způsobit více poškození těm omráčeným, ale jsou pomalejší.
 common-abilities-sword-basic_crescent_slash = Základní příčný řez
     .desc = Základní šikmý řez nahoru.
@@ -36,13 +36,13 @@ common-abilities-debug-glide_boost = Bžúú
     .desc = Dává ti sílu dostat se do nebes
 common-abilities-debug-glide_speeder = Bžúú
     .desc = Dává ti sílu dosáhnout na vše, na co se podíváš
-veloren-core-pseudo_abilities-sword-agile_stance = Hbitý postoj
+nova-forge-core-pseudo_abilities-sword-agile_stance = Hbitý postoj
     .desc = Útoky z tohoto postoje jsou rychlejší, ale slabší.
-veloren-core-pseudo_abilities-sword-defensive_stance = Obranný postoj
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Obranný postoj
     .desc = Útoky z tohoto postoje jsou spíše slabá obrana nebo odražení.
-veloren-core-pseudo_abilities-sword-crippling_stance = Mrzačící postoj
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Mrzačící postoj
     .desc = Útoky z tohoto postoje vytváří a zhoršují trvalá zranění.
-veloren-core-pseudo_abilities-sword-double_slash = Dvojitý sek
+nova-forge-core-pseudo_abilities-sword-double_slash = Dvojitý sek
     .desc = Dvouraná kombinace.
 common-abilities-sword-basic_double_slash = Základní dvojitý sek
     .desc = Základní dvouraná kombinace.
@@ -52,7 +52,7 @@ common-abilities-sword-defensive_double_slash = Obranný dvojitý sek
     .desc = Dvouraná kombinace, která snižuje dopad nepřátelských zásahů.
 common-abilities-sword-crippling_double_slash = Mrzačící dvojitý sek
     .desc = Dvouraná kombinace, která prodlouží nepřítelovo krvácení.
-veloren-core-pseudo_abilities-sword-secondary_ability = Podružná dovednost meče
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Podružná dovednost meče
     .desc = Dovednost přiřazená tlačítku podružného útoku.
 common-abilities-sword-basic_thrust = Základní bodnutí
     .desc = Delší napřažení k bodnutí ho udělá silnějším.
@@ -64,7 +64,7 @@ common-abilities-sword-defensive_vital_jab = Životně důležitý obranný úde
     .desc = Úder s rychlým nápřahem, který způsobí více poškození proti odraženým nepřátelům.
 common-abilities-sword-cleaving_spiral_slash = Rotující řez
     .desc = Máchni čepelí v kruhu kolem sebe a tref všechny, co stojí poblíž.
-veloren-core-pseudo_abilities-sword-crescent_slash = Příčný řez
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Příčný řez
     .desc =
         Šikmý řez odspodu nahoru.
         Tato dovednost se mění v závislosti na postoji.
@@ -74,7 +74,7 @@ common-abilities-sword-defensive_crescent_slash = Obranný příčný řez
     .desc = Šikmý řez nahoru s možností odrazit útok nepřítele.
 common-abilities-sword-crippling_crescent_slash = Mrzačící příčný řez
     .desc = Šikmý řez nahoru, který působí krvácení.
-veloren-core-pseudo_abilities-sword-fell_strike = Sražení
+nova-forge-core-pseudo_abilities-sword-fell_strike = Sražení
     .desc =
         Rychlý silný úder.
         Tato dovednost se mění v závislosti na postoji.
@@ -86,7 +86,7 @@ common-abilities-sword-agile_fell_strike = Rychlé sražení
     .desc = Velmi rychlý, silný úder.
 common-abilities-sword-defensive_fell_strike = Obranné sražení
     .desc = Rychlý, silný úder s možností odražení.
-veloren-core-pseudo_abilities-sword-skewer = Nabodnutí
+nova-forge-core-pseudo_abilities-sword-skewer = Nabodnutí
     .desc =
         Bodající výpad.
         Tato dovednost se mění v závislosti na postoji.
@@ -106,7 +106,7 @@ common-abilities-sword-crippling_cascade = Zmrzačující kaskáda
     .desc = Řez nad hlavou, který způsobí krvácení.
 common-abilities-sword-agile_cascade = Rychlá kaskáda
     .desc = Rychlý řez nad hlavou.
-veloren-core-pseudo_abilities-sword-cascade = Kaskáda
+nova-forge-core-pseudo_abilities-sword-cascade = Kaskáda
     .desc =
         Řez provedený nad hlavou
         Tato dovednost se mění v závislosti na postoji.
@@ -118,7 +118,7 @@ common-abilities-sword-defensive_cascade = Obranná kaskáda
     .desc = Řez nad hlavou, který odrazí nepřítele.
 common-abilities-sword-cleaving_cascade = Roztínající kaskáda
     .desc = Řez nad hlavou, který projde skrz nepřítele.
-veloren-core-pseudo_abilities-sword-cross_cut = Příčný řez
+nova-forge-core-pseudo_abilities-sword-cross_cut = Příčný řez
     .desc =
         Pravý a levý sek.
         Tato dovednost se mění na základě postoje.
@@ -195,7 +195,7 @@ common-abilities-sword-crippling_dual_cross_cut = Mrzačící příčný řez
     .desc = Souběžný pravý a levý sek, které působí krvácení.
 common-abilities-sword-cleaving_dual_cross_cut = Roztínající příčný řez
     .desc = Souběžný pravý a levý sek, které projdou nepřáteli.
-veloren-core-pseudo_abilities-sword-finisher = Ukončení
+nova-forge-core-pseudo_abilities-sword-finisher = Ukončení
     .desc =
         Dovednost, která konzumuje kombo a je míněná k ukončení boje.
         Mění se na základě postoje.

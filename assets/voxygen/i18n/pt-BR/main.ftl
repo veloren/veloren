@@ -28,7 +28,7 @@ main-login_process =
     Por favor, note que você precisa de uma conta para jogar em servidores com autenticação ativada.
 
     Você pode criar uma conta em:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Servidor não encontrado.
 main-login-authentication_error = Erro de autenticação no servidor.
 main-login-internal_error = Erro interno no cliente. Dica: Provavelmente o personagem do jogador foi deletado.

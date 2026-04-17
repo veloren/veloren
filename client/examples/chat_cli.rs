@@ -64,7 +64,7 @@ fn main() {
             &username,
             &password,
             None,
-            |provider| provider == "https://auth.veloren.net",
+            |provider| provider == "https://auth.nova-forge.net",
             &|_| {},
             |_| {},
             Default::default(),

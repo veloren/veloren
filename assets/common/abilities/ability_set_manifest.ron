@@ -4,14 +4,14 @@
 ({
     Tool(Sword): AbilitySet((
         guard: Some(Contextualized(
-            pseudo_id: "veloren.core.pseudo_abilities.sword.guard",
+            pseudo_id: "nova-forge.core.pseudo_abilities.sword.guard",
             abilities: [
                 ((stance: Sword(Defensive)), (None, "common.abilities.sword.defensive_guard")),
                 ((), (None, "common.abilities.sword.basic_guard")),
             ],
         )),
         primary: Contextualized(
-            pseudo_id: "veloren.core.pseudo_abilities.sword.double_slash",
+            pseudo_id: "nova-forge.core.pseudo_abilities.sword.double_slash",
             abilities: [
                 ((stance: Sword(Heavy)), (None, "common.abilities.sword.heavy_double_slash")),
                 ((stance: Sword(Agile)), (None, "common.abilities.sword.agile_double_slash")),
@@ -22,7 +22,7 @@
             ],
         ),
         secondary: Contextualized(
-            pseudo_id: "veloren.core.pseudo_abilities.sword.secondary_ability",
+            pseudo_id: "nova-forge.core.pseudo_abilities.sword.secondary_ability",
             abilities: [
                 ((stance: Sword(Heavy)), (None, "common.abilities.sword.heavy_slam")),
                 ((stance: Sword(Agile), dual_wielding_same_kind: true), (None, "common.abilities.sword.agile_dual_perforate")),
@@ -36,7 +36,7 @@
         ),
         abilities: [
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.crescent_slash",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.crescent_slash",
                 abilities: [
                     ((stance: Sword(Heavy)), (Sword(CrescentSlash), "common.abilities.sword.heavy_crescent_slash")),
                     ((stance: Sword(Agile)), (Sword(CrescentSlash), "common.abilities.sword.agile_crescent_slash")),
@@ -47,7 +47,7 @@
                 ],
             ),
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.fell_strike",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.fell_strike",
                 abilities: [
                     ((stance: Sword(Heavy)), (Sword(FellStrike), "common.abilities.sword.heavy_fell_strike")),
                     ((stance: Sword(Agile)), (Sword(FellStrike), "common.abilities.sword.agile_fell_strike")),
@@ -58,7 +58,7 @@
                 ],
             ),
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.skewer",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.skewer",
                 abilities: [
                     ((stance: Sword(Heavy)), (Sword(Skewer), "common.abilities.sword.heavy_skewer")),
                     ((stance: Sword(Agile)), (Sword(Skewer), "common.abilities.sword.agile_skewer")),
@@ -69,7 +69,7 @@
                 ],
             ),
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.cascade",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.cascade",
                 abilities: [
                     ((stance: Sword(Heavy)), (Sword(Cascade), "common.abilities.sword.heavy_cascade")),
                     ((stance: Sword(Agile)), (Sword(Cascade), "common.abilities.sword.agile_cascade")),
@@ -80,7 +80,7 @@
                 ],
             ),
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.cross_cut",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.cross_cut",
                 abilities: [
                     ((stance: Sword(Heavy), dual_wielding_same_kind: true), (Sword(CrossCut), "common.abilities.sword.heavy_dual_cross_cut")),
                     ((stance: Sword(Agile), dual_wielding_same_kind: true), (Sword(CrossCut), "common.abilities.sword.agile_dual_cross_cut")),
@@ -97,7 +97,7 @@
                 ],
             ),
             Contextualized(
-                pseudo_id: "veloren.core.pseudo_abilities.sword.finisher",
+                pseudo_id: "nova-forge.core.pseudo_abilities.sword.finisher",
                 abilities: [
                     ((stance: Sword(Heavy)), (Sword(Finisher), "common.abilities.sword.heavy_guillotine")),
                     ((stance: Sword(Agile)), (Sword(Finisher), "common.abilities.sword.agile_hundred_cuts")),

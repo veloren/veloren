@@ -29,17 +29,17 @@ common-abilities-sceptre-wardingaura = 防護光環
 
 ## 劍的能力
 
-veloren-core-pseudo_abilities-sword-heavy_stance = 重型姿態
+nova-forge-core-pseudo_abilities-sword-heavy_stance = 重型姿態
     .desc = 此姿態下的攻擊可以使敵人踉蹌，對已踉蹌的敵人造成更多傷害，但攻擊速度較慢
-veloren-core-pseudo_abilities-sword-agile_stance = 敏捷姿態
+nova-forge-core-pseudo_abilities-sword-agile_stance = 敏捷姿態
     .desc = 此姿態下攻擊速度較快但威力較弱
-veloren-core-pseudo_abilities-sword-defensive_stance = 防禦姿態
+nova-forge-core-pseudo_abilities-sword-defensive_stance = 防禦姿態
     .desc = 此姿態下的攻擊可以作為弱格擋或反擊
-veloren-core-pseudo_abilities-sword-crippling_stance = 殘廢姿態
+nova-forge-core-pseudo_abilities-sword-crippling_stance = 殘廢姿態
     .desc = 此姿態下的攻擊會創造或加重持續性傷害
-veloren-core-pseudo_abilities-sword-cleaving_stance = 劈砍姿態
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = 劈砍姿態
     .desc = 此姿態下的攻擊可以擊中多個敵人
-veloren-core-pseudo_abilities-sword-double_slash = 雙重斬擊
+nova-forge-core-pseudo_abilities-sword-double_slash = 雙重斬擊
     .desc = 兩次連續攻擊
 common-abilities-sword-basic_double_slash = 基本雙重斬擊
     .desc = 基本的兩次連續攻擊
@@ -53,7 +53,7 @@ common-abilities-sword-crippling_double_slash = 殘廢雙重斬擊
     .desc = 可以延長敵人流血狀態的雙重斬擊
 common-abilities-sword-cleaving_double_slash = 劈砍雙重斬擊
     .desc = 可以劈砍多個敵人的雙重斬擊
-veloren-core-pseudo_abilities-sword-secondary_ability = 劍的次要能力
+nova-forge-core-pseudo_abilities-sword-secondary_ability = 劍的次要能力
     .desc = 綁定次要攻擊鍵的能力
 common-abilities-sword-basic_thrust = 基本刺擊
     .desc = 蓄力後刺擊威力更強
@@ -71,7 +71,7 @@ common-abilities-sword-cleaving_spiral_slash = 螺旋斬擊
     .desc = 旋轉劍刃攻擊周圍所有敵人
 common-abilities-sword-cleaving_dual_spiral_slash = 雙持螺旋斬擊
     .desc = 使用雙劍旋轉攻擊周圍所有敵人
-veloren-core-pseudo_abilities-sword-crescent_slash = 新月斬擊
+nova-forge-core-pseudo_abilities-sword-crescent_slash = 新月斬擊
     .desc =
         一個向上對角線的斬擊
         根據你採用的姿態改變技能效果
@@ -87,7 +87,7 @@ common-abilities-sword-crippling_crescent_slash = 殘廢新月斬擊
     .desc = 可以造成流血的向上對角線斬擊
 common-abilities-sword-cleaving_crescent_slash = 劈砍新月斬擊
     .desc = 可以劈砍多個敵人的向上對角線斬擊
-veloren-core-pseudo_abilities-sword-fell_strike = 致命打擊
+nova-forge-core-pseudo_abilities-sword-fell_strike = 致命打擊
     .desc =
         一個快速強力的斬擊
         根據你採用的姿態改變技能效果
@@ -103,7 +103,7 @@ common-abilities-sword-crippling_fell_strike = 殘廢致命打擊
     .desc = 可以造成流血的強力斬擊
 common-abilities-sword-cleaving_fell_strike = 劈砍致命打擊
     .desc = 可以劈砍多個敵人的強力斬擊
-veloren-core-pseudo_abilities-sword-skewer = 串刺
+nova-forge-core-pseudo_abilities-sword-skewer = 串刺
     .desc =
         一個突刺衝鋒攻擊
         根據你採用的姿態改變技能效果
@@ -119,7 +119,7 @@ common-abilities-sword-crippling_skewer = 殘廢串刺
     .desc = 可以造成流血的突刺攻擊
 common-abilities-sword-cleaving_skewer = 劈砍串刺
     .desc = 可以劈砍多個敵人的突刺攻擊
-veloren-core-pseudo_abilities-sword-cascade = 瀑布斬擊
+nova-forge-core-pseudo_abilities-sword-cascade = 瀑布斬擊
     .desc =
         一個自上而下的斬擊
         根據你採用的姿態改變技能效果
@@ -135,7 +135,7 @@ common-abilities-sword-crippling_cascade = 殘廢瀑布斬擊
     .desc = 可以造成流血的自上而下斬擊
 common-abilities-sword-cleaving_cascade = 劈砍瀑布斬擊
     .desc = 可以劈砍多個敵人的自上而下斬擊
-veloren-core-pseudo_abilities-sword-cross_cut = 十字斬擊
+nova-forge-core-pseudo_abilities-sword-cross_cut = 十字斬擊
     .desc =
         右斬與左斬的連續攻擊
         根據你採用的姿態改變技能效果
@@ -163,7 +163,7 @@ common-abilities-sword-crippling_dual_cross_cut = 殘廢雙持十字斬擊
     .desc = 可以造成流血的雙持右斬與左斬
 common-abilities-sword-cleaving_dual_cross_cut = 劈砍雙持十字斬擊
     .desc = 可以劈砍多個敵人的雙持右斬與左斬
-veloren-core-pseudo_abilities-sword-finisher = 終結技
+nova-forge-core-pseudo_abilities-sword-finisher = 終結技
     .desc =
         使用連擊終結戰鬥的技能
         根據你採用的姿態改變技能效果

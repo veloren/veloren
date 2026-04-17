@@ -31,7 +31,7 @@ main-login_process =
     Ezt a fiókot a következő weboldalon
     tudod létrehozni:
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Szerver nem található
 main-login-authentication_error = Hitelesítési hiba a szerveren
 main-login-internal_error = Klienshiba (minden bizonnyal törölve lett a karakter)

@@ -11,7 +11,7 @@ edition = "2024"
 package = "component:hello"
 
 [package.metadata.component.target]
-path = "../../wit/veloren.wit"
+path = "../../wit/nova-forge.wit"
 world = "server-plugin"
 
 [package.metadata.component.dependencies]

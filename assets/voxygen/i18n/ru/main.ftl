@@ -28,7 +28,7 @@ main-login_process =
     Имейте ввиду то, что вам необходимо иметь аккаунт Veloren чтобы играть на серверах с включенной аутентификацией
 
     Вы можете создать учетную запись по данной ссылке:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Сервер не найден.
 main-login-authentication_error = Ошибка авторизации на сервере.
 main-login-internal_error = Внутренняя ошибка клиента. Подсказка: Скорее всего, персонаж был удален.

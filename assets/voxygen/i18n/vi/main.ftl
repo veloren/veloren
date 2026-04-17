@@ -29,7 +29,7 @@ main-login_process =
     Bạn có thể tạo một tài khoản tại
 
     
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Không tìm thấy máy chủ
 main-login-authentication_error = Lỗi xác thực trên máy chủ
 main-login-internal_error = Lỗi client (có vẻ nhân vật của người chơi đã bị xóa)

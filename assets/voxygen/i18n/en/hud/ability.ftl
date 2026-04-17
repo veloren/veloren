@@ -28,17 +28,17 @@ common-abilities-sceptre-wardingaura = Warding Aura
     .desc = Wards your allies against enemy attacks.
 
 ## Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
+nova-forge-core-pseudo_abilities-sword-heavy_stance = Heavy Stance
     .desc = Attacks in this stance can stagger enemies and deal more damage to staggered enemies but are slower.
-veloren-core-pseudo_abilities-sword-agile_stance = Agile Stance
+nova-forge-core-pseudo_abilities-sword-agile_stance = Agile Stance
     .desc = Attacks are faster but weaker in this stance.
-veloren-core-pseudo_abilities-sword-defensive_stance = Defensive Stance
+nova-forge-core-pseudo_abilities-sword-defensive_stance = Defensive Stance
     .desc = Attacks in this stance can act as either a weak block or a parry.
-veloren-core-pseudo_abilities-sword-crippling_stance = Crippling Stance
+nova-forge-core-pseudo_abilities-sword-crippling_stance = Crippling Stance
     .desc = Attacks in this stance create or worsen lasting injuries.
-veloren-core-pseudo_abilities-sword-cleaving_stance = Cleaving Stance
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = Cleaving Stance
     .desc = Attacks in this stance can hit multiple enemies.
-veloren-core-pseudo_abilities-sword-double_slash = Double Slash
+nova-forge-core-pseudo_abilities-sword-double_slash = Double Slash
     .desc = A two-hit combo.
 common-abilities-sword-basic_double_slash = Basic Double Slash
     .desc = A basic two-hit combo.
@@ -52,7 +52,7 @@ common-abilities-sword-crippling_double_slash = Crippling Double Slash
     .desc = A two-hit combo that can prolong an enemy's bleeding.
 common-abilities-sword-cleaving_double_slash = Cleaving Double Slash
     .desc = A two-hit combo that can cleave through multiple enemies.
-veloren-core-pseudo_abilities-sword-secondary_ability = Secondary Sword Ability
+nova-forge-core-pseudo_abilities-sword-secondary_ability = Secondary Sword Ability
     .desc = The ability bound to secondary attack key.
 common-abilities-sword-basic_thrust = Basic Thrust
     .desc = Charging the thrust will make it more powerful.
@@ -70,7 +70,7 @@ common-abilities-sword-cleaving_spiral_slash = Spiral Slash
     .desc = Sweep your blade fully around you to hit anyone nearby.
 common-abilities-sword-cleaving_dual_spiral_slash = Spiral Slash
     .desc = Sweep both of your blades fully around you to hit anyone nearby.
-veloren-core-pseudo_abilities-sword-crescent_slash = Crescent Slash
+nova-forge-core-pseudo_abilities-sword-crescent_slash = Crescent Slash
     .desc =
         An upwards diagonal slash.
         This skill changes depending on your adopted stance.
@@ -86,7 +86,7 @@ common-abilities-sword-crippling_crescent_slash = Crippling Crescent Slash
     .desc = An upwards diagonal slash that can bleed.
 common-abilities-sword-cleaving_crescent_slash = Cleaving Crescent Slash
     .desc = An upwards diagonal slash that can cleave through enemies.
-veloren-core-pseudo_abilities-sword-fell_strike = Fell Strike
+nova-forge-core-pseudo_abilities-sword-fell_strike = Fell Strike
     .desc =
         A quick strong slash.
         This skill changes depending on your adopted stance.
@@ -102,7 +102,7 @@ common-abilities-sword-crippling_fell_strike = Crippling Fell Strike
     .desc = A quick strong slash that can bleed.
 common-abilities-sword-cleaving_fell_strike = Cleaving Fell Strike
     .desc = A quick strong slash that can cleave through enemies.
-veloren-core-pseudo_abilities-sword-skewer = Skewer
+nova-forge-core-pseudo_abilities-sword-skewer = Skewer
     .desc =
         A stabbing lunge.
         This skill changes depending on your adopted stance.
@@ -118,7 +118,7 @@ common-abilities-sword-crippling_skewer = Crippling Skewer
     .desc = A stabbing lunge that can bleed.
 common-abilities-sword-cleaving_skewer = Cleaving Skewer
     .desc = A stabbing lunge that can cleave through enemies.
-veloren-core-pseudo_abilities-sword-cascade = Cascade
+nova-forge-core-pseudo_abilities-sword-cascade = Cascade
     .desc =
         An overhead slash.
         This skill changes depending on your adopted stance.
@@ -134,7 +134,7 @@ common-abilities-sword-crippling_cascade = Crippling Cascade
     .desc = An overhead slash that can bleed.
 common-abilities-sword-cleaving_cascade = Cleaving Cascade
     .desc = An overhead slash that can cleave through enemies.
-veloren-core-pseudo_abilities-sword-cross_cut = Cross Cut
+nova-forge-core-pseudo_abilities-sword-cross_cut = Cross Cut
     .desc =
         A right and left slash.
         This skill changes depending on your adopted stance.
@@ -162,7 +162,7 @@ common-abilities-sword-crippling_dual_cross_cut = Crippling Cross Cut
     .desc = A simultaneous right and left slash that can bleed.
 common-abilities-sword-cleaving_dual_cross_cut = Cleaving Cross Cut
     .desc = A simultaneous right and left slash which cleave through enemies.
-veloren-core-pseudo_abilities-sword-finisher = Finisher
+nova-forge-core-pseudo_abilities-sword-finisher = Finisher
     .desc =
         An ability that consumes combo and is meant to end a fight.
         This skill changes depending on your adopted stance.

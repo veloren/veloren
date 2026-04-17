@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Nova-Forge
+Comment=Nova-Forge — a LAN-first, auth-free voxel RPG
+Comment[de]=Nova-Forge — ein LAN-first, Auth-freies Voxel RPG
+Exec=nova-forge-voxygen
+Categories=Game;Simulation;
+Keywords=nova-forge;sandbox;world;blocks;nodes;multiplayer;roleplaying;
+Icon=io.nova-forge.nova-forge
+Terminal=false

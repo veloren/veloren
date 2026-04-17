@@ -30,7 +30,7 @@ main-login_process =
     Lütfen kimlik doğrulaması gerektiren sunucularda
     oynamak için bir hesaba ihtiyacın olduğunu hatırla.
 
-    https://veloren.net/account/ adresinden
+    https://github.com/shifty81/Nova-Forge adresinden
 
     bir hesap oluşturabilirsin.
 main-login-server_not_found = Sunucu bulunamadı

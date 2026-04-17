@@ -76,7 +76,7 @@ where
         "wgpu_core=info",
         "wgpu_core::device=warn",
         "wgpu_core::swap_chain=info",
-        "veloren_network_protocol=info",
+        "nova_forge_network_protocol=info",
         "quinn_proto::connection=info",
         "refinery_core::traits::divergent=off",
         "nova_forge_server::persistence::character=info",

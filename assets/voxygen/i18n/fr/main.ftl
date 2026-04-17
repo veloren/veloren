@@ -28,7 +28,7 @@ main-login_process =
     Veuillez noter que vous avez besoin d'un compte pour jouer sur des serveurs où l'authentification est activée.
 
     Vous pouvez créer un compte à l'adresse suivante :
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Serveur introuvable.
 main-login-authentication_error = Erreur d'authentification sur le serveur.
 main-login-internal_error = Erreur interne du client. Remarque : le personnage du joueur a peut-être été supprimé.

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2024 Nova-Forge Contributors -->
+<component type="desktop-application">
+  <id>io.nova-forge.nova-forge</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <project_group>Nova-Forge</project_group>
+  <developer id="io.nova-forge">
+    <name>The Nova-Forge Community</name>
+  </developer>
+
+  <name>Nova-Forge</name>
+  <provides>
+    <binary>nova-forge-voxygen</binary>
+    <binary>nova-forge-server-cli</binary>
+  </provides>
+  <launchable type="desktop-id">io.nova-forge.nova-forge.desktop</launchable>
+
+  <content_rating type="oars-1.0">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-info">mild</content_attribute>
+    <content_attribute id="violence-cartoon">mild</content_attribute>
+    <content_attribute id="violence-fantasy">mild</content_attribute>
+  </content_rating>
+
+  <summary>Nova-Forge is a LAN-first, auth-free action RPG built on the Veloren engine</summary>
+
+  <description>
+    <p>
+      Nova-Forge is an action-adventure RPG set in a vast fantasy world.
+      Play solo, host a game for friends on your local network, or run your own dedicated
+      server — all without an internet account or central authentication.
+      It is inspired by games such as Cube World,
+      The Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
+    </p>
+  </description>
+
+  <releases>
+    <release date="@DATE@" version="@VERSION@"/>
+  </releases>
+
+  <recommends>
+    <memory>4096</memory>
+  </recommends>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>gamepad</control>
+    <internet>offline-only</internet>
+  </supports>
+
+  <categories>
+    <category>Game</category>
+  </categories>
+  <keywords>
+    <keyword>multiplayer</keyword>
+    <keyword>voxel</keyword>
+    <keyword>sandbox</keyword>
+    <keyword>role-playing game</keyword>
+    <keyword>RPG</keyword>
+    <keyword>LAN</keyword>
+    <keyword>offline</keyword>
+  </keywords>
+
+  <url type="vcs-browser">https://github.com/shifty81/Nova-Forge</url>
+</component>

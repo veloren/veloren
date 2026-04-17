@@ -27,7 +27,7 @@ impl FileSystem {
             .map_err(|e| io::Error::other(format!("failed to load canary asset: {}", e)))?;
 
         if !canary.starts_with("VELOREN_CANARY_MAGIC") {
-            panic!("Canary asset `canary.canary` was present but did not contain the expected data. This *heavily* implies that you've not correctly set up Git LFS (Large File Storage). Visit `https://book.veloren.net/contributors/development-tools.html#git-lfs` for more information about setting up Git LFS.");
+            panic!("Canary asset `canary.canary` was present but did not contain the expected data. This *heavily* implies that you've not correctly set up Git LFS (Large File Storage). Visit `https://github.com/shifty81/Nova-Forge#getting-started` for more information about setting up Git LFS.");
         }
 
         Ok(Self {

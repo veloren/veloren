@@ -887,7 +887,7 @@ impl RepairKey {
             ItemDefinitionId::Simple(item_id) => Some(Self::ItemDefId(String::from(item_id))),
             ItemDefinitionId::Compound { .. } => None,
             ItemDefinitionId::Modular { pseudo_base, .. } => match pseudo_base {
-                "veloren.core.pseudo_items.modular.tool" => {
+                "nova-forge.core.pseudo_items.modular.tool" => {
                     if let Some(ItemDefinitionId::Simple(material)) = item
                         .components()
                         .iter()

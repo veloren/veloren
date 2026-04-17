@@ -4,7 +4,7 @@ use bytes::{Bytes, BytesMut};
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
-use veloren_network_protocol::{
+use nova_forge_network_protocol::{
     _internal::OTFrame, InitProtocol, MpscMsg, MpscRecvProtocol, MpscSendProtocol, Pid, Promises,
     ProtocolError, ProtocolEvent, ProtocolMetricCache, ProtocolMetrics, QuicDataFormat,
     QuicRecvProtocol, QuicSendProtocol, RecvProtocol, SendProtocol, Sid, TcpRecvProtocol,

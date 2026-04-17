@@ -48,7 +48,7 @@ impl Tui {
     pub fn process_command(cmd: &str, command_s: &mut async_channel::Sender<Cmd>) -> bool {
         let matches = Command::new("nova-forge-botclient")
             .version(common::util::DISPLAY_VERSION.as_str())
-            .author("The veloren devs <https://gitlab.com/veloren/veloren>")
+            .author("Nova-Forge contributors <https://github.com/shifty81/Nova-Forge>")
             .about("The nova-forge bot client allows logging in as a horde of bots for load-testing")
             .no_binary_name(true)
             .subcommand(

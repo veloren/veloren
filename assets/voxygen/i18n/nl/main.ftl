@@ -28,7 +28,7 @@ main-login_process =
 
     Je kan een account maken op
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Server niet gevonden.
 main-login-authentication_error = Authenticatie fout op de server.
 main-login-server_full = Server zit vol

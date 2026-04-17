@@ -47,7 +47,7 @@ main-login_process =
 
     สร้างบัญชีได้ที่
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found =
     ไม่พบเซิร์ฟเวอร์ 
     Server not found

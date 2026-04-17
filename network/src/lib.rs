@@ -7,7 +7,7 @@
 //! Crate to handle high level networking of messages with different
 //! requirements and priorities over a number of protocols
 //!
-//! To start with the `veloren_network` crate you should focus on the 3
+//! To start with the `nova_forge_network` crate you should focus on the 3
 //! elementar structs [`Network`], [`Participant`] and [`Stream`].
 //!
 //! Say you have an application that wants to communicate with other application

@@ -28,7 +28,7 @@ main-login_process =
     Ține minte că îți trebuie un cont pentru a juca pe servere cu autentificarea activată.
 
     Poți să-ți faci un cont pe:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Serverul nu a fost găsit
 main-login-authentication_error = Eroare de autentificare pe server
 main-login-internal_error = Eroare internă pe client (cel mai probabil, personajul jucătorului a fost șters)

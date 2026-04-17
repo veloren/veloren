@@ -29,7 +29,7 @@ main-login_process =
 
     Рачун можете направити на сајту
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Сервер није нађен
 main-login-authentication_error = Грешка при потврди сервера
 main-login-internal_error = Унутрашња грешка у клијенту (вероватно, лик играча је обрисан)

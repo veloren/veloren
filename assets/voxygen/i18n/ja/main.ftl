@@ -30,7 +30,7 @@ main-login_process =
 
     アカウントは、以下のURLで作成できます。
 
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = サーバーが見つかりません
 main-login-authentication_error = サーバーで認証エラーです
 main-login-failed_auth_server_url_invalid = 認証サーバーへの接続に失敗しました

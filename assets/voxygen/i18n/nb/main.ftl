@@ -30,7 +30,7 @@ main-login_process =
 
     Du kan opprette en konto på
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Server ikke funnet
 main-login-authentication_error = Innloggingsfeil på serveren
 main-login-server_full = Serveren er full

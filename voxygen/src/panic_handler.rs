@@ -37,10 +37,10 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
             reporting this problem. To do this, open an issue on the Nova-Forge \
             issue tracker:\n\
             \n\
-            https://www.gitlab.com/veloren/veloren/issues/new\n\
+            https://github.com/shifty81/Nova-Forge/issues/new\n\
             \n\
-            If you're on the Veloren community Discord server, we'd be \
-            grateful if you could also post a message in the #support channel.
+            If you're on GitHub, feel free to also start a discussion at \
+            https://github.com/shifty81/Nova-Forge/discussions.
             \n\
             > What should I include?\n\
             \n\

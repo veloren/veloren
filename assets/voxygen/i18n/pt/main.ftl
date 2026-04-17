@@ -31,7 +31,7 @@ main-login_process =
 
     Para criar uma conta navegue até
 
-    https://veloren.net/account/.
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Servidor não encontrado
 main-login-authentication_error = Erro de autenticação
 main-login-server_full = Servidor está cheio

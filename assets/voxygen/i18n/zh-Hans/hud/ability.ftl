@@ -5,17 +5,17 @@ common-abilities-staff-fireshockwave = 火焰之圈
 common-abilities-sceptre-wardingaura = 守护光环
     .desc = 守护你盟友，抵御敌人的攻击.
 # Sword abilities
-veloren-core-pseudo_abilities-sword-heavy_stance = 重剑姿态
+nova-forge-core-pseudo_abilities-sword-heavy_stance = 重剑姿态
     .desc = 使用此姿态可以对震慑敌人，并对震慑的敌人造成更多伤害，但是攻速更慢.
-veloren-core-pseudo_abilities-sword-agile_stance = 轻剑姿态
+nova-forge-core-pseudo_abilities-sword-agile_stance = 轻剑姿态
     .desc = 使用此姿态可以使攻击加快，但更微弱.
-veloren-core-pseudo_abilities-sword-defensive_stance = 防守姿态
+nova-forge-core-pseudo_abilities-sword-defensive_stance = 防守姿态
     .desc = 此姿态可微弱的抵御伤害，也可以选择挡开攻击.
-veloren-core-pseudo_abilities-sword-crippling_stance = 残忍姿态
+nova-forge-core-pseudo_abilities-sword-crippling_stance = 残忍姿态
     .desc = 使用此姿态来攻击可以形成或者加重持久的伤口.
-veloren-core-pseudo_abilities-sword-cleaving_stance = 劈砍姿态
+nova-forge-core-pseudo_abilities-sword-cleaving_stance = 劈砍姿态
     .desc = 此姿态可以攻击多个敌人.
-veloren-core-pseudo_abilities-sword-double_slash = 二连击
+nova-forge-core-pseudo_abilities-sword-double_slash = 二连击
     .desc = 一个二连击.
 common-abilities-sword-basic_double_slash = 基础 二连击
     .desc = 一个基础的二连击.
@@ -29,7 +29,7 @@ common-abilities-sword-crippling_double_slash = 残忍型 二连击
     .desc = 一个能够延长敌人流血的二连击.
 common-abilities-sword-cleaving_double_slash = 劈砍型 二连击
     .desc = 一个能够劈穿数个敌人的二连击.
-veloren-core-pseudo_abilities-sword-secondary_ability = 副剑技
+nova-forge-core-pseudo_abilities-sword-secondary_ability = 副剑技
     .desc = 绑定在副攻击键上的技能。
 common-abilities-sword-basic_thrust = 基础突进
     .desc = 蓄势可以使突进更加强大.
@@ -43,7 +43,7 @@ common-abilities-sword-crippling_deep_rend = 撕裂伤口
     .desc = 专注于攻击已经撕裂的伤口，对于已流血的敌人造成更多伤害.
 common-abilities-sword-cleaving_spiral_slash = 旋风斩
     .desc = 挥舞你的剑刃环绕自身，攻击附近的所有人。
-veloren-core-pseudo_abilities-sword-crescent_slash = 空月斩
+nova-forge-core-pseudo_abilities-sword-crescent_slash = 空月斩
     .desc =
         一个从下往上的斜斩。
         此技能会根据你的姿态而改变。
@@ -59,7 +59,7 @@ common-abilities-sword-crippling_crescent_slash = 残忍型 空月斩
     .desc = 一个从下往上的斜斩, 可能使敌人流血.
 common-abilities-sword-cleaving_crescent_slash = 劈砍型 空月斩
     .desc = 一个穿透性强且从下往上的斜斩.
-veloren-core-pseudo_abilities-sword-fell_strike = 陨落打击
+nova-forge-core-pseudo_abilities-sword-fell_strike = 陨落打击
     .desc =
         迅速并有力的斩击。
         此技能会根据你的姿态而变化。
@@ -75,7 +75,7 @@ common-abilities-sword-crippling_fell_strike = 残忍型 陨落打击
     .desc = 一个迅速并有力的斩击. 可能使敌人流血.
 common-abilities-sword-cleaving_fell_strike = 劈砍型 陨落打击
     .desc = 一个迅速, 有力且能够穿透敌人的斩击.
-veloren-core-pseudo_abilities-sword-skewer = 突刺
+nova-forge-core-pseudo_abilities-sword-skewer = 突刺
     .desc =
         一个突刺
         会根据姿态而改变形态。
@@ -91,7 +91,7 @@ common-abilities-sword-crippling_skewer = 残忍型 突刺
     .desc = 一个可导致流血的突刺.
 common-abilities-sword-cleaving_skewer = 劈砍型 突刺
     .desc = 一个可穿透敌人的突刺.
-veloren-core-pseudo_abilities-sword-cascade = 威势倾泻
+nova-forge-core-pseudo_abilities-sword-cascade = 威势倾泻
     .desc =
         一个从上往下的斩击。
         会根据姿态而改变形态。
@@ -107,7 +107,7 @@ common-abilities-sword-crippling_cascade = 残忍型 威势倾泻
     .desc = 一个从上往下的斩击, 有可能使敌人流血.
 common-abilities-sword-cleaving_cascade = 劈砍型 威势倾泻
     .desc = 一个可以劈开敌人的, 从上往下的斩击.
-veloren-core-pseudo_abilities-sword-cross_cut = X裂斩
+nova-forge-core-pseudo_abilities-sword-cross_cut = X裂斩
     .desc =
         一个X字形的斩击。
         会根据姿态而改变形态。
@@ -123,7 +123,7 @@ common-abilities-sword-crippling_cross_cut = 残忍型 X裂斩
     .desc = 一个X字形的斩击, 有可能使敌人流血.
 common-abilities-sword-cleaving_cross_cut = 劈砍型 X裂斩
     .desc = 一个可以劈开敌人的, X字形的斩击.
-veloren-core-pseudo_abilities-sword-finisher = 终结
+nova-forge-core-pseudo_abilities-sword-finisher = 终结
     .desc =
         一个应当在战斗尾声时使用的连击战技。
         会根据姿态而改变形态。

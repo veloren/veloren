@@ -28,7 +28,7 @@ main-login_process =
     请注意，您需要一个账号才能在启用了身份验证的服务器上游玩。
 
     您可以在以下网址创建账号：
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-singleplayer-new = 新建
 main-singleplayer-delete = 删除
 main-singleplayer-regenerate = 重新生成

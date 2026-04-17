@@ -28,7 +28,7 @@ main-login_process =
     인증이 활성화된 서버에서 플레이하려면 계정이 필요합니다.
 
     계정을 생성하는 곳에 대하여:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = 서버를 찾지 못했습니다.
 main-login-authentication_error = 서버에서 인증 오류가 발생했습니다.
 main-login-internal_error = 클라이언트에서 내부 오류가 발생했습니다. 힌트: 플레이어 캐릭터가 삭제되었을 수 있습니다.

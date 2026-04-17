@@ -28,7 +28,7 @@ main-login_process =
     Notera att du behöver ett konto för att spela på servrar med inloggning på.
 
     Du kan skapa ett konto på:
-    https://veloren.net/account/
+    https://github.com/shifty81/Nova-Forge
 main-login-server_not_found = Servern hittades inte.
 main-login-authentication_error = Inloggningsfel på servern.
 main-login-internal_error = Internt fel hos klient. Tips: Spelarkaraktären kan ha blivit raderad.

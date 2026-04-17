@@ -426,7 +426,7 @@
     Simple("common.items.tool.instruments.timbrel_of_chaos"): "voxel.weapon.tool.timbrel_of_chaos",
     Simple("common.items.tool.instruments.rhythmo"): "voxel.weapon.tool.rhythmo",
     // Other
-    Simple("common.items.utility.coins"): "voxel.item.utility.veloren_coin",
+    Simple("common.items.utility.coins"): "voxel.item.utility.nova_forge_coin",
     Simple("common.items.utility.collar"): "voxel.item.utility.collar",
     Simple("common.items.recipes.potions"): "voxel.item.recipe.recipe_alchemy",
     Simple("common.items.recipes.explosives"): "voxel.item.recipe.recipe_alchemy",
