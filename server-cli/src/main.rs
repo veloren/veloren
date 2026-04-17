@@ -43,6 +43,14 @@ use std::{
 use tokio::sync::Notify;
 use tracing::{info, trace};
 
+/// Best-effort discovery of the host's LAN IP address.
+/// Uses routing-table introspection via a dummy UDP connect; no packets are sent.
+fn local_lan_ip() -> Option<std::net::IpAddr> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("8.8.8.8:80").ok()?;
+    socket.local_addr().ok().map(|a| a.ip())
+}
+
 lazy_static::lazy_static! {
     pub static ref LOG: TuiLog<'static> = TuiLog::default();
 }
@@ -264,6 +272,19 @@ fn main() -> io::Result<()> {
         ?gameserver_addresses,
         "Server is ready to accept connections."
     );
+
+    // Show LAN address to help players connect without external infrastructure.
+    match local_lan_ip() {
+        Some(ip) => info!(
+            "Nova-Forge LAN server ready — guests can join at {}:{} (no account required)",
+            ip,
+            server::settings::LAN_COOP_PORT
+        ),
+        None => info!(
+            "Nova-Forge LAN server ready on port {} (could not detect LAN IP automatically)",
+            server::settings::LAN_COOP_PORT
+        ),
+    }
 
     #[cfg(feature = "worldgen")]
     if let Some(bench) = bench {

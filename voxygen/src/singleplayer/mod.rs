@@ -9,6 +9,7 @@ use server::{
 };
 
 use std::{
+    net::{IpAddr, UdpSocket},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -18,6 +19,16 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info, trace, warn};
+
+/// Best-effort discovery of the host's LAN IP address.
+/// Uses the routing table (via a dummy UDP connect) to find which interface
+/// the OS would use to reach an external address.
+fn local_lan_ip() -> Option<IpAddr> {
+    let socket = UdpSocket::bind("0.0.0.0:0").ok()?;
+    // Connect to a well-known external IP; no packets are actually sent.
+    socket.connect("8.8.8.8:80").ok()?;
+    socket.local_addr().ok().map(|a| a.ip())
+}
 
 mod singleplayer_world;
 pub use singleplayer_world::{SingleplayerWorld, SingleplayerWorlds};
@@ -248,6 +259,20 @@ impl SingleplayerState {
 
             let builder = thread::Builder::new().name("lan-coop-server-thread".into());
             let runtime = Arc::clone(runtime);
+
+            // Log LAN address so the host can share it with other players.
+            match local_lan_ip() {
+                Some(ip) => info!(
+                    "LAN co-op server starting. Guests can connect to {}:{} (no account required)",
+                    ip,
+                    server::settings::LAN_COOP_PORT
+                ),
+                None => info!(
+                    "LAN co-op server starting on port {} (could not detect LAN IP automatically)",
+                    server::settings::LAN_COOP_PORT
+                ),
+            }
+
             let thread = builder
                 .spawn(move || {
                     trace!("starting LAN co-op server thread");
