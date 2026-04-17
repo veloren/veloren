@@ -28,9 +28,9 @@ use rand::{rng, seq::IndexedRandom};
 use std::time::Duration;
 use tracing::warn;
 #[cfg(feature = "singleplayer")]
-use common_base;
+use common_base::local_lan_ip;
 #[cfg(feature = "singleplayer")]
-use server;
+use server::settings::LAN_COOP_PORT;
 
 use super::DetailedInitializationStage;
 
@@ -445,12 +445,12 @@ impl Controls {
                 #[cfg(feature = "singleplayer")]
                 let lan_hint: Option<String> = if self.lan_mode {
                     let i18n = self.i18n.read();
-                    Some(match common_base::local_lan_ip() {
+                    Some(match local_lan_ip() {
                         Some(ip) => i18n
                             .get_msg_ctx(
                                 "main-lan_coop-join_hint",
                                 &i18n::fluent_args! {
-                                    "address" => format!("{}:{}", ip, server::settings::LAN_COOP_PORT)
+                                    "address" => format!("{}:{}", ip, LAN_COOP_PORT)
                                 },
                             )
                             .into_owned(),
@@ -458,7 +458,7 @@ impl Controls {
                             .get_msg_ctx(
                                 "main-lan_coop-join_hint_unknown_ip",
                                 &i18n::fluent_args! {
-                                    "port" => server::settings::LAN_COOP_PORT.to_string()
+                                    "port" => LAN_COOP_PORT.to_string()
                                 },
                             )
                             .into_owned(),
