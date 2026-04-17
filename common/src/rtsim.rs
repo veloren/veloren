@@ -1,7 +1,7 @@
 //! Type definitions used for interfacing between rtsim and the rest of the
 //! game.
 //!
-//! See the `veloren_rtsim` crate for an in-depth explanation as to what rtsim
+//! See the `nova_forge_rtsim` crate for an in-depth explanation as to what rtsim
 //! is and how it works.
 //!
 //! The types in this module generally come in a few flavours:

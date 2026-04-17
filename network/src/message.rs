@@ -75,8 +75,8 @@ impl Message {
     ///
     /// # Example
     /// ```
-    /// # use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid};
+    /// # use nova_forge_network::Promises;
     /// # use tokio::runtime::Runtime;
     /// # use std::sync::Arc;
     ///

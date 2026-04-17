@@ -2,7 +2,7 @@ use crate::comp;
 use common::{character::CharacterId, event::PermanentChange};
 
 use crate::persistence::{
-    ConnectionMode, DatabaseSettings, EditableComponents, PersistedComponents, VelorenConnection,
+    ConnectionMode, DatabaseSettings, EditableComponents, PersistedComponents, NovaForgeConnection,
     character_loader::{
         CharacterScreenResponse, CharacterScreenResponseKind, CharacterUpdaterMessage,
     },
@@ -416,7 +416,7 @@ impl CharacterUpdater {
 
 fn execute_batch_update(
     updates: impl Iterator<Item = DatabaseActionKind>,
-    connection: &mut VelorenConnection,
+    connection: &mut NovaForgeConnection,
 ) -> Result<(), PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
     transaction.set_drop_behavior(DropBehavior::Rollback);
@@ -461,7 +461,7 @@ fn execute_character_create(
     alias: String,
     requesting_player_uuid: &str,
     persisted_components: PersistedComponents,
-    connection: &mut VelorenConnection,
+    connection: &mut NovaForgeConnection,
 ) -> Result<CharacterUpdaterMessage, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
 
@@ -491,7 +491,7 @@ fn execute_character_edit(
     requesting_player_uuid: &str,
     editable_components: EditableComponents,
     trusted_change: Option<PermanentChange>,
-    connection: &mut VelorenConnection,
+    connection: &mut NovaForgeConnection,
 ) -> Result<CharacterUpdaterMessage, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
 

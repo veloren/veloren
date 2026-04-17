@@ -13,7 +13,7 @@ use common::{
         ActiveAbilities, Body as CompBody, Content, Hardcore, Inventory, MapMarker, Stats,
         Waypoint, body,
         inventory::{
-            item::{Item as VelorenItem, MaterialStatManifest, tool::AbilityMap},
+            item::{Item as GameItem, MaterialStatManifest, tool::AbilityMap},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             recipe_book::RecipeBook,
@@ -310,8 +310,8 @@ fn get_mutable_item<'a, 'b, T>(
     inventory_items: &'a [Item],
     item_indices: &'a HashMap<i64, usize>,
     inventory: &'b mut T,
-    get_mut_item: &'a impl Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
-) -> Result<&'a mut VelorenItem, PersistenceError>
+    get_mut_item: &'a impl Fn(&'b mut T, &str) -> Option<&'b mut GameItem>,
+) -> Result<&'a mut GameItem, PersistenceError>
 where
     'b: 'a,
 {
@@ -363,7 +363,7 @@ where
     } else {
         get_mut_item(inventory, &inventory_items[index].position).ok_or_else(|| {
             PersistenceError::ConversionError(format!(
-                "Unable to retrieve parent veloren item {parent_id} of component from inventory."
+                "Unable to retrieve parent item {parent_id} of component from inventory."
             ))
         })
     }
@@ -485,7 +485,7 @@ pub fn convert_inventory_from_database_items(
                 inventory_items,
                 &item_indices,
                 &mut (&mut inventory, &mut failed_inserts),
-                &|(inv, f_i): &mut (&mut Inventory, &mut HashMap<String, VelorenItem>), s| {
+                &|(inv, f_i): &mut (&mut Inventory, &mut HashMap<String, GameItem>), s| {
                     // Attempts first to access inventory if that slot exists there. If it does not
                     // it instead attempts to access failed inserts list.
                     slot(s)
@@ -584,7 +584,7 @@ pub fn convert_loadout_from_database_items(
 pub fn convert_overflow_items_from_database_items(
     overflow_items_container_id: i64,
     database_items: &[Item],
-) -> Result<Vec<VelorenItem>, PersistenceError> {
+) -> Result<Vec<GameItem>, PersistenceError> {
     let mut overflow_items_with_database_position = HashMap::new();
     let mut item_indices = HashMap::new();
 

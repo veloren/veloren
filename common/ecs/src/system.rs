@@ -212,12 +212,12 @@ pub fn gen_stats(
     result
 }
 
-/// This trait wraps around specs::System and does additional veloren tasks like
+/// This trait wraps around specs::System and does additional nova-forge tasks like
 /// metrics collection
 ///
 /// ```
 /// use specs::Read;
-/// pub use veloren_common_ecs::{Job, Origin, ParMode, Phase, System};
+/// pub use nova_forge_common_ecs::{Job, Origin, ParMode, Phase, System};
 /// # use std::time::Duration;
 /// pub struct Sys;
 /// impl<'a> System<'a> for Sys {

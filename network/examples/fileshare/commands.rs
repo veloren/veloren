@@ -2,7 +2,7 @@ use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tokio::fs;
-use veloren_network::{ConnectAddr, Participant, Stream};
+use nova_forge_network::{ConnectAddr, Participant, Stream};
 
 use std::collections::HashMap;
 

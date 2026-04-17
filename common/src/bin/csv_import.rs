@@ -8,7 +8,7 @@ use ron::ser::{PrettyConfig, to_string_pretty};
 use serde::Serialize;
 use std::{borrow::Cow, error::Error, fs::File, io::Write};
 
-use veloren_common::{
+use nova_forge_common::{
     assets::ASSETS_PATH,
     comp::{
         self,

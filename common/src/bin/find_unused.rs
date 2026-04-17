@@ -3,7 +3,7 @@ use std::str::FromStr;
 use common_assets::{AssetExt, Ron};
 use hashbrown::HashSet;
 use strum::IntoEnumIterator;
-use veloren_common::{
+use nova_forge_common::{
     cmd,
     comp::{
         self,
@@ -249,7 +249,7 @@ fn main() {
         match config.inventory.loadout {
             LoadoutKind::FromBody => match config.body {
                 BodyBuilder::RandomWith(body) => {
-                    if let Ok(mut b) = veloren_common::npc::NpcBody::from_str(&body) {
+                    if let Ok(mut b) = nova_forge_common::npc::NpcBody::from_str(&body) {
                         let body = (b.1)();
                         used.use_body(&body);
                     }
@@ -264,7 +264,7 @@ fn main() {
     // Assume all bodies can spawn.
     for body in cmd::ENTITIES
         .iter()
-        .filter_map(|e| veloren_common::npc::NpcBody::from_str(e).ok())
+        .filter_map(|e| nova_forge_common::npc::NpcBody::from_str(e).ok())
         .map(|mut b| (b.1)())
         .chain(
             comp::object::ALL_OBJECTS

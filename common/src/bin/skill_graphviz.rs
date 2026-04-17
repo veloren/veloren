@@ -5,7 +5,7 @@ use petgraph::{
     dot::{Config, Dot},
 };
 use std::{fs::File, io::Write};
-use veloren_common::comp::{
+use nova_forge_common::comp::{
     item::tool::ToolKind,
     skillset::{
         SKILL_GROUP_DEFS, SKILL_PREREQUISITES, SkillGroupKind, SkillPrerequisite, skills::Skill,

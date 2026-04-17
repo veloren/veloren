@@ -84,7 +84,7 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 /// [`crate::make_case_elim!`], as follows:
 ///
 /// ```
-/// veloren_common::make_case_elim!(
+/// nova_forge_common::make_case_elim!(
 ///     my_type_module,
 ///     #[repr(u32)]
 ///     #[derive(Clone,Copy)]
@@ -148,7 +148,7 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 ///     /// Finally, because it represents by an overwhelming margin the most common usecase, we
 ///     /// predefine a particular pattern matching strategy--"pure"--where every arm holds data of
 ///     /// the exact same type, T.
-///     impl<T> PackedElim for veloren_common::typed::Pure<T> {
+///     impl<T> PackedElim for nova_forge_common::typed::Pure<T> {
 ///         type Constr1 = T;
 ///         type Constr2 = T;
 ///     }
@@ -156,7 +156,7 @@ impl<Context, Target> SynthTyped<Context, Target> for WeakHead<Pure<Target>, Tar
 ///     /// Because PureCases is so convenient, we have an alias for it.  Thus, in order to
 ///     /// represent a pattern match on an argument that returns a constant of type (u8,u8,u8) for
 ///     /// each arm, you'd use the type `PureCases<(u8, u8, u8)>`.
-///     pub type PureCases<Elim> = Cases<veloren_common::typed::Pure<Elim>>;
+///     pub type PureCases<Elim> = Cases<nova_forge_common::typed::Pure<Elim>>;
 /// }
 /// ```
 ///

@@ -9,7 +9,7 @@ use rand::prelude::*;
 use rayon::ThreadPoolBuilder;
 use std::hint::black_box;
 use vek::{Vec2, Vec3};
-use veloren_world::{
+use nova_forge_world::{
     CanvasInfo, Land, World,
     sim::{DEFAULT_WORLD_MAP, FileOpts, WorldOpts},
     site::{

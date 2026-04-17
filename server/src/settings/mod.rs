@@ -74,9 +74,9 @@ impl ServerBattleMode {
     }
 }
 
-impl From<ServerBattleMode> for veloren_query_server::proto::ServerBattleMode {
+impl From<ServerBattleMode> for nova_forge_query_server::proto::ServerBattleMode {
     fn from(value: ServerBattleMode) -> Self {
-        use veloren_query_server::proto::ServerBattleMode as QueryBattleMode;
+        use nova_forge_query_server::proto::ServerBattleMode as QueryBattleMode;
 
         match value {
             ServerBattleMode::Global(mode) => match mode {

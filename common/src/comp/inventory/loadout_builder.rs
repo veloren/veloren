@@ -1041,7 +1041,7 @@ pub fn default_main_tool(body: &Body) -> Option<&'static str> {
 /// `ItemConfig`
 ///
 /// ```
-/// use veloren_common::{LoadoutBuilder, comp::Item};
+/// use nova_forge_common::{LoadoutBuilder, comp::Item};
 ///
 /// // Build a loadout with character starter defaults
 /// // and a specific sword with default sword abilities

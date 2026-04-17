@@ -429,7 +429,7 @@ impl Default for RenderMode {
             upscale_mode: UpscaleMode::default(),
             present_mode: PresentMode::default(),
             profiler_enabled: false,
-            enable_naga: std::env::var("VELOREN_DISABLE_NAGA_SHADERS").is_err(),
+            enable_naga: std::env::var("NOVA_FORGE_DISABLE_NAGA_SHADERS").is_err(),
         }
     }
 }

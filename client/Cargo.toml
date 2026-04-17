@@ -1,5 +1,5 @@
 [package]
-name = "veloren-client"
+name = "nova-forge-client"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -26,14 +26,14 @@ tick_network = []
 default = ["simd"]
 
 [dependencies]
-common = { package = "veloren-common", path = "../common", features = [
+common = { package = "nova-forge-common", path = "../common", features = [
     "no-assets",
 ] }
-common-base = { package = "veloren-common-base", path = "../common/base" }
-common-state = { package = "veloren-common-state", path = "../common/state", default-features = false }
-common-systems = { package = "veloren-common-systems", path = "../common/systems", default-features = false }
-common-net = { package = "veloren-common-net", path = "../common/net" }
-network = { package = "veloren-network", path = "../network", features = [
+common-base = { package = "nova-forge-common-base", path = "../common/base" }
+common-state = { package = "nova-forge-common-state", path = "../common/state", default-features = false }
+common-systems = { package = "nova-forge-common-systems", path = "../common/systems", default-features = false }
+common-net = { package = "nova-forge-common-net", path = "../common/net" }
+network = { package = "nova-forge-network", path = "../network", features = [
     "compression",
     "quic",
 ], default-features = false }
@@ -62,19 +62,19 @@ authc = { git = "https://gitlab.com/veloren/auth.git", rev = "ae0e16783a9f904195
 #TODO: put bot in a different crate
 #bot only
 async-channel = { version = "2.1", optional = true }
-voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers", optional = true }
-client-i18n = { package = "veloren-client-i18n", path = "i18n", optional = true }
-common-i18n = { package = "veloren-common-i18n", path = "../common/i18n"}
+voxygen-i18n-helpers = { package = "nova-forge-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers", optional = true }
+client-i18n = { package = "nova-forge-client-i18n", path = "i18n", optional = true }
+common-i18n = { package = "nova-forge-common-i18n", path = "../common/i18n"}
 serde = { workspace = true, features = ["rc"], optional = true }
 ron = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 rustyline = { version = "17", optional = true }
 ## logging
-common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
+common-frontend = { package = "nova-forge-common-frontend", path = "../common/frontend", optional = true }
 
 [dev-dependencies]
-voxygen-i18n-helpers = { package = "veloren-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers" }
-client-i18n = { package = "veloren-client-i18n", path = "i18n" }
+voxygen-i18n-helpers = { package = "nova-forge-voxygen-i18n-helpers", path = "../voxygen/i18n-helpers" }
+client-i18n = { package = "nova-forge-client-i18n", path = "i18n" }
 
 [[example]]
 name = "chat_cli"

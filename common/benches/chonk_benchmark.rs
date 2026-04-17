@@ -2,7 +2,7 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
 use vek::*;
-use veloren_common::{
+use nova_forge_common::{
     terrain::{
         SpriteKind, TerrainChunk, TerrainChunkMeta,
         block::{Block, BlockKind},

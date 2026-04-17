@@ -943,7 +943,7 @@ impl Asset for ItemDef {
     fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
         if specifier.starts_with("veloren.core.") {
             return Err(format!(
-                "Attempted to load an asset from a specifier reserved for core veloren functions. \
+                "Attempted to load an asset from a specifier reserved for core nova-forge functions. \
                  Specifier: {}",
                 specifier
             )
@@ -2177,7 +2177,7 @@ mod tests {
     fn test_all_items() { let _ = all_items_expect(); }
 
     #[test]
-    // All items in Veloren should have localization.
+    // All items in Nova-Forge should have localization.
     // If no, add some common dummy i18n id.
     fn ensure_item_localization() {
         let manifest = ItemI18n::new_expect();

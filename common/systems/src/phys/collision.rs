@@ -496,7 +496,7 @@ pub(super) fn box_voxel_collision<T: BaseVol<Vox = Block> + ReadVol>(
             // HACK:
             // If we're in a liquid, radically reduce ground friction (i.e: assume that
             // contact force is negligible due to buoyancy) Note that this might
-            // not be realistic for very dense entities (currently no entities in Veloren
+            // not be realistic for very dense entities (currently no entities in Nova-Forge
             // are sufficiently negatively buoyant for this to matter). We
             // should really make friction be proportional to net downward force, but
             // that means taking into account buoyancy which is a bit difficult to do here

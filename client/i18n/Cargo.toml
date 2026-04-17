@@ -1,5 +1,5 @@
 [package]
-name = "veloren-client-i18n"
+name = "nova-forge-client-i18n"
 description = "Optional crate for internalization and diagnostic of existing localizations for frontends to consume"
 version.workspace = true
 edition.workspace = true
@@ -10,8 +10,8 @@ workspace = true
 
 [dependencies]
 # Assets
-common-assets = {package = "veloren-common-assets", path = "../../common/assets"}
-common-i18n = { package = "veloren-common-i18n", path = "../../common/i18n" }
+common-assets = {package = "nova-forge-common-assets", path = "../../common/assets"}
+common-i18n = { package = "nova-forge-common-i18n", path = "../../common/i18n" }
 serde = { workspace = true }
 # Localization
 unic-langid = { version = "0.9"}

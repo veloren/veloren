@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{Level, Span, debug, error, info, info_span};
 use tracing_subscriber::EnvFilter;
 use vek::{Aabr, Rgb, Vec2};
-use veloren_world::{
+use nova_forge_world::{
     CONFIG, IndexOwned, World, WorldGenerateStage,
     sim::{FileOpts, GenOpts, WorldOpts, WorldSimStage, get_horizon_map, sample_pos, sample_wpos},
 };

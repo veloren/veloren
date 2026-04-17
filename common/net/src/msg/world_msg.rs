@@ -73,7 +73,7 @@ pub struct WorldMapMsg {
     ///   arbitrary heights (since the player and other entities cajn find
     ///   themselves far from the ground at times). While this is only an
     ///   approximation to a proper distance map, hopefully it will give us
-    ///   something  that feels reasonable enough for Veloren's style.
+    ///   something  that feels reasonable enough for Nova-Forge's style.
     ///
     /// NOTE: On compression.
     ///

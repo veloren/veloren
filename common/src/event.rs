@@ -675,7 +675,7 @@ pub trait EmitExt<E> {
 /// # Example:
 /// ```
 /// mod some_mod_is_necessary_for_the_test {
-///     use veloren_common::event_emitters;
+///     use nova_forge_common::event_emitters;
 ///     pub struct Foo;
 ///     pub struct Bar;
 ///     pub struct Baz;

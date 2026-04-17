@@ -2,11 +2,11 @@
 use protocol::Protocol;
 
 pub(crate) const VERSION: u16 = 0;
-pub(crate) const VELOREN_HEADER: [u8; 7] = [b'v', b'e', b'l', b'o', b'r', b'e', b'n'];
+pub(crate) const NOVA_FORGE_HEADER: [u8; 7] = [b'n', b'o', b'v', b'a', b'f', b'r', b'g'];
 pub(crate) const MAX_REQUEST_CONTENT_SIZE: usize = 300;
 // NOTE: The actual maximum size must never exceed 1200 or we risk getting near
 // MTU limits for some networks.
-pub(crate) const MAX_REQUEST_SIZE: usize = MAX_REQUEST_CONTENT_SIZE + VELOREN_HEADER.len() + 2;
+pub(crate) const MAX_REQUEST_SIZE: usize = MAX_REQUEST_CONTENT_SIZE + NOVA_FORGE_HEADER.len() + 2;
 pub(crate) const MAX_RESPONSE_SIZE: usize = 256;
 
 #[derive(Protocol, Debug, Clone, Copy)]
@@ -106,9 +106,9 @@ impl RawQueryServerRequest {
             }
             request_data
         });
-        const _: () = assert!(MAX_RESPONSE_SIZE + VELOREN_HEADER.len() <= MAX_REQUEST_SIZE);
+        const _: () = assert!(MAX_RESPONSE_SIZE + NOVA_FORGE_HEADER.len() <= MAX_REQUEST_SIZE);
         buf.resize(MAX_RESPONSE_SIZE.max(buf.len()), 0);
-        buf.extend(VELOREN_HEADER);
+        buf.extend(NOVA_FORGE_HEADER);
         Ok(buf)
     }
 }

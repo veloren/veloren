@@ -2,7 +2,7 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
 use vek::*;
-use veloren_common::util::{linear_to_srgb, srgb_to_linear_fast};
+use nova_forge_common::util::{linear_to_srgb, srgb_to_linear_fast};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut c = c.benchmark_group("color");

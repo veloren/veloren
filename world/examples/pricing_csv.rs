@@ -7,7 +7,7 @@ use rusqlite::{Connection, ToSql};
 use std::error::Error;
 use strum::IntoEnumIterator;
 use vek::Vec2;
-use veloren_world::{
+use nova_forge_world::{
     World,
     index::Index,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},

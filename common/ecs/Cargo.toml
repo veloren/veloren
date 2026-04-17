@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common-ecs"
+name = "nova-forge-common-ecs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,7 +12,7 @@ workspace = true
 [dependencies]
 
 tracing = { workspace = true }
-common-base = { package = "veloren-common-base", path = "../base" }
+common-base = { package = "nova-forge-common-base", path = "../base" }
 
 # ECS
 specs = { workspace = true, features = ["serde", "storage-event-control"] }

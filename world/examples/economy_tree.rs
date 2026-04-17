@@ -1,6 +1,6 @@
 use common::trade::Good;
 use std::io::Write;
-use veloren_world::site::economy::{GraphInfo, Labor};
+use nova_forge_world::site::economy::{GraphInfo, Labor};
 //use regex::Regex::replace_all;
 
 fn good_name(g: Good) -> String {

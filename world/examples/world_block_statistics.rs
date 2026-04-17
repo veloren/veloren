@@ -31,7 +31,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use vek::*;
-use veloren_world::{
+use nova_forge_world::{
     World,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };

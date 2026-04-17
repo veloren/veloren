@@ -7,7 +7,7 @@ use crate::util::SpatialGrid;
 /// modifications outside the physics system will not be reflected here until
 /// the next tick when the physics system runs.
 ///
-/// [`phys::Sys`]: veloren_common_systems::phys::Sys
+/// [`phys::Sys`]: nova_forge_common_systems::phys::Sys
 pub struct CachedSpatialGrid(pub SpatialGrid);
 
 impl Default for CachedSpatialGrid {

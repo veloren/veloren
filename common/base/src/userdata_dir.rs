@@ -1,22 +1,22 @@
 use std::path::PathBuf;
 use tracing::warn;
 
-const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
+const NOVA_FORGE_USERDATA_ENV: &str = "NOVA_FORGE_USERDATA";
 
 // TODO: consider expanding this to a general install strategy variable that is
 // also used for finding assets
 // TODO: Ensure there are no NUL (\0) characters in userdata_dir (possible on
 // MacOS but not Windows or Linux) as SQLite requires the database path does not
 // include this character.
-/// Determines common user data directory used by veloren frontends.
+/// Determines common user data directory used by Nova-Forge frontends.
 ///
 /// The first specified in this list is used.
-///   1. The VELOREN_USERDATA runtime environment variable
-///   2. The VELOREN_USERDATA_STRATEGY compile time environment variable
+///   1. The NOVA_FORGE_USERDATA runtime environment variable
+///   2. The NOVA_FORGE_USERDATA_STRATEGY compile time environment variable
 ///   3. The CARGO_WORKSPACE_DIR/userdata compile time environment variable
 ///      defined in .cargo/config.toml
 ///
-/// ### `VELOREN_USERDATA_STRATEGY` environment variable
+/// ### `NOVA_FORGE_USERDATA_STRATEGY` environment variable
 ///
 /// Read during compilation and useful to set when compiling for distribution.
 ///
@@ -26,13 +26,13 @@ const VELOREN_USERDATA_ENV: &str = "VELOREN_USERDATA";
 ///
 /// > **Note:** _case insensitive_
 pub fn userdata_dir() -> PathBuf {
-    // 1. The VELOREN_USERDATA runtime environment variable
-    std::env::var_os(VELOREN_USERDATA_ENV)
+    // 1. The NOVA_FORGE_USERDATA runtime environment variable
+    std::env::var_os(NOVA_FORGE_USERDATA_ENV)
         .map(PathBuf::from)
-        // 2. The VELOREN_USERDATA_STRATEGY compile time environment variable
-        .or_else(|| match option_env!("VELOREN_USERDATA_STRATEGY") {
+        // 2. The NOVA_FORGE_USERDATA_STRATEGY compile time environment variable
+        .or_else(|| match option_env!("NOVA_FORGE_USERDATA_STRATEGY") {
             // "system" => system specific project data directory
-            Some(s) if s.eq_ignore_ascii_case("system") => Some(directories_next::ProjectDirs::from("net", "veloren", "veloren")
+            Some(s) if s.eq_ignore_ascii_case("system") => Some(directories_next::ProjectDirs::from("net", "nova-forge", "nova-forge")
                 .expect("System's $HOME directory path not found!")
                 .data_dir()
                 .join("userdata")
@@ -47,7 +47,7 @@ pub fn userdata_dir() -> PathBuf {
             },
             Some(s) => {
                 warn!(
-                    "Compiled with an invalid VELOREN_USERDATA_STRATEGY: \"{}\". \
+                    "Compiled with an invalid NOVA_FORGE_USERDATA_STRATEGY: \"{}\". \
                     Valid values are unset, \"system\", and \"executable\". \
                     Falling back to unset case.",
                     s,
@@ -76,7 +76,7 @@ pub fn userdata_dir() -> PathBuf {
                 path.push("userdata");
                 warn!(
                     "This binary is outside the project folder where it was compiled ({}) \
-                    and was not compiled with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\". \
+                    and was not compiled with NOVA_FORGE_USERDATA_STRATEGY set to \"system\" or \"executable\". \
                     Falling back the to the \"executable\" strategy (the userdata folder will be placed in the \
                     same folder as the executable: {}) \n\
                     NOTE: You can manually select a userdata folder (overriding this automatic selection) by \
@@ -85,7 +85,7 @@ pub fn userdata_dir() -> PathBuf {
                     target-dir that is not inside the project folder.",
                     project_path.display(),
                     path.display(),
-                    VELOREN_USERDATA_ENV,
+                    NOVA_FORGE_USERDATA_ENV,
                 );
                 path
             }

@@ -64,7 +64,7 @@ impl Default for Settings {
         // This only selects if there isn't already an entry in the settings file
         let screenshots_path = std::env::var_os("VOXYGEN_SCREENSHOT")
             .map(PathBuf::from)
-            .or_else(|| user_dirs.picture_dir().map(|dir| dir.join("veloren")))
+            .or_else(|| user_dirs.picture_dir().map(|dir| dir.join("nova-forge")))
             .or_else(|| {
                 std::env::current_exe()
                     .ok()

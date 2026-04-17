@@ -6,7 +6,7 @@
 //! generate Fluent files.
 //!
 //! Feel free to use it for something similar.
-use veloren_common::npc::NPC_NAMES;
+use nova_forge_common::npc::NPC_NAMES;
 
 fn main() {
     let names = NPC_NAMES.read();

@@ -34,7 +34,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
                 format!("> What should I do?\n\
             \n\
             We need your help to fix this! You can help by contacting us and \
-            reporting this problem. To do this, open an issue on the Veloren \
+            reporting this problem. To do this, open an issue on the Nova-Forge \
             issue tracker:\n\
             \n\
             https://www.gitlab.com/veloren/veloren/issues/new\n\
@@ -79,7 +79,7 @@ pub fn set_panic_hook(log_filename: String, logs_dir: PathBuf) {
             let mbox = move || {
                 DialogBuilder::message()
                     .set_level(MessageLevel::Error)
-                    .set_title("Veloren has crashed!")
+                    .set_title("Nova-Forge has crashed!")
                     //somehow `<` and `>` are invalid characters and cause the msg to get replaced
                     // by some generic text thus i replace them
                     .set_text(dialog_message.replace('<', "[").replace('>', "]"))

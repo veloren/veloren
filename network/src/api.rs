@@ -180,7 +180,7 @@ pub struct StreamParams {
 /// # Examples
 /// ```rust
 /// use tokio::runtime::Runtime;
-/// use veloren_network::{Network, ConnectAddr, ListenAddr, Pid};
+/// use nova_forge_network::{Network, ConnectAddr, ListenAddr, Pid};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Create a Network, listen on port `2999` to accept connections and connect to port `8080` to connect to a (pseudo) database Application
@@ -235,7 +235,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid};
+    /// use nova_forge_network::{Network, Pid};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let network = Network::new(Pid::new(), &runtime);
@@ -268,7 +268,7 @@ impl Network {
     /// ```rust
     /// use prometheus::Registry;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid};
+    /// use nova_forge_network::{Network, Pid};
     ///
     /// let runtime = Runtime::new().unwrap();
     /// let registry = Registry::new();
@@ -331,7 +331,7 @@ impl Network {
     /// # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ListenAddr};
+    /// use nova_forge_network::{Network, Pid, ListenAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2000` TCP on all NICs and `2001` UDP locally
@@ -371,7 +371,7 @@ impl Network {
     /// can't connect, or invalid Handshake) # Examples
     /// ```ignore
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
+    /// use nova_forge_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
     /// # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port `2010` TCP and `2011` UDP like listening above
@@ -434,7 +434,7 @@ impl Network {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid};
+    /// use nova_forge_network::{ConnectAddr, ListenAddr, Network, Pid};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2020` TCP and opens returns their Pid
@@ -571,7 +571,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
+    /// use nova_forge_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2100 and open a stream
@@ -636,7 +636,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr, Promises};
+    /// use nova_forge_network::{Network, Pid, ListenAddr, ConnectAddr, Promises};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2110 and wait for the other side to open a stream
@@ -693,7 +693,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr};
+    /// use nova_forge_network::{Network, Pid, ListenAddr, ConnectAddr};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on port `2030` TCP and opens returns their Pid and close connection.
@@ -777,7 +777,7 @@ impl Participant {
     /// # Examples
     /// ```rust
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, Pid, ListenAddr, ConnectAddr, Promises, ParticipantEvent};
+    /// use nova_forge_network::{Network, Pid, ListenAddr, ConnectAddr, Promises, ParticipantEvent};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, connect on port 2040 and wait for the other side to open a stream
@@ -886,9 +886,9 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
+    /// use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2200` and wait for a Stream to be opened, then answer `Hello World`
@@ -927,10 +927,10 @@ impl Stream {
     ///
     /// # Example
     /// ```rust
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::Promises;
     /// use tokio::runtime::Runtime;
     /// use bincode;
-    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid, Message};
+    /// use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid, Message};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let runtime = Runtime::new().unwrap();
@@ -996,9 +996,9 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
+    /// use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2220` and wait for a Stream to be opened, then listen on it
@@ -1030,9 +1030,9 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
+    /// use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2230` and wait for a Stream to be opened, then listen on it
@@ -1086,9 +1086,9 @@ impl Stream {
     ///
     /// # Example
     /// ```
-    /// # use veloren_network::Promises;
+    /// # use nova_forge_network::Promises;
     /// use tokio::runtime::Runtime;
-    /// use veloren_network::{Network, ListenAddr, ConnectAddr, Pid};
+    /// use nova_forge_network::{Network, ListenAddr, ConnectAddr, Pid};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// // Create a Network, listen on Port `2240` and wait for a Stream to be opened, then listen on it

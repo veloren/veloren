@@ -1,6 +1,6 @@
 [package]
-name = "veloren-query-server"
-description = "Query Server crate for veloren (client and server)"
+name = "nova-forge-query-server"
+description = "Query Server crate for nova-forge (client and server)"
 version = "0.1.2"
 edition.workspace = true
 license.workspace = true

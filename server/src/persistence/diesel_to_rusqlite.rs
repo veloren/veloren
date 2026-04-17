@@ -1,4 +1,4 @@
-use crate::persistence::{VelorenConnection, error::PersistenceError};
+use crate::persistence::{NovaForgeConnection, error::PersistenceError};
 use tracing::{debug, info};
 
 /// Performs a one-time migration from diesel to refinery migrations. Copies
@@ -7,7 +7,7 @@ use tracing::{debug, info};
 // At some point in the future, when it is deemed no longer necessary to
 // support migrations from pre-rusqlite databases this method should be deleted.
 pub(crate) fn migrate_from_diesel(
-    connection: &mut VelorenConnection,
+    connection: &mut NovaForgeConnection,
 ) -> Result<(), PersistenceError> {
     let transaction = connection
         .connection

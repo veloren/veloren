@@ -133,9 +133,9 @@ impl NetworkMetrics {
                 "version",
                 format!(
                     "{}.{}.{}",
-                    &network_protocol::VELOREN_NETWORK_VERSION[0],
-                    &network_protocol::VELOREN_NETWORK_VERSION[1],
-                    &network_protocol::VELOREN_NETWORK_VERSION[2]
+                    &network_protocol::NOVA_FORGE_NETWORK_VERSION[0],
+                    &network_protocol::NOVA_FORGE_NETWORK_VERSION[1],
+                    &network_protocol::NOVA_FORGE_NETWORK_VERSION[2]
                 ),
             )
             .const_label("local_pid", format!("{}", &local_pid));

@@ -20,7 +20,7 @@
 //! After brain simulation has occurred, the resulting controller state is
 //! passed to either rtsim's internal NPC simulation rule
 //! ([`crate::rule::simulate_npcs`]) or, if the chunk the NPC is loaded, are
-//! passed to the Veloren server's agent system which attempts to act in
+//! passed to the Nova-Forge server's agent system which attempts to act in
 //! accordance with it.
 
 mod airship_ai;

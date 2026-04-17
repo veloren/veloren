@@ -1,7 +1,7 @@
 use common::terrain::CoordinateConversions;
 use rayon::ThreadPoolBuilder;
 use vek::Vec2;
-use veloren_world::{
+use nova_forge_world::{
     CanvasInfo, Land, World,
     layer::{
         self,

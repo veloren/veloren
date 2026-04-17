@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common-i18n"
+name = "nova-forge-common-i18n"
 description = "Crate for structs and methods that acknowledge the need for localization of the game"
 version.workspace = true
 edition.workspace = true

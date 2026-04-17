@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-use veloren_network::{NetworkError, StreamError};
+use nova_forge_network::{NetworkError, StreamError};
 mod helper;
 use helper::{SLEEP_EXTERNAL, SLEEP_INTERNAL, mpsc, network_participant_stream, quic, tcp, udp};
 use std::io::ErrorKind;
-use veloren_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, Promises};
+use nova_forge_network::{ConnectAddr, ListenAddr, Network, ParticipantEvent, Pid, Promises};
 
 #[test]
 fn stream_simple() {

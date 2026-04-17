@@ -9,7 +9,7 @@ fn main() {
 /*use common::comp;
 use gfx_window_glutin::init_headless;
 use vek::*;
-use veloren_voxygen::{render, scene::simple as scene};
+use nova_forge_voxygen::{render, scene::simple as scene};
 
 fn main() {
     // Setup renderer

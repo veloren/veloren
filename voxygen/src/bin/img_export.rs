@@ -27,7 +27,7 @@ use rand_chacha::ChaChaRng;
 use vek::{Mat4, Quaternion, Vec2, Vec3};
 
 use common::assets::{AssetExt, AssetHandle};
-use veloren_voxygen::{
+use nova_forge_voxygen::{
     hud::item_imgs::{ImageSpec, ItemImagesSpec},
     scene::{
         CameraMode,
@@ -124,7 +124,7 @@ pub fn main() {
                 let img = draw_voxes(
                     &bones,
                     image_size,
-                    veloren_voxygen::ui::Transform {
+                    nova_forge_voxygen::ui::Transform {
                         ori: Quaternion::rotation_x(-90.0 * std::f32::consts::PI / 180.0)
                             .rotated_y(180.0 * std::f32::consts::PI / 180.0)
                             .rotated_z(0.0 * std::f32::consts::PI / 180.0),
@@ -133,7 +133,7 @@ pub fn main() {
                         orth: true,
                         stretch: false,
                     },
-                    veloren_voxygen::ui::SampleStrat::None,
+                    nova_forge_voxygen::ui::SampleStrat::None,
                     Vec3::new(0.0, 1.0, 1.0),
                 );
 

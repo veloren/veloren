@@ -1607,11 +1607,11 @@ fn handle_time(
         None => {
             // Would this ever change? Perhaps in a few hundred thousand years some
             // game archeologists of the future will resurrect the best game of all
-            // time which, obviously, would be Veloren. By that time, the inescapable
+            // time which, obviously, would be Nova-Forge. By that time, the inescapable
             // laws of thermodynamics will mean that the earth's rotation period
             // would be slower. Of course, a few hundred thousand years is enough
             // for the circadian rhythm of human biology to have shifted to account
-            // accordingly. When booting up Veloren for the first time in 337,241
+            // accordingly. When booting up Nova-Forge for the first time in 337,241
             // years, they might feel a touch of anguish at the fact that their
             // earth days and the days within the game do not neatly divide into
             // one-another. Understandably, they'll want to change this. Who
@@ -1622,13 +1622,13 @@ fn handle_time(
             // release a retroactive definitive edition DLC for $99 with the very
             // welcome addition of shorter day periods and a complementary
             // 'developer commentary' mode created by digging up the long-decayed
-            // skeletons of the Veloren team, measuring various attributes of their
+            // skeletons of the Nova-Forge team, measuring various attributes of their
             // jawlines, and using them to recreate their voices. But how to go about
             // this Herculean task? This code is gibberish! The last of the core Rust
             // dev team died exactly 337,194 years ago! Rust is now a long-forgotten
             // dialect of the ancient ones, lost to the sands of time. Ashes to ashes,
             // dust to dust. When all hope is lost, one particularly intrepid
-            // post-human hominid exployed by the 'Veloren Revival Corp' (no doubt we
+            // post-human hominid exployed by the 'Nova-Forge Revival Corp' (no doubt we
             // still won't have gotten rid of this blasted 'capitalism' thing by then)
             // might notice, after years of searching, a particularly curious
             // inscription within the code. The letters `D`, `A`, `Y`. Curious! She
@@ -1638,7 +1638,7 @@ fn handle_time(
             // 'day' in the post-human hominid language, which is of course universal.
             // Imagine also her surprise when, after much further translating, she
             // finds a comment predicting her very existence and her struggle to
-            // decode this great mystery. Rejoice! The Veloren Revival Corp. may now
+            // decode this great mystery. Rejoice! The Nova-Forge Revival Corp. may now
             // persist with their great Ultimate Edition DLC because the day period
             // might now be changed because they have found the constant that controls
             // it! Everybody was henceforth happy until the end of time.

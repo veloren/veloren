@@ -1,5 +1,5 @@
 [package]
-name = "veloren-common"
+name = "nova-forge-common"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -22,8 +22,8 @@ default = ["simd"]
 
 [dependencies]
 
-common-base = { package = "veloren-common-base", path = "base" }
-common-i18n = { package = "veloren-common-i18n", path = "i18n" }
+common-base = { package = "nova-forge-common-base", path = "base" }
+common-i18n = { package = "nova-forge-common-i18n", path = "i18n" }
 # inline_tweak = { workspace = true }
 
 # Serde
@@ -63,7 +63,7 @@ rand = { workspace = true }
 fxhash = { workspace = true }
 
 # Assets
-common-assets = { package = "veloren-common-assets", path = "assets" }
+common-assets = { package = "nova-forge-common-assets", path = "assets" }
 dot_vox = "5.1"
 serde_repr = "0.1.6"
 

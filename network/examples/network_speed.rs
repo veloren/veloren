@@ -16,7 +16,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{ConnectAddr, ListenAddr, Message, Network, Pid, Promises};
+use nova_forge_network::{ConnectAddr, ListenAddr, Message, Network, Pid, Promises};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Msg {
@@ -27,7 +27,7 @@ enum Msg {
 /// This utility tests the speed of veloren network by creating a client that
 /// opens a stream and pipes as many messages through it as possible.
 fn main() {
-    let matches = Command::new("Veloren Speed Test Utility")
+    let matches = Command::new("Nova-Forge Speed Test Utility")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
         .about("Runs speedtests regarding different parameter to benchmark veloren-network")
@@ -79,12 +79,12 @@ fn main() {
     let filter = EnvFilter::from_default_env()
         .add_directive(trace.parse().unwrap())
         .add_directive("network_speed=debug".parse().unwrap())
-        .add_directive("veloren_network::participant=trace".parse().unwrap())
-        .add_directive("veloren_network::protocol=trace".parse().unwrap())
-        .add_directive("veloren_network::scheduler=trace".parse().unwrap())
-        .add_directive("veloren_network::api=trace".parse().unwrap())
+        .add_directive("nova_forge_network::participant=trace".parse().unwrap())
+        .add_directive("nova_forge_network::protocol=trace".parse().unwrap())
+        .add_directive("nova_forge_network::scheduler=trace".parse().unwrap())
+        .add_directive("nova_forge_network::api=trace".parse().unwrap())
         /*
-    .add_directive("veloren_network::participant=debug".parse().unwrap()).add_directive("veloren_network::api=debug".parse().unwrap())*/;
+    .add_directive("nova_forge_network::participant=debug".parse().unwrap()).add_directive("nova_forge_network::api=debug".parse().unwrap())*/;
     tracing_subscriber::FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
         .with_env_filter(filter)

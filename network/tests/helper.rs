@@ -12,7 +12,7 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::*;
 use tracing_subscriber::EnvFilter;
-use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
+use nova_forge_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
 // sleep time when only internal rust calculations are done
 pub const SLEEP_INTERNAL: Duration = Duration::from_millis(3000);
@@ -28,12 +28,12 @@ pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     let _subscriber = if tracing {
         let filter = EnvFilter::from_default_env()
             .add_directive("trace".parse().unwrap())
-            .add_directive("veloren_network::tests=trace".parse().unwrap())
-            .add_directive("veloren_network::controller=trace".parse().unwrap())
-            .add_directive("veloren_network::channel=trace".parse().unwrap())
-            .add_directive("veloren_network::message=trace".parse().unwrap())
-            .add_directive("veloren_network::metrics=trace".parse().unwrap())
-            .add_directive("veloren_network::types=trace".parse().unwrap());
+            .add_directive("nova_forge_network::tests=trace".parse().unwrap())
+            .add_directive("nova_forge_network::controller=trace".parse().unwrap())
+            .add_directive("nova_forge_network::channel=trace".parse().unwrap())
+            .add_directive("nova_forge_network::message=trace".parse().unwrap())
+            .add_directive("nova_forge_network::metrics=trace".parse().unwrap())
+            .add_directive("nova_forge_network::types=trace".parse().unwrap());
 
         Some(
             tracing_subscriber::FmtSubscriber::builder()

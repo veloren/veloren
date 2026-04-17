@@ -405,7 +405,7 @@ pub fn get_rivers<F: fmt::Debug + Float + Into<f64>, G: Float + Into<f64>>(
         // (i) We are already a river.
         // (ii) Using the Gauckler–Manning–Strickler formula for cross-sectional
         //      average velocity of water, we establish that the river can be
-        //      "big enough" to appear on the Veloren map.
+        //      "big enough" to appear on the Nova-Forge map.
         //
         // This is very imprecise, of course, and (ii) may (and almost certainly will)
         // change over time.

@@ -1,5 +1,5 @@
 [package]
-name = "veloren-network-protocol"
+name = "nova-forge-network-protocol"
 description = "pure Protocol without any I/O itself"
 version = "0.6.1"
 edition.workspace = true

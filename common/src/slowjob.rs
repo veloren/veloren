@@ -33,7 +33,7 @@ use tracing::{error, warn};
 /// - started
 /// - finished
 /// ```
-/// # use veloren_common::slowjob::SlowJobPool;
+/// # use nova_forge_common::slowjob::SlowJobPool;
 /// # use std::sync::Arc;
 ///
 /// let threadpool = rayon::ThreadPoolBuilder::new()

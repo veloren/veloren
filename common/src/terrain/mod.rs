@@ -57,7 +57,7 @@ impl TerrainChunkSize {
     /// Convert dimensions in terms of chunks into dimensions in terms of blocks
     /// ```
     /// use vek::*;
-    /// use veloren_common::terrain::TerrainChunkSize;
+    /// use nova_forge_common::terrain::TerrainChunkSize;
     ///
     /// assert_eq!(TerrainChunkSize::blocks(Vec2::new(3, 2)), Vec2::new(96, 64));
     /// ```
@@ -67,7 +67,7 @@ impl TerrainChunkSize {
     /// chunk
     /// ```
     /// use vek::*;
-    /// use veloren_common::terrain::TerrainChunkSize;
+    /// use nova_forge_common::terrain::TerrainChunkSize;
     ///
     /// assert_eq!(
     ///     TerrainChunkSize::center_wpos(Vec2::new(0, 2)),
