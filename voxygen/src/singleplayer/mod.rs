@@ -1,4 +1,5 @@
 use common::{clock::Clock, match_some};
+use common_base::local_lan_ip;
 use crossbeam_channel::{Receiver, Sender, TryRecvError, bounded, unbounded};
 use i18n::LocalizationHandle;
 use rand::seq::IteratorRandom;
@@ -248,6 +249,20 @@ impl SingleplayerState {
 
             let builder = thread::Builder::new().name("lan-coop-server-thread".into());
             let runtime = Arc::clone(runtime);
+
+            // Log LAN address so the host can share it with other players.
+            match local_lan_ip() {
+                Some(ip) => info!(
+                    "LAN co-op server starting. Guests can connect to {}:{} (no account required)",
+                    ip,
+                    server::settings::LAN_COOP_PORT
+                ),
+                None => info!(
+                    "LAN co-op server starting on port {} (could not detect LAN IP automatically)",
+                    server::settings::LAN_COOP_PORT
+                ),
+            }
+
             let thread = builder
                 .spawn(move || {
                     trace!("starting LAN co-op server thread");

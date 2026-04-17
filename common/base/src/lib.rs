@@ -2,6 +2,18 @@ pub mod userdata_dir;
 
 pub use userdata_dir::userdata_dir;
 
+/// Best-effort discovery of the host's LAN IP address.
+///
+/// Opens a temporary UDP socket and "connects" it to a well-known external
+/// address so the OS routing table resolves the outgoing interface.  No
+/// packets are actually sent.  Returns `None` when no suitable interface
+/// can be found (e.g. the machine has no network connectivity at all).
+pub fn local_lan_ip() -> Option<std::net::IpAddr> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("8.8.8.8:80").ok()?;
+    socket.local_addr().ok().map(|a| a.ip())
+}
+
 /// Panic in debug or tests, log error/warn in release
 #[macro_export]
 macro_rules! dev_panic {

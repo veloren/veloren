@@ -31,7 +31,7 @@ use common::{
     comp::{ChatType, Player},
     consts::MIN_RECOMMENDED_TOKIO_THREADS,
 };
-use common_base::span;
+use common_base::{local_lan_ip, span};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use rand::distr::SampleString;
 use server::{Event, Input, Server, persistence::DatabaseSettings, settings::Protocol};
@@ -264,6 +264,19 @@ fn main() -> io::Result<()> {
         ?gameserver_addresses,
         "Server is ready to accept connections."
     );
+
+    // Show LAN address to help players connect without external infrastructure.
+    match local_lan_ip() {
+        Some(ip) => info!(
+            "Nova-Forge LAN server ready — guests can join at {}:{} (no account required)",
+            ip,
+            server::settings::LAN_COOP_PORT
+        ),
+        None => info!(
+            "Nova-Forge LAN server ready on port {} (could not detect LAN IP automatically)",
+            server::settings::LAN_COOP_PORT
+        ),
+    }
 
     #[cfg(feature = "worldgen")]
     if let Some(bench) = bench {

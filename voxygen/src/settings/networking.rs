@@ -21,18 +21,16 @@ impl Default for NetworkingSettings {
     fn default() -> Self {
         Self {
             username: "".to_string(),
-            servers: vec!["server.veloren.net".to_string()],
-            default_server: "server.veloren.net".to_string(),
-            trusted_auth_servers: ["https://auth.veloren.net"]
-                .iter()
-                .map(|s| s.to_string())
-                .collect(),
+            servers: vec!["localhost:14004".to_string()],
+            default_server: "localhost:14004".to_string(),
+            // Nova-Forge does not require authentication; no trusted auth servers needed.
+            trusted_auth_servers: HashSet::new(),
             use_srv: true,
             use_quic: false,
             validate_tls: true,
             player_physics_behavior: false,
             lossy_terrain_compression: false,
-            enable_discord_integration: true,
+            enable_discord_integration: false,
         }
     }
 }
