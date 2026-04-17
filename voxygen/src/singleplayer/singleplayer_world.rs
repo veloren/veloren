@@ -17,6 +17,8 @@ pub struct SingleplayerWorld {
     pub is_generated: bool,
     pub path: PathBuf,
     pub map_path: PathBuf,
+    /// Maximum number of players allowed when hosting as LAN co-op.
+    pub max_players: u16,
 }
 
 impl SingleplayerWorld {
@@ -116,6 +118,7 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             // Isn't persisted so doesn't matter what it's set to.
             is_generated: false,
             map_path,
+            max_players: 8,
         });
     }
 }
@@ -237,6 +240,7 @@ impl SingleplayerWorlds {
             is_generated: false,
             map_path: path.join("map.bin"),
             path,
+            max_players: 8,
         };
 
         write_world_meta(&new_world);
@@ -258,13 +262,13 @@ mod version {
 
     use super::*;
 
-    pub type Current = V2;
+    pub type Current = V3;
 
     type LoadWorldFn<R> =
         fn(R, &Path) -> Result<SingleplayerWorld, (&'static str, ron::de::SpannedError)>;
     fn loaders<'a, R: std::io::Read + Clone>() -> &'a [LoadWorldFn<R>] {
         // Step [4]
-        &[load_raw::<V2, _>, load_raw::<V1, _>]
+        &[load_raw::<V3, _>, load_raw::<V2, _>, load_raw::<V1, _>]
     }
 
     #[derive(Deserialize, Serialize)]
@@ -289,6 +293,7 @@ mod version {
                 is_generated,
                 path,
                 map_path,
+                max_players: 8,
             }
         }
     }
@@ -301,18 +306,6 @@ mod version {
         gen_opts: Option<GenOpts>,
         seed: u32,
         day_length: f64,
-    }
-
-    impl V2 {
-        pub fn from_world(world: &SingleplayerWorld) -> Self {
-            V2 {
-                version: 2,
-                name: world.name.clone(),
-                gen_opts: world.gen_opts.clone(),
-                seed: world.seed,
-                day_length: world.day_length,
-            }
-        }
     }
 
     impl ToWorld for V2 {
@@ -328,6 +321,49 @@ mod version {
                 is_generated,
                 path,
                 map_path,
+                max_players: 8,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub struct V3 {
+        #[serde(deserialize_with = "version::<_, 3>")]
+        version: u64,
+        name: String,
+        gen_opts: Option<GenOpts>,
+        seed: u32,
+        day_length: f64,
+        max_players: u16,
+    }
+
+    impl V3 {
+        pub fn from_world(world: &SingleplayerWorld) -> Self {
+            V3 {
+                version: 3,
+                name: world.name.clone(),
+                gen_opts: world.gen_opts.clone(),
+                seed: world.seed,
+                day_length: world.day_length,
+                max_players: world.max_players,
+            }
+        }
+    }
+
+    impl ToWorld for V3 {
+        fn to_world(self, path: PathBuf) -> SingleplayerWorld {
+            let map_path = path.join("map.bin");
+            let is_generated = fs::metadata(&map_path).is_ok_and(|f| f.is_file());
+
+            SingleplayerWorld {
+                name: self.name,
+                gen_opts: self.gen_opts,
+                seed: self.seed,
+                day_length: self.day_length,
+                is_generated,
+                path,
+                map_path,
+                max_players: self.max_players,
             }
         }
     }

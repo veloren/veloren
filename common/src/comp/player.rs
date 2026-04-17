@@ -57,7 +57,9 @@ impl Player {
     pub fn alias_validate(alias: &str) -> Result<(), AliasError> {
         // TODO: Expose auth name validation and use it here.
         // See https://gitlab.com/veloren/auth/-/blob/master/server/src/web.rs#L20
-        if !alias
+        if alias.is_empty() {
+            Err(AliasError::Empty)
+        } else if !alias
             .chars()
             .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
         {
@@ -78,6 +80,7 @@ impl Component for Player {
 }
 
 pub enum AliasError {
+    Empty,
     ForbiddenCharacters,
     TooLong,
 }
@@ -86,6 +89,7 @@ pub enum AliasError {
 impl ToString for AliasError {
     fn to_string(&self) -> String {
         match *self {
+            AliasError::Empty => "Alias is empty.",
             AliasError::ForbiddenCharacters => "Alias contains illegal characters.",
             AliasError::TooLong => "Alias is too long.",
         }

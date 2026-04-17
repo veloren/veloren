@@ -760,6 +760,13 @@ fn attempt_login(
     let localization = localized_strings.read();
     if let Err(err) = comp::Player::alias_validate(&username) {
         match err {
+            comp::AliasError::Empty => {
+                *info_message = Some(
+                    localization
+                        .get_msg("main-login-username_empty")
+                        .into_owned(),
+                );
+            },
             comp::AliasError::ForbiddenCharacters => {
                 *info_message = Some(
                     localization

@@ -21,6 +21,7 @@ pub mod error;
 pub mod game_input;
 pub mod hud;
 pub mod key_state;
+pub mod lan_discovery;
 pub mod menu;
 pub mod mesh;
 pub mod panic_handler;
@@ -82,6 +83,8 @@ pub struct GlobalState {
     /// A channel that sends Discord activity updates to a background task
     #[cfg(feature = "discord")]
     pub discord: crate::discord::Discord,
+    /// Background UDP listener that collects LAN server broadcasts.
+    pub lan_discovery: lan_discovery::LanDiscovery,
 }
 
 impl GlobalState {

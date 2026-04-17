@@ -247,6 +247,7 @@ fn main() {
         #[cfg(feature = "discord")]
         discord,
         args: args.clone(),
+        lan_discovery: nova_forge_voxygen::lan_discovery::LanDiscovery::start(),
     };
 
     run::run(global_state, event_loop).unwrap();

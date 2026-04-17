@@ -129,6 +129,7 @@ pub enum WorldChange {
     MapKind(common::resources::MapKind),
     ErosionQuality(f32),
     DefaultGenOps,
+    MaxPlayers(u16),
 }
 
 #[cfg(feature = "singleplayer")]
@@ -146,6 +147,7 @@ impl WorldChange {
             WorldChange::MapKind(kind) => gen_opts.map_kind = kind,
             WorldChange::ErosionQuality(q) => gen_opts.erosion_quality = q,
             WorldChange::DefaultGenOps => world.gen_opts = Some(Default::default()),
+            WorldChange::MaxPlayers(n) => world.max_players = n,
         }
     }
 }
@@ -297,6 +299,9 @@ enum Message {
     Password(String),
     Server(String),
     ServerChanged(usize),
+    /// Selects a discovered LAN server: fills the address field and returns to
+    /// the login screen so the user can connect immediately.
+    LanServerSelected(String),
     FocusPassword,
     CancelConnect,
     TrustPromptAdd,
@@ -378,6 +383,7 @@ impl Controls {
         settings: &Settings,
         dt: f32,
         #[cfg(feature = "singleplayer")] worlds: &crate::singleplayer::SingleplayerWorlds,
+        lan_servers: &[crate::lan_discovery::DiscoveredServer],
     ) -> Element<'_, Message> {
         self.time += dt as f64;
 
@@ -436,6 +442,7 @@ impl Controls {
                 self.selected_server_index,
                 &self.i18n.read(),
                 button_style,
+                lan_servers,
             ),
             Screen::Connecting {
                 screen,
@@ -662,6 +669,22 @@ impl Controls {
                     self.selected_server_index = None;
                 }
             },
+            Message::LanServerSelected(address) => {
+                // Immediately connect to the discovered LAN server using the
+                // current username — no need to go back to the login screen for
+                // a one-click join.
+                self.login_info.server = address;
+                self.screen = Screen::Connecting {
+                    screen: connecting::Screen::new(ui),
+                    connection_state: ConnectionState::InProgress,
+                    init_stage: DetailedInitializationStage::StartingMultiplayer,
+                };
+                events.push(Event::LoginAttempt {
+                    username: self.login_info.username.trim().to_string(),
+                    password: self.login_info.password.clone(),
+                    server_address: self.login_info.server.trim().to_string(),
+                });
+            },
             /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {
                 if let Screen::Disclaimer { .. } = &self.screen {
@@ -868,12 +891,15 @@ impl MainMenuUi {
             .as_init()
             .unwrap_or(&worlds_default);
 
+        let lan_servers = global_state.lan_discovery.snapshot();
+
         let (messages, _) = self.ui.maintain(
             self.controls.view(
                 &global_state.settings,
                 dt.as_secs_f32(),
                 #[cfg(feature = "singleplayer")]
                 worlds,
+                &lan_servers,
             ),
             global_state.window.renderer_mut(),
             None,

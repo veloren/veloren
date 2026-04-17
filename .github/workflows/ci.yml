@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # Cache the Rust toolchain between jobs.
+  RUSTUP_TOOLCHAIN: nightly-2025-09-08
+
+jobs:
+  # ── Fast check: does the workspace compile? ─────────────────────────────────
+  check:
+    name: cargo check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install $RUSTUP_TOOLCHAIN --profile minimal
+          rustup override set $RUSTUP_TOOLCHAIN
+
+      - name: Cache Cargo registry + git deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-check-
+
+      - name: Install system libraries (for Vulkan / windowing stubs)
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libasound2-dev libxkbcommon-dev libwayland-dev libxi-dev \
+            libvulkan-dev glslang-tools cmake pkg-config
+
+      # Check crates that don't need a GPU: the server-cli and the pure library
+      # crates.  The full client (nova-forge-voxygen) requires a Vulkan ICD that
+      # isn't available on standard CI runners, so it is excluded here.
+      - name: cargo check (server)
+        run: cargo check -p nova-forge-server-cli
+
+      - name: cargo check (common crates)
+        run: >
+          cargo check
+          -p nova-forge-common
+          -p nova-forge-common-base
+          -p nova-forge-common-ecs
+          -p nova-forge-common-net
+          -p nova-forge-common-state
+          -p nova-forge-common-systems
+          -p nova-forge-query-server
+          -p nova-forge-world
+          -p nova-forge-rtsim
+
+  # ── Unit tests on library crates (no GPU / no audio required) ────────────────
+  test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install $RUSTUP_TOOLCHAIN --profile minimal
+          rustup override set $RUSTUP_TOOLCHAIN
+
+      - name: Cache Cargo registry + git deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-test-
+
+      - name: Install system libraries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libasound2-dev libxkbcommon-dev libwayland-dev libxi-dev \
+            libvulkan-dev glslang-tools cmake pkg-config
+
+      # Run unit tests for pure library crates.
+      # nova-forge-world tests can be slow; run with --no-fail-fast to get all
+      # results even if one crate fails.
+      - name: cargo test (common + world + query-server)
+        run: >
+          cargo test --no-fail-fast
+          -p nova-forge-common
+          -p nova-forge-common-base
+          -p nova-forge-common-net
+          -p nova-forge-query-server
+
+  # ── Clippy lint pass ─────────────────────────────────────────────────────────
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (with clippy)
+        run: |
+          rustup toolchain install $RUSTUP_TOOLCHAIN --profile minimal --component clippy
+          rustup override set $RUSTUP_TOOLCHAIN
+
+      - name: Cache Cargo registry + git deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-clippy-
+
+      - name: Install system libraries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libasound2-dev libxkbcommon-dev libwayland-dev libxi-dev \
+            libvulkan-dev glslang-tools cmake pkg-config
+
+      - name: clippy (server)
+        run: cargo clippy -p nova-forge-server-cli -- -D warnings
+
+      - name: clippy (common crates)
+        run: >
+          cargo clippy
+          -p nova-forge-common
+          -p nova-forge-common-base
+          -p nova-forge-common-net
+          -p nova-forge-query-server
+          -- -D warnings

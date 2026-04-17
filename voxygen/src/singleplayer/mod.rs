@@ -20,6 +20,8 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{error, info, trace, warn};
 
+use crate::lan_discovery;
+
 mod singleplayer_world;
 pub use singleplayer_world::{SingleplayerWorld, SingleplayerWorlds};
 
@@ -37,6 +39,11 @@ pub struct Singleplayer {
     /// True when the server is listening on all interfaces (LAN co-op mode)
     /// rather than localhost only.
     pub is_lan: bool,
+    /// Signals the LAN discovery broadcaster thread to stop (set on Drop).
+    /// For singleplayer-only (non-LAN) servers this is a no-op `AtomicBool`
+    /// that starts `false` and is never set, so the broadcaster is never
+    /// started and no thread is created.
+    stop_broadcast: Arc<AtomicBool>,
 }
 
 impl Singleplayer {
@@ -50,8 +57,10 @@ impl Singleplayer {
 
 impl Drop for Singleplayer {
     fn drop(&mut self) {
-        // Ignore the result
+        // Stop the server tick loop.
         let _ = self.stop_server_s.send(());
+        // Stop the LAN discovery broadcaster (if any).
+        self.stop_broadcast.store(true, Ordering::Relaxed);
     }
 }
 
@@ -180,6 +189,7 @@ impl SingleplayerState {
                 receiver: result_receiver,
                 paused,
                 is_lan: false,
+                stop_broadcast: Default::default(),
             });
         } else {
             error!("SingleplayerState::run was called, but singleplayer is already running!");
@@ -200,6 +210,8 @@ impl SingleplayerState {
                 return;
             };
             let server_data_dir = world.path.clone();
+            let world_name = world.name.clone();
+            let world_max_players = world.max_players;
 
             let mut settings = server::Settings::lan_coop(&server_data_dir);
             let mut editable_settings = server::EditableSettings::lan_coop(&server_data_dir);
@@ -232,6 +244,8 @@ impl SingleplayerState {
             settings.map_file = Some(file_opts);
             settings.world_seed = world.seed;
             settings.day_length = world.day_length;
+            settings.server_name = world_name.clone();
+            settings.max_players = world_max_players;
 
             let (stop_server_s, stop_server_r) = unbounded();
             let (server_stage_tx, server_stage_rx) = unbounded();
@@ -301,6 +315,15 @@ impl SingleplayerState {
                 receiver: result_receiver,
                 paused,
                 is_lan: true,
+                stop_broadcast: {
+                    let stop = Arc::new(AtomicBool::new(false));
+                    lan_discovery::start_broadcaster(
+                        server::settings::LAN_COOP_PORT,
+                        world_name,
+                        Arc::clone(&stop),
+                    );
+                    stop
+                },
             });
         } else {
             error!("SingleplayerState::run_lan_coop called, but server is already running!");
