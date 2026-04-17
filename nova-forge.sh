@@ -32,6 +32,8 @@ Commands:
   server         Build & launch the dedicated server (standalone, no auth)
   release        Optimised release build of both binaries
   test           Run the workspace unit-test suite
+  clean          Remove all Cargo build artifacts (target/ directory)
+  rebuild        Clean all build artifacts then perform a fresh dev build
   help           Show this message
 
 Options (all commands):
@@ -55,6 +57,8 @@ Examples:
   ./nova-forge.sh release                   # optimised release build
   ./nova-forge.sh test                      # run all workspace tests
   ./nova-forge.sh build --shaderc-from-source  # build shaderc from source (needs ninja)
+  ./nova-forge.sh clean                         # wipe all build artifacts
+  ./nova-forge.sh rebuild                       # clean then fresh dev build
 EOF
     exit 0
 }
@@ -190,6 +194,17 @@ cmd_test() {
     cargo test --workspace "${CARGO_ARGS[@]}"
 }
 
+cmd_clean() {
+    section "Cleaning build artifacts"
+    cargo clean
+    info "All build artifacts removed (target/ directory wiped)."
+}
+
+cmd_rebuild() {
+    cmd_clean
+    cmd_build
+}
+
 # ---------------------------------------------------------------------------
 # Dispatch
 # ---------------------------------------------------------------------------
@@ -201,6 +216,8 @@ case "$COMMAND" in
     server)  cmd_server  ;;
     release) cmd_release ;;
     test)    cmd_test    ;;
+    clean)   cmd_clean   ;;
+    rebuild) cmd_rebuild ;;
     help|-h|--help) usage ;;
     *) die "Unknown command '$COMMAND'. Run './nova-forge.sh help' for usage." ;;
 esac
