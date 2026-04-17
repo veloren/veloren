@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed mandatory authentication: all play modes (singleplayer, LAN co-op, dedicated
   server) work without an account or internet connection.
 - Added built-in LAN co-op hosting from the main menu.
+- Added LAN auto-discovery: when a host starts a LAN co-op game, the server broadcasts
+  its presence over UDP (port 14005) every 5 seconds. Other players on the same network
+  see it automatically in the server browser without any manual IP entry. Discovered
+  servers disappear from the list after 15 seconds of silence.
 - Updated `/wiki` command to open the Nova-Forge GitHub repository.
 - Added database migration (V71) to rename `veloren.core.*` item definition IDs to
   `nova-forge.core.*`, ensuring existing character databases continue to work.

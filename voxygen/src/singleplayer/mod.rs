@@ -20,6 +20,8 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{error, info, trace, warn};
 
+use crate::lan_discovery;
+
 mod singleplayer_world;
 pub use singleplayer_world::{SingleplayerWorld, SingleplayerWorlds};
 
@@ -37,6 +39,8 @@ pub struct Singleplayer {
     /// True when the server is listening on all interfaces (LAN co-op mode)
     /// rather than localhost only.
     pub is_lan: bool,
+    /// Signals the LAN discovery broadcaster thread to stop (set on Drop).
+    stop_broadcast: Arc<AtomicBool>,
 }
 
 impl Singleplayer {
@@ -50,8 +54,10 @@ impl Singleplayer {
 
 impl Drop for Singleplayer {
     fn drop(&mut self) {
-        // Ignore the result
+        // Stop the server tick loop.
         let _ = self.stop_server_s.send(());
+        // Stop the LAN discovery broadcaster (if any).
+        self.stop_broadcast.store(true, Ordering::Relaxed);
     }
 }
 
@@ -180,6 +186,7 @@ impl SingleplayerState {
                 receiver: result_receiver,
                 paused,
                 is_lan: false,
+                stop_broadcast: Default::default(),
             });
         } else {
             error!("SingleplayerState::run was called, but singleplayer is already running!");
@@ -301,6 +308,15 @@ impl SingleplayerState {
                 receiver: result_receiver,
                 paused,
                 is_lan: true,
+                stop_broadcast: {
+                    let stop = Arc::new(AtomicBool::new(false));
+                    lan_discovery::start_broadcaster(
+                        server::settings::LAN_COOP_PORT,
+                        server::settings::LAN_COOP_SERVER_NAME.to_owned(),
+                        Arc::clone(&stop),
+                    );
+                    stop
+                },
             });
         } else {
             error!("SingleplayerState::run_lan_coop called, but server is already running!");

@@ -74,6 +74,7 @@ main-login-client_init_failed = Client failed to initialize: { $init_fail_reason
 main-login-username_bad_characters = Username contains invalid characters! (Only alphanumeric, '_' and '-' are allowed).
 main-login-username_too_long = Username is too long! Max length is: { $max_len }
 main-servers-select_server = Select a server
+main-servers-lan_servers = — LAN Servers (auto-discovered) —
 main-servers-singleplayer_error = Failed to connect to internal server: { $sp_error }
 main-servers-network_error = Server network/socket error: { $raw_error }
 main-servers-participant_error = Participant disconnect/protocol error: { $raw_error }

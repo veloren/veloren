@@ -1,0 +1,282 @@
+/// Passive LAN server discovery via UDP broadcast.
+///
+/// When a Nova-Forge LAN co-op server starts it periodically broadcasts a small
+/// UDP datagram on [`DISCOVERY_PORT`].  Any client on the same subnet that has
+/// a [`LanDiscovery`] running will receive those datagrams and surface the
+/// server in the server browser automatically — no manual IP entry required.
+///
+/// # Packet format
+/// ```text
+/// NOVA_FORGE_LAN\0  (15 bytes, 14-char magic + NUL)
+/// port_lo  port_hi   (2 bytes little-endian u16)
+/// <UTF-8 server name, up to 64 bytes>
+/// ```
+/// Total on-wire size is always ≤ 81 bytes, well inside a single UDP frame.
+use std::{
+    net::{Ipv4Addr, SocketAddrV4, UdpSocket},
+    sync::{Arc, Mutex},
+    thread,
+    time::{Duration, Instant},
+};
+use tracing::{debug, trace, warn};
+
+/// UDP port used for both broadcasting (server) and listening (client).
+pub const DISCOVERY_PORT: u16 = 14005;
+
+/// Magic header prefix that identifies a Nova-Forge LAN discovery packet.
+const MAGIC: &[u8] = b"NOVA_FORGE_LAN\0";
+/// How long between server broadcasts.
+const BROADCAST_INTERVAL: Duration = Duration::from_secs(5);
+/// How long a discovered entry remains valid after the last broadcast.
+const ENTRY_TTL: Duration = Duration::from_secs(15);
+/// Read timeout on the listener socket so the thread can check the stop flag.
+const LISTEN_TIMEOUT: Duration = Duration::from_secs(1);
+
+// ────────────────────────────────────────────────────────────────────────────
+// Public types
+// ────────────────────────────────────────────────────────────────────────────
+
+/// A LAN server that has been seen recently.
+#[derive(Debug, Clone)]
+pub struct DiscoveredServer {
+    /// The address guests should use to connect (source IP + game port from
+    /// the packet, not the discovery port).
+    pub address: String,
+    /// Server name announced in the broadcast.
+    pub name: String,
+    /// When the most recent broadcast from this server was received.
+    pub last_seen: Instant,
+}
+
+/// Manages the background listener thread and the shared list of discovered
+/// LAN servers.
+///
+/// Dropped automatically when the client exits the main-menu state;
+/// the background thread exits within one [`LISTEN_TIMEOUT`] tick.
+pub struct LanDiscovery {
+    servers: Arc<Mutex<Vec<DiscoveredServer>>>,
+    stop: Arc<std::sync::atomic::AtomicBool>,
+    _thread: Option<thread::JoinHandle<()>>,
+}
+
+impl LanDiscovery {
+    /// Spawn the listener thread and return a handle.
+    ///
+    /// Failure to bind the socket is treated as non-fatal: the struct is still
+    /// returned but no entries will ever be discovered.
+    pub fn start() -> Self {
+        let servers: Arc<Mutex<Vec<DiscoveredServer>>> = Default::default();
+        let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        let servers_clone = Arc::clone(&servers);
+        let stop_clone = Arc::clone(&stop);
+
+        let handle = match UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, DISCOVERY_PORT))
+        {
+            Ok(socket) => {
+                socket
+                    .set_read_timeout(Some(LISTEN_TIMEOUT))
+                    .unwrap_or_else(|e| warn!(?e, "Failed to set LAN discovery socket timeout"));
+
+                let builder = thread::Builder::new().name("lan-discovery-listener".into());
+                let handle = builder
+                    .spawn(move || {
+                        listener_thread(socket, servers_clone, stop_clone);
+                    })
+                    .ok();
+                handle
+            },
+            Err(e) => {
+                debug!(?e, "Could not bind LAN discovery socket (non-fatal)");
+                None
+            },
+        };
+
+        Self {
+            servers,
+            stop,
+            _thread: handle,
+        }
+    }
+
+    /// Returns a snapshot of currently live LAN servers, evicting entries
+    /// whose last broadcast is older than [`ENTRY_TTL`].
+    pub fn snapshot(&self) -> Vec<DiscoveredServer> {
+        let mut guard = self.servers.lock().unwrap_or_else(|e| e.into_inner());
+        let now = Instant::now();
+        guard.retain(|s| now.duration_since(s.last_seen) < ENTRY_TTL);
+        guard.clone()
+    }
+}
+
+impl Drop for LanDiscovery {
+    fn drop(&mut self) {
+        self.stop
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        // The thread will exit on its next 1-second read-timeout tick.
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Internal helpers
+// ────────────────────────────────────────────────────────────────────────────
+
+fn listener_thread(
+    socket: UdpSocket,
+    servers: Arc<Mutex<Vec<DiscoveredServer>>>,
+    stop: Arc<std::sync::atomic::AtomicBool>,
+) {
+    let mut buf = [0u8; 256];
+    loop {
+        if stop.load(std::sync::atomic::Ordering::Relaxed) {
+            break;
+        }
+        match socket.recv_from(&mut buf) {
+            Ok((len, src)) => {
+                if let Some(entry) = parse_packet(&buf[..len]) {
+                    let address = format!("{}:{}", src.ip(), entry.port);
+                    trace!(%address, name = %entry.name, "LAN server discovered");
+                    let mut guard = servers.lock().unwrap_or_else(|e| e.into_inner());
+                    if let Some(existing) = guard.iter_mut().find(|s| s.address == address) {
+                        existing.name = entry.name;
+                        existing.last_seen = Instant::now();
+                    } else {
+                        guard.push(DiscoveredServer {
+                            address,
+                            name: entry.name,
+                            last_seen: Instant::now(),
+                        });
+                    }
+                }
+            },
+            // WouldBlock / TimedOut are expected — just loop again.
+            Err(ref e)
+                if e.kind() == std::io::ErrorKind::WouldBlock
+                    || e.kind() == std::io::ErrorKind::TimedOut =>
+            {
+                continue
+            },
+            Err(e) => {
+                debug!(?e, "LAN discovery recv error");
+            },
+        }
+    }
+}
+
+struct ParsedPacket {
+    port: u16,
+    name: String,
+}
+
+fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
+    let data = data.strip_prefix(MAGIC)?;
+    if data.len() < 2 {
+        return None;
+    }
+    let port = u16::from_le_bytes([data[0], data[1]]);
+    if port == 0 {
+        return None;
+    }
+    let name = std::str::from_utf8(&data[2..]).ok()?.trim().to_owned();
+    Some(ParsedPacket { port, name })
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Broadcaster  (used by the LAN co-op server thread)
+// ────────────────────────────────────────────────────────────────────────────
+
+/// Encode a discovery packet.
+pub fn encode_packet(port: u16, server_name: &str) -> Vec<u8> {
+    let name_bytes = server_name.as_bytes();
+    // Truncate the name to 64 bytes to keep the packet small.
+    let name_bytes = &name_bytes[..name_bytes.len().min(64)];
+    let mut pkt = Vec::with_capacity(MAGIC.len() + 2 + name_bytes.len());
+    pkt.extend_from_slice(MAGIC);
+    pkt.extend_from_slice(&port.to_le_bytes());
+    pkt.extend_from_slice(name_bytes);
+    pkt
+}
+
+/// Spawn a background thread that broadcasts LAN server presence until
+/// `stop` is set.
+///
+/// This is called from the LAN co-op server thread immediately after the
+/// server has finished initialising, so the address-in-use failure mode
+/// should not occur in practice (we bind to an ephemeral source port).
+pub fn start_broadcaster(
+    port: u16,
+    server_name: String,
+    stop: Arc<std::sync::atomic::AtomicBool>,
+) {
+    let builder = thread::Builder::new().name("lan-discovery-broadcaster".into());
+    let _ = builder.spawn(move || {
+        let socket = match UdpSocket::bind(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 0)) {
+            Ok(s) => s,
+            Err(e) => {
+                warn!(?e, "Failed to create LAN discovery broadcast socket");
+                return;
+            },
+        };
+        if let Err(e) = socket.set_broadcast(true) {
+            warn!(?e, "Failed to enable UDP broadcast (LAN discovery disabled)");
+            return;
+        }
+        let dest: std::net::SocketAddr =
+            SocketAddrV4::new(Ipv4Addr::BROADCAST, DISCOVERY_PORT).into();
+        let packet = encode_packet(port, &server_name);
+        loop {
+            if stop.load(std::sync::atomic::Ordering::Relaxed) {
+                break;
+            }
+            if let Err(e) = socket.send_to(&packet, dest) {
+                debug!(?e, "LAN discovery broadcast send failed");
+            }
+            // Sleep in small increments so the stop flag is checked promptly.
+            let mut remaining = BROADCAST_INTERVAL;
+            while remaining > Duration::ZERO
+                && !stop.load(std::sync::atomic::Ordering::Relaxed)
+            {
+                let step = remaining.min(Duration::from_millis(200));
+                thread::sleep(step);
+                remaining = remaining.saturating_sub(step);
+            }
+        }
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn round_trip() {
+        let pkt = encode_packet(14004, "My LAN Server");
+        let parsed = parse_packet(&pkt).expect("parse failed");
+        assert_eq!(parsed.port, 14004);
+        assert_eq!(parsed.name, "My LAN Server");
+    }
+
+    #[test]
+    fn name_truncation() {
+        let long_name = "A".repeat(100);
+        let pkt = encode_packet(14004, &long_name);
+        let parsed = parse_packet(&pkt).expect("parse failed");
+        assert_eq!(parsed.name.len(), 64);
+    }
+
+    #[test]
+    fn rejects_invalid_magic() {
+        let bad = b"GARBAGE\0\x94\x36hello";
+        assert!(parse_packet(bad).is_none());
+    }
+
+    #[test]
+    fn rejects_zero_port() {
+        let mut pkt = encode_packet(0, "zero port");
+        // Ensure the port bytes are both zero after magic.
+        let ml = MAGIC.len();
+        pkt[ml] = 0;
+        pkt[ml + 1] = 0;
+        assert!(parse_packet(&pkt).is_none());
+    }
+}

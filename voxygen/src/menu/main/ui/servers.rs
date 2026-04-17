@@ -1,7 +1,10 @@
 use super::{FILL_FRAC_ONE, Imgs, Message};
-use crate::ui::{
-    fonts::IcedFonts as Fonts,
-    ice::{Element, component::neat_button, style},
+use crate::{
+    lan_discovery::DiscoveredServer,
+    ui::{
+        fonts::IcedFonts as Fonts,
+        ice::{Element, component::neat_button, style},
+    },
 };
 use i18n::Localization;
 use iced::{
@@ -13,6 +16,7 @@ pub struct Screen {
     delete_button: button::State,
     server_buttons: Vec<button::State>,
     servers_list: scrollable::State,
+    lan_buttons: Vec<button::State>,
 }
 
 impl Screen {
@@ -22,6 +26,7 @@ impl Screen {
             delete_button: Default::default(),
             server_buttons: vec![],
             servers_list: Default::default(),
+            lan_buttons: vec![],
         }
     }
 
@@ -33,6 +38,7 @@ impl Screen {
         selected_server_index: Option<usize>,
         i18n: &Localization,
         button_style: style::button::Style,
+        lan_servers: &[DiscoveredServer],
     ) -> Element<'_, Message> {
         let title = Text::new(i18n.get_msg("main-servers-select_server"))
             .size(fonts.cyri.scale(35))
@@ -115,6 +121,58 @@ impl Screen {
 
         for item in list_items {
             list = list.push(item);
+        }
+
+        // ── LAN Servers section ──────────────────────────────────────────────
+        if !lan_servers.is_empty() {
+            list = list.push(
+                Text::new(i18n.get_msg("main-servers-lan_servers"))
+                    .size(fonts.cyri.scale(22))
+                    .color(iced::Color::from_rgb(0.7, 0.9, 1.0))
+                    .width(Length::Fill)
+                    .horizontal_alignment(iced::HorizontalAlignment::Center),
+            );
+
+            // Resize LAN button states to match discovered servers.
+            if self.lan_buttons.len() != lan_servers.len() {
+                self.lan_buttons = vec![Default::default(); lan_servers.len()];
+            }
+
+            let lan_items = self
+                .lan_buttons
+                .iter_mut()
+                .zip(lan_servers)
+                .map(|(state, server)| {
+                    let label = format!("{}  —  {}", server.name, server.address);
+                    let button = Button::new(
+                        state,
+                        Row::with_children(vec![
+                            Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                            Text::new(label)
+                                .size(fonts.cyri.scale(26))
+                                .width(Length::FillPortion(95))
+                                .vertical_alignment(iced::VerticalAlignment::Center)
+                                .into(),
+                        ]),
+                    )
+                    .style(
+                        style::button::Style::new(imgs.selection)
+                            .hover_image(imgs.selection_hover)
+                            .press_image(imgs.selection_press)
+                            .image_color(vek::Rgba::new(30, 130, 200, 255)),
+                    )
+                    .min_height(80)
+                    .on_press(Message::LanServerSelected(server.address.clone()));
+                    Row::with_children(vec![
+                        Space::new(Length::FillPortion(3), Length::Units(0)).into(),
+                        button.width(Length::FillPortion(92)).into(),
+                        Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                    ])
+                });
+
+            for item in lan_items {
+                list = list.push(item);
+            }
         }
 
         Container::new(

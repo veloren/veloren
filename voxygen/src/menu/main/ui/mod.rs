@@ -297,6 +297,9 @@ enum Message {
     Password(String),
     Server(String),
     ServerChanged(usize),
+    /// Selects a discovered LAN server: fills the address field and returns to
+    /// the login screen so the user can connect immediately.
+    LanServerSelected(String),
     FocusPassword,
     CancelConnect,
     TrustPromptAdd,
@@ -378,6 +381,7 @@ impl Controls {
         settings: &Settings,
         dt: f32,
         #[cfg(feature = "singleplayer")] worlds: &crate::singleplayer::SingleplayerWorlds,
+        lan_servers: &[crate::lan_discovery::DiscoveredServer],
     ) -> Element<'_, Message> {
         self.time += dt as f64;
 
@@ -436,6 +440,7 @@ impl Controls {
                 self.selected_server_index,
                 &self.i18n.read(),
                 button_style,
+                lan_servers,
             ),
             Screen::Connecting {
                 screen,
@@ -662,6 +667,13 @@ impl Controls {
                     self.selected_server_index = None;
                 }
             },
+            Message::LanServerSelected(address) => {
+                self.login_info.server = address;
+                self.screen = Screen::Login {
+                    screen: Box::default(),
+                    error: None,
+                };
+            },
             /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {
                 if let Screen::Disclaimer { .. } = &self.screen {
@@ -868,12 +880,15 @@ impl MainMenuUi {
             .as_init()
             .unwrap_or(&worlds_default);
 
+        let lan_servers = global_state.lan_discovery.snapshot();
+
         let (messages, _) = self.ui.maintain(
             self.controls.view(
                 &global_state.settings,
                 dt.as_secs_f32(),
                 #[cfg(feature = "singleplayer")]
                 worlds,
+                &lan_servers,
             ),
             global_state.window.renderer_mut(),
             None,
