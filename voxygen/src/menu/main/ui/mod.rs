@@ -668,11 +668,20 @@ impl Controls {
                 }
             },
             Message::LanServerSelected(address) => {
+                // Immediately connect to the discovered LAN server using the
+                // current username — no need to go back to the login screen for
+                // a one-click join.
                 self.login_info.server = address;
-                self.screen = Screen::Login {
-                    screen: Box::default(),
-                    error: None,
+                self.screen = Screen::Connecting {
+                    screen: connecting::Screen::new(ui),
+                    connection_state: ConnectionState::InProgress,
+                    init_stage: DetailedInitializationStage::StartingMultiplayer,
                 };
+                events.push(Event::LoginAttempt {
+                    username: self.login_info.username.trim().to_string(),
+                    password: self.login_info.password.clone(),
+                    server_address: self.login_info.server.trim().to_string(),
+                });
             },
             /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {

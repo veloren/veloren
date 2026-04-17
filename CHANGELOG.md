@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its presence over UDP (port 14005) every 5 seconds. Other players on the same network
   see it automatically in the server browser without any manual IP entry. Discovered
   servers disappear from the list after 15 seconds of silence.
+- LAN server browser is now one-click: clicking a discovered LAN server connects
+  immediately rather than just pre-filling the address field.
+- Added GitHub Actions CI (`.github/workflows/ci.yml`): `cargo check`, `cargo test`,
+  and `cargo clippy` run on every push and pull request for the server and common library
+  crates.
 - Updated `/wiki` command to open the Nova-Forge GitHub repository.
 - Added database migration (V71) to rename `veloren.core.*` item definition IDs to
   `nova-forge.core.*`, ensuring existing character databases continue to work.
