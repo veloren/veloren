@@ -192,8 +192,8 @@ cmd_release() {
 
     # Copy the assets directory next to the release binaries so the client can
     # find them when launched directly (e.g. by double-clicking on Windows).
-    # We use cp -rn / xcopy /E /I /Y to avoid re-copying unchanged files where
-    # the destination already exists.
+    # We check whether the destination already exists to avoid a redundant
+    # 449 MB copy on repeat builds.
     local dest="target/release/assets"
     if [[ -d "$dest" ]]; then
         info "Assets already present at $dest — skipping copy."
@@ -214,6 +214,7 @@ cmd_run_release() {
         die "Release binary not found at $exe. Run './nova-forge.sh release' first."
     fi
     section "Launching Nova-Forge (release client)"
+    # VELOREN_ASSETS is set globally above (default: ./assets in the repo root).
     info "Assets  : $VELOREN_ASSETS"
     info "Data dir: userdata/ (relative to binary)"
     "$exe"
