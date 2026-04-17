@@ -45,7 +45,7 @@ default-publish = [
     "discord",
     "simd",
 ]
-default = ["default-publish", "hot-reloading", "shaderc-from-source", "egui-ui"]
+default = ["default-publish", "hot-reloading", "egui-ui"]
 
 [dependencies]
 client = { package = "veloren-client", path = "../client" }

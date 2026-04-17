@@ -31,7 +31,7 @@ use common::{
     comp::{ChatType, Player},
     consts::MIN_RECOMMENDED_TOKIO_THREADS,
 };
-use common_base::span;
+use common_base::{local_lan_ip, span};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use rand::distr::SampleString;
 use server::{Event, Input, Server, persistence::DatabaseSettings, settings::Protocol};
@@ -42,14 +42,6 @@ use std::{
 };
 use tokio::sync::Notify;
 use tracing::{info, trace};
-
-/// Best-effort discovery of the host's LAN IP address.
-/// Uses routing-table introspection via a dummy UDP connect; no packets are sent.
-fn local_lan_ip() -> Option<std::net::IpAddr> {
-    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
-    socket.connect("8.8.8.8:80").ok()?;
-    socket.local_addr().ok().map(|a| a.ip())
-}
 
 lazy_static::lazy_static! {
     pub static ref LOG: TuiLog<'static> = TuiLog::default();

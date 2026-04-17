@@ -1,4 +1,5 @@
 use common::{clock::Clock, match_some};
+use common_base::local_lan_ip;
 use crossbeam_channel::{Receiver, Sender, TryRecvError, bounded, unbounded};
 use i18n::LocalizationHandle;
 use rand::seq::IteratorRandom;
@@ -9,7 +10,6 @@ use server::{
 };
 
 use std::{
-    net::{IpAddr, UdpSocket},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -19,16 +19,6 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info, trace, warn};
-
-/// Best-effort discovery of the host's LAN IP address.
-/// Uses the routing table (via a dummy UDP connect) to find which interface
-/// the OS would use to reach an external address.
-fn local_lan_ip() -> Option<IpAddr> {
-    let socket = UdpSocket::bind("0.0.0.0:0").ok()?;
-    // Connect to a well-known external IP; no packets are actually sent.
-    socket.connect("8.8.8.8:80").ok()?;
-    socket.local_addr().ok().map(|a| a.ip())
-}
 
 mod singleplayer_world;
 pub use singleplayer_world::{SingleplayerWorld, SingleplayerWorlds};

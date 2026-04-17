@@ -35,23 +35,26 @@ Commands:
   help           Show this message
 
 Options (all commands):
-  --no-egui      Skip the EGUI debug overlay (faster compile)
-  --no-hot       Disable hot-reloading (faster compile)
+  --no-egui            Skip the EGUI debug overlay (faster compile)
+  --no-hot             Disable hot-reloading (faster compile)
+  --shaderc-from-source  Build shaderc from source (requires cmake + ninja; use
+                         only when your system has no pre-built libshaderc)
   --no-default-features  Pass-through to Cargo
-  -v, --verbose  Show full Cargo output
-  -- <args>      Anything after -- is forwarded directly to Cargo
+  -v, --verbose        Show full Cargo output
+  -- <args>            Anything after -- is forwarded directly to Cargo
 
 Environment variables honoured:
   VELOREN_ASSETS   Path to the assets directory  (default: ./assets)
   RUST_LOG         Tracing filter                (default: info)
 
 Examples:
-  ./nova-forge.sh                  # dev build
-  ./nova-forge.sh run              # build & launch client
-  ./nova-forge.sh run --no-egui    # launch without debug overlay
-  ./nova-forge.sh server           # run dedicated LAN server
-  ./nova-forge.sh release          # optimised release build
-  ./nova-forge.sh test             # run all workspace tests
+  ./nova-forge.sh                           # dev build
+  ./nova-forge.sh run                       # build & launch client
+  ./nova-forge.sh run --no-egui             # launch without debug overlay
+  ./nova-forge.sh server                    # run dedicated LAN server
+  ./nova-forge.sh release                   # optimised release build
+  ./nova-forge.sh test                      # run all workspace tests
+  ./nova-forge.sh build --shaderc-from-source  # build shaderc from source (needs ninja)
 EOF
     exit 0
 }
@@ -65,6 +68,7 @@ shift || true
 CARGO_ARGS=()
 NO_EGUI=false
 NO_HOT=false
+SHADERC_FROM_SOURCE=false
 VERBOSE=false
 
 # ---------------------------------------------------------------------------
@@ -74,6 +78,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --no-egui)              NO_EGUI=true ;;
         --no-hot)               NO_HOT=true ;;
+        --shaderc-from-source)  SHADERC_FROM_SOURCE=true ;;
         --no-default-features)  CARGO_ARGS+=(--no-default-features) ;;
         -v|--verbose)           VERBOSE=true ;;
         --)                     shift; CARGO_ARGS+=("$@"); break ;;
@@ -115,10 +120,13 @@ check_toolchain() {
 # Feature flag construction
 # ---------------------------------------------------------------------------
 # Default dev features: singleplayer + egui + hot-reloading + simd
+# shaderc-from-source is NOT included by default; it requires cmake + ninja
+# (which many Windows machines lack).  Use --shaderc-from-source to opt in.
 build_features() {
     local feats="singleplayer,simd"
-    [[ "$NO_EGUI" == false ]] && feats="${feats},egui-ui,shaderc-from-source"
+    [[ "$NO_EGUI" == false ]] && feats="${feats},egui-ui"
     [[ "$NO_HOT"  == false ]] && feats="${feats},hot-reloading"
+    [[ "$SHADERC_FROM_SOURCE" == true ]] && feats="${feats},shaderc-from-source"
     echo "$feats"
 }
 
