@@ -74,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New instruments: Rhythmo, Starlight Conch, Timbrel of Chaos, Viola Pizzicato.
 - Time estimate to erosion.
 - The ability to ask NPCs for directions to nearby establishments.
-- Type /wiki to open the Veloren wiki or /wiki [topic] to search for a specific topic.
+- Type /wiki to open the Nova-Forge GitHub repository or /wiki [topic] to search for a specific topic.
 - Adding a space after chat mode commands changes chat modes.
 - New and more granular options for the `/kit` command.
 - Beds now regen health when mounted.
