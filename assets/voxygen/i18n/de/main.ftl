@@ -6,7 +6,7 @@ main-creating_world = Welt wird generiert
 main-tip = Tipp:
 main-unbound_key_tip = Keine Taste ausgewählt
 main-notice =
-    Wilkommen in der Alpha-Version von Veloren!
+    Wilkommen in der Alpha-Version von Nova-Forge!
 
     Bevor du dich ins Abenteuer stürzt, behalte bitte einige Dinge im Hinterkopf:
 
@@ -14,9 +14,9 @@ main-notice =
 
     - Für konstruktives Feedback und Bug-Reports kannst du uns in unserem Gitlab-Repository und über unseren Discord- oder Matrix-Server kontaktieren.
 
-    - Veloren ist Open Source. Du hast die Freiheit, das Spiel unter den Bedingungen der GPL-3-Lizenz zu spielen, zu verändern und weiterzuverbreiten.
+    - Nova-Forge ist Open Source. Du hast die Freiheit, das Spiel unter den Bedingungen der GPL-3-Lizenz zu spielen, zu verändern und weiterzuverbreiten.
 
-    - Veloren ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
+    - Nova-Forge ist ein Non-Profit Community Projekt und jeder Mitarbeiter entwickelt es als Hobby in seiner Freizeit.
     Wenn dir die Idee gefällt, dann schließe dich doch einfach einer unserer Arbeitsgruppen an!
 
     Danke, dass du dir die Zeit genommen hast, diese Zeilen zu lesen. Wir hoffen, dass du das Spiel genießt!
@@ -82,7 +82,7 @@ loading-tips =
     .a11 = Mit Anderen zusammen zu spielen macht noch viel mehr Spaß! Mit '{ $gameinput-social }' kannst du sehen, wer gerade online ist.
     .a12 = Mit '{ $gameinput-dance }' kannst du das Tanzbein schwingen. Party!
     .a13 = Mit '{ $gameinput-glide }' kannst du den Gleiter öffnen und hohe Lüfte erobern.
-    .a14 = Veloren ist immernoch in der Pre-Alpha. Wir tun unser Bestes, um es jeden Tag ein Stück besser zu machen!
+    .a14 = Nova-Forge ist immernoch in der Pre-Alpha. Wir tun unser Bestes, um es jeden Tag ein Stück besser zu machen!
     .a15 = Du möchtest aktiv an der Entwicklung mitwirken oder einfach nur chatten? Dann komm auf unseren Discord-Server.
     .a16 = Die Art, wie dir deine Lebensenergie angezeigt wird, kannst du in den Einstellungen ändern.
     .a17 = Setze dich neben ein Lagerfeuer (drücke dafür '{ $gameinput-sit }') um dich langsam von deinen Verletzungen zu erholen.

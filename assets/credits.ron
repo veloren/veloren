@@ -42,13 +42,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Moonlit Canopy",
@@ -58,13 +58,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "A Heart's IceCold Protection",
@@ -74,13 +74,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Stargazing",
@@ -90,13 +90,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Cavernous Hollow",
@@ -106,13 +106,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Cavernous Hollow",
@@ -122,13 +122,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Still Heart's Coffin",
@@ -138,13 +138,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educational content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
         (
             name: "Ballerine Macabre",
@@ -154,13 +154,13 @@
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: 
             "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay
-            - official releases of veloren on platforms that have relevant restrictions
-            - Appearances in content relevant to veloren
+            - appearances in images and videos (including streams) of nova-forge gameplay
+            - official releases of nova-forge on platforms that have relevant restrictions
+            - Appearances in content relevant to nova-forge
             - Appearances in educative content
             
             Added restrictions: 
-            - Should not be used in other games than Veloren unless it is parody."
+            - Should not be used in other games than Nova-Forge unless it is parody."
         ),
     ],
     
@@ -182,7 +182,7 @@
         (
             authors: ["Ellinia"],
             files: [],
-            notes: "Will fill out later. They made the greatest portion of contribution to Veloren's sounds, though.",
+            notes: "Will fill out later. They made the greatest portion of contribution to Nova-Forge's sounds, though.",
         ),
         (
             authors: ["DaforLynx"],
@@ -589,8 +589,8 @@
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             notes: "exceptions (to the extent to which the license is prohibitive):
-            - appearances in images and videos (including streams) of veloren gameplay or model viewing/editing software
-            - official releases of veloren on platforms that have relevant restrictions"
+            - appearances in images and videos (including streams) of nova-forge gameplay or model viewing/editing software
+            - official releases of nova-forge on platforms that have relevant restrictions"
         ),  (
             name: "mineral ingots",
             authors : ["Supa"],

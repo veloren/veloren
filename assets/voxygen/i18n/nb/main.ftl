@@ -5,7 +5,7 @@ main-connecting = Kobler til
 main-creating_world = Lager verden
 main-tip = Tips:
 main-notice =
-    Velkommen til alfaversjonen av Veloren!
+    Velkommen til alfaversjonen av Nova-Forge!
 
     Før du dykker inn i moroa, vennligst hold et par ting i tankene:
 
@@ -13,15 +13,15 @@ main-notice =
 
     - Hvis du har konstruktive tilbakemeldinger eller feilrapporter, kan du kontakte oss via Reddit, GitLab eller vår Discord-server.
 
-    - Veloren er lisensiert under GPL 3 åpen kildekode-lisensen. Det betyr at du er fri til å spille, endre og distribuere spillet på nytt, akkurat
+    - Nova-Forge er lisensiert under GPL 3 åpen kildekode-lisensen. Det betyr at du er fri til å spille, endre og distribuere spillet på nytt, akkurat
      som du ønsker (så lenge arbeidet også er under GPL 3).
 
-    - Veloren er et ikke-profitt basert samfunnsprosjekt, og alle som jobber på prosjektet er frivillige.
+    - Nova-Forge er et ikke-profitt basert samfunnsprosjekt, og alle som jobber på prosjektet er frivillige.
     Hvis du liker det du ser, er du velkommen til å bli med i utviklings- eller kunstteamene!
 
     Takk for at du tar deg tid til å lese denne meldingen, vi håper at du liker spillet!
 
-    - Veloren-utviklerne
+    - Nova-Forge-utviklerne
 main-login_process =
     Informasjon om påloggingsprosessen:
 
@@ -62,7 +62,7 @@ loading-tips =
     .a12 = En NPC med en hodeskalle under helsebaren er ganske kraftig sammenlignet med deg selv.
     .a13 = Trykk '{ $gameinput-dance }' for å danse. Fest!
     .a14 = Trykk '{ $gameinput-glide }' for å åpne Glider og erobre himmelen.
-    .a15 = Veloren er fortsatt i Pre-Alfa. Vi gjør vårt beste for å forbedre det hver dag!
+    .a15 = Nova-Forge er fortsatt i Pre-Alfa. Vi gjør vårt beste for å forbedre det hver dag!
     .a16 = Hvis du vil bli med i Dev-teamet eller bare ta en prat med oss, bli med i Discord-Serveren.
     .a17 = Du kan veksle for å vise mengden helse på helselinjen i innstillingene.
     .a18 = For å se statistikken din, klikk på 'Statistikk' -knappen i beholdningen.

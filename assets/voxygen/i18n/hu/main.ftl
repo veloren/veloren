@@ -5,7 +5,7 @@ main-connecting = Csatlakozás
 main-creating_world = Világ létrehozása
 main-tip = Tipp:
 main-notice =
-    Üdvözlünk a Veloren alfa verziójában!
+    Üdvözlünk a Nova-Forge alfa verziójában!
 
     Mielőtt fejest ugrasz a játékba szeretnénk felhívhi a figyelmedet pár dologra:
 
@@ -13,14 +13,14 @@ main-notice =
 
     - Ha van valamilyen építő jellegű visszajelzésed, vagy hibát szeretnél bejelenteni, nyugodtan keress fel minket Redditen, GitLab-en, vagy a közösségi Discord-szerverünkön.
 
-    - A Veloren a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ezt azt jelenti, hogy megkötések nélül játhatsz vele, továbbá saját igényeid szerint módosíthatod és terjesztheted (már amennyiben az új produktum is GPL 3-as licensszel rendelkezik).
+    - A Nova-Forge a GPL 3 nyílt forráskódú licenc alatt van kiadva. Ezt azt jelenti, hogy megkötések nélül játhatsz vele, továbbá saját igényeid szerint módosíthatod és terjesztheted (már amennyiben az új produktum is GPL 3-as licensszel rendelkezik).
 
-    - A Veloren egy nonprofit, közösségi projekt, a fejlesztésben részt vevő emberek pedig egytől-egyik önkéntesek.
+    - A Nova-Forge egy nonprofit, közösségi projekt, a fejlesztésben részt vevő emberek pedig egytől-egyik önkéntesek.
     Ha tetszik amit látsz, örömmel várunk akár a fejlesztői, akár a művészeti csapatban!
 
     Köszönjük, hogy szakítottál időt ezen kis értesítő elolvasására. Jó játékot kívánunk!
 
-    ~ A Veloren fejlesztői
+    ~ A Nova-Forge fejlesztői
 main-login_process =
     Információ a bejelentkezési folyamatról:
 
@@ -68,7 +68,7 @@ loading-tips =
     .a11 = Másokkal játszani bizony jó muri! Hogy lásd, épp ki van fönn a hálózaton nyomd meg az '{ $gameinput-social }' gombot!
     .a12 = A táncoláshoz nyomd meg a '{ $gameinput-dance }' gombot. Bulira föl!
     .a13 = Nyomd meg a '{ $gameinput-glide }'-t és hódítsd meg sárkányrepülőddel az eget!
-    .a14 = A Veloren még mindig előzetes alfában van. Igyekszünk mindent megtenni annak érdekében, hogy napról-napra jobb és jobb legyen!
+    .a14 = A Nova-Forge még mindig előzetes alfában van. Igyekszünk mindent megtenni annak érdekében, hogy napról-napra jobb és jobb legyen!
     .a15 = Szeretnél a feljesztői csapat tagja lenni, vagy netán csak csevegnél velünk? Csatlakozz a Discord szerverünkhöz!
     .a16 = A beállításokban azt is eldöntheted, hogy megjelenjen-e az életerőd mennyisége az életerő sávban, vagy sem.
     .a17 = Ha lehuppansz (a '{ $gameinput-sit }' gombbal) egy tábortűz mellé szép lassan be fognak gyógyulni a sebeid.

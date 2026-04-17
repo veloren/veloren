@@ -6,7 +6,7 @@ main-creating_world = 建立世界
 main-tip = 提示：
 main-unbound_key_tip = 未綁定
 main-notice =
-    歡迎來到 Veloren 的 Alpha 版本！
+    歡迎來到 Nova-Forge 的 Alpha 版本！
 
     在您進入遊戲之前，請記住幾件事：
 
@@ -14,9 +14,9 @@ main-notice =
 
     - 如果您有建設性的意見或 Bug 回報，您可以透過 GitLab 儲存庫、Discord 或 Matrix 伺服器與我們聯絡
 
-    - Veloren 是開源的，根據 GNU 通用公共授權條款第 3 版，您可以自由玩、修改和重新發佈遊戲
+    - Nova-Forge 是開源的，根據 GNU 通用公共授權條款第 3 版，您可以自由玩、修改和重新發佈遊戲
 
-    - Veloren 是非營利的社群項目，所有貢獻者都是志願者
+    - Nova-Forge 是非營利的社群項目，所有貢獻者都是志願者
     如果您喜歡這款遊戲，歡迎加入我們的任何工作組！
 
     感謝您花時間閱讀此通知，祝您玩得開心！
@@ -102,7 +102,7 @@ loading-tips =
     .a11 = 與他人一起玩很有趣！按 '{ $gameinput-social }' 看看誰在線
     .a12 = 按 '{ $gameinput-dance }' 跳舞，派對時間到！
     .a13 = 按 '{ $gameinput-glide }' 打開滑翔翼，征服天空
-    .a14 = Veloren 還在 Pre-Alpha 階段，我們每天都在努力改進它！
+    .a14 = Nova-Forge 還在 Pre-Alpha 階段，我們每天都在努力改進它！
     .a15 = 如果您想加入開發團隊或與我們聊天，請加入我們的 Discord 伺服器
     .a16 = 您可以在設定中切換是否顯示健康條上的健康數值
     .a17 = 坐在營火旁（按 '{ $gameinput-sit }' 鍵）可慢慢恢復健康

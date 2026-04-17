@@ -6,7 +6,7 @@ main-creating_world = Creare lume
 main-tip = Sfat:
 main-unbound_key_tip = nelegat
 main-notice =
-    Bine ai venit la versiunea alfa a jocului Veloren!
+    Bine ai venit la versiunea alfa a jocului Nova-Forge!
 
     Înainte de a începe distracția, te rugam să ții în minte unele lucruri:
 
@@ -14,9 +14,9 @@ main-notice =
 
     - Dacă ai feedback constructiv sau vrei să raportezi erori, ne poți contacta prin repozitoriul nostru de GitLab și pe serverele noastre de Discord sau Matrix.
 
-    - Codul Veloren este deschis și disponibil tuturor. Ești liber să te joci, sa modifici, și să re-distribui jocul conform versiunii 3 a licenței GNU General Public
+    - Codul Nova-Forge este deschis și disponibil tuturor. Ești liber să te joci, sa modifici, și să re-distribui jocul conform versiunii 3 a licenței GNU General Public
 
-    - Veloren este un proiect non-profit al comunității, și toată lumea care lucrează este un voluntar.
+    - Nova-Forge este un proiect non-profit al comunității, și toată lumea care lucrează este un voluntar.
     Dacă îți place ce vezi, ești binevenit să te alături oricăruia dintre grupurile noastre de lucru!
 
     Mulțumim pentru timpul acordat citirii acest anunț, sperăm că te vei bucura de joc!
@@ -81,7 +81,7 @@ loading-tips =
     .a11 = Jucând cu alții e distractiv! Apasă '{ $gameinput-social }' ca să vezi cine e conectat.
     .a12 = Apasă '{ $gameinput-dance }' pentru a dansa. Petrecere!
     .a13 = Apasă '{ $gameinput-glide }' ca să-ți deschizi Planorul și să cucerești cerurile.
-    .a14 = Veloren e înca în Pre-Alpha. Ne străduim să-l îmbunătățim în ficare zi!
+    .a14 = Nova-Forge e înca în Pre-Alpha. Ne străduim să-l îmbunătățim în ficare zi!
     .a15 = Dacă vrei să te alături echipei de dezvoltare sau dacă doar vrei să vorbești cu noi, intră pe serverul nostru de Discord.
     .a16 = Puți comuta afișarea nivelului de sănătate pe bara de sănătate din setări
     .a17 = Așeazăte lângă un foc de tabară (cu tasta '{ $gameinput-sit }') ca să-ți vindeci rănile încetișor.

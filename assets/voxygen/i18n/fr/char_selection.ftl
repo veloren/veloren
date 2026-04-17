@@ -25,5 +25,5 @@ char_selection-hardcore = Hardcore
 char_selection-hardcore_tooltip =
     Les personnages hardcore seront supprimés à leur mort, sans autre changement de difficulté.
 
-    Le mode Hardcore n'est pas recommandé si vous manquez d'expérience avec Veloren.
+    Le mode Hardcore n'est pas recommandé si vous manquez d'expérience avec Nova-Forge.
 char_selection-editing_character = Sauvegarde du personnage...

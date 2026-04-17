@@ -216,7 +216,7 @@ impl assets::Asset for Language {
 
         // NOTE:
         // Basically a hack, but conrod can't use isolation marks yet.
-        // Veloren Issue 1649
+        // Issue 1649
         bundle.set_use_isolating(false);
 
         // Add a universal fallback-ish font, that's supposed to cover all

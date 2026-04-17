@@ -16,7 +16,7 @@ build = true
 app = true
 desktopFile = "./assets/voxygen/net.nova-forge.nova-forge.desktop"
 longDescription = """
-Nova-Forge is a LAN-first, auth-free voxel RPG built on the Veloren engine.
+Nova-Forge is a LAN-first, auth-free voxel RPG.
 It is inspired by games such as Cube World, Legend of Zelda: Breath of the Wild, Dwarf Fortress and Minecraft.
 
 This package includes the official client, Voxygen.

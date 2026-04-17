@@ -6,7 +6,7 @@ main-creating_world = Création du monde
 main-tip = Astuce :
 main-unbound_key_tip = non définie
 main-notice =
-    Bienvenue dans la version alpha de Veloren !
+    Bienvenue dans la version alpha de Nova-Forge !
 
     Avant de commencer à vous amuser, merci de garder les choses suivantes en tête :
 
@@ -14,9 +14,9 @@ main-notice =
 
     - Si vous avez des retours constructifs ou avez trouvé un bug, vous pouvez nous contacter via sur notre dépôt GitLab et sur notre serveur Discord ou Matrix.
 
-    - Veloren est un jeu open source. Vous êtes libre de jouer, de modifier et de redistribuer le jeu conformément à la version 3 de la licence publique générale GNU.
+    - Nova-Forge est un jeu open source. Vous êtes libre de jouer, de modifier et de redistribuer le jeu conformément à la version 3 de la licence publique générale GNU.
 
-    - Veloren est un projet communautaire à but non-lucratif développé par des bénévoles.
+    - Nova-Forge est un projet communautaire à but non-lucratif développé par des bénévoles.
     Si vous appréciez ce jeu, vous êtes les bienvenus pour rejoindre l'une de nos équipes !
 
     Merci d'avoir pris le temps de lire cette annonce, nous espérons que vous apprécierez le jeu !
@@ -81,7 +81,7 @@ loading-tips =
     .a11 = Jouer à plusieurs est amusant ! Appuyez sur '{ $gameinput-social }' pour voir qui est en ligne.
     .a12 = Appuyez sur '{ $gameinput-dance }' pour danser. C'est la fête !
     .a13 = Appuyez sur '{ $gameinput-glide }' pour ouvrir votre deltaplane et conquérir les cieux.
-    .a14 = Veloren est encore en pré-alpha. Nous faisons de notre mieux pour l'améliorer chaque jour !
+    .a14 = Nova-Forge est encore en pré-alpha. Nous faisons de notre mieux pour l'améliorer chaque jour !
     .a15 = Si vous voulez vous joindre à l'équipe de développement ou juste discuter avec nous, rejoignez notre serveur Discord.
     .a16 = Vous pouvez activer l'affichage du nombre de points de vie sur la barre de santé dans les options.
     .a17 = Asseyez-vous près d'un feu de camp (avec la touche '{ $gameinput-sit }') pour vous reposer et régénérer votre santé.

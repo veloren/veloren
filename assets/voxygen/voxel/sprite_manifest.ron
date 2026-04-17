@@ -1,14 +1,14 @@
 // # Indexing
 //
 // Tools like MagicaVoxel use 1-indexing (i.e: their voxel indices start at 1).
-// However, Veloren uses 0-indexing (i.e: our indices start at 0). This means
-// that to translate an index from MagicaVoxel to Veloren, you will need to
-// subtract 1. All indices mentioned below will be correct for Veloren (i.e:
+// However, Nova-Forge uses 0-indexing (i.e: our indices start at 0). This means
+// that to translate an index from MagicaVoxel to Nova-Forge, you will need to
+// subtract 1. All indices mentioned below will be correct for Nova-Forge (i.e:
 // 0-indexing).
 //
 // # Materials
 //
-// By default, Veloren assigns materials based on indexes. Here are the
+// By default, Nova-Forge assigns materials based on indexes. Here are the
 // defaults:
 //
 // 0-7    : Matte (default, like plastic)
