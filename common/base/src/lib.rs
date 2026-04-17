@@ -12,16 +12,18 @@ pub use userdata_dir::userdata_dir;
 /// falls back to common private gateway addresses for fully offline / air-gapped
 /// networks.
 pub fn local_lan_ip() -> Option<std::net::IpAddr> {
+    use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+
     // Addresses tried in order.  UDP connect() just consults the routing table;
     // no packets are sent, so none of these addresses need to be reachable.
-    const PROBE_ADDRS: &[&str] = &[
-        "8.8.8.8:80",        // public DNS — works when a default gateway is present
-        "192.168.1.1:80",    // common home router gateway
-        "10.0.0.1:80",       // common corporate / VPN gateway
-        "172.16.0.1:80",     // less common private range gateway
+    const PROBE_ADDRS: &[SocketAddr] = &[
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(8, 8, 8, 8), 80)),    // public DNS
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(192, 168, 1, 1), 80)), // common home gateway
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(10, 0, 0, 1), 80)),    // corporate/VPN gateway
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(172, 16, 0, 1), 80)),  // less common private range
     ];
     let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
-    for addr in PROBE_ADDRS {
+    for &addr in PROBE_ADDRS {
         if socket.connect(addr).is_ok() {
             if let Some(ip) = socket.local_addr().ok().map(|a| a.ip()) {
                 return Some(ip);
