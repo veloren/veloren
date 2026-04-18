@@ -2925,8 +2925,7 @@ fn handle_plot_claim(
         }
     }
 
-    let name: String = parse_cmd_args!(args, ..Vec<String>)
-        .unwrap_or_default()
+    let name: String = args
         .join(" ")
         .chars()
         .take(64)
