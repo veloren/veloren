@@ -22,7 +22,7 @@ use common::{
         invite::InviteKind,
         item::{ItemDesc, tool::ToolKind},
     },
-    consts::{MAX_MOUNT_RANGE, MAX_PLAYER_PLOT_SIDE},
+    consts::MAX_MOUNT_RANGE,
     event::UpdateCharacterMetadata,
     link::Is,
     mounting::{Mount, VolumePos},
@@ -577,8 +577,18 @@ impl SessionState {
                             self.plot_boundary_shape = Some(id);
                             // Phase 4: reset palette selection to first entry.
                             self.palette_index = 0;
-                            // Show the palette immediately so the player knows they can scroll.
-                            self.apply_palette_selection();
+                            // Show the palette immediately so the player knows they can
+                            // scroll. Inline apply_palette_selection to avoid a &mut self
+                            // conflict with the active client borrow.
+                            let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
+                            self.selected_block = Block::new(kind, Rgb::new(r, g, b));
+                            self.hud.build_mode_palette(
+                                self.palette_index,
+                                BLOCK_PALETTE
+                                    .iter()
+                                    .map(|(label, _, _, _, _)| *label)
+                                    .collect(),
+                            );
                         },
                         Ok(None) => {
                             // Plot successfully released.
