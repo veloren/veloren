@@ -119,7 +119,7 @@ hud-build_mode_indicator = Build mode active
 
 # Plot claim feedback messages
 hud-plot-claimed = Plot claimed. Build mode active.
-hud-plot-released = Plot released. Build mode deactivated.
+hud-plot-released = Plot released. Build mode inactive.
 hud-plot-error-area_too_large = Cannot claim plot: area exceeds the maximum size (32×32).
 hud-plot-error-overlaps_existing = Cannot claim plot: overlaps an already-claimed plot.
 hud-plot-error-already_owned = Cannot claim plot: you already own a plot. Release it first.
