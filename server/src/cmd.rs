@@ -3071,6 +3071,10 @@ fn handle_plot_info(
         Ok(())
     } else {
         Err(Content::localized("command-plot_info-not_owned"))
+    }
+}
+
+fn handle_plot_clear(
     server: &mut Server,
     client: EcsEntity,
     _target: EcsEntity,
