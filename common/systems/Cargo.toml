@@ -18,6 +18,7 @@ common = { package = "nova-forge-common", path = ".." }
 common-net = { package = "nova-forge-common-net", path = "../net" }
 common-ecs = { package = "nova-forge-common-ecs", path = "../ecs" }
 common-base = { package = "nova-forge-common-base", path = "../base" }
+common-state = { package = "nova-forge-common-state", path = "../state" }
 
 rand = { workspace = true }
 rayon = { workspace = true }
