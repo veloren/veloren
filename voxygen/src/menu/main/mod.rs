@@ -518,6 +518,7 @@ impl PlayState for MainMenuState {
                         &global_state.tokio_runtime,
                         &global_state.settings.language.selected_language,
                         &global_state.i18n,
+                        &global_state.settings.networking.username,
                     );
                 },
                 #[cfg(feature = "singleplayer")]

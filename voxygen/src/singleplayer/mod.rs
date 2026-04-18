@@ -204,11 +204,15 @@ impl SingleplayerState {
 
     /// Start a LAN co-op server that listens on all network interfaces so
     /// other players on the local network can join.
+    ///
+    /// `host_username` is the connecting player's username; they are granted
+    /// the Admin role automatically so they can manage the session.
     pub fn run_lan_coop(
         &mut self,
         runtime: &Arc<Runtime>,
         selected_language: &String,
         i18n: &LocalizationHandle,
+        host_username: &str,
     ) {
         if let Self::Init(worlds) = self {
             let Some(world) = worlds.current() else {
@@ -220,7 +224,8 @@ impl SingleplayerState {
             let world_max_players = world.max_players;
 
             let mut settings = server::Settings::lan_coop(&server_data_dir);
-            let mut editable_settings = server::EditableSettings::lan_coop(&server_data_dir);
+            let mut editable_settings =
+                server::EditableSettings::lan_coop(&server_data_dir, host_username);
 
             let i18n = i18n.read();
             let motd = ["hud-chat-singleplayer-motd1", "hud-chat-singleplayer-motd2"]

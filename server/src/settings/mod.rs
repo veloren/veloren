@@ -440,7 +440,23 @@ impl EditableSettings {
         }
     }
 
-    /// Editable settings for a LAN co-op session. Uses default settings
-    /// without pre-assigned admins; the host connects as a regular player.
-    pub fn lan_coop(data_dir: &Path) -> Self { Self::load(data_dir) }
+    /// Editable settings for a LAN co-op session.  The `host_username` is the
+    /// username of the player who started the server; they are pre-granted the
+    /// Admin role so they can kick, ban, and otherwise manage the session.
+    pub fn lan_coop(data_dir: &Path, host_username: &str) -> Self {
+        let load = Self::load(data_dir);
+
+        let mut admins = load.admins.clone();
+        let host_uuid = crate::login_provider::derive_player_uuid(host_username);
+        admins.insert(
+            host_uuid,
+            AdminRecord {
+                username_when_admined: Some(host_username.to_owned()),
+                date: Utc::now(),
+                role: admin::Role::Admin,
+            },
+        );
+
+        Self { admins, ..load }
+    }
 }
