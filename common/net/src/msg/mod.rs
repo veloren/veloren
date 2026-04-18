@@ -14,8 +14,8 @@ pub use self::{
     ecs_packet::EcsCompPacket,
     server::{
         CharacterInfo, ChatTypeContext, DisconnectReason, InviteAnswer, Notification, PlayerInfo,
-        PlayerListUpdate, RegisterError, SerializedTerrainChunk, ServerGeneral, ServerInfo,
-        ServerInit, ServerMsg, ServerRegisterAnswer,
+        PlayerListUpdate, PlotClaimError, RegisterError, SerializedTerrainChunk, ServerGeneral,
+        ServerInfo, ServerInit, ServerMsg, ServerRegisterAnswer,
     },
     world_msg::WorldMapMsg,
 };
