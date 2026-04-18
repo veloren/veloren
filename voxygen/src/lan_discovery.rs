@@ -38,6 +38,14 @@ const BROADCAST_INTERVAL: Duration = Duration::from_secs(5);
 const ENTRY_TTL: Duration = Duration::from_secs(15);
 /// Read timeout on the listener socket so the thread can check the stop flag.
 const LISTEN_TIMEOUT: Duration = Duration::from_secs(1);
+/// Extra headroom added to [`BROADCAST_INTERVAL`] when computing
+/// [`LanDiscovery::is_searching`]: allows one full broadcast cycle to elapse
+/// before the UI switches from "scanning" to "none found".
+const DISCOVERY_HEADROOM: Duration = Duration::from_secs(1);
+/// Maximum number of bytes written for the server name field in a packet.
+const MAX_NAME_BYTES: usize = 64;
+/// Maximum number of bytes written for the version field in a packet.
+const MAX_VERSION_BYTES: usize = 16;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -124,7 +132,7 @@ impl LanDiscovery {
     /// Servers broadcast every [`BROADCAST_INTERVAL`] (5 s); we allow one
     /// extra second of headroom, so this returns `true` for about 6 s.
     pub fn is_searching(&self) -> bool {
-        self.started_at.elapsed() < BROADCAST_INTERVAL + Duration::from_secs(1)
+        self.started_at.elapsed() < BROADCAST_INTERVAL + DISCOVERY_HEADROOM
     }
 
     /// Returns a snapshot of currently live LAN servers, evicting entries
@@ -224,10 +232,10 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     let version = std::str::from_utf8(&data[5..5 + version_len])
         .ok()?
         .to_owned();
-    // Cap the name field at 64 bytes to match encode_packet's upper bound, even
-    // if a malformed packet tries to send more.
+    // Cap the name field at MAX_NAME_BYTES to match encode_packet's upper bound,
+    // even if a malformed packet tries to send more.
     let name_start = 5 + version_len;
-    let end = data.len().min(name_start + 64);
+    let end = data.len().min(name_start + MAX_NAME_BYTES);
     let name = std::str::from_utf8(&data[name_start..end])
         .ok()?
         .trim()
@@ -258,11 +266,11 @@ pub fn encode_packet(
     server_name: &str,
 ) -> Vec<u8> {
     let version_bytes = version.as_bytes();
-    // Truncate version to at most 16 bytes.
-    let version_bytes = &version_bytes[..version_bytes.len().min(16)];
+    // Truncate version to at most MAX_VERSION_BYTES bytes.
+    let version_bytes = &version_bytes[..version_bytes.len().min(MAX_VERSION_BYTES)];
     let name_bytes = server_name.as_bytes();
-    // Truncate the name to 64 bytes to keep the packet small.
-    let name_bytes = &name_bytes[..name_bytes.len().min(64)];
+    // Truncate the name to MAX_NAME_BYTES bytes to keep the packet small.
+    let name_bytes = &name_bytes[..name_bytes.len().min(MAX_NAME_BYTES)];
     let mut pkt =
         Vec::with_capacity(MAGIC.len() + 4 + 1 + version_bytes.len() + name_bytes.len());
     pkt.extend_from_slice(MAGIC);
@@ -350,7 +358,7 @@ mod tests {
         let long_name = "A".repeat(100);
         let pkt = encode_packet(14004, 0, 0, "1.0", &long_name);
         let parsed = parse_packet(&pkt).expect("parse failed");
-        assert_eq!(parsed.name.len(), 64);
+        assert_eq!(parsed.name.len(), MAX_NAME_BYTES);
     }
 
     #[test]
@@ -358,7 +366,7 @@ mod tests {
         let long_version = "v".repeat(100);
         let pkt = encode_packet(14004, 0, 0, &long_version, "Server");
         let parsed = parse_packet(&pkt).expect("parse failed");
-        assert_eq!(parsed.version.len(), 16);
+        assert_eq!(parsed.version.len(), MAX_VERSION_BYTES);
         assert_eq!(parsed.name, "Server");
     }
 
