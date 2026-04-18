@@ -355,6 +355,11 @@ widget_ids! {
         build_mode_txt,
         build_mode_bg,
 
+        // Build mode block palette (Phase 4)
+        build_palette_bg,
+        build_palette_labels[],
+        build_palette_cursor,
+
         // Walking speed indicator
         walking_speed_txt,
         walking_speed_bg,
@@ -1329,6 +1334,9 @@ pub struct Hud {
     clear_chat: bool,
     current_dialogue: Option<(EcsEntity, Instant, rtsim::Dialogue<true>)>,
     extra_markers: Vec<map::ExtraMarker>,
+    /// Phase 4 — palette state: `Some((selected_index, label_list))` while
+    /// build mode is active and the player has scrolled the palette.
+    build_mode_palette: Option<(usize, Vec<&'static str>)>,
 }
 
 impl Hud {
@@ -1472,6 +1480,7 @@ impl Hud {
             clear_chat: false,
             current_dialogue: None,
             extra_markers: Vec::new(),
+            build_mode_palette: None,
         }
     }
 
@@ -4116,6 +4125,54 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(20))
                 .set(self.ids.build_mode_txt, ui_widgets);
+
+            // Phase 4: block palette — shown whenever build mode is active.
+            if let Some((selected, ref labels)) = self.build_mode_palette.clone() {
+                let n = labels.len();
+                let row_h = 22.0_f64;
+                let panel_w = 180.0_f64;
+                let panel_h = n as f64 * row_h + 8.0;
+
+                Rectangle::fill([panel_w, panel_h])
+                    .color(Color::Rgba(0.0, 0.0, 0.0, 0.6))
+                    .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                    .set(self.ids.build_palette_bg, ui_widgets);
+
+                self.ids
+                    .build_palette_labels
+                    .resize(n, &mut ui_widgets.widget_id_generator());
+
+                for (i, label) in labels.iter().enumerate() {
+                    let is_selected = i == selected;
+                    let color = if is_selected {
+                        Color::Rgba(1.0, 0.85, 0.0, 1.0)
+                    } else {
+                        Color::Rgba(0.85, 0.85, 0.85, 1.0)
+                    };
+                    let top_margin = 4.0 + i as f64 * row_h;
+                    Text::new(label)
+                        .color(color)
+                        .top_left_with_margins_on(
+                            self.ids.build_palette_bg,
+                            top_margin,
+                            12.0,
+                        )
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .set(self.ids.build_palette_labels[i], ui_widgets);
+                }
+
+                // Arrow cursor next to selected entry
+                let cursor_top = 4.0 + selected as f64 * row_h;
+                Text::new("▶")
+                    .color(Color::Rgba(1.0, 0.85, 0.0, 1.0))
+                    .top_left_with_margins_on(self.ids.build_palette_bg, cursor_top, 2.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .set(self.ids.build_palette_cursor, ui_widgets);
+
+                indicator_offset += panel_h + 4.0;
+            }
         }
 
         // Camera zoom lock
@@ -5317,7 +5374,18 @@ impl Hud {
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
 
-    pub fn build_mode(&mut self, active: bool) { self.show.build_mode = active; }
+    pub fn build_mode(&mut self, active: bool) {
+        self.show.build_mode = active;
+        if !active {
+            self.build_mode_palette = None;
+        }
+    }
+
+    /// Update the palette selection shown in the build-mode HUD overlay.
+    /// Called every time the player scrolls to a new block preset.
+    pub fn build_mode_palette(&mut self, index: usize, labels: Vec<&'static str>) {
+        self.build_mode_palette = Some((index, labels));
+    }
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 

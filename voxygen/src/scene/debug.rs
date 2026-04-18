@@ -11,6 +11,11 @@ use vek::*;
 pub enum DebugShape {
     /// [Start, End], width
     Line([Vec3<f32>; 2], f32),
+    /// Wireframe box defined by an axis-aligned bounding box (relative to the
+    /// shape's context position).  Each of the 12 edges is rendered as a thin
+    /// box_along_line segment so it appears as a colour-tinted wireframe in
+    /// the world.
+    WireBox(Aabb<f32>),
     Cylinder {
         radius: f32,
         height: f32,
@@ -126,6 +131,53 @@ impl DebugShape {
                     [1.0; 4],
                     &mut mesh,
                 );
+            },
+            DebugShape::WireBox(aabb) => {
+                // Draw 12 edges of the AABB as thick line segments.
+                const EDGE_WIDTH: f32 = 0.08;
+                let mn = aabb.min;
+                let mx = aabb.max;
+                // 8 corners
+                let corners = [
+                    Vec3::new(mn.x, mn.y, mn.z),
+                    Vec3::new(mx.x, mn.y, mn.z),
+                    Vec3::new(mx.x, mx.y, mn.z),
+                    Vec3::new(mn.x, mx.y, mn.z),
+                    Vec3::new(mn.x, mn.y, mx.z),
+                    Vec3::new(mx.x, mn.y, mx.z),
+                    Vec3::new(mx.x, mx.y, mx.z),
+                    Vec3::new(mn.x, mx.y, mx.z),
+                ];
+                // 12 edges as (start_index, end_index)
+                let edges: [(usize, usize); 12] = [
+                    // bottom face
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                    (3, 0),
+                    // top face
+                    (4, 5),
+                    (5, 6),
+                    (6, 7),
+                    (7, 4),
+                    // vertical edges
+                    (0, 4),
+                    (1, 5),
+                    (2, 6),
+                    (3, 7),
+                ];
+                for (s, e) in edges {
+                    box_along_line(
+                        LineSegment3 {
+                            start: corners[s],
+                            end: corners[e],
+                        },
+                        EDGE_WIDTH,
+                        EDGE_WIDTH,
+                        [1.0; 4],
+                        &mut mesh,
+                    );
+                }
             },
             DebugShape::Cylinder { radius, height } => {
                 const SUBDIVISIONS: u8 = 16;
