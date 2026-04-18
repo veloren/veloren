@@ -334,7 +334,7 @@ impl Sys {
                                 .ok();
                             if let Some(area_id) = area_id {
                                 // Grant build permission.
-                                if let Some(can_build) =
+                                if let Some(mut can_build) =
                                     guard.can_builds.get_mut(entity)
                                 {
                                     can_build.enabled = true;
@@ -379,7 +379,7 @@ impl Sys {
                     // Remove build permission for the player's named area.
                     let area_name = format!("player_plot_{}", entity.id());
                     let _ = guard.player_build_areas.remove(&area_name);
-                    if let Some(can_build) = guard.can_builds.get_mut(entity) {
+                    if let Some(mut can_build) = guard.can_builds.get_mut(entity) {
                         can_build.build_areas.clear();
                         can_build.enabled = false;
                     }
