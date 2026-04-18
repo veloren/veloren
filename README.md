@@ -1,9 +1,19 @@
 # Nova-Forge
 
-**Nova-Forge** is a standalone, LAN-first action-adventure RPG built on the open-source [Veloren](https://veloren.net) engine.
+<!-- TODO: add project logo here -->
+
+**Nova-Forge** is an open-world voxel RPG forked from [Veloren](https://veloren.net) — rebuilt to be LAN-first and authentication-free.
 Play solo, host a game for friends on your local network, or run your own dedicated server — all **without an internet account or central authentication**.
 
 > Built for people who want to just launch the game and play.
+
+---
+
+## What is Nova-Forge?
+
+Nova-Forge is a fork of the open-source voxel RPG [Veloren](https://veloren.net). It strips out the mandatory online authentication layer and adds first-class LAN co-op hosting, singleplayer world management, and quality-of-life improvements for players who want a self-hosted or offline experience.
+
+Nova-Forge stubs out the Veloren authentication layer so that every play mode — singleplayer, LAN game, dedicated server — works out of the box with no external dependencies.
 
 ---
 
@@ -17,11 +27,9 @@ Play solo, host a game for friends on your local network, or run your own dedica
 | Dedicated server | ✅ (auth-free) | requires auth |
 | Public server browser | optional | ✅ |
 
-Nova-Forge stubs out the Veloren authentication layer so that every play mode — singleplayer, LAN game, dedicated server — works out of the box with no external dependencies.
-
 ---
 
-## Getting started
+## Getting Started
 
 ### Quick build & run
 
@@ -47,7 +55,7 @@ See `./nova-forge.sh help` for all options.
 
 ---
 
-## Play modes
+## Play Modes
 
 ### Singleplayer
 Launch the client, click **Singleplayer**, and you are in. No account, no server, no waiting.
@@ -55,7 +63,7 @@ Launch the client, click **Singleplayer**, and you are in. No account, no server
 ### LAN Co-op
 Click **Host LAN Game** to spin up a local server that friends on the same network can join immediately. No port-forwarding required for typical home networks.
 
-### Dedicated server
+### Dedicated Server
 ```bash
 ./nova-forge.sh server
 ```
@@ -63,7 +71,7 @@ Runs a fully self-contained server. Players connect with any username — no ext
 
 ---
 
-## Building from source
+## Building from Source
 
 ```bash
 # Dev build (fast iteration)
@@ -84,6 +92,23 @@ Runs a fully self-contained server. Players connect with any username — no ext
 > (e.g. by double-clicking). If you move the binary elsewhere, copy the `assets/` folder
 > alongside it, or set the `NOVA_FORGE_ASSETS` environment variable to point to the assets
 > directory in the repository root.
+
+---
+
+## Project Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for the full milestone plan, including planned features, in-progress work, and identified design gaps (e.g. the player housing system).
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. Focus areas for Nova-Forge:
+
+- LAN discovery and connection UX
+- Auth-free server stability and compatibility
+- Singleplayer world management
+- Performance on lower-end hardware
 
 ---
 
@@ -115,20 +140,42 @@ full path of the repository's `assets/` directory before launching.
 
 ---
 
-## Contributing
+## Legal & Credits
 
-Issues and pull requests are welcome. Focus areas for Nova-Forge:
+### Fork origin
 
-- LAN discovery and connection UX
-- Auth-free server stability and compatibility
-- Singleplayer world management
-- Performance on lower-end hardware
+Nova-Forge is a **fork of [Veloren](https://veloren.net)**, an open-world voxel RPG developed by the Veloren contributors.
+Veloren source code and project home: <https://gitlab.com/veloren/veloren>
 
----
+Nova-Forge is **not affiliated with or endorsed by the Veloren project or its maintainers.**
 
-## Credits
+### License
 
-Nova-Forge is built on the shoulders of the [Veloren project](https://veloren.net) and its contributors:
+Nova-Forge inherits the **GNU General Public License v3.0** from Veloren.
 
-- Software developers, artists, composers, and translators who built Veloren.
-- The Veloren community for creating a rich open-source game engine and world.
+- License file: [`LICENSE`](LICENSE)
+- Full license text: <https://www.gnu.org/licenses/gpl-3.0-standalone.html>
+
+Under the GPLv3:
+- The source code must remain open and publicly available.
+- Any redistribution of Nova-Forge (modified or unmodified) must include the full license text.
+- Modified versions must also be released under the GPLv3.
+
+### Credits — Veloren contributors
+
+Nova-Forge exists because of the extraordinary work of the Veloren community:
+
+- **Developers** — the engineers who built the voxel engine, ECS, networking, and tooling
+- **Artists** — voxel modellers, texture artists, and UI designers
+- **Composers & sound designers** — the musicians and audio engineers behind Veloren's soundtrack
+- **Translators** — the community members who localised the game into dozens of languages
+
+Full contributor list: <https://gitlab.com/veloren/veloren/-/graphs/master>
+
+### Credits — Nova-Forge contributors
+
+<!-- TODO: add Nova-Forge-specific contributors here as the project grows -->
+
+### Third-party assets & libraries
+
+<!-- TODO: list any third-party assets or libraries used specifically by Nova-Forge (beyond those already covered by Veloren's own acknowledgements) -->
