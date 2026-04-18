@@ -19,7 +19,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_state::{AreasContainer, SafeArea};
+use common_base::{AreasContainer, SafeArea};
 use itertools::Itertools;
 use specs::{
     Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
