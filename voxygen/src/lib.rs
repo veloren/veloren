@@ -111,11 +111,41 @@ impl GlobalState {
     #[cfg(not(feature = "singleplayer"))]
     pub fn paused(&self) -> bool { false }
 
+    /// Unpause the singleplayer server if one is running.
+    /// Has no effect for LAN co-op sessions — pausing a LAN server would
+    /// freeze all connected guests, so it is deliberately skipped.
     #[cfg(feature = "singleplayer")]
-    pub fn unpause(&self) { self.singleplayer.as_running().map(|s| s.pause(false)); }
+    pub fn unpause(&self) {
+        if let Some(s) = self.singleplayer.as_running() {
+            if !s.is_lan {
+                s.pause(false);
+            }
+        }
+    }
 
+    /// Pause the singleplayer server if one is running.
+    /// Has no effect for LAN co-op sessions — pausing a LAN server would
+    /// freeze all connected guests, so it is deliberately skipped.
     #[cfg(feature = "singleplayer")]
-    pub fn pause(&self) { self.singleplayer.as_running().map(|s| s.pause(true)); }
+    pub fn pause(&self) {
+        if let Some(s) = self.singleplayer.as_running() {
+            if !s.is_lan {
+                s.pause(true);
+            }
+        }
+    }
+
+    /// Returns `true` when the player is the host of a LAN co-op game.
+    #[cfg(feature = "singleplayer")]
+    pub fn is_lan_host(&self) -> bool {
+        self.singleplayer
+            .as_running()
+            .is_some_and(|s| s.is_lan)
+    }
+
+    /// Returns `false` when `singleplayer` feature is disabled.
+    #[cfg(not(feature = "singleplayer"))]
+    pub fn is_lan_host(&self) -> bool { false }
 }
 
 // TODO: appears to be currently unused by playstates

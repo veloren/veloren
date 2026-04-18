@@ -44,6 +44,11 @@ fn derive_uuid(username: &str) -> Uuid {
 /// derive Uuid for "singleplayer" is a pub fn
 pub fn derive_singleplayer_uuid() -> Uuid { derive_uuid("singleplayer") }
 
+/// Deterministically derive the UUID that the no-auth login provider assigns to
+/// a player with the given username.  Used by the LAN co-op host setup to
+/// pre-grant admin without requiring network round-trips.
+pub fn derive_player_uuid(username: &str) -> Uuid { derive_uuid(username) }
+
 pub struct PendingLogin {
     pending_r: oneshot::Receiver<Result<(String, Uuid), RegisterError>>,
 }

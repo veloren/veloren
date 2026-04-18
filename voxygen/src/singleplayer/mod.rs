@@ -12,7 +12,7 @@ use server::{
 use std::{
     sync::{
         Arc,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU8, Ordering},
     },
     thread::{self, JoinHandle},
     time::Duration,
@@ -175,7 +175,13 @@ impl SingleplayerState {
                              Stopping Server"
                         ),
                         (Ok(()), None) => (),
-                        (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                        (Ok(()), Some(server)) => run_server(
+                            server,
+                            stop_server_r,
+                            paused1,
+                            // Singleplayer doesn't broadcast; use a dummy counter.
+                            Arc::new(AtomicU8::new(0)),
+                        ),
                     }
 
                     trace!("ending singleplayer server thread");
@@ -198,11 +204,15 @@ impl SingleplayerState {
 
     /// Start a LAN co-op server that listens on all network interfaces so
     /// other players on the local network can join.
+    ///
+    /// `host_username` is the connecting player's username; they are granted
+    /// the Admin role automatically so they can manage the session.
     pub fn run_lan_coop(
         &mut self,
         runtime: &Arc<Runtime>,
         selected_language: &String,
         i18n: &LocalizationHandle,
+        host_username: &str,
     ) {
         if let Self::Init(worlds) = self {
             let Some(world) = worlds.current() else {
@@ -214,7 +224,8 @@ impl SingleplayerState {
             let world_max_players = world.max_players;
 
             let mut settings = server::Settings::lan_coop(&server_data_dir);
-            let mut editable_settings = server::EditableSettings::lan_coop(&server_data_dir);
+            let mut editable_settings =
+                server::EditableSettings::lan_coop(&server_data_dir, host_username);
 
             let i18n = i18n.read();
             let motd = ["hud-chat-singleplayer-motd1", "hud-chat-singleplayer-motd2"]
@@ -259,6 +270,11 @@ impl SingleplayerState {
             let paused = Arc::new(AtomicBool::new(false));
             let paused1 = Arc::clone(&paused);
 
+            // Shared player count — updated by run_server each tick, read by the
+            // LAN broadcaster so that the discovery packet stays live.
+            let broadcast_player_count = Arc::new(AtomicU8::new(0));
+            let broadcast_player_count1 = Arc::clone(&broadcast_player_count);
+
             let (result_sender, result_receiver) = bounded(1);
 
             let builder = thread::Builder::new().name("lan-coop-server-thread".into());
@@ -301,7 +317,9 @@ impl SingleplayerState {
                             "Failed to send LAN co-op server initialization result."
                         ),
                         (Ok(()), None) => (),
-                        (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                        (Ok(()), Some(server)) => {
+                            run_server(server, stop_server_r, paused1, broadcast_player_count1)
+                        },
                     }
 
                     trace!("ending LAN co-op server thread");
@@ -317,9 +335,12 @@ impl SingleplayerState {
                 is_lan: true,
                 stop_broadcast: {
                     let stop = Arc::new(AtomicBool::new(false));
+                    let player_cap = world_max_players.min(u8::MAX as u16) as u8;
                     lan_discovery::start_broadcaster(
                         server::settings::LAN_COOP_PORT,
                         world_name,
+                        player_cap,
+                        broadcast_player_count,
                         Arc::clone(&stop),
                     );
                     stop
@@ -341,7 +362,12 @@ impl SingleplayerState {
     pub fn is_running(&self) -> bool { matches!(self, SingleplayerState::Running(_)) }
 }
 
-fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<AtomicBool>) {
+fn run_server(
+    mut server: Server,
+    stop_server_r: Receiver<()>,
+    paused: Arc<AtomicBool>,
+    broadcast_player_count: Arc<AtomicU8>,
+) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
@@ -368,6 +394,11 @@ fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<Atomi
         let events = server
             .tick(Input::default(), clock.dt())
             .expect("Failed to tick server!");
+
+        // Keep the LAN discovery broadcast up-to-date with the live player count.
+        // number_of_players() is always ≥ 0; clamp to 255 for the 1-byte wire format.
+        let count = server.number_of_players().min(i64::from(u8::MAX)) as u8;
+        broadcast_player_count.store(count, Ordering::Relaxed);
 
         for event in events {
             match event {

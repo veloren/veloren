@@ -83,6 +83,20 @@ use voxygen_egui::EguiDebugInfo;
 */
 const ZOOM_LOCK_SCROLL_DELTA_INTENT: f32 = 14.0;
 
+/// Preset blocks available in the build-mode block palette (Phase 4).
+/// Players cycle through these with the scroll wheel while in build mode.
+/// Each entry is `(label, block_kind, r, g, b)`.
+const BLOCK_PALETTE: &[(&str, BlockKind, u8, u8, u8)] = &[
+    ("Stone",       BlockKind::Rock,     128, 128, 128),
+    ("Weak Stone",  BlockKind::WeakRock, 110, 110, 100),
+    ("Earth",       BlockKind::Earth,    102,  70,  40),
+    ("Sand",        BlockKind::Sand,     210, 190, 130),
+    ("Wood",        BlockKind::Wood,     120,  70,  30),
+    ("Leaves",      BlockKind::Leaves,    60, 120,  40),
+    ("Snow",        BlockKind::Snow,     230, 235, 240),
+    ("White Misc",  BlockKind::Misc,     255, 255, 255),
+];
+
 /// The action to perform after a tick
 enum TickAction {
     // Continue executing
@@ -130,6 +144,12 @@ pub struct SessionState {
     /// Whether the player has toggled build mode on.  When true the client will
     /// claim a plot around the player position and show the build-mode HUD badge.
     build_mode_active: bool,
+    /// Debug shape ID of the wireframe box showing the claimed plot boundary.
+    /// `None` when build mode is not active.
+    plot_boundary_shape: Option<DebugShapeId>,
+    /// Index into `BLOCK_PALETTE` — the block preset currently selected for
+    /// placement in build mode.
+    palette_index: usize,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -207,6 +227,8 @@ impl SessionState {
             lines: Default::default(),
             gizmos: Vec::new(),
             build_mode_active: false,
+            plot_boundary_shape: None,
+            palette_index: 0,
         }
     }
 
@@ -214,6 +236,20 @@ impl SessionState {
         self.auto_walk = false;
         self.hud.auto_walk(false);
         self.key_state.auto_walk = false;
+    }
+
+    /// Apply the currently selected palette entry: update `selected_block` and
+    /// notify the HUD so the palette overlay reflects the new selection.
+    fn apply_palette_selection(&mut self) {
+        let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
+        self.selected_block = Block::new(kind, Rgb::new(r, g, b));
+        self.hud.build_mode_palette(
+            self.palette_index,
+            BLOCK_PALETTE
+                .iter()
+                .map(|(label, _, _, _, _)| *label)
+                .collect(),
+        );
     }
 
     /// Possibly lock the camera zoom depending on the current behaviour, and
@@ -509,12 +545,40 @@ impl SessionState {
                 client::Event::PlotClaimResult(result) => {
                     // Sync local build_mode_active state with the server's response.
                     match result {
-                        Ok(Some(_)) => {
+                        Ok(Some(plot)) => {
                             self.build_mode_active = true;
                             self.hud.build_mode(true);
                             self.hud.new_message(
                                 ChatType::Meta.into_msg(Content::localized("hud-plot-claimed")),
                             );
+                            // Phase 3: draw the wireframe boundary for the claimed plot.
+                            // Remove any previous boundary shape first.
+                            if let Some(id) = self.plot_boundary_shape.take() {
+                                self.scene.debug.remove_shape(id);
+                            }
+                            let aabb = vek::geom::Aabb {
+                                min: plot.area.min.as_::<f32>(),
+                                max: plot.area.max.as_::<f32>(),
+                            };
+                            let id = self
+                                .scene
+                                .debug
+                                .add_shape(crate::scene::DebugShape::WireBox(aabb));
+                            // Gold colour to match the build-mode HUD theme.
+                            const PLOT_BOX_POS: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+                            const PLOT_BOX_COLOR: [f32; 4] = [1.0, 0.75, 0.0, 0.8];
+                            const PLOT_BOX_ORI: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+                            self.scene.debug.set_context(
+                                id,
+                                PLOT_BOX_POS,
+                                PLOT_BOX_COLOR,
+                                PLOT_BOX_ORI,
+                            );
+                            self.plot_boundary_shape = Some(id);
+                            // Phase 4: reset palette selection to first entry.
+                            self.palette_index = 0;
+                            // Show the palette immediately so the player knows they can scroll.
+                            self.apply_palette_selection();
                         },
                         Ok(None) => {
                             // Plot successfully released.
@@ -523,6 +587,10 @@ impl SessionState {
                             self.hud.new_message(
                                 ChatType::Meta.into_msg(Content::localized("hud-plot-released")),
                             );
+                            // Phase 3: remove the boundary wireframe.
+                            if let Some(id) = self.plot_boundary_shape.take() {
+                                self.scene.debug.remove_shape(id);
+                            }
                         },
                         Err(err) => {
                             // The server rejected the request; revert the optimistic toggle.
@@ -1327,7 +1395,14 @@ impl PlayState for SessionState {
                             },
                             GameInput::ZoomIn => {
                                 if state {
-                                    if self.zoom_lock {
+                                    if self.build_mode_active {
+                                        // Phase 4: cycle palette backward (scroll up = previous).
+                                        self.palette_index = self
+                                            .palette_index
+                                            .checked_sub(1)
+                                            .unwrap_or(BLOCK_PALETTE.len() - 1);
+                                        self.apply_palette_selection();
+                                    } else if self.zoom_lock {
                                         self.hud.zoom_lock_reminder();
                                     } else {
                                         self.scene.handle_input_event(
@@ -1339,7 +1414,12 @@ impl PlayState for SessionState {
                             },
                             GameInput::ZoomOut => {
                                 if state {
-                                    if self.zoom_lock {
+                                    if self.build_mode_active {
+                                        // Phase 4: cycle palette forward (scroll down = next).
+                                        self.palette_index =
+                                            (self.palette_index + 1) % BLOCK_PALETTE.len();
+                                        self.apply_palette_selection();
+                                    } else if self.zoom_lock {
                                         self.hud.zoom_lock_reminder();
                                     } else {
                                         self.scene.handle_input_event(

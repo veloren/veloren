@@ -26,17 +26,27 @@ pub struct EscMenu<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
+    /// Whether the local player is the host of a LAN co-op session.
+    /// When `true` the "Logout" button is labelled "Stop Server" to make it
+    /// clear that disconnecting will also terminate the server for all guests.
+    is_lan_host: bool,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> EscMenu<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, localized_strings: &'a Localization) -> Self {
+    pub fn new(
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        localized_strings: &'a Localization,
+        is_lan_host: bool,
+    ) -> Self {
         Self {
             imgs,
             fonts,
             localized_strings,
+            is_lan_host,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -147,13 +157,21 @@ impl Widget for EscMenu<'_> {
         {
             return Some(Event::CharacterSelection);
         };
-        // Logout
+        // Logout / Stop Server
+        // Label changes to "Stop Server" when the player is hosting a LAN
+        // session so that it is clear that disconnecting will also shut down
+        // the server (and kick all connected guests).
+        let logout_label = if self.is_lan_host {
+            self.localized_strings.get_msg("esc_menu-stop_server")
+        } else {
+            self.localized_strings.get_msg("esc_menu-logout")
+        };
         if Button::image(self.imgs.button)
             .mid_bottom_with_margin_on(state.ids.menu_button_4, -65.0)
             .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label(&self.localized_strings.get_msg("esc_menu-logout"))
+            .label(&logout_label)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(self.fonts.cyri.scale(20))
