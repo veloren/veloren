@@ -339,6 +339,7 @@ impl SingleplayerState {
                     lan_discovery::start_broadcaster(
                         server::settings::LAN_COOP_PORT,
                         world_name,
+                        common::util::DISPLAY_VERSION.clone(),
                         player_cap,
                         broadcast_player_count,
                         Arc::clone(&stop),

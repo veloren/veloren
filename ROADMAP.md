@@ -33,10 +33,10 @@ The current absolute-scale slider was capped at 2.0×, making icons and text ver
 - List, create, rename, and delete singleplayer worlds from the main menu
 - Per-world settings (seed, day length, difficulty)
 
-### LAN server UX improvements *(PLANNED)*
+### LAN server UX improvements *(COMPLETE)*
 
-- Show LAN server version and player count in the browser list
-- Connection status feedback during discovery
+- [x] Show LAN server version and player count in the browser list
+- [x] Connection status feedback during discovery
 
 ### Settings persistence *(PLANNED)*
 

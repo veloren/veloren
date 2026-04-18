@@ -11,14 +11,18 @@ rustflags = [
 
 [target.x86_64-pc-windows-msvc]
 rustflags = [
-    # Disable MSVC incremental linking to avoid one variant of LNK1318.
+    # Use Rust's bundled LLD (rust-lld / lld-link) instead of MSVC link.exe.
+    #
+    # Background: Rust always passes /DEBUG + /NATVIS:… to the MSVC linker
+    # (even when `debug = false`) so that the debugger can resolve Rust types
+    # via NATVIS visualisers.  With 250+ object files and hundreds of rlibs,
+    # link.exe's PDB metadata — even in FASTLINK partial-PDB mode — exceeds
+    # its internal EC_LIMIT ceiling (error code 12 → LNK1318 LIMIT (12)).
+    # LLD generates PDB files without this restriction and is bundled with
+    # every standard Rust toolchain installation.
+    "-Z", "linker-features=+lld",
+    # Disable incremental linking to prevent stale link-state artifacts.
     "-C", "link-arg=/INCREMENTAL:NO",
-    # Use FASTLINK PDB generation to avoid LNK1318 LIMIT(12): the default
-    # full PDB mode copies all debug streams into a single file and exhausts
-    # the PDB stream limit on workspaces with 200+ object files.
-    # FASTLINK instead records references to the original object files,
-    # bypassing the stream count ceiling entirely.
-    "-C", "link-arg=/DEBUG:FASTLINK",
 ]
 
 [target.x86_64-pc-windows-gnu]
