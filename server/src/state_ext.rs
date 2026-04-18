@@ -743,7 +743,7 @@ impl StateExt for State {
                     .insert(area_name, plot.area)
                 {
                     let mut can_builds = self.ecs().write_storage::<comp::CanBuild>();
-                    if let Some(can_build) = can_builds.get_mut(entity) {
+                    if let Some(mut can_build) = can_builds.get_mut(entity) {
                         can_build.enabled = true;
                         can_build.build_areas.insert(area_id);
                     } else {
