@@ -444,9 +444,9 @@ impl EditableSettings {
     /// username of the player who started the server; they are pre-granted the
     /// Admin role so they can kick, ban, and otherwise manage the session.
     pub fn lan_coop(data_dir: &Path, host_username: &str) -> Self {
-        let load = Self::load(data_dir);
+        let loaded_settings = Self::load(data_dir);
 
-        let mut admins = load.admins.clone();
+        let mut admins = loaded_settings.admins.clone();
         let host_uuid = crate::login_provider::derive_player_uuid(host_username);
         admins.insert(
             host_uuid,
@@ -457,6 +457,9 @@ impl EditableSettings {
             },
         );
 
-        Self { admins, ..load }
+        Self {
+            admins,
+            ..loaded_settings
+        }
     }
 }
