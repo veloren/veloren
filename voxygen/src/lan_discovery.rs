@@ -5,15 +5,17 @@
 /// a [`LanDiscovery`] running will receive those datagrams and surface the
 /// server in the server browser automatically — no manual IP entry required.
 ///
-/// # Packet format
+/// # Packet format (v3)
 /// ```text
 /// NOVA_FORGE_LAN\0  (15 bytes, 14-char magic + NUL)
 /// port_lo  port_hi  (2 bytes little-endian u16)
 /// player_count      (1 byte u8)
 /// player_cap        (1 byte u8, 0 = unknown/unlimited)
+/// version_len       (1 byte u8, length of the UTF-8 version string)
+/// version_bytes     (version_len bytes, e.g. "0.18.0-dev")
 /// <UTF-8 server name, up to 64 bytes>
 /// ```
-/// Total on-wire size is always ≤ 83 bytes, well inside a single UDP frame.
+/// Total on-wire size is always ≤ 100 bytes, well inside a single UDP frame.
 use std::{
     net::{Ipv4Addr, SocketAddrV4, UdpSocket},
     sync::{
@@ -53,6 +55,9 @@ pub struct DiscoveredServer {
     pub player_count: u8,
     /// Maximum player capacity (0 = unknown / unlimited).
     pub player_cap: u8,
+    /// Game version string of the server (e.g. `"0.18.0-dev"`), or empty if
+    /// the server sent an older packet format that lacked this field.
+    pub version: String,
     /// When the most recent broadcast from this server was received.
     pub last_seen: Instant,
 }
@@ -149,6 +154,7 @@ fn listener_thread(
                         existing.name = entry.name;
                         existing.player_count = entry.player_count;
                         existing.player_cap = entry.player_cap;
+                        existing.version = entry.version;
                         existing.last_seen = Instant::now();
                     } else {
                         guard.push(DiscoveredServer {
@@ -156,6 +162,7 @@ fn listener_thread(
                             name: entry.name,
                             player_count: entry.player_count,
                             player_cap: entry.player_cap,
+                            version: entry.version,
                             last_seen: Instant::now(),
                         });
                     }
@@ -179,13 +186,14 @@ struct ParsedPacket {
     port: u16,
     player_count: u8,
     player_cap: u8,
+    version: String,
     name: String,
 }
 
 fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     let data = data.strip_prefix(MAGIC)?;
-    // Minimum: 2 (port) + 2 (player_count + player_cap) = 4 bytes after magic.
-    if data.len() < 4 {
+    // Minimum: 2 (port) + 2 (player_count + player_cap) + 1 (version_len) = 5 bytes after magic.
+    if data.len() < 5 {
         return None;
     }
     let port = u16::from_le_bytes([data[0], data[1]]);
@@ -194,15 +202,27 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     }
     let player_count = data[2];
     let player_cap = data[3];
+    let version_len = data[4] as usize;
+    // Ensure version_len doesn't run past the buffer.
+    if data.len() < 5 + version_len {
+        return None;
+    }
+    let version = std::str::from_utf8(&data[5..5 + version_len])
+        .ok()?
+        .to_owned();
     // Cap the name field at 64 bytes to match encode_packet's upper bound, even
-    // if a malformed packet tries to send more.  `data` here is already stripped
-    // of the magic prefix, so offset 68 = 4 (port + counts) + 64 (max name bytes).
-    let end = data.len().min(68);
-    let name = std::str::from_utf8(&data[4..end]).ok()?.trim().to_owned();
+    // if a malformed packet tries to send more.
+    let name_start = 5 + version_len;
+    let end = data.len().min(name_start + 64);
+    let name = std::str::from_utf8(&data[name_start..end])
+        .ok()?
+        .trim()
+        .to_owned();
     Some(ParsedPacket {
         port,
         player_count,
         player_cap,
+        version,
         name,
     })
 }
@@ -214,16 +234,29 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
 /// Encode a discovery packet.
 ///
 /// `player_count` is the number of connected players; `player_cap` is the
-/// server's maximum (0 = unknown / unlimited).
-pub fn encode_packet(port: u16, player_count: u8, player_cap: u8, server_name: &str) -> Vec<u8> {
+/// server's maximum (0 = unknown / unlimited).  `version` is the game version
+/// string (e.g. `"0.18.0-dev"`), truncated to 16 bytes if longer.
+pub fn encode_packet(
+    port: u16,
+    player_count: u8,
+    player_cap: u8,
+    version: &str,
+    server_name: &str,
+) -> Vec<u8> {
+    let version_bytes = version.as_bytes();
+    // Truncate version to at most 16 bytes.
+    let version_bytes = &version_bytes[..version_bytes.len().min(16)];
     let name_bytes = server_name.as_bytes();
     // Truncate the name to 64 bytes to keep the packet small.
     let name_bytes = &name_bytes[..name_bytes.len().min(64)];
-    let mut pkt = Vec::with_capacity(MAGIC.len() + 4 + name_bytes.len());
+    let mut pkt =
+        Vec::with_capacity(MAGIC.len() + 4 + 1 + version_bytes.len() + name_bytes.len());
     pkt.extend_from_slice(MAGIC);
     pkt.extend_from_slice(&port.to_le_bytes());
     pkt.push(player_count);
     pkt.push(player_cap);
+    pkt.push(version_bytes.len() as u8);
+    pkt.extend_from_slice(version_bytes);
     pkt.extend_from_slice(name_bytes);
     pkt
 }
@@ -233,7 +266,8 @@ pub fn encode_packet(port: u16, player_count: u8, player_cap: u8, server_name: &
 ///
 /// `player_count` is an `Arc<AtomicU8>` updated by the server tick loop so
 /// the broadcaster can include a live player count in each packet without
-/// locking the server.
+/// locking the server.  `version` is the game version string included in
+/// each packet so the client browser can show which build is running.
 ///
 /// This is called from the LAN co-op server thread immediately after the
 /// server has finished initialising, so the address-in-use failure mode
@@ -241,6 +275,7 @@ pub fn encode_packet(port: u16, player_count: u8, player_cap: u8, server_name: &
 pub fn start_broadcaster(
     port: u16,
     server_name: String,
+    version: String,
     player_cap: u8,
     player_count: Arc<AtomicU8>,
     stop: Arc<AtomicBool>,
@@ -266,7 +301,7 @@ pub fn start_broadcaster(
             }
             // Rebuild the packet each broadcast so the player count is live.
             let count = player_count.load(Ordering::Relaxed);
-            let packet = encode_packet(port, count, player_cap, &server_name);
+            let packet = encode_packet(port, count, player_cap, &version, &server_name);
             if let Err(e) = socket.send_to(&packet, dest) {
                 debug!(?e, "LAN discovery broadcast send failed");
             }
@@ -287,20 +322,38 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let pkt = encode_packet(14004, 2, 8, "My LAN Server");
+        let pkt = encode_packet(14004, 2, 8, "0.18.0-dev", "My LAN Server");
         let parsed = parse_packet(&pkt).expect("parse failed");
         assert_eq!(parsed.port, 14004);
         assert_eq!(parsed.player_count, 2);
         assert_eq!(parsed.player_cap, 8);
+        assert_eq!(parsed.version, "0.18.0-dev");
         assert_eq!(parsed.name, "My LAN Server");
     }
 
     #[test]
     fn name_truncation() {
         let long_name = "A".repeat(100);
-        let pkt = encode_packet(14004, 0, 0, &long_name);
+        let pkt = encode_packet(14004, 0, 0, "1.0", &long_name);
         let parsed = parse_packet(&pkt).expect("parse failed");
         assert_eq!(parsed.name.len(), 64);
+    }
+
+    #[test]
+    fn version_truncation() {
+        let long_version = "v".repeat(100);
+        let pkt = encode_packet(14004, 0, 0, &long_version, "Server");
+        let parsed = parse_packet(&pkt).expect("parse failed");
+        assert_eq!(parsed.version.len(), 16);
+        assert_eq!(parsed.name, "Server");
+    }
+
+    #[test]
+    fn empty_version() {
+        let pkt = encode_packet(14004, 1, 4, "", "No Version Server");
+        let parsed = parse_packet(&pkt).expect("parse failed");
+        assert_eq!(parsed.version, "");
+        assert_eq!(parsed.name, "No Version Server");
     }
 
     #[test]
@@ -311,7 +364,7 @@ mod tests {
 
     #[test]
     fn rejects_zero_port() {
-        let mut pkt = encode_packet(0, 1, 8, "zero port");
+        let mut pkt = encode_packet(0, 1, 8, "1.0", "zero port");
         // Ensure the port bytes are both zero after magic.
         let ml = MAGIC.len();
         pkt[ml] = 0;

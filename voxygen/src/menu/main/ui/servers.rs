@@ -150,7 +150,13 @@ impl Screen {
                     } else {
                         String::new()
                     };
-                    let label = format!("{}{} — {}", server.name, player_info, server.address);
+                    let version_info = if server.version.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" [{}]", server.version)
+                    };
+                    let label =
+                        format!("{}{}{} — {}", server.name, player_info, version_info, server.address);
                     let button = Button::new(
                         state,
                         Row::with_children(vec![
