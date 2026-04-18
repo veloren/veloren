@@ -129,6 +129,8 @@ pub enum Event {
     PluginDataReceived(Vec<u8>),
     Dialogue(Uid, rtsim::Dialogue<true>),
     Gizmos(Vec<Gizmos>),
+    /// Result of a `ClaimPlot` or `ReleasePlot` request sent to the server.
+    PlotClaimResult(Result<Option<comp::PlayerPlot>, common_net::msg::PlotClaimError>),
 }
 
 /// A message for the user to be displayed through the UI.
@@ -1223,7 +1225,9 @@ impl Client {
                     | ClientGeneral::UpdateMapMarker(_)
                     | ClientGeneral::SpectatePosition(_)
                     | ClientGeneral::SpectateEntity(_)
-                    | ClientGeneral::SetBattleMode(_) => {
+                    | ClientGeneral::SetBattleMode(_)
+                    | ClientGeneral::ClaimPlot { .. }
+                    | ClientGeneral::ReleasePlot => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -1928,6 +1932,18 @@ impl Client {
 
     pub fn map_marker_event(&mut self, event: MapMarkerChange) {
         self.send_msg(ClientGeneral::UpdateMapMarker(event));
+    }
+
+    /// Request to claim the given AABB as a player build plot.  The server will
+    /// respond with a `PlotClaimResult` event.
+    pub fn claim_plot(&mut self, area: vek::geom::Aabb<i32>, name: String) {
+        self.send_msg(ClientGeneral::ClaimPlot { area, name });
+    }
+
+    /// Request to release the currently-claimed plot.  The server will respond
+    /// with a `PlotClaimResult` event.
+    pub fn release_plot(&mut self) {
+        self.send_msg(ClientGeneral::ReleasePlot);
     }
 
     /// Set the current position to spectate, returns true if the client's
@@ -3059,6 +3075,9 @@ impl Client {
                 self.update_available_recipes();
             },
             ServerGeneral::Gizmos(gizmos) => frontend_events.push(Event::Gizmos(gizmos)),
+            ServerGeneral::PlotClaimResult(result) => {
+                frontend_events.push(Event::PlotClaimResult(result));
+            },
             _ => unreachable!("Not a in_game message"),
         }
         Ok(())

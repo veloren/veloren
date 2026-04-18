@@ -372,6 +372,11 @@ pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity 
                         .read_storage::<comp::MapMarker>()
                         .get(entity)
                         .cloned();
+                    let player_plot = state
+                        .ecs()
+                        .read_storage::<comp::PlayerPlot>()
+                        .get(entity)
+                        .cloned();
                     // Store last battle mode change
                     if let Some(change) = player_info.last_battlemode_change {
                         let mode = player_info.battle_mode;
@@ -407,6 +412,7 @@ pub(super) fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity 
                         waypoint,
                         active_abilities.clone(),
                         map_marker,
+                        player_plot,
                     ));
                 }
             },

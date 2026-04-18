@@ -216,6 +216,7 @@ impl ControlSettings {
             GameInput::MuteSfx => return None,
             GameInput::MuteAmbience => return None,
             GameInput::ToggleWalk => char("B"),
+            GameInput::ToggleBuildMode => Key::Named(NamedKey::F5),
         }))
     }
 }

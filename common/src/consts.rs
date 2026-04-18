@@ -40,3 +40,7 @@ pub const TELEPORTER_RADIUS: f32 = 3.;
 
 // Map settings
 pub const DAY_LENGTH_DEFAULT: f64 = 30.0;
+
+/// The maximum number of blocks along each axis that a player plot may span.
+/// A player plot is always a cube of at most this many blocks per side.
+pub const MAX_PLAYER_PLOT_SIDE: i32 = 32;

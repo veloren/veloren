@@ -1099,6 +1099,7 @@ impl Server {
                                         pets,
                                         active_abilities,
                                         map_marker,
+                                        player_plot,
                                     } = character_data;
                                     let character_data = (
                                         body,
@@ -1110,6 +1111,7 @@ impl Server {
                                         pets,
                                         active_abilities,
                                         map_marker,
+                                        player_plot,
                                     );
                                     // TODO: Does this need to be a server event? E.g. we could
                                     // just handle it here.

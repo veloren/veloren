@@ -84,6 +84,7 @@ pub fn create_character(
         pets: Vec::new(),
         active_abilities: common::comp::ActiveAbilities::default_limited(BASE_ABILITY_LIMIT),
         map_marker,
+        player_plot: None,
     });
     Ok(())
 }

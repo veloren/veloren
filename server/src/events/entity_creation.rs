@@ -86,6 +86,7 @@ pub fn handle_loaded_character_data(server: &mut Server, ev: UpdateCharacterData
         pets: ev.components.6,
         active_abilities: ev.components.7,
         map_marker: ev.components.8,
+        player_plot: ev.components.9,
     };
     if let Some(marker) = loaded_components.map_marker {
         server.notify_client(

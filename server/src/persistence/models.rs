@@ -5,6 +5,7 @@ pub struct Character {
     pub alias: String,
     pub waypoint: Option<String>,
     pub hardcore: i64,
+    pub plot: Option<String>,
 }
 
 #[derive(Debug)]

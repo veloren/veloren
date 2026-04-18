@@ -22,7 +22,7 @@ use common::{
         invite::InviteKind,
         item::{ItemDesc, tool::ToolKind},
     },
-    consts::MAX_MOUNT_RANGE,
+    consts::{MAX_MOUNT_RANGE, MAX_PLAYER_PLOT_SIDE},
     event::UpdateCharacterMetadata,
     link::Is,
     mounting::{Mount, VolumePos},
@@ -124,6 +124,9 @@ pub struct SessionState {
     lines: PlayerDebugLines,
     tracks: HashMap<Vec2<i32>, Vec<DebugShapeId>>,
     gizmos: Vec<(DebugShapeId, common::resources::Time, bool)>,
+    /// Whether the player has toggled build mode on.  When true the client will
+    /// claim a plot around the player position and show the build-mode HUD badge.
+    build_mode_active: bool,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -200,6 +203,7 @@ impl SessionState {
             tracks: HashMap::new(),
             lines: Default::default(),
             gizmos: Vec::new(),
+            build_mode_active: false,
         }
     }
 
@@ -497,6 +501,22 @@ impl SessionState {
                                 }
                             },
                         }
+                    }
+                },
+                client::Event::PlotClaimResult(result) => {
+                    // Sync local build_mode_active state with the server's response.
+                    match result {
+                        Ok(Some(_)) => {
+                            self.build_mode_active = true;
+                        },
+                        Ok(None) => {
+                            // Plot successfully released.
+                            self.build_mode_active = false;
+                        },
+                        Err(_) => {
+                            // The server rejected the request; revert the optimistic toggle.
+                            self.build_mode_active = false;
+                        },
                     }
                 },
             }
@@ -1031,6 +1051,30 @@ impl PlayState for SessionState {
                                 } else {
                                     global_state.profile.tutorial.event_lantern();
                                     client.enable_lantern();
+                                }
+                            },
+                            GameInput::ToggleBuildMode if state && controlling_char => {
+                                let mut client = self.client.borrow_mut();
+                                if self.build_mode_active {
+                                    // Release the plot.
+                                    client.release_plot();
+                                    self.build_mode_active = false;
+                                } else {
+                                    // Claim a 32×32×32 cube centred on the player.
+                                    let player_entity = client.entity();
+                                    let pos = client
+                                        .state()
+                                        .read_storage::<comp::Pos>()
+                                        .get(player_entity)
+                                        .map(|p| p.0.as_::<i32>())
+                                        .unwrap_or_default();
+                                    const HALF: i32 = common::consts::MAX_PLAYER_PLOT_SIDE / 2;
+                                    let area = vek::geom::Aabb {
+                                        min: pos - Vec3::broadcast(HALF),
+                                        max: pos + Vec3::broadcast(HALF),
+                                    };
+                                    client.claim_plot(area, String::new());
+                                    self.build_mode_active = true;
                                 }
                             },
                             GameInput::Mount if state && controlling_char => {

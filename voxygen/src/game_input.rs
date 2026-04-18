@@ -182,6 +182,8 @@ pub enum GameInput {
     MuteSfx,
     #[strum(serialize = "gameinput-muteambience")]
     MuteAmbience,
+    #[strum(serialize = "gameinput-togglebuildmode")]
+    ToggleBuildMode,
 }
 
 impl GameInput {

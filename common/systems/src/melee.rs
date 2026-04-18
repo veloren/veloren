@@ -19,6 +19,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use common_state::{AreasContainer, SafeArea};
 use itertools::Itertools;
 use specs::{
     Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, SystemData, WriteStorage, shred,
@@ -66,6 +67,7 @@ pub struct ReadData<'a> {
     entered_auras: ReadStorage<'a, EnteredAuras>,
     events: ReadAttackEvents<'a>,
     masses: ReadStorage<'a, Mass>,
+    safe_areas: Read<'a, AreasContainer<SafeArea>>,
 }
 
 /// This system is responsible for handling accepted inputs like moving or
@@ -254,6 +256,22 @@ impl<'a> System<'a> for Sys {
                         Some(attacker),
                         target,
                     );
+
+                    // Safe-zone check: block PvP if either the attacker or the target
+                    // is inside a safe area and both are players.
+                    let both_players = read_data.players.contains(attacker)
+                        && read_data.players.contains(target);
+                    let in_safe_area = |pos: Vec3<f32>| {
+                        let ipos = pos.as_::<i32>();
+                        read_data
+                            .safe_areas
+                            .areas()
+                            .values()
+                            .any(|aabb| aabb.contains_point(ipos))
+                    };
+                    let permit_pvp = permit_pvp
+                        && !(both_players
+                            && (in_safe_area(pos.0) || in_safe_area(pos_b.0)));
 
                     // Note: Don't use ori.look_vec() here, it leads to incorrect results for wide
                     // angle melee attacks

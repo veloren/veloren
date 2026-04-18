@@ -233,6 +233,8 @@ pub enum ServerGeneral {
     UpdateRecipes,
     SetPlayerRole(Option<AdminRole>),
     Gizmos(Vec<Gizmos>),
+    /// Result of a `ClaimPlot` or `ReleasePlot` request from the client.
+    PlotClaimResult(Result<Option<comp::PlayerPlot>, PlotClaimError>),
 }
 
 impl ServerGeneral {
@@ -243,9 +245,20 @@ impl ServerGeneral {
     }
 }
 
-/*
-end of 2nd level Enums
-*/
+/// Errors that can occur when a player attempts to claim or release a plot.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlotClaimError {
+    /// The requested area exceeds the maximum allowed plot dimensions.
+    AreaTooLarge,
+    /// The requested area overlaps with an already-claimed plot.
+    OverlapsExisting,
+    /// The player already owns a plot; release it before claiming a new one.
+    AlreadyOwned,
+    /// The player does not own any plot (for release requests).
+    NotOwned,
+}
+
+
 
 /// Inform the client of updates to the player list.
 ///
@@ -381,7 +394,8 @@ impl ServerMsg {
                         | ServerGeneral::LocalWindUpdate(_)
                         | ServerGeneral::SpectatePosition(_)
                         | ServerGeneral::UpdateRecipes
-                        | ServerGeneral::Gizmos(_) => {
+                        | ServerGeneral::Gizmos(_)
+                        | ServerGeneral::PlotClaimResult(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible
