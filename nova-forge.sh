@@ -122,7 +122,7 @@ MD_LOG_FILE=""
 _BUILD_CMD_DESC=""
 
 # _cargo_progress_filter <log_file>
-#   Reads cargo output from stdin, displays a colourised progress panel in
+#   Reads cargo output from stdin, displays a colorized progress panel in
 #   the terminal, and appends clean (ANSI-stripped) text to <log_file>.
 #
 #   Terminal layout (for a 40-row window):
@@ -298,7 +298,7 @@ _cargo_progress_filter() {
 
 # run_cargo <cargo args...>
 #   Runs the given cargo command while:
-#     • Displaying a colourised live progress panel (via _cargo_progress_filter).
+#     • Displaying a colorized live progress panel (via _cargo_progress_filter).
 #     • Teeing all output (ANSI-stripped) to a timestamped log file.
 #     • On failure: writing a Markdown error report and showing a summary
 #       that must be confirmed (Enter) before the terminal closes.
