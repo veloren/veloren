@@ -137,10 +137,10 @@ _cargo_progress_filter() {
     local start_time
     start_time=$(date +%s)
 
-    # Terminal dimensions — default to 175×40 if tput is unavailable.
+    # Terminal dimensions — default to 80×24 if tput is unavailable.
     local rows cols
-    rows=$(tput lines 2>/dev/null || echo 40)
-    cols=$(tput cols  2>/dev/null || echo 175)
+    rows=$(tput lines 2>/dev/null || echo 24)
+    cols=$(tput cols  2>/dev/null || echo 80)
 
     # Require at least 12 rows for the panel to make sense.
     if (( rows < 12 )); then
@@ -176,6 +176,21 @@ _cargo_progress_filter() {
 
     # ── Helper: redraw the 4-row status panel ────────────────────────────
     _pf_panel() {
+        # Re-read terminal size on every call so the panel always anchors to
+        # the real bottom of the screen regardless of window resizes or any
+        # race between a prior resize escape and tput.
+        local new_rows new_cols
+        new_rows=$(tput lines 2>/dev/null || echo "$rows")
+        new_cols=$(tput cols  2>/dev/null || echo "$cols")
+        if [[ "$new_rows" != "$rows" || "$new_cols" != "$cols" ]]; then
+            rows=$new_rows
+            cols=$new_cols
+            scroll_end=$(( rows - 4 ))
+            # Re-emit the scrolling region then park the cursor at its bottom
+            # edge so subsequent output stays inside the scroll zone.
+            printf '\e[1;%dr\e[%d;1H' "$scroll_end" "$scroll_end"
+        fi
+
         local elapsed=$(( $(date +%s) - start_time ))
         local bar_width=$(( cols - 60 ))
         (( bar_width > 72 )) && bar_width=72
@@ -199,6 +214,7 @@ _cargo_progress_filter() {
         # Separator (rows-3).
         printf '\e[%d;1H\e[2K' $(( rows - 3 ))
         printf '%.0s─' $(seq 1 "$cols")
+        printf '\e[K'
 
         # Progress bar + counts (rows-2).
         printf '\e[%d;1H\e[2K' $(( rows - 2 ))
@@ -207,11 +223,13 @@ _cargo_progress_filter() {
         (( warnings > 0 )) && printf "  ${YELLOW}Warnings: %d${NC}" "$warnings"
         (( errors   > 0 )) && printf "  ${RED}Errors: %d${NC}"    "$errors"
         printf "  Elapsed: %ds" "$elapsed"
+        printf '\e[K'
 
         # Status icon (rows-1).
         printf '\e[%d;1H\e[2K' $(( rows - 1 ))
         printf " ${color}${BOLD}[%s]${NC} Building…  Log → ${CYAN}%s${NC}" \
             "$icon" "$log_file"
+        printf '\e[K'
 
         # Blank reserved row (rows).
         printf '\e[%d;1H\e[2K' "$rows"
@@ -230,9 +248,7 @@ _cargo_progress_filter() {
         # Classify and display each line with appropriate colour + marker.
         if [[ "$clean" =~ ^[[:space:]]*(Compiling|Downloading|Updating)[[:space:]] ]]; then
             (( compiled++ )) || true
-            local padded
-            padded=$(printf '%-*s' $(( cols - 5 )) "$clean")
-            printf "${GREEN}%s  ✓${NC}\n" "$padded"
+            printf "${GREEN}%s  ✓${NC}\e[K\n" "$clean"
 
         elif [[ "$clean" =~ ^error[^[]*:\ could\ not\ compile ]]; then
             local cname="${clean#*\`}"; cname="${cname%%\`*}"
@@ -265,6 +281,7 @@ _cargo_progress_filter() {
 
     printf '\e[%d;1H\e[2K' $(( rows - 3 ))
     printf '%.0s─' $(seq 1 "$cols")
+    printf '\e[K'
 
     printf '\e[%d;1H\e[2K' $(( rows - 2 ))
     if (( errors > 0 )); then
@@ -278,6 +295,7 @@ _cargo_progress_filter() {
         printf "  [${GREEN}%s${NC}]  ${CYAN}Compiled: %d${NC}  Elapsed: %ds" \
             "$full_bar" "$compiled" "$elapsed"
     fi
+    printf '\e[K'
 
     printf '\e[%d;1H\e[2K' $(( rows - 1 ))
     if (( errors > 0 )); then
@@ -286,6 +304,7 @@ _cargo_progress_filter() {
     else
         printf " ${GREEN}${BOLD}[✓] Build completed successfully!${NC}"
     fi
+    printf '\e[K'
 
     printf '\e[%d;1H\e[2K' "$rows"
     printf '\e8'
@@ -311,11 +330,6 @@ run_cargo() {
     _BUILD_CMD_DESC="$*"
 
     info "Log file : $LOG_FILE"
-
-    # Request the terminal to resize to 175 columns × 40 rows.
-    # Terminals that support xterm resize sequences will honour this;
-    # others will silently ignore it.
-    printf '\e[8;40;175t' 2>/dev/null || true
 
     local exit_code=0
     # Force colour output from cargo even though stdout is a pipe, and
