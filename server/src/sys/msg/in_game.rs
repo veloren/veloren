@@ -6,7 +6,6 @@ use common::{
         Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
         Player, PlayerPlot, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
     },
-    consts::MAX_PLAYER_PLOT_SIDE,
     event::{self, EmitExt},
     event_emitters,
     link::Is,
@@ -296,12 +295,12 @@ impl Sys {
                 });
             },
             ClientGeneral::ClaimPlot { area, name } => {
+                // Use the server-configured limit (falls back to the compiled
+                // default if the admin hasn't set a value in settings.ron).
+                let max_side = settings.gameplay.effective_max_plot_side();
                 // Validate dimensions.
                 let side = (area.max - area.min).map(i32::abs);
-                if side.x > MAX_PLAYER_PLOT_SIDE
-                    || side.y > MAX_PLAYER_PLOT_SIDE
-                    || side.z > MAX_PLAYER_PLOT_SIDE
-                {
+                if side.x > max_side || side.y > max_side || side.z > max_side {
                     let _ = client.send(ServerGeneral::PlotClaimResult(Err(
                         PlotClaimError::AreaTooLarge,
                     )));
