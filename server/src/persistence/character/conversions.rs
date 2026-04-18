@@ -2,16 +2,16 @@ use crate::persistence::{
     character::EntityId,
     error::PersistenceError,
     json_models::{
-        self, CharacterPosition, DatabaseAbilitySet, DatabaseItemProperties, GenericBody,
-        HumanoidBody,
+        self, CharacterPlot, CharacterPosition, DatabaseAbilitySet, DatabaseItemProperties,
+        GenericBody, HumanoidBody,
     },
     models::{AbilitySets, Character, Item, SkillGroup},
 };
 use common::{
     character::CharacterId,
     comp::{
-        ActiveAbilities, Body as CompBody, Content, Hardcore, Inventory, MapMarker, Stats,
-        Waypoint, body,
+        ActiveAbilities, Body as CompBody, Content, Hardcore, Inventory, MapMarker, PlayerPlot,
+        Stats, Waypoint, body,
         inventory::{
             item::{Item as GameItem, MaterialStatManifest, tool::AbilityMap},
             loadout::{Loadout, LoadoutError},
@@ -29,6 +29,7 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::{collections::VecDeque, str::FromStr, sync::Arc};
 use tracing::{trace, warn};
+use vek::geom::Aabb;
 
 #[derive(Debug)]
 pub struct ItemModelPair {
@@ -297,6 +298,37 @@ pub fn convert_waypoint_from_database_json(
             .map(|pos| Waypoint::new(pos, Time(0.0))),
         character_position.map_marker.map(MapMarker),
     ))
+}
+
+/// Serialize a `PlayerPlot` to the JSON string stored in the `plot` column.
+pub fn convert_plot_to_database_json(plot: &PlayerPlot) -> Option<String> {
+    let db_plot = CharacterPlot {
+        min: plot.area.min,
+        max: plot.area.max,
+        name: plot.name.clone(),
+    };
+    serde_json::to_string(&db_plot)
+        .map_err(|err| {
+            warn!("Error serializing player plot: {:?}", err);
+        })
+        .ok()
+}
+
+/// Deserialize a `PlayerPlot` from the JSON string in the `plot` column.
+pub fn convert_plot_from_database_json(json: &str) -> Option<PlayerPlot> {
+    match serde_json::de::from_str::<CharacterPlot>(json) {
+        Ok(db_plot) => Some(PlayerPlot {
+            area: Aabb {
+                min: db_plot.min,
+                max: db_plot.max,
+            },
+            name: db_plot.name,
+        }),
+        Err(err) => {
+            warn!("Error deserializing player plot: {} err: {}", json, err);
+            None
+        },
+    }
 }
 
 // Used to handle cases of modular items that are composed of components.

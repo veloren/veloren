@@ -17,6 +17,7 @@ use crate::{
             convert_character_from_database, convert_hardcore_from_database,
             convert_hardcore_to_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
+            convert_plot_from_database_json, convert_plot_to_database_json,
             convert_recipe_book_from_database_items, convert_skill_groups_to_database,
             convert_skill_set_from_database, convert_stats_from_database,
             convert_waypoint_from_database_json, convert_waypoint_to_database_json,
@@ -147,7 +148,8 @@ pub fn load_character_data(
                 c.waypoint,
                 c.hardcore,
                 b.variant,
-                b.body_data
+                b.body_data,
+                c.plot
         FROM    character c
         JOIN    body b ON (c.character_id = b.body_id)
         WHERE   c.player_uuid = ?1
@@ -163,6 +165,7 @@ pub fn load_character_data(
                 alias: row.get(1)?,
                 waypoint: row.get(2)?,
                 hardcore: row.get(3)?,
+                plot: row.get(6)?,
             };
 
             let body_data = Body {
@@ -289,6 +292,10 @@ pub fn load_character_data(
         convert_skill_set_from_database(&skill_group_data);
     let body = convert_body_from_database(&body_data.variant, &body_data.body_data)?;
     let hardcore = convert_hardcore_from_database(character_data.hardcore)?;
+    let player_plot = character_data
+        .plot
+        .as_deref()
+        .and_then(convert_plot_from_database_json);
     Ok((
         PersistedComponents {
             body,
@@ -308,6 +315,7 @@ pub fn load_character_data(
             pets,
             active_abilities: convert_active_abilities_from_database(&ability_set_data),
             map_marker: char_map_marker,
+            player_plot,
         },
         UpdateCharacterMetadata {
             skill_set_persistence_load_error,
@@ -425,6 +433,7 @@ pub fn create_character(
         pets: _,
         active_abilities,
         map_marker,
+        player_plot: _,
     } = persisted_components;
 
     // Fetch new entity IDs for character, inventory, loadout, overflow items, and
@@ -1069,6 +1078,7 @@ pub fn update(
     char_waypoint: Option<comp::Waypoint>,
     active_abilities: comp::ability::ActiveAbilities,
     map_marker: Option<comp::MapMarker>,
+    player_plot: Option<comp::PlayerPlot>,
     transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
     // Run pet persistence
@@ -1205,16 +1215,22 @@ pub fn update(
     }
 
     let db_waypoint = convert_waypoint_to_database_json(char_waypoint, map_marker);
+    let db_plot = player_plot.as_ref().and_then(convert_plot_to_database_json);
 
     let mut stmt = transaction.prepare_cached(
         "
         UPDATE  character
-        SET     waypoint = ?1
-        WHERE   character_id = ?2
+        SET     waypoint = ?1,
+                plot = ?2
+        WHERE   character_id = ?3
     ",
     )?;
 
-    let waypoint_count = stmt.execute([&db_waypoint as &dyn ToSql, &char_id.0])?;
+    let waypoint_count = stmt.execute([
+        &db_waypoint as &dyn ToSql,
+        &db_plot as &dyn ToSql,
+        &char_id.0,
+    ])?;
 
     if waypoint_count != 1 {
         return Err(PersistenceError::OtherError(format!(

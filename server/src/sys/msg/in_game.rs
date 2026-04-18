@@ -4,8 +4,9 @@ use crate::{EditableSettings, Settings, client::Client};
 use common::{
     comp::{
         Admin, AdminRole, Body, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori,
-        Player, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
+        Player, PlayerPlot, Pos, Presence, PresenceKind, Scale, SkillSet, SpectatingEntity, Vel,
     },
+    consts::MAX_PLAYER_PLOT_SIDE,
     event::{self, EmitExt},
     event_emitters,
     link::Is,
@@ -17,8 +18,8 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, ServerGeneral};
-use common_state::{AreasContainer, BlockChange, BuildArea};
+use common_net::msg::{ClientGeneral, PlotClaimError, ServerGeneral};
+use common_state::{AreasContainer, BlockChange, BuildArea, PlayerBuildArea};
 use core::mem;
 use rayon::prelude::*;
 use specs::{Entities, Join, LendJoin, Read, ReadExpect, ReadStorage, Write, WriteStorage};
@@ -42,6 +43,9 @@ pub type TerrainPersistenceData<'a> = core::marker::PhantomData<&'a mut ()>;
 struct RareWrites<'a, 'b> {
     block_changes: &'b mut BlockChange,
     _terrain_persistence: &'b mut TerrainPersistenceData<'a>,
+    player_build_areas: &'b mut AreasContainer<PlayerBuildArea>,
+    can_builds: &'b mut WriteStorage<'a, CanBuild>,
+    player_plots: &'b mut WriteStorage<'a, PlayerPlot>,
 }
 
 event_emitters! {
@@ -62,13 +66,12 @@ impl Sys {
         client: &Client,
         maybe_presence: &mut Option<&mut Presence>,
         terrain: &ReadExpect<'_, TerrainGrid>,
-        can_build: &ReadStorage<'_, CanBuild>,
+        rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
         is_rider: &ReadStorage<'_, Is<Rider>>,
         is_volume_rider: &ReadStorage<'_, Is<VolumeRider>>,
         force_update: Option<&&mut ForceUpdate>,
         skill_set: &mut Option<Cow<'_, SkillSet>>,
         healths: &ReadStorage<'_, Health>,
-        rare_writes: &parking_lot::Mutex<RareWrites<'_, '_>>,
         position: Option<&mut Pos>,
         spectating_entity: &mut Option<Option<common::uid::Uid>>,
         controller: Option<&mut Controller>,
@@ -159,22 +162,39 @@ impl Sys {
                 }
             },
             ClientGeneral::BreakBlock(pos) => {
-                if let Some(comp_can_build) = can_build.get(entity)
-                    && comp_can_build.enabled
-                {
-                    for area in comp_can_build.build_areas.iter() {
-                        if let Some(old_block) = build_areas
-                                .areas()
-                                .get(*area)
-                                // TODO: Make this an exclusive check on the upper bound of the AABB
-                                // Vek defaults to inclusive which is not optimal
-                                .filter(|aabb| aabb.contains_point(pos))
-                                .and_then(|_| terrain.get(pos).ok())
-                        {
+                // Collect the area set while holding the lock briefly.
+                let (enabled, areas) = {
+                    let guard = rare_writes.lock();
+                    let cb = guard.can_builds.get(entity);
+                    (
+                        cb.is_some_and(|cb| cb.enabled),
+                        cb.map(|cb| cb.build_areas.clone()).unwrap_or_default(),
+                    )
+                };
+                if enabled {
+                    let in_area = areas.iter().any(|area_id| {
+                        let guard = rare_writes.lock();
+                        // Check admin build areas first, then player build areas.
+                        guard
+                            .player_build_areas
+                            .areas()
+                            .get(*area_id)
+                            .map(|aabb| aabb.contains_point(pos))
+                            .unwrap_or(false)
+                    }) || areas.iter().any(|area_id| {
+                        build_areas
+                            .areas()
+                            .get(*area_id)
+                            .map(|aabb| aabb.contains_point(pos))
+                            .unwrap_or(false)
+                    });
+
+                    if in_area {
+                        if let Ok(old_block) = terrain.get(pos) {
                             let new_block = old_block.into_vacant();
-                            // Take the rare writes lock as briefly as possible.
                             let mut guard = rare_writes.lock();
-                            let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
+                            let _was_set =
+                                guard.block_changes.try_set(pos, new_block).is_some();
                             #[cfg(feature = "persistent_world")]
                             if _was_set
                                 && let Some(terrain_persistence) =
@@ -187,28 +207,41 @@ impl Sys {
                 }
             },
             ClientGeneral::PlaceBlock(pos, new_block) => {
-                if let Some(comp_can_build) = can_build.get(entity)
-                    && comp_can_build.enabled
-                {
-                    for area in comp_can_build.build_areas.iter() {
-                        if build_areas
-                                .areas()
-                                .get(*area)
-                                // TODO: Make this an exclusive check on the upper bound of the AABB
-                                // Vek defaults to inclusive which is not optimal
-                                .filter(|aabb| aabb.contains_point(pos))
-                                .is_some()
+                let (enabled, areas) = {
+                    let guard = rare_writes.lock();
+                    let cb = guard.can_builds.get(entity);
+                    (
+                        cb.is_some_and(|cb| cb.enabled),
+                        cb.map(|cb| cb.build_areas.clone()).unwrap_or_default(),
+                    )
+                };
+                if enabled {
+                    let in_area = areas.iter().any(|area_id| {
+                        let guard = rare_writes.lock();
+                        guard
+                            .player_build_areas
+                            .areas()
+                            .get(*area_id)
+                            .map(|aabb| aabb.contains_point(pos))
+                            .unwrap_or(false)
+                    }) || areas.iter().any(|area_id| {
+                        build_areas
+                            .areas()
+                            .get(*area_id)
+                            .map(|aabb| aabb.contains_point(pos))
+                            .unwrap_or(false)
+                    });
+
+                    if in_area {
+                        let mut guard = rare_writes.lock();
+                        let _was_set =
+                            guard.block_changes.try_set(pos, new_block).is_some();
+                        #[cfg(feature = "persistent_world")]
+                        if _was_set
+                            && let Some(terrain_persistence) =
+                                guard._terrain_persistence.as_mut()
                         {
-                            // Take the rare writes lock as briefly as possible.
-                            let mut guard = rare_writes.lock();
-                            let _was_set = guard.block_changes.try_set(pos, new_block).is_some();
-                            #[cfg(feature = "persistent_world")]
-                            if _was_set
-                                && let Some(terrain_persistence) =
-                                    guard._terrain_persistence.as_mut()
-                            {
-                                terrain_persistence.set_block(pos, new_block);
-                            }
+                            terrain_persistence.set_block(pos, new_block);
                         }
                     }
                 }
@@ -262,6 +295,99 @@ impl Sys {
                     battle_mode,
                 });
             },
+            ClientGeneral::ClaimPlot { area, name } => {
+                // Validate dimensions.
+                let side = (area.max - area.min).map(i32::abs);
+                if side.x > MAX_PLAYER_PLOT_SIDE
+                    || side.y > MAX_PLAYER_PLOT_SIDE
+                    || side.z > MAX_PLAYER_PLOT_SIDE
+                {
+                    let _ = client.send(ServerGeneral::PlotClaimResult(Err(
+                        PlotClaimError::AreaTooLarge,
+                    )));
+                } else {
+                    let mut guard = rare_writes.lock();
+                    // Ensure the player doesn't already own a plot.
+                    if guard.player_plots.get(entity).is_some() {
+                        drop(guard);
+                        let _ = client.send(ServerGeneral::PlotClaimResult(Err(
+                            PlotClaimError::AlreadyOwned,
+                        )));
+                    } else {
+                        // Check for overlap with any existing player plot.
+                        let overlaps = guard
+                            .player_build_areas
+                            .areas()
+                            .values()
+                            .any(|existing| existing.collides_with_aabb(area.made_valid()));
+                        if overlaps {
+                            drop(guard);
+                            let _ = client.send(ServerGeneral::PlotClaimResult(Err(
+                                PlotClaimError::OverlapsExisting,
+                            )));
+                        } else {
+                            let area_name =
+                                format!("player_plot_{}", entity.id());
+                            let area_id = guard
+                                .player_build_areas
+                                .insert(area_name, area)
+                                .ok();
+                            if let Some(area_id) = area_id {
+                                // Grant build permission.
+                                if let Some(can_build) =
+                                    guard.can_builds.get_mut(entity)
+                                {
+                                    can_build.enabled = true;
+                                    can_build.build_areas.insert(area_id);
+                                } else {
+                                    let mut new_cb = CanBuild {
+                                        enabled: true,
+                                        build_areas: Default::default(),
+                                    };
+                                    new_cb.build_areas.insert(area_id);
+                                    let _ = guard.can_builds.insert(entity, new_cb);
+                                }
+                                let plot = PlayerPlot {
+                                    area: area.made_valid(),
+                                    name: name
+                                        .chars()
+                                        .take(64)
+                                        .collect(),
+                                };
+                                let _ = guard.player_plots.insert(entity, plot.clone());
+                                drop(guard);
+                                let _ = client.send(ServerGeneral::PlotClaimResult(Ok(
+                                    Some(plot),
+                                )));
+                            } else {
+                                drop(guard);
+                                let _ = client.send(ServerGeneral::PlotClaimResult(Err(
+                                    PlotClaimError::OverlapsExisting,
+                                )));
+                            }
+                        }
+                    }
+                }
+            },
+            ClientGeneral::ReleasePlot => {
+                let mut guard = rare_writes.lock();
+                if guard.player_plots.remove(entity).is_none() {
+                    drop(guard);
+                    let _ = client
+                        .send(ServerGeneral::PlotClaimResult(Err(PlotClaimError::NotOwned)));
+                } else {
+                    // Remove build permission for the player's named area.
+                    let area_name = format!("player_plot_{}", entity.id());
+                    let _ = guard.player_build_areas.remove(&area_name);
+                    if let Some(can_build) = guard.can_builds.get_mut(entity) {
+                        can_build.build_areas.clear();
+                        can_build.enabled = false;
+                    }
+                    drop(guard);
+                    let _ =
+                        client.send(ServerGeneral::PlotClaimResult(Ok(None)));
+                }
+            },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }
             | ClientGeneral::EditCharacter { .. }
@@ -303,7 +429,6 @@ impl<'a> System<'a> for Sys {
             Read<'a, Settings>,
             Read<'a, AreasContainer<BuildArea>>,
         ),
-        ReadStorage<'a, CanBuild>,
         WriteStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<VolumeRider>>,
@@ -323,6 +448,9 @@ impl<'a> System<'a> for Sys {
         TerrainPersistenceData<'a>,
         ReadStorage<'a, Player>,
         ReadStorage<'a, Admin>,
+        Write<'a, AreasContainer<PlayerBuildArea>>,
+        WriteStorage<'a, CanBuild>,
+        WriteStorage<'a, PlayerPlot>,
     );
 
     const NAME: &'static str = "msg::in_game";
@@ -336,7 +464,6 @@ impl<'a> System<'a> for Sys {
             events,
             (terrain, slow_jobs, editable_settings),
             (id_maps, dt, settings, build_areas),
-            can_build,
             mut force_updates,
             is_rider,
             is_volume_rider,
@@ -356,6 +483,9 @@ impl<'a> System<'a> for Sys {
             mut terrain_persistence,
             players,
             admins,
+            mut player_build_areas,
+            mut can_builds,
+            mut player_plots,
         ): Self::SystemData,
     ) {
         let time_for_vd_changes = Instant::now();
@@ -365,6 +495,9 @@ impl<'a> System<'a> for Sys {
         let rare_writes = parking_lot::Mutex::new(RareWrites {
             block_changes: &mut block_changes,
             _terrain_persistence: &mut terrain_persistence,
+            player_build_areas: &mut player_build_areas,
+            can_builds: &mut can_builds,
+            player_plots: &mut player_plots,
         });
 
         let player_physics_settings = &*player_physics_settings_;
@@ -421,13 +554,12 @@ impl<'a> System<'a> for Sys {
                             client,
                             &mut clearable_maybe_presence,
                             &terrain,
-                            &can_build,
+                            &rare_writes,
                             &is_rider,
                             &is_volume_rider,
                             force_update.as_ref(),
                             &mut skill_set,
                             &healths,
-                            &rare_writes,
                             pos.as_deref_mut(),
                             &mut spectating_entity,
                             controller.as_deref_mut(),

@@ -68,6 +68,14 @@ pub struct CharacterPosition {
     pub map_marker: Option<Vec2<i32>>,
 }
 
+/// Serializable representation of a player plot stored in the character table.
+#[derive(Serialize, Deserialize)]
+pub struct CharacterPlot {
+    pub min: Vec3<i32>,
+    pub max: Vec3<i32>,
+    pub name: String,
+}
+
 pub fn skill_group_to_db_string(skill_group: comp::skillset::SkillGroupKind) -> String {
     use comp::{item::tool::ToolKind, skillset::SkillGroupKind::*};
     let skill_group_string = match skill_group {

@@ -15,6 +15,14 @@ pub struct BuildArea;
 #[derive(Default)]
 pub struct NoDurabilityArea;
 
+/// Marker for player-owned build areas claimed via `ClaimPlot`.
+#[derive(Default)]
+pub struct PlayerBuildArea;
+
+/// Marker for PvP-free safe zones (e.g. around town centres).
+#[derive(Default)]
+pub struct SafeArea;
+
 /// NOTE: Please don't add `Deserialize` without checking to make sure we
 /// can guarantee the invariant that every entry in `area_names` points to a
 /// valid id in `areas`.
@@ -92,4 +100,12 @@ impl AreaKind for BuildArea {
 
 impl AreaKind for NoDurabilityArea {
     fn display() -> &'static str { "durability free" }
+}
+
+impl AreaKind for PlayerBuildArea {
+    fn display() -> &'static str { "player build" }
+}
+
+impl AreaKind for SafeArea {
+    fn display() -> &'static str { "safe" }
 }

@@ -35,7 +35,9 @@ use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
-use common_state::State;
+use common_state::{
+    AreasContainer, PlayerBuildArea, State,
+};
 use specs::{
     Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder, Join, WorldExt, WriteStorage,
     storage::{GenericReadStorage, GenericWriteStorage},
@@ -660,6 +662,7 @@ impl StateExt for State {
             pets,
             active_abilities,
             map_marker,
+            player_plot,
         } = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
@@ -728,6 +731,31 @@ impl StateExt for State {
 
             if let Some(map_marker) = map_marker {
                 self.write_component_ignore_entity_dead(entity, map_marker);
+            }
+
+            if let Some(ref plot) = player_plot {
+                // Re-register the player's plot area so the server enforces build
+                // permissions even before the player sends a new ClaimPlot message.
+                let area_name = format!("player_plot_{:?}", entity.id());
+                if let Ok(area_id) = self
+                    .ecs()
+                    .write_resource::<AreasContainer<PlayerBuildArea>>()
+                    .insert(area_name, plot.area)
+                {
+                    let mut can_builds = self.ecs().write_storage::<comp::CanBuild>();
+                    if let Some(can_build) = can_builds.get_mut(entity) {
+                        can_build.enabled = true;
+                        can_build.build_areas.insert(area_id);
+                    } else {
+                        let mut new_cb = comp::CanBuild {
+                            enabled: true,
+                            build_areas: Default::default(),
+                        };
+                        new_cb.build_areas.insert(area_id);
+                        let _ = can_builds.insert(entity, new_cb);
+                    }
+                }
+                self.write_component_ignore_entity_dead(entity, plot.clone());
             }
 
             let player_pos = self.ecs().read_storage::<comp::Pos>().get(entity).copied();

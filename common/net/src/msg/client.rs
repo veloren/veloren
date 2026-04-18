@@ -110,6 +110,15 @@ pub enum ClientGeneral {
     UpdateMapMarker(comp::MapMarkerChange),
     SetBattleMode(BattleMode),
 
+    /// Request to claim a build plot centred on the player's position.  The
+    /// server validates size, overlap, and permissions before granting.
+    ClaimPlot {
+        area: Aabb<i32>,
+        name: String,
+    },
+    /// Release the player's currently-claimed plot.
+    ReleasePlot,
+
     SpectatePosition(Vec3<f32>),
     SpectateEntity(Option<common::uid::Uid>),
 
@@ -165,6 +174,8 @@ impl ClientMsg {
                         | ClientGeneral::SetViewDistance(_)
                         | ClientGeneral::BreakBlock(_)
                         | ClientGeneral::PlaceBlock(_, _)
+                        | ClientGeneral::ClaimPlot { .. }
+                        | ClientGeneral::ReleasePlot
                         | ClientGeneral::ExitInGame
                         | ClientGeneral::PlayerPhysics { .. }
                         | ClientGeneral::TerrainChunkRequest { .. }

@@ -1,8 +1,8 @@
 use crate::{persistence::character_updater, sys::SysScheduler};
 use common::{
     comp::{
-        ActiveAbilities, Alignment, Body, Inventory, MapMarker, Presence, PresenceKind, SkillSet,
-        Stats, Waypoint,
+        ActiveAbilities, Alignment, Body, Inventory, MapMarker, PlayerPlot, Presence, PresenceKind,
+        SkillSet, Stats, Waypoint,
         pet::{Pet, is_tameable},
     },
     uid::Uid,
@@ -27,6 +27,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pet>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, ActiveAbilities>,
+        ReadStorage<'a, PlayerPlot>,
         WriteExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
     );
@@ -49,6 +50,7 @@ impl<'a> System<'a> for Sys {
             pets,
             stats,
             active_abilities,
+            player_plots,
             mut updater,
             mut scheduler,
         ): Self::SystemData,
@@ -63,6 +65,7 @@ impl<'a> System<'a> for Sys {
                     player_waypoints.maybe(),
                     &active_abilities,
                     map_markers.maybe(),
+                    player_plots.maybe(),
                 )
                     .join()
                     .filter_map(
@@ -74,6 +77,7 @@ impl<'a> System<'a> for Sys {
                             waypoint,
                             active_abilities,
                             map_marker,
+                            player_plot,
                         )| match presence.kind {
                             PresenceKind::LoadingCharacter(_char_id) => {
                                 error!(
@@ -107,6 +111,7 @@ impl<'a> System<'a> for Sys {
                                     waypoint.cloned(),
                                     active_abilities.clone(),
                                     map_marker.cloned(),
+                                    player_plot.cloned(),
                                 ))
                             },
                             PresenceKind::Spectator | PresenceKind::Possessor => None,
