@@ -460,10 +460,11 @@ impl Widget for Interface<'_> {
 
         // Slider -> Inactive when "Relative to window" is selected
         if let ScaleMode::Absolute(scale) = ui_scale {
+            // Max is 4.0× to support large/4K monitors where 2.0× makes the HUD too small.
             if let Some(new_val) = ImageSlider::continuous(
                 scale.log(2.0),
                 0.5f64.log(2.0),
-                2.0f64.log(2.0),
+                4.0f64.log(2.0),
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -476,10 +477,10 @@ impl Widget for Interface<'_> {
             {
                 events.push(UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
             }
-            let mode_label_list = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+            let mode_label_list = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0];
             let selected = mode_label_list
                 .iter()
-                .position(|factor| (*factor - scale).abs() < 0.24);
+                .position(|factor| (*factor - scale).abs() < 0.20);
             // Dropdown menu for custom scaling
             if let Some(clicked) = DropDownList::new(
                 &mode_label_list
