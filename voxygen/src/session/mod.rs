@@ -238,6 +238,20 @@ impl SessionState {
         self.key_state.auto_walk = false;
     }
 
+    /// Apply the currently selected palette entry: update `selected_block` and
+    /// notify the HUD so the palette overlay reflects the new selection.
+    fn apply_palette_selection(&mut self) {
+        let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
+        self.selected_block = Block::new(kind, Rgb::new(r, g, b));
+        self.hud.build_mode_palette(
+            self.palette_index,
+            BLOCK_PALETTE
+                .iter()
+                .map(|(label, _, _, _, _)| *label)
+                .collect(),
+        );
+    }
+
     /// Possibly lock the camera zoom depending on the current behaviour, and
     /// the current inputs if in the Auto state.
     fn maybe_auto_zoom_lock(
@@ -563,16 +577,8 @@ impl SessionState {
                             self.plot_boundary_shape = Some(id);
                             // Phase 4: reset palette selection to first entry.
                             self.palette_index = 0;
-                            let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
-                            self.selected_block = Block::new(kind, Rgb::new(r, g, b));
                             // Show the palette immediately so the player knows they can scroll.
-                            self.hud.build_mode_palette(
-                                self.palette_index,
-                                BLOCK_PALETTE
-                                    .iter()
-                                    .map(|(label, _, _, _, _)| *label)
-                                    .collect(),
-                            );
+                            self.apply_palette_selection();
                         },
                         Ok(None) => {
                             // Plot successfully released.
@@ -1395,15 +1401,7 @@ impl PlayState for SessionState {
                                             .palette_index
                                             .checked_sub(1)
                                             .unwrap_or(BLOCK_PALETTE.len() - 1);
-                                        let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
-                                        self.selected_block = Block::new(kind, Rgb::new(r, g, b));
-                                        self.hud.build_mode_palette(
-                                            self.palette_index,
-                                            BLOCK_PALETTE
-                                                .iter()
-                                                .map(|(label, _, _, _, _)| *label)
-                                                .collect(),
-                                        );
+                                        self.apply_palette_selection();
                                     } else if self.zoom_lock {
                                         self.hud.zoom_lock_reminder();
                                     } else {
@@ -1420,15 +1418,7 @@ impl PlayState for SessionState {
                                         // Phase 4: cycle palette forward (scroll down = next).
                                         self.palette_index =
                                             (self.palette_index + 1) % BLOCK_PALETTE.len();
-                                        let (_, kind, r, g, b) = BLOCK_PALETTE[self.palette_index];
-                                        self.selected_block = Block::new(kind, Rgb::new(r, g, b));
-                                        self.hud.build_mode_palette(
-                                            self.palette_index,
-                                            BLOCK_PALETTE
-                                                .iter()
-                                                .map(|(label, _, _, _, _)| *label)
-                                                .collect(),
-                                        );
+                                        self.apply_palette_selection();
                                     } else if self.zoom_lock {
                                         self.hud.zoom_lock_reminder();
                                     } else {

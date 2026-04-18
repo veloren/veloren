@@ -195,8 +195,9 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     let player_count = data[2];
     let player_cap = data[3];
     // Cap the name field at 64 bytes to match encode_packet's upper bound, even
-    // if a malformed packet tries to send more.
-    let end = data.len().min(68); // 4 (port + counts) + 64 (max name bytes)
+    // if a malformed packet tries to send more.  `data` here is already stripped
+    // of the magic prefix, so offset 68 = 4 (port + counts) + 64 (max name bytes).
+    let end = data.len().min(68);
     let name = std::str::from_utf8(&data[4..end]).ok()?.trim().to_owned();
     Some(ParsedPacket {
         port,

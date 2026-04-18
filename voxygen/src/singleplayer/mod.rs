@@ -391,7 +391,8 @@ fn run_server(
             .expect("Failed to tick server!");
 
         // Keep the LAN discovery broadcast up-to-date with the live player count.
-        let count = server.number_of_players().max(0).min(u8::MAX as i64) as u8;
+        // number_of_players() is always ≥ 0; clamp to u8::MAX for the wire format.
+        let count = server.number_of_players().min(u8::MAX as i64) as u8;
         broadcast_player_count.store(count, Ordering::Relaxed);
 
         for event in events {
