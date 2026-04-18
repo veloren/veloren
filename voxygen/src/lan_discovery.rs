@@ -8,13 +8,18 @@
 /// # Packet format
 /// ```text
 /// NOVA_FORGE_LAN\0  (15 bytes, 14-char magic + NUL)
-/// port_lo  port_hi   (2 bytes little-endian u16)
+/// port_lo  port_hi  (2 bytes little-endian u16)
+/// player_count      (1 byte u8)
+/// player_cap        (1 byte u8, 0 = unknown/unlimited)
 /// <UTF-8 server name, up to 64 bytes>
 /// ```
-/// Total on-wire size is always ≤ 81 bytes, well inside a single UDP frame.
+/// Total on-wire size is always ≤ 83 bytes, well inside a single UDP frame.
 use std::{
     net::{Ipv4Addr, SocketAddrV4, UdpSocket},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, AtomicU8, Ordering},
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -44,6 +49,10 @@ pub struct DiscoveredServer {
     pub address: String,
     /// Server name announced in the broadcast.
     pub name: String,
+    /// Number of players currently connected (as of the last broadcast).
+    pub player_count: u8,
+    /// Maximum player capacity (0 = unknown / unlimited).
+    pub player_cap: u8,
     /// When the most recent broadcast from this server was received.
     pub last_seen: Instant,
 }
@@ -55,7 +64,7 @@ pub struct DiscoveredServer {
 /// the background thread exits within one [`LISTEN_TIMEOUT`] tick.
 pub struct LanDiscovery {
     servers: Arc<Mutex<Vec<DiscoveredServer>>>,
-    stop: Arc<std::sync::atomic::AtomicBool>,
+    stop: Arc<AtomicBool>,
     _thread: Option<thread::JoinHandle<()>>,
 }
 
@@ -66,7 +75,7 @@ impl LanDiscovery {
     /// returned but no entries will ever be discovered.
     pub fn start() -> Self {
         let servers: Arc<Mutex<Vec<DiscoveredServer>>> = Default::default();
-        let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let stop = Arc::new(AtomicBool::new(false));
 
         let servers_clone = Arc::clone(&servers);
         let stop_clone = Arc::clone(&stop);
@@ -111,8 +120,7 @@ impl LanDiscovery {
 
 impl Drop for LanDiscovery {
     fn drop(&mut self) {
-        self.stop
-            .store(true, std::sync::atomic::Ordering::Relaxed);
+        self.stop.store(true, Ordering::Relaxed);
         // The thread will exit on its next 1-second read-timeout tick.
     }
 }
@@ -124,11 +132,11 @@ impl Drop for LanDiscovery {
 fn listener_thread(
     socket: UdpSocket,
     servers: Arc<Mutex<Vec<DiscoveredServer>>>,
-    stop: Arc<std::sync::atomic::AtomicBool>,
+    stop: Arc<AtomicBool>,
 ) {
     let mut buf = [0u8; 256];
     loop {
-        if stop.load(std::sync::atomic::Ordering::Relaxed) {
+        if stop.load(Ordering::Relaxed) {
             break;
         }
         match socket.recv_from(&mut buf) {
@@ -139,11 +147,15 @@ fn listener_thread(
                     let mut guard = servers.lock().unwrap_or_else(|e| e.into_inner());
                     if let Some(existing) = guard.iter_mut().find(|s| s.address == address) {
                         existing.name = entry.name;
+                        existing.player_count = entry.player_count;
+                        existing.player_cap = entry.player_cap;
                         existing.last_seen = Instant::now();
                     } else {
                         guard.push(DiscoveredServer {
                             address,
                             name: entry.name,
+                            player_count: entry.player_count,
+                            player_cap: entry.player_cap,
                             last_seen: Instant::now(),
                         });
                     }
@@ -165,23 +177,33 @@ fn listener_thread(
 
 struct ParsedPacket {
     port: u16,
+    player_count: u8,
+    player_cap: u8,
     name: String,
 }
 
 fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
     let data = data.strip_prefix(MAGIC)?;
-    if data.len() < 2 {
+    // Minimum: 2 (port) + 2 (player_count + player_cap) = 4 bytes after magic.
+    if data.len() < 4 {
         return None;
     }
     let port = u16::from_le_bytes([data[0], data[1]]);
     if port == 0 {
         return None;
     }
+    let player_count = data[2];
+    let player_cap = data[3];
     // Cap the name field at 64 bytes to match encode_packet's upper bound, even
     // if a malformed packet tries to send more.
-    let end = data.len().min(66); // 2 (port bytes) + 64 (max name bytes)
-    let name = std::str::from_utf8(&data[2..end]).ok()?.trim().to_owned();
-    Some(ParsedPacket { port, name })
+    let end = data.len().min(68); // 4 (port + counts) + 64 (max name bytes)
+    let name = std::str::from_utf8(&data[4..end]).ok()?.trim().to_owned();
+    Some(ParsedPacket {
+        port,
+        player_count,
+        player_cap,
+        name,
+    })
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -189,13 +211,18 @@ fn parse_packet(data: &[u8]) -> Option<ParsedPacket> {
 // ────────────────────────────────────────────────────────────────────────────
 
 /// Encode a discovery packet.
-pub fn encode_packet(port: u16, server_name: &str) -> Vec<u8> {
+///
+/// `player_count` is the number of connected players; `player_cap` is the
+/// server's maximum (0 = unknown / unlimited).
+pub fn encode_packet(port: u16, player_count: u8, player_cap: u8, server_name: &str) -> Vec<u8> {
     let name_bytes = server_name.as_bytes();
     // Truncate the name to 64 bytes to keep the packet small.
     let name_bytes = &name_bytes[..name_bytes.len().min(64)];
-    let mut pkt = Vec::with_capacity(MAGIC.len() + 2 + name_bytes.len());
+    let mut pkt = Vec::with_capacity(MAGIC.len() + 4 + name_bytes.len());
     pkt.extend_from_slice(MAGIC);
     pkt.extend_from_slice(&port.to_le_bytes());
+    pkt.push(player_count);
+    pkt.push(player_cap);
     pkt.extend_from_slice(name_bytes);
     pkt
 }
@@ -203,13 +230,19 @@ pub fn encode_packet(port: u16, server_name: &str) -> Vec<u8> {
 /// Spawn a background thread that broadcasts LAN server presence until
 /// `stop` is set.
 ///
+/// `player_count` is an `Arc<AtomicU8>` updated by the server tick loop so
+/// the broadcaster can include a live player count in each packet without
+/// locking the server.
+///
 /// This is called from the LAN co-op server thread immediately after the
 /// server has finished initialising, so the address-in-use failure mode
 /// should not occur in practice (we bind to an ephemeral source port).
 pub fn start_broadcaster(
     port: u16,
     server_name: String,
-    stop: Arc<std::sync::atomic::AtomicBool>,
+    player_cap: u8,
+    player_count: Arc<AtomicU8>,
+    stop: Arc<AtomicBool>,
 ) {
     let builder = thread::Builder::new().name("lan-discovery-broadcaster".into());
     let _ = builder.spawn(move || {
@@ -226,19 +259,19 @@ pub fn start_broadcaster(
         }
         let dest: std::net::SocketAddr =
             SocketAddrV4::new(Ipv4Addr::BROADCAST, DISCOVERY_PORT).into();
-        let packet = encode_packet(port, &server_name);
         loop {
-            if stop.load(std::sync::atomic::Ordering::Relaxed) {
+            if stop.load(Ordering::Relaxed) {
                 break;
             }
+            // Rebuild the packet each broadcast so the player count is live.
+            let count = player_count.load(Ordering::Relaxed);
+            let packet = encode_packet(port, count, player_cap, &server_name);
             if let Err(e) = socket.send_to(&packet, dest) {
                 debug!(?e, "LAN discovery broadcast send failed");
             }
             // Sleep in small increments so the stop flag is checked promptly.
             let mut remaining = BROADCAST_INTERVAL;
-            while remaining > Duration::ZERO
-                && !stop.load(std::sync::atomic::Ordering::Relaxed)
-            {
+            while remaining > Duration::ZERO && !stop.load(Ordering::Relaxed) {
                 let step = remaining.min(Duration::from_millis(200));
                 thread::sleep(step);
                 remaining = remaining.saturating_sub(step);
@@ -253,16 +286,18 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let pkt = encode_packet(14004, "My LAN Server");
+        let pkt = encode_packet(14004, 2, 8, "My LAN Server");
         let parsed = parse_packet(&pkt).expect("parse failed");
         assert_eq!(parsed.port, 14004);
+        assert_eq!(parsed.player_count, 2);
+        assert_eq!(parsed.player_cap, 8);
         assert_eq!(parsed.name, "My LAN Server");
     }
 
     #[test]
     fn name_truncation() {
         let long_name = "A".repeat(100);
-        let pkt = encode_packet(14004, &long_name);
+        let pkt = encode_packet(14004, 0, 0, &long_name);
         let parsed = parse_packet(&pkt).expect("parse failed");
         assert_eq!(parsed.name.len(), 64);
     }
@@ -275,7 +310,7 @@ mod tests {
 
     #[test]
     fn rejects_zero_port() {
-        let mut pkt = encode_packet(0, "zero port");
+        let mut pkt = encode_packet(0, 1, 8, "zero port");
         // Ensure the port bytes are both zero after magic.
         let ml = MAGIC.len();
         pkt[ml] = 0;

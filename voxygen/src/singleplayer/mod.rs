@@ -12,7 +12,7 @@ use server::{
 use std::{
     sync::{
         Arc,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU8, Ordering},
     },
     thread::{self, JoinHandle},
     time::Duration,
@@ -175,7 +175,13 @@ impl SingleplayerState {
                              Stopping Server"
                         ),
                         (Ok(()), None) => (),
-                        (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                        (Ok(()), Some(server)) => run_server(
+                            server,
+                            stop_server_r,
+                            paused1,
+                            // Singleplayer doesn't broadcast; use a dummy counter.
+                            Arc::new(AtomicU8::new(0)),
+                        ),
                     }
 
                     trace!("ending singleplayer server thread");
@@ -259,6 +265,11 @@ impl SingleplayerState {
             let paused = Arc::new(AtomicBool::new(false));
             let paused1 = Arc::clone(&paused);
 
+            // Shared player count — updated by run_server each tick, read by the
+            // LAN broadcaster so that the discovery packet stays live.
+            let broadcast_player_count = Arc::new(AtomicU8::new(0));
+            let broadcast_player_count1 = Arc::clone(&broadcast_player_count);
+
             let (result_sender, result_receiver) = bounded(1);
 
             let builder = thread::Builder::new().name("lan-coop-server-thread".into());
@@ -301,7 +312,9 @@ impl SingleplayerState {
                             "Failed to send LAN co-op server initialization result."
                         ),
                         (Ok(()), None) => (),
-                        (Ok(()), Some(server)) => run_server(server, stop_server_r, paused1),
+                        (Ok(()), Some(server)) => {
+                            run_server(server, stop_server_r, paused1, broadcast_player_count1)
+                        },
                     }
 
                     trace!("ending LAN co-op server thread");
@@ -317,9 +330,12 @@ impl SingleplayerState {
                 is_lan: true,
                 stop_broadcast: {
                     let stop = Arc::new(AtomicBool::new(false));
+                    let player_cap = world_max_players.min(u8::MAX as u16) as u8;
                     lan_discovery::start_broadcaster(
                         server::settings::LAN_COOP_PORT,
                         world_name,
+                        player_cap,
+                        broadcast_player_count,
                         Arc::clone(&stop),
                     );
                     stop
@@ -341,7 +357,12 @@ impl SingleplayerState {
     pub fn is_running(&self) -> bool { matches!(self, SingleplayerState::Running(_)) }
 }
 
-fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<AtomicBool>) {
+fn run_server(
+    mut server: Server,
+    stop_server_r: Receiver<()>,
+    paused: Arc<AtomicBool>,
+    broadcast_player_count: Arc<AtomicU8>,
+) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
@@ -368,6 +389,10 @@ fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<Atomi
         let events = server
             .tick(Input::default(), clock.dt())
             .expect("Failed to tick server!");
+
+        // Keep the LAN discovery broadcast up-to-date with the live player count.
+        let count = server.number_of_players().max(0).min(u8::MAX as i64) as u8;
+        broadcast_player_count.store(count, Ordering::Relaxed);
 
         for event in events {
             match event {

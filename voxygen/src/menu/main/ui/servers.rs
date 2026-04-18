@@ -143,7 +143,14 @@ impl Screen {
                 .iter_mut()
                 .zip(lan_servers)
                 .map(|(state, server)| {
-                    let label = format!("{} — {}", server.name, server.address);
+                    let player_info = if server.player_cap > 0 {
+                        format!(" ({}/{})", server.player_count, server.player_cap)
+                    } else if server.player_count > 0 {
+                        format!(" ({} online)", server.player_count)
+                    } else {
+                        String::new()
+                    };
+                    let label = format!("{}{} — {}", server.name, player_info, server.address);
                     let button = Button::new(
                         state,
                         Row::with_children(vec![
