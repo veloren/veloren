@@ -4033,7 +4033,10 @@ impl Hud {
         }
 
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts, i18n).set(self.ids.esc_menu, ui_widgets) {
+            let is_lan_host = global_state.is_lan_host();
+            match EscMenu::new(&self.imgs, &self.fonts, i18n, is_lan_host)
+                .set(self.ids.esc_menu, ui_widgets)
+            {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
                     self.show.open_setting_tab(tab);
                 },
