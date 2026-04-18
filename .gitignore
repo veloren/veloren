@@ -3,6 +3,7 @@
 *.log
 *.rar
 assets/tweak/
+logs/
 maps
 notes.md
 notes.txt
