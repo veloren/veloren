@@ -113,3 +113,14 @@ hud-init-stage-client-starting-client = [{ -client }]: Preparing Client...
 hud-init-stage-render-pipeline = Creating render pipeline ({ $done }/{ $total })
 
 hud-tutorial-disable = Permanently disable tutorial hints
+
+# Build mode indicator
+hud-build_mode_indicator = Build mode active
+
+# Plot claim feedback messages
+hud-plot-claimed = Plot claimed. Build mode active.
+hud-plot-released = Plot released. Build mode inactive.
+hud-plot-error-area_too_large = Cannot claim plot: area exceeds the maximum size (32×32).
+hud-plot-error-overlaps_existing = Cannot claim plot: overlaps an already-claimed plot.
+hud-plot-error-already_owned = Cannot claim plot: you already own a plot. Release it first.
+hud-plot-error-not_owned = Cannot release plot: you do not own a plot.

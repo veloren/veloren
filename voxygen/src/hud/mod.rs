@@ -351,6 +351,10 @@ widget_ids! {
         auto_walk_txt,
         auto_walk_bg,
 
+        // Build mode indicator
+        build_mode_txt,
+        build_mode_bg,
+
         // Walking speed indicator
         walking_speed_txt,
         walking_speed_bg,
@@ -951,6 +955,7 @@ pub struct Show {
     stats: bool,
     free_look: bool,
     auto_walk: bool,
+    build_mode: bool,
     zoom_lock: ChangeNotification,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
@@ -1438,6 +1443,7 @@ impl Hud {
                 stats: false,
                 free_look: false,
                 auto_walk: false,
+                build_mode: false,
                 zoom_lock: ChangeNotification::default(),
                 camera_clamp: false,
                 prompt_dialog: None,
@@ -4095,6 +4101,23 @@ impl Hud {
                 .set(self.ids.auto_walk_txt, ui_widgets);
         }
 
+        // Build mode indicator
+        if self.show.build_mode {
+            Text::new(&i18n.get_msg("hud-build_mode_indicator"))
+                .color(TEXT_BG)
+                .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.build_mode_bg, ui_widgets);
+            indicator_offset += 30.0;
+            Text::new(&i18n.get_msg("hud-build_mode_indicator"))
+                .color(KILL_COLOR)
+                .top_left_with_margins_on(self.ids.build_mode_bg, -1.0, -1.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(20))
+                .set(self.ids.build_mode_txt, ui_widgets);
+        }
+
         // Camera zoom lock
         self.show.zoom_lock.update(dt);
 
@@ -5293,6 +5316,8 @@ impl Hud {
     pub fn free_look(&mut self, free_look: bool) { self.show.free_look = free_look; }
 
     pub fn auto_walk(&mut self, auto_walk: bool) { self.show.auto_walk = auto_walk; }
+
+    pub fn build_mode(&mut self, active: bool) { self.show.build_mode = active; }
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 
