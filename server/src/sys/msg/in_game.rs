@@ -18,7 +18,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, PlotClaimError, ServerGeneral};
+use common_net::msg::{ClientGeneral, ServerGeneral, server::PlotClaimError};
 use common_state::{AreasContainer, BlockChange, BuildArea, PlayerBuildArea};
 use core::mem;
 use rayon::prelude::*;
