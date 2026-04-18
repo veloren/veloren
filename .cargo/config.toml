@@ -20,7 +20,7 @@ rustflags = [
     # its internal EC_LIMIT ceiling (error code 12 → LNK1318 LIMIT (12)).
     # LLD generates PDB files without this restriction and is bundled with
     # every standard Rust toolchain installation.
-    "-Z", "linker-features=+lld",
+    "-C", "linker-features=+lld",
     # Disable incremental linking to prevent stale link-state artifacts.
     "-C", "link-arg=/INCREMENTAL:NO",
 ]
