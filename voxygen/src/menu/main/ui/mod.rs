@@ -384,6 +384,7 @@ impl Controls {
         dt: f32,
         #[cfg(feature = "singleplayer")] worlds: &crate::singleplayer::SingleplayerWorlds,
         lan_servers: &[crate::lan_discovery::DiscoveredServer],
+        lan_searching: bool,
     ) -> Element<'_, Message> {
         self.time += dt as f64;
 
@@ -443,6 +444,7 @@ impl Controls {
                 &self.i18n.read(),
                 button_style,
                 lan_servers,
+                lan_searching,
             ),
             Screen::Connecting {
                 screen,
@@ -892,6 +894,7 @@ impl MainMenuUi {
             .unwrap_or(&worlds_default);
 
         let lan_servers = global_state.lan_discovery.snapshot();
+        let lan_searching = global_state.lan_discovery.is_searching();
 
         let (messages, _) = self.ui.maintain(
             self.controls.view(
@@ -900,6 +903,7 @@ impl MainMenuUi {
                 #[cfg(feature = "singleplayer")]
                 worlds,
                 &lan_servers,
+                lan_searching,
             ),
             global_state.window.renderer_mut(),
             None,

@@ -39,6 +39,7 @@ impl Screen {
         i18n: &Localization,
         button_style: style::button::Style,
         lan_servers: &[DiscoveredServer],
+        lan_searching: bool,
     ) -> Element<'_, Message> {
         let title = Text::new(i18n.get_msg("main-servers-select_server"))
             .size(fonts.cyri.scale(35))
@@ -124,15 +125,30 @@ impl Screen {
         }
 
         // ── LAN Servers section ──────────────────────────────────────────────
-        if !lan_servers.is_empty() {
+        // Always show the section header so users know LAN discovery is active.
+        list = list.push(
+            Text::new(i18n.get_msg("main-servers-lan_servers"))
+                .size(fonts.cyri.scale(22))
+                .color(iced::Color::from_rgb(0.7, 0.9, 1.0))
+                .width(Length::Fill)
+                .horizontal_alignment(iced::HorizontalAlignment::Center),
+        );
+
+        if lan_servers.is_empty() {
+            // Show status text while no servers have been discovered yet.
+            let status_msg = if lan_searching {
+                i18n.get_msg("main-servers-lan_searching")
+            } else {
+                i18n.get_msg("main-servers-lan_none")
+            };
             list = list.push(
-                Text::new(i18n.get_msg("main-servers-lan_servers"))
-                    .size(fonts.cyri.scale(22))
-                    .color(iced::Color::from_rgb(0.7, 0.9, 1.0))
+                Text::new(status_msg)
+                    .size(fonts.cyri.scale(18))
+                    .color(iced::Color::from_rgb(0.6, 0.6, 0.6))
                     .width(Length::Fill)
                     .horizontal_alignment(iced::HorizontalAlignment::Center),
             );
-
+        } else {
             // Resize LAN button states to match discovered servers.
             if self.lan_buttons.len() != lan_servers.len() {
                 self.lan_buttons = vec![Default::default(); lan_servers.len()];

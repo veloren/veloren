@@ -71,6 +71,9 @@ pub struct LanDiscovery {
     servers: Arc<Mutex<Vec<DiscoveredServer>>>,
     stop: Arc<AtomicBool>,
     _thread: Option<thread::JoinHandle<()>>,
+    /// When the listener was started; used to report a "searching" state
+    /// during the first possible broadcast window.
+    started_at: Instant,
 }
 
 impl LanDiscovery {
@@ -110,7 +113,18 @@ impl LanDiscovery {
             servers,
             stop,
             _thread: handle,
+            started_at: Instant::now(),
         }
+    }
+
+    /// Returns `true` while the client is still within the initial discovery
+    /// window — i.e. not enough time has elapsed for a server broadcast to
+    /// have been received and processed even if one started simultaneously.
+    ///
+    /// Servers broadcast every [`BROADCAST_INTERVAL`] (5 s); we allow one
+    /// extra second of headroom, so this returns `true` for about 6 s.
+    pub fn is_searching(&self) -> bool {
+        self.started_at.elapsed() < BROADCAST_INTERVAL + Duration::from_secs(1)
     }
 
     /// Returns a snapshot of currently live LAN servers, evicting entries
