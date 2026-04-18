@@ -184,20 +184,15 @@ impl Screen {
             .center_x()
             .center_y();
 
-        let v_logo = Container::new(Image::new(imgs.nova_forge_logo).fix_aspect_ratio())
-            .padding(3)
-            .width(Length::Units(280));
-
         let version_stage =
-            Text::new(common::util::NOVA_FORGE_VERSION_STAGE).size(fonts.cyri.scale(22));
+            Text::new(common::util::NOVA_FORGE_VERSION_STAGE).size(fonts.cyri.scale(18));
 
-        let right_column = Container::new(
-            Column::with_children(vec![v_logo.into(), version_stage.into()])
-                .align_items(Align::Center),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .align_x(Align::End);
+        let right_column = Container::new(version_stage)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(Align::End)
+            .align_y(Align::Start)
+            .padding(8);
 
         Row::with_children(vec![
             left_column,
@@ -389,7 +384,13 @@ impl LoginBanner {
             .into()
         };
 
+        let logo = Container::new(Image::new(imgs.nova_forge_logo).fix_aspect_ratio())
+            .width(Length::Units(320))
+            .center_x();
+
         let banner_content = Column::with_children(vec![
+            logo.into(),
+            Space::new(Length::Fill, Length::Units(10)).into(),
             Column::with_children(vec![
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
