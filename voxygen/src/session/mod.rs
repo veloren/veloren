@@ -34,7 +34,10 @@ use common::{
     vol::ReadVol,
 };
 use common_base::{prof_span, span};
-use common_net::{msg::server::InviteAnswer, sync::WorldSyncExt};
+use common_net::{
+    msg::server::{InviteAnswer, PlotClaimError},
+    sync::WorldSyncExt,
+};
 
 use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -508,14 +511,35 @@ impl SessionState {
                     match result {
                         Ok(Some(_)) => {
                             self.build_mode_active = true;
+                            self.hud.build_mode(true);
+                            self.hud.new_message(
+                                ChatType::Meta.into_msg(Content::localized("hud-plot-claimed")),
+                            );
                         },
                         Ok(None) => {
                             // Plot successfully released.
                             self.build_mode_active = false;
+                            self.hud.build_mode(false);
+                            self.hud.new_message(
+                                ChatType::Meta.into_msg(Content::localized("hud-plot-released")),
+                            );
                         },
-                        Err(_) => {
+                        Err(err) => {
                             // The server rejected the request; revert the optimistic toggle.
                             self.build_mode_active = false;
+                            self.hud.build_mode(false);
+                            let key = match err {
+                                PlotClaimError::AreaTooLarge => "hud-plot-error-area_too_large",
+                                PlotClaimError::OverlapsExisting => {
+                                    "hud-plot-error-overlaps_existing"
+                                },
+                                PlotClaimError::AlreadyOwned => "hud-plot-error-already_owned",
+                                PlotClaimError::NotOwned => "hud-plot-error-not_owned",
+                            };
+                            self.hud.new_message(
+                                ChatType::CommandError
+                                    .into_msg(Content::localized(key)),
+                            );
                         },
                     }
                 },

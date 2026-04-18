@@ -79,6 +79,7 @@ gameinput-mutemusic = Mute Music Volume
 gameinput-mutesfx = Mute SFX Volume
 gameinput-muteambience = Mute Ambience Volume
 gameinput-togglewalk = Toggle Walking
+gameinput-togglebuildmode = Toggle Build Mode
 gamepad-south = South
 gamepad-east = East
 gamepad-north = North
