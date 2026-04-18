@@ -122,47 +122,17 @@ MD_LOG_FILE=""
 _BUILD_CMD_DESC=""
 
 # _cargo_progress_filter <log_file>
-#   Reads cargo output from stdin, displays a colorized progress panel in
+#   Reads cargo output from stdin, displays a colorized live status line in
 #   the terminal, and appends clean (ANSI-stripped) text to <log_file>.
 #
-#   Terminal layout (for a 40-row window):
-#     rows  1 .. (rows-4)  — scrolling build output
-#     row   (rows-3)       — separator (────)
-#     row   (rows-2)       — progress bar + compiled / error / elapsed counts
-#     row   (rows-1)       — status icon  [⟳] / [✓] / [✗]  + log path
-#     row   (rows)         — reserved / blank
+#   The status line is rewritten in-place with \r after every build line, so
+#   it always fills the current terminal width and survives window resizes
+#   (including maximise) without any scrolling-region manipulation.
 _cargo_progress_filter() {
     local log_file="$1"
     local compiled=0 errors=0 warnings=0
     local start_time
     start_time=$(date +%s)
-
-    # Terminal dimensions — default to 80×24 if tput is unavailable.
-    local rows cols
-    rows=$(tput lines 2>/dev/null || echo 24)
-    cols=$(tput cols  2>/dev/null || echo 80)
-
-    # Require at least 12 rows for the panel to make sense.
-    if (( rows < 12 )); then
-        # Fallback: plain output with no panel.
-        while IFS= read -r line; do
-            local c; c=$(printf '%s' "$line" | sed 's/\x1b\[[0-9;:]*[A-Za-z]//g; s/\r//g')
-            [[ -n "$c" ]] && printf '%s\n' "$c" >> "$log_file"
-            printf '%s\n' "$line"
-        done
-        return
-    fi
-
-    # Set scrolling region: rows 1..(rows-4).  The last 4 rows form the
-    # fixed status panel and will never be scrolled over.
-    local scroll_end=$(( rows - 4 ))
-    printf '\e[1;%dr' "$scroll_end"
-
-    # Hide cursor while the build runs.
-    tput civis 2>/dev/null || true
-
-    # Restore terminal on any exit (normal, Ctrl-C, signal).
-    trap 'printf "\e[r"; tput cnorm 2>/dev/null || true' EXIT INT TERM
 
     # ── Helper: build a block-fill progress bar string ───────────────────
     _pf_bar() {
@@ -174,67 +144,28 @@ _cargo_progress_filter() {
         printf '%s' "$bar"
     }
 
-    # ── Helper: redraw the 4-row status panel ────────────────────────────
-    _pf_panel() {
-        # Re-read terminal size on every call so the panel always anchors to
-        # the real bottom of the screen regardless of window resizes or any
-        # race between a prior resize escape and tput.
-        local new_rows new_cols
-        new_rows=$(tput lines 2>/dev/null || echo "$rows")
-        new_cols=$(tput cols  2>/dev/null || echo "$cols")
-        if [[ "$new_rows" != "$rows" || "$new_cols" != "$cols" ]]; then
-            rows=$new_rows
-            cols=$new_cols
-            scroll_end=$(( rows - 4 ))
-            # Re-emit the scrolling region then park the cursor at its bottom
-            # edge so subsequent output stays inside the scroll zone.
-            printf '\e[1;%dr\e[%d;1H' "$scroll_end" "$scroll_end"
-        fi
-
+    # ── Helper: overwrite the current line with a fresh status update ─────
+    #   Uses \r to return to column 1 and \e[K to erase to end-of-line.
+    #   Terminal width is re-read each call so the bar always fits after a
+    #   resize or maximise event — no scrolling-region escape needed.
+    _pf_status() {
         local elapsed=$(( $(date +%s) - start_time ))
-        local bar_width=$(( cols - 60 ))
-        (( bar_width > 72 )) && bar_width=72
-        (( bar_width < 20 )) && bar_width=20
+        local cols
+        cols=$(tput cols 2>/dev/null || echo "${COLUMNS:-80}")
+        local bar_width=$(( cols - 55 ))
+        (( bar_width > 40 )) && bar_width=40
+        (( bar_width < 10 )) && bar_width=10
 
-        # Heuristic fill: asymptotically approaches bar_width as compiled grows.
         local fill=0
         (( compiled > 0 )) && fill=$(( compiled * bar_width / (compiled + 8) ))
         local bar; bar=$(_pf_bar "$fill" "$bar_width")
 
-        local icon color
-        if (( errors > 0 )); then
-            icon="✗"; color="$RED"
-        else
-            icon="⟳"; color="$GREEN"
-        fi
-
-        # Save cursor, paint panel rows, restore cursor.
-        printf '\e7'
-
-        # Separator (rows-3).
-        printf '\e[%d;1H\e[2K' $(( rows - 3 ))
-        printf '%.0s─' $(seq 1 "$cols")
-        printf '\e[K'
-
-        # Progress bar + counts (rows-2).
-        printf '\e[%d;1H\e[2K' $(( rows - 2 ))
-        printf " Overall Build Status: [${GREEN}%s${NC}]" "$bar"
-        printf "  ${CYAN}Compiled: %d${NC}" "$compiled"
+        printf '\r\e[K'
+        printf " Overall Build Status: [${GREEN}%s${NC}]  ${CYAN}Compiled: %d${NC}" \
+            "$bar" "$compiled"
         (( warnings > 0 )) && printf "  ${YELLOW}Warnings: %d${NC}" "$warnings"
         (( errors   > 0 )) && printf "  ${RED}Errors: %d${NC}"    "$errors"
         printf "  Elapsed: %ds" "$elapsed"
-        printf '\e[K'
-
-        # Status icon (rows-1).
-        printf '\e[%d;1H\e[2K' $(( rows - 1 ))
-        printf " ${color}${BOLD}[%s]${NC} Building…  Log → ${CYAN}%s${NC}" \
-            "$icon" "$log_file"
-        printf '\e[K'
-
-        # Blank reserved row (rows).
-        printf '\e[%d;1H\e[2K' "$rows"
-
-        printf '\e8'  # restore cursor
     }
 
     # ── Main processing loop ──────────────────────────────────────────────
@@ -245,10 +176,12 @@ _cargo_progress_filter() {
         [[ -n "$clean" ]] && printf '%s\n' "$clean" >> "$log_file"
         [[ -z "$clean" ]] && continue  # skip blank / control-only lines
 
-        # Classify and display each line with appropriate colour + marker.
+        # Clear the status line, then print the classified build line.
+        printf '\r\e[K'
+
         if [[ "$clean" =~ ^[[:space:]]*(Compiling|Downloading|Updating)[[:space:]] ]]; then
             (( compiled++ )) || true
-            printf "${GREEN}%s  ✓${NC}\e[K\n" "$clean"
+            printf "${GREEN}%s  ✓${NC}\n" "$clean"
 
         elif [[ "$clean" =~ ^error[^[]*:\ could\ not\ compile ]]; then
             local cname="${clean#*\`}"; cname="${cname%%\`*}"
@@ -272,47 +205,34 @@ _cargo_progress_filter() {
             printf '%s\n' "$clean"
         fi
 
-        _pf_panel
+        _pf_status
     done
 
-    # ── Final status panel ────────────────────────────────────────────────
+    # ── Final status ──────────────────────────────────────────────────────
+    printf '\r\e[K'   # clear the live status line
     local elapsed=$(( $(date +%s) - start_time ))
-    printf '\e7'
+    local cols
+    cols=$(tput cols 2>/dev/null || echo "${COLUMNS:-80}")
 
-    printf '\e[%d;1H\e[2K' $(( rows - 3 ))
+    printf '\n'
     printf '%.0s─' $(seq 1 "$cols")
-    printf '\e[K'
+    printf '\n'
 
-    printf '\e[%d;1H\e[2K' $(( rows - 2 ))
     if (( errors > 0 )); then
         printf " ${RED}${BOLD}[✗ BUILD FAILED]${NC}"
-        printf "  ${CYAN}Compiled: %d${NC}  ${RED}Errors: %d${NC}  Elapsed: %ds" \
+        printf "  ${CYAN}Compiled: %d${NC}  ${RED}Errors: %d${NC}  Elapsed: %ds\n" \
             "$compiled" "$errors" "$elapsed"
-    else
-        local bar_width=72
-        local full_bar; full_bar=$(_pf_bar "$bar_width" "$bar_width")
-        printf " ${GREEN}${BOLD}[✓ BUILD SUCCESSFUL]${NC}"
-        printf "  [${GREEN}%s${NC}]  ${CYAN}Compiled: %d${NC}  Elapsed: %ds" \
-            "$full_bar" "$compiled" "$elapsed"
-    fi
-    printf '\e[K'
-
-    printf '\e[%d;1H\e[2K' $(( rows - 1 ))
-    if (( errors > 0 )); then
-        printf " ${RED}${BOLD}[✗] Build failed — see error report: %s${NC}" \
+        printf " ${RED}${BOLD}[✗]${NC} Build failed — see error report: ${CYAN}%s${NC}\n" \
             "$MD_LOG_FILE"
     else
-        printf " ${GREEN}${BOLD}[✓] Build completed successfully!${NC}"
+        local bar_width=40
+        local full_bar; full_bar=$(_pf_bar "$bar_width" "$bar_width")
+        printf " ${GREEN}${BOLD}[✓ BUILD SUCCESSFUL]${NC}"
+        printf "  [${GREEN}%s${NC}]  ${CYAN}Compiled: %d${NC}  Elapsed: %ds\n" \
+            "$full_bar" "$compiled" "$elapsed"
+        printf " ${GREEN}${BOLD}[✓]${NC} Build completed successfully!\n"
     fi
-    printf '\e[K'
-
-    printf '\e[%d;1H\e[2K' "$rows"
-    printf '\e8'
-
-    # Restore terminal state (also fired by the EXIT trap, but be explicit).
-    printf '\e[r'          # reset scrolling region to full screen
-    tput cnorm 2>/dev/null || true
-    trap - EXIT INT TERM
+    printf '\n'
 }
 
 # run_cargo <cargo args...>
