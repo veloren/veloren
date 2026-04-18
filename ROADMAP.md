@@ -18,7 +18,7 @@ Checked items are complete (or substantially complete); unchecked items are plan
 
 ## Phase 1 — Core Nova-Forge Modifications
 
-Items that modify or extend existing Veloren systems.
+Items that modify or extend existing base engine systems.
 
 ### GUI Scale slider for large/HiDPI monitors *(partially complete)*
 
