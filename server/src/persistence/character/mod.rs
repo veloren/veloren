@@ -336,7 +336,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
             SELECT  character_id,
                     alias,
                     waypoint,
-                    hardcore
+                    hardcore,
+                    plot
             FROM    character
             WHERE   player_uuid = ?1
             ORDER BY character_id",
@@ -350,6 +351,7 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
                 player_uuid: player_uuid_.to_owned(),
                 waypoint: row.get(2)?,
                 hardcore: row.get(3)?,
+                plot: row.get(4)?,
             })
         })?
         .map(|x| x.unwrap())
