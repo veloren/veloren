@@ -550,12 +550,15 @@ impl SessionState {
                                 .scene
                                 .debug
                                 .add_shape(crate::scene::DebugShape::WireBox(aabb));
-                            // Gold colour to match the build-mode theme.
+                            // Gold colour to match the build-mode HUD theme.
+                            const PLOT_BOX_POS: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+                            const PLOT_BOX_COLOR: [f32; 4] = [1.0, 0.75, 0.0, 0.8];
+                            const PLOT_BOX_ORI: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
                             self.scene.debug.set_context(
                                 id,
-                                [0.0, 0.0, 0.0, 1.0],
-                                [1.0, 0.75, 0.0, 0.8],
-                                [0.0, 0.0, 0.0, 1.0],
+                                PLOT_BOX_POS,
+                                PLOT_BOX_COLOR,
+                                PLOT_BOX_ORI,
                             );
                             self.plot_boundary_shape = Some(id);
                             // Phase 4: reset palette selection to first entry.

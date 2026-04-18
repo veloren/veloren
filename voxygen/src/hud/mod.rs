@@ -4127,13 +4127,15 @@ impl Hud {
                 .set(self.ids.build_mode_txt, ui_widgets);
 
             // Phase 4: block palette — shown whenever build mode is active.
-            if let Some((selected, ref labels)) = self.build_mode_palette.clone() {
+            if let Some((selected, labels)) = &self.build_mode_palette {
+                const PALETTE_ROW_HEIGHT: f64 = 22.0;
+                const PALETTE_PANEL_WIDTH: f64 = 180.0;
+                const PALETTE_PADDING: f64 = 8.0;
+                let selected = *selected;
                 let n = labels.len();
-                let row_h = 22.0_f64;
-                let panel_w = 180.0_f64;
-                let panel_h = n as f64 * row_h + 8.0;
+                let panel_h = n as f64 * PALETTE_ROW_HEIGHT + PALETTE_PADDING;
 
-                Rectangle::fill([panel_w, panel_h])
+                Rectangle::fill([PALETTE_PANEL_WIDTH, panel_h])
                     .color(Color::Rgba(0.0, 0.0, 0.0, 0.6))
                     .mid_top_with_margin_on(ui_widgets.window, indicator_offset)
                     .set(self.ids.build_palette_bg, ui_widgets);
@@ -4149,7 +4151,7 @@ impl Hud {
                     } else {
                         Color::Rgba(0.85, 0.85, 0.85, 1.0)
                     };
-                    let top_margin = 4.0 + i as f64 * row_h;
+                    let top_margin = 4.0 + i as f64 * PALETTE_ROW_HEIGHT;
                     Text::new(label)
                         .color(color)
                         .top_left_with_margins_on(
@@ -4163,7 +4165,7 @@ impl Hud {
                 }
 
                 // Arrow cursor next to selected entry
-                let cursor_top = 4.0 + selected as f64 * row_h;
+                let cursor_top = 4.0 + selected as f64 * PALETTE_ROW_HEIGHT;
                 Text::new("▶")
                     .color(Color::Rgba(1.0, 0.85, 0.0, 1.0))
                     .top_left_with_margins_on(self.ids.build_palette_bg, cursor_top, 2.0)
