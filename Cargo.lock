@@ -4690,6 +4690,596 @@ dependencies = [
 ]
 
 [[package]]
+name = "nova-forge-client"
+version = "0.18.0"
+dependencies = [
+ "async-channel",
+ "authc",
+ "byteorder",
+ "clap",
+ "hashbrown 0.16.0",
+ "hickory-resolver",
+ "image",
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-frontend",
+ "nova-forge-common-i18n",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-network",
+ "nova-forge-voxygen-i18n-helpers",
+ "num 0.4.3",
+ "quinn",
+ "rayon",
+ "ron",
+ "rustls",
+ "rustyline",
+ "serde",
+ "specs",
+ "tokio",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-client-i18n"
+version = "0.18.0"
+dependencies = [
+ "clap",
+ "fluent",
+ "fluent-bundle",
+ "fluent-syntax",
+ "hashbrown 0.16.0",
+ "intl-memoizer",
+ "nova-forge-common-assets",
+ "nova-forge-common-i18n",
+ "serde",
+ "tracing",
+ "unic-langid",
+]
+
+[[package]]
+name = "nova-forge-common"
+version = "0.18.0"
+dependencies = [
+ "ahash 0.8.12",
+ "approx 0.5.1",
+ "bitflags 2.10.0",
+ "chrono",
+ "chrono-tz",
+ "clap",
+ "criterion",
+ "crossbeam-utils 0.8.21",
+ "csv",
+ "dot_vox",
+ "enum-map",
+ "enumset",
+ "fxhash",
+ "hashbrown 0.16.0",
+ "indexmap 2.12.0",
+ "itertools 0.14.0",
+ "kiddo",
+ "lazy_static",
+ "nova-forge-common-assets",
+ "nova-forge-common-base",
+ "nova-forge-common-i18n",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.1.0",
+ "petgraph 0.8.3",
+ "rand 0.10.0",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "regex",
+ "ron",
+ "roots",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "sha2",
+ "slab",
+ "slotmap",
+ "specs",
+ "spin_sleep",
+ "strum 0.28.0",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-common-assets"
+version = "0.18.0"
+dependencies = [
+ "assets_manager",
+ "dot_vox",
+ "hashbrown 0.16.0",
+ "image",
+ "lazy_static",
+ "ron",
+ "serde",
+ "tracing",
+ "walkdir",
+ "wavefront",
+]
+
+[[package]]
+name = "nova-forge-common-base"
+version = "0.18.0"
+dependencies = [
+ "directories-next",
+ "profiling",
+ "tracing",
+]
+
+[[package]]
+name = "nova-forge-common-dynlib"
+version = "0.18.0"
+dependencies = [
+ "find_folder",
+ "libloading 0.9.0",
+ "notify",
+ "tracing",
+]
+
+[[package]]
+name = "nova-forge-common-ecs"
+version = "0.18.0"
+dependencies = [
+ "float-cmp",
+ "nova-forge-common-base",
+ "specs",
+ "tracing",
+]
+
+[[package]]
+name = "nova-forge-common-frontend"
+version = "0.18.0"
+dependencies = [
+ "nova-forge-common-base",
+ "termcolor",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "tracing-tracy",
+]
+
+[[package]]
+name = "nova-forge-common-i18n"
+version = "0.18.0"
+dependencies = [
+ "hashbrown 0.16.0",
+ "rand 0.10.0",
+ "serde",
+]
+
+[[package]]
+name = "nova-forge-common-net"
+version = "0.18.0"
+dependencies = [
+ "bincode",
+ "flate2",
+ "hashbrown 0.16.0",
+ "image",
+ "nova-forge-common",
+ "num-traits",
+ "serde",
+ "specs",
+ "sum_type",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-common-state"
+version = "0.18.0"
+dependencies = [
+ "async-trait",
+ "atomic_refcell",
+ "bincode",
+ "futures",
+ "hashbrown 0.16.0",
+ "hex",
+ "nova-forge-common",
+ "nova-forge-common-assets",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
+ "num_cpus",
+ "rayon",
+ "scopeguard",
+ "serde",
+ "sha2",
+ "specs",
+ "tar",
+ "timer-queue",
+ "tokio",
+ "toml 1.0.3+spec-1.1.0",
+ "tracing",
+ "vek 0.17.2",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
+name = "nova-forge-common-systems"
+version = "0.18.0"
+dependencies = [
+ "itertools 0.14.0",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "ordered-float 5.1.0",
+ "rand 0.10.0",
+ "rayon",
+ "specs",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-network"
+version = "0.3.0"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bincode",
+ "bytes",
+ "clap",
+ "criterion",
+ "crossbeam-channel",
+ "futures-util",
+ "hashbrown 0.16.0",
+ "lazy_static",
+ "lz-fear",
+ "nova-forge-network-protocol",
+ "prometheus",
+ "prometheus-hyper",
+ "quinn",
+ "rand 0.10.0",
+ "rcgen",
+ "rustls",
+ "serde",
+ "shellexpand",
+ "socket2 0.6.1",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "nova-forge-network-protocol"
+version = "0.6.1"
+dependencies = [
+ "async-channel",
+ "async-trait",
+ "bitflags 2.10.0",
+ "bytes",
+ "criterion",
+ "hashbrown 0.16.0",
+ "prometheus",
+ "rand 0.10.0",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nova-forge-query-server"
+version = "0.1.2"
+dependencies = [
+ "clap",
+ "protocol",
+ "rand 0.10.0",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "nova-forge-rtsim"
+version = "0.18.0"
+dependencies = [
+ "anymap2",
+ "atomic_refcell",
+ "enum-map",
+ "fxhash",
+ "hashbrown 0.16.0",
+ "itertools 0.14.0",
+ "nova-forge-common",
+ "nova-forge-world",
+ "num-traits",
+ "once_cell",
+ "rand 0.10.0",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "rmp-serde",
+ "serde",
+ "slotmap",
+ "specs",
+ "take-once",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-server"
+version = "0.18.0"
+dependencies = [
+ "atomicwrites",
+ "authc",
+ "bincode",
+ "censor",
+ "chrono",
+ "chrono-tz",
+ "crossbeam-channel",
+ "drop_guard",
+ "enum-map",
+ "futures-util",
+ "hashbrown 0.16.0",
+ "humantime",
+ "itertools 0.14.0",
+ "lazy_static",
+ "noise",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-network",
+ "nova-forge-query-server",
+ "nova-forge-rtsim",
+ "nova-forge-server-agent",
+ "nova-forge-world",
+ "num_cpus",
+ "parking_lot",
+ "portpicker",
+ "prometheus",
+ "quinn",
+ "rand 0.10.0",
+ "rayon",
+ "refinery",
+ "ron",
+ "rusqlite",
+ "rustls",
+ "rustls-pemfile",
+ "schnellru",
+ "serde",
+ "serde_json",
+ "specs",
+ "strum 0.28.0",
+ "tokio",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-server-agent"
+version = "0.18.0"
+dependencies = [
+ "itertools 0.14.0",
+ "lazy_static",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-dynlib",
+ "nova-forge-rtsim",
+ "nova-forge-world",
+ "rand 0.10.0",
+ "specs",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-server-cli"
+version = "0.18.0"
+dependencies = [
+ "axum",
+ "cansi",
+ "chrono",
+ "clap",
+ "crossterm",
+ "http-body-util",
+ "hyper",
+ "lazy_static",
+ "mimalloc",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-frontend",
+ "nova-forge-common-net",
+ "nova-forge-server",
+ "nova-forge-server-agent",
+ "nova-forge-world",
+ "num_cpus",
+ "prometheus",
+ "rand 0.10.0",
+ "ratatui",
+ "ron",
+ "serde",
+ "shell-words",
+ "signal-hook 0.4.3",
+ "specs",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nova-forge-voxygen"
+version = "0.18.0"
+dependencies = [
+ "backtrace",
+ "bitflags 2.10.0",
+ "bytemuck",
+ "chrono",
+ "chumsky",
+ "clap",
+ "conrod_core",
+ "cpal",
+ "criterion",
+ "crossbeam-channel",
+ "crossbeam-utils 0.8.21",
+ "directories-next",
+ "discord-sdk",
+ "dispatch",
+ "dot_vox",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "enum-map",
+ "euc",
+ "gilrs",
+ "glyph_brush",
+ "guillotiere",
+ "hashbrown 0.16.0",
+ "iced_native",
+ "image",
+ "inline_tweak",
+ "itertools 0.14.0",
+ "kira",
+ "lazy_static",
+ "levenshtein",
+ "mimalloc",
+ "mumble-link",
+ "native-dialog",
+ "nova-forge-client",
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-ecs",
+ "nova-forge-common-frontend",
+ "nova-forge-common-i18n",
+ "nova-forge-common-net",
+ "nova-forge-common-state",
+ "nova-forge-common-systems",
+ "nova-forge-server",
+ "nova-forge-voxygen-anim",
+ "nova-forge-voxygen-egui",
+ "nova-forge-voxygen-i18n-helpers",
+ "nova-forge-world",
+ "num 0.4.3",
+ "num_cpus",
+ "open",
+ "ordered-float 5.1.0",
+ "rand 0.10.0",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "regex",
+ "ron",
+ "serde",
+ "serde_with",
+ "sha2",
+ "shaderc",
+ "slab",
+ "specs",
+ "strum 0.28.0",
+ "tokio",
+ "tracing",
+ "treeculler",
+ "vek 0.17.2",
+ "wgpu",
+ "wgpu-profiler",
+ "window_clipboard",
+ "winit",
+ "winres",
+]
+
+[[package]]
+name = "nova-forge-voxygen-anim"
+version = "0.18.0"
+dependencies = [
+ "bytemuck",
+ "inline_tweak",
+ "lazy_static",
+ "nova-forge-common",
+ "nova-forge-common-dynlib",
+ "nova-forge-common-state",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-voxygen-egui"
+version = "0.18.0"
+dependencies = [
+ "egui",
+ "egui-winit",
+ "egui_plot",
+ "lazy_static",
+ "nova-forge-client",
+ "nova-forge-common",
+ "nova-forge-common-dynlib",
+ "winit",
+]
+
+[[package]]
+name = "nova-forge-voxygen-i18n-helpers"
+version = "0.18.0"
+dependencies = [
+ "nova-forge-client-i18n",
+ "nova-forge-common",
+ "nova-forge-common-net",
+ "rand 0.10.0",
+ "tracing",
+ "vek 0.17.2",
+]
+
+[[package]]
+name = "nova-forge-world"
+version = "0.18.0"
+dependencies = [
+ "arr_macro",
+ "bincode",
+ "bitvec",
+ "clap",
+ "criterion",
+ "csv",
+ "deflate",
+ "delaunator",
+ "enum-map",
+ "enumset",
+ "fallible-iterator",
+ "fixed",
+ "flate2",
+ "fxhash",
+ "hashbrown 0.16.0",
+ "image",
+ "indicatif",
+ "itertools 0.14.0",
+ "kiddo",
+ "lazy_static",
+ "lz-fear",
+ "minifb",
+ "noise",
+ "nova-forge-common",
+ "nova-forge-common-base",
+ "nova-forge-common-dynlib",
+ "nova-forge-common-frontend",
+ "nova-forge-common-net",
+ "num 0.4.3",
+ "num-traits",
+ "ordered-float 5.1.0",
+ "rand 0.10.0",
+ "rand_chacha 0.10.0",
+ "rayon",
+ "ron",
+ "rstar",
+ "rusqlite",
+ "serde",
+ "signal-hook 0.4.3",
+ "strum 0.28.0",
+ "svg_fmt",
+ "tiny-skia 0.12.0",
+ "tracing",
+ "tracing-subscriber",
+ "vek 0.17.2",
+]
+
+[[package]]
 name = "nu-ansi-term"
 version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8548,596 +9138,6 @@ dependencies = [
  "num-traits",
  "rustc_version 0.4.1",
  "serde",
-]
-
-[[package]]
-name = "nova-forge-client"
-version = "0.18.0"
-dependencies = [
- "async-channel",
- "authc",
- "byteorder",
- "clap",
- "hashbrown 0.16.0",
- "hickory-resolver",
- "image",
- "num 0.4.3",
- "quinn",
- "rayon",
- "ron",
- "rustls",
- "rustyline",
- "serde",
- "specs",
- "tokio",
- "tracing",
- "vek 0.17.2",
- "nova-forge-client-i18n",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-frontend",
- "nova-forge-common-i18n",
- "nova-forge-common-net",
- "nova-forge-common-state",
- "nova-forge-common-systems",
- "nova-forge-network",
- "nova-forge-voxygen-i18n-helpers",
-]
-
-[[package]]
-name = "nova-forge-client-i18n"
-version = "0.18.0"
-dependencies = [
- "clap",
- "fluent",
- "fluent-bundle",
- "fluent-syntax",
- "hashbrown 0.16.0",
- "intl-memoizer",
- "serde",
- "tracing",
- "unic-langid",
- "nova-forge-common-assets",
- "nova-forge-common-i18n",
-]
-
-[[package]]
-name = "nova-forge-common"
-version = "0.18.0"
-dependencies = [
- "ahash 0.8.12",
- "approx 0.5.1",
- "bitflags 2.10.0",
- "chrono",
- "chrono-tz",
- "clap",
- "criterion",
- "crossbeam-utils 0.8.21",
- "csv",
- "dot_vox",
- "enum-map",
- "enumset",
- "fxhash",
- "hashbrown 0.16.0",
- "indexmap 2.12.0",
- "itertools 0.14.0",
- "kiddo",
- "lazy_static",
- "num-derive",
- "num-traits",
- "ordered-float 5.1.0",
- "petgraph 0.8.3",
- "rand 0.10.0",
- "rand_chacha 0.10.0",
- "rayon",
- "regex",
- "ron",
- "roots",
- "serde",
- "serde_json",
- "serde_repr",
- "sha2",
- "slab",
- "slotmap",
- "specs",
- "spin_sleep",
- "strum 0.28.0",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "vek 0.17.2",
- "nova-forge-common-assets",
- "nova-forge-common-base",
- "nova-forge-common-i18n",
-]
-
-[[package]]
-name = "nova-forge-common-assets"
-version = "0.18.0"
-dependencies = [
- "assets_manager",
- "dot_vox",
- "hashbrown 0.16.0",
- "image",
- "lazy_static",
- "ron",
- "serde",
- "tracing",
- "walkdir",
- "wavefront",
-]
-
-[[package]]
-name = "nova-forge-common-base"
-version = "0.18.0"
-dependencies = [
- "directories-next",
- "profiling",
- "tracing",
-]
-
-[[package]]
-name = "nova-forge-common-dynlib"
-version = "0.18.0"
-dependencies = [
- "find_folder",
- "libloading 0.9.0",
- "notify",
- "tracing",
-]
-
-[[package]]
-name = "nova-forge-common-ecs"
-version = "0.18.0"
-dependencies = [
- "float-cmp",
- "specs",
- "tracing",
- "nova-forge-common-base",
-]
-
-[[package]]
-name = "nova-forge-common-frontend"
-version = "0.18.0"
-dependencies = [
- "termcolor",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "tracing-tracy",
- "nova-forge-common-base",
-]
-
-[[package]]
-name = "nova-forge-common-i18n"
-version = "0.18.0"
-dependencies = [
- "hashbrown 0.16.0",
- "rand 0.10.0",
- "serde",
-]
-
-[[package]]
-name = "nova-forge-common-net"
-version = "0.18.0"
-dependencies = [
- "bincode",
- "flate2",
- "hashbrown 0.16.0",
- "image",
- "num-traits",
- "serde",
- "specs",
- "sum_type",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
-]
-
-[[package]]
-name = "nova-forge-common-state"
-version = "0.18.0"
-dependencies = [
- "async-trait",
- "atomic_refcell",
- "bincode",
- "futures",
- "hashbrown 0.16.0",
- "hex",
- "num_cpus",
- "rayon",
- "scopeguard",
- "serde",
- "sha2",
- "specs",
- "tar",
- "timer-queue",
- "tokio",
- "toml 1.0.3+spec-1.1.0",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-assets",
- "nova-forge-common-base",
- "nova-forge-common-ecs",
- "nova-forge-common-net",
- "wasmtime",
- "wasmtime-wasi",
-]
-
-[[package]]
-name = "nova-forge-common-systems"
-version = "0.18.0"
-dependencies = [
- "itertools 0.14.0",
- "ordered-float 5.1.0",
- "rand 0.10.0",
- "rayon",
- "specs",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-ecs",
- "nova-forge-common-net",
- "nova-forge-common-state",
-]
-
-[[package]]
-name = "nova-forge-network"
-version = "0.3.0"
-dependencies = [
- "async-channel",
- "async-trait",
- "bincode",
- "bytes",
- "clap",
- "criterion",
- "crossbeam-channel",
- "futures-util",
- "hashbrown 0.16.0",
- "lazy_static",
- "lz-fear",
- "prometheus",
- "prometheus-hyper",
- "quinn",
- "rand 0.10.0",
- "rcgen",
- "rustls",
- "serde",
- "shellexpand",
- "socket2 0.6.1",
- "tokio",
- "tokio-stream",
- "tracing",
- "tracing-subscriber",
- "nova-forge-network-protocol",
-]
-
-[[package]]
-name = "nova-forge-network-protocol"
-version = "0.6.1"
-dependencies = [
- "async-channel",
- "async-trait",
- "bitflags 2.10.0",
- "bytes",
- "criterion",
- "hashbrown 0.16.0",
- "prometheus",
- "rand 0.10.0",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "nova-forge-query-server"
-version = "0.1.2"
-dependencies = [
- "clap",
- "protocol",
- "rand 0.10.0",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "nova-forge-rtsim"
-version = "0.18.0"
-dependencies = [
- "anymap2",
- "atomic_refcell",
- "enum-map",
- "fxhash",
- "hashbrown 0.16.0",
- "itertools 0.14.0",
- "num-traits",
- "once_cell",
- "rand 0.10.0",
- "rand_chacha 0.10.0",
- "rayon",
- "rmp-serde",
- "serde",
- "slotmap",
- "specs",
- "take-once",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-world",
-]
-
-[[package]]
-name = "nova-forge-server"
-version = "0.18.0"
-dependencies = [
- "atomicwrites",
- "authc",
- "bincode",
- "censor",
- "chrono",
- "chrono-tz",
- "crossbeam-channel",
- "drop_guard",
- "enum-map",
- "futures-util",
- "hashbrown 0.16.0",
- "humantime",
- "itertools 0.14.0",
- "lazy_static",
- "noise",
- "num_cpus",
- "parking_lot",
- "portpicker",
- "prometheus",
- "quinn",
- "rand 0.10.0",
- "rayon",
- "refinery",
- "ron",
- "rusqlite",
- "rustls",
- "rustls-pemfile",
- "schnellru",
- "serde",
- "serde_json",
- "specs",
- "strum 0.28.0",
- "tokio",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-ecs",
- "nova-forge-common-net",
- "nova-forge-common-state",
- "nova-forge-common-systems",
- "nova-forge-network",
- "nova-forge-query-server",
- "nova-forge-rtsim",
- "nova-forge-server-agent",
- "nova-forge-world",
-]
-
-[[package]]
-name = "nova-forge-server-agent"
-version = "0.18.0"
-dependencies = [
- "itertools 0.14.0",
- "lazy_static",
- "rand 0.10.0",
- "specs",
- "tracing",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-dynlib",
- "nova-forge-rtsim",
- "nova-forge-world",
-]
-
-[[package]]
-name = "nova-forge-server-cli"
-version = "0.18.0"
-dependencies = [
- "axum",
- "cansi",
- "chrono",
- "clap",
- "crossterm",
- "http-body-util",
- "hyper",
- "lazy_static",
- "mimalloc",
- "num_cpus",
- "prometheus",
- "rand 0.10.0",
- "ratatui",
- "ron",
- "serde",
- "shell-words",
- "signal-hook 0.4.3",
- "specs",
- "tokio",
- "tracing",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-frontend",
- "nova-forge-common-net",
- "nova-forge-server",
- "nova-forge-server-agent",
- "nova-forge-world",
-]
-
-[[package]]
-name = "nova-forge-voxygen"
-version = "0.18.0"
-dependencies = [
- "backtrace",
- "bitflags 2.10.0",
- "bytemuck",
- "chrono",
- "chumsky",
- "clap",
- "conrod_core",
- "cpal",
- "criterion",
- "crossbeam-channel",
- "crossbeam-utils 0.8.21",
- "directories-next",
- "discord-sdk",
- "dispatch",
- "dot_vox",
- "egui",
- "egui-wgpu",
- "egui-winit",
- "enum-map",
- "euc",
- "gilrs",
- "glyph_brush",
- "guillotiere",
- "hashbrown 0.16.0",
- "iced_native",
- "image",
- "inline_tweak",
- "itertools 0.14.0",
- "kira",
- "lazy_static",
- "levenshtein",
- "mimalloc",
- "mumble-link",
- "native-dialog",
- "num 0.4.3",
- "num_cpus",
- "open",
- "ordered-float 5.1.0",
- "rand 0.10.0",
- "rand_chacha 0.10.0",
- "rayon",
- "regex",
- "ron",
- "serde",
- "serde_with",
- "sha2",
- "shaderc",
- "slab",
- "specs",
- "strum 0.28.0",
- "tokio",
- "tracing",
- "treeculler",
- "vek 0.17.2",
- "nova-forge-client",
- "nova-forge-client-i18n",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-ecs",
- "nova-forge-common-frontend",
- "nova-forge-common-i18n",
- "nova-forge-common-net",
- "nova-forge-common-state",
- "nova-forge-common-systems",
- "nova-forge-server",
- "nova-forge-voxygen-anim",
- "nova-forge-voxygen-egui",
- "nova-forge-voxygen-i18n-helpers",
- "nova-forge-world",
- "wgpu",
- "wgpu-profiler",
- "window_clipboard",
- "winit",
- "winres",
-]
-
-[[package]]
-name = "nova-forge-voxygen-anim"
-version = "0.18.0"
-dependencies = [
- "bytemuck",
- "inline_tweak",
- "lazy_static",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-dynlib",
- "nova-forge-common-state",
-]
-
-[[package]]
-name = "nova-forge-voxygen-egui"
-version = "0.18.0"
-dependencies = [
- "egui",
- "egui-winit",
- "egui_plot",
- "lazy_static",
- "nova-forge-client",
- "nova-forge-common",
- "nova-forge-common-dynlib",
- "winit",
-]
-
-[[package]]
-name = "nova-forge-voxygen-i18n-helpers"
-version = "0.18.0"
-dependencies = [
- "rand 0.10.0",
- "tracing",
- "vek 0.17.2",
- "nova-forge-client-i18n",
- "nova-forge-common",
- "nova-forge-common-net",
-]
-
-[[package]]
-name = "nova-forge-world"
-version = "0.18.0"
-dependencies = [
- "arr_macro",
- "bincode",
- "bitvec",
- "clap",
- "criterion",
- "csv",
- "deflate",
- "delaunator",
- "enum-map",
- "enumset",
- "fallible-iterator",
- "fixed",
- "flate2",
- "fxhash",
- "hashbrown 0.16.0",
- "image",
- "indicatif",
- "itertools 0.14.0",
- "kiddo",
- "lazy_static",
- "lz-fear",
- "minifb",
- "noise",
- "num 0.4.3",
- "num-traits",
- "ordered-float 5.1.0",
- "rand 0.10.0",
- "rand_chacha 0.10.0",
- "rayon",
- "ron",
- "rstar",
- "rusqlite",
- "serde",
- "signal-hook 0.4.3",
- "strum 0.28.0",
- "svg_fmt",
- "tiny-skia 0.12.0",
- "tracing",
- "tracing-subscriber",
- "vek 0.17.2",
- "nova-forge-common",
- "nova-forge-common-base",
- "nova-forge-common-dynlib",
- "nova-forge-common-frontend",
- "nova-forge-common-net",
 ]
 
 [[package]]
