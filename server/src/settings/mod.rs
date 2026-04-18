@@ -107,6 +107,30 @@ pub struct GameplaySettings {
     #[serde(default)]
     // explosion_burn_marks by players
     pub explosion_burn_marks: bool,
+    /// Maximum number of blocks along each axis for a player-claimed plot.
+    /// Defaults to [`common::consts::MAX_PLAYER_PLOT_SIDE`].
+    #[serde(default = "default_max_plot_side")]
+    pub max_plot_side: i32,
+    /// Maximum number of plots a single player character may own at once.
+    /// Currently the data model supports at most 1; future versions may
+    /// increase this.
+    #[serde(default = "default_max_plots_per_player")]
+    pub max_plots_per_player: u8,
+}
+
+fn default_max_plot_side() -> i32 { common::consts::MAX_PLAYER_PLOT_SIDE }
+fn default_max_plots_per_player() -> u8 { 1 }
+
+impl GameplaySettings {
+    /// Returns the effective maximum blocks-per-axis for a player plot,
+    /// falling back to the compiled default if the configured value is ≤ 0.
+    pub fn effective_max_plot_side(&self) -> i32 {
+        if self.max_plot_side > 0 {
+            self.max_plot_side
+        } else {
+            common::consts::MAX_PLAYER_PLOT_SIDE
+        }
+    }
 }
 
 impl Default for GameplaySettings {
@@ -114,6 +138,8 @@ impl Default for GameplaySettings {
         Self {
             battle_mode: ServerBattleMode::default(),
             explosion_burn_marks: true,
+            max_plot_side: default_max_plot_side(),
+            max_plots_per_player: default_max_plots_per_player(),
         }
     }
 }

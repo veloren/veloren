@@ -11,9 +11,12 @@ rustflags = [
 
 [target.x86_64-pc-windows-msvc]
 rustflags = [
-    # Disable MSVC incremental linking to avoid LNK1318 (Unexpected PDB error)
-    # which occurs on large workspaces with many object files
+    # Disable MSVC incremental linking to avoid one variant of LNK1318.
     "-C", "link-arg=/INCREMENTAL:NO",
+    # Increase the PDB page size to avoid LNK1318 LIMIT(12): the default
+    # 4096-byte page size exhausts the PDB stream limit on workspaces with
+    # 200+ object files. 16384 bytes gives 4× headroom.
+    "-C", "link-arg=/pdbpagesize:16384",
 ]
 
 [target.x86_64-pc-windows-gnu]

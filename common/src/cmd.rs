@@ -423,6 +423,10 @@ pub enum ServerChatCommand {
     Outcome,
     PermitBuild,
     Players,
+    PlotClaim,
+    PlotClear,
+    PlotInfo,
+    PlotRelease,
     Poise,
     Portal,
     Region,
@@ -849,6 +853,22 @@ impl ServerChatCommand {
             ServerChatCommand::Players => {
                 cmd(vec![], Content::localized("command-players-desc"), None)
             },
+            ServerChatCommand::PlotClaim => cmd(
+                vec![Message(Optional)],
+                Content::localized("command-plot_claim-desc"),
+                None,
+            ),
+            ServerChatCommand::PlotClear => cmd(
+                vec![PlayerName(Required)],
+                Content::localized("command-plot_clear-desc"),
+                Some(Admin),
+            ),
+            ServerChatCommand::PlotInfo => {
+                cmd(vec![], Content::localized("command-plot_info-desc"), None)
+            },
+            ServerChatCommand::PlotRelease => {
+                cmd(vec![], Content::localized("command-plot_release-desc"), None)
+            },
             ServerChatCommand::Poise => cmd(
                 vec![Integer("poise", 100, Required)],
                 Content::localized("command-poise-desc"),
@@ -1218,6 +1238,10 @@ impl ServerChatCommand {
             ServerChatCommand::Outcome => "outcome",
             ServerChatCommand::PermitBuild => "permit_build",
             ServerChatCommand::Players => "players",
+            ServerChatCommand::PlotClaim => "plot_claim",
+            ServerChatCommand::PlotClear => "plot_clear",
+            ServerChatCommand::PlotInfo => "plot_info",
+            ServerChatCommand::PlotRelease => "plot_release",
             ServerChatCommand::Poise => "poise",
             ServerChatCommand::Portal => "portal",
             ServerChatCommand::ResetRecipes => "reset_recipes",

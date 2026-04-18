@@ -756,6 +756,11 @@ impl StateExt for State {
                     }
                 }
                 self.write_component_ignore_entity_dead(entity, plot.clone());
+                // Notify the client so it can restore its build-mode HUD (wire-frame
+                // boundary, palette overlay, build_mode_active flag).
+                if let Some(client) = self.ecs().read_storage::<Client>().get(entity) {
+                    client.send_fallible(ServerGeneral::PlotClaimResult(Ok(Some(plot.clone()))));
+                }
             }
 
             let player_pos = self.ecs().read_storage::<comp::Pos>().get(entity).copied();

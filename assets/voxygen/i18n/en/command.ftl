@@ -340,3 +340,15 @@ command-inventory-cant-fit-item = Can't fit item to inventory
 # Emitted by /disconnect_all when you don't exist (?)
 command-you-dont-exist = You do not exist, so you cannot use this command
 command-entity-has-no-client = Player has no client client component: { $target }
+
+# Plot commands
+command-plot_claim-desc = Claim a building plot centred on your position. Optional: provide a name for the plot.
+command-plot_release-desc = Release your current building plot.
+command-plot_info-desc = Show information about your current building plot.
+command-plot_clear-desc = (Admin) Force-release the building plot owned by the named player.
+command-plot_claim-already_owned = You already own a plot. Use /plot_release first.
+command-plot_claim-overlaps = Cannot claim plot: overlaps an already-claimed plot.
+command-plot_claim-granted = Granted plot to player { $player }.
+command-plot_release-not_owned = You do not own a plot.
+command-plot_release-released = Released plot for player { $player }.
+command-plot_info-not_owned = You do not currently own a plot.

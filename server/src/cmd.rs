@@ -69,10 +69,10 @@ use common::{
 #[cfg(feature = "worldgen")]
 use common::{terrain::TERRAIN_CHUNK_BLOCKS_LG, weather};
 use common_net::{
-    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral, server::PlotClaimError},
     sync::WorldSyncExt,
 };
-use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, SpecialAreaError, State};
+use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, PlayerBuildArea, SpecialAreaError, State};
 use core::{cmp::Ordering, convert::TryFrom};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
@@ -196,6 +196,10 @@ fn do_command(
         ServerChatCommand::Outcome => handle_outcome,
         ServerChatCommand::PermitBuild => handle_permit_build,
         ServerChatCommand::Players => handle_players,
+        ServerChatCommand::PlotClaim => handle_plot_claim,
+        ServerChatCommand::PlotClear => handle_plot_clear,
+        ServerChatCommand::PlotInfo => handle_plot_info,
+        ServerChatCommand::PlotRelease => handle_plot_release,
         ServerChatCommand::Poise => handle_poise,
         ServerChatCommand::Portal => handle_spawn_portal,
         ServerChatCommand::ResetRecipes => handle_reset_recipes,
@@ -2867,6 +2871,215 @@ fn handle_spawn_portal(
     } else {
         Err(action.help_content())
     }
+}
+
+fn handle_plot_claim(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    // Error if target already owns a plot.
+    if server
+        .state
+        .ecs()
+        .read_storage::<comp::PlayerPlot>()
+        .get(target)
+        .is_some()
+    {
+        return Err(Content::localized("command-plot_claim-already_owned"));
+    }
+
+    let pos = server
+        .state
+        .ecs()
+        .read_storage::<comp::Pos>()
+        .get(target)
+        .ok_or_else(|| {
+            Content::localized_with_args("command-position-unavailable", [("target", "target")])
+        })?
+        .0;
+
+    let max_side = server.settings().gameplay.effective_max_plot_side();
+    let half = max_side / 2;
+    let min = pos.map(|v| v as i32) - Vec3::broadcast(half);
+    let max_pt = min + Vec3::broadcast(max_side);
+    let area = Aabb {
+        min,
+        max: max_pt,
+    };
+
+    // Check for overlap with existing player plots.
+    {
+        let build_areas = server
+            .state
+            .ecs()
+            .read_resource::<AreasContainer<PlayerBuildArea>>();
+        if build_areas
+            .areas()
+            .values()
+            .any(|existing| existing.collides_with_aabb(area.made_valid()))
+        {
+            return Err(Content::localized("command-plot_claim-overlaps"));
+        }
+    }
+
+    let name: String = parse_cmd_args!(args, ..Vec<String>)
+        .unwrap_or_default()
+        .join(" ")
+        .chars()
+        .take(64)
+        .collect();
+
+    let area_name = format!("player_plot_{}", target.id());
+    let area_id = server
+        .state
+        .ecs()
+        .write_resource::<AreasContainer<PlayerBuildArea>>()
+        .insert(area_name, area)
+        .map_err(|_| Content::localized("command-plot_claim-overlaps"))?;
+
+    {
+        let mut can_builds = server.state.ecs().write_storage::<comp::CanBuild>();
+        if let Some(mut cb) = can_builds.get_mut(target) {
+            cb.enabled = true;
+            cb.build_areas.insert(area_id);
+        } else {
+            let mut new_cb = comp::CanBuild {
+                enabled: true,
+                build_areas: Default::default(),
+            };
+            new_cb.build_areas.insert(area_id);
+            let _ = can_builds.insert(target, new_cb);
+        }
+    }
+
+    let plot = comp::PlayerPlot {
+        area: area.made_valid(),
+        name,
+    };
+    let _ = server
+        .state
+        .ecs()
+        .write_storage::<comp::PlayerPlot>()
+        .insert(target, plot.clone());
+
+    server.notify_client(target, ServerGeneral::PlotClaimResult(Ok(Some(plot))));
+    if client != target {
+        let alias = server
+            .state
+            .ecs()
+            .read_storage::<comp::Player>()
+            .get(target)
+            .map(|p| p.alias.clone())
+            .unwrap_or_default();
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized_with_args("command-plot_claim-granted", [("player", alias)]),
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn handle_plot_release(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    if server
+        .state
+        .ecs()
+        .write_storage::<comp::PlayerPlot>()
+        .remove(target)
+        .is_none()
+    {
+        return Err(Content::localized("command-plot_release-not_owned"));
+    }
+
+    let area_name = format!("player_plot_{}", target.id());
+    let _ = server
+        .state
+        .ecs()
+        .write_resource::<AreasContainer<PlayerBuildArea>>()
+        .remove(&area_name);
+
+    if let Some(mut can_build) = server
+        .state
+        .ecs()
+        .write_storage::<comp::CanBuild>()
+        .get_mut(target)
+    {
+        can_build.build_areas.clear();
+        can_build.enabled = false;
+    }
+
+    server.notify_client(target, ServerGeneral::PlotClaimResult(Ok(None)));
+    if client != target {
+        let alias = server
+            .state
+            .ecs()
+            .read_storage::<comp::Player>()
+            .get(target)
+            .map(|p| p.alias.clone())
+            .unwrap_or_default();
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                Content::localized_with_args("command-plot_release-released", [("player", alias)]),
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn handle_plot_info(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let plots = server.state.ecs().read_storage::<comp::PlayerPlot>();
+    if let Some(plot) = plots.get(target) {
+        let aabb = plot.area;
+        let size = aabb.max - aabb.min;
+        let msg = Content::Plain(format!(
+            "Plot \"{name}\" | min=({x0},{y0},{z0}) max=({x1},{y1},{z1}) size=({sx}×{sy}×{sz})",
+            name = plot.name,
+            x0 = aabb.min.x,
+            y0 = aabb.min.y,
+            z0 = aabb.min.z,
+            x1 = aabb.max.x,
+            y1 = aabb.max.y,
+            z1 = aabb.max.z,
+            sx = size.x,
+            sy = size.y,
+            sz = size.z,
+        ));
+        drop(plots);
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(ChatType::CommandInfo, msg),
+        );
+        Ok(())
+    } else {
+        Err(Content::localized("command-plot_info-not_owned"))
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ServerChatCommand,
+) -> CmdResult<()> {
+    let alias = parse_cmd_args!(args, String).ok_or_else(|| action.help_content())?;
+    let target_entity = find_alias(server.state.ecs(), &alias, true)?.0;
+    handle_plot_release(server, client, target_entity, vec![], action)
 }
 
 fn handle_build(
