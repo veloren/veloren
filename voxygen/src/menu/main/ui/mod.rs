@@ -130,6 +130,7 @@ pub enum WorldChange {
     ErosionQuality(f32),
     DefaultGenOps,
     MaxPlayers(u16),
+    Experimental(bool),
 }
 
 #[cfg(feature = "singleplayer")]
@@ -148,6 +149,7 @@ impl WorldChange {
             WorldChange::ErosionQuality(q) => gen_opts.erosion_quality = q,
             WorldChange::DefaultGenOps => world.gen_opts = Some(Default::default()),
             WorldChange::MaxPlayers(n) => world.max_players = n,
+            WorldChange::Experimental(v) => world.use_experimental = v,
         }
     }
 }
