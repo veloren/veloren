@@ -69,7 +69,7 @@ use common::{
 #[cfg(feature = "worldgen")]
 use common::{terrain::TERRAIN_CHUNK_BLOCKS_LG, weather};
 use common_net::{
-    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral, server::PlotClaimError},
+    msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
     sync::WorldSyncExt,
 };
 use common_state::{Areas, AreasContainer, BuildArea, NoDurabilityArea, PlayerBuildArea, SpecialAreaError, State};
