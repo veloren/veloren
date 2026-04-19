@@ -93,6 +93,10 @@ name = "tree"
 harness = false
 name = "cave"
 
+[[bench]]
+harness = false
+name = "site"
+
 [[example]]
 name = "chunk_compression_benchmarks"
 required-features = ["bin_compression"]

@@ -27,6 +27,7 @@ use std::{
 };
 use vek::*;
 
+#[derive(strum::Display)]
 pub enum Primitive {
     Empty, // Placeholder
 
