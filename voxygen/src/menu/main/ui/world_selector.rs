@@ -61,6 +61,8 @@ pub struct Screen {
     delete_world: button::State,
     regenerate_map: button::State,
     generate_map: button::State,
+    experimental_stable_button: button::State,
+    experimental_track_b_button: button::State,
 
     pub confirmation: Option<Confirmation>,
 }
@@ -526,6 +528,109 @@ impl Screen {
                             SLIDER_BAR_HEIGHT,
                         ))
                         .into(),
+                    );
+                }
+
+                // Generation lane selector: Stable vs Experimental (Track B)
+                gen_content.push(
+                    Text::new(i18n.get_msg("main-singleplayer-generation_lane"))
+                        .size(SLIDER_TEXT_SIZE)
+                        .horizontal_alignment(iced::HorizontalAlignment::Center)
+                        .into(),
+                );
+                if can_edit {
+                    gen_content.push(
+                        Row::with_children(vec![
+                            {
+                                let color = if !world.use_experimental {
+                                    (97, 255, 18)
+                                } else {
+                                    (97, 97, 25)
+                                };
+                                Button::new(
+                                    &mut self.experimental_stable_button,
+                                    Row::with_children(vec![
+                                        Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                                        Text::new(i18n.get_msg("main-singleplayer-lane_stable"))
+                                            .width(Length::FillPortion(95))
+                                            .size(fonts.cyri.scale(14))
+                                            .vertical_alignment(iced::VerticalAlignment::Center)
+                                            .into(),
+                                    ])
+                                    .align_items(Align::Center),
+                                )
+                                .style(
+                                    style::button::Style::new(imgs.selection)
+                                        .hover_image(imgs.selection_hover)
+                                        .press_image(imgs.selection_press)
+                                        .image_color(Rgba::new(color.0, color.1, color.2, 192)),
+                                )
+                                .width(Length::FillPortion(1))
+                                .min_height(18)
+                                .on_press(Message::WorldChanged(
+                                    super::WorldsChange::CurrentWorldChange(
+                                        WorldChange::Experimental(false),
+                                    ),
+                                ))
+                                .into()
+                            },
+                            {
+                                let color = if world.use_experimental {
+                                    (255, 165, 0)
+                                } else {
+                                    (97, 97, 25)
+                                };
+                                Button::new(
+                                    &mut self.experimental_track_b_button,
+                                    Row::with_children(vec![
+                                        Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                                        Text::new(
+                                            i18n.get_msg("main-singleplayer-lane_experimental"),
+                                        )
+                                        .width(Length::FillPortion(95))
+                                        .size(fonts.cyri.scale(14))
+                                        .vertical_alignment(iced::VerticalAlignment::Center)
+                                        .into(),
+                                    ])
+                                    .align_items(Align::Center),
+                                )
+                                .style(
+                                    style::button::Style::new(imgs.selection)
+                                        .hover_image(imgs.selection_hover)
+                                        .press_image(imgs.selection_press)
+                                        .image_color(Rgba::new(color.0, color.1, color.2, 192)),
+                                )
+                                .width(Length::FillPortion(1))
+                                .min_height(18)
+                                .on_press(Message::WorldChanged(
+                                    super::WorldsChange::CurrentWorldChange(
+                                        WorldChange::Experimental(true),
+                                    ),
+                                ))
+                                .into()
+                            },
+                        ])
+                        .into(),
+                    );
+                } else {
+                    gen_content.push(
+                        Text::new(if world.use_experimental {
+                            i18n.get_msg("main-singleplayer-lane_experimental").into_owned()
+                        } else {
+                            i18n.get_msg("main-singleplayer-lane_stable").into_owned()
+                        })
+                        .size(SLIDER_TEXT_SIZE)
+                        .horizontal_alignment(iced::HorizontalAlignment::Center)
+                        .into(),
+                    );
+                }
+                if world.use_experimental {
+                    gen_content.push(
+                        Text::new(i18n.get_msg("main-singleplayer-experimental_warning"))
+                            .size(SLIDER_TEXT_SIZE)
+                            .color([0.914, 0.835, 0.008])
+                            .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            .into(),
                     );
                 }
             }

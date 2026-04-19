@@ -19,6 +19,9 @@ pub struct SingleplayerWorld {
     pub map_path: PathBuf,
     /// Maximum number of players allowed when hosting as LAN co-op.
     pub max_players: u16,
+    /// Whether this world uses the Track B experimental world generation pipeline.
+    /// When `false` (default), uses the stable Track A pipeline.
+    pub use_experimental: bool,
 }
 
 impl SingleplayerWorld {
@@ -119,6 +122,7 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             is_generated: false,
             map_path,
             max_players: 8,
+            use_experimental: false,
         });
     }
 }
@@ -241,6 +245,7 @@ impl SingleplayerWorlds {
             map_path: path.join("map.bin"),
             path,
             max_players: 8,
+            use_experimental: false,
         };
 
         write_world_meta(&new_world);
@@ -262,13 +267,13 @@ mod version {
 
     use super::*;
 
-    pub type Current = V3;
+    pub type Current = V4;
 
     type LoadWorldFn<R> =
         fn(R, &Path) -> Result<SingleplayerWorld, (&'static str, ron::de::SpannedError)>;
     fn loaders<'a, R: std::io::Read + Clone>() -> &'a [LoadWorldFn<R>] {
         // Step [4]
-        &[load_raw::<V3, _>, load_raw::<V2, _>, load_raw::<V1, _>]
+        &[load_raw::<V4, _>, load_raw::<V3, _>, load_raw::<V2, _>, load_raw::<V1, _>]
     }
 
     #[derive(Deserialize, Serialize)]
@@ -294,6 +299,7 @@ mod version {
                 path,
                 map_path,
                 max_players: 8,
+                use_experimental: false,
             }
         }
     }
@@ -322,6 +328,7 @@ mod version {
                 path,
                 map_path,
                 max_players: 8,
+                use_experimental: false,
             }
         }
     }
@@ -335,19 +342,6 @@ mod version {
         seed: u32,
         day_length: f64,
         max_players: u16,
-    }
-
-    impl V3 {
-        pub fn from_world(world: &SingleplayerWorld) -> Self {
-            V3 {
-                version: 3,
-                name: world.name.clone(),
-                gen_opts: world.gen_opts.clone(),
-                seed: world.seed,
-                day_length: world.day_length,
-                max_players: world.max_players,
-            }
-        }
     }
 
     impl ToWorld for V3 {
@@ -364,6 +358,52 @@ mod version {
                 path,
                 map_path,
                 max_players: self.max_players,
+                use_experimental: false,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub struct V4 {
+        #[serde(deserialize_with = "version::<_, 4>")]
+        version: u64,
+        name: String,
+        gen_opts: Option<GenOpts>,
+        seed: u32,
+        day_length: f64,
+        max_players: u16,
+        use_experimental: bool,
+    }
+
+    impl V4 {
+        pub fn from_world(world: &SingleplayerWorld) -> Self {
+            V4 {
+                version: 4,
+                name: world.name.clone(),
+                gen_opts: world.gen_opts.clone(),
+                seed: world.seed,
+                day_length: world.day_length,
+                max_players: world.max_players,
+                use_experimental: world.use_experimental,
+            }
+        }
+    }
+
+    impl ToWorld for V4 {
+        fn to_world(self, path: PathBuf) -> SingleplayerWorld {
+            let map_path = path.join("map.bin");
+            let is_generated = fs::metadata(&map_path).is_ok_and(|f| f.is_file());
+
+            SingleplayerWorld {
+                name: self.name,
+                gen_opts: self.gen_opts,
+                seed: self.seed,
+                day_length: self.day_length,
+                is_generated,
+                path,
+                map_path,
+                max_players: self.max_players,
+                use_experimental: self.use_experimental,
             }
         }
     }
