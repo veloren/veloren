@@ -116,6 +116,39 @@ impl BlockKind {
                 | BlockKind::Sand
         )
     }
+
+    /// Returns the item definition ID of the material dropped when this block
+    /// is broken by a player in their build plot.  Returns `None` for blocks
+    /// that drop nothing (e.g. fluids, misc, lava) or for which no specific
+    /// material is defined.
+    #[inline]
+    pub fn harvest_item(&self) -> Option<&'static str> {
+        match self {
+            BlockKind::Rock | BlockKind::GlowingRock => {
+                Some("common.items.mineral.stone.basalt")
+            },
+            BlockKind::WeakRock | BlockKind::GlowingWeakRock => {
+                Some("common.items.crafting_ing.rock")
+            },
+            BlockKind::Earth | BlockKind::Sand | BlockKind::Grass => {
+                Some("common.items.crafting_ing.stones")
+            },
+            BlockKind::Snow | BlockKind::ArtSnow => {
+                // Snow melts — no material returned
+                None
+            },
+            BlockKind::Wood => Some("common.items.log.wood"),
+            BlockKind::Leaves | BlockKind::ArtLeaves => {
+                Some("common.items.crafting_ing.twigs")
+            },
+            BlockKind::GlowingMushroom => {
+                // Glowing mushroom blocks crumble — no drop
+                None
+            },
+            BlockKind::Ice => None, // Ice melts
+            _ => None,
+        }
+    }
 }
 
 /// # Format
@@ -665,9 +698,23 @@ impl Block {
     #[inline]
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self.kind() {
-            BlockKind::WeakRock | BlockKind::Ice | BlockKind::GlowingWeakRock => {
-                Some(ToolKind::Pick)
-            },
+            // Pickaxe for all rock variants
+            BlockKind::Rock
+            | BlockKind::WeakRock
+            | BlockKind::GlowingRock
+            | BlockKind::GlowingWeakRock
+            | BlockKind::Ice => Some(ToolKind::Pick),
+            // Shovel for earth, sand, snow, grass
+            BlockKind::Earth
+            | BlockKind::Sand
+            | BlockKind::Snow
+            | BlockKind::ArtSnow
+            | BlockKind::Grass => Some(ToolKind::Shovel),
+            // Axe for wood and leaf blocks
+            BlockKind::Wood
+            | BlockKind::Leaves
+            | BlockKind::ArtLeaves
+            | BlockKind::GlowingMushroom => Some(ToolKind::Axe),
             _ => self.get_sprite().and_then(|s| s.mine_tool()),
         }
     }
