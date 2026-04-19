@@ -1,14 +1,14 @@
 DashMelee(
     energy_cost: 40.0,
     melee_constructor: (
-        kind: Stab(
+        kind: Sear(
             damage: 3.0,
             poise: 20.0,
             knockback: 5.0,
             energy_regen: 0.0,
         ),
         scaled: Some((
-            kind: Stab(
+            kind: Sear(
                 damage: 3.0,
                 poise: 0.0,
                 knockback: 12.0,
