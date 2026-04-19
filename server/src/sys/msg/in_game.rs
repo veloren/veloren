@@ -54,6 +54,7 @@ event_emitters! {
         update_map_marker: event::UpdateMapMarkerEvent,
         client_disconnect: event::ClientDisconnectEvent,
         set_battle_mode: event::SetBattleModeEvent,
+        create_item_drop: event::CreateItemDropEvent,
     }
 }
 
@@ -80,6 +81,7 @@ impl Sys {
         server_physics_forced: bool,
         maybe_admin: &Option<&Admin>,
         time_for_vd_changes: Instant,
+        program_time: &common::resources::ProgramTime,
         msg: ClientGeneral,
         player_physics: &mut Option<(Pos, Vel, Ori)>,
     ) -> Result<(), crate::error::Error> {
@@ -200,6 +202,35 @@ impl Sys {
                                     guard._terrain_persistence.as_mut()
                             {
                                 terrain_persistence.set_block(pos, new_block);
+                            }
+                            // Drop the guard before emitting the item drop event so we
+                            // don't hold the rare_writes lock longer than necessary.
+                            drop(guard);
+
+                            // Spawn a material item drop at the broken block's position
+                            // if this block kind yields a harvestable material.
+                            if _was_set {
+                                if let Some(item_def) = old_block.kind().harvest_item() {
+                                    use common::comp::item::Item;
+                                    if let Ok(item) = Item::new_from_asset(item_def) {
+                                        emitters.emit(event::CreateItemDropEvent {
+                                            pos: common::comp::Pos(
+                                                pos.map(|p| p as f32)
+                                                    + vek::Vec3::broadcast(0.5),
+                                            ),
+                                            vel: common::comp::Vel(vek::Vec3::new(
+                                                0.0, 0.0, 3.0,
+                                            )),
+                                            ori: common::comp::Ori::default(),
+                                            item: common::comp::PickupItem::new(
+                                                item,
+                                                *program_time,
+                                                false,
+                                            ),
+                                            loot_owner: None,
+                                        });
+                                    }
+                                }
                             }
                         }
                     }
@@ -427,6 +458,7 @@ impl<'a> System<'a> for Sys {
             Read<'a, DeltaTime>,
             Read<'a, Settings>,
             Read<'a, AreasContainer<BuildArea>>,
+            ReadExpect<'a, common::resources::ProgramTime>,
         ),
         WriteStorage<'a, ForceUpdate>,
         ReadStorage<'a, Is<Rider>>,
@@ -462,7 +494,7 @@ impl<'a> System<'a> for Sys {
             entities,
             events,
             (terrain, slow_jobs, editable_settings),
-            (id_maps, dt, settings, build_areas),
+            (id_maps, dt, settings, build_areas, program_time),
             mut force_updates,
             is_rider,
             is_volume_rider,
@@ -568,6 +600,7 @@ impl<'a> System<'a> for Sys {
                             is_server_physics_forced,
                             &maybe_admin,
                             time_for_vd_changes,
+                            &program_time,
                             msg,
                             &mut player_physics,
                         )
