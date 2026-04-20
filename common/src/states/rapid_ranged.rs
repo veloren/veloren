@@ -61,8 +61,12 @@ pub struct RampOptions {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OffsetOptions {
+    //Radius adds random spawn location within a circle parallel to XY plane; 0 results in no variation
     pub radius: f32,
     pub height: f32,
+    #[serde(default)]
+    //If the projectiles should converge on users aim direction
+    pub converge: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -133,54 +137,54 @@ impl CharacterBehavior for Data {
                     // Fire if input is pressed still
                     let precision_mult = combat::compute_precision_mult(data.inventory, data.msm);
                     // Gets offsets
-                    let offset = if let Some(offset) = self.static_data.options.offset {
-                        let mut rng = rng();
-                        let theta = rng.random::<f32>() * TAU;
-                        let radius = offset.radius * rng.random::<f32>().sqrt();
-                        let x = radius * theta.sin();
-                        let y = radius * theta.cos();
-                        let z = offset.height;
-                        vek::Vec3::new(x, y, z)
-                    } else {
-                        data.body.projectile_offsets(
-                            update.ori.look_vec(),
-                            data.scale.map_or(1.0, |s| s.0),
-                        )
-                    };
+                    let (pos, direction): (Pos, Dir) =
+                        if let Some(offset) = self.static_data.options.offset {
+                            let mut rng = rng();
+                            let rand_offset = if offset.radius > 0.0 {
+                                let theta = rng.random::<f32>() * TAU;
+                                let r = offset.radius * rng.random::<f32>().sqrt();
+                                vek::Vec3::new(r * theta.sin(), r * theta.cos(), offset.height)
+                            } else {
+                                vek::Vec3::new(0.0, 0.0, offset.height)
+                            };
 
-                    //Ability fired from an offset origin.
-                    //Computes a raycast from eye_pos <-> terrain
-                    //And aims the projectile such that it points to the same spot on terrain.
-                    let (pos, direction): (Pos,Dir) = if let Some(FrontendSpecifier::PyroclasmCharge{
-                        height: z,
-                        radius: _,
-                    }) = self.static_data.specifier
-                    {
-                        let offset_pos = Pos(data.pos.0 + vek::Vec3::unit_z() * z);
-                        const MAX_RANGE: f32 = 200.0;
-                        let ray_start = data.pos.0 + vek::Vec3::unit_z() * data.body.eye_height(data.scale.map_or(1.0, |s| s.0)); //Eye pos
-                        let ray_end = ray_start + *data.inputs.look_dir * MAX_RANGE;
-                        let (dist, _) = data
-                            .terrain
-                            .ray(ray_start,ray_end)
-                            .until(Block::is_solid)
-                            .cast();
-
-                        let terrain_point = ray_start + *data.inputs.look_dir * dist;
-                        let projectile_dir = Dir::from_unnormalized(terrain_point - offset_pos.0)
-                            .unwrap_or(data.inputs.look_dir);
-
-                        (offset_pos, projectile_dir)
-                    } else {
-                        //Standard abilities
-                        let base_pos = Pos(data.pos.0 + offset);
-                        let base_dir: Dir = if self.static_data.projectile_speed < 1.0{
-                            Dir::down()
+                            if offset.converge {
+                                let offset_pos = Pos(data.pos.0 + rand_offset);
+                                const MAX_RANGE: f32 = 200.0;
+                                let eye_pos = data.pos.0 + vek::Vec3::unit_z() * data.body.eye_height(data.scale.map_or(1.0, |s| s.0));
+                                let ray_end = eye_pos + *data.inputs.look_dir * MAX_RANGE;
+                                let (dist, _) = data
+                                    .terrain
+                                    .ray(eye_pos, ray_end)
+                                    .until(Block::is_solid)
+                                    .cast();
+                                let terrain_point = eye_pos + *data.inputs.look_dir * dist;
+                                let projectile_dir =
+                                    Dir::from_unnormalized(terrain_point - offset_pos.0)
+                                        .unwrap_or(data.inputs.look_dir);
+                                (offset_pos, projectile_dir)
+                            } else {
+                                let base_pos = Pos(data.pos.0 + rand_offset);
+                                let base_dir: Dir = if self.static_data.projectile_speed < 1.0 {
+                                    Dir::down()
+                                } else {
+                                    data.inputs.look_dir
+                                };
+                                (base_pos, base_dir)
+                            }
                         } else {
-                            data.inputs.look_dir
+                            let body_offset = data.body.projectile_offsets(
+                                update.ori.look_vec(),
+                                data.scale.map_or(1.0, |s| s.0),
+                            );
+                            let base_pos = Pos(data.pos.0 + body_offset);
+                            let base_dir: Dir = if self.static_data.projectile_speed < 1.0 {
+                                Dir::down()
+                            } else {
+                                data.inputs.look_dir
+                            };
+                            (base_pos, base_dir)
                         };
-                        (base_pos,base_dir)
-                    };
 
 
                     let projectile = self.static_data.projectile.clone().create_projectile(
@@ -262,7 +266,7 @@ impl CharacterBehavior for Data {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum FrontendSpecifier {
     FireRainPhoenix,
-    //The height of the implosion effect; along with the height at which the projectiles spawn.
+    //The height of the implosion effect along with the initial radius of the implosion sphere
     PyroclasmCharge{height: f32, radius: f32},
 }
     

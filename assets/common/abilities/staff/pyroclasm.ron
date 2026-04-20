@@ -6,6 +6,11 @@ RapidRanged(
     options: (
         fire_all: true,
         max_projectiles: Some(8),
+        offset: Some((
+            radius: 0.0,
+            height: 3.5,
+            converge: true,
+        )),
     ),
     projectile: (
         kind: Explosive(
