@@ -120,7 +120,7 @@ impl CharacterBehavior for Data {
                             if let CharacterState::DashMelee(c) = &mut update.character {
                                 c.timer = tick_attack_or_default(data, self.timer, None);
                             }
-                        } else if melee.hit_count == 0 {
+                        } else if melee.hit_entities.is_empty() {
                             // If melee attack has applied, but not hit anything, reset melee attack
                             data.updater.insert(data.entity, create_melee(charge_frac));
                             if let CharacterState::DashMelee(c) = &mut update.character {

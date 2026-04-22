@@ -107,9 +107,9 @@ impl<'a> System<'a> for Sys {
             emitters.emit(event::SoundEvent {
                 sound: Sound::new(SoundKind::Melee, pos.0, 2.0, read_data.time.0),
             });
-            if !melee_attack.sustained{
+
             melee_attack.applied = true;
-            }
+
             // Scales
             let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
             let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
@@ -145,16 +145,13 @@ impl<'a> System<'a> for Sys {
                 .join()
                 .sorted_by_key(|(_, pos_b, _, _, _)| pos_b.0.distance_squared(pos.0) as u32)
             {
-                // Unless the melee attack can hit multiple targets, stop the attack if it has
-                // already hit 1 target
-                if melee_attack.multi_target.is_none() 
-                    && melee_attack.hit_count > 0 
-                    && !melee_attack.sustained {
+                // Unless the melee attack can hit multiple targets, stop after first hit
+                if melee_attack.multi_target.is_none() && !melee_attack.sustained && !melee_attack.hit_entities.is_empty() {
                     break;
                 }
 
-                //Skip already hit entities on sustained attacks to prevent duplicate hits
-                if melee_attack.sustained && melee_attack.hit_entities.contains(uid_b){
+                // Skip already-hit entities to prevent duplicate hits
+                if melee_attack.hit_entities.contains(uid_b) {
                     continue;
                 }
 
@@ -302,7 +299,7 @@ impl<'a> System<'a> for Sys {
 
                     let strength =
                         if let Some(MultiTarget::Scaling(scaling)) = melee_attack.multi_target {
-                            1.0 + melee_attack.hit_count as f32 * scaling
+                            1.0 + melee_attack.hit_entities.len() as f32 * scaling
                         } else {
                             1.0
                         };
@@ -325,10 +322,7 @@ impl<'a> System<'a> for Sys {
                     }
 
                     if is_applied {
-                        melee_attack.hit_count += melee_attack.simultaneous_hits;
-                        if melee_attack.sustained{
-                            melee_attack.hit_entities.push(*uid_b);
-                        }
+                        melee_attack.hit_entities.push(*uid_b);
                     }
                 }
             }
