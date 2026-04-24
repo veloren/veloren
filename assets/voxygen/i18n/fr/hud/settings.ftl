@@ -181,3 +181,4 @@ hud-settings-minimap_scale = Échelle
 hud-settings-colored_player_marker = Marqueur de joueur coloré
 hud-settings-lock_chat = Verrouiller taille/position du tchat
 hud-settings-draggable_windows = Fenêtres repositionnables
+hud-settings-show_chat_timestamp = Montrer l'horodatage des messages

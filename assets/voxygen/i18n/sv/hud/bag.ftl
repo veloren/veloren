@@ -35,9 +35,9 @@ hud-bag-protection_desc = Skademinskning från rustning.
 hud-bag-stun_res_desc =
     Motståndskraft mot att bli överväldigad efter upprepade slag.
     Regenereras likt energi.
-hud-bag-sort_by_name = Sortera efter Namn
-hud-bag-sort_by_quality = Sortera efter Kvalitet
-hud-bag-sort_by_category = Sortera efter Kategori
+hud-bag-sort_by_name = Sortera efter namn
+hud-bag-sort_by_quality = Sortera efter kvalitet
+hud-bag-sort_by_category = Sortera efter kategori
 hud-bag-sort_by_tag = Sort efter Tagg
 hud-bag-sort_by_quantity = Sortera efter kvantitet
 hud-bag-backpack = Ryggsäck

@@ -208,3 +208,7 @@ command-preprocess-not-selected-valid-target = Väljer inte ett giltigt mål
 command-version-desc = Skriver ut serverversionen
 command-time-desc = Sätt tiden på dagen
 command-tp-desc = Teleportera till annan entitet
+command-invalid-alignment = Ogiltig placering: { $alignment }
+command-kick-higher-role = Kan ej sparka spelare med högre roller än du.
+command-outcome-expected_entity_arg = Förväntade entitetsargument
+command-world-desc = Skicka meddelanden till alla på servern
