@@ -323,8 +323,6 @@ pub struct LoginBanner {
     multiplayer_button: button::State,
     #[cfg(feature = "singleplayer")]
     singleplayer_button: button::State,
-    #[cfg(feature = "singleplayer")]
-    lan_coop_button: button::State,
 
     unlock_server_field_button: button::State,
 }
@@ -450,14 +448,6 @@ impl LoginBanner {
                     FILL_FRAC_TWO,
                     button_style,
                     Some(Message::Singleplayer),
-                ),
-                #[cfg(feature = "singleplayer")]
-                neat_button(
-                    &mut self.lan_coop_button,
-                    i18n.get_msg("main-lan_coop"),
-                    FILL_FRAC_TWO,
-                    button_style,
-                    Some(Message::LanCoop),
                 ),
             ])
             .max_width(170)
