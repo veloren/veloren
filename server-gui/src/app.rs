@@ -94,6 +94,9 @@ pub struct ServerApp {
     show_trace: bool,
     show_debug: bool,
     scroll_to_bottom: bool,
+
+    // ── theme ─────────────────────────────────────────────────────────────
+    dark_mode: bool,
 }
 
 impl ServerApp {
@@ -130,6 +133,7 @@ impl ServerApp {
             show_trace: false,
             show_debug: true,
             scroll_to_bottom: true,
+            dark_mode: true,
         }
     }
 
@@ -152,14 +156,25 @@ impl ServerApp {
         format!("{h:02}:{m:02}:{s:02}")
     }
 
-    fn level_color(level: LogLevel) -> Color32 {
-        match level {
-            LogLevel::Error => Color32::from_rgb(255, 80, 80),
-            LogLevel::Warn => Color32::from_rgb(255, 200, 60),
-            LogLevel::Info => Color32::from_rgb(160, 210, 255),
-            LogLevel::Debug => Color32::from_rgb(140, 200, 140),
-            LogLevel::Trace => Color32::from_rgb(160, 160, 160),
-            LogLevel::Unknown => Color32::LIGHT_GRAY,
+    fn level_color(level: LogLevel, dark_mode: bool) -> Color32 {
+        if dark_mode {
+            match level {
+                LogLevel::Error => Color32::from_rgb(255, 80, 80),
+                LogLevel::Warn => Color32::from_rgb(255, 200, 60),
+                LogLevel::Info => Color32::from_rgb(160, 210, 255),
+                LogLevel::Debug => Color32::from_rgb(140, 200, 140),
+                LogLevel::Trace => Color32::from_rgb(160, 160, 160),
+                LogLevel::Unknown => Color32::LIGHT_GRAY,
+            }
+        } else {
+            match level {
+                LogLevel::Error => Color32::DARK_RED,
+                LogLevel::Warn => Color32::from_rgb(160, 100, 0),
+                LogLevel::Info => Color32::from_rgb(0, 80, 180),
+                LogLevel::Debug => Color32::from_rgb(0, 120, 60),
+                LogLevel::Trace => Color32::DARK_GRAY,
+                LogLevel::Unknown => Color32::BLACK,
+            }
         }
     }
 
@@ -178,10 +193,15 @@ impl ServerApp {
             // ── Title ─────────────────────────────────────────────────────
             ui.add_space(24.0);
             ui.vertical_centered(|ui| {
+                let title_color = if self.dark_mode {
+                    Color32::from_rgb(255, 215, 50)
+                } else {
+                    Color32::from_rgb(160, 100, 0)
+                };
                 ui.heading(
                     RichText::new("Nova-Forge Server")
                         .size(28.0)
-                        .color(Color32::from_rgb(255, 215, 50)),
+                        .color(title_color),
                 );
                 ui.label(
                     RichText::new("Configure and start your server below.")
@@ -399,21 +419,29 @@ impl ServerApp {
 
     // ── running server panels ─────────────────────────────────────────────
 
-    fn draw_header(&self, ui: &mut egui::Ui) {
+    fn draw_header(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             let (status_color, status_label) = if self.server_running {
-                (Color32::from_rgb(80, 200, 80), "● RUNNING")
-            } else {
+                if self.dark_mode {
+                    (Color32::from_rgb(80, 200, 80), "● RUNNING")
+                } else {
+                    (Color32::from_rgb(0, 140, 0), "● RUNNING")
+                }
+            } else if self.dark_mode {
                 (Color32::from_rgb(200, 80, 80), "● STOPPED")
+            } else {
+                (Color32::DARK_RED, "● STOPPED")
             };
             ui.colored_label(status_color, status_label);
 
             if self.config.experimental_worldgen {
                 ui.separator();
-                ui.colored_label(
-                    Color32::from_rgb(255, 180, 50),
-                    "⚗ EXPERIMENTAL (Track B)",
-                );
+                let exp_color = if self.dark_mode {
+                    Color32::from_rgb(255, 180, 50)
+                } else {
+                    Color32::from_rgb(160, 100, 0)
+                };
+                ui.colored_label(exp_color, "⚗ EXPERIMENTAL (Track B)");
             }
 
             ui.separator();
@@ -422,6 +450,13 @@ impl ServerApp {
             ui.label(format!("Players: {}", self.players.len()));
             ui.separator();
             ui.label(&self.config.server_name);
+
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let icon = if self.dark_mode { "☀ Light" } else { "🌙 Dark" };
+                if ui.small_button(icon).clicked() {
+                    self.dark_mode = !self.dark_mode;
+                }
+            });
         });
     }
 
@@ -431,27 +466,47 @@ impl ServerApp {
 
         // ── World gen lane badge ──────────────────────────────────────────
         if self.config.experimental_worldgen {
+            let badge_fill = if self.dark_mode {
+                Color32::from_rgba_premultiplied(80, 40, 0, 220)
+            } else {
+                Color32::from_rgba_premultiplied(220, 160, 60, 255)
+            };
+            let badge_text = if self.dark_mode {
+                Color32::from_rgb(255, 180, 50)
+            } else {
+                Color32::from_rgb(100, 50, 0)
+            };
             egui::Frame::default()
-                .fill(Color32::from_rgba_premultiplied(80, 40, 0, 220))
+                .fill(badge_fill)
                 .inner_margin(6.0)
                 .corner_radius(4.0)
                 .show(ui, |ui| {
                     ui.label(
                         RichText::new("⚗  Experimental World Gen\n(Nova-Forge Track B)")
-                            .color(Color32::from_rgb(255, 180, 50))
+                            .color(badge_text)
                             .small(),
                     );
                 });
             ui.add_space(6.0);
         } else {
+            let badge_fill = if self.dark_mode {
+                Color32::from_rgba_premultiplied(0, 60, 30, 200)
+            } else {
+                Color32::from_rgba_premultiplied(180, 240, 200, 255)
+            };
+            let badge_text = if self.dark_mode {
+                Color32::from_rgb(100, 210, 130)
+            } else {
+                Color32::from_rgb(0, 100, 40)
+            };
             egui::Frame::default()
-                .fill(Color32::from_rgba_premultiplied(0, 60, 30, 200))
+                .fill(badge_fill)
                 .inner_margin(6.0)
                 .corner_radius(4.0)
                 .show(ui, |ui| {
                     ui.label(
                         RichText::new("🌐  Stable World Gen (Track A)")
-                            .color(Color32::from_rgb(100, 210, 130))
+                            .color(badge_text)
                             .small(),
                     );
                 });
@@ -566,7 +621,7 @@ impl ServerApp {
                     {
                         continue;
                     }
-                    let color = Self::level_color(entry.level);
+                    let color = Self::level_color(entry.level, self.dark_mode);
                     ui.colored_label(color, &entry.text);
                 }
             });
@@ -796,6 +851,13 @@ impl ServerApp {
 
 impl eframe::App for ServerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Apply current theme first so all subsequent drawing uses the right visuals.
+        if self.dark_mode {
+            ctx.set_visuals(egui::Visuals::dark());
+        } else {
+            ctx.set_visuals(egui::Visuals::light());
+        }
+
         // Drain server events (only when running).
         if let Phase::Running { event_rx, .. } = &mut self.phase {
             while let Ok(event) = event_rx.try_recv() {

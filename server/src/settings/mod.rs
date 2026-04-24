@@ -227,6 +227,14 @@ pub struct Settings {
     #[serde(default, skip_serializing)]
     pub experimental_terrain_persistence: bool,
 
+    /// When `true`, the server uses the Nova-Forge Track B experimental world
+    /// generation pipeline (sourced from `SingleplayerWorld::use_experimental`
+    /// or the server-gui toggle).
+    ///
+    /// When `false`, the stable (upstream) Track A pipeline is used.
+    #[serde(default, skip_serializing)]
+    pub experimental_worldgen: bool,
+
     #[serde(default)]
     pub gameplay: GameplaySettings,
     #[serde(default)]
@@ -260,6 +268,7 @@ impl Default for Settings {
             client_timeout: Duration::from_secs(40),
             max_player_for_kill_broadcast: None,
             experimental_terrain_persistence: false,
+            experimental_worldgen: false,
             gameplay: GameplaySettings::default(),
             moderation: ModerationSettings::default(),
             world: WorldSettings::default(),

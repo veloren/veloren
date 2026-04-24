@@ -314,6 +314,11 @@ impl Server {
                     FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
                 calendar: Some(settings.calendar_mode.calendar_now()),
+                experimental: if settings.experimental_worldgen {
+                    Some(world::experimental::ExperimentalParams::nova_forge_v1())
+                } else {
+                    None
+                },
             },
             &pools,
             &|stage| {

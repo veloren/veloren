@@ -148,6 +148,7 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
             calendar: None,
+            experimental: None,
         },
         &pool,
         &|_| {},

@@ -52,6 +52,7 @@ fn main() {
             // world_file: sim::FileOpts::Save(sim::SizeOpts::default()),
             // world_file: sim::FileOpts::Save(sim::SizeOpts::new(12, 12, 4.0)),
             calendar: None,
+            experimental: None,
         },
         &threadpool,
         &|_| {},

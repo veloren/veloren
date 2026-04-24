@@ -311,6 +311,7 @@ mod tests {
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
                 //sim::FileOpts::LoadAsset("world.map.economy_8x8".into()),
                 calendar: None,
+                experimental: None,
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
@@ -337,6 +338,7 @@ mod tests {
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
                 //sim::FileOpts::LoadAsset("world.map.economy_8x8".into()),
                 calendar: None,
+                experimental: None,
             };
             let mut index = crate::index::Index::new(seed);
             info!("Index created");
@@ -500,6 +502,7 @@ mod tests {
                 seed_elements: true,
                 world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
                 calendar: Default::default(),
+                experimental: None,
             };
             let index = crate::index::Index::new(seed);
             info!("Index created");

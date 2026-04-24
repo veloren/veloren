@@ -460,6 +460,9 @@ pub struct WorldOpts {
     pub seed_elements: bool,
     pub world_file: FileOpts,
     pub calendar: Option<Calendar>,
+    /// When `Some`, the Track B experimental pipeline parameters are used.
+    /// `None` means Track A (upstream Veloren baseline).
+    pub experimental: Option<crate::experimental::ExperimentalParams>,
 }
 
 impl Default for WorldOpts {
@@ -468,6 +471,7 @@ impl Default for WorldOpts {
             seed_elements: true,
             world_file: Default::default(),
             calendar: None,
+            experimental: None,
         }
     }
 }
@@ -892,6 +896,33 @@ impl WorldSim {
         let n_small_steps = 0;
         let n_post_load_steps = 0;
 
+        // ── Track B parameter overrides ───────────────────────────────────
+        let (exp_mountain_scale, _exp_sea_level_offset, exp_extra_erosion, exp_temp_bias, exp_humid_bias) =
+            if let Some(ref exp) = opts.experimental {
+                tracing::info!(
+                    mountain_scale = exp.mountain_scale,
+                    sea_level_offset = exp.sea_level_offset,
+                    extra_erosion_passes = exp.extra_erosion_passes,
+                    "Nova-Forge Track B experimental worldgen active"
+                );
+                if exp.nova_biome_rules {
+                    tracing::warn!(
+                        "nova_biome_rules is enabled but not yet implemented; \
+                         falling back to upstream biome assignment"
+                    );
+                }
+                (
+                    exp.mountain_scale,
+                    exp.sea_level_offset,
+                    exp.extra_erosion_passes,
+                    exp.temperature_bias,
+                    exp.humidity_bias,
+                )
+            } else {
+                (1.0f32, 0.0f32, 0u32, 0.0f32, 0.0f32)
+            };
+        let n_steps = n_steps + exp_extra_erosion as usize;
+
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f64| x.ln() - (-x).ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
@@ -1106,7 +1137,7 @@ impl WorldSim {
             1.0
         };
         let old_height = |posi: usize| {
-            alt_old[posi].1 * CONFIG.mountain_scale * height_scale(n_func(posi)) as f32
+            alt_old[posi].1 * CONFIG.mountain_scale * exp_mountain_scale * height_scale(n_func(posi)) as f32
         };
 
         // NOTE: Needed if you wish to use the distance to the point defining the Worley
@@ -1676,6 +1707,26 @@ impl WorldSim {
                     )
                 },
             );
+
+        // ── Track B temperature / humidity biases ─────────────────────────
+        let temp_base = if exp_temp_bias != 0.0 {
+            let mut v = temp_base;
+            for entry in v.iter_mut() {
+                entry.0 = (entry.0 + exp_temp_bias).clamp(0.0, 1.0);
+            }
+            v
+        } else {
+            temp_base
+        };
+        let humid_base = if exp_humid_bias != 0.0 {
+            let mut v = humid_base;
+            for entry in v.iter_mut() {
+                entry.0 = (entry.0 + exp_humid_bias).clamp(0.0, 1.0);
+            }
+            v
+        } else {
+            humid_base
+        };
 
         let gen_cdf = GenCdf {
             humid_base,

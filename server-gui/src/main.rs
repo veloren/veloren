@@ -74,8 +74,7 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "Nova-Forge Server",
         native_options,
-        Box::new(|cc| {
-            cc.egui_ctx.set_visuals(egui::Visuals::dark());
+        Box::new(|_cc| {
             Ok(Box::new(app))
         }),
     )

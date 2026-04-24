@@ -125,6 +125,7 @@ fn main() {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
             calendar: None,
+            experimental: None,
         },
         &pool,
         &|_| {},
