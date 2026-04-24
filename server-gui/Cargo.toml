@@ -1,0 +1,49 @@
+[package]
+name = "nova-forge-server-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.nix]
+build = true
+app = true
+longDescription = """
+Nova-Forge is a LAN-first, auth-free voxel RPG.
+
+This package includes the Nova-Forge server GUI — a standalone windowed
+application that runs the game server and exposes full management controls
+through a graphical interface instead of a terminal console.
+"""
+
+[features]
+worldgen = ["server/worldgen"]
+persistent_world = ["server/persistent_world"]
+default = ["worldgen", "persistent_world"]
+plugins = ["server/plugins"]
+
+[dependencies]
+server = { package = "nova-forge-server", path = "../server", default-features = false, features = [
+    "simd",
+] }
+common = { package = "nova-forge-common", path = "../common" }
+common-base = { package = "nova-forge-common-base", path = "../common/base" }
+common-net = { package = "nova-forge-common-net", path = "../common/net" }
+common-frontend = { package = "nova-forge-common-frontend", path = "../common/frontend" }
+
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+num_cpus = "1.0"
+tracing = { workspace = true }
+specs = { workspace = true }
+lazy_static = { workspace = true }
+
+eframe = { version = "0.33", default-features = false, features = [
+    "default_fonts",
+    "glow",
+] }
+egui = "0.33"
+
+[target.'cfg(windows)'.dependencies]
+mimalloc = { workspace = true }
