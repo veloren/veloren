@@ -911,6 +911,15 @@ impl WorldSim {
                          falling back to upstream biome assignment"
                     );
                 }
+                // TODO: sea_level_offset is not yet applied — it requires modifying
+                // the alt computation to shift the effective sea-level boundary.
+                // Filed as part of Track B iterative implementation.
+                if exp.sea_level_offset != 0.0 {
+                    tracing::warn!(
+                        sea_level_offset = exp.sea_level_offset,
+                        "sea_level_offset is not yet implemented; value will be ignored"
+                    );
+                }
                 (
                     exp.mountain_scale,
                     exp.sea_level_offset,
