@@ -131,6 +131,8 @@ pub enum WorldChange {
     DefaultGenOps,
     MaxPlayers(u16),
     Experimental(bool),
+    Pvp(bool),
+    DifficultyChange(crate::singleplayer::Difficulty),
 }
 
 #[cfg(feature = "singleplayer")]
@@ -150,6 +152,8 @@ impl WorldChange {
             WorldChange::DefaultGenOps => world.gen_opts = Some(Default::default()),
             WorldChange::MaxPlayers(n) => world.max_players = n,
             WorldChange::Experimental(v) => world.use_experimental = v,
+            WorldChange::Pvp(v) => world.pvp = v,
+            WorldChange::DifficultyChange(d) => world.difficulty = d,
         }
     }
 }

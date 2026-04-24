@@ -9,6 +9,35 @@ use serde::{Deserialize, Serialize};
 use server::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts};
 use tracing::error;
 
+/// World difficulty setting, controlling NPC health and damage scaling.
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Difficulty {
+    Easy,
+    #[default]
+    Normal,
+    Hard,
+}
+
+impl Difficulty {
+    /// NPC maximum-health multiplier for this difficulty.
+    pub fn npc_health_mult(self) -> f32 {
+        match self {
+            Difficulty::Easy => 0.6,
+            Difficulty::Normal => 1.0,
+            Difficulty::Hard => 1.5,
+        }
+    }
+
+    /// NPC outgoing-damage multiplier for this difficulty.
+    pub fn npc_damage_mult(self) -> f32 {
+        match self {
+            Difficulty::Easy => 0.7,
+            Difficulty::Normal => 1.0,
+            Difficulty::Hard => 1.4,
+        }
+    }
+}
+
 pub struct SingleplayerWorld {
     pub name: String,
     pub gen_opts: Option<GenOpts>,
@@ -22,6 +51,11 @@ pub struct SingleplayerWorld {
     /// Whether this world uses the Track B experimental world generation pipeline.
     /// When `false` (default), uses the stable Track A pipeline.
     pub use_experimental: bool,
+    /// Whether PvP (player-vs-player) damage is enabled.
+    /// When `false`, players cannot damage each other (PvE mode).
+    pub pvp: bool,
+    /// World difficulty: controls NPC HP and damage multipliers.
+    pub difficulty: Difficulty,
 }
 
 impl SingleplayerWorld {
@@ -123,6 +157,8 @@ fn migrate_old_singleplayer(from: &Path, to: &Path) {
             map_path,
             max_players: 8,
             use_experimental: false,
+            pvp: true,
+            difficulty: Difficulty::Normal,
         });
     }
 }
@@ -246,6 +282,8 @@ impl SingleplayerWorlds {
             path,
             max_players: 8,
             use_experimental: false,
+            pvp: true,
+            difficulty: Difficulty::Normal,
         };
 
         write_world_meta(&new_world);
@@ -267,13 +305,22 @@ mod version {
 
     use super::*;
 
-    pub type Current = V4;
+    pub type Current = V6;
 
     type LoadWorldFn<R> =
         fn(R, &Path) -> Result<SingleplayerWorld, (&'static str, ron::de::SpannedError)>;
     fn loaders<'a, R: std::io::Read + Clone>() -> &'a [LoadWorldFn<R>] {
-        // Step [4]
-        &[load_raw::<V4, _>, load_raw::<V3, _>, load_raw::<V2, _>, load_raw::<V1, _>]
+        // Step [4]: add new versions at the front; keep older ones for migration.
+        // V5 – added pvp (PvP/PvE combat mode toggle)
+        // V6 – added difficulty (Easy/Normal/Hard NPC scaling)
+        &[
+            load_raw::<V6, _>,
+            load_raw::<V5, _>,
+            load_raw::<V4, _>,
+            load_raw::<V3, _>,
+            load_raw::<V2, _>,
+            load_raw::<V1, _>,
+        ]
     }
 
     #[derive(Deserialize, Serialize)]
@@ -300,6 +347,8 @@ mod version {
                 map_path,
                 max_players: 8,
                 use_experimental: false,
+                pvp: true,
+                difficulty: Difficulty::Normal,
             }
         }
     }
@@ -329,6 +378,8 @@ mod version {
                 map_path,
                 max_players: 8,
                 use_experimental: false,
+                pvp: true,
+                difficulty: Difficulty::Normal,
             }
         }
     }
@@ -359,6 +410,8 @@ mod version {
                 map_path,
                 max_players: self.max_players,
                 use_experimental: false,
+                pvp: true,
+                difficulty: Difficulty::Normal,
             }
         }
     }
@@ -373,20 +426,6 @@ mod version {
         day_length: f64,
         max_players: u16,
         use_experimental: bool,
-    }
-
-    impl V4 {
-        pub fn from_world(world: &SingleplayerWorld) -> Self {
-            V4 {
-                version: 4,
-                name: world.name.clone(),
-                gen_opts: world.gen_opts.clone(),
-                seed: world.seed,
-                day_length: world.day_length,
-                max_players: world.max_players,
-                use_experimental: world.use_experimental,
-            }
-        }
     }
 
     impl ToWorld for V4 {
@@ -404,6 +443,93 @@ mod version {
                 map_path,
                 max_players: self.max_players,
                 use_experimental: self.use_experimental,
+                pvp: true,
+                difficulty: Difficulty::Normal,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub struct V5 {
+        #[serde(deserialize_with = "version::<_, 5>")]
+        version: u64,
+        name: String,
+        gen_opts: Option<GenOpts>,
+        seed: u32,
+        day_length: f64,
+        max_players: u16,
+        use_experimental: bool,
+        pvp: bool,
+    }
+
+    impl ToWorld for V5 {
+        fn to_world(self, path: PathBuf) -> SingleplayerWorld {
+            let map_path = path.join("map.bin");
+            let is_generated = fs::metadata(&map_path).is_ok_and(|f| f.is_file());
+
+            SingleplayerWorld {
+                name: self.name,
+                gen_opts: self.gen_opts,
+                seed: self.seed,
+                day_length: self.day_length,
+                is_generated,
+                path,
+                map_path,
+                max_players: self.max_players,
+                use_experimental: self.use_experimental,
+                pvp: self.pvp,
+                difficulty: Difficulty::Normal,
+            }
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub struct V6 {
+        #[serde(deserialize_with = "version::<_, 6>")]
+        version: u64,
+        name: String,
+        gen_opts: Option<GenOpts>,
+        seed: u32,
+        day_length: f64,
+        max_players: u16,
+        use_experimental: bool,
+        pvp: bool,
+        difficulty: Difficulty,
+    }
+
+    impl V6 {
+        pub fn from_world(world: &SingleplayerWorld) -> Self {
+            V6 {
+                version: 6,
+                name: world.name.clone(),
+                gen_opts: world.gen_opts.clone(),
+                seed: world.seed,
+                day_length: world.day_length,
+                max_players: world.max_players,
+                use_experimental: world.use_experimental,
+                pvp: world.pvp,
+                difficulty: world.difficulty,
+            }
+        }
+    }
+
+    impl ToWorld for V6 {
+        fn to_world(self, path: PathBuf) -> SingleplayerWorld {
+            let map_path = path.join("map.bin");
+            let is_generated = fs::metadata(&map_path).is_ok_and(|f| f.is_file());
+
+            SingleplayerWorld {
+                name: self.name,
+                gen_opts: self.gen_opts,
+                seed: self.seed,
+                day_length: self.day_length,
+                is_generated,
+                path,
+                map_path,
+                max_players: self.max_players,
+                use_experimental: self.use_experimental,
+                pvp: self.pvp,
+                difficulty: self.difficulty,
             }
         }
     }
