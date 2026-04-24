@@ -7,7 +7,7 @@ use crate::{
         CollectFailedData, HudCollectFailedReason, HudLootOwner, IconHandler,
         controller_icons::LayerIconIds,
     },
-    ui::{Ingameable, fonts::Fonts},
+    ui::fonts::Fonts,
     window::LastInput,
 };
 use conrod_core::{
@@ -92,45 +92,6 @@ pub struct OveritemProperties {
 
 pub struct State {
     ids: Ids,
-}
-
-impl Ingameable for Overitem<'_> {
-    fn prim_count(&self) -> usize {
-        // Number of conrod primitives contained in the overitem display.
-        // TODO maybe this could be done automatically?
-
-        // + 2 Text for name
-        let base = 2;
-
-        // + 0 or 2 Rectangle and Text for button
-        let interaction_ids = match self.global_state.window.last_input() {
-            LastInput::KeyboardMouse => self
-                .global_state
-                .settings
-                .controls
-                .get_binding(GameInput::Interact)
-                .filter(|_| self.properties.active)
-                .map_or(0, |_| 2),
-            LastInput::Controller => {
-                // + 3 more than keyboard for icon ids (main icon, mod1, mod2)
-                self.global_state
-                    .settings
-                    .controller
-                    .get_game_button_binding(GameInput::Interact)
-                    .filter(|_| self.properties.active)
-                    .map_or(3, |_| 5)
-            },
-        };
-
-        // + 0 or 2 for pickup failed pulse
-        let pulse = if self.properties.pickup_failed_pulse.is_some() {
-            2
-        } else {
-            0
-        };
-
-        base + interaction_ids + pulse
-    }
 }
 
 impl Widget for Overitem<'_> {
