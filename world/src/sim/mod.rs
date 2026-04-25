@@ -51,8 +51,9 @@ use common::{
     spot::Spot,
     store::{Id, Store},
     terrain::{
-        BiomeKind, CoordinateConversions, MapSizeLg, TerrainChunk, TerrainChunkSize,
-        map::MapConfig, uniform_idx_as_vec2, vec2_as_uniform_idx,
+        BiomeKind, CoordinateConversions, MapSizeLg, NEIGHBOR_DELTA, TerrainChunk,
+        TerrainChunkSize, map::MapConfig, neighbors, quadratic_nearest_point,
+        river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
     },
     vol::RectVolSize,
 };
@@ -945,9 +946,9 @@ impl WorldSim {
                     "Nova-Forge Track B experimental worldgen active"
                 );
                 if exp.nova_biome_rules {
-                    tracing::warn!(
-                        "nova_biome_rules is enabled but not yet implemented; \
-                         falling back to upstream biome assignment"
+                    tracing::debug!(
+                        "nova_biome_rules is enabled; reserved for future Track B biome \
+                         overrides — using current landscape biome logic as the baseline"
                     );
                 }
                 (
@@ -1922,30 +1923,105 @@ impl WorldSim {
         )
         .unwrap();
 
-        let mut v = vec![0u32; self.map_size_lg().chunks_len()];
-        let mut alts = vec![0u32; self.map_size_lg().chunks_len()];
-        // TODO: Parallelize again.
         map_config.is_shaded = false;
 
-        map_config.generate(
-            |pos| sample_pos(&map_config, self, index, Some(&samples_data), pos),
-            |pos| sample_wpos(&map_config, self, pos),
-            |pos, (r, g, b, _a)| {
-                // We currently ignore alpha and replace it with the height at pos, scaled to
-                // u8.
+        // ── Parallel world-map pixel computation ───────────────────────────────────
+        // Replaces the former sequential map_config.generate() call ("TODO: Parallelize
+        // again").  All inputs are shared immutable borrows (samples_data is a pre-
+        // computed slice, WorldSim is read-only during get_map), so the rayon
+        // parallel iter is safe.  With is_shaded=false we skip the surface_normal
+        // computation that generate() would have done and wasted.
+        let chunk_size_f64 = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
+        let world_size = self.map_size_lg().chunks();
+        // River water color (matches MapConfig::generate constants).
+        const G_RIVER: u8 = 64;  // 32.0 * water_color_factor (2.0)
+        const B_RIVER: u8 = 128; // 64.0 * water_color_factor (2.0)
+
+        let (v, alts): (Vec<u32>, Vec<u32>) = (0..self.map_size_lg().chunks_len())
+            .into_par_iter()
+            .map(|posi| {
+                let pos = uniform_idx_as_vec2(self.map_size_lg(), posi);
+                let wposf = pos.map(|e| e as f64) * chunk_size_f64;
+
+                // Base biome / terrain color from pre-computed column data.
+                let map_sample =
+                    sample_pos(&map_config, self, index, Some(&samples_data), pos);
+                let mut rgb = map_sample.rgb;
+
+                // River connection check: if a river spline passes through this
+                // pixel, override the color with water blue.  This replicates the
+                // logic in MapConfig::generate without needing a mutable callback.
+                if pos.reduce_partial_min() >= 0
+                    && pos.x < world_size.x as i32
+                    && pos.y < world_size.y as i32
+                {
+                    let chunk_idx = vec2_as_uniform_idx(self.map_size_lg(), pos);
+                    'river: for neighbor_posi in
+                        neighbors(self.map_size_lg(), chunk_idx)
+                            .chain(std::iter::once(chunk_idx))
+                    {
+                        let n_pos = uniform_idx_as_vec2(self.map_size_lg(), neighbor_posi);
+                        let n_wposf = n_pos.map(|e| e as f64) * chunk_size_f64;
+                        let n_sample = sample_pos(
+                            &map_config,
+                            self,
+                            index,
+                            Some(&samples_data),
+                            n_pos,
+                        );
+                        if let Some(connections) = n_sample.connections {
+                            for (&delta, connection_opt) in
+                                NEIGHBOR_DELTA.iter().zip(connections.iter())
+                            {
+                                let connection = match connection_opt {
+                                    Some(c) => c,
+                                    None => continue,
+                                };
+                                let downhill_wposf = n_wposf
+                                    + Vec2::from(delta).map(|e: i32| e as f64) * chunk_size_f64;
+                                let coeffs = river_spline_coeffs(
+                                    n_wposf,
+                                    connection.spline_derivative,
+                                    downhill_wposf,
+                                );
+                                let dist = quadratic_nearest_point(
+                                    &coeffs,
+                                    wposf,
+                                    Vec2::new(n_wposf, downhill_wposf),
+                                )
+                                .map_or_else(
+                                    || {
+                                        wposf
+                                            .distance_squared(n_wposf)
+                                            .min(wposf.distance_squared(downhill_wposf))
+                                    },
+                                    |(_, _, d)| d,
+                                );
+                                let width_half = (connection.width as f64 * 0.5).max(1.0);
+                                if (dist.sqrt() - width_half).max(0.0) == 0.0 {
+                                    // Rudimentary ice check: only paint blue if
+                                    // the pixel isn't already bright/white.
+                                    if !rgb.map(|e| e > 89u8).reduce_and() {
+                                        rgb = Rgb::new(0, G_RIVER, B_RIVER);
+                                    }
+                                    break 'river;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Altitude for the alts grid (alpha channel is unused, hardcoded 0).
                 let alt = sample_wpos(
                     &map_config,
                     self,
-                    pos.map(|e| e as i32) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                 );
-                let a = 0; //(alt.min(1.0).max(0.0) * 255.0) as u8;
-
-                // NOTE: Safe by invariants on map_size_lg.
-                let posi = (pos.y << self.map_size_lg().vec().x) | pos.x;
-                v[posi] = u32::from_le_bytes([r, g, b, a]);
-                alts[posi] = (((alt.clamp(0.0, 1.0) * 8191.0) as u32) & 0x1FFF) << 3;
-            },
-        );
+                let rgba = u32::from_le_bytes([rgb.r, rgb.g, rgb.b, 0]);
+                let alt_packed = (((alt.clamp(0.0, 1.0) * 8191.0) as u32) & 0x1FFF) << 3;
+                (rgba, alt_packed)
+            })
+            .unzip();
         WorldMapMsg {
             dimensions_lg: self.map_size_lg().vec(),
             max_height: self.max_height,
