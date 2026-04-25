@@ -776,6 +776,45 @@ impl WorldSim {
         // overwrite world file
         let fresh = parsed_world_file.is_none();
 
+        // ── Track B: apply gen_opts / world-size override ─────────────────────
+        // When experimental is active and specifies a gen_opts_override, and no
+        // pre-existing map file was loaded (i.e. we are generating fresh), replace
+        // both map_size_lg and gen_opts so the larger starter-planet world is used.
+        let (map_size_lg, gen_opts) = if let Some(ref exp) = opts.experimental {
+            if let Some(ref gof) = exp.gen_opts_override {
+                if fresh {
+                    let overridden_size = MapSizeLg::new(Vec2 {
+                        x: gof.x_lg,
+                        y: gof.y_lg,
+                    })
+                    .unwrap_or_else(|_| {
+                        warn!(
+                            x_lg = gof.x_lg,
+                            y_lg = gof.y_lg,
+                            "Experimental gen_opts_override has an invalid world size; \
+                             falling back to loaded/default size"
+                        );
+                        map_size_lg
+                    });
+                    info!(
+                        x_lg = gof.x_lg,
+                        y_lg = gof.y_lg,
+                        scale = gof.scale,
+                        erosion_quality = gof.erosion_quality,
+                        "Track B starter-planet: overriding world size and gen opts"
+                    );
+                    (overridden_size, gof.clone())
+                } else {
+                    // Loading a previously saved map — honour its recorded size.
+                    (map_size_lg, gen_opts)
+                }
+            } else {
+                (map_size_lg, gen_opts)
+            }
+        } else {
+            (map_size_lg, gen_opts)
+        };
+
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let continent_scale = gen_opts.scale
             * 5_000.0f64
@@ -897,7 +936,7 @@ impl WorldSim {
         let n_post_load_steps = 0;
 
         // ── Track B parameter overrides ───────────────────────────────────
-        let (exp_mountain_scale, _exp_sea_level_offset, exp_extra_erosion, exp_temp_bias, exp_humid_bias) =
+        let (exp_mountain_scale, exp_sea_level_offset, exp_extra_erosion, exp_temp_bias, exp_humid_bias) =
             if let Some(ref exp) = opts.experimental {
                 tracing::info!(
                     mountain_scale = exp.mountain_scale,
@@ -909,15 +948,6 @@ impl WorldSim {
                     tracing::warn!(
                         "nova_biome_rules is enabled but not yet implemented; \
                          falling back to upstream biome assignment"
-                    );
-                }
-                // TODO: sea_level_offset is not yet applied — it requires modifying
-                // the alt computation to shift the effective sea-level boundary.
-                // Filed as part of Track B iterative implementation.
-                if exp.sea_level_offset != 0.0 {
-                    tracing::warn!(
-                        sea_level_offset = exp.sea_level_offset,
-                        "sea_level_offset is not yet implemented; value will be ignored"
                     );
                 }
                 (
@@ -1129,7 +1159,13 @@ impl WorldSim {
         });
 
         // Calculate oceans.
-        let is_ocean = get_oceans(map_size_lg, |posi: usize| alt_old[posi].1);
+        // When sea_level_offset is non-zero, subtract it from the raw altitude before
+        // the ≤0 ocean threshold check:
+        //   * positive offset → more tiles fall below 0 → more ocean (raised sea level)
+        //   * negative offset → fewer tiles fall below 0 → less ocean (lowered sea level)
+        let is_ocean = get_oceans(map_size_lg, |posi: usize| {
+            alt_old[posi].1 - exp_sea_level_offset
+        });
         // NOTE: Uncomment if you want oceans to exclusively be on the border of the
         // map.
         /* let is_ocean = (0..map_size_lg.chunks())

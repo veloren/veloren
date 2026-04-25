@@ -117,6 +117,11 @@ impl SingleplayerState {
                 && !world.is_generated
             {
                 server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
+            } else if !world.is_generated && world.use_experimental {
+                // Experimental worlds must be generated fresh so that the Track B
+                // gen_opts_override (planet size / scale) can be applied.  Copying the
+                // default Track A world would produce the wrong size.
+                server::FileOpts::Save(world.map_path.clone(), server::GenOpts::default())
             } else {
                 if !world.is_generated && world.gen_opts.is_none() {
                     world.copy_default_world();
@@ -256,6 +261,11 @@ impl SingleplayerState {
                 && !world.is_generated
             {
                 server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
+            } else if !world.is_generated && world_use_experimental {
+                // Experimental worlds must be generated fresh so that the Track B
+                // gen_opts_override (planet size / scale) can be applied.  Copying the
+                // default Track A world would produce the wrong size.
+                server::FileOpts::Save(world.map_path.clone(), server::GenOpts::default())
             } else {
                 if !world.is_generated && world.gen_opts.is_none() {
                     world.copy_default_world();
