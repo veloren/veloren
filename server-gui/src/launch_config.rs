@@ -1,4 +1,4 @@
-use server::persistence::DatabaseSettings;
+use server::{DEFAULT_WORLD_SEED, persistence::DatabaseSettings};
 use std::{net::SocketAddr, path::PathBuf};
 
 /// The values the operator configures on the launch screen before starting
@@ -23,9 +23,6 @@ pub struct LaunchConfig {
     /// a bright banner is shown in the GUI.
     pub experimental_worldgen: bool,
 }
-
-/// Default world seed value — kept in sync with `world::sim::DEFAULT_WORLD_SEED`.
-const DEFAULT_WORLD_SEED: u32 = 130_626_853;
 
 impl Default for LaunchConfig {
     fn default() -> Self {

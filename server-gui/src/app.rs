@@ -937,4 +937,3 @@ impl eframe::App for ServerApp {
         self.stop_flag.store(true, Ordering::Relaxed);
     }
 }
-

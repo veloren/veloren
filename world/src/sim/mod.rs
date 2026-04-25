@@ -1933,9 +1933,14 @@ impl WorldSim {
         // computation that generate() would have done and wasted.
         let chunk_size_f64 = TerrainChunkSize::RECT_SIZE.map(|e| e as f64);
         let world_size = self.map_size_lg().chunks();
-        // River water color (matches MapConfig::generate constants).
-        const G_RIVER: u8 = 64;  // 32.0 * water_color_factor (2.0)
-        const B_RIVER: u8 = 128; // 64.0 * water_color_factor (2.0)
+        // River water color constants — these mirror `MapConfig::generate`'s local
+        // variables `g_water` and `b_water` which are calculated as:
+        //   water_color_factor = 2.0
+        //   g_water = 32.0 * water_color_factor  →  64  (green component)
+        //   b_water = 64.0 * water_color_factor  → 128  (blue component)
+        // See common/src/terrain/map.rs:598-610.
+        const G_RIVER: u8 = 64;
+        const B_RIVER: u8 = 128;
 
         let (v, alts): (Vec<u32>, Vec<u32>) = (0..self.map_size_lg().chunks_len())
             .into_par_iter()

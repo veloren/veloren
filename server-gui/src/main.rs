@@ -79,5 +79,3 @@ fn main() -> eframe::Result<()> {
         }),
     )
 }
-
-
