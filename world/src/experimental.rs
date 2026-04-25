@@ -18,6 +18,27 @@ use crate::sim::GenOpts;
 use common::resources::MapKind;
 use serde::{Deserialize, Serialize};
 
+/// The locked world seed for the Nova-Forge Starter Planet (Track B).
+///
+/// Once a suitable seed is chosen (by running generation and evaluating the
+/// resulting terrain), this constant must be updated and committed.  From that
+/// point on every fresh experimental world will be generated with exactly this
+/// seed, guaranteeing that all players share an identical planet.
+///
+/// **Placeholder:** currently `0`.  Replace with the chosen seed before launch.
+///
+/// # How it is applied
+/// * When the player switches a world to "Experimental (Starter Planet)" track,
+///   `world.seed` is automatically overwritten with this value.
+/// * The seed field in the world-creation UI is hidden for experimental worlds;
+///   it is not user-configurable.
+/// * `singleplayer::SingleplayerWorlds::new_world()` keeps `DEFAULT_WORLD_SEED`
+///   as the default since new worlds default to Track A (stable).  The seed is
+///   overwritten to `STARTER_PLANET_SEED` only when the experimental toggle is
+///   engaged via `WorldChange::Experimental(true)`.
+// TODO: replace 0 with the chosen starter-planet seed once identified.
+pub const STARTER_PLANET_SEED: u32 = 0;
+
 /// Parameters that modify the Track B generation pipeline.
 ///
 /// All fields are multipliers or offsets relative to the upstream baseline

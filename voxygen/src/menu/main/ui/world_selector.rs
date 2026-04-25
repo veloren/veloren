@@ -247,68 +247,72 @@ impl Screen {
                 .into(),
             ];
 
-            let seed = world.seed;
-            let seed_str = i18n.get_msg("main-singleplayer-seed");
-            let mut seed_content = vec![
-                Column::with_children(vec![
-                    Text::new(seed_str.to_string())
-                        .size(SLIDER_TEXT_SIZE)
-                        .horizontal_alignment(iced::HorizontalAlignment::Center)
-                        .into(),
-                ])
-                .padding(iced::Padding::new(5))
-                .into(),
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(190))
-                        .fix_aspect_ratio(),
-                    if can_edit {
-                        Element::from(
-                            TextInput::new(
-                                &mut self.map_seed,
-                                &seed_str,
-                                &seed.to_string(),
-                                move |s| {
-                                    if let Ok(seed) = if s.is_empty() {
-                                        Ok(0)
-                                    } else {
-                                        s.parse::<u32>()
-                                    } {
-                                        message(WorldChange::Seed(seed))
-                                    } else {
-                                        message(WorldChange::Seed(seed))
-                                    }
-                                },
-                            )
-                            .size(input_text_size),
-                        )
-                    } else {
-                        Text::new(world.seed.to_string())
-                            .size(input_text_size)
-                            .width(Length::Fill)
-                            .height(Length::Shrink)
-                            .into()
-                    },
-                )
-                .padding(Padding::new().horizontal(7).top(5))
-                .into(),
-            ];
-
-            if can_edit {
-                seed_content.push(
-                    Container::new(neat_button(
-                        &mut self.random_seed_button,
-                        i18n.get_msg("main-singleplayer-random_seed"),
-                        FILL_FRAC_TWO,
-                        button_style,
-                        Some(message(WorldChange::Seed(rand::rng().random()))),
-                    ))
-                    .max_width(200)
+            // For the experimental (Starter Planet) track the seed is locked to
+            // STARTER_PLANET_SEED and is not user-configurable; hide the seed row.
+            if !world.use_experimental {
+                let seed = world.seed;
+                let seed_str = i18n.get_msg("main-singleplayer-seed");
+                let mut seed_content = vec![
+                    Column::with_children(vec![
+                        Text::new(seed_str.to_string())
+                            .size(SLIDER_TEXT_SIZE)
+                            .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            .into(),
+                    ])
+                    .padding(iced::Padding::new(5))
                     .into(),
-                )
-            }
+                    BackgroundContainer::new(
+                        Image::new(imgs.input_bg)
+                            .width(Length::Units(190))
+                            .fix_aspect_ratio(),
+                        if can_edit {
+                            Element::from(
+                                TextInput::new(
+                                    &mut self.map_seed,
+                                    &seed_str,
+                                    &seed.to_string(),
+                                    move |s| {
+                                        if let Ok(seed) = if s.is_empty() {
+                                            Ok(0)
+                                        } else {
+                                            s.parse::<u32>()
+                                        } {
+                                            message(WorldChange::Seed(seed))
+                                        } else {
+                                            message(WorldChange::Seed(seed))
+                                        }
+                                    },
+                                )
+                                .size(input_text_size),
+                            )
+                        } else {
+                            Text::new(world.seed.to_string())
+                                .size(input_text_size)
+                                .width(Length::Fill)
+                                .height(Length::Shrink)
+                                .into()
+                        },
+                    )
+                    .padding(Padding::new().horizontal(7).top(5))
+                    .into(),
+                ];
 
-            gen_content.push(Row::with_children(seed_content).into());
+                if can_edit {
+                    seed_content.push(
+                        Container::new(neat_button(
+                            &mut self.random_seed_button,
+                            i18n.get_msg("main-singleplayer-random_seed"),
+                            FILL_FRAC_TWO,
+                            button_style,
+                            Some(message(WorldChange::Seed(rand::rng().random()))),
+                        ))
+                        .max_width(200)
+                        .into(),
+                    )
+                }
+
+                gen_content.push(Row::with_children(seed_content).into());
+            }
 
             if let Some(gen_opts) = world.gen_opts.as_ref() {
                 // Day length setting label

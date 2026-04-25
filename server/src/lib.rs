@@ -144,6 +144,7 @@ use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
     IndexOwned, World,
+    experimental::STARTER_PLANET_SEED,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts, WorldOpts},
 };
 
