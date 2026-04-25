@@ -15,6 +15,7 @@ fn main() {
             // Load default map from assets.
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
             calendar: None,
+            experimental: None,
         },
         &threadpool,
         &|_| {},

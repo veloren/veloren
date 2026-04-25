@@ -30,7 +30,7 @@ use tracing::warn;
 #[cfg(feature = "singleplayer")]
 use common_base::local_lan_ip;
 #[cfg(feature = "singleplayer")]
-use server::settings::LAN_COOP_PORT;
+use server::{DEFAULT_WORLD_SEED, STARTER_PLANET_SEED, settings::LAN_COOP_PORT};
 
 use super::DetailedInitializationStage;
 
@@ -131,6 +131,8 @@ pub enum WorldChange {
     DefaultGenOps,
     MaxPlayers(u16),
     Experimental(bool),
+    Pvp(bool),
+    DifficultyChange(crate::singleplayer::Difficulty),
 }
 
 #[cfg(feature = "singleplayer")]
@@ -140,7 +142,13 @@ impl WorldChange {
         let gen_opts = world.gen_opts.as_mut().unwrap_or(&mut def);
         match self {
             WorldChange::Name(name) => world.name = name,
-            WorldChange::Seed(seed) => world.seed = seed,
+            // Seed changes are only allowed for non-experimental worlds; the
+            // experimental "Starter Planet" uses the locked STARTER_PLANET_SEED.
+            WorldChange::Seed(seed) => {
+                if !world.use_experimental {
+                    world.seed = seed;
+                }
+            },
             WorldChange::DayLength(d) => world.day_length = d,
             WorldChange::SizeX(s) => gen_opts.x_lg = s,
             WorldChange::SizeY(s) => gen_opts.y_lg = s,
@@ -149,7 +157,20 @@ impl WorldChange {
             WorldChange::ErosionQuality(q) => gen_opts.erosion_quality = q,
             WorldChange::DefaultGenOps => world.gen_opts = Some(Default::default()),
             WorldChange::MaxPlayers(n) => world.max_players = n,
-            WorldChange::Experimental(v) => world.use_experimental = v,
+            WorldChange::Experimental(v) => {
+                world.use_experimental = v;
+                // When switching to the experimental Starter Planet track, lock
+                // the seed to STARTER_PLANET_SEED so that every player generates
+                // the exact same world.  Switching back to stable restores the
+                // default seed.
+                world.seed = if v {
+                    STARTER_PLANET_SEED
+                } else {
+                    DEFAULT_WORLD_SEED
+                };
+            },
+            WorldChange::Pvp(v) => world.pvp = v,
+            WorldChange::DifficultyChange(d) => world.difficulty = d,
         }
     }
 }

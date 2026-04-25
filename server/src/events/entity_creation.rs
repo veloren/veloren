@@ -114,7 +114,7 @@ pub fn handle_loaded_character_data(server: &mut Server, ev: UpdateCharacterData
 pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
     // Destruct the builder to ensure all fields are exhaustive
     let NpcBuilder {
-        stats,
+        mut stats,
         skill_set,
         health,
         poise,
@@ -133,6 +133,17 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
         rider_effects,
         rider,
     } = ev.npc;
+
+    // Apply per-world difficulty multipliers to non-player-owned NPCs.
+    // Player-owned entities (tamed pets, mounts) are excluded so that
+    // difficulty only affects hostile/wild/NPC-faction entities.
+    if !matches!(alignment, comp::Alignment::Owned(_)) {
+        let health_mult = server.settings().gameplay.effective_npc_health_mult();
+        let damage_mult = server.settings().gameplay.effective_npc_damage_mult();
+        stats.max_health_modifiers.mult_mod *= health_mult;
+        stats.attack_damage_modifier *= damage_mult;
+    }
+
     let entity = server
         .state
         .create_npc(

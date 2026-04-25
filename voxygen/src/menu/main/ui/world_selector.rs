@@ -9,6 +9,7 @@ use vek::Rgba;
 
 use crate::{
     menu::main::ui::{FILL_FRAC_TWO, WorldsChange},
+    singleplayer::Difficulty,
     ui::{
         fonts::IcedFonts,
         ice::{
@@ -26,6 +27,17 @@ use crate::{
 use super::{Imgs, Message};
 
 const INPUT_TEXT_SIZE: u16 = 20;
+
+/// RGB colour for an active/selected mode button (bright green tint).
+const MODE_ACTIVE_COLOR: (u8, u8, u8) = (97, 255, 18);
+/// RGB colour for an inactive/deselected mode button (dim olive tint).
+const MODE_INACTIVE_COLOR: (u8, u8, u8) = (97, 97, 25);
+
+/// Returns `MODE_ACTIVE_COLOR` when `active` is `true`, `MODE_INACTIVE_COLOR`
+/// otherwise. Used for PvP/PvE and difficulty toggle buttons.
+fn mode_btn_color(active: bool) -> (u8, u8, u8) {
+    if active { MODE_ACTIVE_COLOR } else { MODE_INACTIVE_COLOR }
+}
 
 #[derive(Clone)]
 pub enum Confirmation {
@@ -63,6 +75,11 @@ pub struct Screen {
     generate_map: button::State,
     experimental_stable_button: button::State,
     experimental_track_b_button: button::State,
+    pvp_button: button::State,
+    pve_button: button::State,
+    difficulty_easy_button: button::State,
+    difficulty_normal_button: button::State,
+    difficulty_hard_button: button::State,
 
     pub confirmation: Option<Confirmation>,
 }
@@ -230,68 +247,72 @@ impl Screen {
                 .into(),
             ];
 
-            let seed = world.seed;
-            let seed_str = i18n.get_msg("main-singleplayer-seed");
-            let mut seed_content = vec![
-                Column::with_children(vec![
-                    Text::new(seed_str.to_string())
-                        .size(SLIDER_TEXT_SIZE)
-                        .horizontal_alignment(iced::HorizontalAlignment::Center)
-                        .into(),
-                ])
-                .padding(iced::Padding::new(5))
-                .into(),
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(190))
-                        .fix_aspect_ratio(),
-                    if can_edit {
-                        Element::from(
-                            TextInput::new(
-                                &mut self.map_seed,
-                                &seed_str,
-                                &seed.to_string(),
-                                move |s| {
-                                    if let Ok(seed) = if s.is_empty() {
-                                        Ok(0)
-                                    } else {
-                                        s.parse::<u32>()
-                                    } {
-                                        message(WorldChange::Seed(seed))
-                                    } else {
-                                        message(WorldChange::Seed(seed))
-                                    }
-                                },
-                            )
-                            .size(input_text_size),
-                        )
-                    } else {
-                        Text::new(world.seed.to_string())
-                            .size(input_text_size)
-                            .width(Length::Fill)
-                            .height(Length::Shrink)
-                            .into()
-                    },
-                )
-                .padding(Padding::new().horizontal(7).top(5))
-                .into(),
-            ];
-
-            if can_edit {
-                seed_content.push(
-                    Container::new(neat_button(
-                        &mut self.random_seed_button,
-                        i18n.get_msg("main-singleplayer-random_seed"),
-                        FILL_FRAC_TWO,
-                        button_style,
-                        Some(message(WorldChange::Seed(rand::rng().random()))),
-                    ))
-                    .max_width(200)
+            // For the experimental (Starter Planet) track the seed is locked to
+            // STARTER_PLANET_SEED and is not user-configurable; hide the seed row.
+            if !world.use_experimental {
+                let seed = world.seed;
+                let seed_str = i18n.get_msg("main-singleplayer-seed");
+                let mut seed_content = vec![
+                    Column::with_children(vec![
+                        Text::new(seed_str.to_string())
+                            .size(SLIDER_TEXT_SIZE)
+                            .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            .into(),
+                    ])
+                    .padding(iced::Padding::new(5))
                     .into(),
-                )
-            }
+                    BackgroundContainer::new(
+                        Image::new(imgs.input_bg)
+                            .width(Length::Units(190))
+                            .fix_aspect_ratio(),
+                        if can_edit {
+                            Element::from(
+                                TextInput::new(
+                                    &mut self.map_seed,
+                                    &seed_str,
+                                    &seed.to_string(),
+                                    move |s| {
+                                        if let Ok(seed) = if s.is_empty() {
+                                            Ok(0)
+                                        } else {
+                                            s.parse::<u32>()
+                                        } {
+                                            message(WorldChange::Seed(seed))
+                                        } else {
+                                            message(WorldChange::Seed(seed))
+                                        }
+                                    },
+                                )
+                                .size(input_text_size),
+                            )
+                        } else {
+                            Text::new(world.seed.to_string())
+                                .size(input_text_size)
+                                .width(Length::Fill)
+                                .height(Length::Shrink)
+                                .into()
+                        },
+                    )
+                    .padding(Padding::new().horizontal(7).top(5))
+                    .into(),
+                ];
 
-            gen_content.push(Row::with_children(seed_content).into());
+                if can_edit {
+                    seed_content.push(
+                        Container::new(neat_button(
+                            &mut self.random_seed_button,
+                            i18n.get_msg("main-singleplayer-random_seed"),
+                            FILL_FRAC_TWO,
+                            button_style,
+                            Some(message(WorldChange::Seed(rand::rng().random()))),
+                        ))
+                        .max_width(200)
+                        .into(),
+                    )
+                }
+
+                gen_content.push(Row::with_children(seed_content).into());
+            }
 
             if let Some(gen_opts) = world.gen_opts.as_ref() {
                 // Day length setting label
@@ -668,7 +689,136 @@ impl Screen {
                     .into()])
                     .into(),
                 );
+
+                // PvP / PvE mode toggle — only relevant when hosting a LAN game
+                gen_content.push(
+                    Text::new(i18n.get_msg("main-singleplayer-pvp_mode"))
+                        .size(SLIDER_TEXT_SIZE)
+                        .horizontal_alignment(iced::HorizontalAlignment::Center)
+                        .into(),
+                );
+                gen_content.push(
+                    Row::with_children(vec![
+                        {
+                            let (r, g, b) = mode_btn_color(world.pvp);
+                            Button::new(
+                                &mut self.pvp_button,
+                                Row::with_children(vec![
+                                    Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                                    Text::new(i18n.get_msg("main-singleplayer-pvp"))
+                                        .width(Length::FillPortion(95))
+                                        .size(fonts.cyri.scale(14))
+                                        .vertical_alignment(iced::VerticalAlignment::Center)
+                                        .into(),
+                                ])
+                                .align_items(Align::Center),
+                            )
+                            .style(
+                                style::button::Style::new(imgs.selection)
+                                    .hover_image(imgs.selection_hover)
+                                    .press_image(imgs.selection_press)
+                                    .image_color(Rgba::new(r, g, b, 192)),
+                            )
+                            .width(Length::FillPortion(1))
+                            .min_height(18)
+                            .on_press(Message::WorldChanged(
+                                super::WorldsChange::CurrentWorldChange(WorldChange::Pvp(true)),
+                            ))
+                            .into()
+                        },
+                        {
+                            let (r, g, b) = mode_btn_color(!world.pvp);
+                            Button::new(
+                                &mut self.pve_button,
+                                Row::with_children(vec![
+                                    Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                                    Text::new(i18n.get_msg("main-singleplayer-pve"))
+                                        .width(Length::FillPortion(95))
+                                        .size(fonts.cyri.scale(14))
+                                        .vertical_alignment(iced::VerticalAlignment::Center)
+                                        .into(),
+                                ])
+                                .align_items(Align::Center),
+                            )
+                            .style(
+                                style::button::Style::new(imgs.selection)
+                                    .hover_image(imgs.selection_hover)
+                                    .press_image(imgs.selection_press)
+                                    .image_color(Rgba::new(r, g, b, 192)),
+                            )
+                            .width(Length::FillPortion(1))
+                            .min_height(18)
+                            .on_press(Message::WorldChanged(
+                                super::WorldsChange::CurrentWorldChange(WorldChange::Pvp(false)),
+                            ))
+                            .into()
+                        },
+                    ])
+                    .into(),
+                );
             }
+
+            // Difficulty toggle (Easy / Normal / Hard) — always visible
+            gen_content.push(
+                Text::new(i18n.get_msg("main-singleplayer-difficulty"))
+                    .size(SLIDER_TEXT_SIZE)
+                    .color([0.9, 0.9, 0.9])
+                    .horizontal_alignment(iced::HorizontalAlignment::Center)
+                    .into(),
+            );
+            gen_content.push(
+                Row::with_children(
+                    [
+                        (
+                            Difficulty::Easy,
+                            &mut self.difficulty_easy_button,
+                            "main-singleplayer-difficulty-easy",
+                        ),
+                        (
+                            Difficulty::Normal,
+                            &mut self.difficulty_normal_button,
+                            "main-singleplayer-difficulty-normal",
+                        ),
+                        (
+                            Difficulty::Hard,
+                            &mut self.difficulty_hard_button,
+                            "main-singleplayer-difficulty-hard",
+                        ),
+                    ]
+                    .into_iter()
+                    .map(|(lvl, state, key)| {
+                        let (r, g, b) = mode_btn_color(world.difficulty == lvl);
+                        Button::new(
+                            state,
+                            Row::with_children(vec![
+                                Space::new(Length::FillPortion(5), Length::Units(0)).into(),
+                                Text::new(i18n.get_msg(key))
+                                    .width(Length::FillPortion(95))
+                                    .size(fonts.cyri.scale(14))
+                                    .vertical_alignment(iced::VerticalAlignment::Center)
+                                    .into(),
+                            ])
+                            .align_items(Align::Center),
+                        )
+                        .style(
+                            style::button::Style::new(imgs.selection)
+                                .hover_image(imgs.selection_hover)
+                                .press_image(imgs.selection_press)
+                                .image_color(Rgba::new(r, g, b, 192)),
+                        )
+                        .width(Length::FillPortion(1))
+                        .min_height(18)
+                        .on_press(Message::WorldChanged(
+                            super::WorldsChange::CurrentWorldChange(
+                                WorldChange::DifficultyChange(lvl),
+                            ),
+                        ))
+                        .into()
+                    })
+                    .collect(),
+                )
+                .into(),
+            );
 
             let mut world_buttons = vec![];
 

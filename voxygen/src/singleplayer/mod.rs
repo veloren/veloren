@@ -6,8 +6,12 @@ use rand::seq::IteratorRandom;
 use server::{
     Error as ServerError, Event, Input, Server, ServerInitStage,
     persistence::{DatabaseSettings, SqlLogMode},
-    settings::server_description::ServerDescription,
+    settings::{
+        GameplaySettings, ServerBattleMode,
+        server_description::ServerDescription,
+    },
 };
+use common::resources::BattleMode;
 
 use std::{
     sync::{
@@ -23,7 +27,7 @@ use tracing::{error, info, trace, warn};
 use crate::lan_discovery;
 
 mod singleplayer_world;
-pub use singleplayer_world::{SingleplayerWorld, SingleplayerWorlds};
+pub use singleplayer_world::{Difficulty, SingleplayerWorld, SingleplayerWorlds};
 
 const TPS: u64 = 30;
 
@@ -113,6 +117,11 @@ impl SingleplayerState {
                 && !world.is_generated
             {
                 server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
+            } else if !world.is_generated && world.use_experimental {
+                // Experimental worlds must be generated fresh so that the Track B
+                // gen_opts_override (planet size / scale) can be applied.  Copying the
+                // default Track A world would produce the wrong size.
+                server::FileOpts::Save(world.map_path.clone(), server::GenOpts::default())
             } else {
                 if !world.is_generated && world.gen_opts.is_none() {
                     world.copy_default_world();
@@ -123,15 +132,19 @@ impl SingleplayerState {
             settings.map_file = Some(file_opts);
             settings.world_seed = world.seed;
             settings.day_length = world.day_length;
+            settings.experimental_worldgen = world.use_experimental;
+            settings.gameplay = GameplaySettings {
+                battle_mode: ServerBattleMode::Global(if world.pvp {
+                    BattleMode::PvP
+                } else {
+                    BattleMode::PvE
+                }),
+                npc_health_mult: world.difficulty.npc_health_mult(),
+                npc_damage_mult: world.difficulty.npc_damage_mult(),
+                ..settings.gameplay
+            };
 
             let (stop_server_s, stop_server_r) = unbounded();
-
-            let (server_stage_tx, server_stage_rx) = unbounded();
-
-            // Create server
-
-            // Relative to data_dir
-            const PERSISTENCE_DB_DIR: &str = "saves";
 
             let database_settings = DatabaseSettings {
                 db_dir: server_data_dir.join(PERSISTENCE_DB_DIR),
@@ -222,6 +235,9 @@ impl SingleplayerState {
             let server_data_dir = world.path.clone();
             let world_name = world.name.clone();
             let world_max_players = world.max_players;
+            let world_pvp = world.pvp;
+            let world_difficulty = world.difficulty;
+            let world_use_experimental = world.use_experimental;
 
             let mut settings = server::Settings::lan_coop(&server_data_dir);
             let mut editable_settings =
@@ -245,6 +261,11 @@ impl SingleplayerState {
                 && !world.is_generated
             {
                 server::FileOpts::Save(world.map_path.clone(), gen_opts.clone())
+            } else if !world.is_generated && world_use_experimental {
+                // Experimental worlds must be generated fresh so that the Track B
+                // gen_opts_override (planet size / scale) can be applied.  Copying the
+                // default Track A world would produce the wrong size.
+                server::FileOpts::Save(world.map_path.clone(), server::GenOpts::default())
             } else {
                 if !world.is_generated && world.gen_opts.is_none() {
                     world.copy_default_world();
@@ -257,6 +278,17 @@ impl SingleplayerState {
             settings.day_length = world.day_length;
             settings.server_name = world_name.clone();
             settings.max_players = world_max_players;
+            settings.experimental_worldgen = world_use_experimental;
+            settings.gameplay = GameplaySettings {
+                battle_mode: ServerBattleMode::Global(if world_pvp {
+                    BattleMode::PvP
+                } else {
+                    BattleMode::PvE
+                }),
+                npc_health_mult: world_difficulty.npc_health_mult(),
+                npc_damage_mult: world_difficulty.npc_damage_mult(),
+                ..settings.gameplay
+            };
 
             let (stop_server_s, stop_server_r) = unbounded();
             let (server_stage_tx, server_stage_rx) = unbounded();

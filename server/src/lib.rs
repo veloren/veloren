@@ -144,6 +144,7 @@ use common::comp::Anchor;
 #[cfg(feature = "worldgen")]
 pub use world::{
     IndexOwned, World,
+    experimental::STARTER_PLANET_SEED,
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, GenOpts, WorldOpts},
 };
 
@@ -314,6 +315,11 @@ impl Server {
                     FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
                 calendar: Some(settings.calendar_mode.calendar_now()),
+                experimental: if settings.experimental_worldgen {
+                    Some(world::experimental::ExperimentalParams::nova_forge_v1())
+                } else {
+                    None
+                },
             },
             &pools,
             &|stage| {

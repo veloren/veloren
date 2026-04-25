@@ -14,6 +14,7 @@ use iced::{
 pub struct Screen {
     back_button: button::State,
     delete_button: button::State,
+    host_button: button::State,
     server_buttons: Vec<button::State>,
     servers_list: scrollable::State,
     lan_buttons: Vec<button::State>,
@@ -24,6 +25,7 @@ impl Screen {
         Self {
             back_button: Default::default(),
             delete_button: Default::default(),
+            host_button: Default::default(),
             server_buttons: vec![],
             servers_list: Default::default(),
             lan_buttons: vec![],
@@ -66,6 +68,20 @@ impl Screen {
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::DeleteServer),
+            ))
+            .max_width(200),
+        )
+        .width(Length::Fill)
+        .align_x(Align::Center);
+
+        #[cfg(feature = "singleplayer")]
+        let host_button = Container::new(
+            Container::new(neat_button(
+                &mut self.host_button,
+                i18n.get_msg("main-servers-host_local"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::LanCoop),
             ))
             .max_width(200),
         )
@@ -209,9 +225,14 @@ impl Screen {
                 Column::with_children(vec![
                     title.into(),
                     list.into(),
-                    Row::with_children(vec![delete_button.into(), back_button.into()])
-                        .width(Length::Fill)
-                        .into(),
+                    Row::with_children(vec![
+                        delete_button.into(),
+                        #[cfg(feature = "singleplayer")]
+                        host_button.into(),
+                        back_button.into(),
+                    ])
+                    .width(Length::Fill)
+                    .into(),
                 ])
                 .width(Length::Fill)
                 .height(Length::Fill)
