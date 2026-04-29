@@ -114,3 +114,4 @@ main-login-banned_until =
     Vous avez été temporairement banni pour la raison suivante : { $reason }
     Jusqu'au : { $end_date }
 main-singleplayer-map_large_extra_warning = Ces paramètres prendraient autant de ressources que générer environ { $count } mondes avec les options par défaut.
+main-credits-sound = Son

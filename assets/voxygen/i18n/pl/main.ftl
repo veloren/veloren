@@ -92,3 +92,6 @@ loading-tips =
     .a19 = Wciśnij '{ $gameinput-roll }' aby się przeturlać. Turlanie może zostać użyte do szybszego poruszania się lub unikania wrogich ataków.
     .a20 = Zastanawiasz się do czego służy dany przedmiot? Wyszukaj 'input:<item name>' w polu wytwarzania aby zobaczyć w jakich recepturach jest on wykorzystywany.
     .a21 = Znalazłeś coś fajnego? Zrób temu zdjęcie wciskając '{ $gameinput-screenshot }'.
+main-singleplayer-delete = Usuń
+main-singleplayer-world_name = Nazwa świata
+main-singleplayer-random_seed = Losowo
