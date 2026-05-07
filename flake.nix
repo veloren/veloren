@@ -168,11 +168,11 @@
           runtimeLibs = with pkgs; [
             wayland
             wayland-protocols
-            xorg.libX11
-            xorg.libXi
-            xorg.libxcb
-            xorg.libXcursor
-            xorg.libXrandr
+            libX11
+            libXi
+            libxcb
+            libXcursor
+            libXrandr
             libxkbcommon
             shaderc.lib
             udev
@@ -191,7 +191,7 @@
                 alsa-lib
                 libxkbcommon
                 udev
-                xorg.libxcb
+                libxcb
 
                 fontconfig
               ];
