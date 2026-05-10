@@ -45,3 +45,4 @@ main-login-select_language = Seleccione uma língua
 main-server = Servidor
 main-username = Nome de usuário
 main-password = Senha
+main-tip = Dica:
