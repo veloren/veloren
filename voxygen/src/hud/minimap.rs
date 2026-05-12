@@ -385,7 +385,6 @@ widget_ids! {
         mmap_frame_2,
         mmap_frame_bg,
         mmap_location,
-        mmap_coordinates,
         mmap_button,
         mmap_plus,
         mmap_minus,
