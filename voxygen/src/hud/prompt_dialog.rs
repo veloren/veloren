@@ -17,7 +17,6 @@ widget_ids! {
         top,
         mid,
         bot,
-        text,
         accept_txt, // optional timer
         accept_key, //button with label
         decline_txt,

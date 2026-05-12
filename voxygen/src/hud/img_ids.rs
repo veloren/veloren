@@ -48,7 +48,7 @@ image_ids! {
         prompt_mid: "voxygen.element.ui.generic.frames.prompt_dialog_mid",
         prompt_bot: "voxygen.element.ui.generic.frames.prompt_dialog_bot",
         key_button: "voxygen.element.ui.generic.buttons.key_button",
-        key_button_press: "voxygen.element.ui.generic.buttons.key_button_press",
+        key_button_press: "voxygen.element.ui.generic.buttons.key_button_press", // unused
 
         // Diary Window
         diary_bg: "voxygen.element.ui.diary.diary_bg",
@@ -69,7 +69,7 @@ image_ids! {
         // Skill Trees
         book_bg: "voxygen.element.ui.diary.spellbook_bg",
         skills_bg: "voxygen.element.ui.diary.diary_skills_bg",
-        slot_skills: "voxygen.element.ui.diary.buttons.slot_skilltree",
+        slot_skills: "voxygen.element.ui.diary.buttons.slot_skilltree", // unused
         sword_bg: "voxygen.element.ui.diary.sword_bg",
         axe_bg: "voxygen.element.ui.diary.axe_bg",
         hammer_bg: "voxygen.element.ui.diary.hammer_bg",
@@ -84,7 +84,7 @@ image_ids! {
         mining: "voxygen.element.weapons.mining",
         dig: "voxygen.element.weapons.dig",
         pickaxe: "voxygen.element.skills.pickaxe",
-        pickaxe_ico: "voxygen.element.weapons.pickaxe",
+        pickaxe_ico: "voxygen.element.weapons.pickaxe", // unused (commented out)
         skilltree_ico: "voxygen.element.ui.diary.buttons.skilltree",
         spellbook_ico: "voxygen.element.ui.diary.buttons.spellbook",
         spellbook_ico0: "voxygen.element.ui.generic.buttons.spellbook0",
@@ -99,8 +99,8 @@ image_ids! {
 
         // Quest Window
         quest_bg: "voxygen.element.ui.quests.quest_bg",
-        quest_frame: "voxygen.element.ui.quests.quest_frame",
-        quest_ico: "voxygen.element.ui.quests.quest_icon",
+        quest_frame: "voxygen.element.ui.quests.quest_frame", // unused
+        quest_ico: "voxygen.element.ui.quests.quest_icon", // unused
 
         // Social Window
         social_frame_on: "voxygen.element.ui.social.social_frame",
@@ -119,7 +119,7 @@ image_ids! {
         icon_log: "voxygen.element.ui.crafting.icons.log",
         icon_armor: "voxygen.element.ui.crafting.icons.armors",
         icon_tools: "voxygen.element.ui.crafting.icons.crafting_tools",
-        icon_dismantle: "voxygen.element.ui.crafting.icons.dismantle",
+        icon_dismantle: "voxygen.element.ui.crafting.icons.dismantle", // unused
         icon_food: "voxygen.element.ui.crafting.icons.foods",
         icon_glider: "voxygen.element.ui.crafting.icons.gliders",
         icon_globe: "voxygen.element.ui.crafting.icons.globe",
@@ -142,10 +142,10 @@ image_ids! {
         chat_arrow_press: "voxygen.element.ui.generic.buttons.arrow_down_press",
 
         // Settings Window
-        settings_button: "voxygen.element.ui.settings.buttons.settings_button",
-        settings_button_pressed: "voxygen.element.ui.settings.buttons.settings_button_pressed",
-        settings_button_hover: "voxygen.element.ui.settings.buttons.settings_button_hover",
-        settings_button_press: "voxygen.element.ui.settings.buttons.settings_button_press",
+        settings_button: "voxygen.element.ui.settings.buttons.settings_button", // unused
+        settings_button_pressed: "voxygen.element.ui.settings.buttons.settings_button_pressed", // unused
+        settings_button_hover: "voxygen.element.ui.settings.buttons.settings_button_hover", // unused
+        settings_button_press: "voxygen.element.ui.settings.buttons.settings_button_press", // unused
 
         settings_plus: "voxygen.element.ui.settings.buttons.settings_button_plus",
         settings_plus_hover: "voxygen.element.ui.settings.buttons.settings_button_plus_hover",
@@ -159,7 +159,7 @@ image_ids! {
         // Slider
         slider: "voxygen.element.ui.generic.slider.track",
         slider_indicator: "voxygen.element.ui.generic.slider.indicator",
-        slider_indicator_small: "voxygen.element.ui.generic.slider.indicator_round",
+        slider_indicator_small: "voxygen.element.ui.generic.slider.indicator_round", // unused
 
         // Buttons
         settings: "voxygen.element.ui.generic.buttons.settings",
@@ -178,8 +178,8 @@ image_ids! {
         map_press: "voxygen.element.ui.generic.buttons.map_press",
 
         spellbook_button: "voxygen.element.ui.generic.buttons.spellbook",
-        spellbook_hover: "voxygen.element.ui.generic.buttons.spellbook_hover",
-        spellbook_press: "voxygen.element.ui.generic.buttons.spellbook_press",
+        spellbook_hover: "voxygen.element.ui.generic.buttons.spellbook_hover", // unused
+        spellbook_press: "voxygen.element.ui.generic.buttons.spellbook_press", // unused
 
         group_icon: "voxygen.element.ui.generic.buttons.group",
         group_icon_hover: "voxygen.element.ui.generic.buttons.group_hover",
@@ -245,10 +245,10 @@ image_ids! {
 
         // Skill Icons
         onehdagger_m1: "voxygen.element.weapons.daggers",
-        onehdagger_m2: "voxygen.element.skills.skill_slice_2",
+        onehdagger_m2: "voxygen.element.skills.skill_slice_2", // unused
         onehshield_m1: "voxygen.element.weapons.swordshield",
-        onehshield_m2: "voxygen.element.weapons.swordshield",
-        staff_melee: "voxygen.element.skills.staff_m1",
+        onehshield_m2: "voxygen.element.weapons.swordshield", // unused
+        staff_melee: "voxygen.element.skills.staff_m1", // unused
         fireball: "voxygen.element.skills.staff_m2",
         flyingrod_m1: "voxygen.element.skills.debug_wand_m1",
         flyingrod_m2: "voxygen.element.skills.debug_wand_m2",
@@ -413,125 +413,125 @@ image_ids! {
         bow_fusillade: "voxygen.element.skills.bow.fusillade",
         bow_death_volley: "voxygen.element.skills.bow.death_volley",
         // Skilltree Icons
-        health_plus_skill: "voxygen.element.skills.skilltree.health_plus",
-        energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus",
+        health_plus_skill: "voxygen.element.skills.skilltree.health_plus", // unused
+        energy_plus_skill: "voxygen.element.skills.skilltree.energy_plus", // unused
         unlock_axe_skill: "voxygen.element.skills.skilltree.unlock_axe",
         unlock_bow_skill: "voxygen.element.skills.skilltree.unlock_bow",
         unlock_hammer_skill: "voxygen.element.skills.skilltree.unlock_hammer",
         unlock_sceptre_skill: "voxygen.element.skills.skilltree.unlock_sceptre",
         unlock_staff_skill0: "voxygen.element.skills.skilltree.unlock_staff-0",
         unlock_sword_skill: "voxygen.element.skills.skilltree.unlock_sword",
-        skill_dodge_skill: "voxygen.element.skills.skilltree.skill_dodge",
+        skill_dodge_skill: "voxygen.element.skills.skilltree.skill_dodge", // unused
         skill_climbing_skill: "voxygen.element.skills.skilltree.skill_climbing",
         skill_swim_skill: "voxygen.element.skills.skilltree.skill_swim",
 
-        buff_amount_skill: "voxygen.element.skills.skilltree.buff_amount",
-        buff_combo_skill: "voxygen.element.skills.skilltree.buff_combo",
+        buff_amount_skill: "voxygen.element.skills.skilltree.buff_amount", // unused
+        buff_combo_skill: "voxygen.element.skills.skilltree.buff_combo", // unused
         buff_cost_skill: "voxygen.element.skills.skilltree.buff_cost",
         buff_damage_skill: "voxygen.element.skills.skilltree.buff_damage",
-        buff_distance_skill: "voxygen.element.skills.skilltree.buff_distance",
-        buff_energy_drain_skill: "voxygen.element.skills.skilltree.buff_energy_drain",
-        buff_energy_regen_skill: "voxygen.element.skills.skilltree.buff_energy_regen",
-        buff_explosion_skill: "voxygen.element.skills.skilltree.buff_explosion",
-        buff_heal_skill: "voxygen.element.skills.skilltree.buff_heal",
-        buff_helicopter_skill: "voxygen.element.skills.skilltree.buff_helicopter",
-        buff_infinite_skill: "voxygen.element.skills.skilltree.buff_infinite",
-        buff_knockback_skill: "voxygen.element.skills.skilltree.buff_knockback",
-        buff_lifesteal_skill: "voxygen.element.skills.skilltree.buff_lifesteal",
-        buff_projectile_speed_skill: "voxygen.element.skills.skilltree.buff_projectile_speed",
+        buff_distance_skill: "voxygen.element.skills.skilltree.buff_distance", // unused
+        buff_energy_drain_skill: "voxygen.element.skills.skilltree.buff_energy_drain", // unused
+        buff_energy_regen_skill: "voxygen.element.skills.skilltree.buff_energy_regen", // unused
+        buff_explosion_skill: "voxygen.element.skills.skilltree.buff_explosion", // unused
+        buff_heal_skill: "voxygen.element.skills.skilltree.buff_heal", // unused
+        buff_helicopter_skill: "voxygen.element.skills.skilltree.buff_helicopter", // unused
+        buff_infinite_skill: "voxygen.element.skills.skilltree.buff_infinite", // unused
+        buff_knockback_skill: "voxygen.element.skills.skilltree.buff_knockback", // unused
+        buff_lifesteal_skill: "voxygen.element.skills.skilltree.buff_lifesteal", // unused
+        buff_projectile_speed_skill: "voxygen.element.skills.skilltree.buff_projectile_speed", // unused
         buff_radius_skill: "voxygen.element.skills.skilltree.buff_radius",
-        buff_speed_skill: "voxygen.element.skills.skilltree.buff_speed",
+        buff_speed_skill: "voxygen.element.skills.skilltree.buff_speed", // unused
         buff_duration_skill: "voxygen.element.skills.skilltree.buff_duration",
 
-        debuff_amount_skill: "voxygen.element.skills.skilltree.debuff_amount",
-        debuff_combo_skill: "voxygen.element.skills.skilltree.debuff_combo",
-        debuff_cost_skill: "voxygen.element.skills.skilltree.debuff_cost",
-        debuff_damage_skill: "voxygen.element.skills.skilltree.debuff_damage",
-        debuff_distance_skill: "voxygen.element.skills.skilltree.debuff_distance",
-        debuff_energy_drain_skill: "voxygen.element.skills.skilltree.debuff_energy_drain",
-        debuff_energy_regen_skill: "voxygen.element.skills.skilltree.debuff_energy_regen",
-        debuff_explosion_skill: "voxygen.element.skills.skilltree.debuff_explosion",
-        debuff_heal_skill: "voxygen.element.skills.skilltree.debuff_heal",
-        debuff_helicopter_skill: "voxygen.element.skills.skilltree.debuff_helicopter",
-        debuff_infinite_skill: "voxygen.element.skills.skilltree.debuff_infinite",
-        debuff_knockback_skill: "voxygen.element.skills.skilltree.debuff_knockback",
-        debuff_lifesteal_skill: "voxygen.element.skills.skilltree.debuff_lifesteal",
-        debuff_projectile_speed_skill: "voxygen.element.skills.skilltree.debuff_projectile_speed",
-        debuff_radius_skill: "voxygen.element.skills.skilltree.debuff_radius",
-        debuff_speed_skill: "voxygen.element.skills.skilltree.debuff_speed",
-        debuff_duration_skill: "voxygen.element.skills.skilltree.debuff_duration",
+        debuff_amount_skill: "voxygen.element.skills.skilltree.debuff_amount", // unused
+        debuff_combo_skill: "voxygen.element.skills.skilltree.debuff_combo", // unused
+        debuff_cost_skill: "voxygen.element.skills.skilltree.debuff_cost", // unused
+        debuff_damage_skill: "voxygen.element.skills.skilltree.debuff_damage", // unused
+        debuff_distance_skill: "voxygen.element.skills.skilltree.debuff_distance", // unused
+        debuff_energy_drain_skill: "voxygen.element.skills.skilltree.debuff_energy_drain", // unused
+        debuff_energy_regen_skill: "voxygen.element.skills.skilltree.debuff_energy_regen", // unused
+        debuff_explosion_skill: "voxygen.element.skills.skilltree.debuff_explosion", // unused
+        debuff_heal_skill: "voxygen.element.skills.skilltree.debuff_heal", // unused
+        debuff_helicopter_skill: "voxygen.element.skills.skilltree.debuff_helicopter", // unused
+        debuff_infinite_skill: "voxygen.element.skills.skilltree.debuff_infinite", // unused
+        debuff_knockback_skill: "voxygen.element.skills.skilltree.debuff_knockback", // unused
+        debuff_lifesteal_skill: "voxygen.element.skills.skilltree.debuff_lifesteal", // unused
+        debuff_projectile_speed_skill: "voxygen.element.skills.skilltree.debuff_projectile_speed", // unused
+        debuff_radius_skill: "voxygen.element.skills.skilltree.debuff_radius", // unused
+        debuff_speed_skill: "voxygen.element.skills.skilltree.debuff_speed", // unused
+        debuff_duration_skill: "voxygen.element.skills.skilltree.debuff_duration", // unused
 
-        heal_amount_skill: "voxygen.element.skills.skilltree.heal_amount",
-        heal_combo_skill: "voxygen.element.skills.skilltree.heal_combo",
+        heal_amount_skill: "voxygen.element.skills.skilltree.heal_amount", // unused
+        heal_combo_skill: "voxygen.element.skills.skilltree.heal_combo", // unused
         heal_cost_skill: "voxygen.element.skills.skilltree.heal_cost",
-        heal_damage_skill: "voxygen.element.skills.skilltree.heal_damage",
-        heal_distance_skill: "voxygen.element.skills.skilltree.heal_distance",
-        heal_energy_drain_skill: "voxygen.element.skills.skilltree.heal_energy_drain",
-        heal_energy_regen_skill: "voxygen.element.skills.skilltree.heal_energy_regen",
-        heal_explosion_skill: "voxygen.element.skills.skilltree.heal_explosion",
+        heal_damage_skill: "voxygen.element.skills.skilltree.heal_damage", // unused
+        heal_distance_skill: "voxygen.element.skills.skilltree.heal_distance", // unused
+        heal_energy_drain_skill: "voxygen.element.skills.skilltree.heal_energy_drain", // unused
+        heal_energy_regen_skill: "voxygen.element.skills.skilltree.heal_energy_regen", // unused
+        heal_explosion_skill: "voxygen.element.skills.skilltree.heal_explosion", // unused
         heal_heal_skill: "voxygen.element.skills.skilltree.heal_heal",
-        heal_helicopter_skill: "voxygen.element.skills.skilltree.heal_helicopter",
-        heal_infinite_skill: "voxygen.element.skills.skilltree.heal_infinite",
-        heal_knockback_skill: "voxygen.element.skills.skilltree.heal_knockback",
-        heal_lifesteal_skill: "voxygen.element.skills.skilltree.heal_lifesteal",
-        heal_projectile_speed_skill: "voxygen.element.skills.skilltree.heal_projectile_speed",
+        heal_helicopter_skill: "voxygen.element.skills.skilltree.heal_helicopter", // unused
+        heal_infinite_skill: "voxygen.element.skills.skilltree.heal_infinite", // unused
+        heal_knockback_skill: "voxygen.element.skills.skilltree.heal_knockback", // unused
+        heal_lifesteal_skill: "voxygen.element.skills.skilltree.heal_lifesteal", // unused
+        heal_projectile_speed_skill: "voxygen.element.skills.skilltree.heal_projectile_speed", // unused
         heal_radius_skill: "voxygen.element.skills.skilltree.heal_radius",
-        heal_speed_skill: "voxygen.element.skills.skilltree.heal_speed",
+        heal_speed_skill: "voxygen.element.skills.skilltree.heal_speed", // unused
         heal_duration_skill: "voxygen.element.skills.skilltree.heal_duration",
 
-        magic_amount_skill: "voxygen.element.skills.skilltree.magic_amount",
-        magic_combo_skill: "voxygen.element.skills.skilltree.magic_combo",
+        magic_amount_skill: "voxygen.element.skills.skilltree.magic_amount", // unused
+        magic_combo_skill: "voxygen.element.skills.skilltree.magic_combo", // unused
         magic_cost_skill: "voxygen.element.skills.skilltree.magic_cost",
         magic_damage_skill: "voxygen.element.skills.skilltree.magic_damage",
         magic_distance_skill: "voxygen.element.skills.skilltree.magic_distance",
         magic_energy_drain_skill: "voxygen.element.skills.skilltree.magic_energy_drain",
         magic_energy_regen_skill: "voxygen.element.skills.skilltree.magic_energy_regen",
-        magic_explosion_skill: "voxygen.element.skills.skilltree.magic_explosion",
-        magic_heal_skill: "voxygen.element.skills.skilltree.magic_heal",
-        magic_helicopter_skill: "voxygen.element.skills.skilltree.magic_helicopter",
-        magic_infinite_skill: "voxygen.element.skills.skilltree.magic_infinite",
+        magic_explosion_skill: "voxygen.element.skills.skilltree.magic_explosion", // unused
+        magic_heal_skill: "voxygen.element.skills.skilltree.magic_heal", // unused
+        magic_helicopter_skill: "voxygen.element.skills.skilltree.magic_helicopter", // unused
+        magic_infinite_skill: "voxygen.element.skills.skilltree.magic_infinite", // unused
         magic_knockback_skill: "voxygen.element.skills.skilltree.magic_knockback",
         magic_lifesteal_skill: "voxygen.element.skills.skilltree.magic_lifesteal",
         magic_projectile_speed_skill: "voxygen.element.skills.skilltree.magic_projectile_speed",
         magic_radius_skill: "voxygen.element.skills.skilltree.magic_radius",
-        magic_speed_skill: "voxygen.element.skills.skilltree.magic_speed",
-        magic_duration_skill: "voxygen.element.skills.skilltree.magic_duration",
+        magic_speed_skill: "voxygen.element.skills.skilltree.magic_speed", // unused
+        magic_duration_skill: "voxygen.element.skills.skilltree.magic_duration", // unused
 
-        physical_amount_skill: "voxygen.element.skills.skilltree.physical_amount",
-        physical_combo_skill: "voxygen.element.skills.skilltree.physical_combo",
-        physical_cost_skill: "voxygen.element.skills.skilltree.physical_cost",
-        physical_damage_skill: "voxygen.element.skills.skilltree.physical_damage",
-        physical_distance_skill: "voxygen.element.skills.skilltree.physical_distance",
-        physical_energy_drain_skill: "voxygen.element.skills.skilltree.physical_energy_drain",
-        physical_energy_regen_skill: "voxygen.element.skills.skilltree.physical_energy_regen",
-        physical_explosion_skill: "voxygen.element.skills.skilltree.physical_explosion",
-        physical_heal_skill: "voxygen.element.skills.skilltree.physical_heal",
-        physical_helicopter_skill: "voxygen.element.skills.skilltree.physical_helicopter",
-        physical_infinite_skill: "voxygen.element.skills.skilltree.physical_infinite",
-        physical_knockback_skill: "voxygen.element.skills.skilltree.physical_knockback",
-        physical_lifesteal_skill: "voxygen.element.skills.skilltree.physical_lifesteal",
-        physical_projectile_speed_skill: "voxygen.element.skills.skilltree.physical_projectile_speed",
-        physical_radius_skill: "voxygen.element.skills.skilltree.physical_radius",
-        physical_speed_skill: "voxygen.element.skills.skilltree.physical_speed",
-        physical_duration_skill: "voxygen.element.skills.skilltree.physical_duration",
+        physical_amount_skill: "voxygen.element.skills.skilltree.physical_amount", // unused
+        physical_combo_skill: "voxygen.element.skills.skilltree.physical_combo", // unused
+        physical_cost_skill: "voxygen.element.skills.skilltree.physical_cost", // unused
+        physical_damage_skill: "voxygen.element.skills.skilltree.physical_damage", // unused
+        physical_distance_skill: "voxygen.element.skills.skilltree.physical_distance", // unused
+        physical_energy_drain_skill: "voxygen.element.skills.skilltree.physical_energy_drain", // unused
+        physical_energy_regen_skill: "voxygen.element.skills.skilltree.physical_energy_regen", // unused
+        physical_explosion_skill: "voxygen.element.skills.skilltree.physical_explosion", // unused
+        physical_heal_skill: "voxygen.element.skills.skilltree.physical_heal", // unused
+        physical_helicopter_skill: "voxygen.element.skills.skilltree.physical_helicopter", // unused
+        physical_infinite_skill: "voxygen.element.skills.skilltree.physical_infinite", // unused
+        physical_knockback_skill: "voxygen.element.skills.skilltree.physical_knockback", // unused
+        physical_lifesteal_skill: "voxygen.element.skills.skilltree.physical_lifesteal", // unused
+        physical_projectile_speed_skill: "voxygen.element.skills.skilltree.physical_projectile_speed", // unused
+        physical_radius_skill: "voxygen.element.skills.skilltree.physical_radius", // unused
+        physical_speed_skill: "voxygen.element.skills.skilltree.physical_speed", // unused
+        physical_duration_skill: "voxygen.element.skills.skilltree.physical_duration", // unused
 
-        utility_amount_skill: "voxygen.element.skills.skilltree.utility_amount",
-        utility_combo_skill: "voxygen.element.skills.skilltree.utility_combo",
+        utility_amount_skill: "voxygen.element.skills.skilltree.utility_amount", // unused
+        utility_combo_skill: "voxygen.element.skills.skilltree.utility_combo", // unused
         utility_cost_skill: "voxygen.element.skills.skilltree.utility_cost",
-        utility_damage_skill: "voxygen.element.skills.skilltree.utility_damage",
-        utility_distance_skill: "voxygen.element.skills.skilltree.utility_distance",
-        utility_energy_drain_skill: "voxygen.element.skills.skilltree.utility_energy_drain",
-        utility_energy_regen_skill: "voxygen.element.skills.skilltree.utility_energy_regen",
-        utility_explosion_skill: "voxygen.element.skills.skilltree.utility_explosion",
-        utility_heal_skill: "voxygen.element.skills.skilltree.utility_heal",
-        utility_helicopter_skill: "voxygen.element.skills.skilltree.utility_helicopter",
-        utility_infinite_skill: "voxygen.element.skills.skilltree.utility_infinite",
-        utility_knockback_skill: "voxygen.element.skills.skilltree.utility_knockback",
-        utility_lifesteal_skill: "voxygen.element.skills.skilltree.utility_lifesteal",
-        utility_projectile_speed_skill: "voxygen.element.skills.skilltree.utility_projectile_speed",
-        utility_radius_skill: "voxygen.element.skills.skilltree.utility_radius",
+        utility_damage_skill: "voxygen.element.skills.skilltree.utility_damage", // unused
+        utility_distance_skill: "voxygen.element.skills.skilltree.utility_distance", // unused
+        utility_energy_drain_skill: "voxygen.element.skills.skilltree.utility_energy_drain", // unused
+        utility_energy_regen_skill: "voxygen.element.skills.skilltree.utility_energy_regen", // unused
+        utility_explosion_skill: "voxygen.element.skills.skilltree.utility_explosion", // unused
+        utility_heal_skill: "voxygen.element.skills.skilltree.utility_heal", // unused
+        utility_helicopter_skill: "voxygen.element.skills.skilltree.utility_helicopter", // unused
+        utility_infinite_skill: "voxygen.element.skills.skilltree.utility_infinite", // unused
+        utility_knockback_skill: "voxygen.element.skills.skilltree.utility_knockback", // unused
+        utility_lifesteal_skill: "voxygen.element.skills.skilltree.utility_lifesteal", // unused
+        utility_projectile_speed_skill: "voxygen.element.skills.skilltree.utility_projectile_speed", // unused
+        utility_radius_skill: "voxygen.element.skills.skilltree.utility_radius", // unused
         utility_speed_skill: "voxygen.element.skills.skilltree.utility_speed",
-        utility_duration_skill: "voxygen.element.skills.skilltree.utility_duration",
+        utility_duration_skill: "voxygen.element.skills.skilltree.utility_duration", // unused
 
         pickaxe_speed_skill: "voxygen.element.skills.pickaxe_speed",
         pickaxe_oregain_skill: "voxygen.element.skills.pickaxe_oregain",
@@ -540,8 +540,8 @@ image_ids! {
         // Skillbar
         level_up: "voxygen.element.ui.skillbar.level_up",
         bar_content: "voxygen.element.ui.skillbar.bar_content",
-        skillbar_bg: "voxygen.element.ui.skillbar.bg",
-        skillbar_frame: "voxygen.element.ui.skillbar.frame",
+        skillbar_bg: "voxygen.element.ui.skillbar.bg", // unused
+        skillbar_frame: "voxygen.element.ui.skillbar.frame", // unused
         health_bg: "voxygen.element.ui.skillbar.health_bg",
         health_frame: "voxygen.element.ui.skillbar.health_frame",
         exp_frame: "voxygen.element.ui.skillbar.exp_frame",
@@ -559,7 +559,7 @@ image_ids! {
         m2_ico: "voxygen.element.ui.generic.icons.m2",
         m_scroll_ico: "voxygen.element.ui.generic.icons.m_scroll",
         m_move_ico: "voxygen.element.ui.generic.icons.m_move",
-        m_click_ico: "voxygen.element.ui.generic.icons.m_click",
+        m_click_ico: "voxygen.element.ui.generic.icons.m_click", // unused
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
         bag_ico: "voxygen.element.ui.generic.buttons.bag",
         skillbar_index: "voxygen.element.ui.generic.buttons.hotbar_index",
@@ -568,7 +568,7 @@ image_ids! {
         hardcore: "voxygen.element.ui.map.icons.dif_map_icon",
         skull: "voxygen.element.ui.generic.icons.skull",
         skull_2: "voxygen.element.ui.generic.icons.skull_2",
-        fireplace: "voxygen.element.ui.generic.fireplace",
+        fireplace: "voxygen.element.ui.generic.fireplace", // unused
 
         // Crosshair
         crosshair_inner: "voxygen.element.ui.settings.icons.crosshair_inner",
@@ -593,14 +593,14 @@ image_ids! {
         crosshair_charge_8: "voxygen.element.animation.crosshair_charge.charge_8",
 
         // Map
-        map_topo: "voxygen.element.ui.map.buttons.topographic",
+        map_topo: "voxygen.element.ui.map.buttons.topographic", // unused
         map_bg: "voxygen.element.ui.map.map_bg",
         map_frame: "voxygen.element.ui.map.map_frame",
-        map_frame_art: "voxygen.element.ui.map.map_frame_art",
-        view_mmap: "voxygen.element.ui.minimap.icons.mmap_view",
-        indicator_mmap: "voxygen.element.ui.minimap.icons.indicator_mmap",
-        indicator_mmap_colored: "voxygen.element.ui.minimap.icons.indicator_mmap_colored",
-        indicator_map_overlay: "voxygen.element.ui.minimap.icons.indicator_mmap_small",
+        map_frame_art: "voxygen.element.ui.map.map_frame_art", // unused
+        view_mmap: "voxygen.element.ui.minimap.icons.mmap_view", // unused (rot_imgs version used)
+        indicator_mmap: "voxygen.element.ui.minimap.icons.indicator_mmap", // unused (rot_imgs version used)
+        indicator_mmap_colored: "voxygen.element.ui.minimap.icons.indicator_mmap_colored", // unused (rot_imgs version used)
+        indicator_map_overlay: "voxygen.element.ui.minimap.icons.indicator_mmap_small", // unused
         indicator_group: "voxygen.element.ui.map.buttons.group_indicator",
         indicator_group_up: "voxygen.element.ui.map.buttons.group_indicator_arrow_up",
         indicator_group_down: "voxygen.element.ui.map.buttons.group_indicator_arrow_down",
@@ -653,8 +653,8 @@ image_ids! {
         mmap_site_terracotta_bg: "voxygen.element.ui.map.buttons.terracotta_bg",
         mmap_site_terracotta: "voxygen.element.ui.map.buttons.terracotta",
         mmap_site_dungeon: "voxygen.element.ui.map.buttons.dungeon",
-        mmap_site_dungeon_hover: "voxygen.element.ui.map.buttons.dungeon_hover",
-        mmap_site_dungeon_bg: "voxygen.element.ui.map.buttons.dungeon_bg",
+        mmap_site_dungeon_hover: "voxygen.element.ui.map.buttons.dungeon_hover", // unused
+        mmap_site_dungeon_bg: "voxygen.element.ui.map.buttons.dungeon_bg", // unused
         mmap_site_castle: "voxygen.element.ui.map.buttons.castle",
         mmap_site_castle_hover: "voxygen.element.ui.map.buttons.castle_hover",
         mmap_site_castle_bg: "voxygen.element.ui.map.buttons.castle_bg",
@@ -667,12 +667,12 @@ image_ids! {
         mmap_site_cave_bg: "voxygen.element.ui.map.buttons.cave_bg",
         mmap_site_cave_hover: "voxygen.element.ui.map.buttons.cave_hover",
         mmap_site_cave: "voxygen.element.ui.map.buttons.cave",
-        mmap_site_excl: "voxygen.element.ui.map.buttons.excl",
+        mmap_site_excl: "voxygen.element.ui.map.buttons.excl", // unused
         mmap_site_tree: "voxygen.element.ui.map.buttons.tree",
         mmap_site_tree_hover: "voxygen.element.ui.map.buttons.tree_hover",
         mmap_poi_peak: "voxygen.element.ui.map.buttons.peak",
         mmap_poi_biome: "voxygen.element.ui.map.buttons.biome",
-        mmap_poi_peak_hover: "voxygen.element.ui.map.buttons.peak_hover",
+        mmap_poi_peak_hover: "voxygen.element.ui.map.buttons.peak_hover", // unused
         mmap_site_gnarling: "voxygen.element.ui.map.buttons.gnarling",
         mmap_site_gnarling_hover: "voxygen.element.ui.map.buttons.gnarling_hover",
         mmap_site_gnarling_bg: "voxygen.element.ui.map.buttons.gnarling_bg",
@@ -691,9 +691,9 @@ image_ids! {
         mmap_site_myrmidon: "voxygen.element.ui.map.buttons.minotaur",
         mmap_site_myrmidon_hover: "voxygen.element.ui.map.buttons.minotaur_hover",
         mmap_site_myrmidon_bg: "voxygen.element.ui.map.buttons.minotaur_bg",
-        mmap_site_mindflayer: "voxygen.element.ui.map.buttons.mindflayer",
-        mmap_site_mindflayer_hover: "voxygen.element.ui.map.buttons.mindflayer_hover",
-        mmap_site_mindflayer_bg: "voxygen.element.ui.map.buttons.mindflayer_bg",
+        mmap_site_mindflayer: "voxygen.element.ui.map.buttons.mindflayer", // unused
+        mmap_site_mindflayer_hover: "voxygen.element.ui.map.buttons.mindflayer_hover", // unused
+        mmap_site_mindflayer_bg: "voxygen.element.ui.map.buttons.mindflayer_bg", // unused
         mmap_site_mine: "voxygen.element.ui.map.buttons.mine",
         mmap_site_mine_hover: "voxygen.element.ui.map.buttons.mine_hover",
         mmap_site_mine_bg: "voxygen.element.ui.map.buttons.mine_bg",
@@ -702,7 +702,7 @@ image_ids! {
         mmap_site_vampire_castle: "voxygen.element.ui.map.buttons.bloodmoon_heiress",
 
         // Window Parts
-        window_3: "voxygen.element.ui.generic.frames.window_3",
+        window_3: "voxygen.element.ui.generic.frames.window_3", // unused
         esc_frame: "voxygen.element.ui.generic.frames.esc_menu",
         // Settings
         settings_bg: "voxygen.element.ui.settings.settings_bg",
@@ -712,9 +712,6 @@ image_ids! {
         close_btn: "voxygen.element.ui.generic.buttons.close_btn",
         close_btn_hover: "voxygen.element.ui.generic.buttons.close_btn_hover",
         close_btn_press: "voxygen.element.ui.generic.buttons.close_btn_press",
-        close_button: "voxygen.element.ui.generic.buttons.close_btn",
-        close_button_hover: "voxygen.element.ui.generic.buttons.close_btn_hover",
-        close_button_press: "voxygen.element.ui.generic.buttons.close_btn_press",
 
         // Search-button
         search_btn: "voxygen.element.ui.generic.buttons.search_btn",
@@ -782,10 +779,10 @@ image_ids! {
         scrollbar_bg: "voxygen.element.ui.generic.slider.scrollbar",
         scrollbar_bg_big: "voxygen.element.ui.generic.slider.scrollbar_1",
         second_phase_scrollbar_bg: "voxygen.element.ui.bag.second_phase_scrollbar_bg",
-        inv_tab_active: "voxygen.element.ui.bag.buttons.inv_tab_active",
-        inv_tab_inactive: "voxygen.element.ui.bag.buttons.inv_tab_inactive",
-        inv_tab_inactive_hover: "voxygen.element.ui.bag.buttons.inv_tab_inactive",
-        inv_tab_inactive_press: "voxygen.element.ui.bag.buttons.inv_tab_inactive",
+        inv_tab_active: "voxygen.element.ui.bag.buttons.inv_tab_active", // unused
+        inv_tab_inactive: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
+        inv_tab_inactive_hover: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
+        inv_tab_inactive_press: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
         armor_slot: "voxygen.element.ui.generic.buttons.armor_slot",
         armor_slot_sel: "voxygen.element.ui.generic.buttons.armor_slot_selected",
         armor_slot_empty: "voxygen.element.ui.generic.buttons.armor_slot_empty",
@@ -849,10 +846,10 @@ image_ids! {
         // Enemy Bar Content:
         enemy_bar: "voxygen.element.ui.skillbar.enemy_bar_content",
         map_icon: "voxygen.element.ui.generic.buttons.map",
-        grid_button: "voxygen.element.ui.generic.buttons.border",
-        grid_button_hover: "voxygen.element.ui.generic.buttons.border_mo",
-        grid_button_press: "voxygen.element.ui.generic.buttons.border_press",
-        grid_button_open: "voxygen.element.ui.generic.buttons.border_pressed",
+        grid_button: "voxygen.element.ui.generic.buttons.border", // unused
+        grid_button_hover: "voxygen.element.ui.generic.buttons.border_mo", // unused
+        grid_button_press: "voxygen.element.ui.generic.buttons.border_press", // unused
+        grid_button_open: "voxygen.element.ui.generic.buttons.border_pressed", // unused
 
         // Char Window
         progress_frame: "voxygen.element.ui.invite.progress_bar",
@@ -869,7 +866,7 @@ image_ids! {
         speech_bubble_bottom: "voxygen.element.ui.generic.frames.bubble.bottom",
         speech_bubble_bottom_right: "voxygen.element.ui.generic.frames.bubble.bottom_right",
         speech_bubble_tail: "voxygen.element.ui.generic.frames.bubble.tail",
-        speech_bubble_icon_frame: "voxygen.element.ui.generic.frames.bubble_dark.icon_frame",
+        speech_bubble_icon_frame: "voxygen.element.ui.generic.frames.bubble_dark.icon_frame", // unused
 
         dark_bubble_top_left: "voxygen.element.ui.generic.frames.bubble_dark.top_left",
         dark_bubble_top: "voxygen.element.ui.generic.frames.bubble_dark.top",
@@ -881,7 +878,7 @@ image_ids! {
         dark_bubble_bottom: "voxygen.element.ui.generic.frames.bubble_dark.bottom",
         dark_bubble_bottom_right: "voxygen.element.ui.generic.frames.bubble_dark.bottom_right",
         dark_bubble_tail: "voxygen.element.ui.generic.frames.bubble_dark.tail",
-        dark_bubble_icon_frame: "voxygen.element.ui.generic.frames.bubble_dark.icon_frame",
+        dark_bubble_icon_frame: "voxygen.element.ui.generic.frames.bubble_dark.icon_frame", // unused
 
 
         // Chat icons
@@ -897,12 +894,12 @@ image_ids! {
         chat_online_small: "voxygen.element.ui.chat.icons.online_small",
         chat_offline_small: "voxygen.element.ui.chat.icons.offline_small",
 
-        chat_faction: "voxygen.element.ui.chat.icons.faction",
-        chat_group: "voxygen.element.ui.chat.icons.group",
-        chat_region: "voxygen.element.ui.chat.icons.region",
-        chat_say: "voxygen.element.ui.chat.icons.say",
-        chat_tell: "voxygen.element.ui.chat.icons.tell",
-        chat_world: "voxygen.element.ui.chat.icons.world",
+        chat_faction: "voxygen.element.ui.chat.icons.faction", // unused
+        chat_group: "voxygen.element.ui.chat.icons.group", // unused
+        chat_region: "voxygen.element.ui.chat.icons.region", // unused
+        chat_say: "voxygen.element.ui.chat.icons.say", // unused
+        chat_tell: "voxygen.element.ui.chat.icons.tell", // unused
+        chat_world: "voxygen.element.ui.chat.icons.world", // unused
 
         chat_moderator_badge: "voxygen.element.ui.chat.icons.mod_badge",
 

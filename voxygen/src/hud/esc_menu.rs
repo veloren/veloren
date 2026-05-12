@@ -10,7 +10,6 @@ use i18n::Localization;
 widget_ids! {
     struct Ids {
         esc_bg,
-        fireplace,
         banner_top,
         menu_button_1,
         menu_button_2,
