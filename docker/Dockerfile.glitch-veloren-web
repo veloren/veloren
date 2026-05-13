@@ -1,0 +1,141 @@
+# Veloren streamed-native browser build for Glitch
+#
+# This builds both:
+#   1. veloren-server-cli   - headless dedicated multiplayer server
+#   2. veloren-voxygen      - native Veloren client rendered into a virtual X display
+#
+# Browser output path:
+#   Voxygen -> Xvfb display -> x11vnc -> websockify/noVNC -> browser on :6080
+#
+# Apply these patches first:
+#   patches/0001-veloren-glitch-auth-heartbeat.patch
+#   patches/0002-veloren-voxygen-glitch-web-autoconnect.patch
+#
+# IMPORTANT:
+# Do NOT build veloren-server-cli with --no-default-features. That disables
+# server worldgen/persistent-world defaults and can cause runtime panics such as:
+#   Tried to fetch resource of type `Arc<World>` from the `World`
+# BuildKit cache mounts are used so future shell-script/runtime changes do not
+# force Cargo to download/recompile everything from scratch.
+
+# syntax=docker/dockerfile:1.7
+FROM rust:1-bookworm AS builder
+WORKDIR /src
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git clang cmake pkg-config libssl-dev ca-certificates \
+        build-essential binutils mold lld \
+        gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu \
+        libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev \
+        libx11-dev libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+        libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libgl1-mesa-dev libvulkan-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+
+# Build the dedicated server with its default features intact. This keeps the
+# real Veloren world generation path enabled, matching the standalone server
+# image that already worked.
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/src/target \
+    cargo build --release -p veloren-server-cli \
+    && mkdir -p /src/artifacts \
+    && cp /src/target/release/veloren-server-cli /src/artifacts/veloren-server-cli
+
+# Build the native client. Keep --no-default-features for the streamed-client
+# role to reduce optional singleplayer/plugin/Discord surface area, but do this
+# in a separate cargo invocation so the server build above is not stripped of
+# its required worldgen defaults.
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/src/target \
+    cargo build --release -p veloren-voxygen --no-default-features \
+    && mkdir -p /src/artifacts \
+    && cp /src/target/release/veloren-voxygen /src/artifacts/veloren-voxygen
+
+# Small helper used by Glitch streamed-native sessions when VELOREN_AUTH_MODE=official.
+# It validates the Glitch install, creates or reuses a deterministic Veloren auth
+# account, and writes VELOREN_USERNAME/VELOREN_PASSWORD for the streamed client.
+COPY glitch/veloren-auth-provisioner /tmp/veloren-auth-provisioner
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/tmp/veloren-auth-provisioner/target \
+    cargo build --release --manifest-path /tmp/veloren-auth-provisioner/Cargo.toml \
+    && cp /tmp/veloren-auth-provisioner/target/release/veloren-auth-provisioner /src/artifacts/veloren-auth-provisioner
+
+FROM debian:bookworm-slim AS runtime
+LABEL org.opencontainers.image.title="veloren-glitch-streamed-native"
+LABEL org.opencontainers.image.description="Veloren browser-streamed native client plus dedicated server for Glitch"
+
+# Runtime stage must include the X11 keyboard stack. Voxygen/winit loads
+# libxkbcommon-x11.so dynamically at startup and will panic if it is absent.
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates curl iproute2 net-tools sqlite3 procps \
+        xvfb x11vnc fluxbox novnc websockify \
+        mesa-vulkan-drivers vulkan-tools mesa-utils libgl1 libgl1-mesa-dri libegl1 libgles2 libvulkan1 \
+        libx11-6 libxcb1 libxcb-render0 libxcb-shape0 libxcb-xfixes0 \
+        libxrandr2 libxcursor1 libxinerama1 libxi6 libxrender1 libxext6 \
+        libxfixes3 libxdamage1 libxcomposite1 libxss1 libxtst6 libxxf86vm1 \
+        libxkbcommon0 libxkbcommon-x11-0 xkb-data \
+        libwayland-client0 libwayland-cursor0 libwayland-egl1 \
+        libsm6 libice6 libfontconfig1 libfreetype6 \
+        x11-utils x11-xserver-utils \
+        libasound2 libpulse0 pulseaudio dbus-x11 \
+        fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /src/artifacts/veloren-server-cli /opt/veloren-server-cli
+COPY --from=builder /src/artifacts/veloren-voxygen /opt/veloren-voxygen
+COPY --from=builder /src/artifacts/veloren-auth-provisioner /usr/local/bin/veloren-auth-provisioner
+COPY --from=builder /src/assets /opt/assets
+COPY docker/glitch-entrypoint.sh /usr/local/bin/glitch-entrypoint.sh
+COPY docker/glitch-web-entrypoint.sh /usr/local/bin/glitch-web-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/glitch-entrypoint.sh /usr/local/bin/glitch-web-entrypoint.sh \
+    && mkdir -p /opt/userdata/server/server_config /opt/userdata/server-cli /opt/userdata/voxygen /tmp/xdg-runtime
+
+WORKDIR /opt
+
+ENV RUST_BACKTRACE=full \
+    RUST_LOG=info,veloren_server=info,veloren_voxygen=info,common_net=info \
+    VELOREN_USERDATA=/opt/userdata \
+    GLITCH_API_BASE_URL=https://api.glitch.fun/api \
+    GLITCH_PLATFORM=linux-web-stream \
+    GLITCH_GAME_VERSION=veloren-glitch-web \
+    VELOREN_AUTH_MODE=glitch \
+    VELOREN_AUTH_AUTOREGISTER=0 \
+    VELOREN_AUTH_SERVER_URL=https://auth.veloren.net \
+    VELOREN_SERVER_NAME="Veloren on Glitch" \
+    VELOREN_MAX_PLAYERS=32 \
+    VELOREN_WEB_MODE=all_in_one \
+    VELOREN_STREAM_PRESET=balanced \
+    VELOREN_WEB_WIDTH=1280 \
+    VELOREN_WEB_HEIGHT=720 \
+    VELOREN_VNC_QUALITY=8 \
+    VELOREN_NOVNC_QUALITY=8 \
+    VELOREN_VNC_COMPRESS_LEVEL=1 \
+    VELOREN_NOVNC_COMPRESSION=1 \
+    VELOREN_VNC_WAIT_MS=10 \
+    VELOREN_VNC_DEFER_MS=10 \
+    VELOREN_WEB_DEPTH=24 \
+    VELOREN_WEB_PORT=6080 \
+    VELOREN_VNC_PORT=5900 \
+    VELOREN_GLITCH_AUTOCONNECT=1 \
+    VELOREN_SERVER_HOST=127.0.0.1 \
+    VELOREN_SERVER_PORT=14004 \
+    DISPLAY=:99 \
+    XDG_RUNTIME_DIR=/tmp/xdg-runtime \
+    LIBGL_ALWAYS_SOFTWARE=1 \
+    WGPU_BACKEND=vulkan
+
+# Browser stream + Veloren game protocol + web/query ports.
+EXPOSE 6080/tcp 5900/tcp 14004/tcp 14004/udp 14005/tcp 14006/tcp 14006/udp
+
+VOLUME ["/opt/userdata"]
+ENTRYPOINT ["/usr/local/bin/glitch-web-entrypoint.sh"]

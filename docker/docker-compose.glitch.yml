@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  veloren-glitch:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.glitch-veloren
+    container_name: veloren-glitch-server
+    restart: unless-stopped
+    ports:
+      - "14004:14004/tcp"
+      - "14004:14004/udp"
+      - "14005:14005/tcp"
+      - "14006:14006/tcp"
+      - "14006:14006/udp"
+    volumes:
+      - ./userdata:/opt/userdata
+    environment:
+      GLITCH_TITLE_ID: "YOUR_GLITCH_TITLE_ID"
+      GLITCH_TITLE_TOKEN: "YOUR_TITLE_TOKEN"
+      GLITCH_SHARED_PASSWORD: "CHANGE_ME_LONG_RANDOM_SHARED_PASSWORD"
+      GLITCH_API_BASE_URL: "https://api.glitch.fun/api"
+      GLITCH_GAME_VERSION: "veloren-glitch-1"
+      GLITCH_PLATFORM: "linux"
+      VELOREN_SERVER_NAME: "Veloren on Glitch"
+      VELOREN_MAX_PLAYERS: "100"
+      RUST_LOG: "info,veloren_server=info,common_net=info"

@@ -1,0 +1,56 @@
+# Veloren dedicated server for Glitch
+# Build from the repository root after applying patches/0001-veloren-glitch-auth-heartbeat.patch
+# No GPU is required. This is a CPU/network multiplayer server.
+
+FROM rust:1-bookworm AS builder
+WORKDIR /src
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git clang cmake pkg-config libssl-dev ca-certificates \
+        build-essential binutils mold lld \
+        gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+
+# Veloren uses a workspace. Build the dedicated server only.
+# Do not use --locked here because the Glitch retrofit patch adds server dependencies.
+# If you want a strictly locked build, run `cargo generate-lockfile` locally first,
+# commit Cargo.lock, then change this back to `--locked`.
+RUN cargo build --release -p veloren-server-cli
+
+FROM debian:bookworm-slim AS runtime
+LABEL org.opencontainers.image.title="veloren-glitch-server"
+LABEL org.opencontainers.image.description="Veloren dedicated Linux server integrated with Glitch install validation"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates curl iproute2 net-tools sqlite3 procps \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /src/target/release/veloren-server-cli /opt/veloren-server-cli
+COPY --from=builder /src/assets/common /opt/assets/common
+COPY --from=builder /src/assets/server /opt/assets/server
+COPY --from=builder /src/assets/world /opt/assets/world
+COPY docker/glitch-entrypoint.sh /usr/local/bin/glitch-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/glitch-entrypoint.sh \
+    && mkdir -p /opt/userdata/server/server_config /opt/userdata/server-cli
+
+WORKDIR /opt
+
+ENV RUST_BACKTRACE=full \
+    RUST_LOG=info,veloren_server=info,common_net=info \
+    VELOREN_USERDATA=/opt/userdata \
+    GLITCH_API_BASE_URL=https://api.glitch.fun/api \
+    GLITCH_PLATFORM=linux \
+    GLITCH_GAME_VERSION=veloren-glitch \
+    VELOREN_SERVER_NAME="Veloren on Glitch" \
+    VELOREN_MAX_PLAYERS=100
+
+# Veloren game protocol + query/web ports.
+EXPOSE 14004/tcp 14004/udp 14005/tcp 14006/tcp 14006/udp
+
+VOLUME ["/opt/userdata"]
+ENTRYPOINT ["/usr/local/bin/glitch-entrypoint.sh"]

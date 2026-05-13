@@ -1,0 +1,43 @@
+{
+  "deployment_type": "streamed_native",
+  "runtime": "docker",
+  "stream_protocol": "novnc",
+  "stream_url_path": "/vnc.html?autoconnect=1&resize=scale",
+  "dockerfile": "docker/Dockerfile.glitch-veloren-web",
+  "entrypoint": "/usr/local/bin/glitch-web-entrypoint.sh",
+  "roles": {
+    "server": {
+      "allocation_mode": "shared_server",
+      "container_mode": "server",
+      "max_players": 32,
+      "ports": [
+        { "name": "veloren_tcp", "port": 14004, "protocol": "tcp", "public": false },
+        { "name": "veloren_udp", "port": 14004, "protocol": "udp", "public": false },
+        { "name": "veloren_web", "port": 14005, "protocol": "tcp", "public": false }
+      ]
+    },
+    "client": {
+      "allocation_mode": "one_per_user_session",
+      "container_mode": "web_client",
+      "ports": [
+        { "name": "browser_stream", "port": 6080, "protocol": "http", "public": true }
+      ]
+    }
+  },
+  "environment": {
+    "GLITCH_API_BASE_URL": "https://api.glitch.fun/api",
+    "VELOREN_GLITCH_AUTOCONNECT": "1",
+    "VELOREN_WEB_MODE": "all_in_one",
+    "VELOREN_WEB_WIDTH": "1280",
+    "VELOREN_WEB_HEIGHT": "720"
+  },
+  "secrets": [
+    "GLITCH_TITLE_TOKEN",
+    "GLITCH_SHARED_PASSWORD"
+  ],
+  "session_environment": [
+    "GLITCH_INSTALL_ID",
+    "VELOREN_SERVER_HOST",
+    "VELOREN_SERVER_PORT"
+  ]
+}

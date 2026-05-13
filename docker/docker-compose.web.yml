@@ -1,0 +1,27 @@
+services:
+  veloren-web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.glitch-veloren-web
+    image: veloren-glitch-web:latest
+    platform: linux/amd64
+    ports:
+      - "6080:6080/tcp"
+      - "14004:14004/tcp"
+      - "14004:14004/udp"
+      - "14005:14005/tcp"
+    environment:
+      GLITCH_API_BASE_URL: "https://api.glitch.fun/api"
+      GLITCH_TITLE_ID: "${GLITCH_TITLE_ID}"
+      GLITCH_TITLE_TOKEN: "${GLITCH_TITLE_TOKEN}"
+      GLITCH_INSTALL_ID: "${GLITCH_INSTALL_ID}"
+      GLITCH_SHARED_PASSWORD: "${GLITCH_SHARED_PASSWORD}"
+      VELOREN_MAX_PLAYERS: "32"
+      VELOREN_WEB_MODE: "all_in_one"
+      VELOREN_WEB_WIDTH: "1280"
+      VELOREN_WEB_HEIGHT: "720"
+    volumes:
+      - veloren-glitch-web-data:/opt/userdata
+
+volumes:
+  veloren-glitch-web-data:

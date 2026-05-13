@@ -1121,6 +1121,18 @@ impl Client {
     ) -> Result<(), Error> {
         // Authentication
         let token_or_username = match &server_info.auth_provider {
+            // Glitch mode intentionally bypasses Veloren account registration.
+            // The launcher supplies:
+            //   username = Glitch install_id
+            //   password = shared server password
+            // The server validates install_id against Glitch before accepting the login.
+            Some(addr) if addr.starts_with("glitch://") => {
+                if password.is_empty() {
+                    Err(Error::AuthErr("Glitch password is required".to_string()))
+                } else {
+                    Ok(format!("{}:{}", username, password))
+                }
+            },
             Some(addr) => {
                 // Query whether this is a trusted auth server
                 if auth_trusted(addr) {
