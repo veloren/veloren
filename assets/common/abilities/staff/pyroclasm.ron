@@ -1,7 +1,7 @@
 RapidRanged(
     energy_cost: 15.0,
     buildup_duration: 1.0,
-    shoot_duration: 0.15,
+    shoot_duration: 0.25,
     recover_duration: 0.8,
     options: (
         fire_all: true,
@@ -20,7 +20,7 @@ RapidRanged(
             terrain: Some((0, Black))
         ),
         attack: Some((
-            damage: 25,
+            damage: 15,
             knockback: Some(3),
         )),
     ),

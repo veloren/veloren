@@ -10,7 +10,8 @@ BasicRanged(
             dodgeable: Jump,
         ),
         attack: Some((
-            damage: 2.0,
+            damage: 1.0,
+            without_combo: true,
             buff: Some((
                 kind: Burning,
                 dur_secs: 4.0,
