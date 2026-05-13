@@ -125,8 +125,10 @@
       in {
         packages.veloren-voxygen = wrapWithAssets voxygenOut.packages.release;
         packages.veloren-voxygen-dev = wrapWithAssets voxygenOut.packages.dev;
+        packages.veloren-voxygen-tlto = wrapWithAssets voxygenOut.packages.release-thinlto;
         packages.veloren-server-cli = wrapWithAssets serverCliOut.packages.release;
         packages.veloren-server-cli-dev = wrapWithAssets serverCliOut.packages.dev;
+        packages.veloren-server-cli-tlto = wrapWithAssets serverCliOut.packages.release-thinlto;
         packages.default = config.packages."veloren-voxygen";
 
         devShells.default = config.nci.outputs."veloren".devShell.overrideAttrs (old: {
@@ -151,6 +153,8 @@
             release.runTests = false;
             dev.features = ["default-publish"];
             dev.runTests = false;
+            release-thinlto.features = ["default-publish"];
+            release-thinlto.runTests = false;
           };
           depsDrvConfig.mkDerivation.nativeBuildInputs = [pkgs.mold];
           drvConfig = {
@@ -164,15 +168,17 @@
             release.runTests = false;
             dev.features = ["default-publish"];
             dev.runTests = false;
+            release-thinlto.features = ["default-publish"];
+            release-thinlto.runTests = false;
           };
           runtimeLibs = with pkgs; [
             wayland
             wayland-protocols
-            xorg.libX11
-            xorg.libXi
-            xorg.libxcb
-            xorg.libXcursor
-            xorg.libXrandr
+            libX11
+            libXi
+            libxcb
+            libXcursor
+            libXrandr
             libxkbcommon
             shaderc.lib
             udev
@@ -191,7 +197,7 @@
                 alsa-lib
                 libxkbcommon
                 udev
-                xorg.libxcb
+                libxcb
 
                 fontconfig
               ];

@@ -20,11 +20,11 @@ hud-temp_quest_text =
 
     Känn dig fri att ta med dig vad du kan tänkas behöva på dina äventyr!
 
-    Titta längst ner på höger sida av din skärm för att se saker som din packning, tillverkningsmeny och karta.
+    Titta längst ner på höger sida skärmen för att hitta saker som din packning, tillverkningsmeny och kartan.
 
     Tilllverkningsstationerna låter dig tillverka rustning, vapen, mat och mycket mer!
 
-    De vilda djuren runtom hela byn är en bra källa till djurhudar för att tillverka något för att skydda mot farorna ute i världen.
+    De vilda djuren runt hela byn är en bra källa till djurskinn för att tillverka lite skydd mot farorna ute i världen.
 
     När du känner dig redo, försök skaffa bättre utrustning från de många utmaningarna som finns markerade på din karta!
 hud-spell = Förtrollningar

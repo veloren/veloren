@@ -399,3 +399,5 @@ common-abilities-sceptre-lifestealbeam = Livsstöld
     .desc = Skjuter en stråle som dränerar livet från dina fiender.
 common-abilities-hammer-leap = Nederslag
     .desc = En attack som träffar ett område och knuffar fiender. Hoppar mot pekarens position.
+common-abilities-bow-eagle_eye = Örnöga
+    .desc = Fokusera din syn för att säkerställa att dina följande skott kommer slå till med extra skada, på bekostnad av energi-regenereringen.

@@ -110,7 +110,6 @@ widget_ids! {
         skill_staff_basic_1,
         skill_staff_basic_2,
         skill_staff_basic_3,
-        skill_staff_basic_4,
         skill_staff_beam_0,
         skill_staff_beam_1,
         skill_staff_beam_2,
@@ -149,18 +148,12 @@ widget_ids! {
         skill_pick_m1_2,
         general_combat_render_0,
         general_combat_render_1,
-        skill_general_stat_0,
-        skill_general_stat_1,
         skill_general_tree_0,
         skill_general_tree_1,
         skill_general_tree_2,
         skill_general_tree_3,
         skill_general_tree_4,
         skill_general_tree_5,
-        skill_general_roll_0,
-        skill_general_roll_1,
-        skill_general_roll_2,
-        skill_general_roll_3,
         skill_general_climb_0,
         skill_general_climb_1,
         skill_general_climb_2,
@@ -172,21 +165,15 @@ widget_ids! {
         sb_page_left_align,
         sb_page_right_align,
         spellbook_skills_bg,
-        spellbook_btn,
-        spellbook_btn_bg,
-        ability_select_title,
         ability_page_left,
         ability_page_right,
         active_abilities[],
         active_abilities_keys[],
-        main_weap_select,
-        off_weap_select,
         abilities[],
         ability_frames[],
         abilities_dual[],
         ability_titles[],
         ability_descs[],
-        dragged_ability,
         // Stats
         stat_names[],
         stat_values[],
@@ -446,7 +433,7 @@ impl Widget for Diary<'_> {
             .set(state.ids.icon, ui);
 
         // X-Button
-        if Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
             .press_image(self.imgs.close_btn_press)

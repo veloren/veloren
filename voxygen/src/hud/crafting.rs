@@ -75,8 +75,6 @@ widget_ids! {
         recipe_list_labels[],
         recipe_list_quality_indicators[],
         recipe_list_materials_indicators[],
-        recipe_img_frame[],
-        recipe_img[],
         ingredients[],
         ingredient_frame[],
         ingredient_btn[],
@@ -88,7 +86,6 @@ widget_ids! {
         req_station_txt,
         output_img_frame,
         output_img,
-        output_amount,
         category_bgs[],
         category_tabs[],
         category_imgs[],
@@ -434,10 +431,10 @@ impl Widget for Crafting<'_> {
             .set(state.ids.icon, ui);
 
         // Close Button
-        if Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
             .top_right_with_margins_on(state.ids.window, 0.0, 0.0)
             .set(state.ids.close, ui)
             .was_clicked()

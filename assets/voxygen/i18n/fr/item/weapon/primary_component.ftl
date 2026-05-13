@@ -502,3 +502,4 @@ weapon-component-staff-brand-ironwood = Manche de tison en bois de fer
     .desc = { "" }
 weapon-component-staff-brand-eldwood = Manche de tison en bois ancestral
     .desc = { "" }
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }

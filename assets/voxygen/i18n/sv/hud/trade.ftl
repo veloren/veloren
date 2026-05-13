@@ -15,7 +15,7 @@ hud-trade-decline = Avböj
 hud-trade-invite_sent = Bytesförfrågan har skickats till { $playername }.
 hud-trade-result-completed = Bytet har genomförts.
 hud-trade-result-declined = Bytet har avbrutits.
-hud-trade-result-nospace = Inte tillräckligt mycket utrymme för att genomföra bytet.
+hud-trade-result-nospace = För lite utrymme för att genomföra bytet.
 hud-trade-buy =
     Köppris: { $coin_num ->
         [1] ett mynt

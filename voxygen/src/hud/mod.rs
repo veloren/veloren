@@ -258,11 +258,6 @@ widget_ids! {
         player_rank_up_txt_1,
         player_rank_up_txt_1_bg,
         player_rank_up_icon,
-        sct_exp_bgs[],
-        sct_exps[],
-        sct_exp_icons[],
-        sct_lvl_bg,
-        sct_lvl,
         hurt_bg,
         death_bg,
         sct_bgs[],
@@ -304,23 +299,11 @@ widget_ids! {
         help,
         debug_info,
 
-        // Window Frames
-        window_frame_0,
-        window_frame_1,
-        window_frame_2,
-        window_frame_3,
-        window_frame_4,
-        window_frame_5,
-
-        button_help2,
-        button_help3,
-
         // External
         chat,
         loot_scroller,
         map,
         world_map,
-        character_window,
         popup,
         minimap,
         prompt_dialog,
@@ -333,14 +316,12 @@ widget_ids! {
         buttons,
         buffs,
         esc_menu,
-        small_window,
         social_window,
         quest_window,
         tutorial_window,
         crafting_window,
         settings_window,
         group_window,
-        item_info,
         subtitles,
 
         // Free look indicator
@@ -350,10 +331,6 @@ widget_ids! {
         // Auto walk indicator
         auto_walk_txt,
         auto_walk_bg,
-
-        // Walking speed indicator
-        walking_speed_txt,
-        walking_speed_bg,
 
         // Temporal (fading) camera zoom lock indicator
         zoom_lock_txt,
