@@ -241,8 +241,8 @@ impl Body {
             | Body::BoltBesieger
             | Body::PoisonBall
             | Body::ArrowHeavy
-            | Body::FireRing 
-            | Body::PyroclasmBolt 
+            | Body::FireRing
+            | Body::PyroclasmBolt
             | Body::NapalmShot => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb
@@ -252,9 +252,11 @@ impl Body {
             | Body::BloodBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
-            Body::Campfire | Body::CampfireLit | Body::BarrelOrgan | Body::TerracottaStatue | Body::NapalmPool => {
-                300.0
-            },
+            Body::Campfire
+            | Body::CampfireLit
+            | Body::BarrelOrgan
+            | Body::TerracottaStatue
+            | Body::NapalmPool => 300.0,
             Body::Crossbow => 200.0,
             Body::Flamethrower | Body::Lavathrower => 200.0,
             Body::FireworkBlue

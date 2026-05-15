@@ -31,7 +31,7 @@ pub struct Melee {
     pub precision_flank_invert: bool,
     pub dodgeable: Dodgeable,
     pub sustained: bool,
-    pub hit_entities: Vec<Uid>
+    pub hit_entities: Vec<Uid>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

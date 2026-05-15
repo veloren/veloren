@@ -665,7 +665,6 @@ impl ProjectileConstructor {
                     };
                 }
 
-                
                 let lifetime = self.lifetime_override.unwrap_or(Secs(10.0));
 
                 Projectile {

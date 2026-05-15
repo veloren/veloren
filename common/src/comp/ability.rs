@@ -2553,7 +2553,7 @@ impl TryFrom<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState
                     ability_info,
                     movement_modifier: *movement_modifier,
                     ori_modifier: *ori_modifier,
-                    marker: *marker
+                    marker: *marker,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,

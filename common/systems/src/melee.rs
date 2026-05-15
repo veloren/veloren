@@ -101,7 +101,7 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if melee_attack.applied && !melee_attack.sustained{
+            if melee_attack.applied && !melee_attack.sustained {
                 continue;
             }
             emitters.emit(event::SoundEvent {
@@ -146,7 +146,10 @@ impl<'a> System<'a> for Sys {
                 .sorted_by_key(|(_, pos_b, _, _, _)| pos_b.0.distance_squared(pos.0) as u32)
             {
                 // Unless the melee attack can hit multiple targets, stop after first hit
-                if melee_attack.multi_target.is_none() && !melee_attack.sustained && !melee_attack.hit_entities.is_empty() {
+                if melee_attack.multi_target.is_none()
+                    && !melee_attack.sustained
+                    && !melee_attack.hit_entities.is_empty()
+                {
                     break;
                 }
 

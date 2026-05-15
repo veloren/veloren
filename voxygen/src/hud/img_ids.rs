@@ -262,7 +262,7 @@ image_ids! {
         staff_fire_dash: "voxygen.element.skills.staff.fire_dash",
         staff_fire_breath: "voxygen.element.skills.staff.fire_breath",
         staff_pyroclasm: "voxygen.element.skills.staff.pyroclasm",
-        
+
         // Sword
         sword_heavy_stance: "voxygen.element.skills.sword.heavy_stance",
         sword_agile_stance: "voxygen.element.skills.sword.agile_stance",

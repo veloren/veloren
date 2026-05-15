@@ -534,8 +534,7 @@ impl SfxMgr {
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::PyroclasmCharge { pos, .. } => {
-                let sfx_trigger_item =
-                    triggers.0.get_key_value(&SfxEvent::PyroclasmCharge);
+                let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::PyroclasmCharge);
                 audio.emit_sfx(sfx_trigger_item, *pos, Some(2.0));
             },
             Outcome::FireBreathCharge { pos, .. } => {
@@ -678,8 +677,7 @@ impl SfxMgr {
                     },
                     Body::Object(object::Body::FireRing) => {},
                     Body::Object(object::Body::PyroclasmBolt) => {
-                        let sfx_trigger_item =
-                            triggers.0.get_key_value(&SfxEvent::PyroclasmBolt);
+                        let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::PyroclasmBolt);
                         audio.emit_sfx(sfx_trigger_item, *pos, None);
                     },
                     Body::Object(

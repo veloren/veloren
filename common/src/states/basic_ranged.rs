@@ -1,12 +1,11 @@
 use crate::{
     combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, StateUpdate,
+        Body, CharacterState, FrontendMarker, LightEmitter, Pos, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
         object::Body::{FireRing, GrenadeClay, LaserBeam, LaserBeamSmall},
         projectile::{ProjectileConstructor, aim_projectile},
-        FrontendMarker, 
     },
     event::{LocalEvent, ShootEvent},
     outcome::Outcome,
@@ -158,13 +157,16 @@ impl CharacterBehavior for Data {
 
                     //Adds the vertical angle offset if present.
                     //Unwrap clause fires if the cross product is degenerate.
-                    let aim_dir = if self.static_data.vertical_angle_offset != 0.0{
+                    let aim_dir = if self.static_data.vertical_angle_offset != 0.0 {
                         let cross = vek::Vec3::unit_z().cross(*aim_dir).normalized();
                         Dir::from_unnormalized(
-                            vek::Quaternion::rotation_3d(-self.static_data.vertical_angle_offset, cross)
-                                * *aim_dir
-                        ).unwrap_or(aim_dir)
-                    } else{
+                            vek::Quaternion::rotation_3d(
+                                -self.static_data.vertical_angle_offset,
+                                cross,
+                            ) * *aim_dir,
+                        )
+                        .unwrap_or(aim_dir)
+                    } else {
                         aim_dir
                     };
 
@@ -202,7 +204,6 @@ impl CharacterBehavior for Data {
                     } else {
                         Either::Right((0..num_projectiles).map(|_| aim_dir))
                     };
-
 
                     for dir in dirs {
                         // Tells server to create and shoot the projectile

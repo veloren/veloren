@@ -496,9 +496,8 @@ impl ParticleMgr {
             },
             Outcome::PyroclasmCharge { .. } => {},
             Outcome::FlamethrowerCharge { pos }
-                | Outcome::FuseCharge { pos } 
-                | Outcome::FireBreathCharge { pos }
-            => {
+            | Outcome::FuseCharge { pos }
+            | Outcome::FireBreathCharge { pos } => {
                 self.particles.push(Particle::new_directed(
                     Duration::from_secs_f32(rng.random_range(0.1..0.2)),
                     time,
@@ -996,18 +995,15 @@ impl ParticleMgr {
             .try_normalized()
             .unwrap_or(Vec3::unit_y());
 
-        self.particles.resize_with(
-            self.particles.len() + usize::from(heartbeats) * 6,
-            || {
+        self.particles
+            .resize_with(self.particles.len() + usize::from(heartbeats) * 6, || {
                 let spread = Vec3::new(
                     rng.random_range(-0.2..0.2_f32),
                     rng.random_range(-0.2..0.2_f32),
                     rng.random_range(-0.2..0.2_f32),
                 );
                 let spawn = pos + spread;
-                let trail_dir = (fwd - Vec3::unit_z() * 0.4)
-                    .try_normalized()
-                    .unwrap_or(fwd);
+                let trail_dir = (fwd - Vec3::unit_z() * 0.4).try_normalized().unwrap_or(fwd);
                 let tail = spawn - trail_dir * rng.random_range(0.5..2.5_f32);
 
                 Particle::new_directed(
@@ -1018,8 +1014,7 @@ impl ParticleMgr {
                     tail,
                     scene_data,
                 )
-            },
-        );
+            });
     }
 
     fn maintain_pyroclasm_charge_particles(
@@ -1034,20 +1029,21 @@ impl ParticleMgr {
         let mut rng = rand::rng();
         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(8));
 
-        //[Height Modifier, Radius Modifier, Direction of rotation] for each circle of latitude.
+        //[Height Modifier, Radius Modifier, Direction of rotation] for each circle of
+        //[Height latitude.
         const LATITUDE_MODIFIERS: [(f32, f32, f32); 5] = [
-            (-0.85, 0.50,  1.0), 
+            (-0.85, 0.50, 1.0),
             (-0.50, 0.80, -1.0),
-            ( 0.00, 0.95,  1.0),
-            ( 0.50, 0.80, -1.0),
-            ( 0.85, 0.50,  1.0),
+            (0.00, 0.95, 1.0),
+            (0.50, 0.80, -1.0),
+            (0.85, 0.50, 1.0),
         ];
 
         let scale = 1.0 - progress;
         let center_z = height;
 
         for &(sin_lat, cos_lat, dir) in &LATITUDE_MODIFIERS {
-            //Sphere implodes 
+            //Sphere implodes
             let r = radius * cos_lat * scale;
             let z = center_z + radius * sin_lat * (1.0 - progress);
 
@@ -1060,11 +1056,7 @@ impl ParticleMgr {
                 || {
                     let theta = rng.random_range(0.0..TAU);
                     let spawn = pos + Vec3::new(theta.cos() * r, theta.sin() * r, z);
-                    let tangent = Vec3::new(
-                        -theta.sin() * dir,
-                         theta.cos() * dir,
-                         0.06 * dir,
-                    );
+                    let tangent = Vec3::new(-theta.sin() * dir, theta.cos() * dir, 0.06 * dir);
                     let end_pos = spawn + tangent * 0.55;
 
                     let blue_prob = (progress / 0.9).clamp(0.0, 1.0) as f64;
@@ -1092,7 +1084,7 @@ impl ParticleMgr {
             );
         }
     }
-    
+
     fn maintain_napalmshot_particles(
         &mut self,
         scene_data: &SceneData,
@@ -1132,7 +1124,7 @@ impl ParticleMgr {
             ));
         }
 
-        // smoke 
+        // smoke
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
             self.particles.push(Particle::new(
                 Duration::from_millis(1500),
@@ -1919,16 +1911,16 @@ impl ParticleMgr {
                                     },
                                 );
                             },
-                            states::rapid_ranged::FrontendSpecifier::PyroclasmCharge{height: z, radius: r} => {
+                            states::rapid_ranged::FrontendSpecifier::PyroclasmCharge {
+                                height: z,
+                                radius: r,
+                            } => {
                                 const TAIL_SECS: f32 = 1.0;
                                 match repeater.stage_section {
                                     StageSection::Buildup => {
                                         let progress = (repeater.timer.as_secs_f32()
-                                            / repeater
-                                                .static_data
-                                                .buildup_duration
-                                                .as_secs_f32())
-                                            .clamp(0.0, 1.0)
+                                            / repeater.static_data.buildup_duration.as_secs_f32())
+                                        .clamp(0.0, 1.0)
                                             * 0.9;
                                         self.maintain_pyroclasm_charge_particles(
                                             scene_data,
@@ -2349,7 +2341,7 @@ impl ParticleMgr {
                 },
                 CharacterState::DashMelee(s) => {
                     if matches!(s.stage_section, StageSection::Charge) {
-                        match s.static_data.frontend_specifier{
+                        match s.static_data.frontend_specifier {
                             Some(states::dash_melee::FrontendSpecifier::FireDash) => {
                                 let look_dir = ori.to_horizontal().look_dir().to_vec();
                                 let back_dir = -look_dir;
@@ -2418,7 +2410,7 @@ impl ParticleMgr {
                                         )
                                     },
                                 );
-                            }
+                            },
                             None => (),
                         }
                     }
@@ -2865,20 +2857,22 @@ impl ParticleMgr {
                         ..
                     } => {
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        match aura.frontend_specifier{
-                        Some(aura::Specifier::FieryAura) => {
-                            //Flame Cloak
+                        match aura.frontend_specifier {
+                            Some(aura::Specifier::FieryAura) => {
+                                //Flame Cloak
                                 self.particles.resize_with(
                                     self.particles.len()
-                                        + aura.radius.powi(2) as usize * usize::from(heartbeats) / 3,
+                                        + aura.radius.powi(2) as usize * usize::from(heartbeats)
+                                            / 3,
                                     || {
                                         let orbit_speed = 1.0_f32;
                                         let theta = time as f32 * orbit_speed
                                             + rng.random::<f32>() * std::f32::consts::TAU;
                                         let r = aura.radius * (0.25 + rng.random::<f32>() * 0.2);
-                                        let spawn_pos = (Vec2::new(r * theta.sin(), r * theta.cos())
-                                            + pos.xy())
-                                        .with_z(pos.z + rng.random::<f32>() * 0.5);
+                                        let spawn_pos =
+                                            (Vec2::new(r * theta.sin(), r * theta.cos())
+                                                + pos.xy())
+                                            .with_z(pos.z + rng.random::<f32>() * 0.5);
                                         let duration = Duration::from_secs_f64(
                                             aura.end_time
                                                 .map_or(0.3, |end| (end.0 - time).clamp(0.0, 0.3)),
@@ -2892,12 +2886,13 @@ impl ParticleMgr {
                                         )
                                     },
                                 );
-                            }
-                        None => {
-                            //Gnarling Totem Red
+                            },
+                            None => {
+                                //Gnarling Totem Red
                                 self.particles.resize_with(
                                     self.particles.len()
-                                    + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                                        + aura.radius.powi(2) as usize * usize::from(heartbeats)
+                                            / 300,
                                     || {
                                         let rand_pos = {
                                             let theta = rng.random::<f32>() * TAU;
@@ -2921,8 +2916,8 @@ impl ParticleMgr {
                                         )
                                     },
                                 );
-                            }
-                         _=>{},
+                            },
+                            _ => {},
                         }
                     },
                     aura::AuraKind::Buff {
@@ -4266,8 +4261,7 @@ impl ParticleMgr {
         {
             let pos = interp.map_or(pos.0, |i| i.pos);
 
-            use comp::FrontendMarker;
-            use comp::visual::TorusMode;
+            use comp::{FrontendMarker, visual::TorusMode};
             match marker {
                 FrontendMarker::JoltArrow => {
                     self.particles.resize_with(
@@ -4295,7 +4289,7 @@ impl ParticleMgr {
                         },
                     );
                 },
-                FrontendMarker::Torus(major_r,torus_mode) => {
+                FrontendMarker::Torus(major_r, torus_mode) => {
                     let time = scene_data.state.get_time();
                     let mut rng = rand::rng();
                     let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
@@ -4313,8 +4307,8 @@ impl ParticleMgr {
                     let up = right.cross(fwd);
 
                     let major_r = *major_r;
-                    let minor_r: f32 = major_r/1.5; 
-                    let flame_reach: f32 = fwd.magnitude(); 
+                    let minor_r: f32 = major_r / 1.5;
+                    let flame_reach: f32 = fwd.magnitude();
 
                     self.particles.resize_with(
                         self.particles.len() + usize::from(heartbeats) * 8,
@@ -4324,17 +4318,17 @@ impl ParticleMgr {
 
                             let radial = u.cos() * right + u.sin() * up;
                             let ring_center = pos + major_r * radial;
-                            let tube_pos = ring_center
-                                + minor_r * v.cos() * radial
-                                + minor_r * v.sin() * fwd;
+                            let tube_pos =
+                                ring_center + minor_r * v.cos() * radial + minor_r * v.sin() * fwd;
 
-                            let mode = match torus_mode{
-                                TorusMode::RedBlueFire => 
+                            let mode = match torus_mode {
+                                TorusMode::RedBlueFire => {
                                     if rng.random_bool(0.4) {
                                         ParticleMode::FlamethrowerBlue
                                     } else {
                                         ParticleMode::FlameThrower
-                                }
+                                    }
+                                },
                             };
 
                             // Zero wind velocity so the torus holds its shape regardless of wind.
@@ -4352,7 +4346,7 @@ impl ParticleMgr {
                             }
                         },
                     );
-                }
+                },
             }
         }
     }
@@ -4461,7 +4455,7 @@ impl ParticleMgr {
             }
         }
     }
-    
+
     fn maintain_pool_particles(&mut self, scene_data: &SceneData) {
         prof_span!("ParticleMgr::maintain_pool_particles");
         let state = scene_data.state;

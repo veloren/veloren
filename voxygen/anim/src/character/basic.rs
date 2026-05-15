@@ -3127,10 +3127,7 @@ impl Animation for BasicAction {
                         * Quaternion::rotation_z(move1 * 0.4 + move2 * -0.4);
                 }
             },
-            Some(
-                "common.abilities.staff.firebomb" 
-                | "common.abilities.staff.napalm_strike",
-            ) => {
+            Some("common.abilities.staff.firebomb" | "common.abilities.staff.napalm_strike") => {
                 let move1 = move1base;
                 let move2 = move2base.powf(0.25);
                 let move3 = move3base;
@@ -3254,16 +3251,15 @@ impl Animation for BasicAction {
                         (circle_angle.sin(), circle_angle.cos(), (1.0 - t) * 6.0)
                     };
 
-                let tilt = 0.7; 
+                let tilt = 0.7;
                 next.control.position = Vec3::new(
                     s_a.stc.0 + sin_offset * 1.5,
                     s_a.stc.1 + forward_nudge + cos_offset * 5.5 * tilt,
                     s_a.stc.2 + cos_offset * 5.5 * (1.0 - tilt),
                 );
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.stc.3 + cos_offset * 0.55)
-                        * Quaternion::rotation_y(s_a.stc.4 + sin_offset * 0.35)
-                        * Quaternion::rotation_z(s_a.stc.5);
+                next.control.orientation = Quaternion::rotation_x(s_a.stc.3 + cos_offset * 0.55)
+                    * Quaternion::rotation_y(s_a.stc.4 + sin_offset * 0.35)
+                    * Quaternion::rotation_z(s_a.stc.5);
             },
             // ==================================
             //           NATURE SCEPTRE

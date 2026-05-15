@@ -2470,7 +2470,6 @@ impl Diary<'_> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-
         use skills::StaffSkill::*;
 
         Image::new(self.imgs.staff_bg)
@@ -2973,7 +2972,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
         },
     }
 }
-
 
 fn sceptre_skill_strings(skill: SceptreSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.sceptre_tree;

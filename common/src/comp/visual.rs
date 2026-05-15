@@ -32,7 +32,7 @@ impl Component for LightAnimation {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum FrontendMarker {
     JoltArrow,
-    Torus(f32,TorusMode),
+    Torus(f32, TorusMode),
 }
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TorusMode {

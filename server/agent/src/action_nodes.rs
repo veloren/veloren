@@ -1507,7 +1507,7 @@ impl AgentData<'_> {
                         Dir::from_unnormalized(
                             vek::Quaternion::rotation_3d(c.static_data.vertical_angle_offset, cross_z)
                                 * *dir,
-                        )                                                                       
+                        )
                         .unwrap_or(dir)
                     } else {
                         dir
@@ -1515,7 +1515,7 @@ impl AgentData<'_> {
                 })
             },
             CharacterState::RapidRanged(c) => {
-                    let offset_z = match c.static_data.projectile.kind {
+                let offset_z = match c.static_data.projectile.kind {
                     // Aim explosives and hazards at feet instead of eyes for splash damage
                     ProjectileConstructorKind::Explosive { .. }
                     | ProjectileConstructorKind::ExplosiveHazard { .. }

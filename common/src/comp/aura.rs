@@ -204,7 +204,14 @@ impl AuraBuffConstructor {
                 tool_kind: entity_info.1,
             },
         };
-        Aura::new(aura_kind, radius, duration, target, time, frontend_specifier)
+        Aura::new(
+            aura_kind,
+            radius,
+            duration,
+            target,
+            time,
+            frontend_specifier,
+        )
     }
 }
 

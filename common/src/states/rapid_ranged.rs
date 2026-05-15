@@ -61,7 +61,8 @@ pub struct RampOptions {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct OffsetOptions {
-    //Radius adds random spawn location within a circle parallel to XY plane; 0 results in no variation
+    //Radius adds random spawn location within a circle parallel to XY plane; 0 results in no
+    // variation
     pub radius: f32,
     pub height: f32,
     #[serde(default)]
@@ -99,7 +100,7 @@ impl CharacterBehavior for Data {
                     }
                     if matches!(
                         self.static_data.specifier,
-                        Some(FrontendSpecifier::PyroclasmCharge{ .. })
+                        Some(FrontendSpecifier::PyroclasmCharge { .. })
                     ) && self.timer == Duration::default()
                     {
                         output_events.emit_local(LocalEvent::CreateOutcome(
@@ -151,7 +152,9 @@ impl CharacterBehavior for Data {
                             if offset.converge {
                                 let offset_pos = Pos(data.pos.0 + rand_offset);
                                 const MAX_RANGE: f32 = 200.0;
-                                let eye_pos = data.pos.0 + vek::Vec3::unit_z() * data.body.eye_height(data.scale.map_or(1.0, |s| s.0));
+                                let eye_pos = data.pos.0
+                                    + vek::Vec3::unit_z()
+                                        * data.body.eye_height(data.scale.map_or(1.0, |s| s.0));
                                 let ray_end = eye_pos + *data.inputs.look_dir * MAX_RANGE;
                                 let (dist, _) = data
                                     .terrain
@@ -185,7 +188,6 @@ impl CharacterBehavior for Data {
                             };
                             (base_pos, base_dir)
                         };
-
 
                     let projectile = self.static_data.projectile.clone().create_projectile(
                         Some(*data.uid),
@@ -267,6 +269,5 @@ impl CharacterBehavior for Data {
 pub enum FrontendSpecifier {
     FireRainPhoenix,
     //The height of the implosion effect along with the initial radius of the implosion sphere
-    PyroclasmCharge{height: f32, radius: f32},
+    PyroclasmCharge { height: f32, radius: f32 },
 }
-    

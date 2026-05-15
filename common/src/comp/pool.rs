@@ -7,7 +7,6 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::Component;
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PoolProperties {
     pub attack: Attack,

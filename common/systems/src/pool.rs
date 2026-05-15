@@ -2,11 +2,9 @@ use common::{
     GroupTarget,
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
-        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass,
-        Ori, PhysicsState, Player, Pos, Scale, Stats,
-        aura::EnteredAuras,
+        Alignment, Body, Buffs, CharacterState, Combo, Energy, Group, Health, Inventory, Mass, Ori,
+        PhysicsState, Player, Pos, Scale, Stats, ability::Dodgeable, aura::EnteredAuras,
         pool::Pool,
-        ability::Dodgeable,
     },
     event::{
         BuffEvent, ComboChangeEvent, DeleteEvent, EmitExt, EnergyChangeEvent,
@@ -100,8 +98,7 @@ impl<'a> System<'a> for Sys {
                 }
                 pool.last_tick = *read_data.time;
 
-                let pool_owner =
-                    pool.owner.and_then(|uid| read_data.id_maps.uid_entity(uid));
+                let pool_owner = pool.owner.and_then(|uid| read_data.id_maps.uid_entity(uid));
                 let pool_group = pool_owner.and_then(|e| read_data.groups.get(e));
 
                 for (target, uid_b, pos_b, health_b, body_b) in (
@@ -155,28 +152,25 @@ impl<'a> System<'a> for Sys {
                     };
 
                     let allow_friendly_fire = pool_owner.is_some_and(|owner_entity| {
-                        combat::allow_friendly_fire(
-                            &read_data.entered_auras,
-                            owner_entity,
-                            target,
-                        )
+                        combat::allow_friendly_fire(&read_data.entered_auras, owner_entity, target)
                     });
 
-                    let dir =
-                        Dir::from_unnormalized(pos_b.0 - pool_pos.0).unwrap_or_default();
+                    let dir = Dir::from_unnormalized(pos_b.0 - pool_pos.0).unwrap_or_default();
 
                     let attacker_info =
-                        pool_owner.zip(pool.owner).map(|(entity, uid)| AttackerInfo {
-                            entity,
-                            uid,
-                            group: read_data.groups.get(entity),
-                            energy: read_data.energies.get(entity),
-                            combo: read_data.combos.get(entity),
-                            inventory: read_data.inventories.get(entity),
-                            stats: read_data.stats.get(entity),
-                            mass: read_data.masses.get(entity),
-                            pos: Some(pool_pos.0),
-                        });
+                        pool_owner
+                            .zip(pool.owner)
+                            .map(|(entity, uid)| AttackerInfo {
+                                entity,
+                                uid,
+                                group: read_data.groups.get(entity),
+                                energy: read_data.energies.get(entity),
+                                combo: read_data.combos.get(entity),
+                                inventory: read_data.inventories.get(entity),
+                                stats: read_data.stats.get(entity),
+                                mass: read_data.masses.get(entity),
+                                pos: Some(pool_pos.0),
+                            });
 
                     let target_info = TargetInfo {
                         entity: target,
@@ -193,7 +187,8 @@ impl<'a> System<'a> for Sys {
                         player: read_data.players.get(target),
                     };
 
-                    //TODO: Consider making pool hardcoded jump dodgeable only (like ground shockwaves)
+                    //TODO: Consider making pool hardcoded jump dodgeable only (like ground
+                    // shockwaves)
                     let target_dodging = match pool.properties.dodgeable {
                         Dodgeable::Roll => read_data
                             .character_states
