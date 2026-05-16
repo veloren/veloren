@@ -1,7 +1,19 @@
 use conrod_core::{Position, Sizeable, Ui, Widget, WidgetCommon, widget};
 use vek::*;
 
+/// Extension trait for positioning a widget at a 3D point in the game world.
 pub trait Ingameable: Widget + Sized {
+    /// Positions a widget as if it was at `pos` in the 3D game world.
+    ///
+    /// Wraps the widget in a parent `Ingame` widget which collaborates with
+    /// custom code in our UI renderering logic to pass the positioning
+    /// information through.
+    ///
+    /// Note, the widget size will not be scaled based on distance for
+    /// performance and stylistic purposes.
+    ///
+    /// Note, widgets set in the `Widget::update` impl of `self` should not use
+    /// `position_ingame` themselves. I.E. nested usage is not supported.
     fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> { Ingame::new(pos, self) }
 }
 
@@ -14,6 +26,15 @@ pub struct IngameParameters {
     pub dims: Vec2<f32>,
 }
 
+/// Positions wrapped `widget` in the 3D game world at `pos`.
+///
+/// The position on screen will depend on the 3D camera.
+///
+/// This uses some custom logic in the UI renderer to detect when this widget is
+/// encountered and extract `IngameParameters` which are applied until the
+/// `IngameEndMarker` widget is encountered. This relies on the details of
+/// `conrod` to ensure that `IngameEndMarker` will be encountered after
+/// all primitives produced by the wrapped widget.
 #[derive(Clone, WidgetCommon)]
 pub struct Ingame<W> {
     #[conrod(common_builder)]
@@ -29,7 +50,7 @@ pub struct State {
 }
 
 impl<W: Ingameable> Ingame<W> {
-    pub fn new(pos: Vec3<f32>, widget: W) -> Self {
+    fn new(pos: Vec3<f32>, widget: W) -> Self {
         Self {
             common: widget::CommonBuilder::default(),
             pos,

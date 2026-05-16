@@ -734,16 +734,11 @@ impl Ui {
             }
 
             match placement {
-                // Primitives still left to draw ingame
+                // Still drawing primitives ingame
                 Placement::InWorld(visible) => match kind {
-                    // Other types aren't drawn & shouldn't decrement the number of primitives left
-                    // to draw ingame
                     PrimitiveKind::Other(container) => {
                         // Marker widget indicates the end of primitives from widget wrapped in
-                        // `Ingame<W>`.
-                        //
-                        // No primitives to place at the current position, go back to drawing the
-                        // interface
+                        // `Ingame<W>`. If end marker reached, go back to drawing the interface.
                         if container.type_id
                             == std::any::TypeId::of::<widgets::ingame::IngameEndMarkerState>()
                         {
@@ -973,23 +968,21 @@ impl Ui {
                 },
                 PrimitiveKind::Other(container) => {
                     if let Some(s) = container.state_and_style::<widgets::ingame::State, ()>()
-                        // Calculate the scale factor to pixels at this 3d point using the camera.
                         && let Some(view_projection_mat) = view_projection_mat
                     {
                         // Retrieve world position
                         let parameters = s.state.parameters;
 
+                        // Calculate position on the screen at this 3d point using the camera.
                         let pos_on_screen =
                             (view_projection_mat * Vec4::from_point(parameters.pos)).homogenized();
-                        let visible = if pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 {
+                        let visible = pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 && {
                             let x = pos_on_screen.x;
                             let y = pos_on_screen.y;
                             let (w, h) = parameters.dims.into_tuple();
                             let (half_w, half_h) = (w / ui_win_w as f32, h / ui_win_h as f32);
                             (x - half_w < 1.0 && x + half_w > -1.0)
                                 && (y - half_h < 1.0 && y + half_h > -1.0)
-                        } else {
-                            false
                         };
                         // Don't process ingame elements outside the frustum
                         placement = if visible {
