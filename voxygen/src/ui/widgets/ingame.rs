@@ -1,4 +1,4 @@
-use conrod_core::{Position, Sizeable, Ui, Widget, WidgetCommon, widget};
+use conrod_core::{Position, Sizeable, Ui, Widget, WidgetCommon, position::Dimension, widget};
 use vek::*;
 
 /// Extension trait for positioning a widget at a 3D point in the game world.
@@ -105,6 +105,10 @@ impl<W: Ingameable> Widget for Ingame<W> {
     fn default_x_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
 
     fn default_y_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
+
+    fn default_x_dimension(&self, _: &Ui) -> Dimension { Dimension::Absolute(0.0) }
+
+    fn default_y_dimension(&self, _: &Ui) -> Dimension { Dimension::Absolute(0.0) }
 }
 
 // This must be a unique type to detect it in the rendering primitives.
@@ -116,7 +120,6 @@ struct IngameEndMarker {
     common: widget::CommonBuilder,
 }
 
-// TODO: does conrod give this any default size that would steal inputs or such?
 impl Widget for IngameEndMarker {
     type Event = ();
     type State = IngameEndMarkerState;
@@ -131,4 +134,8 @@ impl Widget for IngameEndMarker {
     fn default_x_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
 
     fn default_y_position(&self, _: &Ui) -> Position { Position::Absolute(0.0) }
+
+    fn default_x_dimension(&self, _: &Ui) -> Dimension { Dimension::Absolute(0.0) }
+
+    fn default_y_dimension(&self, _: &Ui) -> Dimension { Dimension::Absolute(0.0) }
 }
