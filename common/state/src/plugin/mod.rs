@@ -201,25 +201,35 @@ pub struct PluginMgr {
 
 impl PluginMgr {
     pub fn from_asset_or_default() -> Self {
-        match Self::from_assets() {
-            Ok(plugin_mgr) => plugin_mgr,
+        let mut path = (*ASSETS_PATH).clone();
+        path.push("plugins");
+        info!("Searching {:?} for plugins...", path);
+
+        match Self::from_dir(&path) {
+            Ok(plugin_mgr) => {
+                info!("{} plugin(s) loaded", plugin_mgr.plugins.len());
+                plugin_mgr
+            },
             Err(e) => {
-                tracing::error!(?e, "Failed to read plugins from assets");
+                if let PluginError::FromDirDoesNotExist = e {
+                    info!("{:?} does not exist, no plugins loaded", path);
+                } else {
+                    error!(?e, "Failed to read plugins from assets");
+                };
                 PluginMgr::default()
             },
         }
     }
 
-    pub fn from_assets() -> Result<Self, PluginError> {
-        let mut assets_path = (*ASSETS_PATH).clone();
-        assets_path.push("plugins");
-        info!("Searching {:?} for plugins...", assets_path);
-        Self::from_dir(assets_path)
-    }
-
-    pub fn from_dir<P: AsRef<Path>>(path: P) -> Result<Self, PluginError> {
+    fn from_dir(path: &Path) -> Result<Self, PluginError> {
         let plugins = fs::read_dir(path)
-            .map_err(PluginError::Io)?
+            .map_err(|e| {
+                if e.kind() == std::io::ErrorKind::NotFound {
+                    PluginError::FromDirDoesNotExist
+                } else {
+                    PluginError::Io(e)
+                }
+            })?
             .filter_map(|e| e.ok())
             .map(|entry| {
                 if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false)
