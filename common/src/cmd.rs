@@ -1066,7 +1066,7 @@ impl ServerChatCommand {
             },
             ServerChatCommand::SetWaypoint => cmd(
                 vec![],
-                Content::localized("command-waypoint-desc"),
+                Content::localized("command-set-waypoint-desc"),
                 Some(Admin),
             ),
             ServerChatCommand::Wiring => cmd(
