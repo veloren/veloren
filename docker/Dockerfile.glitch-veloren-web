@@ -77,7 +77,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates curl iproute2 net-tools sqlite3 procps \
-        xvfb x11vnc fluxbox novnc websockify \
+        xvfb xserver-xorg-core xserver-xorg-video-dummy x11vnc fluxbox novnc websockify \
         mesa-vulkan-drivers vulkan-tools mesa-utils libgl1 libgl1-mesa-dri libegl1 libgles2 libvulkan1 \
         libx11-6 libxcb1 libxcb-render0 libxcb-shape0 libxcb-xfixes0 \
         libxrandr2 libxcursor1 libxinerama1 libxi6 libxrender1 libxext6 \
@@ -127,6 +127,10 @@ ENV RUST_BACKTRACE=full \
     VELOREN_WEB_PORT=6080 \
     VELOREN_VNC_PORT=5900 \
     VELOREN_GLITCH_AUTOCONNECT=1 \
+    VELOREN_ENABLE_GPU=auto \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,video,display \
+    __GLX_VENDOR_LIBRARY_NAME=nvidia \
     VELOREN_SERVER_HOST=127.0.0.1 \
     VELOREN_SERVER_PORT=14004 \
     DISPLAY=:99 \
@@ -139,3 +143,53 @@ EXPOSE 6080/tcp 5900/tcp 14004/tcp 14004/udp 14005/tcp 14006/tcp 14006/udp
 
 VOLUME ["/opt/userdata"]
 ENTRYPOINT ["/usr/local/bin/glitch-web-entrypoint.sh"]
+
+
+# GLITCH_STREAMED_NATIVE_AUDIO_PACKAGES_V1:
+# noVNC carries pixels/input only. Streamed-native audio uses PulseAudio capture
+# plus a tiny HTTP/WebM/Opus endpoint exposed through the VM Caddy proxy.
+RUN if command -v apt-get >/dev/null 2>&1; then \
+      apt-get update && \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ffmpeg \
+        pulseaudio \
+        pulseaudio-utils \
+        alsa-utils \
+        libasound2-plugins \
+        python3 \
+        ca-certificates \
+      && rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "WARN: apt-get not found; audio packages were not installed"; \
+    fi
+
+
+# GLITCH_STREAMED_NATIVE_CONTAINER_AUDIO_PROXY_PACKAGES_V1:
+# Keep matchmaker/VM Caddy unchanged. The container listens publicly on 6080
+# with nginx and internally routes noVNC to 6082 and audio to 6081.
+RUN if command -v apt-get >/dev/null 2>&1; then \
+      apt-get update && \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        nginx \
+      && rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "WARN: apt-get not found; nginx was not installed"; \
+    fi
+
+
+# GLITCH_USER_PULSEAUDIO_RUNTIME_USER_V1:
+# PulseAudio should run as a normal per-user daemon, not root/system mode.
+# gosu lets the root entrypoint start only the audio/game client pieces as this user.
+RUN if command -v apt-get >/dev/null 2>&1; then \
+      apt-get update && \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        gosu \
+        passwd \
+        util-linux \
+      && rm -rf /var/lib/apt/lists/*; \
+    fi \
+    && (getent group glitch >/dev/null || groupadd -r glitch) \
+    && (id -u glitch >/dev/null 2>&1 || useradd -r -g glitch -m -d /home/glitch -s /bin/bash glitch) \
+    && mkdir -p /home/glitch /tmp/glitch-xdg-runtime /tmp/glitch-pulse /tmp/veloren-web /opt/userdata/client-runtime \
+    && chown -R glitch:glitch /home/glitch /tmp/glitch-xdg-runtime /tmp/glitch-pulse /tmp/veloren-web /opt/userdata/client-runtime \
+    && chmod 700 /tmp/glitch-xdg-runtime /tmp/glitch-pulse

@@ -829,6 +829,47 @@ impl Window {
             },
             WindowEvent::CursorMoved { position, .. } => {
                 if self.cursor_grabbed {
+                    // GLITCH_NOVNC_CAMERA_MOUSE_FIX_V1:
+                    // noVNC/x11vnc commonly forwards absolute cursor movement instead of
+                    // native relative MouseMotion DeviceEvents. Veloren normally rotates
+                    // the camera only from DeviceEvent::MouseMotion while the cursor is
+                    // grabbed. In browser streaming this can leave the camera stuck at the
+                    // default pitch/yaw, often looking straight down at the player.
+                    //
+                    // When the streamed-native entrypoint enables GLITCH_VNC_ABSOLUTE_MOUSE,
+                    // translate absolute CursorMoved deltas around the grab anchor into the
+                    // same CursorPan event used by normal relative mouse motion, then reset
+                    // the cursor back to the anchor as before.
+                    let glitch_vnc_absolute_mouse = std::env::var("GLITCH_VNC_ABSOLUTE_MOUSE")
+                        .map(|value| {
+                            matches!(
+                                value.trim().to_ascii_lowercase().as_str(),
+                                "1" | "true" | "yes" | "on"
+                            )
+                        })
+                        .unwrap_or(false);
+
+                    if glitch_vnc_absolute_mouse && self.focused {
+                        let dx = position.x - self.cursor_position.x;
+                        let dy = position.y - self.cursor_position.y;
+
+                        // Ignore giant warps caused by initial focus, resize, or the reset
+                        // itself. Real noVNC mouse deltas should be small and frequent.
+                        const MAX_GLITCH_VNC_CURSOR_PAN_DELTA: f64 = 250.0;
+
+                        if (dx != 0.0 || dy != 0.0)
+                            && dx.abs() <= MAX_GLITCH_VNC_CURSOR_PAN_DELTA
+                            && dy.abs() <= MAX_GLITCH_VNC_CURSOR_PAN_DELTA
+                        {
+                            let mouse_y_inversion = if self.mouse_y_inversion { -1.0 } else { 1.0 };
+                            self.events.push(Event::CursorPan(Vec2::new(
+                                dx as f32 * (self.pan_sensitivity as f32 / 100.0),
+                                dy as f32
+                                    * (self.pan_sensitivity as f32 * mouse_y_inversion / 100.0),
+                            )));
+                        }
+                    }
+
                     self.reset_cursor_position();
                 } else {
                     self.cursor_position = position;
