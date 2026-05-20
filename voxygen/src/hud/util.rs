@@ -685,6 +685,11 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,
         "common.abilities.staff.fireshockwave" => imgs.fire_aoe,
+        "common.abilities.staff.napalm_strike" => imgs.staff_napalm_strike,
+        "common.abilities.staff.flame_cloak" => imgs.staff_flame_cloak,
+        "common.abilities.staff.fire_dash" => imgs.staff_fire_dash,
+        "common.abilities.staff.fire_breath" => imgs.staff_fire_breath,
+        "common.abilities.staff.pyroclasm" => imgs.staff_pyroclasm,
         // Sceptre
         "common.abilities.sceptre.lifestealbeam" => imgs.skill_sceptre_lifesteal,
         "common.abilities.sceptre.healingaura" => imgs.skill_sceptre_heal,

@@ -34,7 +34,7 @@ use common::{
         },
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, HammerSkill, MiningSkill, SKILL_MODIFIERS,
-            SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill,
+            SceptreSkill, Skill, SwimSkill, SwordSkill,
         },
         skillset::{SkillGroupKind, SkillSet},
     },
@@ -104,6 +104,7 @@ widget_ids! {
         axe_bg,
         hammer_bg,
         bow_bg,
+        staff_bg,
         staff_render,
         skill_staff_basic_0,
         skill_staff_basic_1,
@@ -119,6 +120,11 @@ widget_ids! {
         skill_staff_shockwave_2,
         skill_staff_shockwave_3,
         skill_staff_shockwave_4,
+        skill_staff_napalm_strike,
+        skill_staff_flame_cloak,
+        skill_staff_fire_dash,
+        skill_staff_fire_breath,
+        skill_staff_pyroclasm,
         sceptre_render,
         skill_sceptre_lifesteal_0,
         skill_sceptre_lifesteal_1,
@@ -2464,141 +2470,58 @@ impl Diary<'_> {
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
-        // Title text
-        let tree_title = &self.localized_strings.get_msg("common-weapons-staff");
-
-        Text::new(tree_title)
-            .mid_top_with_margin_on(state.ids.content_align, 2.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(34))
-            .color(TEXT_COLOR)
-            .set(state.ids.tree_title_txt, ui);
-
-        // Number of skills per rectangle per weapon, start counting at 0
-        // Maximum of 9 skills/8 indices
-        let skills_top_l = 4;
-        let skills_top_r = 5;
-        let skills_bot_l = 5;
-        let skills_bot_r = 0;
-
-        self.setup_state_for_skill_icons(
-            state,
-            ui,
-            skills_top_l,
-            skills_top_r,
-            skills_bot_l,
-            skills_bot_r,
-        );
-
-        // Skill icons and buttons
         use skills::StaffSkill::*;
-        // Staff
-        Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(ItemKey::Simple("example_staff_fire".to_string())),
-            self.pulse,
-        ))
-        .wh(ART_SIZE)
-        .middle_of(state.ids.content_align)
-        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.ids.staff_render, ui);
 
-        use PositionSpecifier::MidTopWithMarginOn;
+        Image::new(self.imgs.staff_bg)
+            .wh([924.0, 619.0])
+            .mid_top_with_margin_on(state.ids.content_align, 65.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+            .set(state.ids.staff_bg, ui);
+
+        use PositionSpecifier::TopLeftWithMarginsOn;
         let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-st_fireball_title",
-                desc: "hud-skill-st_fireball",
-                image: self.imgs.fireball,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_staff_basic_0,
+            SkillIcon::Ability {
+                skill: Skill::Staff(FireShockwave),
+                ability_id: "common.abilities.staff.fireshockwave",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 436.0, 421.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(BDamage),
-                image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_staff_basic_1,
+            SkillIcon::Ability {
+                skill: Skill::Staff(FireDash),
+                ability_id: "common.abilities.staff.fire_dash",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 319.0, 331.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(BRegen),
-                image: self.imgs.magic_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_staff_basic_2,
+            SkillIcon::Ability {
+                skill: Skill::Staff(FlameCloak),
+                ability_id: "common.abilities.staff.flame_cloak",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 319.0, 515.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(BRadius),
-                image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_staff_basic_3,
+            SkillIcon::Ability {
+                skill: Skill::Staff(FireBreath),
+                ability_id: "common.abilities.staff.fire_breath",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 200.0, 515.0),
             },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-st_flamethrower_title",
-                desc: "hud-skill-st_flamethrower",
-                image: self.imgs.flamethrower,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_staff_beam_0,
+            SkillIcon::Ability {
+                skill: Skill::Staff(NapalmStrike),
+                ability_id: "common.abilities.staff.napalm_strike",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 200.0, 331.0),
             },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(FDamage),
-                image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_staff_beam_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(FDrain),
-                image: self.imgs.magic_energy_drain_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_staff_beam_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(FRange),
-                image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_staff_beam_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(FVelocity),
-                image: self.imgs.magic_projectile_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
-                id: state.ids.skill_staff_beam_4,
-            },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(UnlockShockwave),
-                image: self.imgs.fire_aoe,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_staff_shockwave_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(SDamage),
-                image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_staff_shockwave_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(SKnockback),
-                image: self.imgs.magic_knockback_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_staff_shockwave_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(SCost),
-                image: self.imgs.magic_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_staff_shockwave_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Staff(SRange),
-                image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_staff_shockwave_4,
+            SkillIcon::Ability {
+                skill: Skill::Staff(Pyroclasm),
+                ability_id: "common.abilities.staff.pyroclasm",
+                position: TopLeftWithMarginsOn(state.ids.staff_bg, 86.0, 422.0),
             },
         ];
+
+        state.update(|s| {
+            s.ids
+                .skills
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.ids
+                .skill_lock_imgs
+                .resize(skill_buttons.len(), &mut ui.widget_id_generator())
+        });
 
         self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip, state);
         events
@@ -2999,7 +2922,6 @@ fn skill_strings(skill: Skill) -> SkillStrings<'static> {
         // general tree
         Skill::UnlockGroup(s) => unlock_skill_strings(s),
         // weapon trees
-        Skill::Staff(s) => staff_skill_strings(s),
         Skill::Sceptre(s) => sceptre_skill_strings(s),
         // movement trees
         Skill::Climb(s) => climb_skill_strings(s),
@@ -3048,74 +2970,6 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
             tracing::warn!("Requesting title for unlocking unexpected skill group");
             SkillStrings::Empty
         },
-    }
-}
-
-fn staff_skill_strings(skill: StaffSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.staff_tree;
-    match skill {
-        // Basic ranged upgrades
-        StaffSkill::BDamage => SkillStrings::with_mult(
-            "hud-skill-st_damage_title",
-            "hud-skill-st_damage",
-            modifiers.fireball.power,
-        ),
-        StaffSkill::BRegen => SkillStrings::with_mult(
-            "hud-skill-st_energy_regen_title",
-            "hud-skill-st_energy_regen",
-            modifiers.fireball.regen,
-        ),
-        StaffSkill::BRadius => SkillStrings::with_mult(
-            "hud-skill-st_explosion_radius_title",
-            "hud-skill-st_explosion_radius",
-            modifiers.fireball.range,
-        ),
-        // Flamethrower upgrades
-        StaffSkill::FDamage => SkillStrings::with_mult(
-            "hud-skill-st_flamethrower_damage_title",
-            "hud-skill-st_flamethrower_damage",
-            modifiers.flamethrower.damage,
-        ),
-        StaffSkill::FRange => SkillStrings::with_mult(
-            "hud-skill-st_flamethrower_range_title",
-            "hud-skill-st_flamethrower_range",
-            modifiers.flamethrower.range,
-        ),
-        StaffSkill::FDrain => SkillStrings::with_mult(
-            "hud-skill-st_energy_drain_title",
-            "hud-skill-st_energy_drain",
-            modifiers.flamethrower.energy_drain,
-        ),
-        StaffSkill::FVelocity => SkillStrings::with_mult(
-            "hud-skill-st_flame_velocity_title",
-            "hud-skill-st_flame_velocity",
-            modifiers.flamethrower.velocity,
-        ),
-        // Shockwave upgrades
-        StaffSkill::UnlockShockwave => SkillStrings::plain(
-            "hud-skill-st_shockwave_unlock_title",
-            "hud-skill-st_shockwave_unlock",
-        ),
-        StaffSkill::SDamage => SkillStrings::with_mult(
-            "hud-skill-st_shockwave_damage_title",
-            "hud-skill-st_shockwave_damage",
-            modifiers.shockwave.damage,
-        ),
-        StaffSkill::SKnockback => SkillStrings::with_mult(
-            "hud-skill-st_shockwave_knockback_title",
-            "hud-skill-st_shockwave_knockback",
-            modifiers.shockwave.knockback,
-        ),
-        StaffSkill::SRange => SkillStrings::with_mult(
-            "hud-skill-st_shockwave_range_title",
-            "hud-skill-st_shockwave_range",
-            modifiers.shockwave.duration,
-        ),
-        StaffSkill::SCost => SkillStrings::with_mult(
-            "hud-skill-st_shockwave_cost_title",
-            "hud-skill-st_shockwave_cost",
-            modifiers.shockwave.energy_cost,
-        ),
     }
 }
 

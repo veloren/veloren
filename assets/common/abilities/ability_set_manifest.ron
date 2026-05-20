@@ -294,7 +294,12 @@
         primary: Simple(None, "common.abilities.staff.firebomb"),
         secondary: Simple(None, "common.abilities.staff.flamethrower"),
         abilities: [
-            Simple(Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
+            Simple(Some(Staff(FireShockwave)), "common.abilities.staff.fireshockwave"),
+            Simple(Some(Staff(NapalmStrike)), "common.abilities.staff.napalm_strike"),
+            Simple(Some(Staff(FlameCloak)), "common.abilities.staff.flame_cloak"),
+            Simple(Some(Staff(FireDash)), "common.abilities.staff.fire_dash"),
+            Simple(Some(Staff(FireBreath)), "common.abilities.staff.fire_breath"),
+            Simple(Some(Staff(Pyroclasm)), "common.abilities.staff.pyroclasm"),
         ],
     )),
     Tool(Sceptre): AbilitySet((

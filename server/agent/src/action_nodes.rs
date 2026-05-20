@@ -1498,8 +1498,30 @@ impl AgentData<'_> {
                     ),
                     false,
                 )
+                //Correct for ability's vertical offset if present.
+                //NOTE: Consider computing before controller.inputs.look_dir = dir,
+                //If vertical offset is added to other abilities.
+                .map(|dir| {
+                    if c.static_data.vertical_angle_offset != 0.0 {
+                        let cross_z = vek::Vec3::unit_z().cross(*dir).normalized();
+                        Dir::from_unnormalized(
+                            vek::Quaternion::rotation_3d(c.static_data.vertical_angle_offset, cross_z)
+                                * *dir,
+                        )
+                        .unwrap_or(dir)
+                    } else {
+                        dir
+                    }
+                })
             },
             CharacterState::RapidRanged(c) => {
+                let offset_z = match c.static_data.projectile.kind {
+                    // Aim explosives and hazards at feet instead of eyes for splash damage
+                    ProjectileConstructorKind::Explosive { .. }
+                    | ProjectileConstructorKind::ExplosiveHazard { .. }
+                    | ProjectileConstructorKind::Hazard { .. } => 0.0,
+                    _ => tgt_eye_offset,
+                };
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,
@@ -1510,7 +1532,7 @@ impl AgentData<'_> {
                     Vec3::new(
                         tgt_data.pos.0.x,
                         tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
+                        tgt_data.pos.0.z + offset_z,
                     ),
                     false,
                 )

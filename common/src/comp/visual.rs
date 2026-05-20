@@ -32,6 +32,11 @@ impl Component for LightAnimation {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum FrontendMarker {
     JoltArrow,
+    Torus(f32, TorusMode),
+}
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TorusMode {
+    RedBlueFire,
 }
 
 impl Component for FrontendMarker {

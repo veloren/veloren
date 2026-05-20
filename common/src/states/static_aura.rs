@@ -119,6 +119,7 @@ impl CharacterBehavior for Data {
                             self.static_data.aura_duration,
                             targets,
                             *data.time,
+                            None,
                         );
                         auras.push(aura);
                     }

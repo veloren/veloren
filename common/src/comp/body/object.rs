@@ -85,6 +85,10 @@ enum_iter! {
         BorealTrap = 68,
         Crux = 69,
         ArrowHeavy = 70,
+        FireRing = 71,
+        PyroclasmBolt = 72,
+        NapalmShot = 73,
+        NapalmPool = 74,
     }
 }
 
@@ -175,6 +179,10 @@ impl Body {
             Body::BorealTrap => "boreal_trap",
             Body::Crux => "crux",
             Body::ArrowHeavy => "heavy_arrow",
+            Body::FireRing => "fire_ring",
+            Body::PyroclasmBolt => "pyroclasm_bolt",
+            Body::NapalmShot => "napalm_shot",
+            Body::NapalmPool => "napalm_pool",
         }
     }
 
@@ -205,7 +213,7 @@ impl Body {
             Body::TrainingDummy => 2000.0,
             Body::Snowball => 0.9 * WATER_DENSITY,
             Body::Pebble => 1000.0,
-            Body::Crux => AIR_DENSITY,
+            Body::Crux | Body::FireRing | Body::PyroclasmBolt => AIR_DENSITY,
             // let them sink
             _ => 1.1 * WATER_DENSITY,
         };
@@ -232,7 +240,10 @@ impl Body {
             | Body::IronPikeBomb
             | Body::BoltBesieger
             | Body::PoisonBall
-            | Body::ArrowHeavy => 1.0,
+            | Body::ArrowHeavy
+            | Body::FireRing
+            | Body::PyroclasmBolt
+            | Body::NapalmShot => 1.0,
             Body::SpitPoison => 100.0,
             Body::Bomb
             | Body::DagonBomb
@@ -241,9 +252,11 @@ impl Body {
             | Body::BloodBomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },
-            Body::Campfire | Body::CampfireLit | Body::BarrelOrgan | Body::TerracottaStatue => {
-                300.0
-            },
+            Body::Campfire
+            | Body::CampfireLit
+            | Body::BarrelOrgan
+            | Body::TerracottaStatue
+            | Body::NapalmPool => 300.0,
             Body::Crossbow => 200.0,
             Body::Flamethrower | Body::Lavathrower => 200.0,
             Body::FireworkBlue
@@ -294,7 +307,7 @@ impl Body {
             | Body::HarlequinDagger
             | Body::AdletSpear => Vec3::new(0.01, 0.8, 0.01),
             Body::AdletTrap => Vec3::new(1.0, 0.6, 0.3),
-            Body::BoltFire | Body::PoisonBall => Vec3::new(0.1, 0.1, 0.1),
+            Body::BoltFire | Body::PoisonBall | Body::NapalmShot => Vec3::new(0.1, 0.1, 0.1),
             Body::SpectralSwordSmall => Vec3::new(0.2, 0.9, 0.1),
             Body::SpectralSwordLarge => Vec3::new(0.2, 1.5, 0.1),
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),

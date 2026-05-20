@@ -316,6 +316,10 @@ impl Body {
                     CD * PI * dim.x * dim.z
                 },
 
+                // frictionless
+                object::Body::FireRing => 0.0,
+                object::Body::PyroclasmBolt => 0.0,
+
                 _ => {
                     let dim = self.dimensions().map(|a| a * scale);
                     const CD: f32 = 2.0;

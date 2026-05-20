@@ -130,6 +130,8 @@ pub enum ParticleMode {
     Bubble = 76,
     ElephantVacuum = 77,
     ElectricSparks = 78,
+    FlamethrowerBlue = 79,
+    FlameCloakOrbit = 80,
 }
 
 impl ParticleMode {

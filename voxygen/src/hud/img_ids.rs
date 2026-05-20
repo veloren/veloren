@@ -74,6 +74,7 @@ image_ids! {
         axe_bg: "voxygen.element.ui.diary.axe_bg",
         hammer_bg: "voxygen.element.ui.diary.hammer_bg",
         bow_bg: "voxygen.element.ui.diary.bow_bg",
+        staff_bg: "voxygen.element.ui.diary.staff_bg",
         swords_crossed: "voxygen.element.weapons.swords_crossed",
         sceptre: "voxygen.element.weapons.sceptre",
         sword: "voxygen.element.weapons.sword",
@@ -254,6 +255,14 @@ image_ids! {
         flyingrod_m2: "voxygen.element.skills.debug_wand_m2",
         fire_aoe: "voxygen.element.skills.skill_fire_aoe",
         flamethrower: "voxygen.element.skills.skill_flamethrower",
+
+        //Staff
+        staff_napalm_strike: "voxygen.element.skills.staff.napalm_strike",
+        staff_flame_cloak: "voxygen.element.skills.staff.flame_cloak",
+        staff_fire_dash: "voxygen.element.skills.staff.fire_dash",
+        staff_fire_breath: "voxygen.element.skills.staff.fire_breath",
+        staff_pyroclasm: "voxygen.element.skills.staff.pyroclasm",
+
         // Sword
         sword_heavy_stance: "voxygen.element.skills.sword.heavy_stance",
         sword_agile_stance: "voxygen.element.skills.sword.agile_stance",

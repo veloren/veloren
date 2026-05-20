@@ -278,6 +278,7 @@ impl State {
         ecs.register::<comp::projectile::ProjectileHitEntities>();
         ecs.register::<comp::Beam>();
         ecs.register::<comp::Arcing>();
+        ecs.register::<comp::Pool>();
         ecs.register::<comp::Alignment>();
         ecs.register::<comp::LootOwner>();
         ecs.register::<comp::Admin>();

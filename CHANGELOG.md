@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Controller icons now show up next to items and entities in the game world when using a controller
 - Sword dual wielding animation
 
+- Added 5 new Firestaff abilities.
+  
 ### Changed
 
 - Can now swim through lillypads.
@@ -36,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.
 
 ### Removed
+- Removed Firestaff ability upgrades.
 
 ### Fixed
 

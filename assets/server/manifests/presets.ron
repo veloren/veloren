@@ -106,21 +106,14 @@
 
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
+        (Staff(FireShockwave), 1),
+        (Staff(FireDash), 1),
+        (Staff(FireBreath), 1),
+        (Staff(Pyroclasm), 1),
+        (Staff(NapalmStrike), 1),
+        (Staff(FlameCloak), 1),
 
-        (Staff(BDamage), 3),
-        (Staff(BRegen), 2),
-        (Staff(BRadius), 3),
 
-        (Staff(FRange), 2),
-        (Staff(FDamage), 3),
-        (Staff(FDrain), 2),
-        (Staff(FVelocity), 2),
-
-        (Staff(UnlockShockwave), 1),
-        (Staff(SDamage), 2),
-        (Staff(SKnockback), 2),
-        (Staff(SRange), 2),
-        (Staff(SCost), 2),
         // Sceptre
         (UnlockGroup(Weapon(Sceptre)), 1),
 
@@ -175,20 +168,13 @@
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
-        (Staff(BDamage), 1),
-        (Staff(BRegen), 1),
-        (Staff(BRadius), 2),
+        (Staff(FireShockwave), 1),
+        (Staff(FireDash), 1),
+        (Staff(FlameCloak), 1),
+        (Staff(NapalmStrike), 1),
+        (Staff(FireBreath), 1),
+        (Staff(Pyroclasm), 1),
 
-        (Staff(FRange), 2),
-        (Staff(FDamage), 2),
-        (Staff(FDrain), 1),
-        (Staff(FVelocity), 2),
-
-        (Staff(UnlockShockwave), 1),
-        (Staff(SDamage), 1),
-        (Staff(SKnockback), 2),
-        (Staff(SRange), 2),
-        (Staff(SCost), 2),
 
         // Sceptre
         (UnlockGroup(Weapon(Sceptre)), 1),
@@ -225,7 +211,7 @@
         // Staff
         (UnlockGroup(Weapon(Staff)), 1),
 
-        (Staff(UnlockShockwave), 1),
+        (Staff(FireShockwave), 1),
 
         // Sceptre
         (UnlockGroup(Weapon(Sceptre)), 1),

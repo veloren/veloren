@@ -18,9 +18,10 @@ use common::{
     consts::MAX_CAMPFIRE_RANGE,
     event::{
         ArcingEvent, CreateAuraEntityEvent, CreateItemDropEvent, CreateNpcEvent,
-        CreateNpcGroupEvent, CreateObjectEvent, CreateShipEvent, CreateSpecialEntityEvent,
-        EventBus, InitializeCharacterEvent, InitializeSpectatorEvent, NpcBuilder, ShockwaveEvent,
-        ShootEvent, SummonBeamPillarsEvent, ThrowEvent, UpdateCharacterDataEvent,
+        CreateNpcGroupEvent, CreateObjectEvent, CreatePoolEvent, CreateShipEvent,
+        CreateSpecialEntityEvent, EventBus, InitializeCharacterEvent, InitializeSpectatorEvent,
+        NpcBuilder, ShockwaveEvent, ShootEvent, SummonBeamPillarsEvent, ThrowEvent,
+        UpdateCharacterDataEvent,
     },
     generation::SpecialEntity,
     mounting::{Mounting, Volume, VolumeMounting, VolumePos},
@@ -513,6 +514,18 @@ pub fn handle_arc(server: &mut Server, ev: ArcingEvent) {
         .build();
 }
 
+pub fn handle_create_pool(server: &mut Server, ev: CreatePoolEvent) {
+    let state = server.state_mut();
+    //Pool entities must inherit the xy orientation of their spawner to maintain
+    // visual consistency
+    let flat_ori =
+        comp::Ori::from_unnormalized_vec(ev.ori.look_vec().xy().with_z(0.0)).unwrap_or_default();
+    let pos = comp::Pos(ev.pos.0 + vek::Vec3::unit_z() * 0.05);
+    state
+        .create_pool(ev.properties, ev.owner, pos, flat_ori)
+        .build();
+}
+
 pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntityEvent) {
     let time = server.state.get_time();
 
@@ -543,6 +556,7 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                         None,
                         AuraTarget::All,
                         Time(time),
+                        None,
                     ),
                     Aura::new(
                         AuraKind::Buff {
@@ -555,6 +569,7 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                         None,
                         AuraTarget::All,
                         Time(time),
+                        None,
                     ),
                 ]))
                 .build();
@@ -578,8 +593,16 @@ pub fn handle_create_special_entity(server: &mut Server, ev: CreateSpecialEntity
                         None,
                         AuraTarget::All,
                         Time(time),
+                        None,
                     ),
-                    Aura::new(AuraKind::ForcePvP, range, None, AuraTarget::All, Time(time)),
+                    Aura::new(
+                        AuraKind::ForcePvP,
+                        range,
+                        None,
+                        AuraTarget::All,
+                        Time(time),
+                        None,
+                    ),
                 ]))
                 .build();
         },
@@ -653,6 +676,7 @@ pub fn handle_create_object(
                     None,
                     AuraTarget::NotGroupOf(owner),
                     time,
+                    None,
                 )]))
                 .with(comp::projectile::ProjectileHitEntities::default())
                 .build();

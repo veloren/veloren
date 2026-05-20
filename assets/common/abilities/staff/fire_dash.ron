@@ -1,0 +1,30 @@
+DashMelee(
+    energy_cost: 40.0,
+    melee_constructor: (
+        kind: Sear(
+            damage: 3.0,
+            poise: 20.0,
+            knockback: 5.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some((
+            kind: Sear(
+                damage: 3.0,
+                poise: 0.0,
+                knockback: 12.0,
+                energy_regen: 0.0,
+            ))),
+        range: 5.0,
+        angle: 45.0,
+    ),
+    energy_drain: 0,
+    forward_speed: 8.0,
+    buildup_duration: 0.0,
+    charge_duration: 0.35,
+    swing_duration: 0.1,
+    recover_duration: 0.25,
+    ori_modifier: 0.4,
+    auto_charge: true,
+    charge_through: true,
+    frontend_specifier: Some(FireDash),
+)

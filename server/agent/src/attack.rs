@@ -2730,7 +2730,7 @@ impl AgentData<'_> {
                 .map_or(0.0, |v| v.0.dot(self.ori.look_vec()));
             if self
                 .skill_set
-                .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                .has_skill(Skill::Staff(StaffSkill::FireShockwave))
                 && target_approaching_speed > 12.0
                 && self.energy.current() > shockwave_cost
             {

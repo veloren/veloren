@@ -11,10 +11,10 @@ use common::{
     },
     effect,
     event::{
-        ArcingEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, DeleteEvent, EmitExt,
-        Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus, ExplosionEvent,
-        HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent, PoiseChangeEvent,
-        PossessEvent, ShootEvent, SoundEvent, TransformEvent,
+        ArcingEvent, BonkEvent, BuffEvent, ComboChangeEvent, CreateNpcEvent, CreatePoolEvent,
+        DeleteEvent, EmitExt, Emitter, EnergyChangeEvent, EntityAttackedHookEvent, EventBus,
+        ExplosionEvent, HealthChangeEvent, KnockbackEvent, NpcBuilder, ParryHookEvent,
+        PoiseChangeEvent, PossessEvent, ShootEvent, SoundEvent, TransformEvent,
     },
     event_emitters,
     outcome::Outcome,
@@ -57,6 +57,7 @@ event_emitters! {
         bonk: BonkEvent,
         possess: PossessEvent,
         arc: ArcingEvent,
+        create_pool: CreatePoolEvent,
         transform: TransformEvent,
     }
 }
@@ -348,6 +349,14 @@ impl<'a> System<'a> for Sys {
 
                             // If the projectile splits, the original projectile should vanish
                             projectile_vanished = true;
+                        },
+                        projectile::Effect::Pool(pool_props) => {
+                            emitters.emit(CreatePoolEvent {
+                                properties: pool_props,
+                                owner: projectile.owner,
+                                pos: *pos,
+                                ori: orientations.get(entity).copied().unwrap_or_default(),
+                            });
                         },
                         _ => {},
                     }
@@ -759,6 +768,14 @@ fn dispatch_hit(
                 owner: projectile_info.owner_uid,
                 target: projectile_target_info.uid,
                 pos: *projectile_info.pos,
+            });
+        },
+        projectile::Effect::Pool(pool_props) => {
+            emitters.emit(CreatePoolEvent {
+                properties: pool_props,
+                owner: projectile_info.owner_uid,
+                pos: *projectile_info.pos,
+                ori: projectile_info.ori.copied().unwrap_or_default(),
             });
         },
         projectile::Effect::Bonk => {
