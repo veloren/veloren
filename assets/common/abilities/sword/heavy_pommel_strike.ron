@@ -8,7 +8,7 @@ ComboMelee2(
                     knockback: 0,
                     energy_regen: 0,
                 ),
-                range: 1.5,
+                range: 2.0,
                 angle: 45.0,
                 blockable: false,
                 attack_effect: Some((Poise(30), TargetBlocking)),

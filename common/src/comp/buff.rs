@@ -117,9 +117,9 @@ pub enum BuffKind {
     /// penetration. Energy reward is increased linearly to strength, 1.0 is a
     /// 150 % increase.
     Sunderer,
-    /// Generates combo when damaged and decreases movement speed.
-    /// Movement speed is decreased to 50%. Combo generation is linear with
-    /// strength, 1.0 is 5 combo generated on being hit.
+    /// Generates combo when damaged.
+    /// Combo generation is linear with strength, 1.0 is 5 combo generated
+    /// on being hit.
     Defiance,
     /// Increases both attack damage, vulnerability to damage, attack speed, and
     /// movement speed Damage increases linearly with strength, 1.0 is a
@@ -573,13 +573,10 @@ impl BuffKind {
                 BuffEffect::MitigationsPenetration(nn_scaling(data.strength)),
                 BuffEffect::EnergyReward(1.0 + 1.5 * data.strength),
             ],
-            BuffKind::Defiance => vec![
-                BuffEffect::MovementSpeed(0.5),
-                BuffEffect::DamagedEffect(StatEffect::new(
-                    StatEffectTarget::Target,
-                    CombatEffect::Combo((data.strength * 5.0).round() as i32),
-                )),
-            ],
+            BuffKind::Defiance => vec![BuffEffect::DamagedEffect(StatEffect::new(
+                StatEffectTarget::Target,
+                CombatEffect::Combo((data.strength * 5.0).round() as i32),
+            ))],
             BuffKind::Berserk => vec![
                 BuffEffect::DamageReduction(-data.strength),
                 BuffEffect::AttackDamage(1.0 + data.strength),
