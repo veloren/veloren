@@ -7,7 +7,7 @@ use crate::{
     GlobalState,
     game_input::GameInput,
     hud::{BuffIcon, IconHandler, controller_icons::LayerIconIds},
-    ui::{Ingameable, fonts::Fonts},
+    ui::fonts::Fonts,
     window::LastInput,
 };
 use common::{
@@ -138,70 +138,6 @@ impl<'a> Overhead<'a> {
 
 pub struct State {
     ids: Ids,
-}
-
-impl Ingameable for Overhead<'_> {
-    fn prim_count(&self) -> usize {
-        // Number of conrod primitives contained in the overhead display. TODO maybe
-        // this could be done automatically?
-
-        // HP related info
-        let info_ids = self.info.as_ref().map_or(0, |info| {
-            // + 2 Text::new for name
-            // + 1 Alignment Rectangle
-            let mut count_ids = 2 + 1;
-
-            // If Buff Info is shown:
-            // + 2 per buff (1 for buff and 1 for timer overlay) (only if there is no speech
-            //   bubble)
-            //   + 22 total with current max of 11 displayed buffs
-            if self.bubble.is_none() {
-                let buff_ids = info
-                    .buffs
-                    .as_ref()
-                    .map_or(0, |buffs| BuffIcon::icons_vec(buffs, info.stance).len());
-                count_ids += buff_ids.min(11) * 2;
-            }
-
-            // If HP Info is shown:
-            // + 3 for HP + fg + bg
-            // + 1 for level: either Text or Image <-- Not used currently, will be replaced
-            //   by something else
-            // + 1 for HP text
-            // If there's mana
-            //   + 1 Rect::new for mana
-            // + 1 if hardcore
-            if info.health.is_some_and(should_show_healthbar) {
-                count_ids += 5;
-                count_ids += info.energy.is_some() as usize;
-                count_ids += info.hardcore as usize;
-            }
-
-            // - 1 for decayed health overlay
-            count_ids += info.health.is_some_and(decayed_health_displayed) as usize;
-
-            // For KeyboardMouse:
-            // + 2 for text + bg
-            // For Controller:
-            // + 1 (anchor/alignment) + 4 (text lines) + 12 (icons) + 1 (bg) icons
-            //   calculated as (3 icons * 4 text lines)
-            if !self.interaction_options.is_empty() {
-                count_ids += match self.global_state.window.last_input() {
-                    LastInput::KeyboardMouse => 2,
-                    LastInput::Controller => 18,
-                };
-            }
-
-            count_ids
-        });
-
-        // + 2 Text::new for speech bubble
-        // + 1 Image::new for icon
-        // + 10 Image::new for speech bubble (9-slice + tail)
-        let bubble = if self.bubble.is_some() { 13 } else { 0 };
-
-        info_ids + bubble
-    }
 }
 
 impl Widget for Overhead<'_> {

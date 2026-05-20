@@ -663,8 +663,8 @@ impl Ui {
 
         enum Placement {
             Interface,
-            // Number of primitives left to render ingame and visibility
-            InWorld(usize, bool),
+            // Visibility of in world widget.
+            InWorld(bool),
         }
 
         let mut placement = Placement::Interface;
@@ -734,27 +734,32 @@ impl Ui {
             }
 
             match placement {
-                // No primitives left to place in the world at the current position, go back to
-                // drawing the interface
-                Placement::InWorld(0, _) => {
-                    placement = Placement::Interface;
-                    // Finish current state
-                    self.draw_commands.push(match current_state {
-                        State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-                        State::Image(id) => DrawCommand::image(start..mesh.vertices().len(), id),
-                    });
-                    start = mesh.vertices().len();
-                    // Push new position command
-                    self.draw_commands.push(DrawCommand::WorldPos(None));
-                },
-                // Primitives still left to draw ingame
-                Placement::InWorld(num_prims, visible) => match kind {
-                    // Other types aren't drawn & shouldn't decrement the number of primitives left
-                    // to draw ingame
-                    PrimitiveKind::Other(_) => {},
-                    // Decrement the number of primitives left
+                // Still drawing primitives ingame
+                Placement::InWorld(visible) => match kind {
+                    PrimitiveKind::Other(container) => {
+                        // Marker widget indicates the end of primitives from widget wrapped in
+                        // `Ingame<W>`. If end marker reached, go back to drawing the interface.
+                        if container.type_id
+                            == std::any::TypeId::of::<widgets::ingame::IngameEndMarkerState>()
+                        {
+                            placement = Placement::Interface;
+                            if visible {
+                                // Finish current state
+                                self.draw_commands.push(match current_state {
+                                    State::Plain => {
+                                        DrawCommand::plain(start..mesh.vertices().len())
+                                    },
+                                    State::Image(id) => {
+                                        DrawCommand::image(start..mesh.vertices().len(), id)
+                                    },
+                                });
+                                start = mesh.vertices().len();
+                                // Push new position command
+                                self.draw_commands.push(DrawCommand::WorldPos(None));
+                            }
+                        }
+                    },
                     _ => {
-                        placement = Placement::InWorld(num_prims - 1, visible);
                         // Behind the camera
                         if !visible {
                             continue;
@@ -962,62 +967,53 @@ impl Ui {
                     }
                 },
                 PrimitiveKind::Other(container) => {
-                    if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
-                        // Calculate the scale factor to pixels at this 3d point using the camera.
-                        if let Some(view_projection_mat) = view_projection_mat {
-                            // Retrieve world position
-                            let parameters = container
-                                .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
-                                .unwrap()
-                                .state
-                                .parameters;
+                    if let Some(s) = container.state_and_style::<widgets::ingame::State, ()>()
+                        && let Some(view_projection_mat) = view_projection_mat
+                    {
+                        // Retrieve world position
+                        let parameters = s.state.parameters;
 
-                            let pos_on_screen = (view_projection_mat
-                                * Vec4::from_point(parameters.pos))
-                            .homogenized();
-                            let visible = if pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 {
-                                let x = pos_on_screen.x;
-                                let y = pos_on_screen.y;
-                                let (w, h) = parameters.dims.into_tuple();
-                                let (half_w, half_h) = (w / ui_win_w as f32, h / ui_win_h as f32);
-                                (x - half_w < 1.0 && x + half_w > -1.0)
-                                    && (y - half_h < 1.0 && y + half_h > -1.0)
+                        // Calculate position on the screen at this 3d point using the camera.
+                        let pos_on_screen =
+                            (view_projection_mat * Vec4::from_point(parameters.pos)).homogenized();
+                        let visible = pos_on_screen.z > 0.0 && pos_on_screen.z < 1.0 && {
+                            let x = pos_on_screen.x;
+                            let y = pos_on_screen.y;
+                            let (w, h) = parameters.dims.into_tuple();
+                            let (half_w, half_h) = (w / ui_win_w as f32, h / ui_win_h as f32);
+                            (x - half_w < 1.0 && x + half_w > -1.0)
+                                && (y - half_h < 1.0 && y + half_h > -1.0)
+                        };
+                        // Don't process ingame elements outside the frustum
+                        placement = if visible {
+                            // Finish current state
+                            self.draw_commands.push(match current_state {
+                                State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
+                                State::Image(id) => {
+                                    DrawCommand::image(start..mesh.vertices().len(), id)
+                                },
+                            });
+                            start = mesh.vertices().len();
+
+                            // Push new position command
+                            let world_pos = Vec4::from_point(parameters.pos);
+                            if self.ingame_locals.len() > ingame_local_index {
+                                renderer
+                                    .update_consts(&mut self.ingame_locals[ingame_local_index], &[
+                                        world_pos.into(),
+                                    ])
                             } else {
-                                false
-                            };
-                            // Don't process ingame elements outside the frustum
-                            placement = if visible {
-                                // Finish current state
-                                self.draw_commands.push(match current_state {
-                                    State::Plain => {
-                                        DrawCommand::plain(start..mesh.vertices().len())
-                                    },
-                                    State::Image(id) => {
-                                        DrawCommand::image(start..mesh.vertices().len(), id)
-                                    },
-                                });
-                                start = mesh.vertices().len();
+                                self.ingame_locals
+                                    .push(renderer.create_ui_bound_locals(&[world_pos.into()]));
+                            }
+                            self.draw_commands
+                                .push(DrawCommand::WorldPos(Some(ingame_local_index)));
+                            ingame_local_index += 1;
 
-                                // Push new position command
-                                let world_pos = Vec4::from_point(parameters.pos);
-                                if self.ingame_locals.len() > ingame_local_index {
-                                    renderer.update_consts(
-                                        &mut self.ingame_locals[ingame_local_index],
-                                        &[world_pos.into()],
-                                    )
-                                } else {
-                                    self.ingame_locals
-                                        .push(renderer.create_ui_bound_locals(&[world_pos.into()]));
-                                }
-                                self.draw_commands
-                                    .push(DrawCommand::WorldPos(Some(ingame_local_index)));
-                                ingame_local_index += 1;
-
-                                Placement::InWorld(parameters.num, true)
-                            } else {
-                                Placement::InWorld(parameters.num, false)
-                            };
-                        }
+                            Placement::InWorld(true)
+                        } else {
+                            Placement::InWorld(false)
+                        };
                     }
                 },
                 _ => {}, /* TODO: Add this.
