@@ -1385,6 +1385,24 @@
         (Item("common.items.flowers.wild_flax"), 1000),
         (Item("common.items.flowers.yellow"), 1000),
     ],
+
+    "lantern": [
+        (Item("common.items.lantern.black_0"), 1),
+        (Item("common.items.lantern.blue_0"), 1),
+        (Item("common.items.lantern.crux"), 1),
+        (Item("common.items.lantern.delvers_lamp"), 1),
+        (Item("common.items.lantern.divers_light"), 1),
+        (Item("common.items.lantern.frozen_heart"), 1),
+        (Item("common.items.lantern.geode_purp"), 1),
+        (Item("common.items.lantern.green_0"), 1),
+        (Item("common.items.lantern.polaris"), 1),
+        (Item("common.items.lantern.pumpkin"), 1),
+        (Item("common.items.lantern.red_0"), 1),
+        (Item("common.items.lantern.seeking_eye"), 1),
+        (Item("common.items.lantern.tin_torch"), 1),
+        (Item("common.items.boss_drops.lantern"), 1),
+        (Item("common.items.lantern.luminous_bloom"), 1),
+    ],
     // (?)
 
     // armors

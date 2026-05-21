@@ -1600,7 +1600,7 @@
     ),
     Simple("common.items.lantern.delvers_lamp"): VoxTrans(
         "voxel.lantern.delvers_lamp",
-    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
     ),
     Simple("common.items.lantern.bloodmoon_relic"): VoxTrans(
         "voxel.lantern.bloodmoon",
@@ -1609,6 +1609,26 @@
     Simple("common.items.lantern.crux"): VoxTrans(
         "voxel.lantern.crux",
     (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
+    Simple("common.items.lantern.seeking_eye"): VoxTrans(
+        "voxel.lantern.seeking_eye",
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
+    ),
+    Simple("common.items.lantern.tin_torch"): VoxTrans(
+        "voxel.lantern.tin_torch",
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
+    ),
+    Simple("common.items.lantern.divers_light"): VoxTrans(
+        "voxel.lantern.divers_light",
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
+    ),
+    Simple("common.items.lantern.frozen_heart"): VoxTrans(
+        "voxel.lantern.frozen_heart",
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
+    ),
+    Simple("common.items.lantern.luminous_bloom"): VoxTrans(
+        "voxel.lantern.luminous_bloom",
+    (0.0, 0.0, 0.0), (-90.0, 205.0, 3.0), 0.9,
     ),
     // Farming Equipment
     Simple("common.items.weapons.tool.broom"): VoxTrans(

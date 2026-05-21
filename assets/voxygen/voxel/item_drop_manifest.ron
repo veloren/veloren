@@ -389,6 +389,11 @@
     Simple("common.items.lantern.delvers_lamp"): "voxel.lantern.delvers_lamp",
     Simple("common.items.lantern.bloodmoon_relic"): "voxel.lantern.bloodmoon",
     Simple("common.items.lantern.crux"): "voxel.lantern.crux",
+    Simple("common.items.lantern.seeking_eye"): "voxel.lantern.seeking_eye",
+    Simple("common.items.lantern.tin_torch"): "voxel.lantern.tin_torch",
+    Simple("common.items.lantern.divers_light"): "voxel.lantern.divers_light",
+    Simple("common.items.lantern.frozen_heart"): "voxel.lantern.frozen_heart",
+    Simple("common.items.lantern.luminous_bloom"): "voxel.lantern.luminous_bloom",
     // Farming Equipment
     Simple("common.items.weapons.tool.broom"): "voxel.weapon.tool.broom-0",
     Simple("common.items.weapons.tool.hoe"): "voxel.weapon.tool.hoe_green",
