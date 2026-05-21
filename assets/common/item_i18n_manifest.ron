@@ -3751,6 +3751,21 @@
             "common.items.lantern.crux",
         ): "lantern-crux",
         Simple(
+            "common.items.lantern.seeking_eye",
+        ): "lantern-seeking_eye",
+        Simple(
+            "common.items.lantern.tin_torch",
+        ): "lantern-tin_torch",
+        Simple(
+            "common.items.lantern.divers_light",
+        ): "lantern-divers_light",
+        Simple(
+            "common.items.lantern.frozen_heart",
+        ): "lantern-frozen_heart",
+        Simple(
+            "common.items.lantern.luminous_bloom",
+        ): "lantern-luminous_bloom",
+        Simple(
             "common.items.charms.burning_charm",
         ): "object-burning_charm",
         Simple(

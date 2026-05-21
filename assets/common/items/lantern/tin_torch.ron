@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Tin Torch",
+    legacy_description: "A popular alternative for more focused adventurers!",
+    kind: Lantern(
+        (
+            color: (r: 255, g: 128, b: 26),
+            strength_thousandths: 23000,
+            flicker_thousandths: 150,
+            dir: Some(((x: 0.0, y: 1.0, z: 0.0), 0.9)),
+        ),
+    ),
+    quality: Common,
+    tags: [Utility],
+)

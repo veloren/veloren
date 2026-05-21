@@ -31,6 +31,21 @@ lantern-bloodmoon_relic = Bloodmoon Relic
 lantern-crux = Crux
     .desc = The scalding heat is but a mere sample of the embers of the Gigas' unforgiving origin.   
 
+lantern-seeking_eye = Seeking Eye
+    .desc = Peer into the abyss and this is what shall peer back at you.
+
+lantern-tin_torch = Tin Torch
+    .desc = A popular alternative for more focused adventurers!
+
+lantern-divers_light = Diver's Light
+    .desc = A light strong enough even for the deepest of oceans.
+
+lantern-frozen_heart = Frozen Heart
+    .desc = A light within even the most sinister of hearts.
+
+lantern-luminous_bloom = Luminous Bloom
+    .desc = A mysterious pink flower that blooms forevermore to illuminate the path ahead.
+
 glider-basic_red = Red Cloth Glider
     .desc = A simple glider, but with a striking red color.
 

@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Arthropod footsteps
 - Added new bench and door sprites
 - Bow
+- New directional lanterns.
 
 ### Changed
 
@@ -174,6 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - switch to Naga for default Shader compiler instead of shaderc
 - Changed doors on DefaultAirship vehicle
 - Changed lanterns and bench on Skiff vehicle
+- Slight early-game lantern lighting buff.
 
 ### Removed
 
