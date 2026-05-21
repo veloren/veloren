@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Traders sell items they are supposed to sell, no herbalists selling swords
 - Chat command autocomplete now works correctly again.
 - Resources in spots are now tracked by rtsim.
+- Fix Orientation of Wildskin Drum's Thumbnail
 
 ## [0.18.0] - 2026-01-23
 
