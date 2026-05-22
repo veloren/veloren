@@ -68,8 +68,7 @@
   - wget -q https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-macos-universal.tar.gz;
   - tar -xzf cmake-3.31.8-macos-universal.tar.gz;
   - ls -la cmake-3.31.8-macos-universal/CMake.app/Contents;
-  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/bin/* /usr/local/bin/;
-  - sudo cp -r cmake-3.31.8-macos-universal/CMake.app/Contents/share/* /usr/local/share/;
+  - export PATH="$(pwd)/cmake-3.31.8-macos-universal/CMake.app/Contents/bin:${PATH}";
   - which cmake;
   - cmake --version;
 
