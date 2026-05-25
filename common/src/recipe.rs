@@ -7,8 +7,8 @@ use crate::{
         Inventory, Item,
         inventory::slot::InvSlotId,
         item::{
-            ItemBase, ItemDef, ItemDefinitionIdOwned, ItemKind, ItemTag,
-            MaterialStatManifest, modular,
+            ItemBase, ItemDef, ItemDefinitionIdOwned, ItemKind, ItemTag, MaterialStatManifest,
+            modular,
             tool::{AbilityMap, ToolKind},
         },
     },
@@ -874,7 +874,6 @@ impl Asset for ComponentRecipeBook {
         Ok(ComponentRecipeBook { recipes })
     }
 }
-
 
 pub fn complete_recipe_book() -> AssetHandle<RecipeBookManifest> {
     RecipeBookManifest::load_expect("common.recipe_book_manifest")

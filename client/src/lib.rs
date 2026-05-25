@@ -1689,11 +1689,7 @@ impl Client {
 
     /// Repairs the item in the given inventory slot. `sprite_pos` should be
     /// the location of a relevant crafting station within range of the player.
-    pub fn repair_item(
-        &mut self,
-        item: Slot,
-        sprite_pos: VolumePos,
-    ) -> bool {
+    pub fn repair_item(&mut self, item: Slot, sprite_pos: VolumePos) -> bool {
         let is_repairable = {
             let inventories = self.inventories();
             let inventory = inventories.get(self.entity());

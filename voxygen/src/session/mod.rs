@@ -2190,9 +2190,7 @@ impl PlayState for SessionState {
                             global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
                             has_repaired = true
                         };
-                        self.client
-                            .borrow_mut()
-                            .repair_item(item, sprite_pos);
+                        self.client.borrow_mut().repair_item(item, sprite_pos);
                     },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);
