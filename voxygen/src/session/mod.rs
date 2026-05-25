@@ -2183,26 +2183,6 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().salvage_item(slot, salvage_pos);
                     },
                     HudEvent::RepairItem { item, sprite_pos } => {
-                        let slots = {
-                            let client = self.client.borrow();
-                            let slots = (|| {
-                                if let Some(inventory) = client.inventories().get(client.entity()) {
-                                    let item = match item {
-                                        Slot::Equip(slot) => inventory.equipped(slot),
-                                        Slot::Inventory(slot) => inventory.get(slot),
-                                        Slot::Overflow(_) => None,
-                                    }?;
-                                    let repair_recipe =
-                                        client.repair_recipe_book().repair_recipe(item)?;
-                                    repair_recipe
-                                        .inventory_contains_ingredients(item, inventory)
-                                        .ok()
-                                } else {
-                                    None
-                                }
-                            })();
-                            slots.unwrap_or_default()
-                        };
                         if !has_repaired {
                             let sfx_trigger_item = sfx_triggers
                                 .0
@@ -2210,9 +2190,7 @@ impl PlayState for SessionState {
                             global_state.audio.emit_ui_sfx(sfx_trigger_item, None, None);
                             has_repaired = true
                         };
-                        self.client
-                            .borrow_mut()
-                            .repair_item(item, slots, sprite_pos);
+                        self.client.borrow_mut().repair_item(item, sprite_pos);
                     },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);

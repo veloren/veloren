@@ -5,10 +5,10 @@ use crate::{
     },
     comp::{
         Inventory, Item,
-        inventory::slot::{InvSlotId, Slot},
+        inventory::slot::InvSlotId,
         item::{
-            ItemBase, ItemDef, ItemDefinitionId, ItemDefinitionIdOwned, ItemKind, ItemTag,
-            MaterialStatManifest, modular,
+            ItemBase, ItemDef, ItemDefinitionIdOwned, ItemKind, ItemTag, MaterialStatManifest,
+            modular,
             tool::{AbilityMap, ToolKind},
         },
     },
@@ -875,215 +875,12 @@ impl Asset for ComponentRecipeBook {
     }
 }
 
-#[derive(Serialize, Deserialize, Hash, PartialEq, Eq, Clone, Debug)]
-enum RepairKey {
-    ItemDefId(String),
-    ModularWeapon { material: String },
-}
-
-impl RepairKey {
-    fn from_item(item: &Item) -> Option<Self> {
-        match item.item_definition_id() {
-            ItemDefinitionId::Simple(item_id) => Some(Self::ItemDefId(String::from(item_id))),
-            ItemDefinitionId::Compound { .. } => None,
-            ItemDefinitionId::Modular { pseudo_base, .. } => match pseudo_base {
-                "veloren.core.pseudo_items.modular.tool" => {
-                    if let Some(ItemDefinitionId::Simple(material)) = item
-                        .components()
-                        .iter()
-                        .find(|comp| {
-                            matches!(
-                                &*comp.kind(),
-                                ItemKind::ModularComponent(
-                                    modular::ModularComponent::ToolPrimaryComponent { .. }
-                                )
-                            )
-                        })
-                        .and_then(|comp| {
-                            comp.components()
-                                .iter()
-                                .next()
-                                .map(|comp| comp.item_definition_id())
-                        })
-                    {
-                        let material = String::from(material);
-                        Some(Self::ModularWeapon { material })
-                    } else {
-                        None
-                    }
-                },
-                _ => None,
-            },
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct RawRepairRecipe {
-    inputs: Vec<(RawRecipeInput, u32)>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct RawRepairRecipeBook {
-    recipes: HashMap<RepairKey, RawRepairRecipe>,
-    fallback: RawRepairRecipe,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct RepairRecipe {
-    inputs: Vec<(RecipeInput, u32)>,
-}
-
-impl RepairRecipe {
-    /// Determine whether the inventory contains the ingredients for a repair.
-    /// If it does, return a vec of inventory slots that contain the
-    /// ingredients needed, whose positions correspond to particular repair
-    /// inputs. If items are missing, return the missing items, and how many
-    /// are missing.
-    pub fn inventory_contains_ingredients(
-        &self,
-        item: &Item,
-        inv: &Inventory,
-    ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
-        inventory_contains_ingredients(self.inputs(item), inv, 1)
-    }
-
-    pub fn inputs(&self, item: &Item) -> impl Iterator<Item = (&RecipeInput, u32)> + use<'_> {
-        let item_durability = item.durability_lost().unwrap_or(0);
-        self.inputs
-            .iter()
-            .filter_map(move |(input, original_amount)| {
-                let amount = (original_amount * item_durability) / Item::MAX_DURABILITY;
-                // If original repair recipe consumed ingredients, but item not damaged enough
-                // to actually need to consume item, remove item as requirement.
-                if *original_amount > 0 && amount == 0 {
-                    None
-                } else {
-                    Some((input, amount))
-                }
-            })
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct RepairRecipeBook {
-    recipes: HashMap<RepairKey, RepairRecipe>,
-    fallback: RepairRecipe,
-}
-
-impl RepairRecipeBook {
-    pub fn repair_recipe(&self, item: &Item) -> Option<&RepairRecipe> {
-        RepairKey::from_item(item)
-            .as_ref()
-            .and_then(|key| self.recipes.get(key))
-            .or_else(|| item.has_durability().then_some(&self.fallback))
-    }
-
-    pub fn repair_item(
-        &self,
-        inv: &mut Inventory,
-        item: Slot,
-        slots: Vec<(u32, InvSlotId)>,
-        ability_map: &AbilityMap,
-        msm: &MaterialStatManifest,
-    ) -> Result<(), Vec<(&RecipeInput, u32)>> {
-        let mut slot_claims = HashMap::new();
-        let mut unsatisfied_requirements = Vec::new();
-
-        if let Some(item) = match item {
-            Slot::Equip(slot) => inv.equipped(slot),
-            Slot::Inventory(slot) => inv.get(slot),
-            // Items in overflow slots cannot be repaired until item is moved to a real slot
-            Slot::Overflow(_) => None,
-        } && let Some(repair_recipe) = self.repair_recipe(item)
-        {
-            repair_recipe
-                .inputs(item)
-                .enumerate()
-                .for_each(|(i, (input, amount))| {
-                    // Gets all slots provided for this input by the frontend
-                    let input_slots = slots
-                        .iter()
-                        .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
-                        .copied();
-                    // Checks if requirement is met, and if not marks it as unsatisfied
-                    input.handle_requirement(
-                        amount,
-                        &mut slot_claims,
-                        &mut unsatisfied_requirements,
-                        inv,
-                        input_slots,
-                    );
-                })
-        }
-
-        if unsatisfied_requirements.is_empty() {
-            for (slot, to_remove) in slot_claims.iter() {
-                for _ in 0..*to_remove {
-                    let _ = inv
-                        .take(*slot, ability_map, msm)
-                        .expect("Expected item to exist in the inventory");
-                }
-            }
-
-            inv.repair_item_at_slot(item, ability_map, msm);
-
-            Ok(())
-        } else {
-            Err(unsatisfied_requirements)
-        }
-    }
-}
-
-impl Asset for RepairRecipeBook {
-    fn load(cache: &AssetCache, specifier: &SharedString) -> Result<Self, BoxedError> {
-        fn load_recipe_input(
-            (input, amount): &(RawRecipeInput, u32),
-        ) -> Result<(RecipeInput, u32), assets::Error> {
-            let input = input.load_recipe_input()?;
-            Ok((input, *amount))
-        }
-
-        let raw = cache
-            .load::<Ron<RawRepairRecipeBook>>(specifier)?
-            .cloned()
-            .into_inner();
-
-        let recipes = raw
-            .recipes
-            .iter()
-            .map(|(key, RawRepairRecipe { inputs })| {
-                let inputs = inputs
-                    .iter()
-                    .map(load_recipe_input)
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok((key.clone(), RepairRecipe { inputs }))
-            })
-            .collect::<Result<_, assets::Error>>()?;
-
-        let fallback = RepairRecipe {
-            inputs: raw
-                .fallback
-                .inputs
-                .iter()
-                .map(load_recipe_input)
-                .collect::<Result<Vec<_>, _>>()?,
-        };
-
-        Ok(RepairRecipeBook { recipes, fallback })
-    }
-}
-
 pub fn complete_recipe_book() -> AssetHandle<RecipeBookManifest> {
     RecipeBookManifest::load_expect("common.recipe_book_manifest")
 }
 
 pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {
     ComponentRecipeBook::load_expect("common.component_recipe_book")
-}
-
-pub fn default_repair_recipe_book() -> AssetHandle<RepairRecipeBook> {
-    RepairRecipeBook::load_expect("common.repair_recipe_book")
 }
 
 impl Asset for ReverseComponentRecipeBook {
