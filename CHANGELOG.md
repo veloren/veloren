@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some sprites are now destroyed instead of left floating after block changes.
 - Controller icons now show up next to items and entities in the game world when using a controller
 - Sword dual wielding animation
+- Savannah guard huts
 
 - Added 5 new Firestaff abilities.
   

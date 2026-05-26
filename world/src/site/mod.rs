@@ -1920,7 +1920,14 @@ impl Site {
 
         let mut workshops = 0;
         let mut airship_dock = 0;
-        let build_chance = Lottery::from(vec![(25.0, 1), (5.0, 2), (5.0, 3), (15.0, 4), (5.0, 5)]);
+        let build_chance = Lottery::from(vec![
+            (25.0, 1),
+            (5.0, 2),
+            (5.0, 3),
+            (15.0, 4),
+            (5.0, 5),
+            (5.0, 6),
+        ]);
 
         for _ in 0..50 {
             match *build_chance.choose_seeded(rng.random()) {
@@ -2037,6 +2044,43 @@ impl Site {
                 },
                 5 => {
                     Self::generate_barn(false, &mut rng, &mut site, land, index);
+                },
+                6 => {
+                    // SavannahGuardHut
+                    let size = (4.0 + rng.random::<f32>().powf(5.0) * 1.5).round() as u32;
+                    generator_stats.attempt(site.name(), GenStatPlotKind::House);
+                    if let Some((aabr, door_tile, door_dir, alt)) = attempt(32, || {
+                        site.find_roadside_aabr(
+                            &mut rng,
+                            2..(size + 1).pow(2),
+                            Extent2::broadcast(size),
+                        )
+                    }) {
+                        let savannah_guard_hut = plot::SavannahGuardHut::generate(
+                            land,
+                            &mut reseed(&mut rng),
+                            &site,
+                            door_tile,
+                            door_dir,
+                            aabr,
+                            alt,
+                        );
+                        let savannah_guard_hut_alt = savannah_guard_hut.alt;
+                        let plot = site.create_plot(Plot {
+                            kind: PlotKind::SavannahGuardHut(savannah_guard_hut),
+                            root_tile: aabr.center(),
+                            tiles: aabr_tiles(aabr).collect(),
+                        });
+
+                        site.blit_aabr(aabr, Tile {
+                            kind: TileKind::Building,
+                            plot: Some(plot),
+                            hard_alt: Some(savannah_guard_hut_alt),
+                        });
+                        generator_stats.success(site.name(), GenStatPlotKind::House);
+                    } else {
+                        site.make_plaza(land, index, &mut rng, generator_stats, &name, road_kind);
+                    }
                 },
                 _ => {},
             }
