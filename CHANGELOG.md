@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some sprites are now destroyed instead of left floating after block changes.
 - Controller icons now show up next to items and entities in the game world when using a controller
 - Sword dual wielding animation
+- Savannah guard huts
 
 - Added 5 new Firestaff abilities.
   
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Music changes when entering a new site.
 - Flat bridge exteriors are gradients from surface block color to the construction stone color
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.
+- Repairing items no longer costs resources.
 
 ### Removed
 - Removed Firestaff ability upgrades.

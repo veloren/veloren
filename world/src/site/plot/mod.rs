@@ -33,6 +33,7 @@ mod road;
 mod rock_circle;
 mod sahagin;
 mod savannah_airship_dock;
+mod savannah_guard_hut;
 mod savannah_hut;
 mod savannah_workshop;
 mod sea_chapel;
@@ -80,6 +81,7 @@ pub use self::{
     rock_circle::RockCircle,
     sahagin::Sahagin,
     savannah_airship_dock::SavannahAirshipDock,
+    savannah_guard_hut::SavannahGuardHut,
     savannah_hut::SavannahHut,
     savannah_workshop::SavannahWorkshop,
     sea_chapel::SeaChapel,
@@ -189,6 +191,7 @@ pub enum PlotKind {
     Sahagin(Sahagin),
     Citadel(Citadel),
     SavannahAirshipDock(SavannahAirshipDock),
+    SavannahGuardHut(SavannahGuardHut),
     SavannahHut(SavannahHut),
     SavannahWorkshop(SavannahWorkshop),
     Barn(Barn),
@@ -254,6 +257,9 @@ impl PlotKind {
             }),
             PlotKind::Sahagin(_) => Some(PlotKindMeta::Dungeon),
             PlotKind::SavannahHut(h) => Some(PlotKindMeta::House {
+                door_tile: h.door_tile,
+            }),
+            PlotKind::SavannahGuardHut(h) => Some(PlotKindMeta::House {
                 door_tile: h.door_tile,
             }),
             PlotKind::CoastalWorkshop(w) => Some(PlotKindMeta::Workshop {
@@ -345,6 +351,7 @@ macro_rules! foreach_plot {
             PlotKind::CliffTownAirshipDock($x) => $y,
             PlotKind::Citadel($x) => $y,
             PlotKind::SavannahAirshipDock($x) => $y,
+            PlotKind::SavannahGuardHut($x) => $y,
             PlotKind::SavannahHut($x) => $y,
             PlotKind::SavannahWorkshop($x) => $y,
             PlotKind::Barn($x) => $y,
