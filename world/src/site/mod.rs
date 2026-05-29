@@ -493,7 +493,7 @@ impl Site {
 
         let plaza = self.create_plot(Plot {
             kind: PlotKind::Plaza(plot::Plaza::generate(
-                tile_aabr, road_kind, self, land, index,
+                tile_aabr, road_kind, self, land, index, rng,
             )),
             root_tile: tpos,
             tiles: aabr_tiles(tile_aabr).collect(),

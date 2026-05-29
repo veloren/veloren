@@ -160,7 +160,7 @@ impl Tileable2 {
     pub fn corner(&self, dir: Dir2) -> Block { self.corner[dir.relative_to(self.rotation)] }
 }
 
-fn single_block(painter: &Painter, pos: Vec3<i32>, block: Block) {
+pub fn single_block(painter: &Painter, pos: Vec3<i32>, block: Block) {
     painter
         .aabb(Aabb {
             min: pos,
@@ -281,6 +281,16 @@ pub trait PainterSpriteExt {
     /// Bounds are inclusive
     fn chairs_around(&self, chair: SpriteKind, spacing: usize, bounds: Aabr<i32>, alt: i32);
 
+    /// Bounds are inclusive
+    fn benches_around(
+        &self,
+        bench: SpriteKind,
+        spacing: usize,
+        offset: i32,
+        bounds: Aabr<i32>,
+        alt: i32,
+    );
+
     /// Tileable in 1 dimension.
     ///
     /// Does nothing if size is less than 2.
@@ -344,6 +354,34 @@ impl PainterSpriteExt for Painter {
                         .with_attr(Ori(dir.opposite().sprite_ori()))
                         .expect("Chairs should have the Ori attribute"),
                 );
+            }
+        }
+    }
+
+    fn benches_around(
+        &self,
+        bench: SpriteKind,
+        spacing: usize,
+        offset: i32,
+        bounds: Aabr<i32>,
+        alt: i32,
+    ) {
+        for dir in Dir2::iter() {
+            let s = dir.orthogonal().select(bounds.size());
+            // We skip small sides
+            if s <= 2 && dir.select(bounds.size()) > s {
+                continue;
+            }
+
+            let min = dir.orthogonal().select(bounds.min);
+            let max = dir.orthogonal().select(bounds.max);
+            let center = dir.orthogonal().select(bounds.center());
+            for i in (min + offset..=center)
+                .step_by(spacing + 2)
+                .chain((center..=max - offset).rev().step_by(spacing + 2))
+            {
+                let p = dir.select_aabr_with(bounds, i) + dir.to_vec2();
+                self.mirrored2(p.with_z(alt), dir, bench);
             }
         }
     }

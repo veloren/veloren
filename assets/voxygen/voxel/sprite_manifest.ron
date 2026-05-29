@@ -701,6 +701,26 @@ BenchWoodMiddle: [(
     ],
     wind_sway: 0,
 )],
+CounterWoodEnd: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.counter_wood_end",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
+CounterWoodMiddle: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.counter_wood_middle",
+            offset: (-5.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0,
+)],
 LogsWoodCoreEnd: [(
     variations: [
         (
@@ -1599,6 +1619,17 @@ MetalChain: [(
     variations: [
         (
             model: "voxygen.voxel.sprite.misc.metal_chain",
+            offset: (-5.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
+// FencePost
+FencePost: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.farms.fence_post",
             offset: (-5.5, -5.5, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),

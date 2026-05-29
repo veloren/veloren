@@ -265,9 +265,11 @@ sprites! {
         FenceWoodGateWoodland = 0xCC,
         Hay = 0xCD,
         CrystalBall = 0xCE,
-        BenchWood2Middle = 0xD0,
-        BenchWood2Side = 0xD1,
-        BenchWood2Middle2 = 0xD2,
+        CounterWoodEnd = 0xCF,
+        CounterWoodMiddle = 0xD0,
+        BenchWood2Middle = 0xD1,
+        BenchWood2Side = 0xD2,
+        BenchWood2Middle2 = 0xD3,
     },
     // Sprites representing plants that may grow over time (this does not include plant parts, like fruit).
     Plant = 3 has Growth, Owned, SnowCovered, Collectable {
@@ -463,6 +465,7 @@ sprites! {
         MetalChain = 0x48,
         Bell = 0x49,
         DoorWideAirship = 0x4A,
+        FencePost = 0x50,
     },
     // Decorative items, both natural and artificial
     Decor = 7 has Ori {
@@ -684,6 +687,7 @@ impl SpriteKind {
             // Fence is more than 1.0 to prevent auto block-hopping onto the fence.
             SpriteKind::FenceWoodWoodland => 1.09,
             SpriteKind::SeaDecorChain => 1.09,
+            SpriteKind::CounterWoodMiddle => 1.00,
             SpriteKind::SeaDecorBlock => 1.00,
             SpriteKind::SeaDecorWindowHor => 0.55,
             SpriteKind::SeaDecorWindowVer => 1.09,
@@ -692,6 +696,7 @@ impl SpriteKind {
             SpriteKind::MesaLantern => 1.3,
             SpriteKind::Rope => 1.09,
             SpriteKind::MetalChain => 1.09,
+            SpriteKind::FencePost => 1.09,
             SpriteKind::StreetLamp => 2.65,
             SpriteKind::Carrot => 0.18,
             SpriteKind::Radish => 0.18,

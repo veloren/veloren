@@ -24,7 +24,16 @@ impl Dir2 {
         }
     }
 
-    pub fn from_vec2(vec: Vec2<i32>) -> Dir2 {
+    pub fn choose_orthogonal(self, rng: &mut impl rand::Rng) -> Dir2 {
+        if rng.random_bool(0.5) {
+            self.orthogonal()
+        } else {
+            -self.orthogonal()
+        }
+    }
+
+    pub fn from_vec2(vec: impl Into<Vec2<i32>>) -> Dir2 {
+        let vec = vec.into();
         if vec.x.abs() > vec.y.abs() {
             if vec.x > 0 { Dir2::X } else { Dir2::NegX }
         } else if vec.y > 0 {
@@ -307,6 +316,16 @@ impl Dir2 {
             },
         }
     }
+
+    pub fn translate_aabr(self, aabr: Aabr<i32>, amount: i32) -> Aabr<i32> {
+        let offset = self.scale(amount);
+        Aabr {
+            min: aabr.min + offset,
+            max: aabr.max + offset,
+        }
+    }
+
+    pub fn scale(self, vec: impl Into<Vec2<i32>>) -> Vec2<i32> { self.to_vec2() * vec }
 }
 
 impl std::ops::Neg for Dir2 {
