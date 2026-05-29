@@ -1,10 +1,66 @@
 use super::*;
-use crate::{ColumnSample, Land, util::RandomField};
-use common::terrain::{Block, BlockKind};
+use crate::{
+    ColumnSample, Land,
+    all::ForestKind,
+    site::{
+        generation::PrimitiveTransform,
+        util::sprites::{PainterSpriteExt, single_block},
+    },
+    util::{RandomField, Sampler},
+};
+use common::{
+    assets::AssetHandle,
+    terrain::{Block, BlockKind, StructuresGroup},
+};
 use enum_map::EnumMap;
+use itertools::Itertools;
+use lazy_static::lazy_static;
 use rand::{prelude::*, seq::IndexedRandom};
 use strum::IntoEnumIterator;
 use vek::*;
+
+#[derive(Clone, Copy)]
+enum TownCenterDecoration {
+    Gazebo {
+        roof: GazeboRoofKind,
+        roof_color: Rgb<u8>,
+    },
+    Tree,
+}
+
+#[derive(Clone, Copy)]
+enum GazeboRoofKind {
+    Gable,
+    Pyramid,
+}
+
+#[derive(Clone, Copy)]
+struct MarketStand {
+    aabr: Aabr<i32>,
+    facing: Dir2,
+    alt: i32,
+    roof_color: Rgb<u8>,
+    roof_pattern: Vec2<i32>,
+}
+
+#[derive(Clone)]
+enum PlazaKind {
+    Park {
+        surface_col: Rgb<u8>,
+        center_deco: TownCenterDecoration,
+    },
+    Stage {
+        aabr: Aabr<i32>,
+        facing: Dir2,
+        closed: bool,
+        roof_color: Rgb<u8>,
+    },
+    Market {
+        center: Aabr<i32>,
+        center_deco: Option<TownCenterDecoration>,
+        stands: Vec<MarketStand>,
+    },
+}
 
 #[derive(Default)]
 struct CornerMeta {
@@ -23,6 +79,9 @@ pub struct Plaza {
     corner_meta: EnumMap<Dir2, CornerMeta>,
     pub hard_alt: Option<i32>,
     dir: Dir2,
+    decoration: Option<PlazaKind>,
+    park_surface_col: Rgb<u8>,
+    wood_color: Rgb<u8>,
 }
 
 impl Plaza {
@@ -32,6 +91,7 @@ impl Plaza {
         site: &Site,
         land: &Land,
         index: IndexRef,
+        rng: &mut impl Rng,
     ) -> Self {
         let aabr = Aabr {
             min: site.tile_wpos(tile_aabr.min),
@@ -61,18 +121,251 @@ impl Plaza {
 
         let any_water = center.water() || corner_meta.values().any(|c| c.water());
 
+        let hard_alt = if any_water {
+            Some((land.get_alt_approx(aabr.center()) as i32).max(center.water_alt + 1))
+        } else {
+            None
+        };
+
+        let park_surface_col = if let Some(sample) = land.column_sample(aabr.center(), index) {
+            sample.surface_color
+        } else {
+            Rgb::new(0.5, 0.55, 0.0)
+        }
+        .map(|e| (e * 255.0) as u8);
+
+        let min_size = aabr.size().reduce_min();
+        // For now only generate plaza structures in woodland villages
+        let decoration = if land.get_gradient_approx(aabr.center()) < 0.4
+            && min_size >= TILE_SIZE as i32 * 5
+            && matches!(site.kind, Some(SiteKind::Refactor))
+        {
+            match rng.random_range(0..50) {
+                0..15 => {
+                    let stands_aabr = shrink_aabr(aabr, 4);
+                    let center_aabr = Aabr {
+                        min: stands_aabr.center() - 5,
+                        max: stands_aabr.center() + 5,
+                    };
+
+                    let roof_color = {
+                        let colors = [
+                            Rgb::new(21, 43, 48),
+                            Rgb::new(11, 23, 38),
+                            Rgb::new(45, 28, 21),
+                            Rgb::new(10, 55, 40),
+                            Rgb::new(5, 35, 15),
+                            Rgb::new(40, 5, 11),
+                            Rgb::new(55, 45, 11),
+                        ];
+                        *colors.choose(rng).unwrap_or(&Rgb::new(21, 43, 48))
+                    };
+
+                    let possible_center_deco = if stands_aabr.size().reduce_min() >= 26 {
+                        let outcomes = [
+                            TownCenterDecoration::Gazebo {
+                                roof: GazeboRoofKind::Gable,
+                                roof_color,
+                            },
+                            TownCenterDecoration::Gazebo {
+                                roof: GazeboRoofKind::Pyramid,
+                                roof_color,
+                            },
+                            TownCenterDecoration::Tree,
+                        ];
+                        outcomes.choose(rng).cloned()
+                    } else {
+                        None
+                    };
+
+                    let roof_colors = [
+                        Rgb::new(0x00, 0x28, 0x68),
+                        Rgb::new(0xCE, 0x11, 0x26),
+                        Rgb::new(0x68, 0xbf, 0xe5),
+                        Rgb::new(0xff, 0xd1, 0x00),
+                        Rgb::new(0x00, 0xa6, 0x51),
+                    ];
+
+                    let mut stand_aabrs = vec![];
+                    if possible_center_deco.is_some() {
+                        stand_aabrs.push(center_aabr);
+                    }
+                    let mut stands = Vec::new();
+
+                    for _ in 0..24 {
+                        if let Some(stand) = attempt(8, || {
+                            let offset = Vec2::new(
+                                rng.random_range(0..stands_aabr.size().w),
+                                rng.random_range(0..stands_aabr.size().h),
+                            );
+                            let corner = stands_aabr.min + offset;
+                            let width = rng.random_range(4..7);
+                            let size = 7;
+                            let facing_possibilities = Dir2::ALL
+                                .into_iter()
+                                .filter_map(|d| {
+                                    let score = if d.is_positive() {
+                                        d.select(stands_aabr.max - corner)
+                                    } else {
+                                        d.select(corner - stands_aabr.min)
+                                    }
+                                    .pow(2);
+                                    stands_aabr
+                                        .contains_point(corner + d.scale(width + 2))
+                                        .then_some((d, score))
+                                })
+                                .collect_vec();
+                            let facing = facing_possibilities
+                                .choose_weighted(rng, |(_, w)| *w)
+                                .map(|(d, _)| *d)
+                                .ok()?;
+                            let side = facing.choose_orthogonal(rng);
+
+                            let stand_aabr = Aabr {
+                                min: corner,
+                                max: corner + side.opposite().scale(size) + facing.scale(width),
+                            }
+                            .made_valid();
+
+                            let roof_pattern = if rng.random_bool(0.3) {
+                                Vec2::one() * rng.random_range(2..4)
+                            } else if rng.random_bool(0.5) {
+                                facing.scale(width * 10) + side.scale(rng.random_range(1..4))
+                            } else {
+                                side.scale(size * 10) + facing.scale(rng.random_range(1..4))
+                            };
+                            let is_even = aabr_corners(stand_aabr)
+                                .map(|p| land.get_alt_approx(p) as i32)
+                                .iter()
+                                .all_equal();
+                            (is_even
+                                && stands_aabr.contains_aabr(stand_aabr)
+                                && stand_aabrs.iter().all(|aabr| {
+                                    !shrink_aabr(*aabr, -2).intersection(stand_aabr).is_valid()
+                                }))
+                            .then_some(MarketStand {
+                                aabr: stand_aabr,
+                                facing,
+                                alt: hard_alt.unwrap_or_else(|| {
+                                    land.get_alt_approx(stand_aabr.center()) as i32
+                                }),
+                                roof_color: *roof_colors
+                                    .choose(rng)
+                                    .unwrap_or(&Rgb::new(0x00, 0x28, 0x68)),
+                                roof_pattern,
+                            })
+                        }) {
+                            stand_aabrs.push(stand.aabr);
+                            stands.push(stand);
+                        }
+                    }
+                    Some(PlazaKind::Market {
+                        center: center_aabr,
+                        center_deco: possible_center_deco,
+                        stands,
+                    })
+                },
+                15..20 => {
+                    let center = aabr.center();
+                    let aabr = Aabr {
+                        min: center - aabr.half_size() / 3,
+                        max: center + aabr.half_size() / 3,
+                    };
+                    let facing = Dir2::choose(rng);
+                    let facing_size = facing.select(aabr.size());
+                    let aabr = facing.opposite().trim_aabr(
+                        aabr,
+                        rng.random_range(facing_size / 12..(facing_size / 8) + 1),
+                    );
+                    let closed = rng.random_bool(0.5);
+                    let aabr = if closed {
+                        facing.opposite().translate_aabr(aabr, 4)
+                    } else {
+                        aabr
+                    };
+                    let roof_color = {
+                        let colors = [
+                            Rgb::new(21, 43, 48),
+                            Rgb::new(11, 23, 38),
+                            Rgb::new(45, 28, 21),
+                            Rgb::new(10, 55, 40),
+                            Rgb::new(5, 35, 15),
+                            Rgb::new(40, 5, 11),
+                            Rgb::new(55, 45, 11),
+                        ];
+                        *colors.choose(rng).unwrap_or(&Rgb::new(21, 43, 48))
+                    };
+                    Some(PlazaKind::Stage {
+                        aabr,
+                        facing,
+                        closed,
+                        roof_color,
+                    })
+                },
+                20..35 => {
+                    let roof_color = {
+                        let colors = [
+                            Rgb::new(21, 43, 48),
+                            Rgb::new(11, 23, 38),
+                            Rgb::new(45, 28, 21),
+                            Rgb::new(10, 55, 40),
+                            Rgb::new(5, 35, 15),
+                            Rgb::new(40, 5, 11),
+                            Rgb::new(55, 45, 11),
+                        ];
+                        *colors.choose(rng).unwrap_or(&Rgb::new(21, 43, 48))
+                    };
+                    let center_decos = [
+                        TownCenterDecoration::Tree,
+                        TownCenterDecoration::Gazebo {
+                            roof: GazeboRoofKind::Gable,
+                            roof_color,
+                        },
+                        TownCenterDecoration::Gazebo {
+                            roof: GazeboRoofKind::Pyramid,
+                            roof_color,
+                        },
+                    ];
+                    Some(PlazaKind::Park {
+                        surface_col: park_surface_col,
+                        center_deco: *center_decos.choose(rng).expect("center_decos is not empty"),
+                    })
+                },
+                _ => None,
+            }
+        } else {
+            None
+        };
+        let wood_color = match land
+            .make_forest_lottery(aabr.center())
+            .choose_seeded(rng.random())
+        {
+            Some(
+                ForestKind::Cedar
+                | ForestKind::AutumnTree
+                | ForestKind::Frostpine
+                | ForestKind::Mangrove,
+            ) => Rgb::new(63, 28, 12),
+            Some(ForestKind::Oak | ForestKind::Swamp | ForestKind::Baobab) => Rgb::new(102, 87, 63),
+            Some(ForestKind::Acacia | ForestKind::Birch | ForestKind::Palm) => {
+                Rgb::new(130, 104, 102)
+            },
+            Some(
+                ForestKind::Mapletree | ForestKind::Redwood | ForestKind::Pine | ForestKind::Cherry,
+            ) => Rgb::new(117, 95, 46),
+            _ => Rgb::new(63, 28, 12),
+        };
         Self {
             aabr,
             kind,
             corner_meta,
-            hard_alt: if any_water {
-                Some((land.get_alt_approx(aabr.center()) as i32).max(center.water_alt + 1))
-            } else {
-                None
-            },
+            hard_alt,
             dir: *RandomField::new(51)
                 .choose(aabr.center().with_z(center.alt), &Dir2::ALL)
                 .expect("Dir::ALL has len 4"),
+            decoration,
+            park_surface_col,
+            wood_color,
         }
     }
 }
@@ -161,6 +454,369 @@ impl Structure for Plaza {
                 .with_alignment(Alignment::Tame),
             );
         }
+
+        if let Some(decoration) = self.decoration.clone() {
+            let wood = Fill::PlankWall(BlockKind::Wood, self.wood_color, 4);
+            let dark_wood = Fill::PlankWall(BlockKind::Wood, self.wood_color / 2, 4);
+            let darker_wood = Fill::PlankWall(BlockKind::Wood, self.wood_color / 4, 4);
+            let stone = Fill::Brick(BlockKind::Rock, Rgb::new(70, 65, 80), 24);
+            match decoration {
+                PlazaKind::Park {
+                    surface_col,
+                    center_deco,
+                } => {
+                    let aabr = shrink_aabr(self.aabr, 6);
+                    let center = aabr.center();
+                    let alt = land.get_alt_approx(center) as i32;
+
+                    painter
+                        .aabb(aabr_with_z(aabr, alt..alt + 2))
+                        .fill(stone.clone());
+
+                    painter
+                        .aabb(aabr_with_z(shrink_aabr(aabr, -1), alt..alt + 2))
+                        .fill(stone.clone());
+                    let iaabr = Aabr {
+                        min: aabr.min - 1,
+                        max: aabr.max,
+                    };
+                    painter.benches_around(
+                        SpriteKind::BenchWoodWoodland,
+                        8,
+                        4,
+                        shrink_aabr(iaabr, 2),
+                        alt + 2,
+                    );
+
+                    match center_deco {
+                        TownCenterDecoration::Gazebo { roof, roof_color } => {
+                            paint_gazebo(
+                                painter,
+                                shrink_aabr(aabr, 3),
+                                alt,
+                                4,
+                                wood.clone(),
+                                dark_wood.clone(),
+                                roof,
+                                roof_color,
+                            );
+                        },
+                        TownCenterDecoration::Tree => {
+                            paint_tree(painter, center.with_z(alt));
+                        },
+                    }
+                    painter
+                        .aabb(aabr_with_z(shrink_aabr(aabr, 2), alt..alt + 2))
+                        .fill(Fill::Block(Block::new(BlockKind::Grass, surface_col)));
+                },
+                PlazaKind::Stage {
+                    aabr,
+                    facing,
+                    closed,
+                    roof_color,
+                } => {
+                    let roof_fill = Fill::Brick(BlockKind::Wood, roof_color, 8);
+                    let height = 5;
+                    let alt = land.get_alt_approx(aabr.center()) as i32;
+                    let stage_alt = alt + 2;
+                    let side = facing.orthogonal();
+                    let main_aabr = if closed {
+                        facing.opposite().trim_aabr(aabr, 3)
+                    } else {
+                        aabr
+                    };
+                    let ground_aabb = painter.aabb(aabr_with_z(aabr, alt + 1..stage_alt));
+                    painter
+                        .aabb(aabr_with_z(main_aabr, alt - 1..stage_alt))
+                        .fill(dark_wood.clone());
+                    for corner in aabr_corners(main_aabr) {
+                        column(
+                            painter,
+                            corner.with_z(stage_alt + 0),
+                            height,
+                            darker_wood.clone(),
+                        );
+                    }
+                    for corner in aabr_corners(shrink_aabr(main_aabr, -1)) {
+                        single_block(
+                            painter,
+                            corner.with_z(stage_alt + height - 1),
+                            Block::air(SpriteKind::Lantern),
+                        );
+                    }
+
+                    if closed {
+                        let back_corner1 = facing
+                            .opposite()
+                            .select_aabr_with(main_aabr, side.select_aabr(main_aabr));
+                        let back_corner2 = facing
+                            .opposite()
+                            .select_aabr_with(main_aabr, side.opposite().select_aabr(main_aabr));
+                        painter
+                            .aabb(
+                                Aabb {
+                                    min: back_corner1.with_z(stage_alt),
+                                    max: (back_corner2 + facing.scale(1))
+                                        .with_z(stage_alt + height),
+                                }
+                                .made_valid(),
+                            )
+                            .fill(darker_wood.clone());
+                    }
+
+                    if closed {
+                        painter
+                            .cylinder(aabr_with_z(aabr, alt + 1..stage_alt))
+                            .intersect(ground_aabb)
+                            .fill(dark_wood.clone());
+                    }
+
+                    // Roof
+                    let aabr_one = shrink_aabr(main_aabr, -1);
+                    painter
+                        .aabb(aabr_with_z(
+                            aabr_one,
+                            stage_alt + height..stage_alt + height + 1,
+                        ))
+                        .fill(roof_fill.clone());
+                    let gable_aabr =
+                        side.trim_aabr(aabr_one, side.select(main_aabr.half_size() - 2));
+                    let gable_aabb =
+                        aabr_with_z(gable_aabr, stage_alt + height + 1..stage_alt + height + 4)
+                            .made_valid();
+
+                    let gable = painter.gable(gable_aabb, 3, facing);
+                    let gable_clear = painter.gable(
+                        aabr_with_z(
+                            Aabr {
+                                min: gable_aabr.min + side.scale(1),
+                                max: gable_aabr.min + side.scale(gable_aabr.size() - 1)
+                                    - facing.scale(1),
+                            },
+                            stage_alt + height..stage_alt + height + 3,
+                        ),
+                        2,
+                        facing,
+                    );
+                    gable.fill(roof_fill.clone());
+                    gable_clear.clear();
+                    gable_clear
+                        .translate(facing.opposite().scale(main_aabr.size() + 1).with_z(0))
+                        .clear();
+                },
+                PlazaKind::Market {
+                    center,
+                    center_deco,
+                    stands,
+                } => {
+                    let center_alt = land.get_alt_approx(center.center()) as i32;
+                    if let Some(center_deco) = center_deco {
+                        match center_deco {
+                            TownCenterDecoration::Gazebo { roof, roof_color } => {
+                                paint_gazebo(
+                                    painter,
+                                    center,
+                                    center_alt,
+                                    4,
+                                    wood.clone(),
+                                    dark_wood.clone(),
+                                    roof,
+                                    roof_color,
+                                );
+                            },
+                            TownCenterDecoration::Tree => {
+                                let alt = center_alt;
+                                painter
+                                    .aabb(aabr_with_z(center, alt..alt + 2))
+                                    .fill(stone.clone());
+                                painter
+                                    .aabb(aabr_with_z(shrink_aabr(center, 1), alt..alt + 2))
+                                    .fill(Fill::Block(Block::new(
+                                        BlockKind::Grass,
+                                        self.park_surface_col,
+                                    )));
+                                paint_tree(painter, center.center().with_z(center_alt + 9));
+                            },
+                        }
+                    }
+
+                    for stand in stands {
+                        let aabr = stand.aabr;
+                        let alt = stand.alt;
+                        let facing = stand.facing;
+                        let stand_height = 4;
+
+                        let roof = Fill::Checker(
+                            BlockKind::Wood,
+                            stand.roof_color,
+                            Rgb::white(),
+                            stand.roof_pattern,
+                        );
+
+                        let counter_fill = Fill::Sampling(std::sync::Arc::new(|center| {
+                            match RandomField::new(4973).get(center) % 128 {
+                                0..12 => Some(SpriteKind::VialEmpty),
+                                12..13 => Some(SpriteKind::PotionMinor),
+                                13..24 => Some(SpriteKind::Bowl),
+                                24..30 => Some(SpriteKind::Apple),
+                                30..32 => Some(SpriteKind::VeloriteFrag),
+                                _ => None,
+                            }
+                            .map(Block::air)
+                        }));
+                        let counter_dir = stand.facing.rotated_ccw();
+                        let corner = counter_dir
+                            .opposite()
+                            .select_aabr_with(aabr, counter_dir.rotated_cw().select_aabr(aabr));
+
+                        let counter = painter.aabb(
+                            Aabb {
+                                min: corner.with_z(alt + 1),
+                                max: (corner
+                                    + counter_dir.to_vec2() * aabr.size()
+                                    + counter_dir.rotated_ccw().to_vec2())
+                                .with_z(alt + 2),
+                            }
+                            .made_valid(),
+                        );
+                        counter.fill(Fill::sprite_ori(
+                            SpriteKind::CounterWoodMiddle,
+                            counter_dir.sprite_ori(),
+                        ));
+                        let stock = painter.aabb(
+                            Aabb {
+                                min: corner.with_z(alt + 2),
+                                max: (corner
+                                    + counter_dir.scale(aabr.size())
+                                    + counter_dir.rotated_ccw().scale(1))
+                                .with_z(alt + 3),
+                            }
+                            .made_valid(),
+                        );
+                        stock.fill(counter_fill.clone());
+
+                        {
+                            let mut corner = aabr.min.with_z(alt + 2);
+                            let size = aabr.size();
+                            for d in Dir2::ALL {
+                                column(
+                                    painter,
+                                    corner,
+                                    stand_height - 2,
+                                    Fill::Block(Block::air(SpriteKind::FencePost)),
+                                );
+
+                                column(
+                                    painter,
+                                    corner - Vec3::unit_z(),
+                                    1,
+                                    Fill::Block(Block::new(BlockKind::Wood, Rgb::new(115, 69, 44))),
+                                );
+                                corner += d.scale(size - 1);
+                            }
+                        }
+
+                        // Corner
+                        let c_back_1 = facing
+                            .opposite()
+                            .select_aabr_with(aabr, facing.rotated_cw().select_aabr(aabr));
+                        let c_back_2 = facing
+                            .opposite()
+                            .select_aabr_with(aabr, facing.rotated_ccw().select_aabr(aabr));
+                        let c_front_1 =
+                            facing.select_aabr_with(aabr, facing.rotated_cw().select_aabr(aabr));
+                        let c_front_2 =
+                            facing.select_aabr_with(aabr, facing.rotated_ccw().select_aabr(aabr));
+
+                        // Backwall
+                        painter
+                            .aabb(
+                                Aabb {
+                                    min: c_back_1.with_z(alt + 1),
+                                    max: (c_back_2 - facing.opposite().scale(1))
+                                        .with_z(alt + stand_height + 1),
+                                }
+                                .made_valid(),
+                            )
+                            .fill(Fill::Block(Block::new(
+                                BlockKind::Wood,
+                                Rgb::new(115, 69, 44),
+                            )));
+
+                        let make_strip = |side: i32, forward: i32, z_off: i32| {
+                            let c_front_1 = c_front_1 + facing.rotated_cw().scale(1);
+                            let c_front_2 = c_front_2 + facing.rotated_ccw().scale(1);
+                            painter
+                                .aabb(
+                                    Aabb {
+                                        min: (c_front_1 + facing.opposite().scale(forward))
+                                            .with_z(alt + stand_height + z_off),
+                                        max: (c_front_1
+                                            + facing.rotated_ccw().scale(side)
+                                            + facing.opposite().scale(forward + 1))
+                                        .with_z(alt + stand_height + z_off + 1),
+                                    }
+                                    .made_valid(),
+                                )
+                                .fill(roof.clone());
+                            painter
+                                .aabb(
+                                    Aabb {
+                                        min: (c_front_2 + facing.opposite().scale(forward))
+                                            .with_z(alt + stand_height + z_off),
+                                        max: (c_front_2
+                                            + facing.rotated_cw().scale(side)
+                                            + facing.opposite().scale(forward + 1))
+                                        .with_z(alt + stand_height + z_off + 1),
+                                    }
+                                    .made_valid(),
+                                )
+                                .fill(roof.clone());
+                            painter
+                                .aabb(
+                                    Aabb {
+                                        min: (c_front_1
+                                            + facing.opposite().scale(forward)
+                                            + facing.rotated_ccw().scale(side))
+                                        .with_z(alt + stand_height + z_off + 1),
+                                        max: (c_front_2
+                                            + facing.rotated_cw().scale(side)
+                                            + facing.opposite().scale(forward + 1))
+                                        .with_z(alt + stand_height + z_off + 2),
+                                    }
+                                    .made_valid(),
+                                )
+                                .fill(roof.clone());
+                        };
+
+                        let aabr_one = shrink_aabr(aabr, -1);
+                        let width = facing.select(aabr_one.size());
+
+                        make_strip(3, -1, 0);
+                        make_strip(2, 0, 0);
+                        make_strip(2, 1, 1);
+                        if width == 6 {
+                            make_strip(2, 2, 1);
+                            make_strip(2, 3, 0);
+                            make_strip(3, 4, 0);
+                        }
+                        if width == 7 {
+                            make_strip(1, 2, 1);
+                            make_strip(2, 3, 1);
+                            make_strip(2, 4, 0);
+                            make_strip(3, 5, 0);
+                        }
+                        if width == 8 {
+                            make_strip(1, 2, 1);
+                            make_strip(1, 3, 1);
+                            make_strip(2, 4, 1);
+                            make_strip(2, 5, 0);
+                            make_strip(3, 6, 0);
+                        }
+                    }
+                },
+            }
+        }
     }
 
     fn rel_terrain_offset(&self, col: &ColumnSample) -> i32 { col.riverless_alt as i32 }
@@ -193,4 +849,134 @@ impl Structure for Plaza {
             None
         }
     }
+}
+
+fn shrink_aabr(aabr: Aabr<i32>, shrink: impl Into<Vec2<i32>>) -> Aabr<i32> {
+    let shrink = shrink.into();
+    Aabr {
+        min: aabr.min + shrink,
+        max: aabr.max - shrink,
+    }
+}
+
+fn column(painter: &Painter, pos: Vec3<i32>, height: i32, fill: Fill) {
+    painter
+        .aabb(Aabb {
+            min: pos,
+            max: pos + Vec2::one() + Vec3::unit_z() * height,
+        })
+        .fill(fill.clone());
+}
+
+fn aabr_corners(aabr: Aabr<i32>) -> [Vec2<i32>; 4] {
+    let size = aabr.size();
+    core::array::from_fn(|i| {
+        let mut corner = aabr.min;
+        for t in 0..i {
+            let dir = Dir2::ALL[t];
+            corner += dir.scale(size - 1);
+        }
+        corner
+    })
+}
+
+fn paint_gazebo(
+    painter: &Painter,
+    aabr: Aabr<i32>,
+    alt: i32,
+    height: i32,
+    wood: Fill,
+    dark_wood: Fill,
+    roof: GazeboRoofKind,
+    roof_color: Rgb<u8>,
+) {
+    painter
+        .aabb(aabr_with_z(aabr, alt..alt + 2))
+        .fill(wood.clone());
+    let aabr = shrink_aabr(aabr, 1);
+    let size = aabr.size();
+    let roof_fill = Fill::Brick(BlockKind::Wood, roof_color, 8);
+    match roof {
+        GazeboRoofKind::Gable => {
+            let gable_height = 3;
+            let gable_inset = 5;
+            let gable_dir = Dir2::from_vec2(size);
+            let gable_aabb = aabr_with_z(
+                shrink_aabr(aabr, -1),
+                alt + height + 3..alt + height + 4 + gable_height,
+            );
+            let gable_aabb_prim = painter.aabb(gable_aabb);
+            let gable = painter.gable(gable_aabb, gable_inset, gable_dir);
+            gable.fill(roof_fill.clone());
+
+            let gable_clear = painter
+                .gable(
+                    aabr_with_z(
+                        Aabr {
+                            min: aabr.min,
+                            max: aabr.min + gable_dir.rotated_cw().scale(size) - gable_dir.scale(2),
+                        },
+                        alt + height + 2..alt + height + 3 + gable_height,
+                    ),
+                    gable_inset,
+                    gable_dir,
+                )
+                .intersect(gable_aabb_prim);
+            // Gable lower clear
+            gable.translate(Vec3::unit_z() * -2).clear();
+            gable_clear.clear();
+            gable_clear
+                .translate(gable_dir.scale(size + 1).with_z(0))
+                .clear();
+        },
+        GazeboRoofKind::Pyramid => {
+            let pyramid_height = 3;
+            let pyramid_aabb = aabr_with_z(
+                shrink_aabr(aabr, -1),
+                alt + height + 3..alt + height + 4 + pyramid_height,
+            );
+            painter.pyramid(pyramid_aabb).fill(roof_fill.clone());
+            painter
+                .aabb(aabr_with_z(
+                    shrink_aabr(aabr, 2),
+                    alt + height + 3..alt + height + 4,
+                ))
+                .clear();
+            painter
+                .aabb(aabr_with_z(
+                    shrink_aabr(aabr, 3),
+                    alt + height + 4..alt + height + 5,
+                ))
+                .clear();
+        },
+    }
+    for corner in aabr_corners(aabr) {
+        column(
+            painter,
+            corner.with_z(alt + 2),
+            height + 1,
+            dark_wood.clone(),
+        );
+    }
+    for corner in aabr_corners(shrink_aabr(aabr, -1)) {
+        single_block(
+            painter,
+            corner.with_z(alt + height + 2),
+            Block::air(SpriteKind::Lantern),
+        );
+    }
+}
+
+fn paint_tree(painter: &Painter, pos: Vec3<i32>) {
+    lazy_static! {
+        static ref FRUIT_TREES: AssetHandle<StructuresGroup> =
+            common::terrain::Structure::load_group("trees.fruit_trees");
+    }
+    let rng = RandomField::new(13579).get(pos) % 10;
+    let fruits = FRUIT_TREES.read();
+    let fruit = fruits[rng as usize % fruits.len()].clone();
+    painter
+        .prim(Primitive::Prefab(Box::new(fruit.clone())))
+        .translate(pos)
+        .fill(Fill::Prefab(Box::new(fruit), pos, rng));
 }
