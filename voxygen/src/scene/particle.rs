@@ -265,7 +265,7 @@ impl ParticleMgr {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
                     Particle::new(
-                        Duration::from_millis(200),
+                            Duration::from_millis(rng.random_range(1500..2000)),
                         time,
                         ParticleMode::Shrapnel,
                         pos.map(|e| e as f32 + 0.5),
@@ -280,7 +280,7 @@ impl ParticleMgr {
                     self.particles.len() + if *stage_changed { 30 } else { 10 },
                     || {
                         Particle::new(
-                            Duration::from_millis(if *stage_changed { 200 } else { 100 }),
+                            Duration::from_millis(rng.random_range(1000..1500)),
                             time,
                             ParticleMode::Shrapnel,
                             pos.map(|e| e as f32 + 0.5),

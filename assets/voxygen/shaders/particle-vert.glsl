@@ -146,6 +146,10 @@ vec3 linear_motion(vec3 init_offs, vec3 vel) {
     return init_offs + vel * lifetime();
 }
 
+vec3 on_floor(float z, vec3 pos) {
+    return vec3(pos.xy, max(pos.z, z));
+}
+
 vec3 quadratic_bezier_motion(vec3 start, vec3 ctrl0, vec3 end) {
     float t = lifetime();
     float u = 1 - lifetime();
@@ -348,14 +352,16 @@ void main() {
             );
             break;
         case SHRAPNEL:
+            vec2 vel = vec2(rand4, rand5);
+            float momentum = 1.0 - 1.0 / (1 + lifetime() * 5.0);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand4, rand5, rand6)) * 20.0 + grav_vel(earth_gravity)
+                vec3(
+                    vel * momentum,
+                    on_floor(-0.4, linear_motion(vec3(0), vec3(vec2(0), 5.0 + rand6) + grav_vel(earth_gravity))).z
                 ),
-                vec3(1),
-                vec4(vec3(0.25), 1),
-                spin_in_axis(vec3(1,0,0),0)
+                vec3(1.5 + rand1 * 0.25) * (1.0 - slow_start(0.025)),
+                vec4(mix(vec3(0.2, 0.1, 0.1), vec3(0.15, 0.1, 0.07), abs(rand2)), 1),
+                spin_in_axis(vec3(vel.yx * vec2(-1, 1),0), momentum * (10.0 + rand5 * 5.0))
             );
             break;
         case BIG_SHRAPNEL:
