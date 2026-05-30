@@ -133,6 +133,9 @@ pub struct Scene {
     last_lightning: Option<(Vec3<f32>, f64)>,
     local_time: f64,
 
+    pub screen_fade: f32,
+    pub screen_fade_tgt: f32,
+
     pub debug_vectors_enabled: bool,
 }
 
@@ -372,6 +375,9 @@ impl Scene {
             interpolated_time_of_day: None,
             last_lightning: None,
             local_time: 0.0,
+            // Keep the screen entirely black for a while, to give the scene time to sort itself out
+            screen_fade: -0.5,
+            screen_fade_tgt: 1.0,
             debug_vectors_enabled: false,
         }
     }
@@ -728,7 +734,17 @@ impl Scene {
             },
             CameraMode::ThirdPerson => {
                 let viewpoint_pos = entity_pos;
-                self.camera.set_focus_pos(viewpoint_pos + viewpoint_offset);
+                if let Some(health) = ecs
+                    .read_storage::<comp::Health>()
+                    .get(scene_data.viewpoint_entity)
+                    && health.is_dead
+                {
+                    // When dead, fade the screen to black
+                    self.camera.reset_focus();
+                } else {
+                    self.screen_fade_tgt = 1.0;
+                    self.camera.set_focus_pos(viewpoint_pos + viewpoint_offset)
+                };
                 viewpoint_pos
             },
             CameraMode::Freefly => entity_pos,
@@ -929,6 +945,13 @@ impl Scene {
         let focus_pos = self.camera.get_focus_pos();
         let focus_off = focus_pos.map(|e| e.trunc());
 
+        let step = 0.5 * dt;
+        self.screen_fade = if step > (self.screen_fade - self.screen_fade_tgt).abs() {
+            self.screen_fade_tgt
+        } else {
+            self.screen_fade + (self.screen_fade_tgt - self.screen_fade).signum() * step
+        };
+
         let player_dir = client
             .state()
             .ecs()
@@ -983,6 +1006,7 @@ impl Scene {
             self.camera.get_mode(),
             scene_data.sprite_render_distance - 20.0,
             player_mmap_ori,
+            self.screen_fade,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));

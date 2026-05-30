@@ -32,7 +32,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     uint cam_mode;
     float sprite_render_distance;
     float u_rotation;
-    float globals_dummy; // Fix alignment.
+    float screen_fade;
 };
 
 float distance_divider = 2.0;

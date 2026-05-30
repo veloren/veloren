@@ -398,6 +398,6 @@ void main() {
         final_color.rgb = hsv2rgb(rgb2hsv(final_color.rgb) * vec3(1, 1, 1.3) + vec3(-0.01, 0.05, 0));
     #endif
 
-    tgt_color = vec4(final_color.rgb, 1);
+    tgt_color = vec4(final_color.rgb * screen_fade, 1);
 #endif
 }
