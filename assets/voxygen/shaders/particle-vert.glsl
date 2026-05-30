@@ -378,74 +378,62 @@ void main() {
             break;
         case FIREWORK_BLUE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(0, 0, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.2, 0.2, 1), vec3(0, 0.3, 0.2), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_GREEN:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(0, 2, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.2, 1, 0.2), vec3(0.4, 0.3, 0), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_PURPLE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 0, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.5, 0.2, 1), vec3(0.2, 0.0, 0.1), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_RED:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 0, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(1, 0.2, 0.2), vec3(0.4, 0.25, 0), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_WHITE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 2, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.7), vec3(0.1, 0.15, 0.2), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_YELLOW:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 2, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(1, 0.8, 0), vec3(0.3, 0.1, 0.1), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case LEAF:

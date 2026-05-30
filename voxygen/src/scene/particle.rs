@@ -225,7 +225,11 @@ impl ParticleMgr {
                         self.particles.len() + if reagent.is_some() { 300 } else { 150 },
                         || {
                             Particle::new(
-                                Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                                Duration::from_millis(if reagent.is_some() {
+                                    rng.random_range(3000..5000)
+                                } else {
+                                    rng.random_range(1000..2500)
+                                }),
                                 time,
                                 match reagent {
                                     Some(Reagent::Blue) => ParticleMode::FireworkBlue,
@@ -265,7 +269,7 @@ impl ParticleMgr {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
                     Particle::new(
-                            Duration::from_millis(rng.random_range(1500..2000)),
+                        Duration::from_millis(rng.random_range(1500..2000)),
                         time,
                         ParticleMode::Shrapnel,
                         pos.map(|e| e as f32 + 0.5),
