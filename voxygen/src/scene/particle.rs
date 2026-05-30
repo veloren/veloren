@@ -1588,6 +1588,43 @@ impl ParticleMgr {
         )
             .join()
         {
+            // Footsteps
+            if let Some(block) = physics.on_ground
+                && let Some(color) = block.get_color()
+                && let Some(vel) = vel
+                && (vel.0 - physics.ground_vel).xy().magnitude_squared() > 30.0
+                && matches!(body, Body::Humanoid(_))
+                && let Some(state) = figure_mgr.states.character_states.get(&entity)
+            {
+                for foot in [
+                    state.computed_skeleton.foot_l,
+                    state.computed_skeleton.foot_r,
+                ] {
+                    // This offset check is a huge hack and probably doesn't work well at very low
+                    // framerates. Unfortunately, there's not really a better way to do this today,
+                    // because animations have no way to emit events.
+                    if foot.mul_point(Vec3::zero()).z < 0.2 {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(35))),
+                            || {
+                                Particle::new_colored(
+                                    Duration::from_millis(750),
+                                    time,
+                                    ParticleMode::Dust,
+                                    state
+                                        .wpos_of(foot.mul_point(Vec3::zero()))
+                                        .with_z(interpolated.pos.z)
+                                        - vel.0 * dt * rng.random::<f32>(),
+                                    color.as_() * (1.0 / 255.0),
+                                    scene_data,
+                                )
+                            },
+                        );
+                    }
+                }
+            }
+
             match character_state {
                 CharacterState::Boost(_) => {
                     self.particles.resize_with(
@@ -4700,6 +4737,27 @@ impl Particle {
                 mode,
                 pos1,
                 pos2,
+                scene_data.wind_vel,
+            ),
+        }
+    }
+
+    fn new_colored(
+        lifespan: Duration,
+        time: f64,
+        mode: ParticleMode,
+        pos: Vec3<f32>,
+        col: Rgb<f32>,
+        scene_data: &SceneData,
+    ) -> Self {
+        Particle {
+            alive_until: time + lifespan.as_secs_f64(),
+            instance: ParticleInstance::new_colored(
+                time,
+                lifespan.as_secs_f32(),
+                mode,
+                pos,
+                col,
                 scene_data.wind_vel,
             ),
         }

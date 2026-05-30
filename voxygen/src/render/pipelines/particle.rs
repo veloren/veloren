@@ -131,6 +131,7 @@ pub enum ParticleMode {
     ElectricSparks = 78,
     FlamethrowerBlue = 79,
     FlameCloakOrbit = 80,
+    Dust = 81,
 }
 
 impl ParticleMode {
@@ -155,8 +156,8 @@ pub struct Instance {
     // can save 32 bits per instance, and have cleaner tailor made code.
     inst_mode: i32,
 
-    // A direction for particles to move in
-    inst_dir: [f32; 3],
+    // A direction for particles to move in. Alternatively, a color.
+    inst_dir_color: [f32; 3],
 
     // a triangle is: f32 x 3 x 3 x 1  = 288 bits
     // a quad is:     f32 x 3 x 3 x 2  = 576 bits
@@ -189,7 +190,7 @@ impl Instance {
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
-            inst_dir: [0.0, 0.0, 0.0],
+            inst_dir_color: [0.0, 0.0, 0.0],
         }
     }
 
@@ -209,7 +210,27 @@ impl Instance {
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
-            inst_dir: (inst_pos2 - inst_pos).into_array(),
+            inst_dir_color: (inst_pos2 - inst_pos).into_array(),
+        }
+    }
+
+    pub fn new_colored(
+        inst_time: f64,
+        lifespan: f32,
+        inst_mode: ParticleMode,
+        inst_pos: Vec3<f32>,
+        col: Rgb<f32>,
+        inst_start_wind_vel: Vec2<f32>,
+    ) -> Self {
+        use rand::RngExt;
+        Self {
+            inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
+            inst_lifespan: lifespan,
+            inst_entropy: rand::rng().random(),
+            inst_mode: inst_mode as i32,
+            inst_pos: inst_pos.into_array(),
+            inst_start_wind_vel: inst_start_wind_vel.into_array(),
+            inst_dir_color: col.into_array(),
         }
     }
 

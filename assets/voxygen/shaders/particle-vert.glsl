@@ -119,6 +119,7 @@ const int ELEPHANT_VACUUM = 77;
 const int ELECTRIC_SPARKS = 78;
 const int FLAMETHROWER_BLUE = 79;
 const int FLAME_CLOAK_ORBIT = 80;
+const int DUST = 81;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -148,7 +149,7 @@ vec3 linear_motion(vec3 init_offs, vec3 vel) {
 
 vec3 on_floor(float z, float bounce, vec3 pos) {
     if (pos.z < z) {
-        return vec3(pos.xy, z + abs(sin(z - pos.z) * bounce) / -pos.z);
+        return vec3(pos.xy, z + abs(sin(z - pos.z)) * bounce / (1.0 + z - pos.z));
     } else {
         return pos;
     }
@@ -1292,6 +1293,19 @@ void main() {
                 vec3(1.8 * (1.0 - slow_start(0.15)) * slow_end(0.15)),
                 vec4(5.0 + rand5 * 0.5, 2.5 - 1.5 * percent(), 0.3, 0.65),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 6.0 + rand9 * 2.0)
+            );
+            break;
+        case DUST:
+            vel = vec2(rand4, rand5);
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 1.0);
+            attr = Attr(
+                vec3(
+                    vel * 0.2 + vel * momentum,
+                    on_floor(0.1, 0.25, linear_motion(vec3(0), vec3(vec2(0), 3.0 + rand6) + grav_vel(earth_gravity))).z
+                ),
+                vec3(1.0 - slow_start(0.05)) * 1.5,
+                vec4(srgb_to_linear(inst_dir) * (1.0 + rand2 * 0.35), 1),
+                spin_in_axis(vec3(1,0,1), percent() * 3.0 + rand5 * 25.0)
             );
             break;
         default:
