@@ -99,6 +99,13 @@ impl Fluid {
 
     pub fn is_liquid(&self) -> bool { matches!(self, Fluid::Liquid { .. }) }
 
+    pub fn is_water(&self) -> bool {
+        matches!(self, Fluid::Liquid {
+            kind: LiquidKind::Water,
+            ..
+        })
+    }
+
     pub fn elevation(&self) -> Option<f32> {
         match self {
             Fluid::Air { elevation, .. } => Some(*elevation),

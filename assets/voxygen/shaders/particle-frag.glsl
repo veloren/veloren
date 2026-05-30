@@ -111,7 +111,7 @@ void main() {
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light * f_reflect);
 
     // Temporarily disable particle transparency to avoid artifacts
-    tgt_color = vec4(surf_color, 1.0 /*f_col.a*/);
+    tgt_color = vec4(surf_color, f_col.a);
 
     uint material = MAT_BLOCK;
 

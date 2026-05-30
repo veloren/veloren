@@ -1625,6 +1625,40 @@ impl ParticleMgr {
                 }
             }
 
+            // Bubbles when swimming
+            if let Some(fluid) = physics.in_fluid
+                && fluid.is_water()
+                && let Some(vel) = vel
+                && fluid.relative_flow(vel).0.magnitude_squared() > 10.0
+                && matches!(body, Body::Humanoid(_))
+                && let Some(state) = figure_mgr.states.character_states.get(&entity)
+            {
+                for hand in [
+                    state.computed_skeleton.hand_l,
+                    state.computed_skeleton.hand_r,
+                ] {
+                    // This offset check is a huge hack and probably doesn't work well at very low
+                    // framerates. Unfortunately, there's not really a better way to do this today,
+                    // because animations have no way to emit events.
+                    if hand.mul_direction(Vec3::unit_z()).z < 0.0 {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(35))),
+                            || {
+                                Particle::new(
+                                    Duration::from_millis(350),
+                                    time,
+                                    ParticleMode::Bubble,
+                                    state.wpos_of(hand.mul_point(Vec3::zero()))
+                                        - vel.0 * dt * rng.random::<f32>(),
+                                    scene_data,
+                                )
+                            },
+                        );
+                    }
+                }
+            }
+
             match character_state {
                 CharacterState::Boost(_) => {
                     self.particles.resize_with(
