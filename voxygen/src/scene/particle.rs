@@ -3358,7 +3358,7 @@ impl ParticleMgr {
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.cave_roof),
                 range: 4,
-                rate: 0.05,
+                rate: 0.025,
                 lifetime: 30.0,
                 mode: ParticleMode::CaveDust,
                 cond: |_| true,

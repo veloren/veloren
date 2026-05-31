@@ -127,7 +127,7 @@ impl BlocksOfInterest {
                 {
                     water.push(pos)
                 },
-                BlockKind::Rock
+                BlockKind::Rock | BlockKind::Sand
                     if rng.random_range(0..4) == 0
                         && chunk
                             .get(pos - Vec3::unit_z())
