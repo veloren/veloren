@@ -1643,9 +1643,7 @@ impl ParticleMgr {
                     if hand.mul_direction(Vec3::unit_z()).z < 0.0 {
                         self.particles.resize_with(
                             self.particles.len()
-                                + usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(150)),
-                                ),
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(90))),
                             || {
                                 Particle::new(
                                     Duration::from_secs(1),
@@ -3347,6 +3345,22 @@ impl ParticleMgr {
                 rate: 0.0125,
                 lifetime: 30.0,
                 mode: ParticleMode::Leaf,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::Positions(&boi.water),
+                range: 4,
+                rate: 0.01,
+                lifetime: 30.0,
+                mode: ParticleMode::Bubble,
+                cond: |_| true,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::Positions(&boi.cave_roof),
+                range: 4,
+                rate: 0.05,
+                lifetime: 30.0,
+                mode: ParticleMode::CaveDust,
                 cond: |_| true,
             },
             BlockParticles {

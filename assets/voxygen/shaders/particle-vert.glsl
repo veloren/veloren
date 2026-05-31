@@ -120,6 +120,7 @@ const int ELECTRIC_SPARKS = 78;
 const int FLAMETHROWER_BLUE = 79;
 const int FLAME_CLOAK_ORBIT = 80;
 const int DUST = 81;
+const int CAVE_DUST = 82;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1078,7 +1079,7 @@ void main() {
             );
             break;
         case SPORE:
-            f_reflect = 0.0;
+            f_reflect = 1.0;
             attr = Attr(
                 linear_motion(
                     vec3(0),
@@ -1240,14 +1241,14 @@ void main() {
             );
             break;
         case BUBBLE:
-            f_reflect = 0.0;
+            f_reflect = 1.0;
             attr = Attr(
                 linear_motion(
                     vec3(0),
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
                 ),
-                vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
-                vec4(mix(vec3(0.7), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
+                vec3(1.0 - slow_start(0.1)) * 1.5 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
+                vec4(mix(vec3(0.4, 0.7, 0.8), vec3(0.2, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
             break;
@@ -1306,6 +1307,20 @@ void main() {
                 vec3(1.0 - slow_start(0.05)) * 1.5,
                 vec4(srgb_to_linear(inst_dir) * (1.0 + rand2 * 0.35), 1),
                 spin_in_axis(vec3(1,0,1), percent() * 3.0 + rand5 * 25.0)
+            );
+            break;
+        case CAVE_DUST:
+            vel = vec2(rand4, rand5);
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 1.0);
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(0, 0, -1)
+                )
+                    + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 0.5,
+                vec3(1.0 - slow_start(0.05)),
+                vec4(0.6, 0.7, 1.0, 1),
+                spin_in_axis(vec3(1,1,1), lifetime() * 2.0)
             );
             break;
         default:

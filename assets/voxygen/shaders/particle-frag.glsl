@@ -80,7 +80,7 @@ void main() {
     // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
     // they're exposed to the sun when in dungeons
     const float LIGHT_FADEOUT_OFFSET = 16.0;
-    const float LIGHT_FADEOUT_DIST = 48.0;
+    const float LIGHT_FADEOUT_DIST = 32.0;
     sun_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
     moon_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
 

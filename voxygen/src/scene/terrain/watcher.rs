@@ -38,6 +38,7 @@ impl SmokerProperties {
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub water: Vec<Vec3<i32>>,
+    pub cave_roof: Vec<Vec3<i32>>,
     pub drip: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub slow_river: Vec<Vec3<i32>>,
@@ -79,6 +80,7 @@ impl BlocksOfInterest {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
         let mut water = Vec::new();
+        let mut cave_roof = Vec::new();
         let mut drip = Vec::new();
         let mut grass = Vec::new();
         let mut slow_river = Vec::new();
@@ -125,7 +127,14 @@ impl BlocksOfInterest {
                 {
                     water.push(pos)
                 },
-
+                BlockKind::Rock
+                    if rng.random_range(0..4) == 0
+                        && chunk
+                            .get(pos - Vec3::unit_z())
+                            .map_or(true, |b| !b.is_filled()) =>
+                {
+                    cave_roof.push(pos)
+                },
                 BlockKind::WeakRock if rng.random_range(0..6) == 0 => drip.push(pos),
                 BlockKind::Grass => {
                     if rng.random_range(0..16) == 0 {
@@ -305,6 +314,7 @@ impl BlocksOfInterest {
         Self {
             leaves,
             water,
+            cave_roof,
             drip,
             grass,
             slow_river,
