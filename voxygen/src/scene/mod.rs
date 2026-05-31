@@ -519,14 +519,14 @@ impl Scene {
                     },
                     power
                         * if *is_attack || reagent.is_none() {
-                            2.5
+                            25.0
                         } else {
-                            5.0
+                            100.0
                         },
                 ),
                 timeout: match reagent {
-                    Some(_) => 1.0,
-                    None => 0.5,
+                    Some(_) => 0.8,
+                    None => 0.25,
                 },
                 fadeout: |timeout| timeout * 2.0,
             }),

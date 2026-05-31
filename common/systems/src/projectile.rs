@@ -491,7 +491,7 @@ impl<'a> System<'a> for Sys {
                                             RadiusEffect::Entity(effect::Effect::Poise(-40.0)),
                                             RadiusEffect::TerrainDestruction(4.0, Rgb::black()),
                                         ],
-                                        radius: 12.0,
+                                        radius: 25.0,
                                         reagent: Some(reagent),
                                         min_falloff: 0.0,
                                     },

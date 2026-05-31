@@ -52,10 +52,6 @@ impl Animation for SwimWieldAnimation {
         let foothoril = (anim_time * 6.0 * lab + PI * 1.45).sin();
         let foothorir = (anim_time * 6.0 * lab + PI * (0.45)).sin();
         let u_slowalt = (anim_time * 3.0 + PI).cos();
-        let short = ((5.0 / (1.5 + 3.5 * ((anim_time * lab * 16.0).sin()).powi(2))).sqrt())
-            * ((anim_time * lab * 16.0).sin());
-        let noisea = (anim_time * 11.0 + PI / 6.0).sin();
-        let noiseb = (anim_time * 19.0 + PI / 4.0).sin();
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,

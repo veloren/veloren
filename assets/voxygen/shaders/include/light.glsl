@@ -151,7 +151,7 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         vec3 difference = light_pos - wpos;
         float distance_2 = dot(difference, difference);
 
-        if (distance_2 > 10000.0) {
+        if (distance_2 > 100000.0) {
             continue;
         }
         
