@@ -1247,7 +1247,7 @@ void main() {
                     vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
                 ),
                 vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
-                vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.75, 1.0), abs(rand3)) * 2, 0.1),
+                vec4(mix(vec3(0.7), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );
             break;

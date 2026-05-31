@@ -1643,10 +1643,12 @@ impl ParticleMgr {
                     if hand.mul_direction(Vec3::unit_z()).z < 0.0 {
                         self.particles.resize_with(
                             self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(35))),
+                                + usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(150)),
+                                ),
                             || {
                                 Particle::new(
-                                    Duration::from_millis(350),
+                                    Duration::from_secs(1),
                                     time,
                                     ParticleMode::Bubble,
                                     state.wpos_of(hand.mul_point(Vec3::zero()))

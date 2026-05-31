@@ -49,15 +49,15 @@ impl Animation for SwimAnimation {
 
         let speed = velocity.magnitude();
         *rate = 1.0 + speed * 0.3;
-        let tempo = 0.35 / s_a.scaler;
+        let tempo = 0.4 / s_a.scaler;
         let intensity = 1.0;
 
         let lab: f32 = 1.0 * tempo;
 
         let short = (anim_time * lab * 6.0 + PI * 0.9).sin();
 
-        let foot = (anim_time * lab * 6.0 + PI * -0.1).sin();
-        let foot2 = (anim_time * lab * 6.0 + PI * -1.6).sin();
+        let foot = (anim_time * lab * 4.0 + PI * -0.1).sin();
+        let foot2 = (anim_time * lab * 4.0 + PI * -1.6).sin();
 
         let footrotl = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
@@ -111,7 +111,7 @@ impl Animation for SwimAnimation {
             s_a.head.1 + short * 0.2 - foot * 0.2,
         );
         next.head.orientation =
-            Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity + tilt * 3.0)
+            Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity - tilt * 2.0)
                 * Quaternion::rotation_x(
                     (0.4 * head_look.y * (1.0 / intensity)).abs()
                         + 0.25 * intensity
