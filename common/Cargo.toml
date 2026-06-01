@@ -61,6 +61,7 @@ uuid = { version = "1.4.1", default-features = false, features = [
 ] }
 rand = { workspace = true }
 fxhash = { workspace = true }
+thread-priority = { workspace = true }
 
 # Assets
 common-assets = { package = "veloren-common-assets", path = "assets" }

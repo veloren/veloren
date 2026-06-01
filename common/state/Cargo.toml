@@ -46,6 +46,7 @@ async-trait = { workspace = true }
 futures = "0.3.30"
 sha2 = { workspace = true, optional = true }
 hex = { workspace = true, optional = true }
+thread-priority = { workspace = true }
 
 # Tweak running code
 #inline_tweak = { version = "1.0.8", features = ["release_tweak"] }

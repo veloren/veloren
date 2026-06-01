@@ -137,16 +137,53 @@ pub type Pools = Arc<ThreadPool>;
 
 impl State {
     pub fn pools(game_mode: GameMode) -> Pools {
-        let thread_name_infix = match game_mode {
-            GameMode::Server => "s",
-            GameMode::Client => "c",
-            GameMode::Singleplayer => "sp",
+        let (thread_name_infix, is_main_task) = match game_mode {
+            GameMode::Server => ("s", true),
+            GameMode::Client => ("c", true),
+            GameMode::Singleplayer => ("sp", false),
+        };
+
+        let set_priority = move || {
+            use thread_priority::*;
+            let (priority, schedule_policy) = if is_main_task {
+                // These threads are critical for the main tick loop, so need a higher priority
+                (
+                    ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap()),
+                    ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                )
+            } else {
+                (
+                    ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap()),
+                    ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                )
+            };
+            if let Err(err) =
+                std::thread::current().set_priority_and_policy(schedule_policy, priority)
+            {
+                tracing::warn!(
+                    "Unable to set priority/schedule policy for dispatcher pool thread: {err}"
+                );
+            }
         };
 
         Arc::new(
             ThreadPoolBuilder::new()
                 .num_threads(num_cpus::get().max(common::consts::MIN_RECOMMENDED_RAYON_THREADS))
                 .thread_name(move |i| format!("rayon-{}-{}", thread_name_infix, i))
+                .spawn_handler(|thread| {
+                    let mut b = std::thread::Builder::new();
+                    if let Some(name) = thread.name() {
+                        b = b.name(name.to_owned());
+                    }
+                    if let Some(stack_size) = thread.stack_size() {
+                        b = b.stack_size(stack_size);
+                    }
+                    b.spawn(move || {
+                        set_priority();
+                        thread.run()
+                    })?;
+                    Ok(())
+                })
                 .build()
                 .unwrap(),
         )
