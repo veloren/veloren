@@ -1721,6 +1721,7 @@ impl PlayState for SessionState {
                 DebugInfo {
                     tps: global_state.clock.stats().average_tps,
                     frame_time: global_state.clock.stats().average_busy_dt,
+                    frame_variance: global_state.clock.stats().average_variance,
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates,
                     velocity,

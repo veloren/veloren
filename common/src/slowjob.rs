@@ -144,7 +144,7 @@ impl InternalSlowJobPool {
                         use thread_priority::*;
                         if let Err(err) = std::thread::current().set_priority_and_policy(
                             ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
-                            ThreadPriority::Min,
+                            ThreadPriority::Crossplatform(TryFrom::try_from(15).unwrap()),
                         ) {
                             tracing::warn!(
                                 "Unable to set priority/schedule policy for slow job pool thread: \
