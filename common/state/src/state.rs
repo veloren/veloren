@@ -149,12 +149,12 @@ impl State {
                 // These threads are critical for the main tick loop, so need a higher priority
                 (
                     ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap()),
-                    ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
                 )
             } else {
                 (
-                    ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap()),
-                    ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                    ThreadPriority::Min,
+                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
                 )
             };
             if let Err(err) =

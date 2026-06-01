@@ -7,7 +7,7 @@ use crate::{
 };
 use common_base::{prof_span, span};
 use std::{mem, time::Duration};
-use tracing::{debug, warn};
+use tracing::debug;
 use winit::event_loop::ActiveEventLoop;
 
 pub fn run(
@@ -21,20 +21,6 @@ pub fn run(
         let current_state = current_state.name();
         debug!(?current_state, "Started game with state");
     });
-
-    // Give the main thread realtime priority to minimise stuttering. Note that the
-    // values we set here are vague estimates. We may wish to tune them further
-    // in the future to account for things like target framerate.
-    if let Err(err) = (thread_priority::ThreadPriority::Deadline {
-        runtime: Duration::from_millis(1000 / 60),
-        deadline: Duration::from_millis(1000 / 60),
-        period: Duration::from_millis(1000 / 60),
-        flags: Default::default(),
-    })
-    .set_for_current()
-    {
-        warn!("Unable to set priority for main thread: {err}");
-    }
 
     // Used to ignore every other `MainEventsCleared`
     // This is a workaround for a bug on macos in which mouse motion events are only

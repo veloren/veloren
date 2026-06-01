@@ -140,7 +140,6 @@ itertools = { workspace = true }
 sha2 = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
 open = "5.3.2"
-thread-priority = { workspace = true }
 
 # Discord RPC
 discord-sdk = { version = "0.4", optional = true }

@@ -9064,7 +9064,6 @@ dependencies = [
  "slab",
  "specs",
  "strum",
- "thread-priority",
  "tokio",
  "tracing",
  "treeculler",
