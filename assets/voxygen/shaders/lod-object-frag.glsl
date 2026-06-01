@@ -71,21 +71,15 @@ void main() {
 
     vec3 surf_color = f_col.rgb;
     float alpha = 1.0;
-    const float n2 = 1.5;
-    const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
-    const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
-    const float R_s2s1 = pow(abs((1.0 - 1.3325) / (1.0 + 1.3325)), 2);
-    const float R_s1s2 = pow(abs((1.3325 - 1.0) / (1.3325 + 1.0)), 2);
-    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
-
+    
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
-    vec3 k_s = vec3(R_s);
+    vec3 k_s = vec3(0.5 - abs(view_dir.z) * 0.5);
 
     vec3 voxel_norm = f_norm;
     float my_alt = f_pos.z + focus_off.z;
     float f_ao = 1.0;
-    const float VOXELIZE_DIST = 2000;
+    const float VOXELIZE_DIST = 2500;
     float voxelize_factor = clamp(1.0 - (distance(cam_pos.xy, f_pos.xy) - view_distance.x) * (1.0 / VOXELIZE_DIST), 0, 1.0);
     vec3 cam_dir = cam_to_frag;
     #ifdef EXPERIMENTAL_NOLODVOXELS
