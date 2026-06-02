@@ -8575,9 +8575,9 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         // TODO: compute the mount bone only when it is needed
         self.mount_world_pos = pos_with_mount_offset;
 
-        let smoothing = (5.0 * dt).min(1.0);
+        let smoothing = 0.5f32.powf(*dt);
         if let Some(last_pos) = self.last_pos {
-            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / *dt;
+            self.avg_vel = smoothing * self.avg_vel + (1.0 - smoothing) * (pos - last_pos) / *dt;
         }
         self.last_pos = Some(*pos);
 
