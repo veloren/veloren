@@ -89,7 +89,7 @@ fn main() {
             client.send_chat(msg)
         }
 
-        let events = match client.tick(comp::ControllerInputs::default(), clock.dt()) {
+        let events = match client.tick(comp::ControllerInputs::default(), clock.game_dt()) {
             Ok(events) => events,
             Err(err) => {
                 error!("Error: {:?}", err);

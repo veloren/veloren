@@ -135,7 +135,7 @@ fn run_client(
 
     let mut tick = |client: &mut Client| -> Result<(), veloren_client::Error> {
         clock.tick();
-        client.tick_network(clock.dt())?;
+        client.tick_network(clock.real_dt())?;
         Ok(())
     };
 

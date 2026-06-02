@@ -321,7 +321,7 @@ fn server_loop(
         }
 
         let events = server
-            .tick(Input::default(), clock.dt())
+            .tick(Input::default(), clock.game_dt())
             .expect("Failed to tick server");
 
         for event in events {
