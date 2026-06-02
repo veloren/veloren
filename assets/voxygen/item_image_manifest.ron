@@ -1669,7 +1669,7 @@
     ),
     Simple("common.items.tool.instruments.wildskin_drum"): VoxTrans(
         "voxel.weapon.tool.wildskin_drum",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-135.0, -45.0, 90.0), 1.0,
     ),
     Simple("common.items.tool.instruments.icy_talharpa"): VoxTrans(
         "voxel.weapon.tool.icy_talharpa",
