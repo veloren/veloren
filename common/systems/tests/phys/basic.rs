@@ -80,7 +80,7 @@ fn fall_simple() -> Result<(), Box<dyn Error>> {
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(state.ecs_mut().read_resource::<Time>().0, DT_F64 * 10.0);
     assert_relative_eq!(pos.0.z, 264.8102, epsilon = EPSILON);
-    assert_relative_eq!(vel.0.z, -2.4969761, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.z, -2.4970484, epsilon = EPSILON);
 
     Ok(())
 }
@@ -104,7 +104,7 @@ fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(spos.0.x, 16.0);
     assert_relative_eq!(spos.0.y, 16.0);
     assert_relative_eq!(spos.0.z, 264.86267, epsilon = EPSILON);
-    assert_relative_eq!(svel.0.z, -2.496151, epsilon = EPSILON);
+    assert_relative_eq!(svel.0.z, -2.4964714, epsilon = EPSILON);
     assert_relative_eq!(fpos.0.x, 16.0);
     assert_relative_eq!(fpos.0.y, 16.0);
     assert_relative_eq!(fpos.0.z, 264.75, epsilon = EPSILON);
@@ -164,7 +164,7 @@ fn walk_simple() -> Result<(), Box<dyn Error>> {
     utils::tick(&mut state, DT);
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(pos.0.x, 16.029068, epsilon = EPSILON);
-    assert_relative_eq!(vel.0.x, 1.7296565, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.x, 1.7297322, epsilon = EPSILON);
 
     utils::tick(&mut state, DT);
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
@@ -201,7 +201,7 @@ fn walk_max() -> Result<(), Box<dyn Error>> {
         utils::tick(&mut state, DT);
     }
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
-    assert_relative_eq!(pos.0.x, 68.40794, epsilon = EPSILON);
+    assert_relative_eq!(pos.0.x, 68.514984, epsilon = EPSILON);
     assert_relative_eq!(vel.0.x, 9.695188, epsilon = EPSILON);
     for _ in 0..100 {
         utils::tick(&mut state, DT);
@@ -238,7 +238,7 @@ fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
 
     let (spos, svel, _) = utils::get_transform(&sstate, sp1)?;
     let (fpos, fvel, _) = utils::get_transform(&fstate, fp1)?;
-    assert_relative_eq!(spos.0.x, 16.421423, epsilon = EPSILON);
+    assert_relative_eq!(spos.0.x, 16.42154, epsilon = EPSILON);
     assert_relative_eq!(spos.0.y, 16.0);
     assert_relative_eq!(spos.0.z, 257.0);
     assert_relative_eq!(svel.0.x, 6.071788, epsilon = EPSILON);

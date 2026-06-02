@@ -680,7 +680,7 @@ impl Body {
             },
             Body::Humanoid(humanoid) => {
                 let height = humanoid.height();
-                Vec3::new(height / 1.3, 1.75 / 2.0, height)
+                Vec3::new(height / 1.7, 0.8, height)
             },
             Body::Object(object) => object.dimensions(),
             Body::Item(item) => item.dimensions(),
