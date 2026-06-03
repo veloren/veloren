@@ -25,6 +25,7 @@ layout(location = 1) flat in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
 layout(location = 3) in float f_reflect;
 layout(location = 4) flat in int f_mode;
+layout(location = 5) in vec2 f_voxel_light;
 
 layout(location = 0) out vec4 tgt_color;
 layout(location = 1) out uvec4 tgt_mat;
@@ -81,8 +82,9 @@ void main() {
     // they're exposed to the sun when in dungeons
     const float LIGHT_FADEOUT_OFFSET = 16.0;
     const float LIGHT_FADEOUT_DIST = 32.0;
-    sun_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
-    moon_info.block *= clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1);
+    
+    sun_info.block *= min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
+    moon_info.block *= min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
 
     // To account for prior saturation.
     float max_light = 0.0;
@@ -99,6 +101,8 @@ void main() {
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    
+    reflected_light += pow(f_voxel_light.y, 3.0) * 6.0;
 
     float point_shadow = shadow_at(f_pos, f_norm);
     reflected_light *= point_shadow;

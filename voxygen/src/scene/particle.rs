@@ -1616,9 +1616,13 @@ impl ParticleMgr {
                                         .wpos_of(foot.mul_point(Vec3::zero()))
                                         .with_z(interpolated.pos.z)
                                         - vel.0 * dt * rng.random::<f32>(),
+                                    // To avoid the particle being unduly lit in dark areas, have
+                                    // it take on the voxel
+                                    // lighting conditions of the parent figure.
                                     color.as_() * (1.0 / 255.0),
                                     scene_data,
                                 )
+                                .with_light(state.meta.last_light, state.meta.last_glow.1)
                             },
                         );
                     }
@@ -3322,6 +3326,9 @@ impl ParticleMgr {
             mode: ParticleMode,
             // Condition that must be true
             cond: fn(&SceneData) -> bool,
+            // The amount of sunlight that should be applied to the particles. Particles that spawn
+            // in unlit conditions like caves may wish to use `0.0`.
+            sunlight_level: f32,
         }
 
         enum BlockParticleSlice<'a> {
@@ -3346,6 +3353,7 @@ impl ParticleMgr {
                 lifetime: 30.0,
                 mode: ParticleMode::Leaf,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.water),
@@ -3354,14 +3362,16 @@ impl ParticleMgr {
                 lifetime: 30.0,
                 mode: ParticleMode::Bubble,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.cave_roof),
                 range: 4,
-                rate: 0.025,
+                rate: 0.015,
                 lifetime: 30.0,
                 mode: ParticleMode::CaveDust,
                 cond: |_| true,
+                sunlight_level: 0.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.drip),
@@ -3370,6 +3380,7 @@ impl ParticleMgr {
                 lifetime: 20.0,
                 mode: ParticleMode::Drip,
                 cond: |_| true,
+                sunlight_level: 0.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fires),
@@ -3378,6 +3389,7 @@ impl ParticleMgr {
                 lifetime: 0.5,
                 mode: ParticleMode::CampfireFire,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fire_bowls),
@@ -3386,6 +3398,7 @@ impl ParticleMgr {
                 lifetime: 0.25,
                 mode: ParticleMode::FireBowl,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fireflies),
@@ -3394,6 +3407,7 @@ impl ParticleMgr {
                 lifetime: 40.0,
                 mode: ParticleMode::Firefly,
                 cond: |sd| sd.state.get_day_period().is_dark(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.flowers),
@@ -3402,6 +3416,7 @@ impl ParticleMgr {
                 lifetime: 40.0,
                 mode: ParticleMode::Firefly,
                 cond: |sd| sd.state.get_day_period().is_dark(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.beehives),
@@ -3410,6 +3425,7 @@ impl ParticleMgr {
                 lifetime: 30.0,
                 mode: ParticleMode::Bee,
                 cond: |sd| sd.state.get_day_period().is_light(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.snow),
@@ -3418,6 +3434,7 @@ impl ParticleMgr {
                 lifetime: 15.0,
                 mode: ParticleMode::Snow,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.one_way_walls),
@@ -3426,6 +3443,7 @@ impl ParticleMgr {
                 lifetime: 1.5,
                 mode: ParticleMode::PortalFizz,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.spores),
@@ -3434,6 +3452,7 @@ impl ParticleMgr {
                 lifetime: 20.0,
                 mode: ParticleMode::Spore,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.waterfall),
@@ -3442,6 +3461,7 @@ impl ParticleMgr {
                 lifetime: 5.0,
                 mode: ParticleMode::WaterFoam,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.train_smokes),
@@ -3450,6 +3470,7 @@ impl ParticleMgr {
                 lifetime: 8.0,
                 mode: ParticleMode::TrainSmoke,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
         ];
 
@@ -3488,6 +3509,7 @@ impl ParticleMgr {
                                         block_pos.map(|e: i32| e as f32 + rng.random::<f32>()),
                                         scene_data,
                                     )
+                                    .with_light(particles.sunlight_level, 0.0)
                                 },
                                 BlockParticleSlice::PositionsAndDirs(blocks) => {
                                     // Can't fail, resize only occurs if blocks > 0
@@ -3506,6 +3528,7 @@ impl ParticleMgr {
                                         particle_pos + particle_dir,
                                         scene_data,
                                     )
+                                    .with_light(particles.sunlight_level, 0.0)
                                 },
                             }
                         })
@@ -4789,6 +4812,13 @@ impl Particle {
                 pos2,
                 scene_data.wind_vel,
             ),
+        }
+    }
+
+    pub fn with_light(self, sun_light: f32, glow_light: f32) -> Self {
+        Self {
+            instance: self.instance.with_light(sun_light, glow_light),
+            ..self
         }
     }
 

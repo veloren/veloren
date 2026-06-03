@@ -27,6 +27,7 @@ layout(location = 5) in int inst_mode;
 layout(location = 6) in vec3 inst_dir;
 layout(location = 7) in vec3 inst_pos;
 layout(location = 8) in vec2 inst_start_wind_vel;
+layout(location = 9) in vec2 inst_voxel_light;
 
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) flat out vec3 f_norm;
@@ -35,6 +36,7 @@ layout(location = 2) out vec4 f_col;
 //layout(location = x) out float f_light;
 layout(location = 3) out float f_reflect;
 layout(location = 4) flat out int f_mode;
+layout(location = 5) out vec2 f_voxel_light;
 
 const float SCALE = 1.0 / 11.0;
 
@@ -1319,7 +1321,7 @@ void main() {
                 )
                     + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 0.5,
                 vec3(1.0 - slow_start(0.05)),
-                vec4(0.6, 0.7, 1.0, 1),
+                vec4(0.6, 0.65, 0.75, 1),
                 spin_in_axis(vec3(1,1,1), lifetime() * 2.0)
             );
             break;
@@ -1363,6 +1365,7 @@ void main() {
     f_col = vec4(attr.col.rgb, attr.col.a);
 
     f_mode = inst_mode;
+    f_voxel_light = inst_voxel_light;
 
     gl_Position =
         all_mat *

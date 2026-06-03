@@ -173,6 +173,13 @@ pub struct Instance {
     inst_pos: [f32; 3],
 
     inst_start_wind_vel: [f32; 2],
+
+    // The voxel lighting at the particle's expected position.
+    //
+    // First element is sunlight, second is glow light.
+    //
+    // If in doubt, use (1.0, 0.0).
+    inst_voxel_light: [f32; 2],
 }
 
 impl Instance {
@@ -192,6 +199,7 @@ impl Instance {
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
             inst_dir_color: [0.0, 0.0, 0.0],
+            inst_voxel_light: [1.0, 0.0],
         }
     }
 
@@ -212,6 +220,7 @@ impl Instance {
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
             inst_dir_color: (inst_pos2 - inst_pos).into_array(),
+            inst_voxel_light: [1.0, 0.0],
         }
     }
 
@@ -232,11 +241,19 @@ impl Instance {
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
             inst_dir_color: col.into_array(),
+            inst_voxel_light: [1.0, 0.0],
+        }
+    }
+
+    pub fn with_light(self, sun_light: f32, glow_light: f32) -> Self {
+        Self {
+            inst_voxel_light: [sun_light, glow_light],
+            ..self
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3, 8 => Float32x2];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 8] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3, 8 => Float32x2, 9 => Float32x2];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,

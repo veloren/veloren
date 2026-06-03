@@ -8249,8 +8249,8 @@ pub struct FigureStateMeta {
     visible: bool,
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
-    last_light: f32,
-    last_glow: (Vec3<f32>, f32),
+    pub last_light: f32,
+    pub last_glow: (Vec3<f32>, f32),
     acc_vel: f32,
     bound: pipelines::figure::BoundLocals,
 }
@@ -8278,7 +8278,7 @@ impl FigureStateMeta {
 }
 
 pub struct FigureState<S: Skeleton, D = ()> {
-    meta: FigureStateMeta,
+    pub meta: FigureStateMeta,
     pub skeleton: S,
     pub computed_skeleton: S::ComputedSkeleton,
     pub extra: D,
