@@ -241,11 +241,7 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
-    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
-        float f_alpha = 1.0;
-    #else
-        const float f_alpha = 1.0;
-    #endif
+    float f_alpha = 1.0;
     #ifdef RAIN_ENABLED
         #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
             if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
@@ -310,7 +306,7 @@ void main() {
         #endif
     #endif
 
-    #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+    #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
     // Reflections on ice
     if (f_kind == BLOCK_ICE && f_norm.z == 1.0) {
         f_alpha = min(f_alpha, 0.3);
