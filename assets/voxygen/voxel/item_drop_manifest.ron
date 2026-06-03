@@ -1442,4 +1442,7 @@
     Simple("common.items.modular.weapon.secondary.sceptre.heavy"): "voxel.weapon.component.sceptre.core.heavy",
     Simple("common.items.modular.weapon.secondary.sceptre.medium"): "voxel.weapon.component.sceptre.core.medium",
     Simple("common.items.modular.weapon.secondary.sceptre.light"): "voxel.weapon.component.sceptre.core.light",
+    // Quest items
+    Simple("common.items.quest.legoom_leaf"): "voxel.sprite.quest.legoom_leaf",
+    Simple("common.items.quest.gnarling_carving"): "voxel.sprite.quest.gnarling_carving",
 })

@@ -1,3 +1,5 @@
+use crate::{data::quest::Payload, rule::npc_ai::quest::get_nearest_spot};
+
 use super::*;
 
 pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S> {
@@ -134,6 +136,143 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
                         ));
                     }
                 },
+                QuestKind::Courier { instance } => {
+                    // It is possible for a courier quest to start and end with
+                    // the same NPC, so the responses can cover both situations
+                    // simultaneously
+                    let is_talking_to_original_quest_giver = instance.source_actor
+                        == Actor::Npc(ctx.npc_id)
+                        && instance.messenger == tgt;
+                    let is_talking_to_courier_target =
+                        quest.arbiter == Actor::Npc(ctx.npc_id) && instance.messenger == tgt;
+
+                    // many dialogue options are the same regardless of if
+                    // you're talking to the quest giver or the target
+                    if (is_talking_to_original_quest_giver || is_talking_to_courier_target)
+                        && let Actor::Npc(target_npc_id) = quest.arbiter
+                        && let Some(target_npc) = ctx.data.npcs.get(target_npc_id)
+                    {
+                        // will need to do a bit of cloning due to all the
+                        // closures we have to enter
+                        let npc_name = target_npc
+                            .get_name()
+                            .unwrap_or_else(|| "<unknown>".to_string());
+
+                        if is_talking_to_courier_target {
+                            let quest = *instance;
+                            let (claim, thanks) = quest.get_courier_claim_dialogue();
+                            responses.push((
+                                Response::from(claim),
+                                session
+                                    .say_statement(thanks)
+                                    .then(now(move |ctx, _| {
+                                        if quest::finalize_courier_task(ctx, quest_id, false)
+                                            && let Ok(deposit) =
+                                                quest::resolve_take_deposit(ctx, quest_id, true)
+                                        {
+                                            session
+                                                .say_statement_with_gift(
+                                                    Content::localized("npc-response-quest-reward"),
+                                                    deposit,
+                                                )
+                                                .boxed()
+                                        } else {
+                                            session.say_statement(quest.lacks_items()).boxed()
+                                        }
+                                    }))
+                                    .boxed(),
+                            ));
+                        }
+
+                        // clone these values before entering the next closure
+                        let target_npc_wpos = target_npc.wpos.xy();
+                        let tgt_npc_name = npc_name.clone();
+
+                        // Determine the "what items are needed again?" dialogue
+                        // items in advance for cleanliness
+                        let (dialogue_question, dialogue_response) = instance
+                            .what_items_needed(is_talking_to_courier_target, npc_name.as_str());
+
+                        match instance.kind.payload() {
+                            // For the gnarling carving (or any other
+                            // spot-based) quest, the quest giver can be asked
+                            // for the required items, and the quest giver will
+                            // mark the map with the nearest spot.
+                            Some(Payload::GnarlingCarving) => {
+                                let quest = *instance;
+                                responses.push((
+                                    Response::from(dialogue_question),
+                                    session
+                                        .say_statement(dialogue_response)
+                                        .then(now(move |ctx, _| {
+                                            // attempt to provide a map marker that points to
+                                            // the nearest spot. Any spot is sufficient, it
+                                            // doesn't need to be the original one that was given at
+                                            // quest start. In fact, it's more convenient if
+                                            // you get to your location first and the courier
+                                            // recipient also has the ability to point out
+                                            // where the nearest spot might be.
+                                            let tgt_npc_name = tgt_npc_name.as_str();
+                                            get_nearest_spot(
+                                                ctx,
+                                                quest.kind,
+                                                ctx.npc.wpos.xy().wpos_to_cpos().as_(),
+                                            )
+                                            .map(|chunk_pos| {
+                                                session.give_marker(
+                                                    quest.get_quest_spot_start_marker(
+                                                        chunk_pos.cpos_to_wpos().as_(),
+                                                        tgt_npc_name,
+                                                        quest_id,
+                                                    ),
+                                                )
+                                            })
+                                            .unwrap_or_else(|| {
+                                                // provide a map marker that points to the
+                                                // courier target as a fallback
+                                                session.give_marker(
+                                                    quest.get_quest_npc_target_marker(
+                                                        target_npc_wpos,
+                                                        tgt_npc_name,
+                                                        target_npc_id,
+                                                    ),
+                                                )
+                                            })
+                                        }))
+                                        .boxed(),
+                                ));
+                            },
+                            // No spot is required for these, so things are much more simple:
+                            None | Some(Payload::LegoomLeaf) => {
+                                responses.push((
+                                    Response::from(dialogue_question),
+                                    session.say_statement(dialogue_response).boxed(),
+                                ));
+                            },
+                        }
+
+                        // Allow asking where the courier target is, but only
+                        // if the NPC is not the target, obviously.
+                        if is_talking_to_original_quest_giver {
+                            let npc_name = npc_name.as_str();
+                            if !instance.kind.delivers_to_giver() {
+                                let (question, marker, response) = instance
+                                    .get_dialogue_where_target(
+                                        npc_name,
+                                        target_npc.wpos.xy(),
+                                        quest.arbiter,
+                                    );
+                                responses.push((
+                                    Response::from(question),
+                                    session
+                                        .give_marker(marker)
+                                        .then(session.say_statement(response))
+                                        .boxed(),
+                                ));
+                            }
+                        }
+                    }
+                },
                 _ => {},
             }
         }
@@ -147,6 +286,10 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
 
         // General informational questions
         responses.push((
+            Response::from(Content::localized("dialogue-question-directions")),
+            dialogue::directions(session).boxed(),
+        ));
+        responses.push((
             Response::from(Content::localized("dialogue-question-site")),
             dialogue::about_site(session).boxed(),
         ));
@@ -157,10 +300,6 @@ pub fn general<S: State>(tgt: Actor, session: DialogueSession) -> impl Action<S>
         responses.push((
             Response::from(Content::localized("dialogue-question-sentiment")),
             dialogue::sentiments(tgt, session).boxed(),
-        ));
-        responses.push((
-            Response::from(Content::localized("dialogue-question-directions")),
-            dialogue::directions(session).boxed(),
         ));
 
         // Local activities

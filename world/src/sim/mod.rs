@@ -2413,6 +2413,23 @@ impl WorldSim {
         self.get_nearest_way(wpos, |chunk| Some(chunk.path))
     }
 
+    /// Spiral outward from `chunk_pos` to find the nearest chunk whose
+    /// [`Spot`] satisfies `predicate`, returning that chunk's position.
+    pub fn get_nearest_spot(
+        &self,
+        chunk_pos: Vec2<i32>,
+        predicate: impl Fn(&Spot) -> bool,
+    ) -> Option<Vec2<i32>> {
+        Spiral2d::new()
+            .map(|o| chunk_pos + o)
+            .take(self.map_size_lg().chunks_len())
+            .find(|cpos| {
+                self.get(*cpos)
+                    .and_then(|c| c.spot.as_ref())
+                    .is_some_and(&predicate)
+            })
+    }
+
     /// Create a [`Lottery<Option<ForestKind>>`] that generates [`ForestKind`]s
     /// according to the conditions at the given position. If no or fewer
     /// trees are appropriate for the conditions, `None` may be generated.

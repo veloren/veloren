@@ -6,6 +6,7 @@ use hashbrown::{HashMap, HashSet};
 use itertools::Either;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
+use vek::Vec2;
 
 /// The easiest way to think about quests is as a virtual Jira board (or,
 /// perhaps, a community jobs noticeboard).
@@ -145,7 +146,7 @@ pub struct Quest {
 }
 
 impl Quest {
-    /// Create a new escort quest that requires an escoter to travel with an
+    /// Create a new escort quest that requires an escorter to travel with an
     /// escortee to a destination.
     ///
     /// The escortee is considered to be the quest arbiter.
@@ -168,6 +169,21 @@ impl Quest {
         Self {
             arbiter,
             kind: QuestKind::Slay { target, slayer },
+            timeout: None,
+            outcome: QuestOutcome::default(),
+            res: QuestRes(AtomicU8::new(0)),
+        }
+    }
+
+    /// Create a new courier quest that requires an individual to deliver an
+    /// item to another individual. The arbiter is the individual that is
+    /// expecting to receive the package, and the source is the individual
+    /// that created the quest opportunity. The messenger is the individual
+    /// making the journey with the package in hand.
+    pub fn courier(arbiter: Actor, instance: CourierQuestInstance) -> Self {
+        Self {
+            arbiter,
+            kind: QuestKind::Courier { instance },
             timeout: None,
             outcome: QuestOutcome::default(),
             res: QuestRes(AtomicU8::new(0)),
@@ -250,6 +266,10 @@ impl Quest {
                 f(*target);
                 f(*slayer);
             },
+            QuestKind::Courier { instance } => {
+                f(instance.source_actor);
+                f(instance.messenger);
+            },
         }
     }
 }
@@ -308,4 +328,91 @@ pub enum QuestKind {
         target: Actor,
         slayer: Actor,
     },
+    Courier {
+        instance: CourierQuestInstance,
+    },
+}
+
+/// [`COURIER_QUEST_VARIANTS`] is worth looking at, as it contains all possible
+/// quest permutations and can be extended.
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum CourierQuest {
+    /// Find an NPC and speak to them. No items are required.
+    Message,
+    /// Find an NPC and give them something.
+    Deliver {
+        payload: Payload,
+        recipient: Recipient,
+    },
+}
+
+/// For [`CourierQuest`].
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum Recipient {
+    Other,
+    Giver,
+}
+
+/// For [`CourierQuest`].
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub enum Payload {
+    LegoomLeaf,
+    GnarlingCarving,
+}
+
+impl CourierQuest {
+    pub fn payload(self) -> Option<Payload> {
+        match self {
+            CourierQuest::Message => None,
+            CourierQuest::Deliver { payload, .. } => Some(payload),
+        }
+    }
+
+    pub fn delivers_to_giver(self) -> bool {
+        matches!(self, CourierQuest::Deliver {
+            recipient: Recipient::Giver,
+            ..
+        })
+    }
+}
+
+/// Stack-allocated array of all of the possible courier quests that can be
+/// rolled.
+pub const COURIER_QUEST_VARIANTS: [CourierQuest; 5] = [
+    // Add more here later!
+    CourierQuest::Message,
+    CourierQuest::Deliver {
+        payload: Payload::GnarlingCarving,
+        recipient: Recipient::Other,
+    },
+    CourierQuest::Deliver {
+        payload: Payload::GnarlingCarving,
+        recipient: Recipient::Giver,
+    },
+    CourierQuest::Deliver {
+        payload: Payload::LegoomLeaf,
+        recipient: Recipient::Other,
+    },
+    CourierQuest::Deliver {
+        payload: Payload::LegoomLeaf,
+        recipient: Recipient::Giver,
+    },
+];
+
+/// Contains a completable courier quest.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct CourierQuestInstance {
+    pub kind: CourierQuest,
+    pub spot: Option<Vec2<i32>>,
+    /// The source site may or may not be useful in all situations, but we do
+    /// want to keep it available in case we need to have dialogue that says
+    /// something like "Wow, you came all the way from <site> to send me this?"
+    pub source_site: Option<SiteId>,
+    pub source_actor: Actor,
+    /// This is `source_actor` for fetch quests.
+    pub target_actor: Actor,
+    /// Target actor's site, if available.
+    pub target_site: Option<SiteId>,
+    /// Usually this is the player.
+    pub messenger: Actor,
 }

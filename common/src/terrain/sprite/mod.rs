@@ -388,6 +388,9 @@ sprites! {
         PotionMinor = 0x26,
         //= 0x27,
         VialEmpty   = 0x28,
+        // Quest item drops
+        LegoomLeaf = 0x29,
+        GnarlingCarving = 0x2A,
     },
     MineableResource = 5 has Damage {
         Amethyst      = 0x00,
@@ -1074,6 +1077,8 @@ impl SpriteKind {
             SpriteKind::Ironwood => item("common.items.log.ironwood"),
             SpriteKind::Frostwood => item("common.items.log.frostwood"),
             SpriteKind::Eldwood => item("common.items.log.eldwood"),
+            SpriteKind::LegoomLeaf => item("common.items.quest.legoom_leaf"),
+            SpriteKind::GnarlingCarving => item("common.items.quest.gnarling_carving"),
             // TODO: why does this have a loot table?
             SpriteKind::MagicalBarrier => table("common.loot_tables.sprite.chest"),
             SpriteKind::WitchChest => table("common.loot_tables.spot.witch"),

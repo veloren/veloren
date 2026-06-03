@@ -6537,21 +6537,11 @@ fn handle_spot(
     let target_chunk = target_pos.0.xy().wpos_to_cpos().as_();
 
     let world = server.state.ecs().read_resource::<Arc<world::World>>();
-    let spot_chunk = Spiral2d::new()
-        .map(|o| target_chunk + o)
-        .filter(|chunk| world.sim().get(*chunk).is_some())
-        .take(world.sim().map_size_lg().chunks_len())
-        .find(|chunk| {
-            world.sim().get(*chunk).is_some_and(|chunk| {
-                if let Some(spot) = &chunk.spot {
-                    match spot {
-                        Spot::RonFile(spot) => spot.base_structures == target_spot,
-                        spot_kind => Some(spot_kind) == maybe_spot_kind,
-                    }
-                } else {
-                    false
-                }
-            })
+    let spot_chunk = world
+        .sim()
+        .get_nearest_spot(target_chunk, |spot| match spot {
+            Spot::RonFile(spot) => spot.base_structures == target_spot,
+            spot_kind => Some(spot_kind) == maybe_spot_kind,
         });
 
     if let Some(spot_chunk) = spot_chunk {

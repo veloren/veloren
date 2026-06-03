@@ -2505,6 +2505,12 @@
             "common.items.food.meat.tough_raw",
         ): "sprite-food-meat-tough_raw",
         Simple(
+            "common.items.quest.legoom_leaf",
+        ): "sprite-quest-legoom_leaf",
+        Simple(
+            "common.items.quest.gnarling_carving",
+        ): "sprite-quest-gnarling_carving",
+        Simple(
             "common.items.grasses.long",
         ): "sprite-grass-grass_long_5",
         Simple(

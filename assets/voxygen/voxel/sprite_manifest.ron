@@ -7728,4 +7728,24 @@ Hay: [(
     ],
     wind_sway: 0,
 )],
+LegoomLeaf: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.quest.legoom_leaf",
+            offset: (-4.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 1.0,
+)],
+GnarlingCarving: [(
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.quest.gnarling_carving",
+            offset: (-2.5, -3.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)],
 }

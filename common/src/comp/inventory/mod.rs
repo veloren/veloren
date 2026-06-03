@@ -41,7 +41,7 @@ pub mod slot;
 pub mod trade_pricing;
 
 pub type InvSlot = Option<Item>;
-const DEFAULT_INVENTORY_SLOTS: usize = 18;
+const DEFAULT_INVENTORY_SLOTS: usize = 36;
 
 /// NOTE: Do not add a PartialEq instance for Inventory; that's broken!
 #[derive(Clone, Debug, Serialize, Deserialize)]

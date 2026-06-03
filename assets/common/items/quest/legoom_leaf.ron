@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Legoom Leaf",
+    legacy_description: "A small leaf that belonged to a Legoom.",
+    kind: Quest,
+    quality: Common,
+    tags: [
+        SalvageInto(PlantFiber, 1)
+    ],
+)
