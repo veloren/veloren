@@ -71,3 +71,10 @@ command-make_npc-desc =
     Genera una entidad a partir de la configuración cercana.
     Para ver un ejemplo o autocompletar, pulsa Tab.
 command-spawned-airship = Ha generado un dirigible
+command-make_sprite-desc = Crea un sprite en tu ubicación; para definir los atributos del sprite, utiliza la sintaxis de Ron para un StructureSprite.
+command-make_volume-desc = Crear un volumen (experimental)
+command-motd-desc = Ver la descripción del servidor
+command-mount-desc = Montar una entidad
+command-object-desc = Crear un objeto
+command-outcome-desc = Crear un resultado
+command-permit_build-desc = Ofrece al jugador un espacio delimitado en el que puede construir
