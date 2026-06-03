@@ -8575,20 +8575,26 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         // TODO: compute the mount bone only when it is needed
         self.mount_world_pos = pos_with_mount_offset;
 
-        let smoothing = (5.0 * dt).min(1.0);
+        let smoothing = 0.1f32.powf(*dt);
         if let Some(last_pos) = self.last_pos {
-            self.avg_vel = (1.0 - smoothing) * self.avg_vel + smoothing * (pos - last_pos) / *dt;
+            self.avg_vel = smoothing * self.avg_vel + (1.0 - smoothing) * (pos - last_pos) / *dt;
         }
         self.last_pos = Some(*pos);
 
         // Can potentially overflow
         if self.avg_vel.magnitude_squared() != 0.0 {
-            // Vehicle wheels can turn backwards, and don't turn if movement is lateral to
-            // the orientation
-            let rate = if matches!(body, Some(Body::Ship(ship)) if ship.has_wheels()) {
-                (self.avg_vel - *ground_vel).dot(*ori * Vec3::unit_y())
-            } else {
-                (self.avg_vel - *ground_vel).magnitude()
+            let rate = match body {
+                // Vehicle wheels can turn backwards, and don't turn if movement is lateral to the
+                // orientation
+                Some(Body::Ship(ship)) if ship.has_wheels() => {
+                    (self.avg_vel - *ground_vel).dot(*ori * Vec3::unit_y())
+                },
+                // Humanoid foot cycles are non-linear with velocity and act more like a pendulum:
+                // they tend to reduce stride amplitude instead of frequency
+                Some(Body::Humanoid(_)) => {
+                    (self.avg_vel - *ground_vel).magnitude().powf(0.35) * 4.75
+                },
+                _ => (self.avg_vel - *ground_vel).magnitude(),
             };
             self.acc_vel += rate * dt / scale;
         } else {

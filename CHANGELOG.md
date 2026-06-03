@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Flat bridge exteriors are gradients from surface block color to the construction stone color
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.
 - Repairing items no longer costs resources.
+- Characters are now slightly taller
 
 ### Removed
 - Removed Firestaff ability upgrades.
