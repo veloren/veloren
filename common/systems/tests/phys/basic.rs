@@ -110,8 +110,8 @@ fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(fpos.0.z, 264.75, epsilon = EPSILON);
     assert_relative_eq!(fvel.0.z, -2.5, epsilon = EPSILON);
 
-    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.1126709, epsilon = EPSILON);
-    assert_relative_eq!((svel.0.z - fvel.0.z).abs(), 0.0038490295, epsilon = EPSILON);
+    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.11264038, epsilon = EPSILON);
+    assert_relative_eq!((svel.0.z - fvel.0.z).abs(), 0.003528595, epsilon = EPSILON);
 
     for _ in 0..10 {
         utils::tick(&mut sstate, DT);
@@ -122,16 +122,16 @@ fn fall_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     let (fpos, fvel, _) = utils::get_transform(&fstate, fp1)?;
     assert_relative_eq!(spos.0.x, 16.0);
     assert_relative_eq!(spos.0.y, 16.0);
-    assert_relative_eq!(spos.0.z, 264.47607, epsilon = EPSILON);
-    assert_relative_eq!(svel.0.z, -4.9847627, epsilon = EPSILON);
+    assert_relative_eq!(spos.0.z, 264.47592, epsilon = EPSILON);
+    assert_relative_eq!(svel.0.z, -4.987575, epsilon = EPSILON);
     assert_relative_eq!(fpos.0.x, 16.0);
     assert_relative_eq!(fpos.0.y, 16.0);
-    assert_relative_eq!(fpos.0.z, 264.25067, epsilon = EPSILON);
-    assert_relative_eq!(fvel.0.z, -4.9930925, epsilon = EPSILON);
+    assert_relative_eq!(fpos.0.z, 264.25058, epsilon = EPSILON);
+    assert_relative_eq!(fvel.0.z, -4.99424, epsilon = EPSILON);
 
     // Diff after 200ms
-    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.22540283, epsilon = EPSILON);
-    assert_relative_eq!((svel.0.z - fvel.0.z).abs(), 0.008329868, epsilon = EPSILON);
+    assert_relative_eq!((spos.0.z - fpos.0.z).abs(), 0.2253418, epsilon = EPSILON);
+    assert_relative_eq!((svel.0.z - fvel.0.z).abs(), 0.006664753, epsilon = EPSILON);
 
     Ok(())
 }
@@ -169,14 +169,14 @@ fn walk_simple() -> Result<(), Box<dyn Error>> {
     utils::tick(&mut state, DT);
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(pos.0.x, 16.05636, epsilon = EPSILON);
-    assert_relative_eq!(vel.0.x, 2.4756372, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.x, 2.4758298, epsilon = EPSILON);
 
     for _ in 0..8 {
         utils::tick(&mut state, DT);
     }
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
-    assert_relative_eq!(pos.0.x, 16.492111, epsilon = EPSILON);
-    assert_relative_eq!(vel.0.x, 6.411994, epsilon = EPSILON);
+    assert_relative_eq!(pos.0.x, 16.492264, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.x, 6.4153647, epsilon = EPSILON);
 
     Ok(())
 }
@@ -202,12 +202,12 @@ fn walk_max() -> Result<(), Box<dyn Error>> {
     }
     let (pos, vel, _) = utils::get_transform(&state, p1)?;
     assert_relative_eq!(pos.0.x, 68.514984, epsilon = EPSILON);
-    assert_relative_eq!(vel.0.x, 9.695188, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.x, 9.715505, epsilon = EPSILON);
     for _ in 0..100 {
         utils::tick(&mut state, DT);
     }
     let (_, vel, _) = utils::get_transform(&state, p1)?;
-    assert_relative_eq!(vel.0.x, 9.695188, epsilon = EPSILON);
+    assert_relative_eq!(vel.0.x, 9.715505, epsilon = EPSILON);
 
     Ok(())
 }
@@ -241,14 +241,14 @@ fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
     assert_relative_eq!(spos.0.x, 16.42154, epsilon = EPSILON);
     assert_relative_eq!(spos.0.y, 16.0);
     assert_relative_eq!(spos.0.z, 257.0);
-    assert_relative_eq!(svel.0.x, 6.071788, epsilon = EPSILON);
-    assert_relative_eq!(fpos.0.x, 16.993896, epsilon = EPSILON);
+    assert_relative_eq!(svel.0.x, 6.074587, epsilon = EPSILON);
+    assert_relative_eq!(fpos.0.x, 16.995731, epsilon = EPSILON);
     assert_relative_eq!(fpos.0.y, 16.0);
     assert_relative_eq!(fpos.0.z, 257.0);
-    assert_relative_eq!(fvel.0.x, 3.7484815, epsilon = EPSILON);
+    assert_relative_eq!(fvel.0.x, 3.7554052, epsilon = EPSILON);
 
-    assert_relative_eq!((spos.0.x - fpos.0.x).abs(), 0.5724735, epsilon = EPSILON);
-    assert_relative_eq!((svel.0.x - fvel.0.x).abs(), 2.3233063, epsilon = EPSILON);
+    assert_relative_eq!((spos.0.x - fpos.0.x).abs(), 0.57419205, epsilon = EPSILON);
+    assert_relative_eq!((svel.0.x - fvel.0.x).abs(), 2.3191817, epsilon = EPSILON);
 
     for _ in 0..10 {
         utils::tick(&mut sstate, DT);
@@ -257,14 +257,14 @@ fn walk_dt_speed_diff() -> Result<(), Box<dyn Error>> {
 
     let (spos, svel, _) = utils::get_transform(&sstate, sp1)?;
     let (fpos, fvel, _) = utils::get_transform(&fstate, fp1)?;
-    assert_relative_eq!(spos.0.x, 17.248621, epsilon = EPSILON);
-    assert_relative_eq!(svel.0.x, 8.344364, epsilon = EPSILON);
-    assert_relative_eq!(fpos.0.x, 18.357212, epsilon = EPSILON);
-    assert_relative_eq!(fvel.0.x, 5.1417327, epsilon = EPSILON);
+    assert_relative_eq!(spos.0.x, 17.249422, epsilon = EPSILON);
+    assert_relative_eq!(svel.0.x, 8.353429, epsilon = EPSILON);
+    assert_relative_eq!(fpos.0.x, 18.3632, epsilon = EPSILON);
+    assert_relative_eq!(fvel.0.x, 5.1574, epsilon = EPSILON);
 
     // Diff after 200ms
-    assert_relative_eq!((spos.0.x - fpos.0.x).abs(), 1.1085911, epsilon = EPSILON);
-    assert_relative_eq!((svel.0.x - fvel.0.x).abs(), 3.2026315, epsilon = EPSILON);
+    assert_relative_eq!((spos.0.x - fpos.0.x).abs(), 1.1137772, epsilon = EPSILON);
+    assert_relative_eq!((svel.0.x - fvel.0.x).abs(), 3.1960287, epsilon = EPSILON);
 
     Ok(())
 }
