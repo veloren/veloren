@@ -142,10 +142,15 @@ impl InternalSlowJobPool {
                     }
                     b.spawn(|| {
                         use thread_priority::*;
-                        if let Err(err) = std::thread::current().set_priority_and_policy(
-                            ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
-                            ThreadPriority::Crossplatform(TryFrom::try_from(15).unwrap()),
-                        ) {
+                        let priority =
+                            ThreadPriority::Crossplatform(TryFrom::try_from(15).unwrap());
+                        if let Err(err) = cfg_select! {
+                            unix => std::thread::current().set_priority_and_policy(
+                                ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                                priority,
+                            ),
+                            _ => std::thread::current().set_priority(priority),
+                        } {
                             tracing::warn!(
                                 "Unable to set priority/schedule policy for slow job pool thread: \
                                  {err}"

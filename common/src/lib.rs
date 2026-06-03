@@ -6,7 +6,8 @@
     fundamental,
     trait_alias,
     type_changing_struct_update,
-    macro_metavar_expr
+    macro_metavar_expr,
+    cfg_select
 )]
 
 pub use common_assets as assets;

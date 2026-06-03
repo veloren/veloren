@@ -104,27 +104,30 @@ impl Clock {
         /* .is_multiple_of(30) */
         {
             use thread_priority::*;
-            // Try to target a tick period that's consistent with our current FPS (a low but
-            // consistent framerate is a better outcome than one that's faster on paper but
-            // is bouncing around all over the place).
-            /*
-            let stable_dt = self.average_busy
-                // Don't try to schedule for a tick rate that's higher than our target, even if we
-                // could achieve it.
-                .max(self.target_dt.as_secs_f64());
-            */
-            _ = std::thread::current().set_priority_and_policy(
-                ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
-                // ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Deadline),
-                ThreadPriority::Crossplatform(ThreadPriorityValue::try_from(90).unwrap()),
-                // // We choose scheduler parameters based on averages from previous frames
-                // ThreadPriority::Deadline {
-                //     runtime: Duration::from_secs_f64(self.average_busy * 0.5),
-                //     deadline: Duration::from_millis(10),
-                //     period: Duration::from_secs_f64(stable_dt),
-                //     flags: Default::default(),
-                // },
-            );
+            // // We choose scheduler parameters based on averages from previous frames
+            // // Try to target a tick period that's consistent with our current FPS (a low
+            // but // consistent framerate is a better outcome than one that's
+            // faster on paper but // is bouncing around all over the place).
+            // let stable_dt = self.average_busy
+            //     // Don't try to schedule for a tick rate that's higher than our target,
+            // even if we     // could achieve it.
+            //     .max(self.target_dt.as_secs_f64());
+            // let priority = ThreadPriority::Deadline {
+            //     runtime: Duration::from_secs_f64(self.average_busy * 0.5),
+            //     deadline: Duration::from_millis(10),
+            //     period: Duration::from_secs_f64(stable_dt),
+            //     flags: Default::default(),
+            // };
+            let priority =
+                ThreadPriority::Crossplatform(ThreadPriorityValue::try_from(90).unwrap());
+            _ = cfg_select! {
+                unix => std::thread::current().set_priority_and_policy(
+                    // ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Deadline),
+                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
+                    priority,
+                ),
+                _ => std::thread::current().set_priority(priority),
+            };
         }
 
         let this_tick = Instant::now();
