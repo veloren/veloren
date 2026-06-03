@@ -1,3 +1,6 @@
+use std::{fmt::Debug, ops::Deref};
+use tracing::warn;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -33,6 +36,55 @@ impl AudioVolume {
     }
 }
 
+/// A versioned setting field. If the current version does not match the version
+/// read, it resets the value to its default automatically and writes it to the
+/// file as well. Takes the form `Versioned<[type], [current version]>`.
+#[derive(Copy, Clone, Debug, Default)]
+pub struct Versioned<T, const CURRENT: usize>(pub T);
+
+impl<T: Serialize, const CURRENT: usize> Serialize for Versioned<T, CURRENT> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        (CURRENT, &self.0).serialize(serializer)
+    }
+}
+
+impl<'de, T: Deserialize<'de> + Default + Debug, const CURRENT: usize> Deserialize<'de>
+    for Versioned<T, CURRENT>
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let deserialized = <(usize, T)>::deserialize(deserializer)?;
+        let old_ver = deserialized.0;
+        if old_ver != CURRENT {
+            let new = T::default();
+            warn!("New default setting detected (ver. {old_ver} -> {CURRENT}), setting to {new:?}",);
+            Ok(Versioned(new))
+        } else {
+            Ok(Versioned(deserialized.1))
+        }
+    }
+}
+
+impl<T, const CURRENT: usize> Deref for Versioned<T, CURRENT> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct BufferSize {
+    pub samples: usize,
+}
+
+impl Default for BufferSize {
+    fn default() -> Self { Self { samples: 2048 } }
+}
+
 /// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -52,7 +104,10 @@ pub struct AudioSettings {
     pub combat_music_enabled: bool,
     /// The size of the sample buffer Kira uses. Increasing this may improve
     /// audio performance at the cost of audio latency.
-    pub buffer_size: usize,
+    /// This is a versioned setting, so change the default value above and then
+    /// increment the second element to force reset it.
+    #[serde(default)]
+    pub buffer_size: Versioned<BufferSize, 1>,
     /// Set to None to use the default samplerate determined by the game;
     /// otherwise, use Some(samplerate); the game will attempt to force
     /// samplerate to this.
@@ -77,7 +132,7 @@ impl Default for AudioSettings {
             subtitles: false,
             output: AudioOutput::Automatic,
             combat_music_enabled: false,
-            buffer_size: 512,
+            buffer_size: Versioned(BufferSize::default()),
             sample_rate: None,
         }
     }
