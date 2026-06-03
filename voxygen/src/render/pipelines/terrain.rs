@@ -1,5 +1,7 @@
 use super::{
-    super::{AaMode, Bound, Consts, GlobalsLayouts, Vertex as VertexTrait},
+    super::{
+        Bound, Consts, ExperimentalShader, GlobalsLayouts, PipelineModes, Vertex as VertexTrait,
+    },
     AtlasData,
 };
 use bytemuck::{Pod, Zeroable};
@@ -231,8 +233,8 @@ impl TerrainPipeline {
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         layout: &TerrainLayout,
-        aa_mode: AaMode,
         format: wgpu::TextureFormat,
+        pipeline_modes: &PipelineModes,
     ) -> Self {
         common_base::span!(_guard, "TerrainPipeline::new");
         let render_pipeline_layout =
@@ -247,7 +249,7 @@ impl TerrainPipeline {
                 ],
             });
 
-        let samples = aa_mode.samples();
+        let samples = pipeline_modes.aa.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Terrain pipeline"),
@@ -264,7 +266,14 @@ impl TerrainPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
+                polygon_mode: if pipeline_modes
+                    .experimental_shaders
+                    .contains(&ExperimentalShader::Wireframe)
+                {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {

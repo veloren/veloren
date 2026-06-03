@@ -1,4 +1,6 @@
-use super::super::{AaMode, GlobalsLayouts, Renderer, Texture, Vertex as VertexTrait};
+use super::super::{
+    ExperimentalShader, GlobalsLayouts, PipelineModes, Renderer, Texture, Vertex as VertexTrait,
+};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
@@ -204,8 +206,8 @@ impl LodTerrainPipeline {
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
-        aa_mode: AaMode,
         format: wgpu::TextureFormat,
+        pipeline_modes: &PipelineModes,
     ) -> Self {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -214,7 +216,7 @@ impl LodTerrainPipeline {
                 bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
             });
 
-        let samples = aa_mode.samples();
+        let samples = pipeline_modes.aa.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Lod terrain pipeline"),
@@ -231,7 +233,14 @@ impl LodTerrainPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
+                polygon_mode: if pipeline_modes
+                    .experimental_shaders
+                    .contains(&ExperimentalShader::Wireframe)
+                {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {

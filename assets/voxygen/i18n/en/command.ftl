@@ -168,6 +168,7 @@ command-experimental-shaders-list = { $shader-list }
 command-experimental-shaders-not-found = There are no experimental shaders
 command-experimental-shaders-enabled = Enabled { $shader }
 command-experimental-shaders-disabled = Disabled { $shader }
+command-experimental-shaders-not-supported = { $shader } is not supported by this game build
 command-experimental-shaders-not-a-shader = { $shader } is not an expermimental shader, use this command with any arguments to see a complete list.
 command-experimental-shaders-not-valid = You must specify a valid experimental shader, to get a list of experimental shaders, use this command without any arguments.
 

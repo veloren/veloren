@@ -567,8 +567,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.figure_frag,
                     &layouts.global,
                     &layouts.figure,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "figure pipeline creation",
@@ -584,8 +584,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.terrain_frag,
                     &layouts.global,
                     &layouts.terrain,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "terrain pipeline creation",
@@ -601,8 +601,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.fluid_frag,
                     &layouts.global,
                     &layouts.terrain,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "fluid pipeline creation",
@@ -619,8 +619,8 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.sprite,
                     &layouts.terrain,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "sprite pipeline creation",
@@ -635,8 +635,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.lod_object_vert,
                     &shaders.lod_object_frag,
                     &layouts.global,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "lod object pipeline creation",
@@ -651,8 +651,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.particle_vert,
                     &shaders.particle_frag,
                     &layouts.global,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "particle pipeline creation",
@@ -700,8 +700,8 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.lod_terrain_vert,
                     &shaders.lod_terrain_frag,
                     &layouts.global,
-                    pipeline_modes.aa,
                     format,
+                    &pipeline_modes,
                 )
             },
             "lod terrain pipeline creation",
