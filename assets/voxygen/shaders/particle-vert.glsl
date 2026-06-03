@@ -1307,7 +1307,7 @@ void main() {
                     on_floor(0.1, 0.25, linear_motion(vec3(0), vec3(vec2(0), 3.0 + rand6) + grav_vel(earth_gravity))).z
                 ),
                 vec3(1.0 - slow_start(0.05)) * 1.5,
-                vec4(srgb_to_linear(inst_dir) * (1.0 + rand2 * 0.35), 1),
+                vec4(min(srgb_to_linear(inst_dir) * (1.0 + rand2 * 0.35), vec3(1)), 1),
                 spin_in_axis(vec3(1,0,1), percent() * 3.0 + rand5 * 25.0)
             );
             break;
