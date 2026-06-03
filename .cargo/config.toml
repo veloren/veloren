@@ -1,8 +1,5 @@
 [target.x86_64-unknown-linux-gnu]
-# no-rosegment is required for flamegraphs, see https://github.com/flamegraph-rs/flamegraph#linux
-rustflags = [
-    "-C", "link-arg=-fuse-ld=mold", "-C", "link-arg=-Wl,--no-rosegment",
-]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
 [target.aarch64-unknown-linux-gnu]
 linker = "aarch64-linux-gnu-gcc"

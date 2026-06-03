@@ -1,3 +1,5 @@
+cargo-features = ["profile-rustflags"]
+
 [workspace]
 resolver = "2"
 members = [
@@ -70,6 +72,9 @@ debug = "line-tables-only"
 [profile.debuginfo]
 inherits = 'dev'
 debug = true
+# no-rosegment is required for flamegraphs, see https://github.com/flamegraph-rs/flamegraph#linux
+rustflags = ["-C", "link-arg=-Wl,--no-rosegment"]
+
 
 # used to perform things that do a *lot* of math (i.e. worldgen) but still need reasonable compilation time.  Ideally this would also
 # add -C target-cpu=native, but I don't think you can set this by profile currently.
