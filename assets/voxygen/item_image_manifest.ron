@@ -5664,4 +5664,13 @@
         "voxel.item.utility.lockpick.lockpick_cobalt",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 1.0,
     ),
+    // Quest items
+    Simple("common.items.quest.legoom_leaf"): VoxTrans(
+        "voxel.sprite.quest.legoom_leaf",
+        (0.0, 0.0, 0.0), (-130.0, 150.0, 0.0), 1.0,
+    ),
+    Simple("common.items.quest.gnarling_carving"): VoxTrans(
+        "voxel.sprite.quest.gnarling_carving",
+        (0.0, 0.0, 0.0), (-130.0, 130.0, -15.0), 0.8,
+    ),
 }

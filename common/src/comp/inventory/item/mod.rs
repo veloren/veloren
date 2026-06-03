@@ -379,6 +379,7 @@ pub enum ItemKind {
     RecipeGroup {
         recipes: Vec<String>,
     },
+    Quest,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -418,6 +419,7 @@ impl ItemKind {
             ItemKind::Ingredient { descriptor } => format!("Ingredient: {}", descriptor),
             ItemKind::TagExamples { item_ids } => format!("TagExamples: {:?}", item_ids),
             ItemKind::RecipeGroup { .. } => String::from("Recipes:"),
+            ItemKind::Quest => String::from("Quest:"),
         }
     }
 
@@ -427,6 +429,7 @@ impl ItemKind {
             ItemKind::Armor(armor) => armor.kind.has_durability(),
             ItemKind::ModularComponent(_)
             | ItemKind::Lantern(_)
+            | ItemKind::Quest
             | ItemKind::Glider
             | ItemKind::Consumable { .. }
             | ItemKind::Utility { .. }
@@ -870,6 +873,7 @@ impl ItemDef {
         matches!(
             self.kind,
             ItemKind::Consumable { .. }
+                | ItemKind::Quest
                 | ItemKind::Ingredient { .. }
                 | ItemKind::Utility { .. }
                 | ItemKind::Tool(Tool {

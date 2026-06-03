@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Translators can now use fragment-based templates for modular weapons.
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
+- Courier, fetch, and messenger quests that can be started by talking to various civilized NPC's that can afford to pay you to get the job done.
 - Internationalization feature for singleplayer MOTDs
 - Added bullet character (•) to EnterCommand font
 - Checks to prevent players from being teleported in the ground
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Can now swim through lillypads.
+- The default inventory size has been changed from 18 to 36.
 - Music changes when entering a new site.
 - Flat bridge exteriors are gradients from surface block color to the construction stone color
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.

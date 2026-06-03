@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Gnarling Carving",
+    legacy_description: "A small carving that was made by a Gnarling.",
+    kind: Quest,
+    quality: Common,
+    tags: [
+        SalvageInto(Twig, 1)
+    ],
+)
