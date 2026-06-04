@@ -123,6 +123,7 @@ const int FLAMETHROWER_BLUE = 79;
 const int FLAME_CLOAK_ORBIT = 80;
 const int DUST = 81;
 const int CAVE_DUST = 82;
+const int BUBBLE_AMBIENT = 83;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1247,9 +1248,18 @@ void main() {
             attr = Attr(
                 linear_motion(
                     vec3(0),
-                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
+                    vec3(sin(lifetime() * vec2(rand2 * 5.0, rand3 * 3.0)) * 0.5, 1.0 + rand4 * 0.1)
                 ),
                 vec3(1.0 - slow_start(0.1)) * 1.5 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
+                vec4(mix(vec3(0.4, 0.7, 0.8), vec3(0.2, 0.75, 1.0), abs(rand3)), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
+            );
+            break;
+        case BUBBLE_AMBIENT:
+            f_reflect = 1.0;
+            attr = Attr(
+                vec3(sin(lifetime() * vec2(1.5, 3.0)) * 0.5, 30) * (percent() - 1.0),
+                vec3(1.0 - slow_start(0.01)) * 1.5 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
                 vec4(mix(vec3(0.4, 0.7, 0.8), vec3(0.2, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
             );

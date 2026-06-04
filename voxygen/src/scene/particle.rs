@@ -3367,9 +3367,10 @@ impl ParticleMgr {
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.water),
                 range: 4,
-                rate: 0.01,
+                rate: 0.003,
                 lifetime: 30.0,
-                mode: ParticleMode::Bubble,
+                // Ambient bubbles move up toward their origin, not up away from their origin
+                mode: ParticleMode::BubbleAmbient,
                 cond: |_| true,
                 sunlight_level: 1.0,
             },

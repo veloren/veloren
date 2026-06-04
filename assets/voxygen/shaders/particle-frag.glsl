@@ -83,8 +83,8 @@ void main() {
     const float LIGHT_FADEOUT_OFFSET = 16.0;
     const float LIGHT_FADEOUT_DIST = 32.0;
     
-    sun_info.block *= min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
-    moon_info.block *= min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
+    sun_info.block *= f_voxel_light.x;//min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
+    moon_info.block *= f_voxel_light.x;//min(f_voxel_light.x, clamp((f_pos.z - f_alt + LIGHT_FADEOUT_OFFSET) / LIGHT_FADEOUT_DIST + 1, 0, 1));
 
     // To account for prior saturation.
     float max_light = 0.0;

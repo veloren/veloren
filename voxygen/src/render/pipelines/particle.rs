@@ -133,6 +133,7 @@ pub enum ParticleMode {
     FlameCloakOrbit = 80,
     Dust = 81,
     CaveDust = 82,
+    BubbleAmbient = 83,
 }
 
 impl ParticleMode {

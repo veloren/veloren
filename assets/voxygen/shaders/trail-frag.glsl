@@ -32,7 +32,7 @@ void main() {
     vec3 trail_color = vec3(.55, .92, 1.0);
     float trail_alpha = 0.05;
     // Controls how much light affects alpha variation. TODO: Maybe a better name?
-    float light_variable = 0.075;
+    float light_variable = 0.025;
 
     // Make less faint at day (relative to night) by adding light to alpha. Probably hacky but looks fine.
     // TODO: Trails should also eventually account for shadows, nearby lights, attenuation of sunlight in water, and block based lighting. Note: many of these will require alternative methods that don't require a normal.
