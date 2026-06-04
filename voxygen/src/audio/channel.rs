@@ -36,7 +36,7 @@ pub const SFX_DIST_LIMIT_SQR: f32 = SFX_DIST_LIMIT * SFX_DIST_LIMIT;
 pub fn calculate_player_attenuation(player_pos: Vec3<f32>, emitter_pos: Vec3<f32>) -> f32 {
     1.0 - (player_pos.distance(emitter_pos) * (1.0 / SFX_DIST_LIMIT))
         .clamp(0.0, 1.0)
-        .sqrt()
+        .powf(1.0 / 3.0)
 }
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
