@@ -80,18 +80,44 @@ impl EventMapper for MovementEventMapper {
             // Update footstep detection
             // TODO: Support non-humanoids, remove the old timing logic
             if physics.on_ground.is_some()
-                && matches!(body, Body::Humanoid(_))
-                && let Some(state) = figure_mgr.states.character_states.get(&entity)
                 && let Ok(footsteps) = footsteps.entry(entity)
             {
-                let feet = [
-                    state.computed_skeleton.foot_l,
-                    state.computed_skeleton.foot_r,
-                ];
+                // Look mom, I found an acceptable use for macros
+                macro_rules! update_footsteps {
+                    ($($name:ident: $body:ident => [$($foot:ident),* $(,)?]),* $(,)?) => {
+                        match body {
+                            $(Body::$body(_) => {
+                                if let Some(state) = figure_mgr.states.$name.get(&entity) {
+                                    footsteps
+                                        .or_insert_with(Default::default)
+                                        .update(&[$(state.computed_skeleton.$foot,)*]
+                                            .map(|f| f.mul_point(Vec3::new(0.0, 1.0, -1.0)).y));
+                                }
+                            },)*
+                            _ => {},
+                        }
+                    };
+                }
 
-                footsteps
-                    .or_insert_with(Default::default)
-                    .update(&feet.map(|f| f.mul_point(Vec3::zero()).z));
+                update_footsteps!(
+                    character_states: Humanoid => [foot_l, foot_r],
+                    biped_large_states: BipedLarge => [foot_l, foot_r],
+                    quadruped_medium_states: QuadrupedMedium => [foot_fl, foot_fr, foot_bl, foot_br],
+                    quadruped_small_states: QuadrupedSmall => [leg_fl, leg_fr, leg_bl, leg_br],
+                    quadruped_low_states: QuadrupedLow => [foot_fl, foot_fr, foot_bl, foot_br],
+                    bird_medium_states: BirdMedium => [leg_l, leg_r],
+                    bird_large_states: BirdLarge => [foot_l, foot_r],
+                    arthropod_states: Arthropod => [
+                        leg_fl,
+                        leg_fr,
+                        leg_fcl,
+                        leg_fcr,
+                        leg_bcl,
+                        leg_bcr,
+                        leg_bl,
+                        leg_br,
+                    ],
+                );
             }
 
             if pos.0.distance_squared(cam_pos) < SFX_DIST_LIMIT_SQR
@@ -99,35 +125,28 @@ impl EventMapper for MovementEventMapper {
             {
                 let internal_state = self.event_history.entry(entity).or_default();
 
-                // Get the underfoot block
-                let block_position = Vec3::new(pos.0.x, pos.0.y, pos.0.z - 1.0).map(|x| x as i32);
-                let underfoot_block_kind = match state.get_block(block_position) {
-                    Some(block) => block.kind(),
-                    None => BlockKind::Air,
-                };
-
                 let mapped_event = match body {
-                    Body::Humanoid(_) => Self::map_movement_event(
-                        character,
-                        physics,
-                        internal_state,
-                        vel.0,
-                        underfoot_block_kind,
-                    ),
+                    Body::Humanoid(_) => {
+                        Self::map_movement_event(character, physics, internal_state, vel.0)
+                    },
                     Body::QuadrupedMedium(_) | Body::QuadrupedSmall(_) | Body::QuadrupedLow(_) => {
-                        Self::map_quadruped_movement_event(physics, vel.0, underfoot_block_kind)
+                        Self::map_quadruped_movement_event(physics, internal_state, vel.0)
                     },
                     Body::BirdMedium(_) | Body::BirdLarge(_) | Body::BipedLarge(_) => {
-                        Self::map_non_humanoid_movement_event(physics, vel.0, underfoot_block_kind)
+                        Self::map_non_humanoid_movement_event(physics, internal_state, vel.0)
                     },
                     Body::Arthropod(_) => {
-                        Self::map_arthropod_movement_event(physics, vel.0, underfoot_block_kind)
+                        Self::map_arthropod_movement_event(physics, internal_state, vel.0)
                     },
                     _ => SfxEvent::Idle, // Ignore fish, etc...
                 };
 
                 // Check for SFX config entry for this movement
-                if Self::should_emit(internal_state, triggers.0.get_key_value(&mapped_event)) {
+                if Self::should_emit(
+                    internal_state,
+                    triggers.0.get_key_value(&mapped_event),
+                    physics,
+                ) {
                     let sfx_trigger_item = triggers.0.get_key_value(&mapped_event);
                     audio.emit_sfx(
                         sfx_trigger_item,
@@ -186,22 +205,19 @@ impl MovementEventMapper {
     fn should_emit(
         previous_state: &PreviousEntityState,
         sfx_trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        physics: &PhysicsState,
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
-            if &previous_state.event == event {
-                // If possible, use the new footstep detection logic
-                previous_state.is_stepping
-                    .filter(|_| matches!(event, SfxEvent::Run(_)))
-                    // Otherwise, fall back to simply footstep timers
-                    .unwrap_or_else(|| match event {
-                        SfxEvent::Run(_)
-                        | SfxEvent::Climb
-                        | SfxEvent::QuadRun(_) => previous_state.steps_taken >= item.threshold,
-                        _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold
-                    })
-            } else {
-                true
-            }
+            let landed = physics.on_ground.is_some() && !previous_state.on_ground;
+            // If possible, use the new footstep detection logic
+            landed
+                || previous_state.is_stepping
+                .filter(|_| matches!(event, SfxEvent::Run(_) | SfxEvent::OctoRun(_) | SfxEvent::QuadRun(_)))
+                // Otherwise, fall back to simply footstep timers
+                .unwrap_or_else(|| match event {
+                    SfxEvent::Climb => previous_state.steps_taken >= item.threshold,
+                    _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold
+                })
         } else {
             false
         }
@@ -217,15 +233,14 @@ impl MovementEventMapper {
         physics_state: &PhysicsState,
         previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
         // Match run / roll / swim state
         if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0
             || !previous_state.in_water && physics_state.in_liquid().is_some()
         {
             return SfxEvent::Swim;
-        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1
-            || !previous_state.on_ground && physics_state.on_ground.is_some()
+        } else if let Some(block) = physics_state.on_ground
+            && (vel.magnitude() > 0.1 || !previous_state.on_ground)
         {
             return if let CharacterState::Roll(data) = character_state {
                 if data.static_data.was_cancel {
@@ -236,7 +251,7 @@ impl MovementEventMapper {
             } else if character_state.is_stealthy() {
                 SfxEvent::Sneak
             } else {
-                match underfoot_block_kind {
+                match block.kind() {
                     BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::Run(BlockKind::Snow),
                     BlockKind::Rock
                     | BlockKind::WeakRock
@@ -271,13 +286,17 @@ impl MovementEventMapper {
     /// Maps a limited set of movements for other non-humanoid entities
     fn map_non_humanoid_movement_event(
         physics_state: &PhysicsState,
+        previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
+        if physics_state.in_liquid().is_some()
+            && (vel.magnitude() > 2.0 || !previous_state.on_ground)
+        {
             SfxEvent::Swim
-        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
-            match underfoot_block_kind {
+        } else if let Some(block) = physics_state.on_ground
+            && vel.magnitude() > 0.1
+        {
+            match block.kind() {
                 BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::Run(BlockKind::Snow),
                 BlockKind::Rock
                 | BlockKind::WeakRock
@@ -297,13 +316,17 @@ impl MovementEventMapper {
     /// Maps a limited set of movements for quadruped entities
     fn map_quadruped_movement_event(
         physics_state: &PhysicsState,
+        previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
+        if physics_state.in_liquid().is_some()
+            && (vel.magnitude() > 2.0 || !previous_state.on_ground)
+        {
             SfxEvent::Swim
-        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
-            match underfoot_block_kind {
+        } else if let Some(block) = physics_state.on_ground
+            && vel.magnitude() > 0.1
+        {
+            match block.kind() {
                 BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::QuadRun(BlockKind::Snow),
                 BlockKind::Rock
                 | BlockKind::WeakRock
@@ -323,13 +346,17 @@ impl MovementEventMapper {
     /// Maps a limited set of movements for arthropod entities
     fn map_arthropod_movement_event(
         physics_state: &PhysicsState,
+        previous_state: &PreviousEntityState,
         vel: Vec3<f32>,
-        underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
+        if physics_state.in_liquid().is_some()
+            && (vel.magnitude() > 2.0 || !previous_state.on_ground)
+        {
             SfxEvent::Swim
-        } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
-            match underfoot_block_kind {
+        } else if let Some(block) = physics_state.on_ground
+            && vel.magnitude() > 0.1
+        {
+            match block.kind() {
                 BlockKind::Snow | BlockKind::ArtSnow => SfxEvent::OctoRun(BlockKind::Snow),
                 BlockKind::Rock
                 | BlockKind::WeakRock
@@ -350,12 +377,12 @@ impl MovementEventMapper {
     /// at a volume appropriate fot the entity we are emitting the event for
     fn get_volume_for_body_type(body: &Body) -> f32 {
         match body {
-            Body::Humanoid(_) => 0.9,
-            Body::QuadrupedSmall(_) => 0.3,
+            Body::Humanoid(_) => 0.5,
+            Body::QuadrupedSmall(_) => 0.2,
             Body::QuadrupedMedium(_) => 0.7,
             Body::QuadrupedLow(_) => 0.7,
             Body::BirdMedium(_) => 0.3,
-            Body::BirdLarge(_) => 0.2,
+            Body::BirdLarge(_) => 0.5,
             Body::BipedLarge(_) => 1.0,
             _ => 0.9,
         }

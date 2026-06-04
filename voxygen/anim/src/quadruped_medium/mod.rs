@@ -703,6 +703,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Yak, _) => 0.8,
                 (Camel, _) => 1.8,
                 (Akhlut, _) => 0.95,
+                (Elephant, _) => 0.25,
                 _ => 1.0,
             },
             spring: match (body.species, body.body_type) {

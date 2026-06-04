@@ -25,9 +25,9 @@ impl Animation for RunAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         *rate = 1.0;
         let lab: f32 = 0.72;
-        let amplitude = (speed / 24.0).powf(0.6);
-        let amplitude2 = (speed / 24.0).powf(0.6);
-        let amplitude3 = (speed / 24.0).powf(0.6);
+        let amplitude = (speed / 24.0).powf(0.6) / s_a.scaler;
+        let amplitude2 = (speed / 24.0).powf(0.6) / s_a.scaler;
+        let amplitude3 = (speed / 24.0).powf(0.6) / s_a.scaler;
         let speedmult = s_a.tempo;
         let canceler = (speed / 24.0).powf(0.6);
         let mixed_vel = acc_vel + anim_time * 2.5; //sets run frequency using speed, with anim_time setting a floor
@@ -64,11 +64,11 @@ impl Animation for RunAnimation {
         let foot1a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift1).sin(); //1.5
         let foot1b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + canceler * 0.05 + shift1).sin(); //1.9
         //FR
-        let foot2a = (mixed_vel * (1.0) * lab * speedmult + shift2).sin(); //1.0
-        let foot2b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + shift2).sin(); //1.0
+        let foot2a = (mixed_vel * (1.0) * lab * speedmult + shift2 + PI).sin(); //1.0
+        let foot2b = (mixed_vel * (1.0) * lab * speedmult + 1.1 + shift2 + PI).sin(); //1.0
         //BL
-        let foot3a = (mixed_vel * (1.0) * lab * speedmult + shift3).sin(); //0.0
-        let foot3b = (mixed_vel * (1.0) * lab * speedmult + PI / 2.0 + shift3).sin(); //0.4
+        let foot3a = (mixed_vel * (1.0) * lab * speedmult + shift3 + PI).sin(); //0.0
+        let foot3b = (mixed_vel * (1.0) * lab * speedmult + PI / 2.0 + shift3 + PI).sin(); //0.4
         //BR
         let foot4a = (mixed_vel * (1.0) * lab * speedmult + 0.0 + canceler * 0.05 + shift4).sin(); //0.3
         let foot4b =

@@ -120,7 +120,7 @@ impl Animation for RunAnimation {
         let foothoril = (acc_vel * lab + PI * 1.45).sin() * speednorm;
         let foothorir = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
         let footstrafel = (acc_vel * lab + PI * 1.45).sin() * speednorm;
-        let footstrafer = (acc_vel * lab + PI * (0.95)).sin() * speednorm;
+        let footstrafer = (acc_vel * lab + PI * (0.45)).sin() * speednorm;
         let footvertsl = (acc_vel * lab).sin() * speednorm;
         let footvertsr = (acc_vel * lab + PI * 0.5).sin() * speednorm;
         let direction = velocity.y * -0.098 * orientation.y + velocity.x * -0.098 * orientation.x;
@@ -401,11 +401,10 @@ impl Animation for RunAnimation {
                     + (1.0 - sideabs) * (1.0 * speednorm + ((footvertr * -4.1).max(-1.0)))
                     + side * ((footvertsr * -1.5).max(-1.0)),
             );
-            next.foot_r.orientation = Quaternion::rotation_x(
-                (1.0 - sideabs) * (-0.2 + foothorir * -0.9) + sideabs * -0.5,
-            ) * Quaternion::rotation_y(
-                tilt * 1.0 + side * 0.3 + side * (foothorir * 0.3),
-            ) * Quaternion::rotation_z(side * 0.2);
+            next.foot_r.orientation =
+                Quaternion::rotation_x((1.0 - sideabs) * (-0.2 + foothorir * -0.9) + sideabs * 0.5)
+                    * Quaternion::rotation_y(tilt * 1.0 + side * 0.3 + side * (foothorir * 0.3))
+                    * Quaternion::rotation_z(side * 0.2);
 
             next.torso.position = Vec3::new(0.0, 0.0, 0.0);
             next.torso.orientation = Quaternion::rotation_x(-0.25 * speednorm);
