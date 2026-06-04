@@ -568,7 +568,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.figure,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "figure pipeline creation",
@@ -585,7 +585,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.terrain,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "terrain pipeline creation",
@@ -602,7 +602,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.global,
                     &layouts.terrain,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "fluid pipeline creation",
@@ -620,7 +620,7 @@ fn create_ingame_and_shadow_pipelines(
                     &layouts.sprite,
                     &layouts.terrain,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "sprite pipeline creation",
@@ -636,7 +636,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.lod_object_frag,
                     &layouts.global,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "lod object pipeline creation",
@@ -652,7 +652,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.particle_frag,
                     &layouts.global,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "particle pipeline creation",
@@ -701,7 +701,7 @@ fn create_ingame_and_shadow_pipelines(
                     &shaders.lod_terrain_frag,
                     &layouts.global,
                     format,
-                    &pipeline_modes,
+                    pipeline_modes,
                 )
             },
             "lod terrain pipeline creation",

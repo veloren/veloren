@@ -33,6 +33,7 @@ fn config_but_played_since_threshold_no_emit() {
         on_ground: true,
         in_water: false,
         steps_taken: 0.0,
+        is_stepping: None,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -57,6 +58,7 @@ fn config_and_not_played_since_threshold_emits() {
         on_ground: true,
         in_water: false,
         steps_taken: 0.0,
+        is_stepping: None,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -83,6 +85,7 @@ fn same_previous_event_elapsed_emits() {
         on_ground: true,
         in_water: false,
         steps_taken: 2.0,
+        is_stepping: None,
     };
 
     let result = MovementEventMapper::should_emit(
@@ -107,6 +110,7 @@ fn maps_idle() {
             on_ground: true,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -129,6 +133,7 @@ fn maps_run_with_sufficient_velocity() {
             on_ground: true,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
@@ -151,6 +156,7 @@ fn does_not_map_run_with_insufficient_velocity() {
             on_ground: true,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::new(0.02, 0.0001, 0.0),
         BlockKind::Grass,
@@ -170,6 +176,7 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             on_ground: false,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::new(0.5, 0.8, 0.0),
         BlockKind::Grass,
@@ -216,6 +223,7 @@ fn maps_roll() {
             on_ground: true,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::new(0.5, 0.5, 0.0),
         BlockKind::Grass,
@@ -238,6 +246,7 @@ fn maps_land_on_ground_to_run() {
             on_ground: false,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::zero(),
         BlockKind::Grass,
@@ -257,6 +266,7 @@ fn maps_glide() {
             on_ground: false,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         },
         Vec3::zero(),
         BlockKind::Grass,
