@@ -1576,6 +1576,7 @@ impl ParticleMgr {
             physics,
             inventory,
             footsteps,
+            scale,
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Interpolated>(),
@@ -1587,6 +1588,7 @@ impl ParticleMgr {
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Footsteps>().maybe(),
+            ecs.read_storage::<Scale>().maybe(),
         )
             .join()
         {
@@ -1604,28 +1606,34 @@ impl ParticleMgr {
                     state.computed_skeleton.foot_r,
                 ];
 
-                let feet_z = feet.map(|f| {
+                let feet_pos = feet.map(|f| {
                     state
                         .wpos_of(f.mul_point(Vec3::zero()))
                         .with_z(interpolated.pos.z)
                 });
 
-                for (i, foot_z) in feet_z.into_iter().enumerate() {
+                for (i, foot_pos) in feet_pos.into_iter().enumerate() {
                     if footsteps.is_stepping(i) {
-                        self.particles.resize_with(self.particles.len() + 3, || {
-                            Particle::new_colored(
-                                Duration::from_millis(750),
-                                time,
-                                ParticleMode::Dust,
-                                foot_z - vel.0 * dt * rng.random::<f32>(),
-                                // To avoid the particle being unduly lit in dark areas, have
-                                // it take on the voxel
-                                // lighting conditions of the parent figure.
-                                color.as_() * (1.0 / 255.0),
-                                scene_data,
-                            )
-                            .with_light(state.meta.last_light, state.meta.last_glow.1)
-                        });
+                        let scale = scale.map_or(1.0, |s| s.0);
+                        let new_particles = (scale * 4.0).ceil() as usize;
+                        self.particles
+                            .resize_with(self.particles.len() + new_particles, || {
+                                Particle::new_colored(
+                                    Duration::from_millis(750),
+                                    time,
+                                    ParticleMode::Dust,
+                                    foot_pos
+                                        + Vec2::broadcast(scale)
+                                    // Spread the particles around the foot
+                                    .map(|s| rng.random_range(-0.1..0.1) * s),
+                                    // To avoid the particle being unduly lit in dark areas, have
+                                    // it take on the voxel
+                                    // lighting conditions of the parent figure.
+                                    color.as_() * (1.0 / 255.0),
+                                    scene_data,
+                                )
+                                .with_light(state.meta.last_light, state.meta.last_glow.1)
+                            });
                     }
                 }
             }
