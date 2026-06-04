@@ -5,7 +5,8 @@ use super::EventMapper;
 use crate::{
     AudioFrontend,
     audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
-    scene::{Camera, Terrain},
+    ecs::comp::Footsteps,
+    scene::{Camera, FigureMgr, Terrain},
 };
 use client::Client;
 use common::{
@@ -28,6 +29,7 @@ struct PreviousEntityState {
     on_ground: bool,
     in_water: bool,
     steps_taken: f32,
+    is_stepping: Option<bool>,
 }
 
 impl Default for PreviousEntityState {
@@ -38,6 +40,7 @@ impl Default for PreviousEntityState {
             on_ground: true,
             in_water: false,
             steps_taken: 0.0,
+            is_stepping: None,
         }
     }
 }
@@ -56,11 +59,13 @@ impl EventMapper for MovementEventMapper {
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
         _client: &Client,
+        figure_mgr: &FigureMgr,
     ) {
         let ecs = state.ecs();
 
         let cam_pos = camera.get_pos_with_focus();
 
+        let mut footsteps = ecs.write_storage::<Footsteps>();
         for (entity, pos, vel, body, scale, physics, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -71,9 +76,27 @@ impl EventMapper for MovementEventMapper {
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
-            .filter(|(_, e_pos, ..)| (e_pos.0.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR)
         {
-            if let Some(character) = character {
+            // Update footstep detection
+            // TODO: Support non-humanoids, remove the old timing logic
+            if physics.on_ground.is_some()
+                && matches!(body, Body::Humanoid(_))
+                && let Some(state) = figure_mgr.states.character_states.get(&entity)
+                && let Ok(footsteps) = footsteps.entry(entity)
+            {
+                let feet = [
+                    state.computed_skeleton.foot_l,
+                    state.computed_skeleton.foot_r,
+                ];
+
+                footsteps
+                    .or_insert_with(Default::default)
+                    .update(&feet.map(|f| f.mul_point(Vec3::zero()).z));
+            }
+
+            if pos.0.distance_squared(cam_pos) < SFX_DIST_LIMIT_SQR
+                && let Some(character) = character
+            {
                 let internal_state = self.event_history.entry(entity).or_default();
 
                 // Get the underfoot block
@@ -123,6 +146,7 @@ impl EventMapper for MovementEventMapper {
                 let dt = ecs.fetch::<DeltaTime>().0;
                 internal_state.steps_taken +=
                     vel.0.magnitude() * dt / (body.stride_length() * scale.map_or(1.0, |s| s.0));
+                internal_state.is_stepping = footsteps.get(entity).map(|f| f.is_any_stepping());
             }
         }
 
@@ -165,12 +189,19 @@ impl MovementEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                match event {
-                    SfxEvent::Run(_) => previous_state.steps_taken >= item.threshold,
-                    SfxEvent::Climb => previous_state.steps_taken >= item.threshold,
-                    SfxEvent::QuadRun(_) => previous_state.steps_taken >= item.threshold,
-                    _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold,
-                }
+                let is_step_event = matches!(
+                    event,
+                    SfxEvent::Run(_) | SfxEvent::Climb | SfxEvent::QuadRun(_)
+                );
+                previous_state.is_stepping
+                    // If possible, use the new footstep detection logic
+                    .map(|s| s && is_step_event)
+                    // Otherwise, fall back to simply footstep timers
+                    .unwrap_or_else(|| if is_step_event {
+                        previous_state.steps_taken >= item.threshold
+                    } else {
+                        previous_state.time.elapsed().as_secs_f32() >= item.threshold
+                    })
             } else {
                 true
             }

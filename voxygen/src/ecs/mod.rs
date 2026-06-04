@@ -7,6 +7,7 @@ use specs::{World, WorldExt};
 pub fn init(world: &mut World) {
     world.register::<comp::HpFloaterList>();
     world.register::<comp::Interpolated>();
+    world.register::<comp::Footsteps>();
 
     {
         let pool = world.read_resource::<SlowJobPool>();

@@ -1,6 +1,6 @@
 use super::{FigureMgr, SceneData, Terrain, terrain::BlocksOfInterest};
 use crate::{
-    ecs::comp::Interpolated,
+    ecs::comp::{Footsteps, Interpolated},
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
         Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
@@ -1575,6 +1575,7 @@ impl ParticleMgr {
             character_activity,
             physics,
             inventory,
+            footsteps,
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Interpolated>(),
@@ -1585,6 +1586,7 @@ impl ParticleMgr {
             &ecs.read_storage::<CharacterActivity>(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Inventory>().maybe(),
+            ecs.read_storage::<Footsteps>().maybe(),
         )
             .join()
         {
@@ -1595,36 +1597,35 @@ impl ParticleMgr {
                 && (vel.0 - physics.ground_vel).xy().magnitude_squared() > 30.0
                 && matches!(body, Body::Humanoid(_))
                 && let Some(state) = figure_mgr.states.character_states.get(&entity)
+                && let Some(footsteps) = footsteps
             {
-                for foot in [
+                let feet = [
                     state.computed_skeleton.foot_l,
                     state.computed_skeleton.foot_r,
-                ] {
-                    // This offset check is a huge hack and probably doesn't work well at very low
-                    // framerates. Unfortunately, there's not really a better way to do this today,
-                    // because animations have no way to emit events.
-                    if foot.mul_point(Vec3::zero()).z < 0.2 {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(35))),
-                            || {
-                                Particle::new_colored(
-                                    Duration::from_millis(750),
-                                    time,
-                                    ParticleMode::Dust,
-                                    state
-                                        .wpos_of(foot.mul_point(Vec3::zero()))
-                                        .with_z(interpolated.pos.z)
-                                        - vel.0 * dt * rng.random::<f32>(),
-                                    // To avoid the particle being unduly lit in dark areas, have
-                                    // it take on the voxel
-                                    // lighting conditions of the parent figure.
-                                    color.as_() * (1.0 / 255.0),
-                                    scene_data,
-                                )
-                                .with_light(state.meta.last_light, state.meta.last_glow.1)
-                            },
-                        );
+                ];
+
+                let feet_z = feet.map(|f| {
+                    state
+                        .wpos_of(f.mul_point(Vec3::zero()))
+                        .with_z(interpolated.pos.z)
+                });
+
+                for (i, foot_z) in feet_z.into_iter().enumerate() {
+                    if footsteps.is_stepping(i) {
+                        self.particles.resize_with(self.particles.len() + 3, || {
+                            Particle::new_colored(
+                                Duration::from_millis(750),
+                                time,
+                                ParticleMode::Dust,
+                                foot_z - vel.0 * dt * rng.random::<f32>(),
+                                // To avoid the particle being unduly lit in dark areas, have
+                                // it take on the voxel
+                                // lighting conditions of the parent figure.
+                                color.as_() * (1.0 / 255.0),
+                                scene_data,
+                            )
+                            .with_light(state.meta.last_light, state.meta.last_glow.1)
+                        });
                     }
                 }
             }

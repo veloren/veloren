@@ -3,7 +3,7 @@
 use crate::{
     AudioFrontend,
     audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
-    scene::{Camera, Terrain, terrain::BlocksOfInterest},
+    scene::{Camera, FigureMgr, Terrain, terrain::BlocksOfInterest},
 };
 
 use super::EventMapper;
@@ -47,6 +47,7 @@ impl EventMapper for BlockEventMapper {
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
+        _figure_mgr: &FigureMgr,
     ) {
         let mut rng = ChaCha8Rng::from_seed(rand::rng().random());
 

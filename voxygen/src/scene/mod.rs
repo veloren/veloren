@@ -1442,6 +1442,7 @@ impl Scene {
             &self.camera,
             &self.terrain,
             client,
+            &self.figure_mgr,
         );
 
         self.ambience_mgr.maintain(
