@@ -8594,7 +8594,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
                 // Humanoid foot cycles are non-linear with velocity and act more like a pendulum:
                 // they tend to reduce stride amplitude instead of frequency
                 Some(Body::Humanoid(_)) => {
-                    (self.avg_vel - *ground_vel).magnitude().powf(0.35) * 4.75
+                    (self.avg_vel - *ground_vel).magnitude().powf(0.65) * 2.95
                 },
                 _ => (self.avg_vel - *ground_vel).magnitude(),
             };
