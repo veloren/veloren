@@ -189,18 +189,15 @@ impl MovementEventMapper {
     ) -> bool {
         if let Some((event, item)) = sfx_trigger_item {
             if &previous_state.event == event {
-                let is_step_event = matches!(
-                    event,
-                    SfxEvent::Run(_) | SfxEvent::Climb | SfxEvent::QuadRun(_)
-                );
+                // If possible, use the new footstep detection logic
                 previous_state.is_stepping
-                    // If possible, use the new footstep detection logic
-                    .map(|s| s && is_step_event)
+                    .filter(|_| matches!(event, SfxEvent::Run(_)))
                     // Otherwise, fall back to simply footstep timers
-                    .unwrap_or_else(|| if is_step_event {
-                        previous_state.steps_taken >= item.threshold
-                    } else {
-                        previous_state.time.elapsed().as_secs_f32() >= item.threshold
+                    .unwrap_or_else(|| match event {
+                        SfxEvent::Run(_)
+                        | SfxEvent::Climb
+                        | SfxEvent::QuadRun(_) => previous_state.steps_taken >= item.threshold,
+                        _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold
                     })
             } else {
                 true
