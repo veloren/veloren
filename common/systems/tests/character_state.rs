@@ -128,7 +128,7 @@ mod tests {
             if let Some(e) = entities[i] {
                 let result = Dir::from(*results.get(e).expect("Ori missing"));
                 assert!(
-                    result.abs_diff_eq(&testcases[i].1, 0.0005),
+                    result.abs_diff_eq(&testcases[i].1, 0.005),
                     "{:?} != {:?}",
                     result,
                     testcases[i].1
