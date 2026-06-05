@@ -748,7 +748,7 @@ impl Widget for Video<'_> {
         .set(state.ids.lod_detail_slider, ui)
         {
             events.push(GraphicsChange::AdjustLodDetail(
-                (5.0f32.powf(new_val as f32 / 10.0) * 100.0) as u32,
+                (5.0f32.powf(new_val as f32 / 20.0) * 100.0) as u32,
             ));
         }
 
