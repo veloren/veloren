@@ -37,7 +37,7 @@ pub struct TradePricing {
 // you need both equivalent A and B => add price
 
 /// Material equivalent for an item (price)
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, PartialOrd)]
 pub struct MaterialUse(Vec<(f32, Good)>);
 
 impl std::ops::Mul<f32> for MaterialUse {
@@ -1264,6 +1264,7 @@ mod tests {
     #[test]
     fn test_all_included() {
         let todos = [
+            // Calendar
             ItemDefinitionIdOwned::Simple("common.items.food.honeycorn".to_owned()),
             ItemDefinitionIdOwned::Simple("common.items.food.pumpkin_spice_brew".to_owned()),
             ItemDefinitionIdOwned::Simple("common.items.food.blue_cheese".to_owned()),
@@ -1279,6 +1280,13 @@ mod tests {
                 "common.items.calendar.christmas.armor.misc.head.woolly_wintercap".to_owned(),
             ),
             ItemDefinitionIdOwned::Simple("common.items.utility.surprise_egg".to_owned()),
+            // Lanterns
+            ItemDefinitionIdOwned::Simple("common.items.lantern.divers_light".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.lantern.luminous_bloom".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.lantern.frozen_heart".to_owned()),
+            // Quests, figure out what to do with them
+            ItemDefinitionIdOwned::Simple("common.items.quest.gnarling_carving".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.quest.legoom_leaf".to_owned()),
         ];
 
         let mut items: Vec<_> = all_loot_items()
@@ -1288,6 +1296,13 @@ mod tests {
             .collect();
 
         items.retain(|(i, mat)| mat.is_none() && !todos.contains(i));
+
+        // Remove duplicates, dedup requires sorting first, as it only removes
+        // adjacent dedups.
+        //
+        // Weird sort_by because floats are evil. That's also why we can't just
+        // use HashSet here.
+        items.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Less));
         items.dedup();
 
         assert_eq!(
