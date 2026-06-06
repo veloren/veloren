@@ -84,7 +84,7 @@ pub(super) fn targets_under_cursor(
     );
     let terrain = client.state().terrain();
 
-    let find_pos = |hit: fn(Block) -> bool, pickup_range: bool, start_pos: Vec3<f32>| {
+    let find_pos = |hit: fn(Block) -> bool, max_range: f32, start_pos: Vec3<f32>| {
         let dist = 250.0;
 
         let cam_ray = terrain
@@ -98,7 +98,7 @@ pub(super) fn targets_under_cursor(
 
         if matches!(
             cam_ray.1,
-            Ok(Some(_)) if !pickup_range || player_cylinder.min_distance(start_pos + cam_dir * (cam_dist + 0.01)) <= MAX_PICKUP_RANGE
+            Ok(Some(_)) if player_cylinder.min_distance(start_pos + cam_dir * (cam_dist + 0.01)) <= max_range
         ) {
             (
                 Some(start_pos + cam_dir * (cam_dist + 0.01)),
@@ -110,20 +110,24 @@ pub(super) fn targets_under_cursor(
         }
     };
 
-    let (collect_pos, _, collect_cam_ray) =
-        find_pos(|b: Block| b.is_directly_collectible(), true, cam_pos);
+    let (collect_pos, _, collect_cam_ray) = find_pos(
+        |b: Block| b.is_directly_collectible(),
+        MAX_TARGET_RANGE,
+        cam_pos,
+    );
     let (mine_pos, _, mine_cam_ray) = if active_mine_tool.is_some() {
-        find_pos(|b: Block| b.mine_tool().is_some(), true, cam_pos)
+        find_pos(
+            |b: Block| b.mine_tool().is_some(),
+            MAX_TARGET_RANGE,
+            cam_pos,
+        )
     } else {
         (None, None, None)
     };
     let (build_pos, place_block_pos, build_cam_ray) =
-        find_pos(|b: Block| b.is_filled(), true, cam_pos);
-    let (solid_pos, _, solid_cam_ray) = find_pos(
-        |b: Block| b.is_filled(),
-        false,
-        player_pos + Vec3::unit_z() * 1.5,
-    );
+        find_pos(|b: Block| b.is_filled(), MAX_TARGET_RANGE, cam_pos);
+    let (solid_pos, _, solid_cam_ray) =
+        find_pos(|b: Block| b.is_filled(), MAX_PICKUP_RANGE, cam_pos);
 
     // See if ray hits entities
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
@@ -149,11 +153,11 @@ pub(super) fn targets_under_cursor(
         ecs.read_storage::<Is<Rider>>().maybe(),
     )
         .join()
-        .filter(|(e, _, _, _, _, _, _)| *e != player_entity)
+        .filter(|(e, _, _, _, _, _, _)| *e != viewpoint_entity)
         .filter_map(|(e, p, s, b, i, _, is_rider)| {
             const RADIUS_SCALE: f32 = 3.0;
             // TODO: use collider radius instead of body radius?
-            let radius = s.map_or(1.0, |s| s.0) * b.max_radius() * RADIUS_SCALE;
+            let radius = s.map_or(1.0, |s| s.0) * (b.dimensions() * Vec3::new(1.0, 1.0, 0.5)).reduce_partial_max() * RADIUS_SCALE;
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
             // Distance squared from camera to the entity
