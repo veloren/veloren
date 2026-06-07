@@ -3,7 +3,7 @@ use super::{
     body::{Body, object},
 };
 use crate::{
-    consts::{AIR_DENSITY, LAVA_DENSITY, WATER_DENSITY},
+    consts::{AIR_DENSITY, GRAVITY, LAVA_DENSITY, WATER_DENSITY},
     util::{Dir, Plane, Projection},
 };
 use serde::{Deserialize, Serialize};
@@ -233,53 +233,42 @@ impl Body {
     /// viscous effects. The returned value is alternatively called the
     /// Reference Area of the body, and is used in the drag force equation.
     pub fn parasite_drag(&self, scale: f32) -> f32 {
+        fn from_terminal_velocity(mass: f32, vel: f32) -> f32 {
+            2.0 * mass * GRAVITY / (vel * vel * AIR_DENSITY)
+        }
+
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
-            // Cross-section, head/feet first
-            Body::BipedLarge(_) | Body::BipedSmall(_) | Body::Golem(_) | Body::Humanoid(_) => {
-                let dim = self.dimensions().xy().map(|a| a * 0.5 * scale);
-                const CD: f32 = 0.7;
-                CD * PI * dim.x * dim.y
-            },
+            Body::Humanoid(_) => from_terminal_velocity(self.mass().0, 90.0),
 
-            // Cross-section, nose/tail first
-            Body::Theropod(_)
-            | Body::QuadrupedMedium(_)
-            | Body::QuadrupedSmall(_)
-            | Body::QuadrupedLow(_)
-            | Body::Arthropod(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5 * scale);
-                let cd: f32 = if matches!(self, Body::QuadrupedLow(_)) {
-                    0.7
-                } else {
-                    1.0
-                };
-                cd * PI * dim.x * dim.z
-            },
+            Body::QuadrupedSmall(_) => from_terminal_velocity(self.mass().0, 20.0),
 
-            // Cross-section, zero-lift angle; exclude the wings (width * 0.2)
-            Body::BirdMedium(_) | Body::BirdLarge(_) | Body::Dragon(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5 * scale);
-                let cd: f32 = match self {
-                    // "Field Estimates of Body Drag Coefficient
-                    // on the Basis of Dives in Passerine Birds",
-                    // Anders Hedenström and Felix Liechti, 2001
-                    Body::BirdLarge(_) | Body::BirdMedium(_) => 0.2,
-                    // arbitrary
-                    _ => 0.7,
-                };
-                cd * PI * dim.x * 0.2 * dim.z
-            },
+            Body::QuadrupedMedium(_) => from_terminal_velocity(self.mass().0, 70.0),
 
-            // Cross-section, zero-lift angle; exclude the fins (width * 0.2)
-            Body::FishMedium(_) | Body::FishSmall(_) | Body::Crustacean(_) => {
-                let dim = self.dimensions().map(|a| a * 0.5 * scale);
-                // "A Simple Method to Determine Drag Coefficients in Aquatic Animals",
-                // D. Bilo and W. Nachtigall, 1980
-                const CD: f32 = 0.031;
-                CD * PI * dim.x * 0.2 * dim.z
-            },
+            Body::BirdMedium(_) => from_terminal_velocity(self.mass().0, 100.0),
+
+            Body::FishMedium(_) => from_terminal_velocity(self.mass().0, 120.0),
+
+            Body::Dragon(_) => from_terminal_velocity(self.mass().0, 150.0),
+
+            Body::BirdLarge(_) => from_terminal_velocity(self.mass().0, 130.0),
+
+            Body::FishSmall(_) => from_terminal_velocity(self.mass().0, 100.0),
+
+            Body::BipedLarge(_) => from_terminal_velocity(self.mass().0, 120.0),
+
+            Body::BipedSmall(_) => from_terminal_velocity(self.mass().0, 50.0),
+
+            Body::Golem(_) => from_terminal_velocity(self.mass().0, 200.0),
+
+            Body::Theropod(_) => from_terminal_velocity(self.mass().0, 130.0),
+
+            Body::QuadrupedLow(_) => from_terminal_velocity(self.mass().0, 60.0),
+
+            Body::Arthropod(_) => from_terminal_velocity(self.mass().0, 50.0),
+
+            Body::Crustacean(_) => from_terminal_velocity(self.mass().0, 50.0),
 
             Body::Object(object) => match object {
                 // very streamlined objects
