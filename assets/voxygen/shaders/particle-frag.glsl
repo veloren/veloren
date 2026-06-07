@@ -62,7 +62,7 @@ void main() {
     DirectionalLight moon_info = get_moon_info(moon_dir, moon_shade_frac);
 
     vec3 surf_color = f_col.rgb;
-    float alpha = 1.0;
+    float alpha = 1.0/*f_col.a*/;;
     const float n2 = 1.5;
     const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
     const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
@@ -114,17 +114,16 @@ void main() {
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light * f_reflect);
 
-    // Temporarily disable particle transparency to avoid artifacts
-    tgt_color = vec4(surf_color, 1/*f_col.a*/);
-
     uint material = MAT_BLOCK;
 
     const int WATER_FOAM = 64;
-
     if (f_mode == WATER_FOAM) {
-        material = MAT_WATER;
+        material = MAT_PUDDLE;
+        alpha = 0.5;
     }
 
+    // Temporarily disable particle transparency to avoid artifacts
+    tgt_color = vec4(surf_color, alpha);
     tgt_mat = uvec4(uvec3((f_norm + 1.0) * 127.0), material);
 #endif
 }

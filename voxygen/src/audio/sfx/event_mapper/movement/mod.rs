@@ -5,12 +5,12 @@ use super::EventMapper;
 use crate::{
     AudioFrontend,
     audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
-    ecs::comp::Footsteps,
+    ecs::comp::{Footsteps, Interpolated},
     scene::{Camera, FigureMgr, Terrain},
 };
 use client::Client;
 use common::{
-    comp::{Body, CharacterState, PhysicsState, Pos, Scale, Vel},
+    comp::{Body, CharacterState, PhysicsState, Scale, Vel},
     resources::DeltaTime,
     states,
     terrain::{BlockKind, TerrainChunk},
@@ -66,9 +66,9 @@ impl EventMapper for MovementEventMapper {
         let cam_pos = camera.get_pos_with_focus();
 
         let mut footsteps = ecs.write_storage::<Footsteps>();
-        for (entity, pos, vel, body, scale, physics, character) in (
+        for (entity, interpolated, vel, body, scale, physics, character) in (
             &ecs.entities(),
-            &ecs.read_storage::<Pos>(),
+            &ecs.read_storage::<Interpolated>(),
             &ecs.read_storage::<Vel>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Scale>().maybe(),
@@ -88,10 +88,12 @@ impl EventMapper for MovementEventMapper {
                         match body {
                             $(Body::$body(_) => {
                                 if let Some(state) = figure_mgr.states.$name.get(&entity) {
+                                    let feet_pos = [$(state.computed_skeleton.$foot,)*].map(|f| {
+                                        -interpolated.ori.global_to_local(f.mul_point(Vec3::new(0.0, 1.0, -1.0))).y
+                                    });
                                     footsteps
                                         .or_insert_with(Default::default)
-                                        .update(&[$(state.computed_skeleton.$foot,)*]
-                                            .map(|f| f.mul_point(Vec3::new(0.0, 1.0, -1.0)).y));
+                                        .update(&feet_pos);
                                 }
                             },)*
                             _ => {},
@@ -120,7 +122,7 @@ impl EventMapper for MovementEventMapper {
                 );
             }
 
-            if pos.0.distance_squared(cam_pos) < SFX_DIST_LIMIT_SQR
+            if interpolated.pos.distance_squared(cam_pos) < SFX_DIST_LIMIT_SQR
                 && let Some(character) = character
             {
                 let internal_state = self.event_history.entry(entity).or_default();
@@ -150,7 +152,7 @@ impl EventMapper for MovementEventMapper {
                     let sfx_trigger_item = triggers.0.get_key_value(&mapped_event);
                     audio.emit_sfx(
                         sfx_trigger_item,
-                        pos.0,
+                        interpolated.pos,
                         Some(Self::get_volume_for_body_type(body)),
                     );
                     internal_state.time = Instant::now();

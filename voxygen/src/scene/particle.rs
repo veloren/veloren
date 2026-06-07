@@ -6,7 +6,7 @@ use crate::{
         Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
         pipelines::particle::ParticleMode,
     },
-    scene::{terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
+    scene::{RAIN_THRESHOLD, terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
 };
 use common::{
     assets::{AssetExt, DotVox},
@@ -611,7 +611,7 @@ impl ParticleMgr {
                 let magnitude = (-vel.z).max(0.0);
                 let energy = mass * magnitude;
                 if energy > 0.0 {
-                    let count = ((0.6 * energy.sqrt()).ceil() as usize).min(500);
+                    let count = ((2.5 * energy.sqrt()).ceil() as usize).min(500);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
                     self.particles
@@ -633,7 +633,7 @@ impl ParticleMgr {
 
                             let energy = energy.sqrt() * 0.5;
 
-                            let dir = plane * (1.0 + energy) - axis * energy;
+                            let dir = plane * (1.0 + energy) - axis * energy * 1.5;
 
                             Particle::new_directed(
                                 Duration::from_millis(4000),
@@ -1598,16 +1598,16 @@ impl ParticleMgr {
                 && let Some(vel) = vel
                 && (vel.0 - physics.ground_vel).xy().magnitude_squared() > 30.0
                 && matches!(body, Body::Humanoid(_))
-                && let Some(state) = figure_mgr.states.character_states.get(&entity)
+                && let Some(char_state) = figure_mgr.states.character_states.get(&entity)
                 && let Some(footsteps) = footsteps
             {
                 let feet = [
-                    state.computed_skeleton.foot_l,
-                    state.computed_skeleton.foot_r,
+                    char_state.computed_skeleton.foot_l,
+                    char_state.computed_skeleton.foot_r,
                 ];
 
                 let feet_pos = feet.map(|f| {
-                    state
+                    char_state
                         .wpos_of(f.mul_point(Vec3::zero()))
                         .with_z(interpolated.pos.z)
                 });
@@ -1615,25 +1615,60 @@ impl ParticleMgr {
                 for (i, foot_pos) in feet_pos.into_iter().enumerate() {
                     if footsteps.is_stepping(i) {
                         let scale = scale.map_or(1.0, |s| s.0);
-                        let new_particles = (scale * 4.0).ceil() as usize;
+                        // Kicking up dust/particles
+                        let dust_particles = (scale * 4.0).ceil() as usize;
                         self.particles
-                            .resize_with(self.particles.len() + new_particles, || {
+                            .resize_with(self.particles.len() + dust_particles, || {
                                 Particle::new_colored(
                                     Duration::from_millis(750),
                                     time,
                                     ParticleMode::Dust,
+                                    // Spread the particles around the foot
                                     foot_pos
                                         + Vec2::broadcast(scale)
-                                    // Spread the particles around the foot
-                                    .map(|s| rng.random_range(-0.1..0.1) * s),
+                                            .map(|s| rng.random_range(-0.1..0.1) * s),
                                     // To avoid the particle being unduly lit in dark areas, have
                                     // it take on the voxel
                                     // lighting conditions of the parent figure.
                                     color.as_() * (1.0 / 255.0),
                                     scene_data,
                                 )
-                                .with_light(state.meta.last_light, state.meta.last_glow.1)
+                                .with_light(char_state.meta.last_light, char_state.meta.last_glow.1)
                             });
+                        // Exposure to sunlight: proxy for how wet the ground is
+                        if char_state.meta.last_light > 0.9 {
+                            // Splashing in the rain
+                            let splash_particles =
+                                ((state.weather_at(interpolated.pos.xy()).rain - RAIN_THRESHOLD)
+                                    .max(0.0)
+                                    * scale
+                                    * 100.0)
+                                    .ceil()
+                                    .min(16.0) as usize;
+                            self.particles.resize_with(
+                                self.particles.len() + splash_particles,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(2500),
+                                        time,
+                                        ParticleMode::WaterFoam,
+                                        foot_pos,
+                                        foot_pos
+                                            + (Vec2::broadcast(())
+                                                .map(|()| rng.random_range(-1.0..1.0))
+                                                .try_normalized()
+                                                .unwrap_or_default()
+                                                * rng.random_range(9.0..12.0))
+                                            .with_z(13.0),
+                                        scene_data,
+                                    )
+                                    .with_light(
+                                        char_state.meta.last_light,
+                                        char_state.meta.last_glow.1,
+                                    )
+                                },
+                            );
+                        }
                     }
                 }
             }
