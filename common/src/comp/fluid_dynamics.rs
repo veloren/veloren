@@ -233,42 +233,41 @@ impl Body {
     /// viscous effects. The returned value is alternatively called the
     /// Reference Area of the body, and is used in the drag force equation.
     pub fn parasite_drag(&self, scale: f32) -> f32 {
-        fn from_terminal_velocity(mass: f32, vel: f32) -> f32 {
-            2.0 * mass * GRAVITY / (vel * vel * AIR_DENSITY)
-        }
+        let from_terminal_velocity =
+            |vel: f32| 2.0 * self.mass().0 * GRAVITY * scale * scale / (vel * vel * AIR_DENSITY);
 
         // Reference area and drag coefficient assumes best-case scenario of the
         // orientation producing least amount of drag
         match self {
-            Body::Humanoid(_) => from_terminal_velocity(self.mass().0, 90.0),
+            Body::Humanoid(_) => from_terminal_velocity(90.0),
 
-            Body::QuadrupedSmall(_) => from_terminal_velocity(self.mass().0, 20.0),
+            Body::QuadrupedSmall(_) => from_terminal_velocity(20.0),
 
-            Body::QuadrupedMedium(_) => from_terminal_velocity(self.mass().0, 70.0),
+            Body::QuadrupedMedium(_) => from_terminal_velocity(70.0),
 
-            Body::BirdMedium(_) => from_terminal_velocity(self.mass().0, 100.0),
+            Body::BirdMedium(_) => from_terminal_velocity(100.0),
 
-            Body::FishMedium(_) => from_terminal_velocity(self.mass().0, 120.0),
+            Body::FishMedium(_) => from_terminal_velocity(120.0),
 
-            Body::Dragon(_) => from_terminal_velocity(self.mass().0, 150.0),
+            Body::Dragon(_) => from_terminal_velocity(150.0),
 
-            Body::BirdLarge(_) => from_terminal_velocity(self.mass().0, 130.0),
+            Body::BirdLarge(_) => from_terminal_velocity(130.0),
 
-            Body::FishSmall(_) => from_terminal_velocity(self.mass().0, 100.0),
+            Body::FishSmall(_) => from_terminal_velocity(100.0),
 
-            Body::BipedLarge(_) => from_terminal_velocity(self.mass().0, 120.0),
+            Body::BipedLarge(_) => from_terminal_velocity(120.0),
 
-            Body::BipedSmall(_) => from_terminal_velocity(self.mass().0, 50.0),
+            Body::BipedSmall(_) => from_terminal_velocity(50.0),
 
-            Body::Golem(_) => from_terminal_velocity(self.mass().0, 200.0),
+            Body::Golem(_) => from_terminal_velocity(200.0),
 
-            Body::Theropod(_) => from_terminal_velocity(self.mass().0, 130.0),
+            Body::Theropod(_) => from_terminal_velocity(130.0),
 
-            Body::QuadrupedLow(_) => from_terminal_velocity(self.mass().0, 60.0),
+            Body::QuadrupedLow(_) => from_terminal_velocity(60.0),
 
-            Body::Arthropod(_) => from_terminal_velocity(self.mass().0, 50.0),
+            Body::Arthropod(_) => from_terminal_velocity(50.0),
 
-            Body::Crustacean(_) => from_terminal_velocity(self.mass().0, 50.0),
+            Body::Crustacean(_) => from_terminal_velocity(50.0),
 
             Body::Object(object) => match object {
                 // very streamlined objects
