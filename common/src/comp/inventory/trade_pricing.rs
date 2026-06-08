@@ -593,74 +593,64 @@ impl TradePricing {
     const INVEST_FACTOR: f32 = 0.33;
 
     pub fn good_from_item(name: &ItemDefinitionIdOwned) -> Good {
+        Self::good_from_itemdef_id(name.as_ref())
+    }
+
+    pub fn good_from_itemdef_id(name: ItemDefinitionId) -> Good {
         match name {
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.armor.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.armor.") => {
                 Good::Armor
             },
 
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.weapons.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.weapons.") => {
                 Good::Tools
             },
-            ItemDefinitionIdOwned::Simple(name)
-                if name.starts_with("common.items.modular.weapon.") =>
-            {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.modular.weapon.") => {
                 Good::Tools
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.tool.") => {
-                Good::Tools
-            },
-            ItemDefinitionIdOwned::Simple(name)
-                if name.starts_with("common.items.crafting_ing.") =>
-            {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.tool.") => Good::Tools,
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.crafting_ing.") => {
                 Good::Ingredients
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.mineral.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.mineral.") => {
                 Good::Ingredients
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.log.") => {
-                Good::Wood
-            },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.flowers.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.log.") => Good::Wood,
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.flowers.") => {
                 Good::Ingredients
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.consumable.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.consumable.") => {
                 Good::Potions
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.charms.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.charms.") => {
                 Good::Potions
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.food.") => {
-                Good::Food
-            },
-            ItemDefinitionIdOwned::Simple(name) if name.as_str() == Self::COIN_ITEM => Good::Coin,
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.recipes.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.food.") => Good::Food,
+            ItemDefinitionId::Simple(name) if name == Self::COIN_ITEM => Good::Coin,
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.recipes.") => {
                 Good::Recipe
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.glider.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.glider.") => {
                 Good::Tools
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.utility.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.utility.") => {
                 Good::default()
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.boss_drops.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.boss_drops.") => {
                 Good::Tools
             },
-            ItemDefinitionIdOwned::Simple(name)
-                if name.starts_with("common.items.crafting_tools.") =>
-            {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.crafting_tools.") => {
                 Good::default()
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.lantern.") => {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.lantern.") => {
                 Good::Tools
             },
-            ItemDefinitionIdOwned::Simple(name) if name.starts_with("common.items.keys.") => {
-                Good::Tools
-            },
-            ItemDefinitionIdOwned::Modular {
+            ItemDefinitionId::Simple(name) if name.starts_with("common.items.keys.") => Good::Tools,
+            ItemDefinitionId::Modular {
                 pseudo_base: _,
                 components: _,
             } => Good::Tools,
-            ItemDefinitionIdOwned::Compound {
+            ItemDefinitionId::Compound {
                 simple_base: _,
                 components: _,
             } => Good::Tools,
