@@ -456,9 +456,9 @@ impl Body {
                 // If you want to change that value, consult with
                 // Physics and Combat teams
                 //
-                // Weight is proportional height, where
-                // a 1.75m character would weigh 65kg
-                65.0 * humanoid.height() / 1.75f32
+                // Weight is proportional height, assuming
+                // a "standard" humanoid is 65kg
+                65.0 * humanoid.scaler()
             },
             Body::Object(obj) => obj.mass().0,
             Body::Item(item) => item.mass().0,

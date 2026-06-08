@@ -1457,7 +1457,8 @@ impl ServerEvent for LandOnGroundEvent {
             // water. This was added as a *temporary* fix a bug that causes you to take
             // fall damage while swimming downwards. FIXME: Fix the actual bug and
             // remove the following relevant part of the if statement.
-            if relative_vel >= 30.0
+            let falldmg_threshold = 30.0;
+            if relative_vel >= falldmg_threshold
                 && physic_states
                     .get(ev.entity)
                     .is_none_or(|ps| ps.in_liquid().is_none())
@@ -1470,8 +1471,8 @@ impl ServerEvent for LandOnGroundEvent {
                     };
 
                 let mass = masses.get(ev.entity).copied().unwrap_or_default();
-                let impact_energy = mass.0 * reduced_vel.powi(2) / 2.0;
-                let falldmg = impact_energy / 1000.0;
+                let excess_energy = mass.0 * (reduced_vel - falldmg_threshold).powi(2) / 2.0;
+                let falldmg = excess_energy / 1000.0;
 
                 // Emit health change
                 let damage = Damage {
