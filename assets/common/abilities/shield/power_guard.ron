@@ -2,7 +2,7 @@ BasicBlock(
     buildup_duration: 0.5,
     recover_duration: 0.4,
     max_angle: 90.0,
-    block_strength: 10.0,
+    block_strength: 12.5,
     parry_window: (
         buildup: true,
         recover: false,

@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.
 - Repairing items no longer costs resources.
 - Characters are now slightly taller
+- Parry no longer depends on armor
 
 ### Removed
 - Removed Firestaff ability upgrades.
