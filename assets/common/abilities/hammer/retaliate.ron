@@ -4,7 +4,7 @@ RiposteMelee(
     swing_duration: 0.1,
     recover_duration: 0.2,
     whiffed_recover_duration: 0.8,
-    block_strength: 2.5,
+    block_strength: 1.0,
     melee_constructor: (
         kind: Bash(
             damage: 8,
