@@ -79,3 +79,6 @@ common-stats-armor = len
 common-stats-poise_res = awen tan lape
 common-stats-energy_max = mute wawa
 common-stats-energy_reward = mute pi lanpan wawa
+common-networking = toki ilo
+common-automatic = nasin mi
+common-kind-quest = alasa
