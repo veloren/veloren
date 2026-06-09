@@ -30,12 +30,11 @@ pub fn price_desc<'a>(
         .iter()
         .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
         .sum();
-    let sellprice: f32 = materials
+    let sellprice = materials
         .iter()
-        .map(|e| {
-            prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.sell_discount(quality)
-        })
-        .sum();
+        .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
+        .sum::<f32>()
+        * TradePricing::good_from_itemdef_id(item_definition_id).sell_discount(quality);
 
     let deal_goodness: f32 = materials
         .iter()

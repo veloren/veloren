@@ -4471,13 +4471,16 @@ impl Hud {
                                         .map(|e| {
                                             prices.values.get(&e.1).cloned().unwrap_or_default()
                                                 * e.0
-                                                * (if ours {
-                                                    e.1.sell_discount(item.quality())
-                                                } else {
-                                                    1.0
-                                                })
                                         })
-                                        .sum();
+                                        .sum::<f32>()
+                                        * (if ours {
+                                            TradePricing::good_from_itemdef_id(
+                                                item.item_definition_id(),
+                                            )
+                                            .sell_discount(item.quality())
+                                        } else {
+                                            1.0
+                                        });
 
                                     let mut float_delta = if ours ^ remove {
                                         (balance1 - balance0) / unit_price
