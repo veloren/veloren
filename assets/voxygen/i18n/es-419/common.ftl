@@ -110,3 +110,4 @@ hud-diary-sections-character-title = Caracter
 hud-diary-sections-recipes-title = Recetas
 hud-battle-mode = Modo de Batalla
 hud-waypoint = Punto de Referencia
+common-kind-quest = Misión
