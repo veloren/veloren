@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Repairing items no longer costs resources.
 - Characters are now slightly taller
 - Parry no longer depends on armor
-- Mindflayer drops glowing remains with 50% chance
+- Mindflayer drops glowing remains with 25% chance
 
 ### Removed
 - Removed Firestaff ability upgrades.
