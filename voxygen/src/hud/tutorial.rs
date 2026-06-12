@@ -1,7 +1,9 @@
 use crate::{
     GlobalState, Settings,
+    hud::controller_icons as icon_utils,
     session::interactable::{EntityInteraction, Interactable},
-    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+    ui::{ImageFrame, RichText, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+    window::{ControllerType, LastInput},
 };
 use client::Client;
 use common::{
@@ -88,13 +90,21 @@ pub enum Achievement {
 impl Hint {
     const FADE_TIME: f32 = 5.0;
 
-    fn get_msg<'a>(&self, settings: &Settings, i18n: &'a Localization) -> Cow<'a, str> {
-        let get_key = |key| {
-            settings
+    fn get_msg<'a>(
+        &self,
+        settings: &Settings,
+        last_input: &LastInput,
+        i18n: &'a Localization,
+        ctrl: ControllerType,
+    ) -> Cow<'a, str> {
+        let get_key = |key| match last_input {
+            LastInput::Controller => icon_utils::get_controller_input_string(key, settings, ctrl)
+                .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
+            LastInput::KeyboardMouse => settings
                 .controls
                 .get_binding(key)
                 .map(|key| key.display_string())
-                .unwrap_or_else(|| "<unbound>".to_string())
+                .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
         };
         let key = &format!("tutorial-{self:?}");
         match self {
@@ -157,7 +167,12 @@ impl Hint {
 }
 
 impl Achievement {
-    fn get_msg<'a>(&self, _settings: &Settings, i18n: &'a Localization) -> Cow<'a, str> {
+    fn get_msg<'a>(
+        &self,
+        _settings: &Settings,
+        _last_input: &LastInput,
+        i18n: &'a Localization,
+    ) -> Cow<'a, str> {
         i18n.get_msg(&format!("achievement-{self:?}"))
     }
 }
@@ -628,12 +643,16 @@ impl Widget for Tutorial<'_> {
             .w_h(24.0, 24.0)
             .set(state.ids.old_icon[i], ui);
 
-            Text::new(&node.get_msg(&self.global_state.settings, self.localized_strings))
-                .mid_left_with_margin_on(state.ids.old_bg[i], 24.0 + MARGIN * 2.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(16))
-                .color(TEXT_COLOR)
-                .set(state.ids.old_text[i], ui);
+            Text::new(&node.get_msg(
+                &self.global_state.settings,
+                &self.global_state.window.last_input(),
+                self.localized_strings,
+            ))
+            .mid_left_with_margin_on(state.ids.old_bg[i], 24.0 + MARGIN * 2.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(16))
+            .color(TEXT_COLOR)
+            .set(state.ids.old_text[i], ui);
         }
 
         if let Some((current, _, anim)) = &mut self.global_state.profile.tutorial.current {
@@ -688,12 +707,20 @@ impl Widget for Tutorial<'_> {
                 self.global_state.profile.tutorial.disabled = true;
             }
 
-            Text::new(&current.get_msg(&self.global_state.settings, self.localized_strings))
-                .mid_left_with_margin_on(state.ids.bg, MARGIN)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(16))
-                .color(TEXT_COLOR.with_alpha(anim_alpha))
-                .set(state.ids.text, ui);
+            RichText::new(
+                &current.get_msg(
+                    &self.global_state.settings,
+                    &self.global_state.window.last_input(),
+                    self.localized_strings,
+                    self.global_state.window.controller_type(),
+                ),
+                self.imgs,
+            )
+            .mid_left_with_margin_on(state.ids.bg, MARGIN)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(16))
+            .color(TEXT_COLOR.with_alpha(anim_alpha))
+            .set(state.ids.text, ui);
         }
     }
 }

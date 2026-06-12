@@ -234,7 +234,6 @@ image_ids! {
         select_button_ps: "voxygen.element.ui.generic.controller.select_button_ps",
 
         no_button: "voxygen.element.ui.generic.controller.no_button_warning",
-        transparant_button: "voxygen.element.ui.generic.controller.transparant_icon",
 
         // Controller dark outlines for skillbar
         left_trigger_xbox_dark: "voxygen.element.ui.generic.controller.left_trigger_xbox_lt_dark",

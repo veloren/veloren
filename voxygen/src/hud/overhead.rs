@@ -6,8 +6,8 @@ use super::{
 use crate::{
     GlobalState,
     game_input::GameInput,
-    hud::{BuffIcon, IconHandler, controller_icons::LayerIconIds},
-    ui::fonts::Fonts,
+    hud::{BuffIcon, controller_icons as icon_utils},
+    ui::{RichText, fonts::Fonts},
     window::LastInput,
 };
 use common::{
@@ -61,10 +61,9 @@ widget_ids! {
         buff_timers[],
 
         // Interaction hints
-        interaction_hints,
+        interaction_hints_action,
+        interaction_hints_input,
         interaction_hints_bg,
-        btns[], // interaction options
-        icns[], // controller icons
     }
 }
 
@@ -454,188 +453,115 @@ impl Widget for Overhead<'_> {
                 let scale = 30.0;
                 let btn_rect_size = scale * 0.8;
                 let btn_font_size = scale * 0.6;
-                let btn_rect_pos_y;
                 let btn_radius = btn_rect_size / 5.0;
                 let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.8);
                 let mut max_w = btn_rect_size;
-                let mut max_h = 0.0;
-                let mut box_offset = 0.0;
+                let spacing = 8.0;
 
-                match self.global_state.window.last_input() {
-                    LastInput::KeyboardMouse => {
-                        let texts = self
-                            .interaction_options
-                            .iter()
-                            .filter_map(|(input, action)| {
-                                Some((
-                                    self.global_state.settings.controls.get_binding(*input)?,
-                                    action,
-                                ))
-                            })
-                            .map(|(input, action)| {
-                                format!("{}  {}", input.display_string(), action)
-                            })
-                            .collect::<Vec<_>>()
-                            .join("\n");
-
-                        let hints_text = Text::new(&texts)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(btn_font_size as u32)
-                            .color(TEXT_COLOR)
-                            .parent(id)
-                            .down_from(
-                                self.info.map_or(state.ids.name, |info| {
-                                    if info.health.is_some_and(should_show_healthbar) {
-                                        if info.energy.is_some() {
-                                            state.ids.mana_bar
-                                        } else {
-                                            state.ids.health_bar
-                                        }
-                                    } else {
-                                        state.ids.name
-                                    }
-                                }),
-                                12.0,
-                            )
-                            .align_middle_x_of(state.ids.name)
-                            .depth(1.0);
-
-                        let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
-                        max_w = max_w.max(w);
-                        max_h += h;
-                        hints_text.set(state.ids.interaction_hints, ui);
-                        btn_rect_pos_y = 0.0;
-                    },
-                    LastInput::Controller => {
-                        // because in-line images are not easily supported, the controller icons are
-                        // rendered left of the text; thus, the text has to be listed line by line
-                        // instead of all being joined together.
-                        // There can be up to 4 lines of text, and up to 3 icons. Because we don't
-                        // know which npc is being interacted with and that we allow input
-                        // rebinding, we don't know how many lines of text or icons to expect.
-                        // Therefore, we reserve the maximum possible number of widget id's from
-                        // conrod, and use up any we don't use with blank spaces.
-
-                        let max_controller_text = 4; // 4 npc interactions at most (e.g., mount, stay, trade, pet)
-                        if state.ids.btns.len() < max_controller_text {
-                            state.update(|state| {
-                                state
-                                    .ids
-                                    .btns
-                                    .resize(max_controller_text, &mut ui.widget_id_generator());
-                            })
-                        }
-
-                        let icns_size = max_controller_text * 3; // main icon + 2 modifier buttons
-                        if state.ids.icns.len() < icns_size {
-                            state.update(|state| {
-                                state
-                                    .ids
-                                    .icns
-                                    .resize(icns_size, &mut ui.widget_id_generator());
-                            })
-                        }
-
-                        let icon_handler = IconHandler::new(self.global_state, self.imgs);
-
-                        // anchors the text under the appropriate UI elements
-                        let anchor_text = Text::new("")
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .font_size(btn_font_size as u32)
-                            .color(TEXT_COLOR)
-                            .parent(id)
-                            .down_from(
-                                self.info.map_or(state.ids.name, |info| {
-                                    if info.health.is_some_and(should_show_healthbar) {
-                                        if info.energy.is_some() {
-                                            state.ids.mana_bar
-                                        } else {
-                                            state.ids.health_bar
-                                        }
-                                    } else {
-                                        state.ids.name
-                                    }
-                                }),
-                                12.0,
-                            )
-                            .align_middle_x_of(state.ids.name)
-                            .depth(1.0);
-
-                        anchor_text.set(state.ids.interaction_hints, ui);
-                        let mut down_from_id = state.ids.interaction_hints;
-                        let mut icons_w: u8 = 0;
-                        let mut first_text_w = 0.0;
-
-                        // loops through all reserved id's for max_controller_text
-                        // even if the text is not used, the id should be used to keep conrod from
-                        // freaking out
-                        for i in 0..max_controller_text {
-                            let text_id = state.ids.btns[i];
-                            let idx_icns = i * 3;
-                            let icon_ids = LayerIconIds {
-                                main: state.ids.icns[idx_icns],
-                                modifier1: state.ids.icns[idx_icns + 1],
-                                modifier2: state.ids.icns[idx_icns + 2],
-                            };
-
-                            // get the data for this row if it exists
-                            let row_data = self.interaction_options.get(i);
-                            let action_text =
-                                row_data.map(|(_, action)| action.as_str()).unwrap_or("");
-
-                            // draw the text (actual action or empty string)
-                            let mut hints_text = Text::new(action_text)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .font_size(btn_font_size as u32)
-                                .color(TEXT_COLOR)
-                                .parent(id)
-                                .depth(1.0);
-
-                            if i == 0 {
-                                // position the first line on the anchor
-                                hints_text = hints_text.middle_of(down_from_id);
-                            } else {
-                                // position subsequent lines below the previous
-                                hints_text = hints_text.down_from(down_from_id, 1.0);
+                // get the inputs and actions separately
+                let interactions: Vec<(String, String)> = match self
+                    .global_state
+                    .window
+                    .last_input()
+                {
+                    LastInput::KeyboardMouse => self
+                        .interaction_options
+                        .iter()
+                        .map(|(input, action)| {
+                            match self.global_state.settings.controls.get_binding(*input) {
+                                Some(binding) => (binding.display_string(), action.to_string()),
+                                None => (icon_utils::UNBOUND_KEY.to_string(), action.to_string()),
                             }
+                        })
+                        .collect(),
 
-                            // update math only if there's real data
-                            if let Some((input, _)) = row_data {
-                                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
-                                max_w = max_w.max(w);
-                                max_h += h;
+                    LastInput::Controller => self
+                        .interaction_options
+                        .iter()
+                        .map(|(input, action)| {
+                            let input_str = icon_utils::get_controller_input_string(
+                                *input,
+                                &self.global_state.settings,
+                                self.global_state.window.controller_type(),
+                            );
 
-                                if i == 0 {
-                                    first_text_w = w;
-                                }
-
-                                hints_text.set(text_id, ui);
-                                down_from_id = text_id;
-
-                                let count = icon_handler.set_controller_icons_left(
-                                    *input, 17.0, text_id, &icon_ids, ui,
-                                );
-                                icons_w = icons_w.max(count);
-                            } else {
-                                hints_text.set(text_id, ui);
-                                down_from_id = text_id;
-
-                                // render transparant widgets to keep conrod from freaking out
-                                icon_handler
-                                    .set_controller_icons_left_none(17.0, text_id, &icon_ids, ui);
+                            match input_str {
+                                Some(binding) => (binding, action.to_string()),
+                                None => (icon_utils::UNBOUND_KEY.to_string(), action.to_string()),
                             }
-                        }
+                        })
+                        .collect(),
+                };
 
-                        let icon_largest_width = icons_w as f64 * 21.0;
-                        let centroid_difference = (max_w / 2.0) - (first_text_w / 2.0);
-                        let offset = icon_largest_width / 2.0;
-                        box_offset = -(centroid_difference - offset);
-
-                        max_w += icon_largest_width;
-                        max_h = max_h.max(btn_rect_size);
-                        btn_rect_pos_y = (max_h - btn_font_size + 2.0) / 2.0;
-                    },
+                // create two strings for inputs and actions. Actions should be left aligned
+                // with each other, and should not be influenced by multi-input input strings
+                // icons string
+                let mut temp_list: Vec<String> = Vec::new();
+                for i in &interactions {
+                    // take the string element
+                    let s = i.0.clone();
+                    temp_list.push(s);
                 }
+                let icons_input = temp_list.join("\n");
+
+                // actions string
+                let mut temp_list: Vec<String> = Vec::new();
+                for i in &interactions {
+                    let s = i.1.clone();
+                    temp_list.push(s);
+                }
+                let action_input = temp_list.join("\n");
+
+                let anchor_id = self.info.map_or(state.ids.name, |info| {
+                    if info.health.is_some_and(should_show_healthbar) {
+                        if info.energy.is_some() {
+                            state.ids.mana_bar
+                        } else {
+                            state.ids.health_bar
+                        }
+                    } else {
+                        state.ids.name
+                    }
+                });
+
+                // render the actions/text first (left aligned)
+                let actions_hint = RichText::new(&action_input, self.imgs)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(btn_font_size as u32)
+                    .color(TEXT_COLOR)
+                    .parent(id)
+                    .justify(conrod_core::text::Justify::Left);
+
+                let [actions_w, actions_h] = actions_hint.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                max_w += actions_w;
+                let max_h = actions_h;
+
+                // render inputs left of actions (right aligned)
+                let inputs_hint = RichText::new(&icons_input, self.imgs)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(btn_font_size as u32)
+                    .color(TEXT_COLOR)
+                    .parent(id)
+                    .justify(conrod_core::text::Justify::Right);
+
+                let [inputs_w, _inputs_h] = inputs_hint.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+                max_w += inputs_w;
+                let box_offset = -(inputs_w + spacing) / 2.0;
+
+                // shift actions/text to the right based on the width of inputs
+                // this should help the input+actions output look centered
+                let centering_offset = (inputs_w + spacing) / 2.0;
+
+                actions_hint
+                    .down_from(anchor_id, 12.0)
+                    .x_relative_to(anchor_id, centering_offset)
+                    .depth(1.0)
+                    .set(state.ids.interaction_hints_action, ui);
+
+                inputs_hint
+                    .left_from(state.ids.interaction_hints_action, spacing)
+                    .depth(1.0)
+                    .set(state.ids.interaction_hints_input, ui);
 
                 RoundedRectangle::fill_with(
                     [max_w + btn_radius * 2.0, max_h + btn_radius * 2.0],
@@ -643,11 +569,8 @@ impl Widget for Overhead<'_> {
                     btn_color,
                 )
                 .depth(2.0)
-                .x_y_relative_to(
-                    state.ids.interaction_hints,
-                    0.0 - box_offset,
-                    0.0 - btn_rect_pos_y,
-                )
+                .x_relative_to(state.ids.interaction_hints_action, box_offset)
+                .align_middle_y_of(state.ids.interaction_hints_action)
                 .parent(id)
                 .set(state.ids.interaction_hints_bg, ui);
             }

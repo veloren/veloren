@@ -32,7 +32,6 @@ pub mod tutorial;
 pub mod util;
 
 pub use chat::MessageBacklog;
-pub use controller_icons::IconHandler;
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;

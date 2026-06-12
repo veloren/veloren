@@ -8,9 +8,10 @@ use super::{
 use crate::{
     GlobalState,
     game_input::GameInput,
-    hud::BuffIcon,
+    hud::{BuffIcon, controller_icons as icon_utils},
     settings::Settings,
-    ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+    ui::{ImageFrame, RichText, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
+    window::LastInput,
 };
 use client::{self, Client};
 use common::{
@@ -43,6 +44,8 @@ widget_ids! {
         scroll_area,
         scrollbar,
         members[],
+        txt_accept,
+        txt_decline,
         btn_accept,
         btn_decline,
         member_panels_bg[],
@@ -840,53 +843,97 @@ impl Widget for Group<'_> {
                 .color(TEXT_COLOR)
                 .w(165.0) // Text stays within frame
                 .set(state.ids.title, ui);
+
+            let last_input = self.global_state.window.last_input();
+
             // Accept Button
-            let accept_key = self
-                .settings
-                .controls
-                .get_binding(GameInput::AcceptGroupInvite)
-                .map_or_else(|| "".into(), |key| key.display_string());
-            if Button::image(self.imgs.button)
+            let accept_key = match last_input {
+                LastInput::Controller => icon_utils::get_controller_input_string(
+                    GameInput::AcceptGroupInvite,
+                    self.settings,
+                    self.global_state.window.controller_type(),
+                )
+                .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
+                LastInput::KeyboardMouse => {
+                    let key_text = self
+                        .settings
+                        .controls
+                        .get_binding(GameInput::AcceptGroupInvite)
+                        .map_or_else(|| "".into(), |key| key.display_string());
+
+                    if key_text.is_empty() {
+                        icon_utils::UNBOUND_KEY.to_string()
+                    } else {
+                        format!("[{}]", key_text)
+                    }
+                },
+            };
+            let accept_message = format!(
+                "{} {}",
+                accept_key,
+                self.localized_strings.get_msg("common-accept")
+            );
+            let clicked_y = Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
                 .bottom_right_with_margins_on(state.ids.bg, 15.0, 15.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&format!(
-                    "[{}] {}",
-                    &accept_key,
-                    self.localized_strings.get_msg("common-accept")
-                ))
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(self.fonts.cyri.scale(12))
                 .set(state.ids.btn_accept, ui)
-                .was_clicked()
-            {
+                .was_clicked();
+            RichText::new(&accept_message, self.imgs)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(12))
+                .color(TEXT_COLOR)
+                .middle_of(state.ids.btn_accept)
+                .graphics_for(state.ids.btn_accept)
+                .set(state.ids.txt_accept, ui);
+            if clicked_y {
                 events.push(Event::Accept);
                 self.show.group_menu = true;
             };
+
             // Decline button
-            let decline_key = self
-                .settings
-                .controls
-                .get_binding(GameInput::DeclineGroupInvite)
-                .map_or_else(|| "".into(), |key| key.display_string());
-            if Button::image(self.imgs.button)
+            let decline_key = match last_input {
+                LastInput::Controller => icon_utils::get_controller_input_string(
+                    GameInput::DeclineGroupInvite,
+                    self.settings,
+                    self.global_state.window.controller_type(),
+                )
+                .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
+                LastInput::KeyboardMouse => {
+                    let key_text = self
+                        .settings
+                        .controls
+                        .get_binding(GameInput::DeclineGroupInvite)
+                        .map_or_else(|| "".into(), |key| key.display_string());
+
+                    if key_text.is_empty() {
+                        icon_utils::UNBOUND_KEY.to_string()
+                    } else {
+                        format!("[{}]", key_text)
+                    }
+                },
+            };
+            let decline_message = format!(
+                "{} {}",
+                decline_key,
+                self.localized_strings.get_msg("common-decline")
+            );
+            let clicked_n = Button::image(self.imgs.button)
                 .w_h(90.0, 22.0)
                 .bottom_left_with_margins_on(state.ids.bg, 15.0, 15.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .label(&format!(
-                    "[{}] {}",
-                    &decline_key,
-                    self.localized_strings.get_msg("common-decline")
-                ))
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_font_size(self.fonts.cyri.scale(12))
                 .set(state.ids.btn_decline, ui)
-                .was_clicked()
-            {
+                .was_clicked();
+            RichText::new(&decline_message, self.imgs)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(12))
+                .color(TEXT_COLOR)
+                .middle_of(state.ids.btn_decline)
+                .graphics_for(state.ids.btn_decline)
+                .set(state.ids.txt_decline, ui);
+            if clicked_n {
                 events.push(Event::Decline);
             };
         }

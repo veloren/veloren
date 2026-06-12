@@ -22,6 +22,7 @@ pub use widgets::{
     item_tooltip::{ItemTooltip, ItemTooltipManager, ItemTooltipable},
     outlined_text::OutlinedText,
     radio_list::RadioList,
+    rich_text::RichText,
     slot,
     toggle_button::ToggleButton,
     tooltip::{Tooltip, TooltipManager, Tooltipable},
