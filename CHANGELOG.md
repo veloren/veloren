@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sword dual wielding animation
 - Savannah guard huts
 - Added market stands and other small structures to villages
+- Added a custom conrod rich text widget to render in-line images
 
 - Added 5 new Firestaff abilities.
   
