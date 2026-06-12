@@ -586,7 +586,7 @@ impl ServerEvent for InventoryManipEvent {
                                         {
                                             let is_pet = matches!(
                                                 data.alignments.get(entity),
-                                                Some(comp::Alignment::Owned(_))
+                                                Some(comp::Alignment::Owned(owner_id)) if owner_id != uid
                                             );
                                             let result = if is_pet {
                                                 Err((container_item, None))
