@@ -584,7 +584,15 @@ impl ServerEvent for InventoryManipEvent {
                                                     &data.msm,
                                                 )
                                         {
-                                            let result = inventory.push(container_item);
+                                            let is_pet = matches!(
+                                                data.alignments.get(entity),
+                                                Some(comp::Alignment::Owned(_))
+                                            );
+                                            let result = if is_pet {
+                                                Err((container_item, None))
+                                            } else {
+                                                inventory.push(container_item)
+                                            };
 
                                             if let Err((overflow_item, _)) = result
                                                 && let Some(pos) = data.positions.get(entity)
