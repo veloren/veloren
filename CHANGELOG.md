@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a custom conrod rich text widget to render in-line images
 
 - Added 5 new Firestaff abilities.
+- Server-side Prometheus metrics for entity deaths, locations, and causes of death
   
 ### Changed
 
