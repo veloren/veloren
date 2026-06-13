@@ -70,6 +70,11 @@ pub struct ServerEventMetrics {
     pub event_count: IntCounterVec,
 }
 
+pub struct GameplayMetrics {
+    pub entity_kills_by_location: IntCounterVec,
+    pub entity_kills_by_type: IntCounterVec,
+}
+
 pub struct QueryServerMetrics {
     pub received_packets: IntCounter,
     pub dropped_packets: IntCounter,
@@ -438,6 +443,33 @@ impl ServerEventMetrics {
         registry.register(Box::new(event_count.clone()))?;
 
         Ok(Self { event_count })
+    }
+}
+
+impl GameplayMetrics {
+    pub fn new(registry: &Registry) -> Result<Self, prometheus::Error> {
+        let entity_kills_by_location = IntCounterVec::new(
+            Opts::new(
+                "entity_kills_by_location",
+                "Entity kills quantized to nearest segment of x and y coordinates",
+            ),
+            &["body_type", "x", "y"],
+        )?;
+        let entity_kills_by_type = IntCounterVec::new(
+            Opts::new(
+                "entity_kills_by_type",
+                "Entity kills by body type and weapon",
+            ),
+            &["body_type", "weapon"],
+        )?;
+
+        registry.register(Box::new(entity_kills_by_location.clone()))?;
+        registry.register(Box::new(entity_kills_by_type.clone()))?;
+
+        Ok(Self {
+            entity_kills_by_location,
+            entity_kills_by_type,
+        })
     }
 }
 
