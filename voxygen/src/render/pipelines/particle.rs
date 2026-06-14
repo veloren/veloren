@@ -16,7 +16,6 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    #[expect(clippy::collapsible_else_if)]
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
         #[expect(clippy::bool_to_int_with_if)]
         let norm_bits = if norm.x != 0.0 {

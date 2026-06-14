@@ -213,10 +213,9 @@ impl Widget for Group<'_> {
                 .unwrap_or_else(|| format!("Npc<{}>", uid)),
         };
 
-        let open_invite = self.client.invite().and_then(|invite| {
-            // Don't show invite if it comes from a muted player
-            if self
-                .client
+        let open_invite = self.client.invite().filter(
+            |&invite| /*Don't show invite if it comes from a muted player*/
+            !self.client
                 .player_list()
                 .get(&invite.0)
                 .is_none_or(|player| {
@@ -224,14 +223,8 @@ impl Widget for Group<'_> {
                         .profile
                         .mutelist
                         .contains_key(&player.uuid)
-                })
-            {
-                None
-            } else {
-                Some(invite)
-            }
-        });
-
+                }),
+        );
         let my_uid = self.client.uid();
 
         // TODO show something to the player when they click on the group button while

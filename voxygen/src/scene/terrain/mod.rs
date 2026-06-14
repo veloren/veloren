@@ -358,8 +358,8 @@ fn mesh_worker(
                         // TODO: It is bad and incorrect that we can't fetch the BoIs of chunks
                         // in the local neighbourhood, it can make sprite lighting incorrect on
                         // chunk borders!!!
-                        |key| Some(&blocks_of_interest).filter(|_| key == pos),
-                        |key| Some(glow_map).filter(|_| key == pos),
+                        |key| (key == pos).then_some(&blocks_of_interest),
+                        |key| (key == pos).then_some(glow_map),
                         wpos.map(|e| e as f32 + 0.5),
                     )
                 },

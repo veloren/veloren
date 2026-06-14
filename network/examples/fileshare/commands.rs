@@ -43,7 +43,7 @@ impl FileInfo {
             Err(e) => {
                 println!(
                     "Cannot get metadata for file: {:?}, does it exist? Error: {:?}",
-                    &path, &e
+                    path, e
                 );
                 return None;
             },

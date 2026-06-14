@@ -1930,16 +1930,16 @@ impl ParticleMgr {
                                             r,
                                         );
                                     },
-                                    StageSection::Action => {
-                                        if repeater.timer.as_secs_f32() < TAIL_SECS {
-                                            self.maintain_pyroclasm_charge_particles(
-                                                scene_data,
-                                                interpolated.pos,
-                                                0.9,
-                                                z,
-                                                r,
-                                            );
-                                        }
+                                    StageSection::Action
+                                        if repeater.timer.as_secs_f32() < TAIL_SECS =>
+                                    {
+                                        self.maintain_pyroclasm_charge_particles(
+                                            scene_data,
+                                            interpolated.pos,
+                                            0.9,
+                                            z,
+                                            r,
+                                        );
                                     },
                                     _ => {},
                                 }

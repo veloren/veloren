@@ -97,7 +97,9 @@ impl QueryServer {
                 // Require 2 extra bytes for version (currently unused)
                 &raw_msg_buf[2..(raw_msg_buf.len() - VELOREN_HEADER.len())]
             } else {
-                new_metrics.dropped_packets += 1;
+                if let Ok(mut metrics) = metrics.lock() {
+                    metrics.dropped_packets += 1;
+                }
                 continue;
             };
 

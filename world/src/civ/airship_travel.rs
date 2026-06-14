@@ -1821,7 +1821,7 @@ impl TriangulationExt for Triangulation {
                         (connected_node_id, v1.distance_squared(v2) as i64)
                     })
                     .collect::<Vec<_>>();
-                connected_node_info.sort_by(|a, b| a.1.cmp(&b.1));
+                connected_node_info.sort_by_key(|a| a.1);
                 let mut excess_edges_remaining = excess_edges_count;
                 let mut remove_index = 0;
                 while excess_edges_remaining > 0 && remove_index < connected_node_info.len() {

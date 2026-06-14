@@ -1127,6 +1127,7 @@ fn change_chat_mode(
         if let Ok((name, args)) = parse_cmd(msg.trim())
             && let Ok(command) = name.parse::<ServerChatCommand>()
         {
+            #[expect(clippy::collapsible_match)]
             match command {
                 ServerChatCommand::Group
                 | ServerChatCommand::Say

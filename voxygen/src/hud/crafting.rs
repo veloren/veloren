@@ -1434,7 +1434,7 @@ impl Widget for Crafting<'_> {
                         .parent(state.ids.align_ing)
                         .set(state.ids.output_img_frame, ui);
 
-                    let output_text = format!("x{}", &recipe.output.1.to_string());
+                    let output_text = format!("x{}", recipe.output.1);
                     // Output Image
                     Button::image(animate_by_pulse(
                         &self

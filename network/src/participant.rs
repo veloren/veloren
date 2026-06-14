@@ -803,7 +803,7 @@ impl BParticipant {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use core::assert_matches::assert_matches;
+    use core::assert_matches;
     use network_protocol::{ProtocolMetricCache, ProtocolMetrics};
     use tokio::{
         runtime::Runtime,

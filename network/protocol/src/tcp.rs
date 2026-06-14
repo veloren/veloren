@@ -113,12 +113,10 @@ where
                 self.store
                     .open_stream(sid, prio, promises, guaranteed_bandwidth);
             },
-            ProtocolEvent::CloseStream { sid } => {
-                if !self.store.try_close_stream(sid) {
-                    #[cfg(feature = "trace_pedantic")]
-                    trace!(?sid, "hold back notify close stream");
-                    self.notify_closing_streams.push(sid);
-                }
+            ProtocolEvent::CloseStream { sid } if !self.store.try_close_stream(sid) => {
+                #[cfg(feature = "trace_pedantic")]
+                trace!(?sid, "hold back notify close stream");
+                self.notify_closing_streams.push(sid);
             },
             _ => {},
         }

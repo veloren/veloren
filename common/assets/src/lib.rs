@@ -746,7 +746,7 @@ pub mod asset_tweak {
         {
             fn create(file: P) -> (Self, File) {
                 let f = File::create(&file)
-                    .unwrap_or_else(|_| panic!("failed to create file {:?}", &file));
+                    .unwrap_or_else(|_| panic!("failed to create file {:?}", file));
                 (Self { file }, f)
             }
 
@@ -759,7 +759,7 @@ pub mod asset_tweak {
         {
             fn drop(&mut self) {
                 fs::remove_file(&self.file).unwrap_or_else(|e| {
-                    panic!("failed to remove file {:?}. Error: {:?}", &self.file, e)
+                    panic!("failed to remove file {:?}. Error: {:?}", self.file, e)
                 });
             }
         }

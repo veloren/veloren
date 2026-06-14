@@ -338,7 +338,7 @@ pub fn maintain_egui_inner(
             .default_width(500.0)
             .default_height(500.0)
             .show(ctx, |ui| {
-                ui.label(format!("Entity count: {}", &ecs.entities().join().count()));
+                ui.label(format!("Entity count: {}", ecs.entities().join().count()));
                 ui.add(
                     Slider::new(&mut max_entity_distance, 1.0..=100000.0)
                         .logarithmic(true)
@@ -435,7 +435,7 @@ pub fn maintain_egui_inner(
                                     ui.label("-");
                                 }
                                 if let Some(stats) = stats {
-                                    ui.label(format!("{:?}", &stats.name));
+                                    ui.label(format!("{:?}", stats.name));
                                 } else {
                                     ui.label("-");
                                 }

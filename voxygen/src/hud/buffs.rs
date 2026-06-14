@@ -283,8 +283,7 @@ impl Widget for BuffsBar<'_> {
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
                     let remaining_time = buff.get_buff_time(*self.time);
-                    let click_to_remove =
-                        format!("<{}>", &localized_strings.get_msg("buff-remove"));
+                    let click_to_remove = format!("<{}>", localized_strings.get_msg("buff-remove"));
                     let desc = format!("{}\n\n{}\n\n{}", desc_txt, remaining_time, click_to_remove);
                     // Timer overlay
                     if Button::image(self.get_duration_image(duration_percentage))
@@ -468,8 +467,7 @@ impl Widget for BuffsBar<'_> {
                     // Create Buff tooltip
                     let (title, desc_txt) = buff.kind.title_description(localized_strings);
                     let remaining_time = buff.get_buff_time(*self.time);
-                    let click_to_remove =
-                        format!("<{}>", &localized_strings.get_msg("buff-remove"));
+                    let click_to_remove = format!("<{}>", localized_strings.get_msg("buff-remove"));
                     let desc = if buff.is_buff {
                         format!("{}\n\n{}", desc_txt, click_to_remove)
                     } else {

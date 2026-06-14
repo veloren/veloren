@@ -1115,17 +1115,16 @@ impl Inventory {
                     );
                 }
             },
-            EquipSlot::InactiveMainhand => {
+            EquipSlot::InactiveMainhand
                 if self.loadout.equipped(EquipSlot::InactiveMainhand).is_none()
-                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
-                {
-                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None, time);
-                    assert!(
-                        self.loadout
-                            .swap(EquipSlot::InactiveMainhand, offhand, time)
-                            .is_none()
-                    );
-                }
+                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some() =>
+            {
+                let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None, time);
+                assert!(
+                    self.loadout
+                        .swap(EquipSlot::InactiveMainhand, offhand, time)
+                        .is_none()
+                );
             },
             _ => {},
         }

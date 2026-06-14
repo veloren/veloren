@@ -303,7 +303,7 @@ impl Widget for Social<'_> {
             };
             let acc_name_txt = format!(
                 "{}: {}",
-                &self.localized_strings.get_msg("hud-social-account"),
+                self.localized_strings.get_msg("hud-social-account"),
                 alias
             );
             // Player name widget
@@ -481,7 +481,7 @@ impl Widget for Social<'_> {
                 "{}/{} {}",
                 current_members + current_invites,
                 max_members,
-                &self.localized_strings.get_msg("hud-group-members")
+                self.localized_strings.get_msg("hud-group-members")
             );
             invite_button
                 .with_tooltip(
