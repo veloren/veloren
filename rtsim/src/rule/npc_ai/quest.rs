@@ -1,13 +1,13 @@
+use super::*;
 use crate::data::quest::{
     COURIER_QUEST_VARIANTS, CourierQuest, CourierQuestInstance, Payload, Recipient,
 };
-
-use super::*;
 use common::{
     comp::{Item, item::ItemBase},
     rtsim::NpcId,
     spot::Spot,
 };
+use std::num::NonZeroU32;
 
 /// Perform a deposit check, ensuring that the NPC has the given item and amount
 /// in their inventory. If they do, the provided action is performed to
@@ -195,7 +195,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                 // TODO: Don't do this
                 .choose(&mut ChaChaRng::from_seed([(ctx.time.0 / (60.0 * 15.0)) as u8; 32]))
             // Escort reward amount is proportional to distance
-            && let escort_reward_amount = dist / 25.0
+            && let escort_reward_amount = dist / 5.0
             && let Some(dst_site_name) = util::site_name(ctx, dst_site_id)
             && let time_limit = 1.0 + dist as f64 / 80.0
             && let Some(accept_quest) = create_deposit(ctx, ESCORT_REWARD_ITEM, escort_reward_amount, session
@@ -270,15 +270,15 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
             .min_by_key(|(_, npc)| npc.wpos.xy().distance_squared(ctx.npc.wpos.xy()) as i64)
             && let monster_pos = monster.wpos
             && let monster_body = monster.body
-            && let escort_reward_amount = 200.0
+            && let slay_reward_amount = 1000.0
             && let Some(accept_quest) = create_deposit(
                 ctx,
                 SLAY_REWARD_ITEM,
-                escort_reward_amount,
+                slay_reward_amount,
                 session.ask_yes_no_question(
                     Content::localized("npc-response-quest-slay-ask")
                         .with_arg("body", monster_body.localize_npc())
-                        .with_arg("coins", escort_reward_amount as u64),
+                        .with_arg("coins", slay_reward_amount as u64),
                 ),
             )
         {
@@ -292,7 +292,7 @@ pub fn quest_request<S: State>(session: DialogueSession) -> impl Action<S> {
                                     monster_id.into(),
                                     session.target,
                                 )
-                                .with_deposit(ESCORT_REWARD_ITEM, escort_reward_amount)
+                                .with_deposit(ESCORT_REWARD_ITEM, slay_reward_amount)
                                 .with_timeout(ctx.time.add_minutes(60.0));
                                 create_quest(quest.clone())
                                     .then(
@@ -569,6 +569,8 @@ pub fn get_nearest_spot(
     }
 }
 
+const MAX_COURIER_QUEST_DISTANCE: f32 = 5_000.0;
+
 /// This file only contains an implementation for quest interactions. Make sure
 /// to look for other implementations.
 impl CourierQuestInstance {
@@ -593,23 +595,32 @@ impl CourierQuestInstance {
     /// person that paid the quest deposit.
     pub fn get_reward(self) -> f32 {
         match self.kind {
-            CourierQuest::Message => 150.0,
+            CourierQuest::Message => f32::max(
+                150.0,
+                1000.0 * (self.distance.get() as f32 / MAX_COURIER_QUEST_DISTANCE),
+            ),
             CourierQuest::Deliver {
                 payload: Payload::GnarlingCarving,
                 recipient: Recipient::Other,
-            } => 275.0,
+            } => f32::max(
+                500.0,
+                1400.0 * (self.distance.get() as f32 / MAX_COURIER_QUEST_DISTANCE),
+            ),
             CourierQuest::Deliver {
                 payload: Payload::GnarlingCarving,
+                recipient: Recipient::Giver,
+            } => 350.0,
+            CourierQuest::Deliver {
+                payload: Payload::LegoomLeaf,
+                recipient: Recipient::Other,
+            } => f32::max(
+                400.0,
+                1200.0 * (self.distance.get() as f32 / MAX_COURIER_QUEST_DISTANCE),
+            ),
+            CourierQuest::Deliver {
+                payload: Payload::LegoomLeaf,
                 recipient: Recipient::Giver,
             } => 200.0,
-            CourierQuest::Deliver {
-                payload: Payload::LegoomLeaf,
-                recipient: Recipient::Other,
-            } => 240.0,
-            CourierQuest::Deliver {
-                payload: Payload::LegoomLeaf,
-                recipient: Recipient::Giver,
-            } => 100.0,
         }
     }
 
@@ -833,12 +844,12 @@ fn roll_courier_quest(ctx: &mut NpcCtx, messenger: Actor) -> Option<CourierQuest
         .copied()
         .unwrap_or(CourierQuest::Message);
 
-    let (target_site, target_actor) = match kind {
+    let (target_site, target_actor, distance) = match kind {
         // target and source are the same npc for this kind of courier quest
         CourierQuest::Deliver {
             recipient: Recipient::Giver,
             ..
-        } => (ctx.npc.current_site, Actor::from(ctx.npc_id)),
+        } => (ctx.npc.current_site, Actor::from(ctx.npc_id), 0.0),
         // target npc differs from source npc for these kinds of courier quests,
         // so find a target npc and the npc's site
         CourierQuest::Deliver {
@@ -857,12 +868,13 @@ fn roll_courier_quest(ctx: &mut NpcCtx, messenger: Actor) -> Option<CourierQuest
                 | Role::Civilised(Some(Profession::Chef))
                 | Role::Civilised(Some(Profession::Herbalist))
                 | Role::Civilised(Some(Profession::Guard)) => {
-                    (ctx.npc.wpos.xy().distance(npc.wpos.xy()) <= 5_000.0).then_some((npc_id, npc))
+                    let distance = ctx.npc.wpos.xy().distance(npc.wpos.xy());
+                    (distance <= MAX_COURIER_QUEST_DISTANCE).then_some((npc_id, npc, distance))
                 },
                 _ => None,
             })
             .choose(&mut ctx.rng)
-            .and_then(|(tgt_npc_id, tgt_npc)| {
+            .and_then(|(tgt_npc_id, tgt_npc, distance)| {
                 ctx.data
                     .sites
                     .iter()
@@ -870,7 +882,7 @@ fn roll_courier_quest(ctx: &mut NpcCtx, messenger: Actor) -> Option<CourierQuest
                         (tgt_npc.wpos.xy().distance(site.wpos.as_()) <= 512.0).then_some(site_id)
                     })
                     .choose(&mut ctx.rng)
-                    .map(|site_id| (Some(site_id), Actor::from(tgt_npc_id)))
+                    .map(|site_id| (Some(site_id), Actor::from(tgt_npc_id), distance))
             })?,
     };
 
@@ -886,6 +898,7 @@ fn roll_courier_quest(ctx: &mut NpcCtx, messenger: Actor) -> Option<CourierQuest
         return None;
     }
 
+    const ONE: NonZeroU32 = NonZeroU32::new(1).unwrap();
     Some(CourierQuestInstance {
         kind,
         spot,
@@ -894,5 +907,6 @@ fn roll_courier_quest(ctx: &mut NpcCtx, messenger: Actor) -> Option<CourierQuest
         target_actor,
         target_site,
         messenger,
+        distance: NonZeroU32::new(distance as u32).unwrap_or(ONE),
     })
 }

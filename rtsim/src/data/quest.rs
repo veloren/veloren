@@ -5,7 +5,10 @@ use common::{
 use hashbrown::{HashMap, HashSet};
 use itertools::Either;
 use serde::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
+use std::{
+    num::NonZeroU32,
+    sync::atomic::{AtomicU8, AtomicU64, Ordering},
+};
 use vek::Vec2;
 
 /// The easiest way to think about quests is as a virtual Jira board (or,
@@ -415,4 +418,6 @@ pub struct CourierQuestInstance {
     pub target_site: Option<SiteId>,
     /// Usually this is the player.
     pub messenger: Actor,
+    /// The distance to be traversed, calculated once at quest start.
+    pub distance: NonZeroU32,
 }
