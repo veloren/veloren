@@ -1867,7 +1867,7 @@ impl Hud {
                 self.floaters
                     .skill_point_displays
                     .retain(|d| d.timer > 0_f32);
-                if let Some(display) = self.floaters.skill_point_displays.iter_mut().next() {
+                if let Some(display) = self.floaters.skill_point_displays.first_mut() {
                     let fade = if display.timer < 3.0 {
                         display.timer * 0.33
                     } else if display.timer < 2.0 {
@@ -3060,8 +3060,7 @@ impl Hud {
                     if label.starts_with(crate::render::UI_PREMULTIPLY_PASS) {
                         continue;
                     }
-                    let timings_text =
-                        &format!("{:16}{:.3} ms", &format!("{label}:"), timing.2 * 1000.0,);
+                    let timings_text = &format!("{label:16}{:.3} ms", timing.2 * 1000.0);
                     let timings_widget = Text::new(timings_text)
                         .color(TEXT_COLOR)
                         .down(V_PAD)

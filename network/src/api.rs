@@ -1273,7 +1273,7 @@ impl std::fmt::Debug for Participant {
         write!(
             f,
             "Participant {{ local_pid: {:?}, remote_pid: {:?} }}",
-            &self.local_pid, &self.remote_pid,
+            self.local_pid, self.remote_pid,
         )
     }
 }

@@ -33,7 +33,7 @@ impl Screen {
         use core::fmt::Write;
         let format_art_credit = |credit: &crate::credits::Art| -> Result<String, core::fmt::Error> {
             let mut text = String::new();
-            write!(&mut text, "\"{}\"", &credit.name)?;
+            write!(&mut text, "\"{}\"", credit.name)?;
 
             let mut authors = credit.authors.iter();
             if let Some(author) = authors.next() {
@@ -47,7 +47,7 @@ impl Screen {
             authors.try_for_each(|author| write!(&mut text, ", {}", author))?;
 
             if !credit.license.is_empty() {
-                write!(&mut text, " ({})", &credit.license)?;
+                write!(&mut text, " ({})", credit.license)?;
             }
 
             Ok::<_, core::fmt::Error>(text)
@@ -63,7 +63,7 @@ impl Screen {
                 authors.try_for_each(|author| write!(&mut text, ", {}", author))?;
 
                 if !credit.license.is_empty() {
-                    write!(&mut text, " ({})", &credit.license)?;
+                    write!(&mut text, " ({})", credit.license)?;
                 }
 
                 Ok::<_, core::fmt::Error>(text)
@@ -74,7 +74,7 @@ impl Screen {
                 text.push_str(&credit.name);
 
                 if !credit.contributions.is_empty() {
-                    write!(&mut text, "- {}", &credit.contributions)?;
+                    write!(&mut text, "- {}", credit.contributions)?;
                 }
 
                 Ok(text)

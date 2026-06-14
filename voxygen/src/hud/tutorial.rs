@@ -449,11 +449,10 @@ impl TutorialState {
             Interactable::Entity {
                 interaction: EntityInteraction::CampfireSit,
                 ..
-            } => {
-                if self.earn_achievement(Achievement::FindCampfire) {
+            }
+                if self.earn_achievement(Achievement::FindCampfire) => {
                     self.show_hint(Hint::Campfire, Duration::from_secs(1));
-                }
-            },
+                },
             _ => {},
         }
     }

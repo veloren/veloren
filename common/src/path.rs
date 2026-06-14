@@ -931,16 +931,12 @@ where
 
         DIRS.iter()
             .chain(
-                Some(JUMPS.iter())
-                    .filter(|_| {
-                        vol.get(pos - Vec3::unit_z())
-                            .map(|b| !b.is_liquid())
-                            .unwrap_or(traversal_cfg.is_target_loaded)
-                            || traversal_cfg.can_climb
-                            || traversal_cfg.can_fly
-                    })
-                    .into_iter()
-                    .flatten(),
+                (vol.get(pos - Vec3::unit_z())
+                    .map(|b| !b.is_liquid())
+                    .unwrap_or(traversal_cfg.is_target_loaded)
+                    || traversal_cfg.can_climb
+                    || traversal_cfg.can_fly).then_some(JUMPS.iter())
+                    .into_iter().flatten()
             )
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {

@@ -2,7 +2,7 @@ use arr_macro::arr;
 
 fn calc_idx(v: impl Iterator<Item = i32>) -> usize {
     let mut r = 0;
-    for (e, h) in v.zip([0x6eed0e9d, 0x2f72b421, 0x18132f72, 0x891e2fba].into_iter()) {
+    for (e, h) in v.zip([0x6eed0e9d, 0x2f72b421, 0x18132f72, 0x891e2fba]) {
         r ^= (e as u32).wrapping_mul(h);
     }
     r as usize

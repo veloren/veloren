@@ -516,11 +516,7 @@ impl MusicMgr {
                     .collect::<Vec<&SoundtrackItem>>();
             let mut error_string = format!(
                 "No tracks for {:?}, {:?}, {:?}, {:?}, {:?}",
-                &current_period_of_day,
-                &current_weather,
-                &current_site,
-                &current_biome,
-                &music_state
+                current_period_of_day, current_weather, current_site, current_biome, music_state
             );
             if maybe_tracks.is_empty() {
                 return Err(error_string);

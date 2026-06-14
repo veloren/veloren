@@ -581,7 +581,7 @@ pub(crate) fn get_client_msg_error(
                 "{} {}: {} {}: {}",
                 localization.get_msg("main-login-network_wrong_version"),
                 localization.get_msg("main-login-client_version"),
-                &*common::util::DISPLAY_VERSION,
+                *common::util::DISPLAY_VERSION,
                 localization.get_msg("main-login-server_version"),
                 common::util::make_display_version(server_info.git_hash, server_info.git_timestamp),
             )

@@ -283,7 +283,7 @@ impl Renderer {
             ?supported_limits.max_texture_dimension_2d,
             "selected graphics device"
         );
-        let graphics_backend = format!("{:?}", &info.backend);
+        let graphics_backend = format!("{:?}", info.backend);
 
         let required_limits = wgpu::Limits {
             max_texture_dimension_1d: 0,
@@ -342,7 +342,7 @@ impl Renderer {
             error!("{}", &error);
             panic!(
                 "wgpu error (handling all wgpu errors as fatal):\n{:?}\n{:?}",
-                &error, &info,
+                error, info,
             );
         }));
 
@@ -1373,6 +1373,7 @@ impl Renderer {
     ) {
         let quad_index_length = vert_length / 4 * 6;
 
+        #[expect(clippy::collapsible_match)]
         match V::QUADS_INDEX {
             Some(wgpu::IndexFormat::Uint16) => {
                 // Make sure the global quad index buffer is large enough

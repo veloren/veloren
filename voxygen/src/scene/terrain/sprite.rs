@@ -121,7 +121,7 @@ impl core::fmt::Display for SpritesMissing {
         writeln!(
             f,
             "Missing entries in the sprite manifest for these sprites: {:?}",
-            &self.0,
+            self.0,
         )
     }
 }

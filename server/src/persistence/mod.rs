@@ -211,7 +211,7 @@ pub(crate) fn establish_connection(
     connection_mode: ConnectionMode,
 ) -> VelorenConnection {
     fs::create_dir_all(&settings.db_dir)
-        .unwrap_or_else(|_| panic!("Failed to create saves directory: {:?}", &settings.db_dir));
+        .unwrap_or_else(|_| panic!("Failed to create saves directory: {:?}", settings.db_dir));
 
     let open_flags = OpenFlags::SQLITE_OPEN_PRIVATE_CACHE
         | OpenFlags::SQLITE_OPEN_NO_MUTEX

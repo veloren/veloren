@@ -329,7 +329,7 @@ impl EntityInfo {
             BodyBuilder::RandomWith(string) => {
                 let npc::NpcBody(_body_kind, mut body_creator) =
                     string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                        panic!("failed to parse body {:?}. Err: {:?}", &string, err)
+                        panic!("failed to parse body {:?}. Err: {:?}", string, err)
                     });
                 let body = body_creator();
                 self = self.with_body(body);

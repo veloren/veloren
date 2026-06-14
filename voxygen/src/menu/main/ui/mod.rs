@@ -628,7 +628,7 @@ impl Controls {
                  authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
                  authentication servers.\n\nMake sure that you trust this site and owner to not \
                  try and bruteforce your password!",
-                &auth_server
+                auth_server
             );
 
             *connection_state = ConnectionState::AuthTrustPrompt { auth_server, msg };
