@@ -31,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Savannah guard huts
 - Added market stands and other small structures to villages
 - Added a custom conrod rich text widget to render in-line images
-
 - Added 5 new Firestaff abilities.
 - Server-side Prometheus metrics for entity deaths, locations, and causes of death
   
@@ -46,8 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Characters are now slightly taller
 - Parry no longer depends on armor
 - Mindflayer drops glowing remains with 25% chance
+- Quests now give larger coin rewards, and trader NPCs have higher amounts of coins to be able to afford to pay for the larger quest rewards
 
 ### Removed
+
 - Removed Firestaff ability upgrades.
 
 ### Fixed
