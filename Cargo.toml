@@ -1,5 +1,3 @@
-cargo-features = ["profile-rustflags"]
-
 [workspace]
 resolver = "2"
 members = [
@@ -69,11 +67,12 @@ debug = "line-tables-only"
 
 # this profile is used by developers if dev doesn't has enough debug information,
 # the name must != debug, as debug is used by dev because....
+#
+# Please note: to generate flamegraphs, `RUSTFLAGS="-Clink-arg=-Wl,--no-rosegment"` must be set.
+# See https://github.com/flamegraph-rs/flamegraph#linux
 [profile.debuginfo]
 inherits = 'dev'
 debug = true
-# no-rosegment is required for flamegraphs, see https://github.com/flamegraph-rs/flamegraph#linux
-rustflags = ["-C", "link-arg=-Wl,--no-rosegment"]
 
 
 # used to perform things that do a *lot* of math (i.e. worldgen) but still need reasonable compilation time.  Ideally this would also

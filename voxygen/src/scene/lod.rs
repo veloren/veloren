@@ -16,6 +16,7 @@ use common::{
     weather,
 };
 use hashbrown::HashMap;
+use std::ops::Range;
 use treeculler::{AABB, BVol, Frustum};
 use vek::*;
 
@@ -42,7 +43,7 @@ pub struct Lod {
 
     zone_objects: HashMap<Vec2<i32>, HashMap<lod::ObjectKind, ObjectGroup>>,
     // (model, radius, height)
-    object_data: HashMap<lod::ObjectKind, (Model<LodObjectVertex>, f32, f32)>,
+    object_data: HashMap<lod::ObjectKind, (Model<LodObjectVertex>, f32, Range<f32>)>,
 }
 
 // TODO: Make constant when possible.
@@ -186,7 +187,7 @@ impl Lod {
                 let mut objects = HashMap::<_, Vec<_>>::new();
                 let mut bounds = None;
                 for object in zone.objects.iter() {
-                    let Some((_, radius, height)) = self.object_data.get(&object.kind) else {
+                    let Some((_, radius, z_range)) = self.object_data.get(&object.kind) else {
                         continue;
                     };
                     let pos = p.map(|e| lod::to_wpos(e) as f32).with_z(0.0)
@@ -194,8 +195,8 @@ impl Lod {
                         + Vec2::broadcast(0.5).with_z(0.0);
                     let rad = Vec2::broadcast(*radius);
                     let obj_bounds = Aabb {
-                        min: pos + (-rad).with_z(0.0),
-                        max: pos + rad.with_z(*height),
+                        min: pos + (-rad).with_z(z_range.start),
+                        max: pos + rad.with_z(z_range.end),
                     };
                     bounds = Some(bounds.map_or(obj_bounds, |b: Aabb<f32>| b.union(obj_bounds)));
                     objects
@@ -359,50 +360,53 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
 /// - `InstCol` The object will use the instance color that is set in the
 ///   worldgen lod::Object.
 /// - `InstCol Glow` The object will use the instance color. Glow is ignored.
-fn make_lod_object(name: &str, renderer: &mut Renderer) -> (Model<LodObjectVertex>, f32, f32) {
+fn make_lod_object(
+    name: &str,
+    renderer: &mut Renderer,
+) -> (Model<LodObjectVertex>, f32, Range<f32>) {
     let model = Obj::load_expect(&format!("voxygen.lod.{}", name));
     let mut radius = 0.0f32;
-    let mut height = 0.0f32;
-    let mesh = model
-        .read()
-        .0
-        .objects()
-        .flat_map(|(objname, obj)| {
-            let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
-            let color = color
-                .next()
-                .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
-                .unwrap_or(Rgb::broadcast(127));
-            let color = srgb_to_linear(color.map(|c| c as f32 / 255.0));
-            let flags = if objname.contains("InstCol") && objname.contains("Glow") {
-                VertexFlags::INST_COLOR | VertexFlags::GLOW
-            } else if objname.contains("Glow") {
-                VertexFlags::GLOW
-            } else if objname.contains("InstCol") {
-                VertexFlags::INST_COLOR
-            } else {
-                VertexFlags::empty()
-            };
-            obj.triangles().map(move |vs| {
-                for v in vs {
-                    radius = radius.max(Vec3::from(v.position()).xy().magnitude());
-                    height = height.max(v.position()[2]);
-                }
-                let [a, b, c] = vs.map(|v| {
-                    LodObjectVertex::new(
-                        v.position().into(),
-                        v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
-                        color,
-                        flags,
-                    )
-                });
-                Tri::new(a, b, c)
-            })
-        })
-        .collect();
+    let mut z_range = None;
+    let mut mesh = Mesh::new();
+    for (objname, obj) in model.read().0.objects() {
+        let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
+        let color = color
+            .next()
+            .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
+            .unwrap_or(Rgb::broadcast(127));
+        let color = srgb_to_linear(color.map(|c| c as f32 / 255.0));
+        let flags = if objname.contains("InstCol") && objname.contains("Glow") {
+            VertexFlags::INST_COLOR | VertexFlags::GLOW
+        } else if objname.contains("Glow") {
+            VertexFlags::GLOW
+        } else if objname.contains("InstCol") {
+            VertexFlags::INST_COLOR
+        } else {
+            VertexFlags::empty()
+        };
+
+        for vs in obj.triangles() {
+            for v in vs {
+                radius = radius.max(Vec3::from(v.position()).xy().magnitude());
+                let z = v.position()[2];
+                let z_range = z_range.get_or_insert(z..z);
+                z_range.start = z_range.start.min(z);
+                z_range.end = z_range.end.max(z);
+            }
+            let [a, b, c] = vs.map(|v| {
+                LodObjectVertex::new(
+                    v.position().into(),
+                    v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
+                    color,
+                    flags,
+                )
+            });
+            mesh.push_tri(Tri::new(a, b, c));
+        }
+    }
     (
         renderer.create_model(&mesh).expect("Mesh was empty!"),
         radius,
-        height,
+        z_range.expect("no vertices"),
     )
 }

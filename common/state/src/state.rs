@@ -140,6 +140,8 @@ impl State {
         let (thread_name_infix, is_main_task) = match game_mode {
             GameMode::Server => ("s", true),
             GameMode::Client => ("c", true),
+            // Note: We don't currently use `Singleplayer`. When we do, server-side tasks should be
+            // deprioritised in favour of things that sit on the main thread!
             GameMode::Singleplayer => ("sp", false),
         };
 

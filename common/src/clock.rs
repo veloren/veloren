@@ -134,10 +134,10 @@ impl Clock {
 
         // Calculate average metrics
 
-        let busy_time = self.last_work.elapsed().as_secs_f64();
-        self.average_busy = Lerp::lerp(self.average_busy, busy_time, SMOOTH_WEIGHT);
+        let busy_time = self.last_work.elapsed();
+        self.average_busy = Lerp::lerp(self.average_busy, busy_time.as_secs_f64(), SMOOTH_WEIGHT);
 
-        let tick_time = self.last_tick.elapsed().as_secs_f64();
+        let tick_time = (this_tick - self.last_tick).as_secs_f64();
         self.average_dt = Lerp::lerp(self.average_dt, tick_time, SMOOTH_WEIGHT);
 
         let variance = (tick_time - self.average_dt).abs();
@@ -146,10 +146,7 @@ impl Clock {
         drop(guard);
 
         // Sleep for any remaining time before the next tick
-        if let Some(sleep_dur) = self
-            .target_dt
-            .checked_sub(Duration::from_secs_f64(busy_time))
-        {
+        if let Some(sleep_dur) = self.target_dt.checked_sub(busy_time) {
             spin_sleep::sleep(sleep_dur);
         }
 
@@ -164,7 +161,7 @@ impl Clock {
 
         // Calculate the deltas for both real and game clocks. The real clock is
         // absolute: we can't alter the progression of time. However, we can
-        // alter the game clock and nudge is toward real time. The reason we
+        // alter the game clock and nudge it toward real time. The reason we
         // don't want to keep the two *exactly* in time is that a lag spike on a
         // single tick would cause a corresponding jump in dt on the next tick, which
         // might produce strange results for any dt-dependent gameplay systems.
