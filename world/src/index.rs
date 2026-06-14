@@ -4,7 +4,7 @@ use crate::{
     site::{Site, economy::TradeInformation},
 };
 use common::{
-    assets::{AssetExt, AssetHandle, Ron},
+    assets::{AssetExt, AssetHandle, ReloadWatcher, Ron},
     store::Store,
     trade::{SiteId, SitePrices},
 };
@@ -35,6 +35,8 @@ pub struct Index {
 pub struct IndexOwned {
     colors: Arc<Colors>,
     features: Arc<Features>,
+    colors_reload_watcher: ReloadWatcher,
+    features_reload_watcher: ReloadWatcher,
     index: Arc<Index>,
 }
 
@@ -99,11 +101,15 @@ impl IndexOwned {
     pub fn new(index: Index) -> Self {
         let colors = index.colors.cloned();
         let features = index.features.cloned();
+        let colors_reload_watcher = index.colors.reload_watcher();
+        let features_reload_watcher = index.features.reload_watcher();
 
         Self {
             index: Arc::new(index),
             colors,
             features,
+            colors_reload_watcher,
+            features_reload_watcher,
         }
     }
 
@@ -115,7 +121,9 @@ impl IndexOwned {
     ///
     /// Ideally, this should be called about once per tick.
     pub fn reload_if_changed<R>(&mut self, reload: impl FnOnce(&mut Self) -> R) -> Option<R> {
-        let reloaded = self.index.colors.reloaded_global() || self.index.features.reloaded_global();
+        let colors_reloaded = self.colors_reload_watcher.reloaded();
+        let features_reloaded = self.features_reload_watcher.reloaded();
+        let reloaded = colors_reloaded || features_reloaded;
         reloaded.then(move || {
             // Reload the fields from the asset handle, which is updated automatically
             self.colors = self.index.colors.cloned();
