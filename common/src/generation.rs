@@ -634,10 +634,7 @@ pub mod tests {
             BodyBuilder::RandomWith(string) => {
                 let npc::NpcBody(_body_kind, mut body_creator) =
                     string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                        panic!(
-                            "failed to parse body {:?} in {}. Err: {:?}",
-                            &string, config_asset, err
-                        )
+                        panic!("failed to parse body {string:?} in {config_asset:}. Err: {err:?}")
                     });
                 let _ = body_creator();
             },

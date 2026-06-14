@@ -1134,7 +1134,7 @@ impl TradePricing {
                     .fold(String::new(), |agg, i| agg + &format!("{:?}.", i.1));
                 println!(
                     "{:?}, {}, {:>4.2}, {}, {:?}, {}, {},",
-                    &item_id,
+                    item_id,
                     if *can_sell { "yes" } else { "no" },
                     pricesum,
                     materials,
