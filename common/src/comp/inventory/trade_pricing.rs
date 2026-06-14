@@ -37,7 +37,7 @@ pub struct TradePricing {
 // you need both equivalent A and B => add price
 
 /// Material equivalent for an item (price)
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, PartialOrd)]
 pub struct MaterialUse(Vec<(f32, Good)>);
 
 impl std::ops::Mul<f32> for MaterialUse {
@@ -1157,7 +1157,21 @@ pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, ItemDefinitionIdOwned, f
 // cd common && cargo test trade_pricing -- --nocapture
 #[cfg(test)]
 mod tests {
-    use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
+    use crate::{
+        assets,
+        assets::AssetExt,
+        comp::{
+            Item,
+            inventory::{
+                ItemDefinitionIdOwned,
+                trade_pricing::{MaterialUse, TradePricing},
+            },
+        },
+        generation::{EntityConfig, try_all_entity_configs},
+        lottery::{LootSpec, Lottery},
+        terrain::SpriteKind,
+        trade::Good,
+    };
     use tracing::{Level, info};
     use tracing_subscriber::{FmtSubscriber, filter::EnvFilter};
 
@@ -1167,6 +1181,125 @@ mod tests {
             .with_env_filter(EnvFilter::from_default_env())
             .try_init()
             .unwrap_or(());
+    }
+
+    #[cfg(test)]
+    /// Gives you all the items we care about
+    pub fn get_items_from_loot_spec<T: AsRef<str>>(item: &LootSpec<T>) -> Vec<Item> {
+        match item {
+            LootSpec::Item(item) => vec![Item::new_from_asset_expect(item.as_ref())],
+            LootSpec::LootTable(loot_table) => {
+                Lottery::<LootSpec<String>>::load_expect(loot_table.as_ref())
+                    .read()
+                    .iter()
+                    .flat_map(|(_weight, s)| get_items_from_loot_spec(s))
+                    .collect()
+            },
+            LootSpec::Nothing => vec![],
+            LootSpec::ModularWeapon { .. } => {
+                // TODO: populate?
+                // We don't care about modular weapons in this case, as
+                // they are properly priced
+                //
+                // If you wanted, you could reimplemented it with specific
+                // functions, such as ones used for `all_items_expect`
+                vec![]
+            },
+            LootSpec::ModularWeaponPrimaryComponent { .. } => {
+                // Same as above
+                vec![]
+            },
+            LootSpec::MultiDrop(loot_spec, _lower, _upper) => get_items_from_loot_spec(loot_spec),
+            LootSpec::All(loot_specs) => loot_specs
+                .iter()
+                .flat_map(|s| get_items_from_loot_spec(s))
+                .collect(),
+            LootSpec::Lottery(table) => table
+                .iter()
+                .flat_map(|(_weight, s)| get_items_from_loot_spec(s))
+                .collect(),
+        }
+    }
+
+    #[cfg(test)]
+    /// Well, almost all loot items, modulars are currently discarded
+    fn all_loot_items() -> Vec<Item> {
+        let loot_tables = assets::load_rec_dir::<Lottery<LootSpec<String>>>("common.loot_tables")
+            .expect("load loot_tables");
+        let mut buf = vec![];
+        for loot_table in loot_tables.read().ids() {
+            for (_weight, loot_spec) in Lottery::<LootSpec<String>>::load_expect(loot_table)
+                .read()
+                .iter()
+            {
+                buf.extend(get_items_from_loot_spec(loot_spec));
+            }
+        }
+
+        for entity_config in try_all_entity_configs().unwrap() {
+            let config = EntityConfig::from_asset_expect_owned(&entity_config);
+            buf.extend(get_items_from_loot_spec(&config.loot));
+        }
+
+        for sprite in SpriteKind::all() {
+            let Some(Some(spec)) = sprite.default_loot_spec() else {
+                continue;
+            };
+            buf.extend(get_items_from_loot_spec(&spec));
+        }
+
+        buf
+    }
+
+    #[test]
+    fn test_all_included() {
+        let todos = [
+            // Calendar
+            ItemDefinitionIdOwned::Simple("common.items.food.honeycorn".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.food.pumpkin_spice_brew".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.food.blue_cheese".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.consumable.potion_curious".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.armor.misc.head.hare_hat".to_owned()),
+            ItemDefinitionIdOwned::Simple(
+                "common.items.armor.misc.head.scarlet_spectacles".to_owned(),
+            ),
+            ItemDefinitionIdOwned::Simple("common.items.armor.misc.head.facegourd".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.armor.misc.back.rat_tail".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.armor.misc.head.cat_capuche".to_owned()),
+            ItemDefinitionIdOwned::Simple(
+                "common.items.calendar.christmas.armor.misc.head.woolly_wintercap".to_owned(),
+            ),
+            ItemDefinitionIdOwned::Simple("common.items.utility.surprise_egg".to_owned()),
+            // Lanterns
+            ItemDefinitionIdOwned::Simple("common.items.lantern.divers_light".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.lantern.luminous_bloom".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.lantern.frozen_heart".to_owned()),
+            // Quests, figure out what to do with them
+            ItemDefinitionIdOwned::Simple("common.items.quest.gnarling_carving".to_owned()),
+            ItemDefinitionIdOwned::Simple("common.items.quest.legoom_leaf".to_owned()),
+        ];
+
+        let mut items: Vec<_> = all_loot_items()
+            .into_iter()
+            .map(|i| i.item_definition_id().to_owned())
+            .map(|i| (i.clone(), TradePricing::get_materials(&i.as_ref())))
+            .collect();
+
+        items.retain(|(i, mat)| mat.is_none() && !todos.contains(i));
+
+        // Remove duplicates, dedup requires sorting first, as it only removes
+        // adjacent dedups.
+        //
+        // Weird sort_by because floats are evil. That's also why we can't just
+        // use HashSet here.
+        items.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Less));
+        items.dedup();
+
+        assert_eq!(
+            Vec::<(ItemDefinitionIdOwned, Option<MaterialUse>)>::new(),
+            items,
+            "please add these items to assets/common/trading/"
+        );
     }
 
     #[test]

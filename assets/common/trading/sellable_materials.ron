@@ -40,6 +40,7 @@
     (2.5, Item("common.items.crafting_ing.animal_misc.fur")),
     (2.5, Item("common.items.crafting_ing.animal_misc.venom_sac")),
     (2.5, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
+    (2.5, Item("common.items.crafting_ing.bloodbag")),
     (4.0, Item("common.items.crafting_ing.cloth.wool")),
     (4.0, Item("common.items.flowers.plant_fiber")),
 
