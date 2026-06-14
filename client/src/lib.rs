@@ -74,7 +74,9 @@ use common_state::plugin::PluginMgr;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
-use hickory_resolver::{Resolver, config::ResolverConfig, name_server::TokioConnectionProvider};
+use hickory_resolver::{
+    Resolver, config::ResolverConfig, net::runtime::TokioRuntimeProvider, proto::rr::RData,
+};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
@@ -483,10 +485,13 @@ impl Client {
                         warn!("Falling back to a default configured resolver.");
                         Resolver::builder_with_config(
                             ResolverConfig::default(),
-                            TokioConnectionProvider::default(),
+                            TokioRuntimeProvider::default(),
                         )
                     })
-                    .build();
+                    .build()
+                    .expect(
+                        "Could not get a Hickory DNS resolver, maybe you are missing some tls libs",
+                    );
 
                 let quic_service_host = format!("_veloren._udp.{hostname}");
                 let quic_lookup_future = resolver.srv_lookup(quic_service_host);
@@ -508,7 +513,13 @@ impl Client {
                         warn!("QUIC SRV lookup failed: {error:?}");
                     },
                     |srv_lookup| {
-                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Quic, srv)))
+                        srv_rr.extend(srv_lookup.answers().iter().filter_map(|record| {
+                            if let RData::SRV(srv) = &record.data {
+                                Some((ConnMode::Quic, srv.clone()))
+                            } else {
+                                None
+                            }
+                        }))
                     },
                 );
                 let () = tcp_rr.map_or_else(
@@ -516,21 +527,27 @@ impl Client {
                         warn!("TCP SRV lookup failed: {error:?}");
                     },
                     |srv_lookup| {
-                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Tcp, srv)))
+                        srv_rr.extend(srv_lookup.answers().iter().filter_map(|record| {
+                            if let RData::SRV(srv) = &record.data {
+                                Some((ConnMode::Tcp, srv.clone()))
+                            } else {
+                                None
+                            }
+                        }))
                     },
                 );
 
                 // SRV records have a priority; lowest priority hosts MUST be contacted first.
                 let srv_rr_slice = srv_rr.as_mut_slice();
-                srv_rr_slice.sort_by_key(|(_, srv)| srv.priority());
+                srv_rr_slice.sort_by_key(|(_, srv)| srv.priority);
 
                 let mut iter = srv_rr_slice.iter();
 
                 // This loops exits as soon as the above iter over `srv_rr_slice` is exhausted
                 loop {
                     if let Some((conn_mode, srv_rr)) = iter.next() {
-                        let hostname = format!("{}", srv_rr.target());
-                        let port = Some(srv_rr.port());
+                        let hostname = format!("{}", srv_rr.target);
+                        let port = Some(srv_rr.port);
                         let conn_result = match conn_mode {
                             ConnMode::Quic => {
                                 connect_quic(&network, hostname, port, prefer_ipv6, validate_tls)
@@ -550,7 +567,7 @@ impl Client {
                         match conn_result {
                             Ok(c) => break c,
                             Err(error) => {
-                                warn!("Failed to connect to host {}: {error:?}", srv_rr.target())
+                                warn!("Failed to connect to host {}: {error:?}", srv_rr.target)
                             },
                         }
                     } else {

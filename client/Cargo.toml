@@ -42,7 +42,7 @@ byteorder = "1.3.2"
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 quinn = { workspace = true, features = ["rustls"] }
 rustls = { workspace = true }
-hickory-resolver = { version = "0.25.2", features = [
+hickory-resolver = { version = "0.26.1", features = [
     "system-config",
     "tokio",
 ] }
