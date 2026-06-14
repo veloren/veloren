@@ -7,7 +7,7 @@ variables:
   GIT_STRATEGY: fetch
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
-  CACHE_IMAGE_TAG: e0ef5539
+  CACHE_IMAGE_TAG: 8d966112
   TAG_REGEX: '/^v[0-9]+\.[0-9]+\.[0-9]+$/'
 
 default:
