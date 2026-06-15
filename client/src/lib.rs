@@ -3596,7 +3596,7 @@ mod tests {
 
             //tick
             let events_result: Result<Vec<Event>, Error> =
-                client.tick(ControllerInputs::default(), clock.dt());
+                client.tick(ControllerInputs::default(), clock.game_dt());
 
             //chat functionality
             client.send_chat("foobar".to_string());

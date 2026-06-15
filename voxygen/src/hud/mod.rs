@@ -633,6 +633,7 @@ pub struct BlockFloater {
 pub struct DebugInfo {
     pub tps: f64,
     pub frame_time: Duration,
+    pub frame_variance: Duration,
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
@@ -2708,9 +2709,10 @@ impl Hud {
 
             // Ticks per second
             let debug_msg_ticks_per_sec = format!(
-                "FPS: {:.0} ({}ms)",
+                "FPS: {:.0} ({}ms) (~{}ms)",
                 debug_info.tps,
-                debug_info.frame_time.as_millis()
+                debug_info.frame_time.as_millis(),
+                debug_info.frame_variance.as_millis(),
             );
             Text::new(&debug_msg_ticks_per_sec)
                 .color(TEXT_COLOR)

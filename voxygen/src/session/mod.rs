@@ -608,7 +608,7 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             let player_entity = client.entity();
 
-            let dt = global_state.clock.get_stable_dt().as_secs_f32();
+            let dt = global_state.clock.real_dt().as_secs_f32();
 
             #[cfg(feature = "discord")]
             if global_state.discord.is_active()
@@ -1646,11 +1646,7 @@ impl PlayState for SessionState {
             // Runs if either in a multiplayer server or the singleplayer server is unpaused
             if !global_state.paused() {
                 // Perform an in-game tick.
-                match self.tick(
-                    global_state.clock.get_stable_dt(),
-                    global_state,
-                    &mut outcomes,
-                ) {
+                match self.tick(global_state.clock.game_dt(), global_state, &mut outcomes) {
                     Ok(TickAction::Continue) => {}, // Do nothing
                     Ok(TickAction::Disconnect) => return PlayStateResult::Pop, // Go to main menu
                     Err(Error::ClientError(error)) => {
@@ -1721,6 +1717,7 @@ impl PlayState for SessionState {
                 DebugInfo {
                     tps: global_state.clock.stats().average_tps,
                     frame_time: global_state.clock.stats().average_busy_dt,
+                    frame_variance: global_state.clock.stats().average_variance,
                     ping_ms: self.client.borrow().get_ping_ms_rolling_avg(),
                     coordinates,
                     velocity,
@@ -1752,7 +1749,7 @@ impl PlayState for SessionState {
                 global_state,
                 &debug_info,
                 self.scene.camera(),
-                global_state.clock.get_stable_dt(),
+                global_state.clock.real_dt(),
                 HudInfo {
                     is_aiming,
                     active_mine_tool,

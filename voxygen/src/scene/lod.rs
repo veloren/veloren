@@ -20,9 +20,6 @@ use std::ops::Range;
 use treeculler::{AABB, BVol, Frustum};
 use vek::*;
 
-// For culling
-const MAX_OBJECT_RADIUS: i32 = 64;
-
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy)]
     pub struct VertexFlags: u8 {
@@ -35,8 +32,7 @@ bitflags::bitflags! {
 
 struct ObjectGroup {
     instances: Instances<LodObjectInstance>,
-    // None implies no instances
-    z_range: Option<Range<i32>>,
+    bounds: Option<Aabb<f32>>,
     frustum_last_plane_index: u8,
     visible: bool,
 }
@@ -46,7 +42,8 @@ pub struct Lod {
     data: LodData,
 
     zone_objects: HashMap<Vec2<i32>, HashMap<lod::ObjectKind, ObjectGroup>>,
-    object_data: HashMap<lod::ObjectKind, Model<LodObjectVertex>>,
+    // (model, radius, height)
+    object_data: HashMap<lod::ObjectKind, (Model<LodObjectVertex>, f32, Range<f32>)>,
 }
 
 // TODO: Make constant when possible.
@@ -188,17 +185,20 @@ impl Lod {
         for (p, zone) in client.lod_zones() {
             self.zone_objects.entry(*p).or_insert_with(|| {
                 let mut objects = HashMap::<_, Vec<_>>::new();
-                let mut z_range = None;
+                let mut bounds = None;
                 for object in zone.objects.iter() {
+                    let Some((_, radius, z_range)) = self.object_data.get(&object.kind) else {
+                        continue;
+                    };
                     let pos = p.map(|e| lod::to_wpos(e) as f32).with_z(0.0)
                         + object.pos.map(|e| e as f32)
                         + Vec2::broadcast(0.5).with_z(0.0);
-                    z_range = Some(z_range.map_or(
-                        pos.z as i32..pos.z as i32,
-                        |z_range: Range<i32>| {
-                            z_range.start.min(pos.z as i32)..z_range.end.max(pos.z as i32)
-                        },
-                    ));
+                    let rad = Vec2::broadcast(*radius);
+                    let obj_bounds = Aabb {
+                        min: pos + (-rad).with_z(z_range.start),
+                        max: pos + rad.with_z(z_range.end),
+                    };
+                    bounds = Some(bounds.map_or(obj_bounds, |b: Aabb<f32>| b.union(obj_bounds)));
                     objects
                         .entry(object.kind)
                         .or_default()
@@ -209,7 +209,7 @@ impl Lod {
                     .map(|(kind, instances)| {
                         (kind, ObjectGroup {
                             instances: renderer.create_instances(&instances),
-                            z_range: z_range.clone(),
+                            bounds,
                             frustum_last_plane_index: 0,
                             visible: false,
                         })
@@ -232,17 +232,11 @@ impl Lod {
         let frustum = Frustum::from_modelview_projection(
             (proj_mat_treeculler * view_mat * Mat4::translation_3d(-focus_off)).into_col_arrays(),
         );
-        for (pos, groups) in &mut self.zone_objects {
+        for groups in &mut self.zone_objects.values_mut() {
             for group in groups.values_mut() {
-                if let Some(z_range) = &group.z_range {
-                    let group_min = (pos.map(lod::to_wpos).with_z(z_range.start)
-                        - MAX_OBJECT_RADIUS)
-                        .map(|e| e as f32);
-                    let group_max = ((pos + 1).map(lod::to_wpos).with_z(z_range.end)
-                        + MAX_OBJECT_RADIUS)
-                        .map(|e| e as f32);
+                if let Some(bounds) = &group.bounds {
                     let (in_frustum, last_plane_index) =
-                        AABB::new(group_min.into_array(), group_max.into_array())
+                        AABB::new(bounds.min.into_array(), bounds.max.into_array())
                             .coherent_test_against_frustum(
                                 &frustum,
                                 group.frustum_last_plane_index,
@@ -278,7 +272,7 @@ impl Lod {
             let mut drawer = drawer.draw_lod_objects();
             for groups in self.zone_objects.values() {
                 for (kind, group) in groups.iter().filter(|(_, g)| g.visible) {
-                    if let Some(model) = self.object_data.get(kind) {
+                    if let Some((model, _, _)) = self.object_data.get(kind) {
                         drawer.draw(model, &group.instances);
                     }
                 }
@@ -314,6 +308,8 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
 }
 
 /// Create LoD objects from an .obj asset file.
+///
+/// Returns the model, the object radius, and the object height.
 ///
 /// ### Object Colors
 ///
@@ -364,40 +360,53 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
 /// - `InstCol` The object will use the instance color that is set in the
 ///   worldgen lod::Object.
 /// - `InstCol Glow` The object will use the instance color. Glow is ignored.
-fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex> {
+fn make_lod_object(
+    name: &str,
+    renderer: &mut Renderer,
+) -> (Model<LodObjectVertex>, f32, Range<f32>) {
     let model = Obj::load_expect(&format!("voxygen.lod.{}", name));
-    let mesh = model
-        .read()
-        .0
-        .objects()
-        .flat_map(|(objname, obj)| {
-            let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
-            let color = color
-                .next()
-                .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
-                .unwrap_or(Rgb::broadcast(127));
-            let color = srgb_to_linear(color.map(|c| c as f32 / 255.0));
-            let flags = if objname.contains("InstCol") && objname.contains("Glow") {
-                VertexFlags::INST_COLOR | VertexFlags::GLOW
-            } else if objname.contains("Glow") {
-                VertexFlags::GLOW
-            } else if objname.contains("InstCol") {
-                VertexFlags::INST_COLOR
-            } else {
-                VertexFlags::empty()
-            };
-            obj.triangles().map(move |vs| {
-                let [a, b, c] = vs.map(|v| {
-                    LodObjectVertex::new(
-                        v.position().into(),
-                        v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
-                        color,
-                        flags,
-                    )
-                });
-                Tri::new(a, b, c)
-            })
-        })
-        .collect();
-    renderer.create_model(&mesh).expect("Mesh was empty!")
+    let mut radius = 0.0f32;
+    let mut z_range = None;
+    let mut mesh = Mesh::new();
+    for (objname, obj) in model.read().0.objects() {
+        let mut color = objname.split('_').filter_map(|x| x.parse::<u8>().ok());
+        let color = color
+            .next()
+            .and_then(|r| Some(Rgb::new(r, color.next()?, color.next()?)))
+            .unwrap_or(Rgb::broadcast(127));
+        let color = srgb_to_linear(color.map(|c| c as f32 / 255.0));
+        let flags = if objname.contains("InstCol") && objname.contains("Glow") {
+            VertexFlags::INST_COLOR | VertexFlags::GLOW
+        } else if objname.contains("Glow") {
+            VertexFlags::GLOW
+        } else if objname.contains("InstCol") {
+            VertexFlags::INST_COLOR
+        } else {
+            VertexFlags::empty()
+        };
+
+        for vs in obj.triangles() {
+            for v in vs {
+                radius = radius.max(Vec3::from(v.position()).xy().magnitude());
+                let z = v.position()[2];
+                let z_range = z_range.get_or_insert(z..z);
+                z_range.start = z_range.start.min(z);
+                z_range.end = z_range.end.max(z);
+            }
+            let [a, b, c] = vs.map(|v| {
+                LodObjectVertex::new(
+                    v.position().into(),
+                    v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
+                    color,
+                    flags,
+                )
+            });
+            mesh.push_tri(Tri::new(a, b, c));
+        }
+    }
+    (
+        renderer.create_model(&mesh).expect("Mesh was empty!"),
+        radius,
+        z_range.expect("no vertices"),
+    )
 }

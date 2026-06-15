@@ -41,7 +41,7 @@ void main() {
     uint rot_bits = (inst_flags & FLAG_INST_ROTATION) >> 2;
 
     float sign = float(rot_bits >> 1) * 2.0 - 1.0;
-    float d_y = float(rot_bits & 1);
+    float d_y = (rot_bits & 1) != 0u ? 1.0 : 0.0;
     float d_x = 1.0 - d_y;
     mat2 rot = sign * mat2(d_x, -d_y, d_y, d_x);
 
@@ -49,11 +49,11 @@ void main() {
     f_pos = obj_pos + local_pos;
     model_pos = v_pos;
 
-    float pull_down = 1.0 / pow(distance(focus_pos.xy, obj_pos.xy) / (view_distance.x * 0.95), 150.0);
     #ifdef EXPERIMENTAL_TERRAINPOP
+        float pull_down = 1.0 / pow(distance(focus_pos.xy, obj_pos.xy) / (view_distance.x * 0.95), 150.0);
         f_pos.z -= pull_down;
     #else
-        f_pos.z -= step(0.1, pull_down) * 10000.0;
+        f_pos.z -= step(dot(focus_pos.xy - obj_pos.xy, focus_pos.xy - obj_pos.xy), pow(view_distance.x * 0.95, 2)) * 10000.0;
     #endif
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
@@ -62,14 +62,8 @@ void main() {
 
     f_norm = vec3(rot * v_norm.xy, v_norm.z);
 
-    if ((v_flags & FLAG_INST_COLOR) > 0u) {
-        f_col = vec4(inst_col, 1.0);
-    } else {
-        f_col = vec4(v_col, 1.0);
-    }
+    f_col = vec4((v_flags & FLAG_INST_COLOR) != 0u ? inst_col : v_col, 1.0);
     f_flags = inst_flags | (v_flags & FLAG_INST_GLOW);
 
-    gl_Position =
-        all_mat *
-        vec4(f_pos, 1);
+    gl_Position = all_mat * vec4(f_pos, 1);
 }

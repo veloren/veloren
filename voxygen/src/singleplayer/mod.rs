@@ -217,7 +217,7 @@ fn run_server(mut server: Server, stop_server_r: Receiver<()>, paused: Arc<Atomi
         }
 
         let events = server
-            .tick(Input::default(), clock.dt())
+            .tick(Input::default(), clock.game_dt())
             .expect("Failed to tick server!");
 
         for event in events {
