@@ -39,7 +39,13 @@ use specs::{
     shred::{Fetch, FetchMut, SendDispatcher},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
 };
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::Instant,
+};
 use timer_queue::TimerQueue;
 use vek::*;
 
@@ -145,6 +151,7 @@ impl State {
             GameMode::Singleplayer => ("sp", false),
         };
 
+        let is_first_error = Arc::new(AtomicBool::new(true));
         let set_priority = move || {
             use thread_priority::*;
             let (priority, schedule_policy) = if is_main_task {
@@ -161,6 +168,7 @@ impl State {
             };
             if let Err(err) =
                 std::thread::current().set_priority_and_policy(schedule_policy, priority)
+                && is_first_error.swap(false, Ordering::Relaxed)
             {
                 tracing::warn!(
                     "Unable to set priority/schedule policy for dispatcher pool thread: {err}"
@@ -180,6 +188,7 @@ impl State {
                     if let Some(stack_size) = thread.stack_size() {
                         b = b.stack_size(stack_size);
                     }
+                    let set_priority = set_priority.clone();
                     b.spawn(move || {
                         set_priority();
                         thread.run()
