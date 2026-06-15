@@ -74,9 +74,9 @@ float depth_at(vec2 uv) {
     }
 }
 
-uvec3 norm_raw_at(vec2 uv, ivec2 offs) {
+vec3 norm_at(vec2 uv, ivec2 offs) {
     uvec2 mat_sz = textureSize(usampler2D(t_src_mat, s_src_depth), 0);
-    return texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz + offs), ivec2(0), ivec2(mat_sz) - 1), 0).xyz;
+    return vec3(texelFetch(usampler2D(t_src_mat, s_src_depth), clamp(ivec2(uv * mat_sz + offs), ivec2(0), ivec2(mat_sz) - 1), 0).xyz) / 255.0 - 0.5;
 }
 
 float depth_raw_at(vec2 uv, ivec2 offs) {
@@ -112,6 +112,26 @@ void main() {
         float dist = distance(wpos, cam_pos.xyz);
         vec3 cam_dir = (wpos - cam_pos.xyz) / dist;
         vec3 dir = cam_dir;
+        
+        #ifdef EXPERIMENTAL_OUTLINES
+            vec3 normf = norm_at(uv, ivec2(0, 0));
+            float depth = max(depth_raw_at(uv, ivec2(0, 0)), 0);
+            float threshold = mix(1.15, 1.02, pow(abs(dot(cam_dir, normalize(normf))), 0.5));
+            // bool is_edge = false
+            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(1, 0)), cam_dir))
+            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(-1, 0)), cam_dir))
+            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(0, 1)), cam_dir))
+            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(0, -1)), cam_dir));
+            if (false
+                || (depth > depth_raw_at(uv, ivec2(1, 0)) * threshold)
+                || (depth > depth_raw_at(uv, ivec2(-1, 0)) * threshold)
+                || (depth > depth_raw_at(uv, ivec2(0, 1)) * threshold)
+                || (depth > depth_raw_at(uv, ivec2(0, -1)) * threshold)
+                // || (is_edge && depth > 0.02)
+            ) {
+                color.rgb *= 0.0;
+            }
+        #endif
 
         // Apply clouds
         float cloud_blend = 1.0;
@@ -324,20 +344,6 @@ void main() {
                         color.rgb = mix(color.rgb, vec3(0.3, 0.35, 0.5) * light, alpha);
                     }
                 }
-            }
-        #endif
-        
-        #ifdef EXPERIMENTAL_OUTLINES
-            uvec3 norm = norm_raw_at(uv, ivec2(0, 0));
-            vec3 normf = vec3(norm) / 255.0 - 0.5;
-            float depth = max(depth_raw_at(uv, ivec2(0, 0)), 0);
-            float threshold = mix(0.85, 0.98, pow(abs(dot(cam_dir, normalize(normf))), 0.5));
-            if ((depth < depth_raw_at(uv, ivec2(1, 0)) * threshold)
-                || (depth < depth_raw_at(uv, ivec2(-1, 0)) * threshold)
-                || (depth < depth_raw_at(uv, ivec2(0, 1)) * threshold)
-                || (depth < depth_raw_at(uv, ivec2(0, -1)) * threshold))
-            {
-                color.rgb *= 0.0;
             }
         #endif
 
