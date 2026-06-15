@@ -7,6 +7,9 @@
   "prHourlyLimit": 2,
   "rebaseWhen": "conflicted",
   "rangeStrategy": "update-lockfile",
+  "minimumReleaseAge": "7 days",
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "internalChecksFilter": "strict",
   "lockFileMaintenance": {
     "enabled": false
   },
