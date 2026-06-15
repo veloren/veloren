@@ -283,7 +283,8 @@ void main() {
     #endif
     
     #ifdef EXPERIMENTAL_COLORQUANTIZATION
-        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11) / 10, vec3(4));
+        float quant_nz = hash_two(uvec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0)));
+        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11 + quant_nz * 0.25) / 10, vec3(4));
     #endif
 
     // Bloom
