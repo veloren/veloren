@@ -6,7 +6,7 @@
     clippy::needless_pass_by_ref_mut //until we find a better way for specs
 )]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(generic_const_exprs, if_let_guard)]
+#![feature(generic_const_exprs)]
 #![recursion_limit = "2048"]
 
 #[macro_use]

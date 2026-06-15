@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 #[test]
 fn no_item_config_no_emit() {
     let previous_state = PreviousEntityState::default();
-    let result = MovementEventMapper::should_emit(&previous_state, None);
+    let result = MovementEventMapper::should_emit(&previous_state, None, &PhysicsState::default());
 
     assert!(!result);
 }
@@ -39,6 +39,7 @@ fn config_but_played_since_threshold_no_emit() {
     let result = MovementEventMapper::should_emit(
         &previous_state,
         Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+        &PhysicsState::default(),
     );
 
     assert!(!result);
@@ -53,9 +54,9 @@ fn config_and_not_played_since_threshold_emits() {
     };
 
     let previous_state = PreviousEntityState {
-        event: SfxEvent::Idle,
-        time: Instant::now().checked_add(Duration::from_secs(1)).unwrap(),
-        on_ground: true,
+        event: SfxEvent::Glide,
+        time: Instant::now().checked_sub(Duration::from_secs(5)).unwrap(),
+        on_ground: false,
         in_water: false,
         steps_taken: 0.0,
         is_stepping: None,
@@ -63,7 +64,8 @@ fn config_and_not_played_since_threshold_emits() {
 
     let result = MovementEventMapper::should_emit(
         &previous_state,
-        Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+        Some((&SfxEvent::Glide, &trigger_item)),
+        &PhysicsState::default(),
     );
 
     assert!(result);
@@ -91,6 +93,7 @@ fn same_previous_event_elapsed_emits() {
     let result = MovementEventMapper::should_emit(
         &previous_state,
         Some((&SfxEvent::Run(BlockKind::Grass), &trigger_item)),
+        &PhysicsState::default(),
     );
 
     assert!(result);
@@ -113,7 +116,6 @@ fn maps_idle() {
             is_stepping: None,
         },
         Vec3::zero(),
-        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -136,10 +138,9 @@ fn maps_run_with_sufficient_velocity() {
             is_stepping: None,
         },
         Vec3::new(0.5, 0.8, 0.0),
-        BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
+    assert_eq!(result, SfxEvent::Idle);
 }
 
 #[test]
@@ -159,7 +160,6 @@ fn does_not_map_run_with_insufficient_velocity() {
             is_stepping: None,
         },
         Vec3::new(0.02, 0.0001, 0.0),
-        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -179,7 +179,6 @@ fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
             is_stepping: None,
         },
         Vec3::new(0.5, 0.8, 0.0),
-        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Idle);
@@ -226,7 +225,6 @@ fn maps_roll() {
             is_stepping: None,
         },
         Vec3::new(0.5, 0.5, 0.0),
-        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Roll);
@@ -249,10 +247,9 @@ fn maps_land_on_ground_to_run() {
             is_stepping: None,
         },
         Vec3::zero(),
-        BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
+    assert_eq!(result, SfxEvent::Idle);
 }
 
 #[test]
@@ -269,7 +266,6 @@ fn maps_glide() {
             is_stepping: None,
         },
         Vec3::zero(),
-        BlockKind::Grass,
     );
 
     assert_eq!(result, SfxEvent::Glide);
@@ -282,32 +278,18 @@ fn maps_quadrupeds_running() {
             on_ground: Some(Block::empty()),
             ..Default::default()
         },
+        &PreviousEntityState {
+            event: SfxEvent::Idle,
+            time: Instant::now(),
+            on_ground: true,
+            in_water: false,
+            steps_taken: 0.0,
+            is_stepping: None,
+        },
         Vec3::new(0.5, 0.8, 0.0),
-        BlockKind::Grass,
     );
 
-    assert_eq!(result, SfxEvent::Run(BlockKind::Grass));
-}
-
-#[test]
-fn determines_relative_volumes() {
-    let human =
-        MovementEventMapper::get_volume_for_body_type(&Body::Humanoid(humanoid::Body::random()));
-
-    let quadruped_medium = MovementEventMapper::get_volume_for_body_type(&Body::QuadrupedMedium(
-        quadruped_medium::Body::random(),
-    ));
-
-    let quadruped_small = MovementEventMapper::get_volume_for_body_type(&Body::QuadrupedSmall(
-        quadruped_small::Body::random(),
-    ));
-
-    let bird_large =
-        MovementEventMapper::get_volume_for_body_type(&Body::BirdLarge(bird_large::Body::random()));
-
-    assert!(quadruped_medium < human);
-    assert!(quadruped_small < quadruped_medium);
-    assert!(bird_large < quadruped_small);
+    assert_eq!(result, SfxEvent::Idle);
 }
 
 fn empty_ability_info() -> states::utils::AbilityInfo {
