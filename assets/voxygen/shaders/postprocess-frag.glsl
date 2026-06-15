@@ -281,6 +281,10 @@ void main() {
         float mag2 = length(gx2) + length(gy2);
         aa_color.rgb = mix(vec3(0.0), aa_color.rgb * 0.8, clamp(1.0 - mag2 * 0.3, 0.0, 1.0));
     #endif
+    
+    #ifdef EXPERIMENTAL_COLORQUANTIZATION
+        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11) / 10, vec3(4));
+    #endif
 
     // Bloom
     #ifdef BLOOM_FACTOR

@@ -582,4 +582,10 @@ pub enum ExperimentalShader {
     DiscardTransparency,
     /// Display chunk borders for easier debugging.
     ShowChunkBorders,
+    /// Adds a layer of colour quantization to the output, giving a retro
+    /// palette feel.
+    ColorQuantization,
+    /// Adds outlines around the perimeters of objects for a pixel art feel.
+    /// Best at lower internal resolutions.
+    Outlines,
 }
