@@ -182,22 +182,20 @@ vec3 aa_sample_grad(vec2 uv, vec2 off) {
 }
 #endif
 
-#ifdef EXPERIMENTAL_COLORDITHERING
-    float dither(ivec2 p, float level) {
-        // Bayer dithering
-        int dither[8][8] = {
-            { 0, 32, 8, 40, 2, 34, 10, 42}, /* 8x8 Bayer ordered dithering */
-            {48, 16, 56, 24, 50, 18, 58, 26}, /* pattern. Each input pixel */
-            {12, 44, 4, 36, 14, 46, 6, 38}, /* is scaled to the 0..63 range */
-            {60, 28, 52, 20, 62, 30, 54, 22}, /* before looking in this table */
-            { 3, 35, 11, 43, 1, 33, 9, 41}, /* to determine the action. */
-            {51, 19, 59, 27, 49, 17, 57, 25},
-            {15, 47, 7, 39, 13, 45, 5, 37},
-            {63, 31, 55, 23, 61, 29, 53, 21}
-        };
-        return step((dither[p.x % 8][p.y % 8]+1) * 0.016, level);
-    }
-#endif
+float dither(ivec2 p, float level) {
+    // Bayer dithering
+    int dither[8][8] = {
+        { 0, 32, 8, 40, 2, 34, 10, 42}, /* 8x8 Bayer ordered dithering */
+        {48, 16, 56, 24, 50, 18, 58, 26}, /* pattern. Each input pixel */
+        {12, 44, 4, 36, 14, 46, 6, 38}, /* is scaled to the 0..63 range */
+        {60, 28, 52, 20, 62, 30, 54, 22}, /* before looking in this table */
+        { 3, 35, 11, 43, 1, 33, 9, 41}, /* to determine the action. */
+        {51, 19, 59, 27, 49, 17, 57, 25},
+        {15, 47, 7, 39, 13, 45, 5, 37},
+        {63, 31, 55, 23, 61, 29, 53, 21}
+    };
+    return step((dither[p.x % 8][p.y % 8]+1) * 0.016, level);
+}
 
 void main() {
 #ifdef EXPERIMENTAL_BAREMINIMUM
@@ -283,8 +281,14 @@ void main() {
     #endif
     
     #ifdef EXPERIMENTAL_COLORQUANTIZATION
-        float quant_nz = hash_two(uvec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0)));
-        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11 + quant_nz * 0.25) / 10, vec3(4));
+        #ifdef EXPERIMENTAL_COLORDITHERING
+            const float quant_nz = 0.0;
+            float quant_dither = dither(ivec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0)), pow(dot(aa_color.rgb, vec3(1)), 2) * 10) - 0.5;
+        #else
+            float quant_nz = hash_two(uvec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0))) - 0.5;
+            const float quant_dither = 0.0;
+        #endif
+        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11 * (1.0 + quant_dither * 0.2) + quant_nz * 0.25) / 10, vec3(4));
     #endif
 
     // Bloom
@@ -378,8 +382,10 @@ void main() {
         final_color.rgb = vec3(step(nz, length(final_color.rgb))) * vec3(1, 0.5, 0.3);
     #else
         #ifdef EXPERIMENTAL_COLORDITHERING
-            float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
-            final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
+            #ifndef EXPERIMENTAL_COLORQUANTIZATION
+                float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
+                final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
+            #endif
         #endif
     #endif
 

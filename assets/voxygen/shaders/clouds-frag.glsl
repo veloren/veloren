@@ -127,7 +127,7 @@ void main() {
                 || (depth > depth_raw_at(uv, ivec2(-1, 0)) * threshold)
                 || (depth > depth_raw_at(uv, ivec2(0, 1)) * threshold)
                 || (depth > depth_raw_at(uv, ivec2(0, -1)) * threshold)
-                // || (is_edge && depth > 0.02)
+                // || is_edge
             ) {
                 color.rgb *= 0.0;
             }
