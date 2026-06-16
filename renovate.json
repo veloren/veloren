@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": true,
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 4,
+  "prHourlyLimit": 2,
+  "rebaseWhen": "conflicted",
+  "rangeStrategy": "update-lockfile",
+  "minimumReleaseAge": "7 days",
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "internalChecksFilter": "strict",
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "Group patch and minor Rust crate updates",
+      "matchManagers": ["cargo"],
+      "matchDatasources": ["crate"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Rust crate patch/minor updates",
+      "automerge": false
+    },
+    {
+      "description": "Keep major Rust crate updates separate",
+      "matchManagers": ["cargo"],
+      "matchDatasources": ["crate"],
+      "matchUpdateTypes": ["major"],
+      "separateMajorMinor": true,
+      "automerge": false
+    },
+    {
+      "description": "Group non-SHA Rust git dependency updates",
+      "matchManagers": ["cargo"],
+      "matchDatasources": ["git-tags", "github-tags", "gitlab-tags"],
+      "groupName": "Rust git dependencies",
+      "automerge": false
+    },
+    {
+      "description": "Do not update SHA-pinned git dependencies automatically",
+      "matchManagers": ["cargo"],
+      "matchDatasources": ["git-refs"],
+      "matchCurrentValue": "/^[a-f0-9]{40}$/",
+      "enabled": false
+    }
+  ]
+}
