@@ -281,14 +281,19 @@ void main() {
     #endif
     
     #ifdef EXPERIMENTAL_COLORQUANTIZATION
+        const int QUANT_STEPS = 12;
+        vec3 quant_color = pow(aa_color.rgb, vec3(0.25)) * QUANT_STEPS;
+        ivec2 internal_res = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
         #ifdef EXPERIMENTAL_COLORDITHERING
-            const float quant_nz = 0.0;
-            float quant_dither = dither(ivec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0)), pow(dot(aa_color.rgb, vec3(1)), 2) * 10) - 0.5;
+            vec3 quant_step = vec3(
+                dither(ivec2(uv * internal_res + 0), fract(quant_color.r)),
+                dither(ivec2(uv * internal_res + 1), fract(quant_color.g)),
+                dither(ivec2(uv * internal_res + 2), fract(quant_color.b))
+            );
         #else
-            float quant_nz = hash_two(uvec2(uv * textureSize(sampler2D(t_src_depth, s_src_depth), 0))) - 0.5;
-            const float quant_dither = 0.0;
+            vec3 quant_step = step(vec3(hash_two(uvec2(uv * internal_res))), fract(quant_color));
         #endif
-        aa_color.rgb = pow(round(pow(aa_color.rgb, vec3(0.25)) * 11 * (1.0 + quant_dither * 0.2) + quant_nz * 0.25) / 10, vec3(4));
+        aa_color.rgb = pow(floor(quant_color + quant_step) * (1.0 / QUANT_STEPS), vec3(4));
     #endif
 
     // Bloom

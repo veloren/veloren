@@ -118,16 +118,16 @@ void main() {
             float depth = max(depth_raw_at(uv, ivec2(0, 0)), 0);
             float threshold = mix(1.15, 1.02, pow(abs(dot(cam_dir, normalize(normf))), 0.5));
             // bool is_edge = false
-            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(1, 0)), cam_dir))
-            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(-1, 0)), cam_dir))
-            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(0, 1)), cam_dir))
-            //     || (dot(normf, cam_dir) > dot(norm_at(uv, ivec2(0, -1)), cam_dir));
+            //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(1, 0)), cam_dir))
+            //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(-1, 0)), cam_dir))
+            //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(0, 1)), cam_dir))
+            //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(0, -1)), cam_dir));
             if (false
                 || (depth > depth_raw_at(uv, ivec2(1, 0)) * threshold)
                 || (depth > depth_raw_at(uv, ivec2(-1, 0)) * threshold)
                 || (depth > depth_raw_at(uv, ivec2(0, 1)) * threshold)
                 || (depth > depth_raw_at(uv, ivec2(0, -1)) * threshold)
-                // || is_edge
+                // || (is_edge && mat.w == MAT_BLOCK)
             ) {
                 color.rgb *= 0.0;
             }
