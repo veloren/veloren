@@ -145,7 +145,7 @@ impl InternalSlowJobPool {
                         let priority =
                             ThreadPriority::Crossplatform(TryFrom::try_from(15).unwrap());
                         if let Err(err) = cfg_select! {
-                            unix => std::thread::current().set_priority_and_policy(
+                            target_os = "linux" => std::thread::current().set_priority_and_policy(
                                 ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
                                 priority,
                             ),
