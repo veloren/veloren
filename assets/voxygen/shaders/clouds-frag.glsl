@@ -116,7 +116,7 @@ void main() {
         #ifdef EXPERIMENTAL_OUTLINES
             vec3 normf = norm_at(uv, ivec2(0, 0));
             float depth = max(depth_raw_at(uv, ivec2(0, 0)), 0);
-            float threshold = mix(1.15, 1.02, pow(abs(dot(cam_dir, normalize(normf))), 0.5));
+            float threshold = mix(5.5, 1.02, pow(abs(dot(cam_dir, normalize(normf))), 0.025));
             // bool is_edge = false
             //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(1, 0)), cam_dir))
             //     || (dot(normf, cam_dir) < dot(norm_at(uv, ivec2(-1, 0)), cam_dir))
@@ -129,7 +129,7 @@ void main() {
                 || (depth > depth_raw_at(uv, ivec2(0, -1)) * threshold)
                 // || (is_edge && mat.w == MAT_BLOCK)
             ) {
-                color.rgb *= 0.0;
+                color.rgb *= step(vec3(2.0), color.rgb);
             }
         #endif
 
