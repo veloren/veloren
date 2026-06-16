@@ -14,6 +14,7 @@ temp
 todo.md
 todo.txt
 userdata
+Makefile
 
 ## Allow asset hud settings
 !assets/voxygen/i18n/*/hud/settings.ron

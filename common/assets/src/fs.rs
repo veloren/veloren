@@ -5,6 +5,7 @@ use assets_manager::{
     hot_reloading::{EventSender, FsWatcherBuilder},
     source::{DirEntry, FileContent, FileSystem as RawFs, Source},
 };
+use hashbrown::HashSet;
 
 /// Loads assets from the default path or `VELOREN_ASSETS_OVERRIDE` env if it is
 /// set.
@@ -60,24 +61,70 @@ impl Source for FileSystem {
     }
 
     fn read_dir(&self, id: &str, f: &mut dyn FnMut(DirEntry)) -> io::Result<()> {
-        if let Some(dir) = &self.override_dir {
-            match dir.read_dir(id, f) {
-                Ok(()) => return Ok(()),
-                Err(err) => {
-                    if err.kind() != io::ErrorKind::NotFound {
-                        let path = dir.path_of(DirEntry::Directory(id));
-                        tracing::warn!(
-                            "Error reading \"{}\": {}. Falling back to default",
-                            path.display(),
-                            err
-                        );
-                    }
-                },
-            }
-        }
+        // It's easy to get wrong, so here's the algorithm:
+        //
+        // 1) Read default assets directory first, gather directories it has.
+        // 2) Read override assets directory second, gather directories *it* has.
+        // 3) Call callback on each new directory (or file).
+        //
+        // This should route to src.read() above, which does read override
+        // first, so even if we search for default directories first, we're
+        // still overriding files proper.
+        //
+        // The rest is just properly routing errors.
+        let mut collected = HashSet::new();
 
-        // If not found in override path, try load from main asset path
-        self.default.read_dir(id, f)
+        let mut f = |dir_entry: DirEntry| {
+            let cache_id = match dir_entry {
+                DirEntry::File(path, ext) => (path.to_owned(), Some(ext.to_owned())),
+                DirEntry::Directory(path) => (path.to_owned(), None),
+            };
+
+            // on first hit, call the callback
+            if collected.insert(cache_id) {
+                f(dir_entry)
+            }
+        };
+
+        let default_res = self.default.read_dir(id, &mut f);
+        let Some(dir) = &self.override_dir else {
+            // If no override, return right there.
+            return default_res;
+        };
+
+        let override_res = match dir.read_dir(id, &mut f) {
+            Ok(()) => Ok(()),
+            Err(err) => {
+                if err.kind() != io::ErrorKind::NotFound {
+                    let path = dir.path_of(DirEntry::Directory(id));
+                    tracing::warn!(
+                        "Error reading \"{}\": {}. Falling back to default",
+                        path.display(),
+                        err
+                    );
+                }
+                Err(err)
+            },
+        };
+
+        // Error juggling
+        match (default_res, override_res) {
+            // If failed from the start, error.
+            //
+            // Technically not necessary, but better be safe then sorry?
+            (Err(err1), _) if err1.kind() != io::ErrorKind::NotFound => Err(err1),
+            // If override succed, cool, celebrate.
+            (_, Ok(())) => Ok(()),
+            // If override failed, but default succeded, who cares.
+            //
+            // We could be strict here, but overrides are brittle by design,
+            // and may fail with new version, so ...
+            //
+            // We log the warning there, that's it.
+            (Ok(()), Err(_)) => Ok(()),
+            // If If both failed, return last error.
+            (Err(_), Err(err2)) => Err(err2),
+        }
     }
 
     fn exists(&self, entry: DirEntry) -> bool {
