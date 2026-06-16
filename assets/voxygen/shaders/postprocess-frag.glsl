@@ -281,7 +281,7 @@ void main() {
     #endif
     
     #ifdef EXPERIMENTAL_COLORQUANTIZATION
-        const int QUANT_STEPS = 12;
+        const int QUANT_STEPS = 10;
         vec3 quant_color = pow(aa_color.rgb, vec3(0.25)) * QUANT_STEPS;
         ivec2 internal_res = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
         #ifdef EXPERIMENTAL_COLORDITHERING
@@ -291,7 +291,7 @@ void main() {
                 dither(ivec2(uv * internal_res + 2), fract(quant_color.b))
             );
         #else
-            vec3 quant_step = step(vec3(hash_two(uvec2(uv * internal_res))), fract(quant_color));
+            vec3 quant_step = step(hash_two_3(uvec2(uv * internal_res)), fract(quant_color));
         #endif
         aa_color.rgb = pow(floor(quant_color + quant_step) * (1.0 / QUANT_STEPS), vec3(4));
     #endif
