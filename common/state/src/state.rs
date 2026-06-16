@@ -154,20 +154,20 @@ impl State {
         let is_first_error = Arc::new(AtomicBool::new(true));
         let set_priority = move || {
             use thread_priority::*;
-            let (priority, schedule_policy) = if is_main_task {
+            let priority = if is_main_task {
                 // These threads are critical for the main tick loop, so need a higher priority
-                (
-                    ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap()),
-                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::RoundRobin),
-                )
+                ThreadPriority::Crossplatform(TryFrom::try_from(50).unwrap())
             } else {
-                (
-                    ThreadPriority::Min,
-                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::RoundRobin),
-                )
+                ThreadPriority::Min
             };
-            if let Err(err) =
-                std::thread::current().set_priority_and_policy(schedule_policy, priority)
+            let res = cfg_select! {
+                target_os = "linux" => std::thread::current().set_priority_and_policy(
+                    ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::RoundRobin),
+                    priority,
+                ),
+                _ => std::thread::current().set_priority(priority),
+            };
+            if let Err(err) = res
                 && is_first_error.swap(false, Ordering::Relaxed)
             {
                 tracing::warn!(

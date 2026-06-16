@@ -121,7 +121,7 @@ impl Clock {
             let priority =
                 ThreadPriority::Crossplatform(ThreadPriorityValue::try_from(90).unwrap());
             _ = cfg_select! {
-                unix => std::thread::current().set_priority_and_policy(
+                target_os = "linux" => std::thread::current().set_priority_and_policy(
                     // ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Deadline),
                     ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
                     priority,
