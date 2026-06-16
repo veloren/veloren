@@ -199,7 +199,7 @@ float dither(ivec2 p, float level) {
 
 void main() {
 #ifdef EXPERIMENTAL_BAREMINIMUM
-    tgt_color = vec4(texture(sampler2D(t_src_color, s_src_color), uv).rgb, 1);
+    tgt_color = vec4(texelFetch(sampler2D(t_src_color, s_src_color), ivec2(uv * textureSize(sampler2D(t_src_color, s_src_color), 0)), 0).rgb, 1);
 #else
 
     /* if (medium.x == 1u) {
