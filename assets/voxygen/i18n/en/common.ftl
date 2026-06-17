@@ -90,7 +90,13 @@ common-tool-throwable = Throwable
 
 ## Item Kinds
 common-kind-modular_component = Modular Component
-common-kind-modular_component_partial = Component
+    .sword = Sword Component
+    .axe = Axe Component
+    .hammer = Hammer Component
+    .bow = Bow Component
+    .staff = Firestaff Component
+    .sceptre = Sceptre Component
+
 common-kind-glider = Glider
 common-kind-consumable = Consumable
 common-kind-utility = Utility
