@@ -66,7 +66,6 @@ common-tool-pick = Spitzhacke
 common-tool-mining = Bergbau
 common-tool-instrument = Instrument
 common-kind-modular_component = Modulares Bauteil
-common-kind-modular_component_partial = Bauteil
 common-kind-glider = Gleiter
 common-kind-consumable = Verbrauchsgegenstand
 common-kind-utility = Hilfsmittel

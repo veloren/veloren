@@ -84,7 +84,6 @@ common-material-cloth = Látka
 common-material-hide = Kůže
 common-tool-shovel = Lopata
 common-tool-instrument = Nástroj
-common-kind-modular_component_partial = Součást
 common-delete_server = Smazat Server
 common-confirm = Potvrdit
 common-networking_settings = Nastavení Sítě

@@ -5,3 +5,5 @@ hud-quest-accept = Набыць
 hud-quest-decline = Адмовіць
 hud-quest = Квэст
 hud-quest-intro = Вітаю, { $playername }!
+hud-dialogue = Дыялог
+hud-dialogue-ack = Націсні [{ $key }] каб пацвердзіць

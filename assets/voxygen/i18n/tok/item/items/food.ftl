@@ -42,3 +42,7 @@ object-apple_stick = palisa kili
     .desc = palisa la jan li ken jo pona e ona!
 object-mushroom_stick = palisa soko
     .desc = soko seli lon palisa. ona li pona tawa luka.
+object-blue_cheese = ko laso
+    .desc = kon li nasa, taso ona li pona moku.
+object-cactus_drink = telo pi kasi kipisi
+    .desc = ona li jo ala e kipisi a.

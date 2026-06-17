@@ -1,0 +1,40 @@
+hud-map-map_title = lipu ma
+hud-map-qlog_title = alasa
+hud-map-towns = ma tomo
+hud-map-castles = tomo suli
+hud-map-dungeons = tomo utala
+hud-map-caves = lupa
+hud-map-cave = lupa
+hud-map-peaks = nena
+hud-map-biomes = kule ma
+hud-map-trees = kasi suli
+hud-map-tree = kasi suli
+hud-map-town = ma tomo
+hud-map-castle = tomo suli
+hud-map-bridge = nasin lon telo
+hud-map-bridges = nasin lon telo
+hud-map-glider_course = nasin pi ilo waso
+hud-map-glider_courses = nasin pi ilo waso
+hud-map-dungeon = tomo utala
+hud-map-quests = alasa
+hud-map-df_mine = tomo lupa
+hud-map-plaza = insa pi ma tomo
+hud-map-workshop = tomo pali
+hud-map-airship_dock = supa pi tomo waso
+hud-map-character = jan
+hud-map-character-label = sona la jan { $name } li lon ni
+hud-map-creature-label = sona la { $body } li lon ni
+hud-map-escort-label = o tawa e jan { $name } tawa { $place }.
+hud-map-difficulty_dungeon =
+    tomo utala
+
+    suli ike: { $difficulty }
+hud-map-drag = o tawa e luka
+hud-map-zoom = o suli anu lili
+hud-map-mid_click = o lon e sitelen ma
+hud-map-recenter = o meso
+hud-map-marked_location = sitelen ma
+hud-map-marked_location_remove = o luka tawa weka
+hud-map-placed_by = pana tan jan { $name }
+hud-map-difficulty = suli ike
+hud-map-unknown = sona ala

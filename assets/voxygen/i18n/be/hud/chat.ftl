@@ -6,27 +6,102 @@ hud-chat-default_death_msg = { "[" }{ $name }] памёр(-ла)
 hud-chat-fall_kill_msg = { "[" }{ $name }] разбіўся(-лася) насмерць
 hud-chat-suicide_msg = { "[" }{ $name }] здзейсніў(-ла) самагубства
 hud-chat-died_of_pvp_buff_msg =
-    .burning = { "[" }{ $victim }] згарэў(-ла) жыўцом, выкліканага [{ $attacker }]
-    .bleeding = { "[" }{ $victim }] памёр(-ла) ад крывацёку, выкліканага [{ $attacker }]
-    .curse = { "[" }{ $victim }] памёр(-ла) ад праклёну, выкліканага [{ $attacker }]
-    .crippled = { "[" }{ $victim }] памёр(-ла) ад траўмаў, выкліканага [{ $attacker }]
-    .frozen = { "[" }{ $victim }] памёр(-ла) ад холаду, выкліканага [{ $attacker }]
+    .burning =
+        { $attacker_gender ->
+            [she] { "[" }{ $attacker }] спаліла [{ $victim }] жыўцом
+           *[he] { "[" }{ $attacker }] спаліў [{ $victim }] жыўцом
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад крывацёку, выклікаага [{ $attacker }]
+           *[he] { "[" }{ $victim }] памёр ад крывацёку, выклікаага [{ $attacker }]
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад праклёну, накладзенага [{ $attacker }]
+           *[he] { "[" }{ $victim }] памёр ад праклёну, накладзенага [{ $attacker }]
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад траўм, нанесёных [{ $attacker }]
+           *[he] { "[" }{ $victim }] памёр ад траўм, нанесёных [{ $attacker }]
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад холаду, з-за [{ $attacker }]
+           *[he] { "[" }{ $victim }] памёр ад холаду, з-за [{ $attacker }]
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ... з-за [{ $attacker }] ... як?
+           *[he] { "[" }{ $victim }] памёр ... з-за [{ $attacker }] ... як?
+        }
 hud-chat-pvp_melee_kill_msg = { "[" }{ $attacker }] перамог(-ла) [{ $victim }]
 hud-chat-pvp_ranged_kill_msg = { "[" }{ $attacker }] застрэліў(-ла) [{ $victim }]
 hud-chat-pvp_explosion_kill_msg = { "[" }{ $attacker }] падарваў(-ла) [{ $victim }]
 hud-chat-pvp_energy_kill_msg = { "[" }{ $attacker }] забіў(-ла) [{ $victim }] чарамі
 hud-chat-died_of_buff_nonexistent_msg =
-    .burning = { "[" }{ $victim }] згарэў(-ла) жыўцом
-    .bleeding = { "[" }{ $victim }] памёр(-ла) ад крывацёку
-    .curse = { "[" }{ $victim }] памёр(-ла) ад праклёну
-    .crippled = { "[" }{ $victim }] памёр(-ла) ад траўмаў
-    .frozen = { "[" }{ $victim }] памёр(-ла) ад холаду
+    .burning =
+        { $attacker_gender ->
+            [she] { "[" }{ $victim }] згарэла жыўцом
+           *[he] { "[" }{ $victim }] згарэў жыўцом
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад крывацёку
+           *[he] { "[" }{ $victim }] памёр ад крывацёку
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад праклёну
+           *[he] { "[" }{ $victim }] памёр ад праклёну
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад траўм
+           *[he] { "[" }{ $victim }] памёр ад траўм
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад холаду
+           *[he] { "[" }{ $victim }] памёр ад холаду
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ... як?
+           *[he] { "[" }{ $victim }] памёр ... як?
+        }
 hud-chat-died_of_npc_buff_msg =
-    .burning = { "[" }{ $victim }] згарэў(-ла) жыўцом, выкліканага { $attacker }
-    .bleeding = { "[" }{ $victim }] памёр(-ла) ад крывацёку, выкліканага { $attacker }
-    .curse = { "[" }{ $victim }] памёр(-ла) ад праклёну, выкліканага { $attacker }
-    .crippled = { "[" }{ $victim }] памёр(-ла) ад траўмаў, выкліканага { $attacker }
-    .frozen = { "[" }{ $victim }] памёр(-ла) ад холаду, выкліканага { $attacker }
+    .burning =
+        { $attacker_gender ->
+            [she] { "[" }{ $attacker }] спаліла { $victim }]жыўцом
+           *[he] { "[" }{ $attacker }] спаліў { $victim } жыўцом
+        }
+    .bleeding =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад крывацёку, выклікаага { $attacker }
+           *[he] { "[" }{ $victim }] памёр ад крывацёку, выклікаага { $attacker }
+        }
+    .curse =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад праклёну, накладзенага { $attacker }
+           *[he] { "[" }{ $victim }] памёр ад праклёну, накладзенага { $attacker }
+        }
+    .crippled =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад траўм, нанесёных { $attacker }
+           *[he] { "[" }{ $victim }] памёр ад траўм, нанесёных { $attacker }
+        }
+    .frozen =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ад холаду, з-за { $attacker }
+           *[he] { "[" }{ $victim }] памёр ад холаду, з-за { $attacker }
+        }
+    .mysterious =
+        { $victim_gender ->
+            [she] { "[" }{ $victim }] памерла ... з-за { $attacker } ... як?
+           *[he] { "[" }{ $victim }] памёр ... з-за { $attacker } ... як?
+        }
 hud-chat-npc_melee_kill_msg = { $attacker } забіў(-ла) [{ $victim }]
 hud-chat-npc_ranged_kill_msg = { $attacker } застрэліў(-ла) [{ $victim }]
 hud-chat-npc_explosion_kill_msg = { $attacker } падарваў(-ла) [{ $victim }]
@@ -45,8 +120,8 @@ hud-chat-pvp_other_kill_msg = { "[" }{ $attacker }] забіў [{ $victim }]
 # HUD Pickup message
 hud-loot-pickup-msg-you =
     { $amount ->
-        [1] Вы падвбралі { $item }
-       *[other] Вы падвбралі { $amount }x { $item }
+        [one] Вы падaбралі { $item }
+       *[other] Вы падабралі { $amount }x { $item }
     }
 # HUD Pickup message
 hud-loot-pickup-msg =
@@ -58,7 +133,7 @@ hud-loot-pickup-msg =
             }
        *[he]
             { $amount ->
-                [1] { $actor } падвбраў { $item }
+                [1] { $actor } падабраў { $item }
                *[other] { $actor } падабраў { $amount }x { $item }
             }
     }
@@ -72,3 +147,5 @@ hud-chat-message-with-name = { "[" }{ $alias }] { $name }: { $msg }
 hud-chat-message-in-group = ({ $group }) [{ $alias }]: { $msg }
 # Generic messages
 hud-chat-message = { "[" }{ $alias }]: { $msg }
+hud-chat-singleplayer-motd1 = Увесь свет для самаго сябе! Час расслабіцца...
+hud-chat-singleplayer-motd2 = Як знайсці душэўны спакой?

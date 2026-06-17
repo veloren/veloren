@@ -25,15 +25,32 @@ hud-crafting-tabs-bag = Торбы
 hud-crafting-tabs-processed_material = Матэрыялы
 hud-crafting-dismantle_title = Разабраць на часткі
 hud-crafting-dismantle_explanation =
-    Змясціце курсор на іконцы прадмета,
-    каб даведацца, што можна атрымаць.
+    Навядзіце курсор на прадмет у торбе,
+    каб даведацца, што можна разабраць.
 
-    Націсніце двойчы, каб пачаць
-    разбіранне.
-hud-crafting-modular_desc = Перацягніце часткі зброі каб стварыць зброю
+    Націсніце двойчы, каб пачаць разбіранне.
+hud-crafting-modular_desc = Перацягніце Часткі Зброі каб стварыць зброю
 hud-crafting-mod_weap_prim_slot_title = Асноўны Кампанент Зброі
 hud-crafting-mod_weap_sec_slot_title = Другі Кампанент Зброі
-hud-crafting-mod_weap_prim_slot_desc = Змясціце асноўны кампанент зброі тут (напрыклад sword blade, axe head, альбо bow limbs).
-hud-crafting-mod_weap_sec_slot_desc = Змясціце другі кампанент зброі тут (напрыклад sword hilt, bow grip, альбо staff core).
+hud-crafting-mod_weap_prim_slot_desc = Змясціце асноўны кампанент зброі тут (напрыклад лязо мяча, сякерыску, альбо плячы лука).
+hud-crafting-mod_weap_sec_slot_desc = Размясціце тут другасны кампанент зброі (напрыклад, эфес мяча, ручку лука або асяродак посаха).
 hud-crafting-repair_bench = Рамонтны Стол
 hud-crafting-craft_all = Стварыць Усё
+hud-crafting-repair_equipped = Экіпіравана
+hud-crafting-repair_all = Усё
+hud-crafting-tool_cata = Інструменты:
+hud-crafting-req_crafting_station = Станцыя:
+hud-crafting-repair-selection = Абрана
+hud-crafting-repair_desc = Перацягніце пашкоджаныя прадметы сюды, каб іх адрамантаваць
+hud-crafting-mod_comp_metal_prim_slot_title = Злітак Металу
+hud-crafting-mod_comp_metal_prim_slot_desc = Пакладзіце сюды злітак металу, толькі пэўныя металы могуць выкарыстоўвацца для вырабу зброі.
+hud-crafting-mod_comp_wood_prim_slot_title = Драўніна
+hud-crafting-mod_comp_wood_prim_slot_desc = Пакладзіце сюды дрэвесіну, толькі пэўныя віды дрэва можна выкарыстоўваць для вырабу зброі.
+hud-crafting-mod_comp_sec_slot_title = Звярыны Матэрыял
+hud-crafting-mod_comp_sec_slot_desc = Па жаданні пакладзіце звярыны матэрыял, толькі пэўныя матэрыялы могуць выкарыстоўвацца для паляпшэння зброі.
+hud-crafting-repair_slot_title = Пашкоджаны Прадмет
+hud-crafting-repair_slot_desc = Пакладзіце прадмет сюды, каб выбраць яго для рамонту.
+hud-crafting-recipe-uncraftable = Нельга Стварыць Рэцэпт
+hud-crafting-recipe-unlearned = Спачатку вы павінны навучыцца ствараць гэты рэцэпт.
+hud-crafting-show_unknown_recipes = Паказаць Невядомыя Рэцэпты
+hud-crafting-hide_unknown_recipes = Схаваць Невядомыя Рэцэпты

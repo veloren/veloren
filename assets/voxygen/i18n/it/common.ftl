@@ -69,7 +69,6 @@ common-tool-shovel = Pala
 common-tool-mining = Estrazione mineraria
 common-tool-instrument = Strumenti
 common-kind-modular_component = Componente modulare
-common-kind-modular_component_partial = Componente
 common-kind-glider = Deltaplano
 common-kind-consumable = Consumabile
 common-kind-utility = Utilità

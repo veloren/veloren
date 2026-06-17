@@ -69,7 +69,6 @@ common-tool-shovel = Лопата
 common-tool-mining = Гірнича справа
 common-tool-instrument = Інструмент
 common-kind-modular_component = Модульний Компонент
-common-kind-modular_component_partial = Компонент
 common-kind-glider = Дельтаплан
 common-kind-consumable = Вживане
 common-kind-utility = Корисність
