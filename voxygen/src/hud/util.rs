@@ -98,11 +98,7 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
         )),
         ItemKind::ModularComponent(mc) => {
             if let Some(toolkind) = mc.toolkind() {
-                Cow::Owned(format!(
-                    "{} {}",
-                    i18n.get_msg(&format!("common-weapons-{}", toolkind.identifier_name())),
-                    i18n.get_msg("common-kind-modular_component_partial")
-                ))
+                i18n.get_attr("common-kind-modular_component", toolkind.identifier_name())
             } else {
                 i18n.get_msg("common-kind-modular_component")
             }
