@@ -58,7 +58,6 @@ common-tool-mining = pakala
 common-tool-instrument = ilo kalama
 common-tool-throwable = ken pana
 common-kind-modular_component = kipisi ilo
-common-kind-modular_component_partial = kipisi
 common-kind-glider = ilo waso
 common-kind-consumable = ken moku
 common-kind-utility = ilo

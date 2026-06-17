@@ -66,7 +66,6 @@ common-tool-pick = Kilof
 common-tool-mining = Kopanie
 common-tool-instrument = Instrument
 common-kind-modular_component = Modularna część
-common-kind-modular_component_partial = Część
 common-kind-glider = Lotnia
 common-kind-consumable = Jadalne
 common-kind-utility = Użytkowe

@@ -1,0 +1,56 @@
+hud-crafting = pali
+hud-crafting-recipes = nasin pali
+hud-crafting-ingredients = wile:
+hud-crafting-craft = o pali
+hud-crafting-craft_all = o pali e ale
+hud-crafting-repair-selection = ijo luka
+hud-crafting-repair_equipped = ijo kepeken
+hud-crafting-repair_all = ijo ale
+hud-crafting-tool_cata = ilo:
+hud-crafting-req_crafting_station = supa:
+hud-crafting-anvil = supa kiwen
+hud-crafting-cauldron = poki pi telo nasa
+hud-crafting-cooking_pot = poki pi seli moku
+hud-crafting-crafting_bench = supa pali
+hud-crafting-forge = poki pi seli kiwen
+hud-crafting-loom = ilo pali len
+hud-crafting-spinning_wheel = ilo sike
+hud-crafting-tanning_rack = ilo pali selo
+hud-crafting-salvaging_station = supa pakala
+hud-crafting-repair_bench = supa pona
+hud-crafting-campfire = seli palisa
+hud-crafting-tabs-all = ale
+hud-crafting-tabs-armor = len
+hud-crafting-tabs-dismantle = pakala
+hud-crafting-tabs-food = moku
+hud-crafting-tabs-glider = ilo waso
+hud-crafting-tabs-potion = telo wawa
+hud-crafting-tabs-tool = ilo luka
+hud-crafting-tabs-utility = ilo ante
+hud-crafting-tabs-weapon = ilo utala
+hud-crafting-tabs-bag = poki
+hud-crafting-tabs-processed_material = ijo pali
+hud-crafting-dismantle_title = o pakala e ijo
+hud-crafting-dismantle_explanation =
+    o lukin e ijo lon jo sina tawa ni:
+    sina sona e ijo pi ken pakala.
+
+    o kepeken nena tu tawa pakala.
+hud-crafting-modular_desc = o luka e kipisi tawa ni tawa pali pi ilo utala
+hud-crafting-repair_desc = o luka e ijo pakala tawa ni tawa pona ona
+hud-crafting-mod_weap_prim_slot_title = kipisi nanpa wan pi ilo utala
+hud-crafting-mod_weap_prim_slot_desc = o pana e kipisi pi ilo utala lon ni (ken la: kipisi pakala, anu kipisi palisa).
+hud-crafting-mod_weap_sec_slot_title = kipisi nanpa tu pi ilo utala
+hud-crafting-mod_weap_sec_slot_desc = o pana e kipisi nanpa tu pi ilo utala lon ni (ken la: kipisi luka, anu insa seli, anu insa pona).
+hud-crafting-mod_comp_metal_prim_slot_title = kiwen
+hud-crafting-mod_comp_metal_prim_slot_desc = o pana e kiwen tawa ni. kiwen ale ala li ken lon ilo utala.
+hud-crafting-mod_comp_wood_prim_slot_title = sijelo kasi
+hud-crafting-mod_comp_wood_prim_slot_desc = o pana e sijelo kasi lon ni. sijelo kasi ale ala li ken lon ilo utala.
+hud-crafting-mod_comp_sec_slot_title = ijo soweli
+hud-crafting-mod_comp_sec_slot_desc = wile la o pana e ijo pali soweli. ijo ale ala li ken namako tawa ilo utala.
+hud-crafting-repair_slot_title = ijo pakala
+hud-crafting-repair_slot_desc = o pana e ijo tawa ni la sina ken pona e ona.
+hud-crafting-recipe-uncraftable = sina ken ala pali e ijo
+hud-crafting-recipe-unlearned = sina o kama sona pali e ijo ni.
+hud-crafting-show_unknown_recipes = o lukin e nasin pali pi sona ala
+hud-crafting-hide_unknown_recipes = o lukin ala e nasin pali pi sona ala

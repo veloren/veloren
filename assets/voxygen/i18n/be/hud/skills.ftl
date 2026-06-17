@@ -1,24 +1,26 @@
-hud-rank_up = Новая адзінка навыку
+hud-rank_up = Новы скіл поінт
 hud-skill-sp_available =
     { $number ->
-        [0] Няма даступных адзінак навыку
-        [1] { $number } адзінка навыку даступна
-       *[other] { $number } адзінак навыку даступна
+        [0] Няма даступных скіл поінтаў
+        [one] { $number } скіл поінт даступны
+        [few] { $number } скіл поінта даступна
+        [many] { $number } скіл поінтаў даступна
+       *[other] { $number } скіл поінтаў даступна
     }
-hud-skill-not_unlocked = Пакуль не адчынена
-hud-skill-req_sp = { "\u000A" }Патрабуе { $number } АН
+hud-skill-not_unlocked = Пакуль не разблакана
+hud-skill-req_sp = { "\u000A" }Патрабуе { $number } СП
 hud-skill-unlck_sword_title = Валоданне мячом
-hud-skill-unlck_sword = Адчыняе дрэва навыкаў валодання мячом.{ $SP }
+hud-skill-unlck_sword = Разблакоўвае дрэва навыкаў мяча.{ $SP }
 hud-skill-unlck_axe_title = Валоданне сякерай
-hud-skill-unlck_axe = Адчыняе дрэва навыкаў валодання сякерай.{ $SP }
+hud-skill-unlck_axe = Разблакоўвае дрэва навыкаў сякеры.{ $SP }
 hud-skill-unlck_hammer_title = Валоданне молатам
-hud-skill-unlck_hammer = Адчыняе дрэва навыкаў валодання молатам.{ $SP }
+hud-skill-unlck_hammer = Разблакоўвае дрэва навыкаў молата.{ $SP }
 hud-skill-unlck_bow_title = Валоданне лукам
-hud-skill-unlck_bow = Адчыняе дрэва навыкаў валодання лукам.{ $SP }
+hud-skill-unlck_bow = Разблакоўвае дрэва навыкаў лука.{ $SP }
 hud-skill-unlck_staff_title = Валоданне посахам
-hud-skill-unlck_staff = Адчыняе дрэва навыкаў валодання посахам.{ $SP }
+hud-skill-unlck_staff = Разблакоўвае дрэва навыкаў посаха.{ $SP }
 hud-skill-unlck_sceptre_title = Валоданне скіпетрам
-hud-skill-unlck_sceptre = Адчыняе дрэва навыкаў валодання скіпетрам.{ $SP }
+hud-skill-unlck_sceptre = Разблакоўвае дрэва навыкаў скіпетра.{ $SP }
 hud-skill-climbing_title = Скалалажанне
 hud-skill-climbing = Здольнасць лазіць па паверхнях.
 hud-skill-climbing_cost_title = Кошт скалалажання
@@ -98,3 +100,21 @@ hud-skill-pick_strike_gemgain_title = Шчаслівы ўдар (камяні)
 hud-skill-pick_strike_gemgain = Шанец здабыць дадатковыя каштоўныя камяні (+{ $boost }% за ўзровень).{ $SP }
 # Skill tree UI
 hud-skill-set_as_exp_bar = Усталяваць як шкалу досведу
+hud-skill_tree-general = Агульныя
+hud-skill_tree-sword = Меч
+hud-skill_tree-axe = Сякера
+hud-skill_tree-hammer = Молат
+hud-skill_tree-bow = Лук
+hud-skill_tree-staff = Агнявы Посах
+hud-skill_tree-sceptre = Скіпетр
+hud-skill_tree-mining = Шахцёрства
+hud-skill-persistence-common_message = Некаторыя вашыя скіл поінты былі скінутыя. Вам трэба іх пераразмеркаваць.
+hud-skill-sword_stance_cleaving = Рассяканне
+hud-skill-sword_stance_agile = Спрыт
+hud-skill-sword_stance_crippling = Калецтва
+hud-skill-sword_stance_heavy = Цяжкая
+hud-skill-sword_stance_defensive = Ахоўная
+hud-skill-persistence-hash_mismatch = З моманту вашай апошняй гульні была выяўлена розніца ў адной з вашых груп навыкаў.
+hud-skill-persistence-deserialization_failure = Адбылася памылка пры загрузцы некаторых вашых навыкаў з базы дадзеных.
+hud-skill-persistence-spent_experience_missing = Колькасць вопыту, які вы мелі ў адной са сваіх груп навыкаў, адрознівалася ад той, што была ў вас падчас апошняй гульні.
+hud-skill-persistence-skills_unlock_failed = Вашы навыкі не ўдалося атрымаць у тым жа парадку, у якім вы іх набылі. Патрабаванні або выдаткі маглі змяніцца.

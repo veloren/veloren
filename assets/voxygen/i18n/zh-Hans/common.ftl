@@ -67,7 +67,6 @@ common-tool-pick = 镐子
 common-tool-mining = 采矿
 common-tool-instrument = 器械
 common-kind-modular_component = 模块化组件
-common-kind-modular_component_partial = 模块化组件
 common-kind-glider = 滑翔伞
 common-kind-consumable = 消耗品
 common-kind-utility = 道具

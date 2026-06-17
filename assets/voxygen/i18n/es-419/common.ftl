@@ -66,7 +66,6 @@ common-tool-pick = Pico
 common-tool-mining = Minería
 common-tool-instrument = Instrumento
 common-kind-modular_component = Componente modular
-common-kind-modular_component_partial = Componente
 common-kind-glider = Paravela
 common-kind-consumable = Consumible
 common-kind-utility = Utilidad

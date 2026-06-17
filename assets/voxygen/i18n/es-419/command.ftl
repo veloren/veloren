@@ -159,3 +159,52 @@ command-mute-already-muted = { $player } ya está silenciado
 command-mute-no-player-specified = Debes especificar un jugador
 command-unmute-cannot-unmute-self = No puedes quitarte un silenciado a ti
 command-unmute-success = Se han reactivado mensajes de { $player }
+command-unmute-no-muted-player-found = No se ha encontrado ningún jugador silenciado llamado { $player }
+command-unmute-no-player-specified = Debes seleccionar un jugador para silenciarlo
+command-shader-backend = Backend de sombreado actual: { $shader-backend }
+command-experimental-shaders-list = { $shader-list }
+command-experimental-shaders-not-found = No hay sombreadores experimentales
+command-experimental-shaders-enabled = Habilitado { $shader }
+command-experimental-shaders-disabled = Deshabilitado { $shader }
+command-experimental-shaders-not-a-shader = { $shader } no es un sombreador experimental; utiliza este comando con cualquier argumento para ver una lista completa.
+command-experimental-shaders-not-valid = Debes especificar un sombreador experimental válido; para obtener una lista de sombreadores experimentales, utiliza este comando sin ningún argumento.
+command-no-permission = No tienes permiso para usar «/{ $command_name }»
+command-position-unavailable = No se puede obtener la posición de { $target }
+command-player-role-unavailable = No se pueden obtener los roles de administrador para { $target }
+command-uid-unavailable = No se puede obtener el UID de { $target }
+command-area-not-found = No se ha encontrado el área llamada «{ $area }»
+command-player-not-found = ¡No se ha encontrado el jugador «{ $player }»!
+command-player-uuid-not-found = ¡No se ha encontrado el jugador con el UUID «{ $uuid }»!
+command-username-uuid-unavailable = No se pudo determinar el UUID para el nombre de usuario { $username }
+command-uuid-username-unavailable = No se pudo determinar el nombre de usuario para el UUID  { $uuid }
+command-no-sudo = Es grosero hacerse pasar por otra persona
+command-entity-dead = ¡La entidad «{ $entity }» está muerta!
+command-error-write-settings =
+    No se pudo guardar el archivo de configuración en el disco, pero sí en la memoria.
+    Error (almacenamiento): { $error }
+    Éxito (memoria): { $message }
+command-error-while-evaluating-request = Se produjo un error al validar la solicitud: { $error }
+command-give-inventory-full =
+    El inventario del jugador está lleno. Se entregó { $given ->
+        [1] solo uno
+       *[other] { $given }
+    } de { $total } objetos.
+command-give-inventory-success = Se han añadido { $total } x { $item } al inventario.
+command-invalid-item = Elemento inválido: { $item }
+command-invalid-block-kind = Tipo de bloque inválido: { $kind }
+command-nof-entities-at-least = El número de entidades debe ser de al menos 1
+command-nof-entities-less-than = El número de entidades debe ser inferior a 50
+command-entity-load-failed = No se pudo cargar la configuración de la entidad: { $config }
+command-spawned-entities-config = Se han generado { $n } entidades a partir de la configuración: { $config }
+command-invalid-sprite = Tipo de sprite no válido: { $kind }
+command-time-parse-too-large = { $n } es inválido; no puede tener más de 16 dígitos.
+command-time-parse-negative = { $n } es inválido; no puede ser negativo.
+command-time-backwards = { $t } es anterior a la hora actual; el tiempo no puede retroceder.
+command-time-invalid = { $t } no es una hora válida.
+command-time-current = Es { $t }
+command-time-unknown = Hora desconocida
+command-rtsim-purge-perms = Debes ser un administrador real (no solo un admin temporal) para purgar los datos de rtsim.
+command-chunk-not-loaded = Bloque { $x }, { $y } no cargado
+command-chunk-out-of-bounds = El fragmento { $x }, { $y } no se encuentra dentro de los límites del mapa
+command-spawned-entity = Se ha creado la entidad con el ID: { $id }
+command-spawned-dummy = Generado un maniquí de entrenamiento

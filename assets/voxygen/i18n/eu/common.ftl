@@ -66,7 +66,6 @@ common-tool-pick = Pikotxa
 common-tool-mining = Meatzaritza
 common-tool-instrument = Instrumentua
 common-kind-modular_component = Pieza modularra
-common-kind-modular_component_partial = Pieza
 common-kind-glider = Planeagailua
 common-kind-consumable = Kontsumigarria
 common-kind-utility = Tresna
