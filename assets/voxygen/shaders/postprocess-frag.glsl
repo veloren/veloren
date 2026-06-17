@@ -279,22 +279,6 @@ void main() {
         float mag2 = length(gx2) + length(gy2);
         aa_color.rgb = mix(vec3(0.0), aa_color.rgb * 0.8, clamp(1.0 - mag2 * 0.3, 0.0, 1.0));
     #endif
-    
-    #ifdef EXPERIMENTAL_COLORQUANTIZATION
-        const int QUANT_STEPS = 10;
-        vec3 quant_color = pow(aa_color.rgb, vec3(0.25)) * QUANT_STEPS;
-        ivec2 internal_res = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
-        #ifdef EXPERIMENTAL_COLORDITHERING
-            vec3 quant_step = vec3(
-                dither(ivec2(uv * internal_res + 0), fract(quant_color.r)),
-                dither(ivec2(uv * internal_res + 1), fract(quant_color.g)),
-                dither(ivec2(uv * internal_res + 2), fract(quant_color.b))
-            );
-        #else
-            vec3 quant_step = step(hash_two_3(uvec2(uv * internal_res)), fract(quant_color));
-        #endif
-        aa_color.rgb = pow(floor(quant_color + quant_step) * (1.0 / QUANT_STEPS), vec3(4));
-    #endif
 
     // Bloom
     #ifdef BLOOM_FACTOR
@@ -317,6 +301,22 @@ void main() {
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
     // gamma correction
     aa_color.rgb = pow(aa_color.rgb, vec3(gamma_exposure.x + gamma_offset));
+    
+    #ifdef EXPERIMENTAL_COLORQUANTIZATION
+        const int QUANT_STEPS = 10;
+        vec3 quant_color = pow(aa_color.rgb, vec3(0.25)) * QUANT_STEPS;
+        ivec2 internal_res = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
+        #ifdef EXPERIMENTAL_COLORDITHERING
+            vec3 quant_step = vec3(
+                dither(ivec2(uv * internal_res + 0), fract(quant_color.r)),
+                dither(ivec2(uv * internal_res + 1), fract(quant_color.g)),
+                dither(ivec2(uv * internal_res + 2), fract(quant_color.b))
+            );
+        #else
+            vec3 quant_step = step(hash_two_3(uvec2(uv * internal_res)), fract(quant_color));
+        #endif
+        aa_color.rgb = pow(floor(quant_color + quant_step) * (1.0 / QUANT_STEPS), vec3(4));
+    #endif
 
     /*
     // Apply clouds to `aa_color`
