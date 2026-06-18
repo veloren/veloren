@@ -27,6 +27,13 @@ float hash_two(uvec2 q) {
     return float(n) * (1.0 / float(0xffffffffU));
 }
 
+vec3 hash_two_3(uvec2 q) {
+    q *= uvec2(M1, M2);
+    uvec3 n = uvec3(q.x ^ q.y ^ uvec3(M1, M2, M3));
+    n = n * (n ^ (n >> 15));
+    return vec3(n) * (1.0 / vec3(0xffffffffU));
+}
+
 float hash_three(uvec3 q) {
     q *= uvec3(M1, M2, M3);
     uint n = q.x ^ q.y ^ q.z;
