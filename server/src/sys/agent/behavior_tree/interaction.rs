@@ -377,7 +377,6 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                         }
                     }
                     if !pending.accept_flags[who]
-                        && pending.offers[who].is_empty()
                         && !pending.offers[1 - who].is_empty()
                         && only_food
                     {
