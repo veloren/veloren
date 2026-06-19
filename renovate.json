@@ -27,7 +27,6 @@
       "matchManagers": ["cargo"],
       "matchDatasources": ["crate"],
       "matchUpdateTypes": ["major"],
-      "separateMajorMinor": true,
       "automerge": false
     },
     {
