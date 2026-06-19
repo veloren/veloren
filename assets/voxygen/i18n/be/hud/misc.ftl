@@ -2,7 +2,7 @@ hud-show_tips = Паказваць падказкі
 hud-quests = Заданні
 hud-you_died = Вы памерлі
 hud-waypoint_saved = Месца адраджэння ўсталявана
-hud-sp_arrow_txt = АН
+hud-sp_arrow_txt = СП
 hud-inventory_full = Поўны інвентар
 hud-press_key_to_show_debug_info_fmt = Націсніце { $key }, каб адлюстроўваць тэх. звесткі
 hud-press_key_to_toggle_keybindings_fmt = Націсніце { $key }, каб адлюстроўваць прызначэнні клавіш
@@ -24,9 +24,13 @@ hud-temp_quest_text =
     Дзікія зверы вакол вёскі - гэта выдатная крыніца Жывёльных шкур, з якіх можна зрабіць якуюсьці ахову ад пагроз гэтага вялікага свету.
 
     Як адчуваеце, што гатовыя, зірніце на мапу, каб знайсці сабе выпрабаванні і лепшы рыштунак!
-hud-spell = Здольнасці
+hud-spell = Заклінання
 hud-diary = Журнал
-hud-free_look_indicator = Вольны агляд актываваны. Націсніце { $key }, каб скасаваць.
+hud-free_look_indicator =
+    { $toggle ->
+        [0] Вольны агляд актываваны. Націсніце { $key }, каб скасаваць.
+       *[other] Вольны агляд актываваны. Спыніце трымаць { $key }, каб скасаваць.
+    }
 hud-camera_clamp_indicator = Камера замацавана вертыкальна. Націсніце { $key }, каб скасаваць.
 hud-auto_walk_indicator = Аўта рух/плаванне актываваныя
 hud-collect = Сабраць
@@ -76,3 +80,46 @@ hud-init-stage-server-spotgen = { "[" }{ -server }]: Стварэнне пунк
 hud-init-stage-client-request-server-version = { "[" }{ -client }]: Чаканне версіі сервера...
 hud-activate = Актываваць
 hud-init-stage-render-pipeline = Стварэнне канвеера візуалізацыі ({ $done }/{ $total })
+hud-items_lost_dur = Вашы ўзброеныя прадметы страцілі Трываласць.
+hud-items_will_lose_dur = Вашы ўзброеныя прадметы страцяць Трываласць.
+hud-hardcore_char_deleted = Гэты хардкорны персанаж быў выдалены.
+hud-hardcore_will_char_deleted = Гэты хардкорны персанаж будзе выдалены.
+hud-press_key_to_give_up = Зацісніце { $key }, каб прызнаць паразу і памерці.
+hud-press_key_to_return_to_char_menu = Націсніце { $key }, каб вярнуцца да меню выбара персанажа.
+hud-downed_recieving_help = Атрыманне дапамогі.
+hud-steal = Выкрасці
+hud-steal-requires = Выкрасці з { $item }
+hud-steal-consumes = Выкарыстаць { $item } каб вырасці
+hud-help = Дапамагчы
+hud-waypoint_interact = Паставіць Пазнаку
+hud-rest = Адпачнуць
+hud-init-stage-server-worldsim-erosion_time_left =
+    .days =
+        { $n ->
+            [one] ~застаўся { $n } дзень
+            [few] ~застаўлося { $n } дні
+            [many] ~засталося { $n } дзён
+           *[other] ~засталося{ $n } дзён
+        }
+    .hours =
+        { $n ->
+            [one] ~засталася { $n } гадзіна
+            [few] ~засталося { $n } гадзіны
+            [many] ~засталося { $n } гадзін
+           *[other] ~засталося { $n } гадзін
+        }
+    .minutes =
+        { $n ->
+            [one] ~Засталася { $n } хвіліна
+            [few] ~Засталося { $n } хвіліны
+            [many] ~Засталося { $n } хвілін
+           *[other] ~Засталося { $n } хвілін
+        }
+    .seconds =
+        { $n ->
+            [one] ~Засталася { $n } сякунда
+            [few] ~Засталося { $n } сякунды
+            [many] ~Засталося { $n } сякунд
+           *[other] ~Засталося { $n } сякунд
+        }
+hud-tutorial-disable = Назаўсёды адключыць падказкі

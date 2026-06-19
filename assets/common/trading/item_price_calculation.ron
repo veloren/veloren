@@ -12,6 +12,7 @@ loot_tables: [
     (14.0, true, "common.loot_tables.armor.adventurer"),
     (6.0, true, "common.loot_tables.armor.twigsleaves"),
     (2.0, false, "common.trading.misc_armor"),
+    (1.0, true, "common.loot_tables.armor.twigsflowers"),
     (1.0, false, "common.loot_tables.armor.pirate"),
     (0.15, false, "common.loot_tables.spot.buccaneer"),
     (0.10, false, "common.loot_tables.armor.witch"),

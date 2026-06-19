@@ -1,10 +1,10 @@
 BasicBeam(
-    buildup_duration: 0.25,
+    buildup_duration: 0.10,
     recover_duration: 0.25,
     beam_duration: 1.0,
-    damage: 4,
+    damage: 5,
     tick_rate: 3.0,
-    range: 15,
+    range: 18,
     max_angle: 15.0,
     damage_effect: Some(Buff((
         kind: Burning,
@@ -13,8 +13,8 @@ BasicBeam(
         chance: 0.25,
     ))),
     energy_regen: 0,
-    energy_drain: 40,
+    energy_drain: 20,
     move_efficiency: 0.4,
-    ori_rate: 0.3,
+    ori_rate: 0.1,
     specifier: Flamethrower,
 )

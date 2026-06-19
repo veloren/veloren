@@ -2,7 +2,6 @@
 #![cfg_attr(test, deny(rust_2018_idioms))]
 #![cfg_attr(test, deny(warnings))]
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(assert_matches)]
 
 //! Crate to handle high level networking of messages with different
 //! requirements and priorities over a number of protocols

@@ -39,16 +39,13 @@ widget_ids! {
         bg,
         icon,
         close,
-        title,
         map_align,
         qlog_align,
-        location_name,
+        //location_name,
         indicator,
-        indicator_overlay,
         map_layers[],
         map_title,
         qlog_title,
-        zoom_slider,
         mmap_site_icons[],
         mmap_poi_icons[],
         mmap_poi_title_bgs[],
@@ -57,16 +54,12 @@ widget_ids! {
         peaks_txt_bg,
         site_difs[],
         member_indicators[],
-        member_height_indicators[],
         location_marker,
         location_marker_group[],
         map_settings_align,
         show_towns_img,
         show_towns_box,
         show_towns_text,
-        show_sea_chapels_img,
-        show_sea_chapels_box,
-        show_sea_chapels_text,
         show_castles_img,
         show_castles_box,
         show_castles_text,
@@ -476,7 +469,7 @@ impl Widget for Map<'_> {
         );
 
         // X-Button
-        if Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
             .press_image(self.imgs.close_btn_press)

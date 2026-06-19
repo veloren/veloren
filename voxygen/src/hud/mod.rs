@@ -32,7 +32,6 @@ pub mod tutorial;
 pub mod util;
 
 pub use chat::MessageBacklog;
-pub use controller_icons::IconHandler;
 pub use crafting::CraftingTab;
 pub use hotbar::{SlotContents as HotbarSlotContents, State as HotbarState};
 pub use item_imgs::animate_by_pulse;
@@ -258,11 +257,6 @@ widget_ids! {
         player_rank_up_txt_1,
         player_rank_up_txt_1_bg,
         player_rank_up_icon,
-        sct_exp_bgs[],
-        sct_exps[],
-        sct_exp_icons[],
-        sct_lvl_bg,
-        sct_lvl,
         hurt_bg,
         death_bg,
         sct_bgs[],
@@ -304,23 +298,11 @@ widget_ids! {
         help,
         debug_info,
 
-        // Window Frames
-        window_frame_0,
-        window_frame_1,
-        window_frame_2,
-        window_frame_3,
-        window_frame_4,
-        window_frame_5,
-
-        button_help2,
-        button_help3,
-
         // External
         chat,
         loot_scroller,
         map,
         world_map,
-        character_window,
         popup,
         minimap,
         prompt_dialog,
@@ -333,14 +315,12 @@ widget_ids! {
         buttons,
         buffs,
         esc_menu,
-        small_window,
         social_window,
         quest_window,
         tutorial_window,
         crafting_window,
         settings_window,
         group_window,
-        item_info,
         subtitles,
 
         // Free look indicator
@@ -350,10 +330,6 @@ widget_ids! {
         // Auto walk indicator
         auto_walk_txt,
         auto_walk_bg,
-
-        // Walking speed indicator
-        walking_speed_txt,
-        walking_speed_bg,
 
         // Temporal (fading) camera zoom lock indicator
         zoom_lock_txt,
@@ -657,6 +633,7 @@ pub struct BlockFloater {
 pub struct DebugInfo {
     pub tps: f64,
     pub frame_time: Duration,
+    pub frame_variance: Duration,
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
     pub velocity: Option<comp::Vel>,
@@ -1891,7 +1868,7 @@ impl Hud {
                 self.floaters
                     .skill_point_displays
                     .retain(|d| d.timer > 0_f32);
-                if let Some(display) = self.floaters.skill_point_displays.iter_mut().next() {
+                if let Some(display) = self.floaters.skill_point_displays.first_mut() {
                     let fade = if display.timer < 3.0 {
                         display.timer * 0.33
                     } else if display.timer < 2.0 {
@@ -2732,9 +2709,10 @@ impl Hud {
 
             // Ticks per second
             let debug_msg_ticks_per_sec = format!(
-                "FPS: {:.0} ({}ms)",
+                "FPS: {:.0} ({}ms) (~{}ms)",
                 debug_info.tps,
-                debug_info.frame_time.as_millis()
+                debug_info.frame_time.as_millis(),
+                debug_info.frame_variance.as_millis(),
             );
             Text::new(&debug_msg_ticks_per_sec)
                 .color(TEXT_COLOR)
@@ -3084,8 +3062,7 @@ impl Hud {
                     if label.starts_with(crate::render::UI_PREMULTIPLY_PASS) {
                         continue;
                     }
-                    let timings_text =
-                        &format!("{:16}{:.3} ms", &format!("{label}:"), timing.2 * 1000.0,);
+                    let timings_text = &format!("{label:16}{:.3} ms", timing.2 * 1000.0);
                     let timings_widget = Text::new(timings_text)
                         .color(TEXT_COLOR)
                         .down(V_PAD)
@@ -4494,13 +4471,16 @@ impl Hud {
                                         .map(|e| {
                                             prices.values.get(&e.1).cloned().unwrap_or_default()
                                                 * e.0
-                                                * (if ours {
-                                                    e.1.sell_discount(item.quality())
-                                                } else {
-                                                    1.0
-                                                })
                                         })
-                                        .sum();
+                                        .sum::<f32>()
+                                        * (if ours {
+                                            TradePricing::good_from_itemdef_id(
+                                                item.item_definition_id(),
+                                            )
+                                            .sell_discount(item.quality())
+                                        } else {
+                                            1.0
+                                        });
 
                                     let mut float_delta = if ours ^ remove {
                                         (balance1 - balance0) / unit_price

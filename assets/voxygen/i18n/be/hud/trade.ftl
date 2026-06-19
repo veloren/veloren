@@ -22,13 +22,21 @@ hud-trade-your_offer = Ваша прапанова
 hud-trade-their_offer = Іх прапанова
 hud-trade-amount_input = Абярыце рэч
 hud-trade-buy =
-    Кошт куплі: { $coin_num ->
+    Кошт Куплі: { $coin_num ->
         [1] адна манета
+        [few] { $coin_formatted } манеты
+        [many] { $coin_formatted } манет
        *[other] { $coin_formatted } манет
     }
 hud-trade-sell =
-    Кошт прадажы: { $coin_num ->
+    Кошт продажу: { $coin_num ->
         [1] адна манета
+        [few] { $coin_formatted } манеты
+        [many] { $coin_formatted } манет
        *[other] { $coin_formatted } манет
     }
 hud-confirm-trade-for-nothing = Вы сапраўды жадаеце аддаць гэтыя рэчы дарма?
+hud-trade-invite-accepted = { $target } прыняў ваш запыт на абмен.
+hud-trade-invite-declined = { $target } адхіліў ваш запыт на абмен.
+hud-trade-invite-timed_out = Час чакання для запыту абмену з { $target } скончыўся.
+hud-trade-player_who = Гулец { $player_who }

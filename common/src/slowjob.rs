@@ -132,6 +132,34 @@ impl InternalSlowJobPool {
             rayon::ThreadPoolBuilder::new()
                 .num_threads(global_limit as usize)
                 .thread_name(move |i| format!("slowjob-{}", i))
+                .spawn_handler(|thread| {
+                    let mut b = std::thread::Builder::new();
+                    if let Some(name) = thread.name() {
+                        b = b.name(name.to_owned());
+                    }
+                    if let Some(stack_size) = thread.stack_size() {
+                        b = b.stack_size(stack_size);
+                    }
+                    b.spawn(|| {
+                        use thread_priority::*;
+                        let priority =
+                            ThreadPriority::Crossplatform(TryFrom::try_from(15).unwrap());
+                        if let Err(err) = cfg_select! {
+                            target_os = "linux" => std::thread::current().set_priority_and_policy(
+                                ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                                priority,
+                            ),
+                            _ => std::thread::current().set_priority(priority),
+                        } {
+                            tracing::warn!(
+                                "Unable to set priority/schedule policy for slow job pool thread: \
+                                 {err}"
+                            );
+                        }
+                        thread.run()
+                    })?;
+                    Ok(())
+                })
                 .build()
                 .unwrap(),
         );

@@ -66,7 +66,6 @@ common-tool-pick = Кирка
 common-tool-mining = Инструмент добычи
 common-tool-instrument = Музыкальный инструмент
 common-kind-modular_component = Модульный компонент
-common-kind-modular_component_partial = Компонент
 common-kind-glider = Дельтаплан
 common-kind-consumable = Расходуемый
 common-kind-utility = Полезность

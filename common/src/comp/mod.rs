@@ -31,6 +31,7 @@ pub mod pet;
 mod phys;
 mod player;
 pub mod poise;
+pub mod pool;
 pub mod presence;
 pub mod projectile;
 pub mod shockwave;
@@ -101,6 +102,7 @@ pub use self::{
     },
     player::{AliasError, DisconnectReason, MAX_ALIAS_LEN, Player},
     poise::{Poise, PoiseChange, PoiseState},
+    pool::{Pool, PoolProperties},
     presence::{Presence, PresenceKind, SpectatingEntity},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},

@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Diver's Light",
+    legacy_description: "A light strong enough even for the deepest of oceans.",
+    kind: Lantern(
+        (
+            color: (r: 148, g: 225, b: 255),
+            strength_thousandths: 21000,
+            flicker_thousandths: 600,
+            dir: Some(((x: 0.0, y: 1.0, z: 0.0), 0.9)),
+        ),
+    ),
+    quality: High,
+    tags: [Utility],
+)

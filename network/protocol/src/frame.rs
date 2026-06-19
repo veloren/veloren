@@ -357,7 +357,7 @@ mod tests {
         };
 
         for frame in get_initframes() {
-            println!("initframe: {:?}", &frame);
+            println!("initframe: {:?}", frame);
             assert_eq!(Some(frame.clone()), dupl(frame));
         }
     }
@@ -380,7 +380,7 @@ mod tests {
 
         // compare
         for (f, fd) in frames.drain(..).zip(framesd.drain(..)) {
-            println!("initframe: {:?}", &f);
+            println!("initframe: {:?}", f);
             assert_eq!(Some(f), fd);
         }
     }
@@ -394,7 +394,7 @@ mod tests {
         };
 
         for frame in get_otframes() {
-            println!("frame: {:?}", &frame);
+            println!("frame: {:?}", frame);
             assert_eq!(frame.clone(), dupl(frame).expect("ERR").expect("NONE"));
         }
     }
@@ -417,7 +417,7 @@ mod tests {
 
         // compare
         for (f, fd) in frames.drain(..).zip(framesd.drain(..)) {
-            println!("frame: {:?}", &f);
+            println!("frame: {:?}", f);
             assert_eq!(f, fd.expect("ERR").expect("NONE"));
         }
     }

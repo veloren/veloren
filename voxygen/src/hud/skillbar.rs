@@ -55,18 +55,7 @@ widget_ids! {
         death_message_2_bg,
         death_message_3,
         death_message_3_bg,
-        death_bg,
-        // Level up message
-        level_up,
-        level_down,
-        level_align,
-        level_message,
-        level_message_bg,
-        // Hurt BG
-        hurt_bg,
         // Skillbar
-        alignment,
-        bg,
         frame,
         bg_health,
         frame_health,
@@ -76,28 +65,22 @@ widget_ids! {
         frame_poise,
         m1_ico,
         m2_ico,
-        // Level
-        level_bg,
-        level,
         // HP-Bar
         hp_alignment,
         hp_filling,
         hp_decayed,
-        hp_txt_alignment,
         hp_txt_bg,
         hp_txt,
         decay_overlay,
         // Energy-Bar
         energy_alignment,
         energy_filling,
-        energy_txt_alignment,
         energy_txt_bg,
         energy_txt,
         // Poise-Bar
         poise_alignment,
         poise_filling,
         poise_ticks[],
-        poise_txt_alignment,
         poise_txt_bg,
         poise_txt,
         // Exp-Bar
@@ -113,8 +96,7 @@ widget_ids! {
         sp_arrow,
         sp_arrow_txt_bg,
         sp_arrow_txt,
-        //Bag Button
-        bag_frame_bg,
+        // Bag Button
         bag_frame,
         bag_filling,
         bag_img_frame_bg,
@@ -122,7 +104,6 @@ widget_ids! {
         bag_img,
         bag_space_bg,
         bag_space,
-        bag_progress,
         bag_numbers_alignment,
         bag_text_bg,
         bag_text,
@@ -131,17 +112,9 @@ widget_ids! {
         combo_bg,
         combo,
         // Slots
-        m1_slot,
         m1_slot_bg,
-        m1_text,
-        m1_text_bg,
-        m1_slot_act,
         m1_content,
-        m2_slot,
         m2_slot_bg,
-        m2_text,
-        m2_text_bg,
-        m2_slot_act,
         m2_content,
         slot1,
         slot1_text,

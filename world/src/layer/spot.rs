@@ -453,7 +453,6 @@ fn spot_config(spot: &Spot) -> SpotConfig<'_> {
                 (3..5, "common.entity.dungeon.gnarling.mugger"),
                 (3..5, "common.entity.dungeon.gnarling.stalker"),
                 (3..5, "common.entity.dungeon.gnarling.logger"),
-                (2..4, "common.entity.dungeon.gnarling.mandragora"),
                 (1..3, "common.entity.wild.aggressive.deadwood"),
                 (1..2, "common.entity.dungeon.gnarling.woodgolem"),
             ],

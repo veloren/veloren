@@ -62,7 +62,7 @@ pub const MAX_MESSAGES: usize = 100;
 ///
 /// We transfer these to HUD when it is displayed in `SessionState`.
 ///
-/// Messages that aren't show in the chat box aren't retained (e.g. ones
+/// Messages that aren't shown in the chat box aren't retained (e.g. ones
 /// that would just show as in-world chat bubbles).
 #[derive(Default)]
 pub struct MessageBacklog(pub(super) VecDeque<ChatMsg>);
@@ -1127,6 +1127,7 @@ fn change_chat_mode(
         if let Ok((name, args)) = parse_cmd(msg.trim())
             && let Ok(command) = name.parse::<ServerChatCommand>()
         {
+            #[expect(clippy::collapsible_match)]
             match command {
                 ServerChatCommand::Group
                 | ServerChatCommand::Say

@@ -2730,7 +2730,7 @@ impl AgentData<'_> {
                 .map_or(0.0, |v| v.0.dot(self.ori.look_vec()));
             if self
                 .skill_set
-                .has_skill(Skill::Staff(StaffSkill::UnlockShockwave))
+                .has_skill(Skill::Staff(StaffSkill::FireShockwave))
                 && target_approaching_speed > 12.0
                 && self.energy.current() > shockwave_cost
             {
@@ -8215,18 +8215,15 @@ impl AgentData<'_> {
                     false
                 }
             },
-            Some(input @ InputKind::Ability(1)) => {
+            Some(input @ InputKind::Ability(1))
                 if self
                     .char_state
                     .timer()
                     .is_some_and(|t| t.as_secs_f32() < 3.0)
-                    && could_use_input(input)
-                {
-                    controller.push_basic_input(input);
-                    true
-                } else {
-                    false
-                }
+                    && could_use_input(input) =>
+            {
+                controller.push_basic_input(input);
+                true
             },
             _ => false,
         };
@@ -8315,25 +8312,22 @@ impl AgentData<'_> {
                         controller.push_basic_input(input);
                     }
                 },
-                CharacterState::ChargedRanged(c) => {
-                    if c.charge_frac() < 1.0 && could_use_input(input) {
-                        controller.push_basic_input(input);
-                    }
+                CharacterState::ChargedRanged(c)
+                    if c.charge_frac() < 1.0 && could_use_input(input) =>
+                {
+                    controller.push_basic_input(input);
                 },
                 _ => {},
             }
         }
 
         let continued_attack = match self.char_state.ability_info().map(|ai| ai.input) {
-            Some(input @ InputKind::Primary) => {
+            Some(input @ InputKind::Primary)
                 if !matches!(self.char_state.stage_section(), Some(StageSection::Recover))
-                    && could_use_input(input)
-                {
-                    controller.push_basic_input(input);
-                    true
-                } else {
-                    false
-                }
+                    && could_use_input(input) =>
+            {
+                controller.push_basic_input(input);
+                true
             },
             _ => false,
         };
@@ -8469,10 +8463,10 @@ impl AgentData<'_> {
                         controller.push_basic_input(input);
                     }
                 },
-                CharacterState::ChargedRanged(c) => {
-                    if c.charge_frac() < 1.0 && could_use_input(input) {
-                        controller.push_basic_input(input);
-                    }
+                CharacterState::ChargedRanged(c)
+                    if c.charge_frac() < 1.0 && could_use_input(input) =>
+                {
+                    controller.push_basic_input(input);
                 },
                 _ => {},
             }

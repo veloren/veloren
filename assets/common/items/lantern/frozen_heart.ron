@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Frozen Heart",
+    legacy_description: "A light within even the most sinister of hearts.",
+    kind: Lantern(
+        (
+            color: (r: 82, g: 154, b: 238),
+            strength_thousandths: 26000,
+            flicker_thousandths: 600,
+            dir: Some(((x: 0.0, y: 1.0, z: 0.0), 0.9)),
+        ),
+    ),
+    quality: Epic,
+    tags: [Utility],
+)

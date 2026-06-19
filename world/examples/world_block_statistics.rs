@@ -288,8 +288,8 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         let count: i64 = row.get(4)?;
         block_colors.entry(kind).or_default().push((rgb, count));
     }
-    for (_, v) in block_colors.iter_mut() {
-        v.sort_by(|a, b| b.1.cmp(&a.1));
+    for v in block_colors.values_mut() {
+        v.sort_by_key(|b| std::cmp::Reverse(b.1));
     }
 
     let mut palettes: HashMap<BlockKind, Vec<KiddoRgb>> = HashMap::new();

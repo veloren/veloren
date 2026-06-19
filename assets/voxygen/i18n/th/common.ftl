@@ -66,7 +66,6 @@ common-tool-pick = พลั่ว
 common-tool-mining = การขุดหิน
 common-tool-instrument = เครื่องมือ
 common-kind-modular_component = ส่วนประกอบ
-common-kind-modular_component_partial = วัสดุ
 common-kind-glider = เครื่องร่อน
 common-kind-consumable = ของใช้
 common-kind-utility = อุปกรณ์ของใช้

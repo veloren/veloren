@@ -39,7 +39,7 @@ use common::{
     map::Marker,
     mounting::{Rider, VolumePos, VolumeRider},
     outcome::Outcome,
-    recipe::{ComponentRecipeBook, RecipeBookManifest, RepairRecipeBook},
+    recipe::{ComponentRecipeBook, RecipeBookManifest},
     resources::{BattleMode, GameMode, PlayerEntity, Time, TimeOfDay},
     rtsim,
     shared_server_config::ServerConstants,
@@ -74,7 +74,9 @@ use common_state::plugin::PluginMgr;
 use common_systems::add_local_systems;
 use comp::BuffKind;
 use hashbrown::{HashMap, HashSet};
-use hickory_resolver::{Resolver, config::ResolverConfig, name_server::TokioConnectionProvider};
+use hickory_resolver::{
+    Resolver, config::ResolverConfig, net::runtime::TokioRuntimeProvider, proto::rr::RData,
+};
 use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
@@ -296,7 +298,6 @@ pub struct Client {
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
     component_recipe_book: ComponentRecipeBook,
-    repair_recipe_book: RepairRecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
@@ -484,10 +485,13 @@ impl Client {
                         warn!("Falling back to a default configured resolver.");
                         Resolver::builder_with_config(
                             ResolverConfig::default(),
-                            TokioConnectionProvider::default(),
+                            TokioRuntimeProvider::default(),
                         )
                     })
-                    .build();
+                    .build()
+                    .expect(
+                        "Could not get a Hickory DNS resolver, maybe you are missing some tls libs",
+                    );
 
                 let quic_service_host = format!("_veloren._udp.{hostname}");
                 let quic_lookup_future = resolver.srv_lookup(quic_service_host);
@@ -509,7 +513,13 @@ impl Client {
                         warn!("QUIC SRV lookup failed: {error:?}");
                     },
                     |srv_lookup| {
-                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Quic, srv)))
+                        srv_rr.extend(srv_lookup.answers().iter().filter_map(|record| {
+                            if let RData::SRV(srv) = &record.data {
+                                Some((ConnMode::Quic, srv.clone()))
+                            } else {
+                                None
+                            }
+                        }))
                     },
                 );
                 let () = tcp_rr.map_or_else(
@@ -517,21 +527,27 @@ impl Client {
                         warn!("TCP SRV lookup failed: {error:?}");
                     },
                     |srv_lookup| {
-                        srv_rr.extend(srv_lookup.iter().cloned().map(|srv| (ConnMode::Tcp, srv)))
+                        srv_rr.extend(srv_lookup.answers().iter().filter_map(|record| {
+                            if let RData::SRV(srv) = &record.data {
+                                Some((ConnMode::Tcp, srv.clone()))
+                            } else {
+                                None
+                            }
+                        }))
                     },
                 );
 
                 // SRV records have a priority; lowest priority hosts MUST be contacted first.
                 let srv_rr_slice = srv_rr.as_mut_slice();
-                srv_rr_slice.sort_by_key(|(_, srv)| srv.priority());
+                srv_rr_slice.sort_by_key(|(_, srv)| srv.priority);
 
                 let mut iter = srv_rr_slice.iter();
 
                 // This loops exits as soon as the above iter over `srv_rr_slice` is exhausted
                 loop {
                     if let Some((conn_mode, srv_rr)) = iter.next() {
-                        let hostname = format!("{}", srv_rr.target());
-                        let port = Some(srv_rr.port());
+                        let hostname = format!("{}", srv_rr.target);
+                        let port = Some(srv_rr.port);
                         let conn_result = match conn_mode {
                             ConnMode::Quic => {
                                 connect_quic(&network, hostname, port, prefer_ipv6, validate_tls)
@@ -551,7 +567,7 @@ impl Client {
                         match conn_result {
                             Ok(c) => break c,
                             Err(error) => {
-                                warn!("Failed to connect to host {}: {error:?}", srv_rr.target())
+                                warn!("Failed to connect to host {}: {error:?}", srv_rr.target)
                             },
                         }
                     } else {
@@ -654,7 +670,6 @@ impl Client {
             material_stats,
             ability_map,
             server_constants,
-            repair_recipe_book,
             description,
             active_plugins: _active_plugins,
             role,
@@ -986,7 +1001,6 @@ impl Client {
                 world_map.possible_starting_sites,
                 world_map.pois,
                 component_recipe_book,
-                repair_recipe_book,
                 max_group_size,
                 client_timeout,
                 missing_plugins,
@@ -1005,7 +1019,6 @@ impl Client {
             possible_starting_sites,
             pois,
             component_recipe_book,
-            repair_recipe_book,
             max_group_size,
             client_timeout,
             missing_plugins,
@@ -1055,7 +1068,6 @@ impl Client {
             possible_starting_sites,
             pois,
             component_recipe_book,
-            repair_recipe_book,
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
@@ -1558,8 +1570,6 @@ impl Client {
 
     pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
 
-    pub fn repair_recipe_book(&self) -> &RepairRecipeBook { &self.repair_recipe_book }
-
     pub fn client_type(&self) -> &ClientType { &self.client_type }
 
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
@@ -1708,12 +1718,7 @@ impl Client {
 
     /// Repairs the item in the given inventory slot. `sprite_pos` should be
     /// the location of a relevant crafting station within range of the player.
-    pub fn repair_item(
-        &mut self,
-        item: Slot,
-        slots: Vec<(u32, InvSlotId)>,
-        sprite_pos: VolumePos,
-    ) -> bool {
+    pub fn repair_item(&mut self, item: Slot, sprite_pos: VolumePos) -> bool {
         let is_repairable = {
             let inventories = self.inventories();
             let inventory = inventories.get(self.entity());
@@ -1732,7 +1737,7 @@ impl Client {
         if is_repairable {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
-                    craft_event: CraftEvent::Repair { item, slots },
+                    craft_event: CraftEvent::Repair(item),
                     craft_sprite: Some(sprite_pos),
                 },
             )));
@@ -3603,7 +3608,7 @@ mod tests {
 
             //tick
             let events_result: Result<Vec<Event>, Error> =
-                client.tick(ControllerInputs::default(), clock.dt());
+                client.tick(ControllerInputs::default(), clock.game_dt());
 
             //chat functionality
             client.send_chat("foobar".to_string());

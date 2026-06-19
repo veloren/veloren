@@ -324,7 +324,7 @@ impl Default for Trades {
 // we need this declaration in common for Merchant loadout creation, it is not
 // directly related to trade between entities, but between sites (more abstract)
 // economical information
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize, EnumIter)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Serialize, Deserialize, EnumIter)]
 pub enum Good {
     Territory(BiomeKind),
     Flour,
@@ -364,9 +364,11 @@ impl Good {
             // Certain abstract goods (like Territory) shouldn't be attached
             // to concrete items.
             //
-            // Give a sale price of 0 if the player is trying to sell a
-            // concrete item that somehow has one of these categories
-            _ => return 0.0,
+            // And yet ... they are.
+            //
+            // FIXME: find a proper category for utility (like lockpicks) and
+            // crafting tools (like Sewing Kit) in TradePricing::good_from_name.
+            _ => 1.0,
         };
 
         res * Good::quality_sell_discount(quality)

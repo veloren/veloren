@@ -228,10 +228,23 @@ impl Body {
         v
     }
 
+    /// How much orientation changes will be damped based on the severity of the
+    /// turn.
+    ///
+    /// At 1.0, low-severity turns will be damped to a lower rate: this is more
+    /// typical of the way bipedal creatures turn, for example. At 0.0, the
+    /// turn rate is constant regardless of angle.
+    pub fn ori_damping(&self) -> f32 {
+        match self {
+            Body::Humanoid(_) | Body::BipedLarge(_) | Body::Golem(_) => 1.0,
+            _ => 0.0,
+        }
+    }
+
     /// The turn rate in 180°/s (or (rotations per second)/2)
     pub fn base_ori_rate(&self) -> f32 {
         match self {
-            Body::Humanoid(_) => 3.5,
+            Body::Humanoid(_) => 2.5,
             Body::QuadrupedSmall(_) => 3.0,
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                 quadruped_medium::Species::Mammoth => 1.0,
@@ -743,7 +756,8 @@ pub fn handle_orientation(
         let target_fraction = {
             // Angle factor used to keep turning rate approximately constant by
             // counteracting slerp turning more with a larger angle
-            let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
+            let angle_factor =
+                2.0 / (1.0 - update.ori.dot(target_ori) * (1.0 - data.body.ori_damping())).sqrt();
 
             half_turns_per_tick * angle_factor
         };

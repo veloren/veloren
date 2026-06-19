@@ -4,13 +4,13 @@ RiposteMelee(
     swing_duration: 0.1,
     recover_duration: 0.2,
     whiffed_recover_duration: 0.6,
-    block_strength: 2.1,
+    block_strength: 1.0,
     melee_constructor: (
         kind: Slash(
             damage: 13,
             poise: 5,
             knockback: 0,
-            energy_regen: 5,
+            energy_regen: 0,
         ),
         range: 4.0,
         angle: 20.0,

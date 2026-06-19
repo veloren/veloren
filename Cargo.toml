@@ -67,9 +67,13 @@ debug = "line-tables-only"
 
 # this profile is used by developers if dev doesn't has enough debug information,
 # the name must != debug, as debug is used by dev because....
+#
+# Please note: to generate flamegraphs, `RUSTFLAGS="-Clink-arg=-Wl,--no-rosegment"` must be set.
+# See https://github.com/flamegraph-rs/flamegraph#linux
 [profile.debuginfo]
 inherits = 'dev'
 debug = true
+
 
 # used to perform things that do a *lot* of math (i.e. worldgen) but still need reasonable compilation time.  Ideally this would also
 # add -C target-cpu=native, but I don't think you can set this by profile currently.
@@ -207,6 +211,7 @@ signal-hook = "0.4.3"
 slab = { version = "0.4.2" }
 specs = { version = "0.20", features = ["nightly"] }
 strum = { version = "0.28", features = ["derive"] }
+thread-priority = { version = "3.0.0" }
 tokio = { version = "1.44", default-features = false, features = ["rt"] }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3.22", default-features = false, features = [

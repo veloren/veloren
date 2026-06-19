@@ -598,6 +598,54 @@
     //    ],
     //    threshold: 0.8,
     //),
+    Attack(DashMelee(Charge), Staff): (
+    files: [
+        "voxygen.audio.sfx.abilities.fire_dash",
+    ],
+    threshold: 0.5,
+    ),
+    Attack(BasicAura, Staff): (
+        files: [
+            "voxygen.audio.sfx.abilities.flame_cloak",
+        ],
+        threshold: 10.0,
+    ),
+    NapalmShot: (
+        files: [
+            "voxygen.audio.sfx.abilities.napalm_strike",
+        ],
+        threshold: 0.2,
+    ),
+    NapalmImpact: (
+        files: [
+            "voxygen.audio.sfx.abilities.napalm_pool",
+        ],
+        threshold: 0.2,
+    ),
+    FireBreathShot: (
+        files: [
+            "voxygen.audio.sfx.abilities.flame_thrower",
+        ],
+        threshold: 0.2,
+    ),
+    FireBreathCharge: (
+        files: [
+            "voxygen.audio.sfx.abilities.fire_breath",
+        ],
+        threshold: 10.0,
+    ),
+    PyroclasmCharge: (   
+        files: [
+                "voxygen.audio.sfx.abilities.pyroclasm_charge",
+            ],
+        threshold: 10.0,
+    ),
+    PyroclasmBolt: (
+        files: [
+                "voxygen.audio.sfx.abilities.pyroclasm_bolt",
+            ],
+        threshold: 0.1,
+    ),
     Inventory(CollectedTool(Staff)): (
         files: [
             "voxygen.audio.sfx.inventory.pickup_staff",

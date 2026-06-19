@@ -117,6 +117,8 @@ const int TRAIN_SMOKE = 75;
 const int BUBBLE = 76;
 const int ELEPHANT_VACUUM = 77;
 const int ELECTRIC_SPARKS = 78;
+const int FLAMETHROWER_BLUE = 79;
+const int FLAME_CLOAK_ORBIT = 80;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -1268,6 +1270,30 @@ void main() {
                 vec3(len, electric_arc_width, electric_arc_width),
                 vec4(electric_arc_color + rand2, electric_arc_color / 3, electric_arc_color + rand3, 1),
                 align_to_axis(inst_dir)
+            );
+            break;
+        case FLAMETHROWER_BLUE:
+            f_reflect = 0.0;
+            attr = Attr(
+                (inst_dir * slow_end(1.5)) + vec3(rand0, rand1, rand2) * (percent() + 2) * 0.1 + blown_by_wind(1.0, 0.1) * 2.5,
+                vec3((2.5 * (1 - slow_start(0.2)))),
+                vec4(0.4, 3 + rand5 * 0.6 - 0.8 * percent(), 6, 1) * start_end(1.0, 0.0),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case FLAME_CLOAK_ORBIT:
+            f_reflect = 0.0;
+            attr = Attr(
+                spiral_motion(
+                    vec3(0.0, 0.0, 2.5 + rand3 * 0.4),
+                    0.35 * abs(rand0 + 0.5),
+                    percent(),
+                    10.0 * sign(rand2),
+                    rand1 * 2.0 * PI
+                ) + vec3(0.0, 0.0, rand4 * 0.2),
+                vec3(1.8 * (1.0 - slow_start(0.15)) * slow_end(0.15)),
+                vec4(5.0 + rand5 * 0.5, 2.5 - 1.5 * percent(), 0.3, 0.65),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 6.0 + rand9 * 2.0)
             );
             break;
         default:

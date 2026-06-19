@@ -241,6 +241,7 @@ pub enum Fill {
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     PlankWall(BlockKind, Rgb<u8>, u8),
+    Checker(BlockKind, Rgb<u8>, Rgb<u8>, Vec2<i32>),
     Gradient(util::gradient::Gradient, BlockKind),
     GradientBrick(util::gradient::Gradient, BlockKind, u8),
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
@@ -340,7 +341,8 @@ impl Fill {
                 let inner = Aabr {
                     min: aabb.min.xy() - 1 + inset,
                     max: aabb.max.xy() - inset,
-                };
+                }
+                .made_valid();
                 aabb_contains(*aabb, pos)
                     && inner.is_valid()
                     && (inner.projected_point(pos.xy()) - pos.xy())
@@ -357,11 +359,13 @@ impl Fill {
                         min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
                         max: Vec2::new(aabb.max.x - inset, aabb.max.y),
                     }
+                    .made_valid()
                 } else {
                     Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y - 1 + inset),
                         max: Vec2::new(aabb.max.x, aabb.max.y - inset),
                     }
+                    .made_valid()
                 };
                 aabb_contains(*aabb, pos)
                     && inner.is_valid()
@@ -566,6 +570,18 @@ impl Fill {
                         None,
                     )
                 },
+                Fill::Checker(bk, col, col2, v) => (
+                    Some(Block::new(
+                        *bk,
+                        if (pos.xy() / *v).sum() & 1 == 0 {
+                            *col
+                        } else {
+                            *col2
+                        },
+                    )),
+                    None,
+                    None,
+                ),
                 Fill::PlankWall(bk, col, range) => (
                     Some(Block::new(
                         *bk,
@@ -667,9 +683,9 @@ impl Fill {
                     + aabr.size().reduce_max() % 2)
                     .map(|x| x as f32);
                 let z = if gradient.x.signum() == gradient.y.signum() {
-                    Vec2::new(0, longest_dist.dot(*gradient) as i32)
+                    Vec2::new(0, longest_dist.dot(*gradient).round() as i32)
                 } else {
-                    (longest_dist * gradient).as_()
+                    (longest_dist * gradient).round().as_()
                 };
                 let aabb = Aabb {
                     min: aabr.min.with_z(origin.z + z.reduce_min().min(0)),

@@ -69,7 +69,6 @@ common-tool-shovel = 鏟子
 common-tool-mining = 採礦工具
 common-tool-instrument = 樂器
 common-kind-modular_component = 模組化元件
-common-kind-modular_component_partial = 元件
 common-kind-glider = 滑翔翼
 common-kind-consumable = 消耗品
 common-kind-utility = 工具

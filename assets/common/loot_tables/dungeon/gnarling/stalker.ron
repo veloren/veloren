@@ -5,4 +5,6 @@
     (0.75, MultiDrop(Item("common.items.mineral.ore.veloritefrag"), 1, 2)),
     // Nothing
     (0.75, Nothing),
+    // Quest item
+    (0.75, Item("common.items.quest.gnarling_carving")),
 ]

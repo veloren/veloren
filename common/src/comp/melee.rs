@@ -9,6 +9,7 @@ use crate::{
     },
     resources::Secs,
     states::utils::AbilityInfo,
+    uid::Uid,
 };
 use common_base::dev_panic;
 use serde::{Deserialize, Serialize};
@@ -23,13 +24,14 @@ pub struct Melee {
     pub range: f32,
     pub max_angle: f32,
     pub applied: bool,
-    pub hit_count: u32,
     pub multi_target: Option<MultiTarget>,
     pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
     pub simultaneous_hits: u32,
     pub precision_flank_multipliers: FlankMults,
     pub precision_flank_invert: bool,
     pub dodgeable: Dodgeable,
+    pub sustained: bool,
+    pub hit_entities: Vec<Uid>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -183,6 +185,53 @@ impl MeleeConstructor {
                 let mut damage = AttackDamage::new(
                     Damage {
                         kind: DamageKind::Piercing,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                    instance,
+                )
+                .with_effect(buff);
+
+                if let Some(damage_effect) = self.damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
+
+                let poise =
+                    AttackEffect::new(Some(GroupTarget::OutOfGroup), CombatEffect::Poise(poise))
+                        .with_requirement(CombatRequirement::AnyDamage);
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+
+                Attack::new(Some(ability_info))
+                    .with_damage(damage)
+                    .with_effect(energy)
+                    .with_effect(poise)
+                    .with_effect(knockback)
+            },
+            MeleeConstructorKind::Sear {
+                damage,
+                poise,
+                knockback,
+                energy_regen,
+            } => {
+                let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
+                    .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Burning,
+                    dur_secs: Secs(5.0),
+                    strength: CombatBuffStrength::DamageFraction(0.05),
+                    chance: 0.1,
+                })
+                .adjusted_by_stats(tool_stats);
+                let mut damage = AttackDamage::new(
+                    Damage {
+                        kind: DamageKind::Energy,
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
@@ -402,13 +451,14 @@ impl MeleeConstructor {
             range: self.range,
             max_angle: self.angle.to_radians(),
             applied: false,
-            hit_count: 0,
             multi_target: self.multi_target,
             break_block: None,
             simultaneous_hits: self.simultaneous_hits,
             precision_flank_multipliers: self.precision_flank_multipliers,
             precision_flank_invert: self.precision_flank_invert,
             dodgeable: self.dodgeable,
+            sustained: false,
+            hit_entities: Vec::new(),
         }
     }
 
@@ -452,6 +502,25 @@ impl MeleeConstructor {
                         energy_regen: b_energy_regen,
                     },
                 ) => Stab {
+                    damage: scale_values(a_damage, b_damage),
+                    poise: scale_values(a_poise, b_poise),
+                    knockback: scale_values(a_knockback, b_knockback),
+                    energy_regen: scale_values(a_energy_regen, b_energy_regen),
+                },
+                (
+                    Sear {
+                        damage: a_damage,
+                        poise: a_poise,
+                        knockback: a_knockback,
+                        energy_regen: a_energy_regen,
+                    },
+                    Sear {
+                        damage: b_damage,
+                        poise: b_poise,
+                        knockback: b_knockback,
+                        energy_regen: b_energy_regen,
+                    },
+                ) => Sear {
                     damage: scale_values(a_damage, b_damage),
                     poise: scale_values(a_poise, b_poise),
                     knockback: scale_values(a_knockback, b_knockback),
@@ -582,6 +651,12 @@ pub enum MeleeConstructorKind {
         knockback: f32,
         energy_regen: f32,
     },
+    Sear {
+        damage: f32,
+        poise: f32,
+        knockback: f32,
+        energy_regen: f32,
+    },
     Bash {
         damage: f32,
         poise: f32,
@@ -622,6 +697,16 @@ impl MeleeConstructorKind {
                 *knockback *= stats.effect_power;
             },
             Stab {
+                ref mut damage,
+                ref mut poise,
+                ref mut knockback,
+                energy_regen: _,
+            } => {
+                *damage *= stats.power;
+                *poise *= stats.effect_power;
+                *knockback *= stats.effect_power;
+            },
+            Sear {
                 ref mut damage,
                 ref mut poise,
                 ref mut knockback,

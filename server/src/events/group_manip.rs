@@ -141,13 +141,9 @@ impl ServerEvent for GroupManipEvent {
                         &uids,
                         &entities,
                         &mut |entity, group_change| {
-                            clients
-                                .get(entity)
-                                .and_then(|c| {
-                                    group_change
-                                        .try_map_ref(|e| uids.get(*e).copied())
-                                        .map(|g| (g, c))
-                                })
+                            group_change
+                                .try_map_ref(|e| uids.get(*e).copied())
+                                .zip(clients.get(entity))
                                 .map(|(g, c)| {
                                     update_map_markers(&map_markers, &uids, c, &group_change);
                                     c.send_fallible(ServerGeneral::GroupUpdate(g));
@@ -208,13 +204,9 @@ impl ServerEvent for GroupManipEvent {
                                 &uids,
                                 &entities,
                                 &mut |entity, group_change| {
-                                    clients
-                                        .get(entity)
-                                        .and_then(|c| {
-                                            group_change
-                                                .try_map_ref(|e| uids.get(*e).copied())
-                                                .map(|g| (g, c))
-                                        })
+                                    group_change
+                                        .try_map_ref(|e| uids.get(*e).copied())
+                                        .zip(clients.get(entity))
                                         .map(|(g, c)| {
                                             update_map_markers(
                                                 &map_markers,
@@ -299,13 +291,9 @@ impl ServerEvent for GroupManipEvent {
                                 &alignments,
                                 &uids,
                                 |entity, group_change| {
-                                    clients
-                                        .get(entity)
-                                        .and_then(|c| {
-                                            group_change
-                                                .try_map_ref(|e| uids.get(*e).copied())
-                                                .map(|g| (g, c))
-                                        })
+                                    group_change
+                                        .try_map_ref(|e| uids.get(*e).copied())
+                                        .zip(clients.get(entity))
                                         .map(|(g, c)| {
                                             update_map_markers(
                                                 &map_markers,

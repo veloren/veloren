@@ -1,10 +1,10 @@
 use crate::{
     combat,
     comp::{
-        Body, CharacterState, LightEmitter, Pos, StateUpdate,
+        Body, CharacterState, FrontendMarker, LightEmitter, Pos, StateUpdate,
         ability::Amount,
         character_state::OutputEvents,
-        object::Body::{GrenadeClay, LaserBeam, LaserBeamSmall},
+        object::Body::{FireRing, GrenadeClay, LaserBeam, LaserBeamSmall},
         projectile::{ProjectileConstructor, aim_projectile},
     },
     event::{LocalEvent, ShootEvent},
@@ -13,6 +13,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    util::Dir,
 };
 use itertools::Either;
 use rand::rng;
@@ -44,6 +45,12 @@ pub struct StaticData {
     /// Automatically aims to account for distance and elevation to target the
     /// selected pos
     pub auto_aim: bool,
+    //Extra upward angle added to firing direction.
+    //This makes it so that, for heavy-parabolic projectiles,
+    //the player does not have to flick the camera up to aim properly.
+    pub vertical_angle_offset: f32,
+    //For particle effects
+    pub marker: Option<FrontendMarker>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -105,6 +112,14 @@ impl CharacterBehavior for Data {
                                 },
                             ));
                         },
+                        Body::Object(FireRing) if self.timer == Duration::default() => {
+                            output_events.emit_local(LocalEvent::CreateOutcome(
+                                Outcome::FireBreathCharge {
+                                    pos: data.pos.0
+                                        + *data.ori.look_dir() * (data.body.max_radius()),
+                                },
+                            ));
+                        },
                         _ => {},
                     }
                 } else {
@@ -138,6 +153,21 @@ impl CharacterBehavior for Data {
                         data.inputs.look_dir.merge_z(data.ori.look_dir())
                     } else {
                         data.inputs.look_dir
+                    };
+
+                    //Adds the vertical angle offset if present.
+                    //Unwrap clause fires if the cross product is degenerate.
+                    let aim_dir = if self.static_data.vertical_angle_offset != 0.0 {
+                        let cross = vek::Vec3::unit_z().cross(*aim_dir).normalized();
+                        Dir::from_unnormalized(
+                            vek::Quaternion::rotation_3d(
+                                -self.static_data.vertical_angle_offset,
+                                cross,
+                            ) * *aim_dir,
+                        )
+                        .unwrap_or(aim_dir)
+                    } else {
+                        aim_dir
                     };
 
                     // Gets offsets
@@ -187,7 +217,7 @@ impl CharacterBehavior for Data {
                             light: self.static_data.projectile_light,
                             speed: self.static_data.projectile_speed,
                             object: None,
-                            marker: None,
+                            marker: self.static_data.marker,
                         });
                     }
 

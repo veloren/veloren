@@ -167,9 +167,9 @@ impl<'a> System<'a> for Sys {
                             read_data
                                 .positions
                                 .get(target)
-                                .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
-                                .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
-                                .and_then(|l| read_data.bodies.get(target).map(|r| (l, r)))
+                                .zip(read_data.healths.get(target))
+                                .zip(read_data.uids.get(target))
+                                .zip(read_data.bodies.get(target))
                                 .map(|(((pos_b, health_b), uid_b), body_b)| {
                                     (target, uid_b, pos_b, health_b, body_b)
                                 })

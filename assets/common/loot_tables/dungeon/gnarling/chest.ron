@@ -13,6 +13,8 @@
         (2.0, MultiDrop(Item("common.items.consumable.potion_minor"), 2, 5)),
         // Food
         (1.0, MultiDrop(LootTable("common.loot_tables.food.prepared"), 1, 2)),
+        // Quest item
+        (0.75, Item("common.items.quest.gnarling_carving")),
     ])),
     (0.8, MultiDrop(Lottery([
         // Recipes

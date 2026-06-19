@@ -34,14 +34,8 @@ layout(location = 1) out uvec4 tgt_mat;
 #include <light.glsl>
 #include <lod.glsl>
 
-float lod_voxel_noise(vec3 f_pos) {
-    #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
-        vec3 block_pos = floor(f_pos) + 0.5;
-        //return (hash_three(uvec3((block_pos + focus_off.xyz) * 0.35)) - 0.5) * 5.0;
-        return floor((noise_3d((block_pos + focus_off.xyz) * 0.015) - 0.5) * 5.0);
-    #else
-        return 0.0;
-    #endif
+float lod_voxel_noise(vec3 block_pos) {
+    return floor((noise_3d((block_pos + focus_off.xyz) * 0.01) - 0.5) * 5.0);
 }
 
 void main() {
@@ -71,43 +65,35 @@ void main() {
 
     vec3 surf_color = f_col.rgb;
     float alpha = 1.0;
-    const float n2 = 1.5;
-    const float R_s2s0 = pow(abs((1.0 - n2) / (1.0 + n2)), 2);
-    const float R_s1s0 = pow(abs((1.3325 - n2) / (1.3325 + n2)), 2);
-    const float R_s2s1 = pow(abs((1.0 - 1.3325) / (1.0 + 1.3325)), 2);
-    const float R_s1s2 = pow(abs((1.3325 - 1.0) / (1.3325 + 1.0)), 2);
-    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
-
+    
     vec3 k_a = vec3(1.0);
     vec3 k_d = vec3(1.0);
-    vec3 k_s = vec3(R_s);
+    vec3 k_s = vec3(0.5 - abs(view_dir.z) * 0.5);
 
     vec3 voxel_norm = f_norm;
     float my_alt = f_pos.z + focus_off.z;
     float f_ao = 1.0;
-    const float VOXELIZE_DIST = 2000;
+    const float VOXELIZE_DIST = 5000;
     float voxelize_factor = clamp(1.0 - (distance(cam_pos.xy, f_pos.xy) - view_distance.x) * (1.0 / VOXELIZE_DIST), 0, 1.0);
     vec3 cam_dir = cam_to_frag;
     #ifdef EXPERIMENTAL_NOLODVOXELS
-        //vec3 side_norm = normalize(vec3(f_norm.xy, 0));
-        //vec3 top_norm = vec3(0, 0, 1);
-        voxel_norm = f_norm;//normalize(mix(side_norm, top_norm, cam_dir.z));
+        voxel_norm = f_norm;
     #else
-        float base_surf_depth = lod_voxel_noise(f_pos);
-        float t = -1.5 + base_surf_depth;
-        while (t < 1.5 + base_surf_depth) {
+        float base_surf_depth = lod_voxel_noise(floor(f_pos));
+        float t = -1.5;
+        while (t < 5.0) {
             vec3 deltas = (step(vec3(0), -cam_dir) - fract(f_pos - cam_dir * t)) / -cam_dir;
             float m = min(min(deltas.x, deltas.y), deltas.z);
 
             t += max(m, 0.01);
 
             vec3 block_pos = floor(f_pos - cam_dir * t) + 0.5;
-            float surf_depth = lod_voxel_noise(f_pos);
+            float surf_depth = 0.5 + lod_voxel_noise(block_pos);
             if (dot(block_pos - f_pos - f_norm * surf_depth, -f_norm) < 0.0) {
                 vec3 to_center = abs(block_pos - (f_pos - cam_dir * t));
                 voxel_norm = step(max(max(to_center.x, to_center.y), to_center.z), to_center) * sign(-cam_dir);
                 voxel_norm = mix(f_norm, voxel_norm, voxelize_factor);
-                surf_color *= mix(0.65, 1.0, hash_three(uvec3(block_pos + focus_off.xyz)));
+                surf_color *= 0.5 + hash_three(uvec3(block_pos + focus_off.xyz)) * 0.5;
                 f_ao = mix(1.0, clamp(1.0 + t - surf_depth, 0.1, 1.0), voxelize_factor * max(0.0, -dot(cam_dir, f_norm)));
                 break;
             }

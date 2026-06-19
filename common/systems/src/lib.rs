@@ -11,6 +11,7 @@ pub mod melee;
 mod mount;
 pub mod phys;
 mod phys_events;
+mod pool;
 pub mod projectile;
 mod shockwave;
 mod stats;
@@ -40,5 +41,6 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<shockwave::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<arcing::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<beam::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
+    dispatch::<pool::Sys>(dispatch_builder, &[&phys::Sys::sys_name()]);
     dispatch::<aura::Sys>(dispatch_builder, &[]);
 }

@@ -322,7 +322,10 @@ impl PlayState for MainMenuState {
 
         // Tick the client to keep the connection alive if we are waiting on pipelines
         if let InitState::Pipeline(client, _) = &mut self.init {
-            match client.tick(comp::ControllerInputs::default(), global_state.clock.dt()) {
+            match client.tick(
+                comp::ControllerInputs::default(),
+                global_state.clock.game_dt(),
+            ) {
                 Ok(events) => {
                     for event in events {
                         match event {
@@ -447,7 +450,7 @@ impl PlayState for MainMenuState {
         // Maintain the UI.
         for event in self
             .main_menu_ui
-            .maintain(global_state, global_state.clock.dt())
+            .maintain(global_state, global_state.clock.real_dt())
         {
             match event {
                 MainMenuEvent::LoginAttempt {
@@ -629,7 +632,7 @@ pub(crate) fn get_client_msg_error(
                 "{} {}: {} {}: {}",
                 localization.get_msg("main-login-network_wrong_version"),
                 localization.get_msg("main-login-client_version"),
-                &*common::util::DISPLAY_VERSION,
+                *common::util::DISPLAY_VERSION,
                 localization.get_msg("main-login-server_version"),
                 common::util::make_display_version(server_info.git_hash, server_info.git_timestamp),
             )

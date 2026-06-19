@@ -86,7 +86,9 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     let early_exit = self.static_data.melee_required
-                        && data.melee_attack.is_none_or(|melee| melee.hit_count == 0);
+                        && data
+                            .melee_attack
+                            .is_none_or(|melee| melee.hit_entities.is_empty());
                     if let CharacterState::LeapRanged(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = if early_exit {
@@ -161,17 +163,13 @@ impl CharacterBehavior for Data {
                     c.timer = tick_attack_or_default(data, self.timer, None);
                 }
             },
-            StageSection::Recover => {
-                if self.timer < self.static_data.recover_duration {
-                    if let CharacterState::LeapRanged(c) = &mut update.character {
-                        c.timer = tick_attack_or_default(
-                            data,
-                            self.timer,
-                            Some(data.stats.recovery_speed_modifier),
-                        );
-                    }
-                } else {
-                    end_melee_ability(data, &mut update);
+            StageSection::Recover if self.timer < self.static_data.recover_duration => {
+                if let CharacterState::LeapRanged(c) = &mut update.character {
+                    c.timer = tick_attack_or_default(
+                        data,
+                        self.timer,
+                        Some(data.stats.recovery_speed_modifier),
+                    );
                 }
             },
             _ => {

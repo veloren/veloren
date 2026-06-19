@@ -63,7 +63,6 @@ common-tool-farming = Unealtă de Agricultură
 common-tool-pick = Tărnacop
 common-tool-mining = Minează
 common-kind-modular_component = Componentă Modulară
-common-kind-modular_component_partial = Componentă
 common-kind-glider = Planor
 common-kind-consumable = Consumabilă
 common-kind-utility = Utilitară

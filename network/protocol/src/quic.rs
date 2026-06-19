@@ -199,12 +199,10 @@ where
                     self.reliable_buffers.insert(sid, BytesMut::new());
                 }
             },
-            ProtocolEvent::CloseStream { sid } => {
-                if !self.store.try_close_stream(sid) {
-                    #[cfg(feature = "trace_pedantic")]
-                    trace!(?sid, "hold back notify close stream");
-                    self.notify_closing_streams.push(sid);
-                }
+            ProtocolEvent::CloseStream { sid } if !self.store.try_close_stream(sid) => {
+                #[cfg(feature = "trace_pedantic")]
+                trace!(?sid, "hold back notify close stream");
+                self.notify_closing_streams.push(sid);
             },
             _ => {},
         }

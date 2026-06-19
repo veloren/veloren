@@ -75,8 +75,6 @@ widget_ids! {
         recipe_list_labels[],
         recipe_list_quality_indicators[],
         recipe_list_materials_indicators[],
-        recipe_img_frame[],
-        recipe_img[],
         ingredients[],
         ingredient_frame[],
         ingredient_btn[],
@@ -88,7 +86,6 @@ widget_ids! {
         req_station_txt,
         output_img_frame,
         output_img,
-        output_amount,
         category_bgs[],
         category_tabs[],
         category_imgs[],
@@ -434,10 +431,10 @@ impl Widget for Crafting<'_> {
             .set(state.ids.icon, ui);
 
         // Close Button
-        if Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
+            .hover_image(self.imgs.close_btn_hover)
+            .press_image(self.imgs.close_btn_press)
             .top_right_with_margins_on(state.ids.window, 0.0, 0.0)
             .set(state.ids.close, ui)
             .was_clicked()
@@ -1437,7 +1434,7 @@ impl Widget for Crafting<'_> {
                         .parent(state.ids.align_ing)
                         .set(state.ids.output_img_frame, ui);
 
-                    let output_text = format!("x{}", &recipe.output.1.to_string());
+                    let output_text = format!("x{}", recipe.output.1);
                     // Output Image
                     Button::image(animate_by_pulse(
                         &self
@@ -1596,15 +1593,6 @@ impl Widget for Crafting<'_> {
                         // Check that item needs to be repaired, and that inventory has sufficient
                         // materials to repair
                         item.durability_lost().is_some_and(|d| d > 0)
-                            && self
-                                .client
-                                .repair_recipe_book()
-                                .repair_recipe(item)
-                                .is_some_and(|recipe| {
-                                    recipe
-                                        .inventory_contains_ingredients(item, self.inventory)
-                                        .is_ok()
-                                })
                     };
 
                     let can_perform = self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
@@ -1932,7 +1920,7 @@ impl Widget for Crafting<'_> {
             }
             // Ingredients Text
             // Hack from Sharp to account for iterators not having the same type
-            let (mut iter_a, mut iter_b, mut iter_c, mut iter_d);
+            let (mut iter_a, mut iter_b, mut iter_c);
             let ingredients = match recipe_kind {
                 RecipeKind::Simple => {
                     iter_a = recipe
@@ -1941,7 +1929,7 @@ impl Widget for Crafting<'_> {
                         .map(|(recipe, amount, _)| (recipe, *amount));
                     &mut iter_a as &mut dyn ExactSizeIterator<Item = (&RecipeInput, u32)>
                 },
-                RecipeKind::ModularWeapon => {
+                RecipeKind::ModularWeapon | RecipeKind::Repair => {
                     iter_b = core::iter::empty();
                     &mut iter_b
                 },
@@ -1972,25 +1960,6 @@ impl Widget for Crafting<'_> {
                         {
                             iter_c = comp_recipe.inputs();
                             &mut iter_c as &mut dyn ExactSizeIterator<Item = _>
-                        } else {
-                            iter_b = core::iter::empty();
-                            &mut iter_b
-                        }
-                    } else {
-                        iter_b = core::iter::empty();
-                        &mut iter_b
-                    }
-                },
-                RecipeKind::Repair => {
-                    if let Some(item) = match craft_slot_1 {
-                        Some(Slot::Inventory(slot)) => self.inventory.get(slot),
-                        Some(Slot::Equip(slot)) => self.inventory.equipped(slot),
-                        Some(Slot::Overflow(_)) => None,
-                        None => None,
-                    } {
-                        if let Some(recipe) = self.client.repair_recipe_book().repair_recipe(item) {
-                            iter_d = recipe.inputs(item).collect::<Vec<_>>().into_iter();
-                            &mut iter_d as &mut dyn ExactSizeIterator<Item = _>
                         } else {
                             iter_b = core::iter::empty();
                             &mut iter_b

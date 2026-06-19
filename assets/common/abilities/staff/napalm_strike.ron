@@ -1,0 +1,32 @@
+BasicRanged(
+    energy_cost: 55.0,
+    buildup_duration: 0.5,
+    recover_duration: 0.6,
+    projectile: (
+        kind: Pool(
+            radius: 10.0,
+            tick_dur: 1.0,
+            duration: 8.0,
+            dodgeable: Jump,
+        ),
+        attack: Some((
+            damage: 1.0,
+            without_combo: true,
+            buff: Some((
+                kind: Burning,
+                dur_secs: 4.0,
+                strength: DamageFraction(0.25),
+                chance: 1.0,
+            )),
+        )),
+    ),
+    projectile_body: Object(NapalmShot),
+    projectile_speed: 25.0,
+    num_projectiles: Value(8),
+    projectile_spread: Some(Increasing(0.04)),
+    vertical_angle_offset: 0.50,
+    movement_modifier: (
+        buildup: Some(0.0),
+        recover: Some(0.0),
+    ),
+)

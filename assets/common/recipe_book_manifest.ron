@@ -2467,8 +2467,8 @@
             output: ("common.items.lantern.delvers_lamp", 1),
             inputs: [
                 (Item("common.items.crafting_ing.dwarven_battery"), 1, false),
-                (Item("common.items.crafting_ing.twigs"), 16, false),
-                (Item("common.items.crafting_ing.pearl"), 1, false),
+                (Item("common.items.mineral.ingot.gold"), 3, false),
+                (Item("common.items.mineral.ingot.bronze"), 4, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
             ],
             craft_sprite: Some(CraftingBench),
@@ -2493,6 +2493,24 @@
                 (Item("common.items.crafting_ing.living_embers"), 16, false),
                 (Item("common.items.crafting_ing.cursed_bead"), 1, false),
                 (Item("common.items.tool.craftsman_hammer"), 0, false),
+            ],
+            craft_sprite: Some(CraftingBench),
+            is_recycling: false,
+        ),
+    "tin_torch": (
+            output: ("common.items.lantern.tin_torch", 1),
+            inputs: [
+                (Item("common.items.mineral.ingot.tin"), 5, false),
+                (Item("common.items.crafting_ing.living_embers"), 2, false),
+            ],
+            craft_sprite: Some(CraftingBench),
+            is_recycling: false,
+        ),
+    "seeking_eye": (
+            output: ("common.items.lantern.seeking_eye", 1),
+            inputs: [
+                (Item("common.items.crafting_ing.animal_misc.grim_eyeball"), 1, false),
+                (Item("common.items.mineral.ingot.iron"), 3, false),
             ],
             craft_sprite: Some(CraftingBench),
             is_recycling: false,

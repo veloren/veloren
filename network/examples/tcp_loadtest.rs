@@ -23,7 +23,7 @@ fn setup() -> Result<SocketAddr, u32> {
         return Err(1);
     }
     let a: SocketAddr = format!("{}:{}", args[1], args[2]).parse().unwrap();
-    println!("You provided address: {}", &a);
+    println!("You provided address: {}", a);
     Ok(a)
 }
 /// This example file is not running veloren-network at all,

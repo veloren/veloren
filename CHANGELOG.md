@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Translators can now use fragment-based templates for modular weapons.
 - Airship captains can now be asked where they're currently heading, and where they're heading after reaching the current destination.
+- Courier, fetch, and messenger quests that can be started by talking to various civilized NPC's that can afford to pay you to get the job done.
 - Internationalization feature for singleplayer MOTDs
 - Added bullet character (•) to EnterCommand font
 - Checks to prevent players from being teleported in the ground
@@ -27,21 +28,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some sprites are now destroyed instead of left floating after block changes.
 - Controller icons now show up next to items and entities in the game world when using a controller
 - Sword dual wielding animation
-
+- Savannah guard huts
+- Added market stands and other small structures to villages
+- Added a custom conrod rich text widget to render in-line images
+- Added 5 new Firestaff abilities.
+- Server-side Prometheus metrics for entity deaths, locations, and causes of death
+  
 ### Changed
 
 - Can now swim through lillypads.
+- The default inventory size has been changed from 18 to 36.
 - Music changes when entering a new site.
 - Flat bridge exteriors are gradients from surface block color to the construction stone color
 - Player icon on (mini)map now reflects the player orientation, not camera orientation.
+- Repairing items no longer costs resources.
+- Characters are now slightly taller
+- Parry no longer depends on armor
+- Mindflayer drops glowing remains with 25% chance
+- Quests now give larger coin rewards, and trader NPCs have higher amounts of coins to be able to afford to pay for the larger quest rewards
 
 ### Removed
+
+- Removed Firestaff ability upgrades.
 
 ### Fixed
 
 - Traders sell items they are supposed to sell, no herbalists selling swords
 - Chat command autocomplete now works correctly again.
 - Resources in spots are now tracked by rtsim.
+- Fix Orientation of Wildskin Drum's Thumbnail
 
 ## [0.18.0] - 2026-01-23
 
@@ -100,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Arthropod footsteps
 - Added new bench and door sprites
 - Bow
+- New directional lanterns.
 
 ### Changed
 
@@ -171,6 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - switch to Naga for default Shader compiler instead of shaderc
 - Changed doors on DefaultAirship vehicle
 - Changed lanterns and bench on Skiff vehicle
+- Slight early-game lantern lighting buff.
 
 ### Removed
 

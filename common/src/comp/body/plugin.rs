@@ -174,5 +174,5 @@ pub fn parse_name(s: &str) -> Option<NpcBody> {
 }
 
 pub fn test() {
-    println!("{:?}", &*PLUGIN_SPECIES);
+    println!("{:?}", *PLUGIN_SPECIES);
 }

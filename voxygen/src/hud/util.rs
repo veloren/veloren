@@ -30,12 +30,11 @@ pub fn price_desc<'a>(
         .iter()
         .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
         .sum();
-    let sellprice: f32 = materials
+    let sellprice = materials
         .iter()
-        .map(|e| {
-            prices.values.get(&e.1).cloned().unwrap_or_default() * e.0 * e.1.sell_discount(quality)
-        })
-        .sum();
+        .map(|e| prices.values.get(&e.1).cloned().unwrap_or_default() * e.0)
+        .sum::<f32>()
+        * TradePricing::good_from_itemdef_id(item_definition_id).sell_discount(quality);
 
     let deal_goodness: f32 = materials
         .iter()
@@ -99,11 +98,7 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
         )),
         ItemKind::ModularComponent(mc) => {
             if let Some(toolkind) = mc.toolkind() {
-                Cow::Owned(format!(
-                    "{} {}",
-                    i18n.get_msg(&format!("common-weapons-{}", toolkind.identifier_name())),
-                    i18n.get_msg("common-kind-modular_component_partial")
-                ))
+                i18n.get_attr("common-kind-modular_component", toolkind.identifier_name())
             } else {
                 i18n.get_msg("common-kind-modular_component")
             }
@@ -115,6 +110,7 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
         ItemKind::Lantern { .. } => i18n.get_msg("common-kind-lantern"),
         ItemKind::TagExamples { .. } => Cow::Borrowed(""),
         ItemKind::RecipeGroup { .. } => i18n.get_msg("common-kind-recipegroup"),
+        ItemKind::Quest => i18n.get_msg("common-kind-quest"),
     }
 }
 
@@ -685,6 +681,11 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.staff.firebomb" => imgs.fireball,
         "common.abilities.staff.flamethrower" => imgs.flamethrower,
         "common.abilities.staff.fireshockwave" => imgs.fire_aoe,
+        "common.abilities.staff.napalm_strike" => imgs.staff_napalm_strike,
+        "common.abilities.staff.flame_cloak" => imgs.staff_flame_cloak,
+        "common.abilities.staff.fire_dash" => imgs.staff_fire_dash,
+        "common.abilities.staff.fire_breath" => imgs.staff_fire_breath,
+        "common.abilities.staff.pyroclasm" => imgs.staff_pyroclasm,
         // Sceptre
         "common.abilities.sceptre.lifestealbeam" => imgs.skill_sceptre_lifesteal,
         "common.abilities.sceptre.healingaura" => imgs.skill_sceptre_heal,

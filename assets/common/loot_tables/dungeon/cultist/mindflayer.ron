@@ -15,15 +15,15 @@
             // Legendary weapons
             (0.5, Item("common.items.weapons.staff.laevateinn")),
             // Crafting material
-            (0.5, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+            (2.5, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
             // Misc
             (0.5, Item("common.items.tool.instruments.timbrel_of_chaos")),
-            (6.4, Nothing),
+            (4.4, Nothing),
         ]),
         // Allow for Eldwood to drop till entity droppers are implemented
         Lottery([
             (1.0, MultiDrop(Item("common.items.log.eldwood"), 1, 3)),
-	    (1.0, Nothing),
+            (1.0, Nothing),
         ])
     ])),
 ]

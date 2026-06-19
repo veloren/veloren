@@ -1,21 +1,10 @@
 [
     Group(Weapon(Staff)),
 
-    // Fireball
-    Skill((Staff(BDamage), 3)),
-    Skill((Staff(BRegen), 2)),
-    Skill((Staff(BRadius), 3)),
-
-    // Flamethrower
-    Skill((Staff(FRange), 2)),
-    Skill((Staff(FDamage), 3)),
-    Skill((Staff(FDrain), 2)),
-    Skill((Staff(FVelocity), 2)),
-
-    // Shockwave
-    Skill((Staff(UnlockShockwave), 1)),
-    Skill((Staff(SDamage), 2)),
-    Skill((Staff(SKnockback), 2)),
-    Skill((Staff(SRange), 2)),
-    Skill((Staff(SCost), 2)),
+    Skill((Staff(FireShockwave), 1)),
+    Skill((Staff(FireDash), 1)),
+    Skill((Staff(FlameCloak), 1)),
+    Skill((Staff(NapalmStrike), 1)),
+    Skill((Staff(FireBreath), 1)),
+    Skill((Staff(Pyroclasm), 1)),
 ]

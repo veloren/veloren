@@ -1,0 +1,40 @@
+RapidRanged(
+    energy_cost: 15.0,
+    buildup_duration: 1.0,
+    shoot_duration: 0.25,
+    recover_duration: 0.8,
+    options: (
+        fire_all: true,
+        max_projectiles: Some(8),
+        offset: Some((
+            radius: 0.0,
+            height: 3.5,
+            converge: true,
+        )),
+    ),
+    projectile: (
+        kind: Explosive(
+            radius: 3,
+            min_falloff: 15.0,
+            reagent: Some(Yellow),
+            terrain: Some((0, Black))
+        ),
+        attack: Some((
+            damage: 15,
+            knockback: Some(3),
+        )),
+    ),
+    projectile_body: Object(PyroclasmBolt),
+    projectile_light: Some((
+        animated: true,
+        flicker: 0.5,
+        strength: 3.0,
+        col: (
+            r: 0.7,
+            g: 0.5,
+            b: 1.0,
+        ),
+    )),
+    projectile_speed: 60.0,
+    specifier: Some(PyroclasmCharge(height: 3.5, radius: 1.5)),
+)

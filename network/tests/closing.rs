@@ -1,4 +1,3 @@
-#![feature(assert_matches)]
 //! How to read those tests:
 //!  - in the first line we call the helper, this is only debug code. in case
 //!    you want to have tracing for a special test you set set the bool = true
@@ -20,7 +19,8 @@
 //!  - You sometimes see sleep(1000ms) this is used when we rely on the
 //!    underlying TCP functionality, as this simulates client and server
 
-use std::{assert_matches::assert_matches, sync::Arc};
+use core::assert_matches;
+use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{Network, ParticipantError, ParticipantEvent, Pid, Promises, StreamError};
 mod helper;

@@ -26,7 +26,6 @@ use std::{collections::VecDeque, num::NonZeroU32};
 
 widget_ids! {
     struct Ids{
-        frame,
         message_box,
         scrollbar,
         message_icons[],

@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Luminous Bloom",
+    legacy_description: "A mysterious pink flower that blooms forevermore to illuminate the path ahead.",
+    kind: Lantern(
+        (
+            color: (r: 255, g: 128, b: 170),
+            strength_thousandths: 26000,
+            flicker_thousandths: 600,
+            dir: Some(((x: 0.0, y: 1.0, z: 0.0), 0.9)),
+        ),
+    ),
+    quality: Epic,
+    tags: [Utility],
+)

@@ -81,10 +81,10 @@ impl Shared {
                         println!("Disconnecting all connections");
                     },
                     LocalCommand::Connect(addr) => {
-                        println!("Trying to connect to: {:?}", &addr);
+                        println!("Trying to connect to: {:?}", addr);
                         match client.connect(addr.clone()).await {
                             Ok(p) => self.loop_participant(p).await,
-                            Err(e) => println!("Failed to connect to {:?}, err: {:?}", &addr, e),
+                            Err(e) => println!("Failed to connect to {:?}, err: {:?}", addr, e),
                         }
                     },
                     LocalCommand::Serve(fileinfo) => {
@@ -155,7 +155,7 @@ impl Shared {
 
     async fn handle_remote_cmd(&self, mut stream: Stream, remote_info: Arc<Mutex<RemoteInfo>>) {
         while let Ok(msg) = stream.recv::<Command>().await {
-            println!("Got message: {:?}", &msg);
+            println!("Got message: {:?}", msg);
             match msg {
                 Command::List => {
                     info!("Request to send my list");

@@ -137,7 +137,7 @@ impl Skeleton for CharacterSkeleton {
         // TODO: extract scaler from body to it's own method so we can call that
         // directly instead of going through SkeletonAttr? (note todo also
         // appiles to other body variant animations)
-        let base_mat = base_mat * Mat4::scaling_3d(SkeletonAttr::from(&body).scaler / 11.0);
+        let base_mat = base_mat * Mat4::scaling_3d(body.height() * (1.0 / 25.0));
 
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
         let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);

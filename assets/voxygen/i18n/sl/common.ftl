@@ -82,7 +82,6 @@ common-tool-instrument = Glasbilo
 ## Item Kinds
 
 common-kind-modular_component = Sestavni del
-common-kind-modular_component_partial = Prvina
 common-kind-glider = Zmaj
 common-kind-consumable = Porabljivo
 common-kind-utility = Koristno

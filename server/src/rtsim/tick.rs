@@ -239,7 +239,7 @@ fn farmer_loadout(
         economy,
         |good| matches!(good, Good::Food | Good::Coin),
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 
@@ -258,7 +258,7 @@ fn herbalist_loadout(
             )
         },
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 
@@ -272,7 +272,7 @@ fn chef_loadout(
         economy,
         |good| matches!(good, Good::Food | Good::Coin),
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 
@@ -286,7 +286,7 @@ fn blacksmith_loadout(
         economy,
         |good| matches!(good, Good::Armor | Good::Coin),
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 
@@ -300,7 +300,7 @@ fn hunter_loadout(
         economy,
         |good| matches!(good, Good::Tools | Good::Coin),
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 
@@ -319,7 +319,7 @@ fn alchemist_loadout(
             )
         },
         |quality| matches!(quality, Quality::Low | Quality::Common | Quality::Moderate),
-        200.0..300.0,
+        500.0..1400.0,
     )
 }
 

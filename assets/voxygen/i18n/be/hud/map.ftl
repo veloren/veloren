@@ -16,10 +16,11 @@ hud-map-town = Горад
 hud-map-castle = Замак
 hud-map-dungeon = Падзямелле
 hud-map-difficulty_dungeon =
-    Цяжкасць
-    падзямелля: { $difficulty }
+    Складанасць
+
+    Падзямелля: { $difficulty }
 hud-map-drag = Цягнуть
-hud-map-zoom = Маштаб
+hud-map-zoom = Маштабаванне
 hud-map-mid_click = Дадаць паказальнік
 hud-map-recenter = Адцэнтраваць
 hud-map-marked_location = Паказальнік
@@ -37,3 +38,19 @@ hud-map-adlet = Цытадэль Адлетаў
 hud-map-terracotta = Тэракотавыя Руіны
 hud-map-bridge = Мост
 hud-map-haniwa = Катакомбы Ханіва
+hud-map-unknown = Невядома
+hud-map-bridges = Масты
+hud-map-glider_course = Курс Планёра
+hud-map-glider_courses = Курсы Планёра
+hud-map-quests = Заданні
+hud-map-plaza = Гарадская плошча
+hud-map-workshop = Майстэрня
+hud-map-airship_dock = Док для дырыжабляў
+hud-map-character = Персанаж
+hud-map-character-label = Апошняе вядомае месцазнаходжанне { $name }
+hud-map-creature-label = Апошняе вядомае месцазнаходжанне { $body }
+hud-map-escort-label = Правядзі { $name } да { $place }.
+hud-map-cultist = Падзямелле Культыстаў
+hud-map-sahagin = Востраў Сахагінаў
+hud-map-myrmidon = Падзямелле Мірмідонаў
+hud-map-vampire_castle = Замак Вампіраў

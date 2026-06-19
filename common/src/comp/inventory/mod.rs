@@ -41,7 +41,7 @@ pub mod slot;
 pub mod trade_pricing;
 
 pub type InvSlot = Option<Item>;
-const DEFAULT_INVENTORY_SLOTS: usize = 18;
+const DEFAULT_INVENTORY_SLOTS: usize = 36;
 
 /// NOTE: Do not add a PartialEq instance for Inventory; that's broken!
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1115,17 +1115,16 @@ impl Inventory {
                     );
                 }
             },
-            EquipSlot::InactiveMainhand => {
+            EquipSlot::InactiveMainhand
                 if self.loadout.equipped(EquipSlot::InactiveMainhand).is_none()
-                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some()
-                {
-                    let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None, time);
-                    assert!(
-                        self.loadout
-                            .swap(EquipSlot::InactiveMainhand, offhand, time)
-                            .is_none()
-                    );
-                }
+                    && self.loadout.equipped(EquipSlot::InactiveOffhand).is_some() =>
+            {
+                let offhand = self.loadout.swap(EquipSlot::InactiveOffhand, None, time);
+                assert!(
+                    self.loadout
+                        .swap(EquipSlot::InactiveMainhand, offhand, time)
+                        .is_none()
+                );
             },
             _ => {},
         }

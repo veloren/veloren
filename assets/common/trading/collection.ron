@@ -21,6 +21,11 @@
     (1.5, Item("common.items.lantern.pumpkin")),
     (1.0, Item("common.items.boss_drops.lantern")),
     (1.5, Item("common.items.lantern.blue_0")),
+    // TODO:
+    // (1.5, Item("common.items.lantern.divers_light")),
+    // (1.5, Item("common.items.lantern.luminous_bloom")),
+    // (1.5, Item("common.items.lantern.frozen_heart")),
+
 
     // Instruments
     (1.0, Item("common.items.tool.instruments.glass_flute")),
@@ -44,4 +49,22 @@
     (15.0, Item("common.items.keys.vampire_key")),
     (15.0, Item("common.items.keys.quarry_keys.forge_key")),
     (15.0, Item("common.items.keys.quarry_keys.miner_key")),
+
+    // Calendar
+    // TODO: price them please
+    //(1.0, Item("common.items.food.honeycorn")),
+    //(1.0, Item("common.items.food.pumpkin_spice_brew")),
+    //(1.0, Item("common.items.armor.misc.head.scarlet_spectacles")),
+    //(1.0, Item("common.items.armor.misc.head.facegourd")),
+    //(1.0, Item("common.items.armor.misc.back.rat_tail")),
+    //(1.0, Item("common.items.consumable.potion_curious")),
+    //(1.0, Item("common.items.armor.misc.head.cat_capuche")),
+    //(1.0, Item("common.items.food.blue_cheese")),
+    //(1.0, Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap")),
+    //(1.0, Item("common.items.utility.surprise_egg")),
+    //(1.0, Item("common.items.armor.misc.head.hare_hat")),
+
+    // Quests, should they even be sellable?
+    //(1.0, Item("common.items.quest.gnarling_carving")),
+    //(1.0, Item("common.items.quest.legoom_leaf")),
 ]

@@ -100,13 +100,9 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
         &ecs.read_storage(),
         &uids,
         &mut |entity, group_change| {
-            clients
-                .get(entity)
-                .and_then(|c| {
-                    group_change
-                        .try_map_ref(|e| uids.get(*e).copied())
-                        .map(|g| (g, c))
-                })
+            group_change
+                .try_map_ref(|e| uids.get(*e).copied())
+                .zip(clients.get(entity))
                 .map(|(g, c)| {
                     // Might be unneccessary, but maybe pets can somehow have map
                     // markers in the future

@@ -68,7 +68,6 @@ common-tool-pick = Pioche
 common-tool-mining = Minage
 common-tool-instrument = Instrument
 common-kind-modular_component = Composant Modulaire
-common-kind-modular_component_partial = Composant
 common-kind-glider = Planeur
 common-kind-consumable = Consommable
 common-kind-utility = Utilitaire

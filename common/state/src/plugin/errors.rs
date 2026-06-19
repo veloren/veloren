@@ -8,7 +8,7 @@ pub enum PluginError {
     NoSuchModule,
     Encoding(Box<DecodeError>),
     PluginModuleError(String, String, PluginModuleError),
-    ProcessExit,
+    FromDirDoesNotExist,
 }
 
 #[derive(Debug)]

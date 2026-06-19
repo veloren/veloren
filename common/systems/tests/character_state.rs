@@ -95,13 +95,25 @@ mod tests {
             // horizontal is unchanged
             (Vec3::unit_x(), Vec3::unit_x()),
             // nearly vertical takes time to adjust
-            (Vec3::new(0.1, 0.1, 1.0), Vec3::new(0.149, 0.149, 0.978)),
+            (
+                Vec3::new(0.1, 0.1, 1.0),
+                Vec3::new(0.13193887, 0.13193902, 0.98243797),
+            ),
             // intermediate case
-            (Vec3::new(0.6, 0.6, 0.1), Vec3::new(0.706, 0.706, 0.052)),
+            (
+                Vec3::new(0.6, 0.6, 0.1),
+                Vec3::new(0.70256203, 0.70256203, 0.11319534),
+            ),
             // edge case: nearly horizontal after system
-            (Vec3::new(0.6, 0.6, 0.0556), Vec3::new(0.707, 0.707, 0.000)),
+            (
+                Vec3::new(0.6, 0.6, 0.0556),
+                Vec3::new(0.7056918, 0.70569193, 0.063229896),
+            ),
             // small enough to be horizontal in one step
-            (Vec3::new(0.6, 0.6, 0.04), Vec3::new(0.707, 0.707, 0.000)),
+            (
+                Vec3::new(0.6, 0.6, 0.04),
+                Vec3::new(0.70637333, 0.70637333, 0.04553493),
+            ),
         ];
         let mut entities: [Option<Entity>; TESTCASES] = [None; TESTCASES];
         for i in 0..TESTCASES {

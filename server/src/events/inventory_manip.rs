@@ -24,7 +24,7 @@ use common::{
     event_emitters, match_some,
     mounting::VolumePos,
     outcome::Outcome,
-    recipe::{self, RecipeBookManifest, default_component_recipe_book, default_repair_recipe_book},
+    recipe::{self, RecipeBookManifest, default_component_recipe_book},
     resources::{ProgramTime, Time},
     terrain::{Block, SpriteKind},
     trade::Trades,
@@ -584,7 +584,15 @@ impl ServerEvent for InventoryManipEvent {
                                                     &data.msm,
                                                 )
                                         {
-                                            let result = inventory.push(container_item);
+                                            let is_pet = matches!(
+                                                data.alignments.get(entity),
+                                                Some(comp::Alignment::Owned(owner_id)) if owner_id != uid
+                                            );
+                                            let result = if is_pet {
+                                                Err((container_item, None))
+                                            } else {
+                                                inventory.push(container_item)
+                                            };
 
                                             if let Err((overflow_item, _)) = result
                                                 && let Some(pos) = data.positions.get(entity)
@@ -1070,17 +1078,10 @@ impl ServerEvent for InventoryManipEvent {
                                 None
                             }
                         },
-                        CraftEvent::Repair { item, slots } => {
-                            let repair_recipes = default_repair_recipe_book().read();
+                        CraftEvent::Repair(item) => {
                             let sprite = get_craft_sprite(craft_sprite);
                             if matches!(sprite, Some(SpriteKind::RepairBench)) {
-                                let _ = repair_recipes.repair_item(
-                                    &mut inventory,
-                                    item,
-                                    slots,
-                                    &data.ability_map,
-                                    &data.msm,
-                                );
+                                inventory.repair_item_at_slot(item, &data.ability_map, &data.msm);
                             }
                             None
                         },

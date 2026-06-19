@@ -87,18 +87,18 @@ impl Body {
 
     pub fn scaler(&self) -> f32 {
         match (self.species, self.body_type) {
-            (Species::Orc, BodyType::Male) => 0.91,
-            (Species::Orc, BodyType::Female) => 0.81,
-            (Species::Human, BodyType::Male) => 0.81,
-            (Species::Human, BodyType::Female) => 0.76,
-            (Species::Elf, BodyType::Male) => 0.82,
-            (Species::Elf, BodyType::Female) => 0.76,
-            (Species::Dwarf, BodyType::Male) => 0.67,
-            (Species::Dwarf, BodyType::Female) => 0.62,
-            (Species::Draugr, BodyType::Male) => 0.78,
-            (Species::Draugr, BodyType::Female) => 0.72,
-            (Species::Danari, BodyType::Male) => 0.56,
-            (Species::Danari, BodyType::Female) => 0.56,
+            (Species::Orc, BodyType::Male) => 1.18,
+            (Species::Orc, BodyType::Female) => 1.05,
+            (Species::Human, BodyType::Male) => 1.05,
+            (Species::Human, BodyType::Female) => 0.99,
+            (Species::Elf, BodyType::Male) => 1.06,
+            (Species::Elf, BodyType::Female) => 0.99,
+            (Species::Dwarf, BodyType::Male) => 0.87,
+            (Species::Dwarf, BodyType::Female) => 0.81,
+            (Species::Draugr, BodyType::Male) => 1.01,
+            (Species::Draugr, BodyType::Female) => 0.94,
+            (Species::Danari, BodyType::Male) => 0.73,
+            (Species::Danari, BodyType::Female) => 0.73,
         }
     }
 }

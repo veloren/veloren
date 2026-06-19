@@ -182,26 +182,24 @@ vec3 aa_sample_grad(vec2 uv, vec2 off) {
 }
 #endif
 
-#ifdef EXPERIMENTAL_COLORDITHERING
-    float dither(ivec2 p, float level) {
-        // Bayer dithering
-        int dither[8][8] = {
-            { 0, 32, 8, 40, 2, 34, 10, 42}, /* 8x8 Bayer ordered dithering */
-            {48, 16, 56, 24, 50, 18, 58, 26}, /* pattern. Each input pixel */
-            {12, 44, 4, 36, 14, 46, 6, 38}, /* is scaled to the 0..63 range */
-            {60, 28, 52, 20, 62, 30, 54, 22}, /* before looking in this table */
-            { 3, 35, 11, 43, 1, 33, 9, 41}, /* to determine the action. */
-            {51, 19, 59, 27, 49, 17, 57, 25},
-            {15, 47, 7, 39, 13, 45, 5, 37},
-            {63, 31, 55, 23, 61, 29, 53, 21}
-        };
-        return step((dither[p.x % 8][p.y % 8]+1) * 0.016, level);
-    }
-#endif
+float dither(ivec2 p, float level) {
+    // Bayer dithering
+    int dither[8][8] = {
+        { 0, 32, 8, 40, 2, 34, 10, 42}, /* 8x8 Bayer ordered dithering */
+        {48, 16, 56, 24, 50, 18, 58, 26}, /* pattern. Each input pixel */
+        {12, 44, 4, 36, 14, 46, 6, 38}, /* is scaled to the 0..63 range */
+        {60, 28, 52, 20, 62, 30, 54, 22}, /* before looking in this table */
+        { 3, 35, 11, 43, 1, 33, 9, 41}, /* to determine the action. */
+        {51, 19, 59, 27, 49, 17, 57, 25},
+        {15, 47, 7, 39, 13, 45, 5, 37},
+        {63, 31, 55, 23, 61, 29, 53, 21}
+    };
+    return step((dither[p.x % 8][p.y % 8]+1) * 0.016, level);
+}
 
 void main() {
 #ifdef EXPERIMENTAL_BAREMINIMUM
-    tgt_color = vec4(texture(sampler2D(t_src_color, s_src_color), uv).rgb, 1);
+    tgt_color = vec4(texelFetch(sampler2D(t_src_color, s_src_color), ivec2(uv * textureSize(sampler2D(t_src_color, s_src_color), 0)), 0).rgb, 1);
 #else
 
     /* if (medium.x == 1u) {
@@ -303,6 +301,22 @@ void main() {
     aa_color.rgb = vec3(1.0) - exp(-aa_color.rgb * (gamma_exposure.y + exposure_offset));
     // gamma correction
     aa_color.rgb = pow(aa_color.rgb, vec3(gamma_exposure.x + gamma_offset));
+    
+    #ifdef EXPERIMENTAL_COLORQUANTIZATION
+        const int QUANT_STEPS = 10;
+        vec3 quant_color = pow(aa_color.rgb, vec3(0.25)) * QUANT_STEPS;
+        ivec2 internal_res = textureSize(sampler2D(t_src_depth, s_src_depth), 0);
+        #ifdef EXPERIMENTAL_COLORDITHERING
+            vec3 quant_step = vec3(
+                dither(ivec2(uv * internal_res + 0), fract(quant_color.r)),
+                dither(ivec2(uv * internal_res + 1), fract(quant_color.g)),
+                dither(ivec2(uv * internal_res + 2), fract(quant_color.b))
+            );
+        #else
+            vec3 quant_step = step(hash_two_3(uvec2(uv * internal_res)), fract(quant_color));
+        #endif
+        aa_color.rgb = pow(floor(quant_color + quant_step) * (1.0 / QUANT_STEPS), vec3(4));
+    #endif
 
     /*
     // Apply clouds to `aa_color`
@@ -373,8 +387,10 @@ void main() {
         final_color.rgb = vec3(step(nz, length(final_color.rgb))) * vec3(1, 0.5, 0.3);
     #else
         #ifdef EXPERIMENTAL_COLORDITHERING
-            float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
-            final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
+            #ifndef EXPERIMENTAL_COLORQUANTIZATION
+                float d = dither(ivec2(uv * screen_res.xy), sqrt(length(final_color.rgb) * 0.25));
+                final_color.rgb = vec3(d) * sqrt(normalize(final_color.rgb));
+            #endif
         #endif
     #endif
 

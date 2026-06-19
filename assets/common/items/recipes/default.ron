@@ -87,6 +87,7 @@ ItemDef(
             "plain_cloth_glider",
             // Lanterns
             "black_lantern",
+            "tin_torch",
             // Utility
             "lockpick_copper",
         ],

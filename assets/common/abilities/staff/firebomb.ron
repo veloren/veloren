@@ -4,14 +4,14 @@ BasicRanged(
     recover_duration: 0.4,
     projectile: (
         kind: Explosive(
-            radius: 3,
+            radius: 4,
             min_falloff: 0.5,
             reagent: Some(Red),
             terrain: Some((2, Black))
         ),
         attack: Some((
-            damage: 12,
-            energy: Some(12),
+            damage: 13,
+            energy: Some(13),
             buff: Some((
                 kind: Burning,
                 dur_secs: 5,
@@ -21,7 +21,7 @@ BasicRanged(
         )),
     ),
     projectile_body: Object(BoltFire),
-    projectile_speed: 60.0,
+    projectile_speed: 70.0,
     num_projectiles: Value(1),
     movement_modifier: (
         buildup: Some(0.3),

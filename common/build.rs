@@ -91,7 +91,7 @@ fn main() {
         // Format: <git-tag?>/<git-hash>/<git-timestamp>
         println!(
             "cargo::rustc-env=VELOREN_GIT_VERSION={}/{}",
-            &tag, &hash_timestamp
+            tag, hash_timestamp
         );
     }
 }

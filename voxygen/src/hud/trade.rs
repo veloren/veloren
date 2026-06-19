@@ -604,7 +604,7 @@ impl<'a> Trade<'a> {
                 })
                 .unwrap_or(Cow::Borrowed(""));
             let is_present = slot.quantity > 0 && slot.invslot.is_some();
-            Text::new(&format!("{}x {}", slot.quantity, &itemname))
+            Text::new(&format!("{}x {}", slot.quantity, itemname))
                 .top_left_with_margins_on(
                     state.ids.inv_alignment[who],
                     15.0 + i as f64 * 20.0 + total_text_height,

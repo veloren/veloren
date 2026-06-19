@@ -297,7 +297,7 @@ pub fn active_abilities_from_db_model(
              }| {
                 let mut auxiliary_abilities =
                     vec![comp::ability::AuxiliaryAbility::Empty; comp::ability::BASE_ABILITY_LIMIT];
-                for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities.into_iter()) {
+                for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities) {
                     *empty = aux_ability_from_string(&ability);
                 }
                 (

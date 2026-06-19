@@ -82,6 +82,7 @@ impl CharacterBehavior for Data {
                             self.static_data.aura_duration,
                             targets,
                             *data.time,
+                            self.static_data.specifier,
                         );
                         if self.static_data.scales_with_combo {
                             match aura.aura_kind {

@@ -333,6 +333,13 @@ pub struct ArcingEvent {
     pub pos: Pos,
 }
 
+pub struct CreatePoolEvent {
+    pub properties: comp::pool::PoolProperties,
+    pub owner: Option<Uid>,
+    pub pos: Pos,
+    pub ori: Ori,
+}
+
 pub struct BonkEvent {
     pub pos: Vec3<f32>,
     pub owner: Option<Uid>,

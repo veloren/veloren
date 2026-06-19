@@ -209,7 +209,7 @@ impl Widget for SettingsWindow<'_> {
         .set(state.ids.settings_title, ui);
 
         // X-Button
-        if Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
             .press_image(self.imgs.close_btn_press)

@@ -143,7 +143,7 @@ fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
 
     // All of the base inventory slots are empty and the equipped bag slots are
     // ignored
-    assert_eq!(18, result);
+    assert_eq!(36, result);
 }
 
 #[test]
@@ -166,9 +166,9 @@ fn free_slots_minus_equipped_item() {
 
     let result = inv.free_slots_minus_equipped_item(bag1_slot);
 
-    // All of the base 18 inventory slots are empty, the first equipped bag is
-    // ignored, and the second equipped bag has 17 free slots
-    assert_eq!(35, result);
+    // All of the base 36 inventory slots are empty, the first equipped bag is
+    // ignored, and the second equipped bag has 17 free slots (so, 36 + 17)
+    assert_eq!(53, result);
 }
 
 #[test]
@@ -180,7 +180,7 @@ fn get_slot_range_for_equip_slot() {
 
     let result = inv.get_slot_range_for_equip_slot(bag1_slot).unwrap();
 
-    assert_eq!(18..36, result);
+    assert_eq!(36..54, result);
 }
 
 #[test]
@@ -255,12 +255,12 @@ fn unequip_items_both_hands() {
     );
 
     // Fill all inventory slots except one
-    fill_inv_slots(&mut inv, 17);
+    fill_inv_slots(&mut inv, 35);
 
     let result = inv.unequip(EquipSlot::ActiveMainhand, Time(0.0));
     // We have space in the inventory, so this should have unequipped
     assert_eq!(None, inv.equipped(EquipSlot::ActiveMainhand));
-    assert_eq!(18, inv.populated_slots());
+    assert_eq!(36, inv.populated_slots());
     assert!(result.is_ok());
 
     let result = inv
@@ -272,7 +272,7 @@ fn unequip_items_both_hands() {
     assert_eq!(&sword, inv.equipped(EquipSlot::InactiveMainhand).unwrap());
 
     // Verify inventory
-    assert_eq!(inv.slots[17], Some(sword));
+    assert_eq!(inv.slots[35], Some(sword));
     assert_eq!(inv.free_slots(), 0);
 }
 
@@ -357,7 +357,7 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_on
     );
 
     // Fill all inventory built-in slots
-    fill_inv_slots(&mut inv, 18);
+    fill_inv_slots(&mut inv, 36);
 
     let result = inv.swap_inventory_loadout(
         InvSlotId::new(15, 0),
@@ -417,8 +417,8 @@ fn free_after_swap_equipped_item_has_more_slots() {
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Bag1), InvSlotId::new(0, 0));
 
-    // 18 inv slots + 9 bag slots - 36 used slots -
-    assert_eq!(-9, result);
+    // 36 inv slots + 9 bag slots - 36 used slots -
+    assert_eq!(9, result);
 }
 
 #[test]
@@ -440,8 +440,8 @@ fn free_after_swap_equipped_item_has_less_slots() {
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Bag1), InvSlotId::new(0, 0));
 
-    // 18 inv slots + 18 bag slots - 27 used slots
-    assert_eq!(9, result);
+    // 36 inv slots + 18 bag slots - 27 used slots
+    assert_eq!(27, result);
 }
 
 #[test]
@@ -460,8 +460,8 @@ fn free_after_swap_equipped_item_with_slots_swapped_with_empty_inv_slot() {
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Bag1), InvSlotId::new(0, 10));
 
-    // 18 inv slots - 5 used slots - 1 slot for unequipped item
-    assert_eq!(12, result);
+    // 36 inv slots - 5 used slots - 1 slot for unequipped item
+    assert_eq!(30, result);
 }
 
 #[test]
@@ -475,8 +475,8 @@ fn free_after_swap_inv_item_with_slots_swapped_with_empty_equip_slot() {
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Bag1), InvSlotId::new(0, 0));
 
-    // 18 inv slots + 9 bag slots - 5 used slots
-    assert_eq!(22, result);
+    // 36 inv slots + 9 bag slots - 5 used slots
+    assert_eq!(40, result);
 }
 
 #[test]
@@ -491,8 +491,8 @@ fn free_after_swap_inv_item_without_slots_swapped_with_empty_equip_slot() {
 
     let result = inv.free_after_swap(EquipSlot::Armor(ArmorSlot::Feet), InvSlotId::new(0, 0));
 
-    // 18 inv slots - 5 used slots
-    assert_eq!(13, result);
+    // 36 inv slots - 5 used slots
+    assert_eq!(31, result);
 }
 
 // This test is a regression test for a bug that crashed the server when
@@ -506,7 +506,7 @@ fn backpack_crash() {
     inv.loadout
         .swap(EquipSlot::Armor(ArmorSlot::Back), Some(backpack), Time(0.0));
 
-    fill_inv_slots(&mut inv, 35);
+    fill_inv_slots(&mut inv, 53);
 
     let cape = Item::new_from_asset_expect("common.items.armor.misc.back.admin");
     assert!(inv.push(cape).is_ok());

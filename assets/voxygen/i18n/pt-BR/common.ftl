@@ -68,7 +68,6 @@ common-tool-pick = Picareta
 common-tool-mining = Mineração
 common-tool-instrument = Instrumento
 common-kind-modular_component = Componente Modular
-common-kind-modular_component_partial = Componente
 common-kind-glider = Planador
 common-kind-consumable = Consumível
 common-kind-utility = Utilitário

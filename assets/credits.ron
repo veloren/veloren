@@ -425,6 +425,20 @@
                 https://musical-artifacts.com/artifacts/650
             "
         ),
+        (
+            authors: ["riccifl0w"],
+            files: [
+                "abilities/fire_breath.ogg",
+                "abilities/fire_dash.ogg",
+                "abilities/flame_cloak.ogg",
+                "abilities/napalm_pool.ogg",
+                "abilities/napalm_strike.ogg",
+                "abilities/pyroclasm_bolt.ogg",
+                "abilities/pyroclasm_charge.ogg",
+            ],
+            license: "CC BY 4.0",
+            license_link: "https://creativecommons.org/licenses/by/4.0/",
+        ),
         // These files will be categorized with known authors eventually. DO NOT ADD NEW FILES TO THIS ENTRY.
         (
             authors: ["Unknown"],

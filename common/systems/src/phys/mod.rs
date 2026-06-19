@@ -1048,7 +1048,7 @@ impl PhysicsData<'_> {
                                 // Scale collider
                                 let radius = collider.bounding_radius().min(0.45) * scale;
                                 let z_min = 0.0;
-                                let z_max = z_max.clamped(1.2, 1.95) * scale;
+                                let z_max = z_max.clamped(1.2, 2.95) * scale;
 
                                 let cylinder = (radius, z_min, z_max);
                                 let mut cpos = *pos;
@@ -1169,7 +1169,7 @@ impl PhysicsData<'_> {
 
                                     let radius = radius.min(0.45) * scale;
                                     let z_min = 0.0;
-                                    let z_max = z_max.clamped(1.2, 1.95) * scale;
+                                    let z_max = z_max.clamped(1.2, 2.95) * scale;
 
                                     if let Some(voxel_collider) = voxel_collider {
                                         // TODO: cache/precompute sphere?

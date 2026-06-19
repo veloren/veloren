@@ -1,6 +1,7 @@
 [
     // Weapons
-    (9.5, LootTable("common.loot_tables.weapons.tier-3")),
+    (8.75, LootTable("common.loot_tables.weapons.tier-3")),
     // Misc
-    (0.5, Item("common.items.tool.instruments.starlight_conch")),    
+    (0.5, Item("common.items.tool.instruments.starlight_conch")),
+    (0.75, Item("common.items.lantern.divers_light")),
 ]

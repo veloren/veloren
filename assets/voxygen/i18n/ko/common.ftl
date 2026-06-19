@@ -66,7 +66,6 @@ common-tool-pick = 곡괭이
 common-tool-mining = 채굴
 common-tool-instrument = 악기
 common-kind-modular_component = 모듈러 부품
-common-kind-modular_component_partial = 부품
 common-kind-glider = 글라이더
 common-kind-consumable = 소모품
 common-kind-utility = 기능성

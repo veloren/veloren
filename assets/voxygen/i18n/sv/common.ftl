@@ -69,7 +69,6 @@ common-tool-shovel = Spade
 common-tool-mining = Gruvgrävande
 common-tool-instrument = Instrument
 common-kind-modular_component = Modulär komponent
-common-kind-modular_component_partial = Komponent
 common-kind-glider = Glidare
 common-kind-consumable = Förbrukningsvara
 common-kind-utility = Hjälpmedel

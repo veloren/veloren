@@ -2,7 +2,7 @@
 use protocol::Protocol;
 
 pub(crate) const VERSION: u16 = 0;
-pub(crate) const VELOREN_HEADER: [u8; 7] = [b'v', b'e', b'l', b'o', b'r', b'e', b'n'];
+pub(crate) const VELOREN_HEADER: [u8; 7] = *b"veloren";
 pub(crate) const MAX_REQUEST_CONTENT_SIZE: usize = 300;
 // NOTE: The actual maximum size must never exceed 1200 or we risk getting near
 // MTU limits for some networks.

@@ -6,6 +6,7 @@ pub mod ingame;
 pub mod item_tooltip;
 pub mod outlined_text;
 pub mod radio_list;
+pub mod rich_text;
 pub mod slot;
 pub mod toggle_button;
 pub mod tooltip;

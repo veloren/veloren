@@ -29,7 +29,7 @@ hud-crafting-dismantle_title = Desmontagem
 hud-crafting-dismantle_explanation =
     Passe o cursor nos itens da sua mochila para ver o que
     você pode desmantelar.
-    
+
     Dê clique duplo neles para iniciar a desmontagem.
 hud-crafting-modular_desc = Arraste partes de arma aqui para criar uma arma
 hud-crafting-mod_weap_prim_slot_title = Componente Primário de Arma

@@ -21,3 +21,9 @@ char_selection-spectate = Рэжым Назіральніка
 char_selection-joining_character = Далучэнне…
 char_selection-starting_site = Абярыце Стартавую Вобласць
 char_selection-starting_site_prev = Папярэдні
+char_selection-editing_character = Захаванне Персанажа...
+char_selection-hardcore = Хардкор
+char_selection-hardcore_tooltip =
+    Персанажы хардкор-рэжыму выдаляюцца пасля смерці, іншых змен у складанасці няма.
+
+    Рэжым Хардкор рэкамендуецца толькі для вопытных гульцоў.
