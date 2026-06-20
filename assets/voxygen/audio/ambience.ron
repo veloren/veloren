@@ -48,6 +48,20 @@
             looping: true,
             start: 3394,
             end: 3329488,
-        )
+        ),
+        (
+            path:"voxygen.audio.ambience.river_loud",
+            tag: RiverLoud,
+            looping: true,
+            start: 24000,
+            end: 384000,
+        ),
+        (
+            path:"voxygen.audio.ambience.river_quiet",
+            tag: RiverQuiet,
+            looping: true,
+            start: 24000,
+            end: 288000,
+        ),
     ]
 )

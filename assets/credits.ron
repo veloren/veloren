@@ -32,7 +32,7 @@
     ///     notes: "Other information",
     /// )
     /// ```
-    
+
     music: [
         (
             name: "Life of a Background Mob",
@@ -40,14 +40,14 @@
             asset_path: "voxygen/audio/soundtrack/town/life_of_a_background_mob.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -56,14 +56,14 @@
             asset_path: "voxygen/audio/soundtrack/overworld/moonlit_canopy.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -72,14 +72,14 @@
             asset_path: "voxygen/audio/soundtrack/dungeon/a_hearts_ice-cold_protection.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -88,14 +88,14 @@
             asset_path: "voxygen/audio/soundtrack/overworld/stargazing.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -104,14 +104,14 @@
             asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -120,14 +120,14 @@
             asset_path: "voxygen/audio/soundtrack/cave/cavernous_hollow.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -136,14 +136,14 @@
             asset_path: "voxygen/audio/soundtrack/dungeon/still_hearts_coffin.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educational content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
         (
@@ -152,20 +152,20 @@
             asset_path: "voxygen/audio/soundtrack/overworld/ballerine_macabre.ogg",
             license: "CC-BY-NC-SA 4.0",
             license_link: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-            notes: 
+            notes:
             "exceptions (to the extent to which the license is prohibitive):
             - appearances in images and videos (including streams) of veloren gameplay
             - official releases of veloren on platforms that have relevant restrictions
             - Appearances in content relevant to veloren
             - Appearances in educative content
-            
-            Added restrictions: 
+
+            Added restrictions:
             - Should not be used in other games than Veloren unless it is parody."
         ),
     ],
-    
+
     /// Entry format:
-    /// (   
+    /// (
     ///     // 1 or more authors required.
     ///     authors: ["Author 1, Author 2"],
     ///     // 1 or more files required. Root is assumed to be `ASSETS_PATH/audio/sfx/`
@@ -177,7 +177,7 @@
     ///     // Optional. Use for things like additional attributions.
     ///     notes: "Some notes and extra attributions",
     /// ),
-    
+
     sounds: [
         (
             authors: ["Ellinia"],
@@ -187,33 +187,25 @@
         (
             authors: ["DaforLynx"],
             files: [
-                "ambient/birdcall_01.ogg", "ambient/birdcall_02.ogg", "ambient/birdcall_03.ogg", 
-                "ambient/birdcall_04.ogg", "ambient/birdcall_05.ogg", "ambient/birdcall_06.ogg", 
-                "ambient/birdcall_07.ogg", "ambient/birdcall_08.ogg", "ambient/birdcall_09.ogg", 
-                "ambient/birdcall_10.ogg", 
-                "ambient/crickets_1.ogg", "ambient/crickets_2.ogg", "ambient/crickets_3.ogg", 
-                "ambient/river_sounds/running_water-001.ogg", "ambient/river_sounds/running_water-002.ogg", "ambient/river_sounds/running_water-003.ogg", 
-                "ambient/river_sounds/running_water-004.ogg", "ambient/river_sounds/running_water-005.ogg", "ambient/river_sounds/running_water-006.ogg", 
-                "ambient/river_sounds/running_water-007.ogg", "ambient/river_sounds/running_water-008.ogg", "ambient/river_sounds/running_water-009.ogg", 
-                "ambient/river_sounds/running_water-010.ogg", "ambient/river_sounds/running_water-011.ogg", "ambient/river_sounds/running_water-012.ogg", 
-                "ambient/river_sounds/running_water-013.ogg", "ambient/river_sounds/running_water-014.ogg", "ambient/river_sounds/running_water-015.ogg", 
-                "ambient/river_sounds/running_water-016.ogg", "ambient/river_sounds/running_water-017.ogg", "ambient/river_sounds/running_water-018.ogg", 
-                "ambient/river_sounds/running_water-019.ogg", "ambient/river_sounds/running_water-020.ogg", "ambient/river_sounds/running_water-021.ogg", 
-                "ambient/river_sounds/running_water-022.ogg", "ambient/river_sounds/running_water-023.ogg", "ambient/river_sounds/running_water-024.ogg", 
-                "ambient/river_sounds/running_water-025.ogg", "ambient/river_sounds/running_water-026.ogg", "ambient/river_sounds/running_water-027.ogg", 
-                "ambient/river_sounds/fast_water-001.ogg", "ambient/river_sounds/fast_water-002.ogg", "ambient/river_sounds/fast_water-003.ogg", 
-                "ambient/river_sounds/fast_water-004.ogg", "ambient/river_sounds/fast_water-005.ogg", "ambient/river_sounds/fast_water-006.ogg", 
-                "ambient/river_sounds/fast_water-007.ogg", "ambient/river_sounds/fast_water-008.ogg", "ambient/river_sounds/fast_water-009.ogg", 
-                "ambient/river_sounds/fast_water-010.ogg", "ambient/river_sounds/fast_water-011.ogg", "ambient/river_sounds/fast_water-012.ogg", 
-                "ambient/river_sounds/fast_water-013.ogg", "ambient/river_sounds/fast_water-014.ogg", "ambient/river_sounds/fast_water-015.ogg", 
-                "ambient/river_sounds/fast_water-016.ogg", "ambient/river_sounds/fast_water-017.ogg", "ambient/river_sounds/fast_water-018.ogg", 
-                "ambient/river_sounds/fast_water-019.ogg", "ambient/river_sounds/fast_water-020.ogg", "ambient/river_sounds/fast_water-021.ogg", 
-                "ambient/river_sounds/fast_water-022.ogg", "ambient/river_sounds/fast_water-023.ogg", "ambient/river_sounds/fast_water-024.ogg", 
-                "footsteps/splash_small.ogg", "footsteps/splash_medium.ogg", "footsteps/splash_big.ogg", 
-                "character/catch_air_1.ogg", "character/catch_air_2.ogg", "character/catch_air_3.ogg", "character/catch_air_4.ogg", 
-                "character/catch_air_5.ogg", "character/catch_air_6.ogg", "character/catch_air_7.ogg", "character/catch_air_8.ogg", 
+                "ambient/birdcall_01.ogg", "ambient/birdcall_02.ogg", "ambient/birdcall_03.ogg",
+                "ambient/birdcall_04.ogg", "ambient/birdcall_05.ogg", "ambient/birdcall_06.ogg",
+                "ambient/birdcall_07.ogg", "ambient/birdcall_08.ogg", "ambient/birdcall_09.ogg",
+                "ambient/birdcall_10.ogg",
+                "ambient/crickets_1.ogg", "ambient/crickets_2.ogg", "ambient/crickets_3.ogg",
+                "ambient/river_sounds/running_water-001.ogg", "ambient/river_sounds/running_water-002.ogg", "ambient/river_sounds/running_water-003.ogg",
+                "ambient/river_sounds/running_water-004.ogg", "ambient/river_sounds/running_water-005.ogg", "ambient/river_sounds/running_water-006.ogg",
+                "ambient/river_sounds/running_water-007.ogg", "ambient/river_sounds/running_water-008.ogg", "ambient/river_sounds/running_water-009.ogg",
+                "ambient/river_sounds/running_water-010.ogg", "ambient/river_sounds/running_water-011.ogg", "ambient/river_sounds/running_water-012.ogg",
+                "ambient/river_sounds/running_water-013.ogg", "ambient/river_sounds/running_water-014.ogg", "ambient/river_sounds/running_water-015.ogg",
+                "ambient/river_sounds/running_water-016.ogg", "ambient/river_sounds/running_water-017.ogg", "ambient/river_sounds/running_water-018.ogg",
+                "ambient/river_sounds/running_water-019.ogg", "ambient/river_sounds/running_water-020.ogg", "ambient/river_sounds/running_water-021.ogg",
+                "ambient/river_sounds/running_water-022.ogg", "ambient/river_sounds/running_water-023.ogg", "ambient/river_sounds/running_water-024.ogg",
+                "ambient/river_sounds/running_water-025.ogg", "ambient/river_sounds/running_water-026.ogg", "ambient/river_sounds/running_water-027.ogg",
+                "footsteps/splash_small.ogg", "footsteps/splash_medium.ogg", "footsteps/splash_big.ogg",
+                "character/catch_air_1.ogg", "character/catch_air_2.ogg", "character/catch_air_3.ogg", "character/catch_air_4.ogg",
+                "character/catch_air_5.ogg", "character/catch_air_6.ogg", "character/catch_air_7.ogg", "character/catch_air_8.ogg",
                 "abilities/sceptre_aura.ogg",
-                "instrument/viola_pizzicato/viola_pizzicato_a.ogg", "instrument/viola_pizzicato/viola_pizzicato_ac1.ogg", 
+                "instrument/viola_pizzicato/viola_pizzicato_a.ogg", "instrument/viola_pizzicato/viola_pizzicato_ac1.ogg",
                 "instrument/viola_pizzicato/viola_pizzicato_c.ogg", "instrument/viola_pizzicato/viola_pizzicato_c1.ogg",
                 "instrument/viola_pizzicato/viola_pizzicato_cde.ogg", "instrument/viola_pizzicato/viola_pizzicato_ce.ogg",
                 "instrument/viola_pizzicato/viola_pizzicato_ceac1c1.ogg", "instrument/viola_pizzicato/viola_pizzicato_ceg.ogg",
@@ -275,7 +267,7 @@
             authors: ["Eden"],
             files: [
                 "weapon/dagger_out.ogg", "weapon/dagger_in.ogg", "crafting/hammer.ogg", "abilities/explosion.ogg",
-                "ui/click1.ogg", "ui/click2.ogg", 
+                "ui/click1.ogg", "ui/click2.ogg",
                 "character/experience_gained_1.ogg", "character/experience_gained_2.ogg", "character/experience_gained_3.ogg",
             ],
         ),
@@ -293,7 +285,7 @@
         (
             authors: ["GeekyGami"],
             files: [
-                "utterance/wendigo_angry1.ogg", "utterance/wendigo_angry2.ogg", "utterance/wendigo_angry3.ogg", 
+                "utterance/wendigo_angry1.ogg", "utterance/wendigo_angry2.ogg", "utterance/wendigo_angry3.ogg",
                 "utterance/wendigo_angry4.ogg", "utterance/wendigo_angry5.ogg", "utterance/wendigo_angry6.ogg",
                 "utterance/wendigo_calm1.ogg", "utterance/wendigo_calm2.ogg", "utterance/wendigo_calm3.ogg",
                 "utterance/wendigo_calm4.ogg", "utterance/wendigo_calm5.ogg",
@@ -310,7 +302,7 @@
         (
             authors: ["Samstler"],
             files: [
-                "abilities/barrel_organ.ogg", 
+                "abilities/barrel_organ.ogg",
             ],
         ),
         (
@@ -443,7 +435,7 @@
         (
             authors: ["Unknown"],
             files: [
-                "abilities/arrow_shot_1.ogg", "abilities/arrow_shot_2.ogg", "abilities/arrow_shot_3.ogg", "abilities/arrow_shot_4.ogg", 
+                "abilities/arrow_shot_1.ogg", "abilities/arrow_shot_2.ogg", "abilities/arrow_shot_3.ogg", "abilities/arrow_shot_4.ogg",
                 "abilities/bleep.ogg", "abilities/bloodmoon_heiress_summon.ogg", "abilities/cyclops_charge.ogg", "abilities/deep_laugh.ogg",
                 "abilities/fire_shot_1.ogg", "abilities/fire_shot_2.ogg", "abilities/flame_thrower.ogg", "abilities/fuse.ogg",
                 "abilities/gigas_frost_roar.ogg", "abilities/heal_bomb.ogg", "abilities/heal.ogg", "abilities/hiss.ogg",
@@ -451,7 +443,7 @@
                 "abilities/pickaxe_damage_broken.ogg", "abilities/pickaxe_damage_stronk.ogg", "abilities/pickaxe_damage.ogg",
                 "abilities/sceptre_channeling.ogg", "abilities/separated_second_swing.ogg", "abilities/separated_third_swing.ogg",
                 "abilities/shovel.ogg", "abilities/smashklonk.ogg", "abilities/steam.ogg", "abilities/strigoi_head.ogg",
-                "abilities/surprise_egg_0.ogg", "abilities/surprise_egg_1.ogg", "abilities/surprise_egg_2.ogg", "abilities/surprise_egg_3.ogg", 
+                "abilities/surprise_egg_0.ogg", "abilities/surprise_egg_1.ogg", "abilities/surprise_egg_2.ogg", "abilities/surprise_egg_3.ogg",
                 "abilities/swing_sword.ogg", "abilities/swing.ogg", "abilities/swoosh.ogg", "abilities/sword_dash.ogg",
                 "abilities/whoosh.ogg", "abilities/yeet.ogg",
                 "ambient/bees_1.ogg", "ambient/fire.ogg", "ambient/frog_croak_1.ogg", "ambient/lightning_1.ogg",
@@ -463,19 +455,19 @@
                 "character/glider_close.ogg", "character/glider_open.ogg",
                 "character/level_up_sound_-_shorter_wind_up.ogg", "character/parry_1.ogg", "character/parry_2.ogg",
                 "footsteps/snow_step_1.ogg", "footsteps/snow_step_2.ogg", "footsteps/snow_step_3.ogg",
-                "footsteps/stepdirt_1.ogg", "footsteps/stepdirt_2.ogg", "footsteps/stepdirt_3.ogg", "footsteps/stepdirt_4.ogg", "footsteps/stepdirt_5.ogg", 
+                "footsteps/stepdirt_1.ogg", "footsteps/stepdirt_2.ogg", "footsteps/stepdirt_3.ogg", "footsteps/stepdirt_4.ogg", "footsteps/stepdirt_5.ogg",
                 "footsteps/stepgrass_1.ogg", "footsteps/stepgrass_2.ogg", "footsteps/stepgrass_3.ogg",
-                "footsteps/stepgrass_4.ogg", "footsteps/stepgrass_5.ogg", "footsteps/stepgrass_6.ogg", 
-                "footsteps/stone_step_1.ogg", "footsteps/stone_step_2.ogg", "footsteps/stone_step_3.ogg", "footsteps/stone_step_4.ogg", 
-                "footsteps/stone_step_5.ogg", "footsteps/stone_step_6.ogg", "footsteps/stone_step_7.ogg", "footsteps/stone_step_8.ogg", 
+                "footsteps/stepgrass_4.ogg", "footsteps/stepgrass_5.ogg", "footsteps/stepgrass_6.ogg",
+                "footsteps/stone_step_1.ogg", "footsteps/stone_step_2.ogg", "footsteps/stone_step_3.ogg", "footsteps/stone_step_4.ogg",
+                "footsteps/stone_step_5.ogg", "footsteps/stone_step_6.ogg", "footsteps/stone_step_7.ogg", "footsteps/stone_step_8.ogg",
                 "footsteps/stone_step_9.ogg", "footsteps/stone_step_10.ogg", "footsteps/stone_step_11.ogg", "footsteps/stone_step_12.ogg",
-                "footsteps/water_splash_1.ogg", "footsteps/water_splash_2.ogg", "footsteps/water_splash_3.ogg", "footsteps/water_splash_4.ogg", 
+                "footsteps/water_splash_1.ogg", "footsteps/water_splash_2.ogg", "footsteps/water_splash_3.ogg", "footsteps/water_splash_4.ogg",
                 "footsteps/wood_step_1.ogg", "footsteps/wood_step_2.ogg", "footsteps/wood_step_3.ogg", "footsteps/wood_step_4.ogg",
                 "inventory/consumable/apple.ogg", "inventory/consumable/food.ogg", "inventory/consumable/liquid.ogg",
                 "inventory/add_failed.ogg", "inventory/add_item.ogg", "inventory/collect_gemstone.ogg", "inventory/drop_item.ogg",
                 "inventory/open_inventory.ogg", "inventory/pickup_staff.ogg", "inventory/pickup_sword.ogg",
                 "utterance/adlet_angry1.ogg", "utterance/adlet_angry2.ogg", "utterance/adlet_hurt1.ogg", "utterance/adlet_hurt2.ogg",
-                "utterance/alligator_angry1.ogg", "utterance/alligator_angry2.ogg", 
+                "utterance/alligator_angry1.ogg", "utterance/alligator_angry2.ogg",
                 "utterance/antelope_angry1.ogg", "utterance/antelope_hurt1.ogg",
                 "utterance/bird_angry1.ogg",
                 "utterance/cat_calm1.ogg", "utterance/cat_calm2.ogg",
@@ -485,7 +477,7 @@
                 "utterance/mandragora_hurt1.ogg", "utterance/maneater_hurt1.ogg", "utterance/marlin_hurt1.ogg", "utterance/mindflayer_hurt1.ogg",
                 "utterance/ogre_angry1.ogg", "utterance/ogre_angry2.ogg", "utterance/ogre_hurt1.ogg",
                 "utterance/phoenix_angry_0.ogg", "utterance/phoenix_angry_1.ogg", "utterance/phoenix_hurt_0.ogg", "utterance/phoenix_hurt_1.ogg",
-                "utterance/pig_angry1.ogg", "utterance/pig_angry2.ogg", "utterance/pig_calm1.ogg", "utterance/pig_calm2.ogg", "utterance/pig_calm3.ogg", 
+                "utterance/pig_angry1.ogg", "utterance/pig_angry2.ogg", "utterance/pig_calm1.ogg", "utterance/pig_calm2.ogg", "utterance/pig_calm3.ogg",
                 "utterance/saurok_angry1.ogg", "utterance/sea_crocodile_angry1.ogg", "utterance/sea_crocodile_angry2.ogg",
                 "utterance/sheep_calm1.ogg", "utterance/vampire_bat_angry.ogg", "utterance/vampire_bat_hurt.ogg",
                 "utterance/wyvern_angry.ogg", "utterance/wyvern_hurt.ogg",
@@ -496,13 +488,13 @@
                 "instrument/icy_talharpa/icy_talharpa_c1ag.ogg", "instrument/icy_talharpa/icy_talharpa_cde.ogg", "instrument/icy_talharpa/icy_talharpa_d1c1a.ogg",
                 "instrument/icy_talharpa/icy_talharpa_d1g.ogg", "instrument/icy_talharpa/icy_talharpa_ec1.ogg", "instrument/icy_talharpa/icy_talharpa_ega.ogg",
                 "instrument/rhythmo/rhythmo.ogg",
-                "instrument/timbrel_of_chaos/timbrel_of_chaos_0.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_1.ogg", 
-                "instrument/timbrel_of_chaos/timbrel_of_chaos_2.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_3.ogg", 
+                "instrument/timbrel_of_chaos/timbrel_of_chaos_0.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_1.ogg",
+                "instrument/timbrel_of_chaos/timbrel_of_chaos_2.ogg", "instrument/timbrel_of_chaos/timbrel_of_chaos_3.ogg",
             ],
             notes: "These files will be categorized with known authors eventually. DO NOT ADD NEW FILES TO THIS ENTRY.",
         )
     ],
-    
+
     fonts: [
         (
             name: "Alkhemikal",
@@ -594,7 +586,7 @@
             license_link: "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
         ),
     ],
-    
+
     models: [
         (
             name: "Vroom",
@@ -622,9 +614,9 @@
             notes: "Wood log recolouring"
         ),
     ],
-    
+
     other_art: [],
-    
+
     /// Entry format:
     /// ```
     /// (

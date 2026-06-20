@@ -52,6 +52,9 @@ img-export/**/*.png
 !/.vscode/launch.json
 *.code-workspace
 
+## Gram
+.gram/
+
 ## lldb
 .env
 
