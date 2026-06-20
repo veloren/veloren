@@ -300,8 +300,6 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                 }
             };
             match agent.behavior.trading_behavior {
-                // inventories[who] is the inventory of the current agent
-                // inventories[1 - who] is the other inventory
                 TradingBehavior::RequireBalanced { .. } => {
                     let balance0 = prices.balance(&pending.offers, &inventories, 1 - who, true);
                     let balance1 = prices.balance(&pending.offers, &inventories, who, false);
@@ -378,9 +376,7 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                             }
                         }
                     }
-                    if !pending.accept_flags[who]
-                        && !pending.offers[1 - who].is_empty()
-                        && only_food
+                    if !pending.accept_flags[who] && only_food {
                     {
                         emitters.emit(ProcessTradeActionEvent(
                             *agent_data.entity,
