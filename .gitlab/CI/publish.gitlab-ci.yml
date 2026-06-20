@@ -26,7 +26,7 @@ docker:
 gittag:
   stage: publish
   image:
-    name: alpine/git:v2.49.1
+    name: alpine/git:v2.52.0
     entrypoint: ["/bin/sh"]
   dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
