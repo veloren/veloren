@@ -68,7 +68,7 @@ common-i18n = { package = "veloren-common-i18n", path = "../common/i18n"}
 serde = { workspace = true, features = ["rc"], optional = true }
 ron = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
-rustyline = { version = "17", optional = true }
+rustyline = { version = "18", optional = true }
 ## logging
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend", optional = true }
 
