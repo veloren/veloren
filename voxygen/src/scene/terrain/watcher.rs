@@ -37,10 +37,10 @@ impl SmokerProperties {
 #[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
+    pub water: Vec<Vec3<i32>>,
     pub drip: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
     pub slow_river: Vec<Vec3<i32>>,
-    pub fast_river: Vec<Vec3<i32>>,
     pub waterfall: Vec<(Vec3<i32>, Vec3<f32>)>,
     pub lavapool: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
@@ -78,10 +78,10 @@ impl BlocksOfInterest {
     ) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
         let mut leaves = Vec::new();
+        let mut water = Vec::new();
         let mut drip = Vec::new();
         let mut grass = Vec::new();
         let mut slow_river = Vec::new();
-        let mut fast_river = Vec::new();
         let mut waterfall = Vec::new();
         let mut lavapool = Vec::new();
         let mut fires = Vec::new();
@@ -117,6 +117,15 @@ impl BlocksOfInterest {
                 {
                     leaves.push(pos)
                 },
+                BlockKind::Water
+                    if rng.random_range(0..8) == 0
+                        && chunk
+                            .get(pos + Vec3::unit_z())
+                            .map_or(true, |b| b.kind() == BlockKind::Air) =>
+                {
+                    water.push(pos)
+                },
+
                 BlockKind::WeakRock if rng.random_range(0..6) == 0 => drip.push(pos),
                 BlockKind::Grass => {
                     if rng.random_range(0..16) == 0 {
@@ -155,9 +164,7 @@ impl BlocksOfInterest {
 
                     let river_speed_sq = river_velocity.magnitude_squared();
                     // Assign a river speed to water blocks depending on river velocity
-                    if is_waterfall || river_speed_sq > 0.9_f32.powi(2) {
-                        fast_river.push(pos)
-                    } else if river_speed_sq > 0.3_f32.powi(2) {
+                    if river_speed_sq < 0.45 && river_speed_sq > 0.15 {
                         slow_river.push(pos)
                     }
                 },
@@ -297,10 +304,10 @@ impl BlocksOfInterest {
 
         Self {
             leaves,
+            water,
             drip,
             grass,
             slow_river,
-            fast_river,
             waterfall,
             lavapool,
             fires,

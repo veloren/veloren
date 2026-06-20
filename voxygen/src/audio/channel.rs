@@ -204,8 +204,7 @@ impl MusicChannel {
     pub fn get_length(&self) -> f32 { self.length }
 }
 
-/// AmbienceChannelTags are used for non-positional sfx. Currently the only use
-/// is for wind.
+/// AmbienceChannelTags are used for non-positional sfx.
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, EnumIter)]
 pub enum AmbienceChannelTag {
     Wind,
@@ -214,6 +213,8 @@ pub enum AmbienceChannelTag {
     Leaves,
     Cave,
     Thunder,
+    RiverLoud,
+    RiverQuiet,
 }
 
 /// An AmbienceChannel uses a non-positional audio sink designed to play sounds

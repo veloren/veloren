@@ -366,9 +366,7 @@ impl Scene {
             tether_mgr: TetherMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::new(&calendar),
-            ambience_mgr: AmbienceMgr {
-                ambience: ambience::load_ambience_items(),
-            },
+            ambience_mgr: AmbienceMgr::new(ambience::load_ambience_items()),
             integrated_rain_vel: 0.0,
             wind_vel: Vec2::zero(),
             interpolated_time_of_day: None,
@@ -1428,6 +1426,7 @@ impl Scene {
             scene_data.state,
             client,
             &self.camera,
+            &self.terrain,
         );
 
         self.music_mgr.maintain(audio, scene_data.state, client);

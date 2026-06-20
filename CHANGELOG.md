@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a custom conrod rich text widget to render in-line images
 - Added 5 new Firestaff abilities.
 - Server-side Prometheus metrics for entity deaths, locations, and causes of death
+- New river ambience
   
 ### Changed
 
@@ -57,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat command autocomplete now works correctly again.
 - Resources in spots are now tracked by rtsim.
 - Fix Orientation of Wildskin Drum's Thumbnail
+- Fast river sfx
 
 ## [0.18.0] - 2026-01-23
 

@@ -121,7 +121,6 @@ pub enum SfxEvent {
     Frog,
     Bees,
     RunningWaterSlow,
-    RunningWaterFast,
     Lavapool,
     Idle,
     Swim,
