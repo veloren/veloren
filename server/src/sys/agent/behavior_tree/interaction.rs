@@ -377,7 +377,6 @@ pub fn handle_inbox_update_pending_trade(bdata: &mut BehaviorData) -> bool {
                         }
                     }
                     if !pending.accept_flags[who] && only_food {
-                    {
                         emitters.emit(ProcessTradeActionEvent(
                             *agent_data.entity,
                             tradeid,
