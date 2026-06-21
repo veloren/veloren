@@ -3171,9 +3171,6 @@ dependencies = [
  "allocator-api2",
  "equivalent",
  "foldhash 0.2.0",
- "rayon",
- "serde",
- "serde_core",
 ]
 
 [[package]]
@@ -3185,6 +3182,7 @@ dependencies = [
  "allocator-api2",
  "equivalent",
  "foldhash 0.2.0",
+ "rayon",
  "serde",
  "serde_core",
 ]
@@ -5873,9 +5871,9 @@ dependencies = [
 
 [[package]]
 name = "profiling"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3eb8486b569e12e2c32ad3e204dbaba5e4b5b216e9367044f25f1dba42341773"
+checksum = "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5"
 dependencies = [
  "profiling-procmacros",
  "tracy-client",
@@ -7100,7 +7098,7 @@ dependencies = [
  "base64 0.22.1",
  "bs58",
  "chrono",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "hex",
  "indexmap 1.9.3",
  "indexmap 2.14.0",
@@ -8572,7 +8570,7 @@ dependencies = [
  "authc",
  "byteorder",
  "clap",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "hickory-resolver",
  "image",
  "num 0.4.3",
@@ -8606,7 +8604,7 @@ dependencies = [
  "fluent",
  "fluent-bundle",
  "fluent-syntax",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "intl-memoizer",
  "serde",
  "tracing",
@@ -8632,7 +8630,7 @@ dependencies = [
  "enum-map",
  "enumset",
  "fxhash",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "indexmap 2.14.0",
  "itertools 0.14.0",
  "kiddo",
@@ -8672,7 +8670,7 @@ version = "0.18.0"
 dependencies = [
  "assets_manager",
  "dot_vox",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "image",
  "lazy_static",
  "ron",
@@ -8727,7 +8725,7 @@ dependencies = [
 name = "veloren-common-i18n"
 version = "0.18.0"
 dependencies = [
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "rand 0.10.1",
  "serde",
 ]
@@ -8738,7 +8736,7 @@ version = "0.18.0"
 dependencies = [
  "bincode",
  "flate2",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "image",
  "num-traits",
  "serde",
@@ -8757,7 +8755,7 @@ dependencies = [
  "atomic_refcell",
  "bincode",
  "futures",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "hex",
  "num_cpus",
  "rayon",
@@ -8811,7 +8809,7 @@ dependencies = [
  "criterion",
  "crossbeam-channel",
  "futures-util",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "lazy_static",
  "lz-fear",
  "prometheus",
@@ -8839,7 +8837,7 @@ dependencies = [
  "bitflags 2.13.0",
  "bytes",
  "criterion",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "prometheus",
  "rand 0.10.1",
  "tokio",
@@ -8866,7 +8864,7 @@ dependencies = [
  "atomic_refcell",
  "enum-map",
  "fxhash",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "itertools 0.14.0",
  "num-traits",
  "once_cell",
@@ -8898,7 +8896,7 @@ dependencies = [
  "drop_guard",
  "enum-map",
  "futures-util",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "humantime",
  "itertools 0.14.0",
  "lazy_static",
@@ -9013,7 +9011,7 @@ dependencies = [
  "gilrs",
  "glyph_brush",
  "guillotiere",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "iced_native",
  "image",
  "inline_tweak",
@@ -9123,7 +9121,7 @@ dependencies = [
  "fixed",
  "flate2",
  "fxhash",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
  "image",
  "indicatif",
  "itertools 0.14.0",

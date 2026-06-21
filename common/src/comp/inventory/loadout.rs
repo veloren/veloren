@@ -119,9 +119,10 @@ impl Loadout {
             .find(|x| x.equip_slot == equip_slot)
             .and_then(|x| core::mem::replace(&mut x.slot, item));
         if let Some(unequipped_item) = unequipped_item.as_ref() {
+            let item_def_id = unequipped_item.item_definition_id().to_owned();
             let entry = self
                 .recently_unequipped_items
-                .entry_ref(&unequipped_item.item_definition_id())
+                .entry(item_def_id)
                 .or_insert((time, 0));
             *entry = (time, entry.1.saturating_add(1));
         }
