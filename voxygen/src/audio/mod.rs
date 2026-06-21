@@ -717,12 +717,12 @@ impl AudioFrontend {
     }
 
     /// Set the cutoff of the filter affecting all ambience
-    pub fn set_ambience_master_filter(&mut self, frequency: u32) {
+    pub fn set_ambience_master_filter(&mut self, frequency: u32, tween: Tween) {
         if let Some(inner) = self.inner.as_mut() {
             inner
                 .effects
                 .ambience
-                .set_cutoff(Value::Fixed(frequency as f64), Tween::default());
+                .set_cutoff(Value::Fixed(frequency as f64), tween);
         }
     }
 

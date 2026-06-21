@@ -1,4 +1,5 @@
 //! Handles ambient non-positional sounds
+
 use crate::{
     audio::{AudioFrontend, channel::AmbienceChannelTag},
     scene::{Camera, Terrain},
@@ -7,10 +8,11 @@ use crate::{
 use client::Client;
 use common::{
     assets::{AssetExt, AssetHandle, Ron},
-    terrain::{CoordinateConversions, TerrainChunk, site::SiteKindMeta},
+    terrain::{Block, CoordinateConversions, TerrainChunk, site::SiteKindMeta},
     vol::{ReadVol, RectRasterableVol},
 };
 use common_state::State;
+use kira::Tween;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
 use strum::IntoEnumIterator;
@@ -37,6 +39,7 @@ pub struct AmbienceMgr {
     pub ambience: AssetHandle<Ron<AmbienceCollection>>,
     // Some tracked structures to avoid unnecessary repeated calculations and allocations
     cam_pos: Vec3<f32>,
+    cam_pos_i32: Vec3<i32>,
     terrain_alt: f32,
     river_blocks: Vec<Vec3<i32>>,
     river_blocks_last_update: Instant,
@@ -49,6 +52,7 @@ impl AmbienceMgr {
         Self {
             ambience: assets,
             cam_pos: Vec3::zero(),
+            cam_pos_i32: Vec3::zero(),
             terrain_alt: 0.0,
             river_blocks: Vec::new(),
             river_blocks_last_update: Instant::now(),
@@ -73,6 +77,7 @@ impl AmbienceMgr {
         let ambience_sounds = self.ambience.read();
 
         self.cam_pos = camera.get_pos_with_focus();
+        self.cam_pos_i32 = self.cam_pos.map(|e| e.floor() as i32);
 
         self.terrain_alt = if let Some(chunk) = client.current_chunk() {
             chunk.meta().alt()
@@ -81,15 +86,27 @@ impl AmbienceMgr {
         };
 
         // Lowpass if underwater
-        if state
+        let underwater = state
             .terrain()
             .get(self.cam_pos.map(|e| e.floor() as i32))
             .map(|b| b.is_liquid())
-            .unwrap_or(false)
-        {
-            audio.set_ambience_master_filter(888);
+            .unwrap_or(false);
+
+        if underwater {
+            audio.set_ambience_master_filter(888, Tween { ..Tween::default() });
+        } else if audio_settings.indoor_ambience_enabled && is_indoors(self.cam_pos_i32, state) {
+            audio.set_ambience_master_filter(3000, Tween {
+                duration: Duration::from_millis(500),
+                ..Tween::default()
+            });
         } else {
-            audio.set_ambience_master_filter(20000);
+            audio.set_ambience_master_filter(20000, Tween {
+                // keep this similar to the indoor tween duration so that it
+                // transitions in & out of the filter smoothly in both
+                // situations. Otherwise the ambience will be very jumpy.
+                duration: Duration::from_millis(500),
+                ..Tween::default()
+            });
         }
 
         // Periodically check nearby chunks for river blocks
@@ -143,7 +160,7 @@ impl AmbienceMgr {
                 {
                     0.0
                 } else {
-                    let volume = self.get_tag_volume(tag, client);
+                    let volume = self.get_tag_volume(tag, client, audio_settings);
 
                     // Is the camera underneath the terrain? Fade out the lower it goes beneath.
                     // Unless, of course, the player is in a cave.
@@ -163,7 +180,12 @@ impl AmbienceMgr {
     }
 
     /// Gets appropriate volume for each tag
-    pub fn get_tag_volume(&self, tag: AmbienceChannelTag, client: &Client) -> f32 {
+    pub fn get_tag_volume(
+        &self,
+        tag: AmbienceChannelTag,
+        client: &Client,
+        audio_settings: &AudioSettings,
+    ) -> f32 {
         match tag {
             AmbienceChannelTag::Wind => {
                 let tree_density = if let Some(chunk) = client.current_chunk() {
@@ -203,7 +225,15 @@ impl AmbienceMgr {
                         .powi(2)
                         .min(1.0);
 
-                (client.weather_at_player().rain * 3.0) * camera_factor
+                let indoor_factor = if audio_settings.indoor_ambience_enabled
+                    && is_indoors(self.cam_pos_i32, client.state())
+                {
+                    0.7
+                } else {
+                    1.0
+                };
+
+                (client.weather_at_player().rain * 3.0) * camera_factor * indoor_factor
             },
             AmbienceChannelTag::ThunderRumbling => {
                 let rain_intensity = client.weather_at_player().rain * 3.0;
@@ -337,6 +367,28 @@ impl AmbienceChannelTag {
             AmbienceChannelTag::RiverQuiet => 1.0,
         }
     }
+}
+pub fn is_indoors(cam_pos: Vec3<i32>, state: &State) -> bool {
+    const INDOOR_CHECK_DISTANCE: f32 = 50.0;
+
+    let directions: [Vec3<f32>; 5] = [
+        -Vec3::unit_x(),
+        Vec3::unit_x(),
+        -Vec3::unit_y(),
+        Vec3::unit_y(),
+        Vec3::unit_z(),
+    ];
+    let cam_pos_f32 = cam_pos.map(|e| e as f32);
+
+    directions.iter().all(|dir| {
+        state
+            .terrain()
+            .ray(cam_pos_f32, cam_pos_f32 + dir * INDOOR_CHECK_DISTANCE)
+            .until(Block::is_solid)
+            .cast()
+            .0
+            < INDOOR_CHECK_DISTANCE
+    })
 }
 
 pub fn load_ambience_items() -> AssetHandle<Ron<AmbienceCollection>> {
