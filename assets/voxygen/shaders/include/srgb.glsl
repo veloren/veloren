@@ -548,13 +548,13 @@ vec3 compute_attenuation_point(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_a
         return vec3(0.0);
     }*/
     // return vec3(0.0);
-    vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(wpos.z - surface_alt));
+    // vec3 surface_dir = /*surface_alt < wpos.z ? vec3(0.0, 0.0, -1.0) : vec3(0.0, 0.0, 1.0)*/vec3(0.0, 0.0, sign(wpos.z - surface_alt));
     // vec3 surface_dir = surface_alt < wpos.z ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 0.0, -1.0);
     // vec3 surface_dir = faceforward(vec3(0.0, 0.0, 1.0), ray_dir, vec3(0.0, 0.0, 1.0));
-    float max_length = dot(defaultpos - wpos, defaultpos - wpos);
-    bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
-    float depth2 = min(max_length, min(0.0, dot(defaultpos - wpos, defaultpos - wpos)));
-    return exp(-mu * sqrt(depth2));
+    // float max_length = dot(defaultpos - wpos, defaultpos - wpos);
+    // bool _intersects_surface = IntersectRayPlane(wpos, ray_dir, vec3(0.0, 0.0, surface_alt), surface_dir, defaultpos);
+    // float depth2 = min(max_length, min(0.0, dot(defaultpos - wpos, defaultpos - wpos)));
+    return vec3(1.0);//exp(-mu * sqrt(depth2));
 #endif
 }
 
