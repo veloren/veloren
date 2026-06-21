@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resources in spots are now tracked by rtsim.
 - Fix Orientation of Wildskin Drum's Thumbnail
 - Fast river sfx
+- All NPCs don't go to bed & wake up at the same time.
 
 ## [0.18.0] - 2026-01-23
 

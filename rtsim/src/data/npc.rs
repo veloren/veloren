@@ -9,13 +9,14 @@ use common::{
     comp::{self, agent::FlightMode, item::ItemDef},
     grid::Grid,
     map::Marker,
-    resources::Time,
+    resources::{Time, TimeOfDay},
     rtsim::{
         Actor, Dialogue, DialogueId, DialogueKind, FactionId, NpcAction, NpcActivity, NpcInput,
         NpcMsg, Personality, QuestId, ReportId, Response, Role, SiteId, TerrainResource,
     },
     store::Id,
     terrain::CoordinateConversions,
+    time::DayPeriod,
     util::Dir,
 };
 use hashbrown::{HashMap, HashSet};
@@ -368,6 +369,7 @@ impl Clone for Npc {
 impl Npc {
     pub const PERM_ENTITY_CONFIG: u32 = 1;
     const PERM_NAME: u32 = 0;
+    const PERM_TIME: u32 = 2;
 
     pub fn new(seed: u32, wpos: Vec3<f32>, body: comp::Body, role: Role) -> Self {
         Self {
@@ -436,6 +438,11 @@ impl Npc {
         } else {
             None
         }
+    }
+
+    pub fn get_day_period(&self, time_of_day: TimeOfDay) -> DayPeriod {
+        let offset = self.rng(Self::PERM_TIME).random_range(-3600.0..3600.0);
+        DayPeriod::from(time_of_day.0 + offset)
     }
 
     pub fn profession(&self) -> Option<Profession> {
