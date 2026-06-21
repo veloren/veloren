@@ -60,6 +60,7 @@ pub use self::{
     texture::Texture,
 };
 use hashbrown::HashSet;
+use tracing::warn;
 pub use wgpu::{AddressMode, FilterMode};
 
 pub trait Vertex: Clone + bytemuck::Pod {
@@ -480,6 +481,23 @@ pub struct PipelineModes {
     enable_naga: bool,
 }
 
+impl PipelineModes {
+    pub fn remove_unsupported(&mut self) {
+        // Only enable experimental shaders that are supported by the game's current
+        // state
+        self.experimental_shaders.retain(|s| {
+            if s.is_supported() {
+                true
+            } else {
+                warn!(
+                    "Experimental shader {s:?} is not currently supported and will not be enabled."
+                );
+                false
+            }
+        });
+    }
+}
+
 /// Other render modes that don't effect pipelines
 #[derive(PartialEq, Clone, Debug)]
 struct OtherModes {
@@ -588,4 +606,15 @@ pub enum ExperimentalShader {
     /// Adds outlines around the perimeters of objects for a pixel art feel.
     /// Best at lower internal resolutions.
     Outlines,
+    /// Display various kinds of mesh in wireframe mode.
+    Wireframe,
+}
+
+impl ExperimentalShader {
+    pub fn is_supported(&self) -> bool {
+        match self {
+            Self::Wireframe => cfg!(debug_assertions),
+            _ => true,
+        }
+    }
 }

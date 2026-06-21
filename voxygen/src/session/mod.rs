@@ -899,6 +899,7 @@ impl PlayState for SessionState {
                                 self.stop_auto_walk();
                                 if state && self.client.borrow_mut().respawn() {
                                     global_state.profile.tutorial.event_respawn();
+                                    self.scene.screen_fade = -0.5;
                                 }
                             },
                             GameInput::Jump => {
@@ -1443,9 +1444,10 @@ impl PlayState for SessionState {
             let (axis_right, axis_up) = (input_vec[0], input_vec[1]);
 
             if let Some(ref mut timer) = self.key_state.give_up {
+                use crate::key_state::GIVE_UP_HOLD_TIME;
                 *timer += dt;
 
-                if *timer > crate::key_state::GIVE_UP_HOLD_TIME {
+                if *timer > GIVE_UP_HOLD_TIME {
                     self.client.borrow_mut().give_up();
                 }
             }

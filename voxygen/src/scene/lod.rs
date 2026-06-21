@@ -156,7 +156,7 @@ impl Lod {
 
     pub fn set_detail(&mut self, detail: u32) {
         // Make sure the recorded detail is even.
-        self.data.tgt_detail = (detail - detail % 2).clamp(100, 2500);
+        self.data.tgt_detail = (detail - detail % 2).clamp(100, 500);
     }
 
     pub fn maintain(

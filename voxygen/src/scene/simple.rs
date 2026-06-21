@@ -256,6 +256,7 @@ impl Scene {
             self.camera.get_mode(),
             250.0,
             0.0,
+            1.0,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));

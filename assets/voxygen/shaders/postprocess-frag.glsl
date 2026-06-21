@@ -352,7 +352,7 @@ void main() {
     //hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
     //vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
 
-    vec4 final_color = aa_color;
+    vec4 final_color = aa_color * vec4(vec3(screen_fade), 1.0);
 
 #if (FLUID_MODE == FLUID_MODE_LOW)
     if (medium.x == MEDIUM_WATER) {

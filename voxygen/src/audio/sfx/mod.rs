@@ -81,7 +81,7 @@ use crate::{
         AudioFrontend,
         channel::{SFX_DIST_LIMIT_SQR, UiChannelTag},
     },
-    scene::{Camera, Terrain},
+    scene::{Camera, FigureMgr, Terrain},
 };
 
 use client::Client;
@@ -421,6 +421,7 @@ impl SfxMgr {
         camera: &Camera,
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
+        figure_mgr: &FigureMgr,
     ) {
         // Checks if the SFX volume is set to zero or audio is disabled
         // This prevents us from running all the following code unnecessarily
@@ -468,6 +469,7 @@ impl SfxMgr {
             &triggers,
             terrain,
             client,
+            figure_mgr,
         );
     }
 
@@ -489,7 +491,7 @@ impl SfxMgr {
         match outcome {
             Outcome::Explosion { pos, power, .. } => {
                 let sfx_trigger_item = triggers.0.get_key_value(&SfxEvent::Explosion);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some((power.abs() / 2.5).min(1.5)));
+                audio.emit_sfx(sfx_trigger_item, *pos, Some(power.abs()));
             },
             Outcome::Lightning { pos } => {
                 let distance = pos.distance(audio.get_listener_pos());

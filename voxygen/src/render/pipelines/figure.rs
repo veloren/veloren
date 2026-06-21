@@ -1,5 +1,5 @@
 use super::{
-    super::{AaMode, Bound, Consts, GlobalsLayouts, Mesh, Model},
+    super::{Bound, Consts, ExperimentalShader, GlobalsLayouts, Mesh, Model, PipelineModes},
     AtlasData,
     terrain::Vertex,
 };
@@ -176,8 +176,8 @@ impl FigurePipeline {
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         layout: &FigureLayout,
-        aa_mode: AaMode,
         format: wgpu::TextureFormat,
+        pipeline_modes: &PipelineModes,
     ) -> Self {
         common_base::span!(_guard, "FigurePipeline::new");
         let render_pipeline_layout =
@@ -192,7 +192,7 @@ impl FigurePipeline {
                 ],
             });
 
-        let samples = aa_mode.samples();
+        let samples = pipeline_modes.aa.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Figure pipeline"),
@@ -209,7 +209,14 @@ impl FigurePipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
+                polygon_mode: if pipeline_modes
+                    .experimental_shaders
+                    .contains(&ExperimentalShader::Wireframe)
+                {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {

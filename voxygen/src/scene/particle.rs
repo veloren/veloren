@@ -1,12 +1,12 @@
 use super::{FigureMgr, SceneData, Terrain, terrain::BlocksOfInterest};
 use crate::{
-    ecs::comp::Interpolated,
+    ecs::comp::{Footsteps, Interpolated},
     mesh::{greedy::GreedyMesh, segment::generate_mesh_base_vol_particle},
     render::{
         Instances, Light, Model, ParticleDrawer, ParticleInstance, ParticleVertex, Renderer,
         pipelines::particle::ParticleMode,
     },
-    scene::{terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
+    scene::{RAIN_THRESHOLD, terrain::FireplaceType, trail::TOOL_TRAIL_MANIFEST},
 };
 use common::{
     assets::{AssetExt, DotVox},
@@ -225,7 +225,11 @@ impl ParticleMgr {
                         self.particles.len() + if reagent.is_some() { 300 } else { 150 },
                         || {
                             Particle::new(
-                                Duration::from_millis(if reagent.is_some() { 1000 } else { 250 }),
+                                Duration::from_millis(if reagent.is_some() {
+                                    rng.random_range(3000..5000)
+                                } else {
+                                    rng.random_range(1000..2500)
+                                }),
                                 time,
                                 match reagent {
                                     Some(Reagent::Blue) => ParticleMode::FireworkBlue,
@@ -265,7 +269,7 @@ impl ParticleMgr {
                 // TODO: Use color field when particle colors are a thing
                 self.particles.resize_with(self.particles.len() + 30, || {
                     Particle::new(
-                        Duration::from_millis(200),
+                        Duration::from_millis(rng.random_range(1500..2000)),
                         time,
                         ParticleMode::Shrapnel,
                         pos.map(|e| e as f32 + 0.5),
@@ -280,7 +284,7 @@ impl ParticleMgr {
                     self.particles.len() + if *stage_changed { 30 } else { 10 },
                     || {
                         Particle::new(
-                            Duration::from_millis(if *stage_changed { 200 } else { 100 }),
+                            Duration::from_millis(rng.random_range(1000..1500)),
                             time,
                             ParticleMode::Shrapnel,
                             pos.map(|e| e as f32 + 0.5),
@@ -607,7 +611,7 @@ impl ParticleMgr {
                 let magnitude = (-vel.z).max(0.0);
                 let energy = mass * magnitude;
                 if energy > 0.0 {
-                    let count = ((0.6 * energy.sqrt()).ceil() as usize).min(500);
+                    let count = ((2.5 * energy.sqrt()).ceil() as usize).min(500);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
                     self.particles
@@ -629,7 +633,7 @@ impl ParticleMgr {
 
                             let energy = energy.sqrt() * 0.5;
 
-                            let dir = plane * (1.0 + energy) - axis * energy;
+                            let dir = plane * (1.0 + energy) - axis * energy * 1.5;
 
                             Particle::new_directed(
                                 Duration::from_millis(4000),
@@ -1571,6 +1575,8 @@ impl ParticleMgr {
             character_activity,
             physics,
             inventory,
+            footsteps,
+            scale,
         ) in (
             &ecs.entities(),
             &ecs.read_storage::<Interpolated>(),
@@ -1581,9 +1587,126 @@ impl ParticleMgr {
             &ecs.read_storage::<CharacterActivity>(),
             &ecs.read_storage::<PhysicsState>(),
             ecs.read_storage::<Inventory>().maybe(),
+            ecs.read_storage::<Footsteps>().maybe(),
+            ecs.read_storage::<Scale>().maybe(),
         )
             .join()
         {
+            // Footsteps
+            if let Some(block) = physics.on_ground
+                && let Some(color) = block.get_color()
+                && let Some(vel) = vel
+                && (vel.0 - physics.ground_vel).xy().magnitude_squared() > 30.0
+                && matches!(body, Body::Humanoid(_))
+                && let Some(char_state) = figure_mgr.states.character_states.get(&entity)
+                && let Some(footsteps) = footsteps
+            {
+                let feet = [
+                    char_state.computed_skeleton.foot_l,
+                    char_state.computed_skeleton.foot_r,
+                ];
+
+                let feet_pos = feet.map(|f| {
+                    char_state
+                        .wpos_of(f.mul_point(Vec3::zero()))
+                        .with_z(interpolated.pos.z)
+                });
+
+                for (i, foot_pos) in feet_pos.into_iter().enumerate() {
+                    if footsteps.is_stepping(i) {
+                        let scale = scale.map_or(1.0, |s| s.0);
+                        // Kicking up dust/particles
+                        let dust_particles = (scale * 4.0).ceil() as usize;
+                        self.particles
+                            .resize_with(self.particles.len() + dust_particles, || {
+                                Particle::new_colored(
+                                    Duration::from_millis(750),
+                                    time,
+                                    ParticleMode::Dust,
+                                    // Spread the particles around the foot
+                                    foot_pos
+                                        + Vec2::broadcast(scale)
+                                            .map(|s| rng.random_range(-0.1..0.1) * s),
+                                    // To avoid the particle being unduly lit in dark areas, have
+                                    // it take on the voxel
+                                    // lighting conditions of the parent figure.
+                                    color.as_() * (1.0 / 255.0),
+                                    scene_data,
+                                )
+                                .with_light(char_state.meta.last_light, char_state.meta.last_glow.1)
+                            });
+                        // Exposure to sunlight: proxy for how wet the ground is
+                        if char_state.meta.last_light > 0.9 {
+                            // Splashing in the rain
+                            let splash_particles =
+                                ((state.weather_at(interpolated.pos.xy()).rain - RAIN_THRESHOLD)
+                                    .max(0.0)
+                                    * scale
+                                    * 100.0)
+                                    .ceil()
+                                    .min(16.0) as usize;
+                            self.particles.resize_with(
+                                self.particles.len() + splash_particles,
+                                || {
+                                    Particle::new_directed(
+                                        Duration::from_millis(2500),
+                                        time,
+                                        ParticleMode::WaterFoam,
+                                        foot_pos,
+                                        foot_pos
+                                            + (Vec2::broadcast(())
+                                                .map(|()| rng.random_range(-1.0..1.0))
+                                                .try_normalized()
+                                                .unwrap_or_default()
+                                                * rng.random_range(9.0..12.0))
+                                            .with_z(13.0),
+                                        scene_data,
+                                    )
+                                    .with_light(
+                                        char_state.meta.last_light,
+                                        char_state.meta.last_glow.1,
+                                    )
+                                },
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Bubbles when swimming
+            if let Some(fluid) = physics.in_fluid
+                && fluid.is_water()
+                && let Some(vel) = vel
+                && fluid.relative_flow(vel).0.magnitude_squared() > 10.0
+                && matches!(body, Body::Humanoid(_))
+                && let Some(state) = figure_mgr.states.character_states.get(&entity)
+            {
+                for hand in [
+                    state.computed_skeleton.hand_l,
+                    state.computed_skeleton.hand_r,
+                ] {
+                    // This offset check is a huge hack and probably doesn't work well at very low
+                    // framerates. Unfortunately, there's not really a better way to do this today,
+                    // because animations have no way to emit events.
+                    if hand.mul_direction(Vec3::unit_z()).z < 0.0 {
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(90))),
+                            || {
+                                Particle::new(
+                                    Duration::from_secs(1),
+                                    time,
+                                    ParticleMode::Bubble,
+                                    state.wpos_of(hand.mul_point(Vec3::zero()))
+                                        - vel.0 * dt * rng.random::<f32>(),
+                                    scene_data,
+                                )
+                            },
+                        );
+                    }
+                }
+            }
+
             match character_state {
                 CharacterState::Boost(_) => {
                     self.particles.resize_with(
@@ -3247,6 +3370,9 @@ impl ParticleMgr {
             mode: ParticleMode,
             // Condition that must be true
             cond: fn(&SceneData) -> bool,
+            // The amount of sunlight that should be applied to the particles. Particles that spawn
+            // in unlit conditions like caves may wish to use `0.0`.
+            sunlight_level: f32,
         }
 
         enum BlockParticleSlice<'a> {
@@ -3271,6 +3397,26 @@ impl ParticleMgr {
                 lifetime: 30.0,
                 mode: ParticleMode::Leaf,
                 cond: |_| true,
+                sunlight_level: 1.0,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::Positions(&boi.water),
+                range: 4,
+                rate: 0.003,
+                lifetime: 30.0,
+                // Ambient bubbles move up toward their origin, not up away from their origin
+                mode: ParticleMode::BubbleAmbient,
+                cond: |_| true,
+                sunlight_level: 1.0,
+            },
+            BlockParticles {
+                blocks: |boi| BlockParticleSlice::Positions(&boi.cave_roof),
+                range: 4,
+                rate: 0.015,
+                lifetime: 30.0,
+                mode: ParticleMode::CaveDust,
+                cond: |_| true,
+                sunlight_level: 0.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.drip),
@@ -3279,6 +3425,7 @@ impl ParticleMgr {
                 lifetime: 20.0,
                 mode: ParticleMode::Drip,
                 cond: |_| true,
+                sunlight_level: 0.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fires),
@@ -3287,6 +3434,7 @@ impl ParticleMgr {
                 lifetime: 0.5,
                 mode: ParticleMode::CampfireFire,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fire_bowls),
@@ -3295,6 +3443,7 @@ impl ParticleMgr {
                 lifetime: 0.25,
                 mode: ParticleMode::FireBowl,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.fireflies),
@@ -3303,6 +3452,7 @@ impl ParticleMgr {
                 lifetime: 40.0,
                 mode: ParticleMode::Firefly,
                 cond: |sd| sd.state.get_day_period().is_dark(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.flowers),
@@ -3311,6 +3461,7 @@ impl ParticleMgr {
                 lifetime: 40.0,
                 mode: ParticleMode::Firefly,
                 cond: |sd| sd.state.get_day_period().is_dark(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.beehives),
@@ -3319,6 +3470,7 @@ impl ParticleMgr {
                 lifetime: 30.0,
                 mode: ParticleMode::Bee,
                 cond: |sd| sd.state.get_day_period().is_light(),
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.snow),
@@ -3327,6 +3479,7 @@ impl ParticleMgr {
                 lifetime: 15.0,
                 mode: ParticleMode::Snow,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.one_way_walls),
@@ -3335,6 +3488,7 @@ impl ParticleMgr {
                 lifetime: 1.5,
                 mode: ParticleMode::PortalFizz,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.spores),
@@ -3343,6 +3497,7 @@ impl ParticleMgr {
                 lifetime: 20.0,
                 mode: ParticleMode::Spore,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::PositionsAndDirs(&boi.waterfall),
@@ -3351,6 +3506,7 @@ impl ParticleMgr {
                 lifetime: 5.0,
                 mode: ParticleMode::WaterFoam,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
             BlockParticles {
                 blocks: |boi| BlockParticleSlice::Positions(&boi.train_smokes),
@@ -3359,6 +3515,7 @@ impl ParticleMgr {
                 lifetime: 8.0,
                 mode: ParticleMode::TrainSmoke,
                 cond: |_| true,
+                sunlight_level: 1.0,
             },
         ];
 
@@ -3397,6 +3554,7 @@ impl ParticleMgr {
                                         block_pos.map(|e: i32| e as f32 + rng.random::<f32>()),
                                         scene_data,
                                     )
+                                    .with_light(particles.sunlight_level, 0.0)
                                 },
                                 BlockParticleSlice::PositionsAndDirs(blocks) => {
                                     // Can't fail, resize only occurs if blocks > 0
@@ -3415,6 +3573,7 @@ impl ParticleMgr {
                                         particle_pos + particle_dir,
                                         scene_data,
                                     )
+                                    .with_light(particles.sunlight_level, 0.0)
                                 },
                             }
                         })
@@ -4696,6 +4855,34 @@ impl Particle {
                 mode,
                 pos1,
                 pos2,
+                scene_data.wind_vel,
+            ),
+        }
+    }
+
+    pub fn with_light(self, sun_light: f32, glow_light: f32) -> Self {
+        Self {
+            instance: self.instance.with_light(sun_light, glow_light),
+            ..self
+        }
+    }
+
+    fn new_colored(
+        lifespan: Duration,
+        time: f64,
+        mode: ParticleMode,
+        pos: Vec3<f32>,
+        col: Rgb<f32>,
+        scene_data: &SceneData,
+    ) -> Self {
+        Particle {
+            alive_until: time + lifespan.as_secs_f64(),
+            instance: ParticleInstance::new_colored(
+                time,
+                lifespan.as_secs_f32(),
+                mode,
+                pos,
+                col,
                 scene_data.wind_vel,
             ),
         }

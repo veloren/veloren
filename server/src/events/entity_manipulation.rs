@@ -1683,7 +1683,7 @@ impl ServerEvent for ExplosionEvent {
                 sound: Sound::new(SoundKind::Explosion, ev.pos, explosion_volume, data.time.0),
             });
 
-            let outcome_power = ev.explosion.radius;
+            let outcome_power = (ev.explosion.radius * 0.25).powi(2);
             outcome_emitter.emit(Outcome::Explosion {
                 pos: ev.pos,
                 power: outcome_power,

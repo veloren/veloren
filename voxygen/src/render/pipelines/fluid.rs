@@ -1,4 +1,6 @@
-use super::super::{AaMode, GlobalsLayouts, TerrainLayout, Vertex as VertexTrait};
+use super::super::{
+    ExperimentalShader, GlobalsLayouts, PipelineModes, TerrainLayout, Vertex as VertexTrait,
+};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
@@ -65,8 +67,8 @@ impl FluidPipeline {
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
         terrain_layout: &TerrainLayout,
-        aa_mode: AaMode,
         format: wgpu::TextureFormat,
+        pipeline_modes: &PipelineModes,
     ) -> Self {
         common_base::span!(_guard, "FluidPipeline::new");
         let render_pipeline_layout =
@@ -80,7 +82,7 @@ impl FluidPipeline {
                 ],
             });
 
-        let samples = aa_mode.samples();
+        let samples = pipeline_modes.aa.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Fluid pipeline"),
@@ -97,7 +99,14 @@ impl FluidPipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: None,
                 unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
+                polygon_mode: if pipeline_modes
+                    .experimental_shaders
+                    .contains(&ExperimentalShader::Wireframe)
+                {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {

@@ -17,7 +17,7 @@ use vehicle::VehicleEventMapper;
 use super::SfxTriggers;
 use crate::{
     AudioFrontend,
-    scene::{Camera, Terrain},
+    scene::{Camera, FigureMgr, Terrain},
 };
 
 trait EventMapper {
@@ -30,6 +30,7 @@ trait EventMapper {
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
+        figure_mgr: &FigureMgr,
     );
 }
 
@@ -59,6 +60,7 @@ impl SfxEventMapper {
         triggers: &SfxTriggers,
         terrain: &Terrain<TerrainChunk>,
         client: &Client,
+        figure_mgr: &FigureMgr,
     ) {
         for mapper in &mut self.mappers {
             mapper.maintain(
@@ -69,6 +71,7 @@ impl SfxEventMapper {
                 triggers,
                 terrain,
                 client,
+                figure_mgr,
             );
         }
     }

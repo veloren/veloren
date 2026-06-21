@@ -38,7 +38,7 @@ pub struct Dependents {
 }
 
 pub struct Camera {
-    tgt_focus: Vec3<f32>,
+    tgt_focus: Option<Vec3<f32>>,
     focus: Vec3<f32>,
     tgt_ori: Vec3<f32>,
     ori: Vec3<f32>,
@@ -323,7 +323,7 @@ impl Camera {
         };
 
         Self {
-            tgt_focus: Vec3::unit_z() * 10.0,
+            tgt_focus: None,
             focus: Vec3::unit_z() * 10.0,
             tgt_ori: Vec3::zero(),
             ori: Vec3::zero(),
@@ -604,10 +604,12 @@ impl Camera {
             );
         }
 
-        if (self.focus - self.tgt_focus).magnitude_squared() > 0.001 {
+        if let Some(tgt_focus) = self.tgt_focus
+            && (self.focus - tgt_focus).magnitude_squared() > 0.001
+        {
             let lerped_focus = Lerp::lerp(
                 self.focus,
-                self.tgt_focus,
+                tgt_focus,
                 (delta as f32) / self.interp_time()
                     * if matches!(self.mode, CameraMode::FirstPerson) {
                         2.0
@@ -655,18 +657,28 @@ impl Camera {
     /// Get the focus position of the camera.
     pub fn get_focus_pos(&self) -> Vec3<f32> { self.focus }
 
+    /// Reset the focus position, such that we snap immediately to a future
+    /// focus position.
+    pub fn reset_focus(&mut self) { self.tgt_focus = None; }
+
     /// Set the focus position of the camera.
-    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) { self.tgt_focus = focus; }
+    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) {
+        // If this is the first time focus has been set, snap it
+        if self.tgt_focus.is_none() {
+            self.focus = focus;
+        }
+        self.tgt_focus = Some(focus);
+    }
 
     /// Set the focus position of the camera, without lerping.
     pub fn force_focus_pos(&mut self, focus: Vec3<f32>) {
-        self.tgt_focus = focus;
+        self.tgt_focus = Some(focus);
         self.focus = focus;
     }
 
     /// Set the focus position of the camera, without lerping.
     pub fn force_xy_focus_pos(&mut self, focus: Vec3<f32>) {
-        self.tgt_focus = focus;
+        self.tgt_focus = Some(focus);
         self.focus = focus.xy().with_z(self.focus.z);
     }
 

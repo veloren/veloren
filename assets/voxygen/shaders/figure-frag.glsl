@@ -267,7 +267,7 @@ void main() {
     vec3 glow = pow(model_glow.w, 3.0) * 6.0
         * glow_light(f_pos)
         * mix((max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0)), 1.0, 1.0 / (1.0 + glow_mag * 10.0));
-    emitted_light += glow * cam_attenuation;
+    reflected_light += glow * cam_attenuation;
 
     // Apply baked AO
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;

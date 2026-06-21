@@ -36,3 +36,42 @@ pub struct Interpolated {
 impl Component for Interpolated {
     type Storage = VecStorage<Self>;
 }
+
+const MAX_FEET: usize = 8;
+
+/// Track footsteps over time by detecting flips in foot velocity.
+#[derive(Default)]
+pub struct Footsteps {
+    // What were the last known foot positions?
+    foot_state: [Option<[f32; 2]>; MAX_FEET],
+    // Did a step just occur?
+    stepped: [bool; MAX_FEET],
+}
+impl Component for Footsteps {
+    type Storage = VecStorage<Self>;
+}
+
+impl Footsteps {
+    pub fn update(&mut self, foot_z: &[f32]) {
+        self.stepped = [false; MAX_FEET];
+        for (i, foot_z) in foot_z.iter().take(MAX_FEET).enumerate() {
+            match &mut self.foot_state[i] {
+                Some([a, b]) => {
+                    // Position second differential flipped - footstep detected!
+                    if a > b && *b < *foot_z {
+                        self.stepped[i] = true;
+                    }
+                    *a = *b;
+                    *b = *foot_z;
+                },
+                foot_state @ None => *foot_state = Some([*foot_z; 2]),
+            }
+        }
+    }
+
+    pub fn is_stepping(&self, foot: usize) -> bool {
+        self.stepped.get(foot).copied().unwrap_or(false)
+    }
+
+    pub fn is_any_stepping(&self) -> bool { self.stepped.iter().any(|x| *x) }
+}

@@ -48,15 +48,16 @@ impl Animation for SwimAnimation {
         let avgtotal = avg_vel.magnitude();
 
         let speed = velocity.magnitude();
-        *rate = 1.0;
-        let tempo = if speed > 0.5 { 1.5 } else { 0.7 };
-        let intensity = if speed > 0.5 { 1.0 } else { 0.3 };
+        *rate = 1.0 + speed * 0.3;
+        let tempo = 0.4 / s_a.scaler;
+        let intensity = 1.0;
 
         let lab: f32 = 1.0 * tempo;
 
         let short = (anim_time * lab * 6.0 + PI * 0.9).sin();
 
-        let foot = (anim_time * lab * 6.0 + PI * -0.1).sin();
+        let foot = (anim_time * lab * 4.0 + PI * -0.1).sin();
+        let foot2 = (anim_time * lab * 4.0 + PI * -1.6).sin();
 
         let footrotl = ((1.0 / (0.2 + (0.8) * ((anim_time * 6.0 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
@@ -95,15 +96,28 @@ impl Animation for SwimAnimation {
         } * 1.3;
         let abstilt = tilt.abs();
 
+        let switch = if avg_vel.z > 0.0 && avgspeed < 0.5 {
+            avgtotal.min(0.5)
+        } else {
+            avgtotal
+        };
+        let dir_ori = (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(PI / 2.0) - PI / 2.0)
+            + avgspeed * avg_vel.z * -0.003;
+
         let squash = if abstilt > 0.2 { 0.35 } else { 1.0 }; //condenses the body at strong turns
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 - 1.0 + short * 0.3);
+        next.head.position = Vec3::new(
+            0.0,
+            s_a.head.0 + foot * 0.8,
+            s_a.head.1 + short * 0.2 - foot * 0.2,
+        );
         next.head.orientation =
-            Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity + tilt * 3.0)
+            Quaternion::rotation_z(head_look.x * 0.3 + short * -0.2 * intensity - tilt * 2.0)
                 * Quaternion::rotation_x(
                     (0.4 * head_look.y * (1.0 / intensity)).abs()
-                        + 0.45 * intensity
+                        + 0.25 * intensity
                         + velocity.z * 0.03
-                        - (abstilt * 1.8).min(0.0),
+                        - (abstilt * 1.8).min(0.0)
+                        - foot * 0.2,
                 );
         next.head.scale = Vec3::one() * s_a.head_scale;
 
@@ -112,7 +126,8 @@ impl Animation for SwimAnimation {
             s_a.chest.0,
             -10.0 + s_a.chest.1 + short * 0.3 * intensity,
         );
-        next.chest.orientation = Quaternion::rotation_z(short * 0.1 * intensity);
+        next.chest.orientation =
+            Quaternion::rotation_x(foot * 0.25) * Quaternion::rotation_z(short * 0.1 * intensity);
 
         next.belt.position = Vec3::new(0.0, s_a.belt.0, s_a.belt.1);
         next.belt.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0)
@@ -123,48 +138,60 @@ impl Animation for SwimAnimation {
 
         next.shorts.position = Vec3::new(0.0, s_a.shorts.0, s_a.shorts.1);
         next.shorts.orientation = Quaternion::rotation_x(velocity.z.abs() * -0.005 + abstilt * 1.0)
-            * Quaternion::rotation_z(short * -0.3 * intensity);
+            * Quaternion::rotation_z(footrotr * 0.3 * intensity);
 
         next.hand_l.position = Vec3::new(
-            -1.0 - s_a.hand.0,
-            1.5 + s_a.hand.1 - foot * 2.0 * intensity * squash,
-            intensity * 5.0 + s_a.hand.2 + foot * -5.0 * intensity * squash,
+            -0.5 - s_a.hand.0 + foot2.min(0.0) * 4.0 + foot * 1.5,
+            1.5 + s_a.hand.1 + foot * 2.0 * intensity * squash + foot * 2.0,
+            intensity * 5.0 + s_a.hand.2 + foot * 4.0 * intensity * squash,
         );
-        next.hand_l.orientation = Quaternion::rotation_x(1.5 + foot * -1.2 * intensity * squash)
-            * Quaternion::rotation_y(0.4 + foot * -0.35);
+        next.hand_l.orientation = Quaternion::rotation_x(-4.0 * intensity * squash)
+            * Quaternion::rotation_y(foot2 * -0.55 + foot * -1.5 + 1.3)
+            * Quaternion::rotation_z(foot2 * 1.25 - 1.6);
         next.hand_l.scale = Vec3::one() * 1.04;
 
         next.hand_r.position = Vec3::new(
-            1.0 + s_a.hand.0,
-            1.5 + s_a.hand.1 + foot * 2.0 * intensity * squash,
-            intensity * 5.0 + s_a.hand.2 + foot * 5.0 * intensity * squash,
+            0.5 + s_a.hand.0 - foot2.min(0.0) * 4.0 - foot * 1.5,
+            1.5 + s_a.hand.1 + foot * 2.0 * intensity * squash + foot * 2.0,
+            intensity * 5.0 + s_a.hand.2 + foot * 4.0 * intensity * squash,
         );
-        next.hand_r.orientation = Quaternion::rotation_x(1.5 + foot * 1.2 * intensity * squash)
-            * Quaternion::rotation_y(-0.4 + foot * -0.35);
+        next.hand_r.orientation = Quaternion::rotation_x(-4.0 * intensity * squash)
+            * Quaternion::rotation_y(foot2 * 0.55 + foot * 1.5 - 1.3)
+            * Quaternion::rotation_z(foot2 * -1.25 + 1.6);
         next.hand_r.scale = Vec3::one() * 1.04;
 
         next.foot_l.position = Vec3::new(
             -s_a.foot.0,
-            s_a.foot.1 + foothoril * 1.5 * intensity * squash,
-            -10.0 + s_a.foot.2 + footrotl * 3.0 * intensity * squash,
+            s_a.foot.1 + foothoril * 3.5 * intensity * squash,
+            -10.0 + s_a.foot.2 + footrotl * 1.0 * intensity * squash,
         );
         next.foot_l.orientation =
-            Quaternion::rotation_x(-0.8 * squash + footrotl * 0.4 * intensity * squash);
+            Quaternion::rotation_x(-0.8 * squash + footrotl * 0.6 * intensity * squash);
 
         next.foot_r.position = Vec3::new(
             s_a.foot.0,
-            s_a.foot.1 + foothorir * 1.5 * intensity * squash,
-            -10.0 + s_a.foot.2 + footrotr * 3.0 * intensity * squash,
+            s_a.foot.1 + foothorir * 3.5 * intensity * squash,
+            -10.0 + s_a.foot.2 + footrotr * 1.0 * intensity * squash,
         );
         next.foot_r.orientation =
-            Quaternion::rotation_x(-0.8 * squash + footrotr * 0.4 * intensity * squash);
+            Quaternion::rotation_x(-0.8 * squash + footrotr * 0.6 * intensity * squash);
 
-        next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_l.orientation = Quaternion::rotation_x(short * 0.15 * intensity);
+        next.shoulder_l.position = Vec3::new(
+            -s_a.shoulder.0,
+            s_a.shoulder.1 + foot * 2.0 - 2.0,
+            s_a.shoulder.2 + foot + 2.0,
+        );
+        next.shoulder_l.orientation =
+            Quaternion::rotation_x(short * 0.15 * intensity + foot * 0.5 + 0.7);
         next.shoulder_l.scale = Vec3::one() * 1.1;
 
-        next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
-        next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15 * intensity);
+        next.shoulder_r.position = Vec3::new(
+            s_a.shoulder.0,
+            s_a.shoulder.1 + foot * 2.0 - 2.0,
+            s_a.shoulder.2 + foot + 2.0,
+        );
+        next.shoulder_r.orientation =
+            Quaternion::rotation_x(short * -0.15 * intensity + foot * 0.5 + 0.7);
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
@@ -176,16 +203,9 @@ impl Animation for SwimAnimation {
         next.lantern.scale = Vec3::one() * 0.65;
         next.hold.scale = Vec3::one() * 0.0;
 
-        let switch = if avg_vel.z > 0.0 && avgspeed < 0.5 {
-            avgtotal.min(0.5)
-        } else {
-            avgtotal
-        };
         next.torso.position = Vec3::new(0.0, 0.0, 11.0 - avgspeed * 0.55);
-        next.torso.orientation = Quaternion::rotation_x(
-            (((1.0 / switch) * PI / 2.0 + avg_vel.z * 0.12).min(PI / 2.0) - PI / 2.0)
-                + avgspeed * avg_vel.z * -0.003,
-        ) * Quaternion::rotation_y(tilt * 2.0)
+        next.torso.orientation = Quaternion::rotation_x(dir_ori)
+            * Quaternion::rotation_y(tilt * 2.0)
             * Quaternion::rotation_z(tilt * 3.0);
 
         next

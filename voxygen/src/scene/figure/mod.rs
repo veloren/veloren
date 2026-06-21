@@ -8249,8 +8249,8 @@ pub struct FigureStateMeta {
     visible: bool,
     last_pos: Option<anim::vek::Vec3<f32>>,
     avg_vel: anim::vek::Vec3<f32>,
-    last_light: f32,
-    last_glow: (Vec3<f32>, f32),
+    pub last_light: f32,
+    pub last_glow: (Vec3<f32>, f32),
     acc_vel: f32,
     bound: pipelines::figure::BoundLocals,
 }
@@ -8278,7 +8278,7 @@ impl FigureStateMeta {
 }
 
 pub struct FigureState<S: Skeleton, D = ()> {
-    meta: FigureStateMeta,
+    pub meta: FigureStateMeta,
     pub skeleton: S,
     pub computed_skeleton: S::ComputedSkeleton,
     pub extra: D,
@@ -8594,7 +8594,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
                 // Humanoid foot cycles are non-linear with velocity and act more like a pendulum:
                 // they tend to reduce stride amplitude instead of frequency
                 Some(Body::Humanoid(_)) => {
-                    (self.avg_vel - *ground_vel).magnitude().powf(0.35) * 4.75
+                    (self.avg_vel - *ground_vel).magnitude().powf(0.65) * 2.95
                 },
                 _ => (self.avg_vel - *ground_vel).magnitude(),
             };

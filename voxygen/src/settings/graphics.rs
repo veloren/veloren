@@ -111,7 +111,7 @@ impl GraphicsSettings {
             lod_distance: 75,
             sprite_render_distance: 125,
             figure_lod_render_distance: 200,
-            lod_detail: 200,
+            lod_detail: 180,
             render_mode: RenderMode {
                 aa: AaMode::FxUpscale,
                 cloud: CloudMode::Low,
@@ -137,7 +137,7 @@ impl GraphicsSettings {
             lod_distance: 150,
             sprite_render_distance: 250,
             figure_lod_render_distance: 350,
-            lod_detail: 300,
+            lod_detail: 250,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::Medium,
@@ -166,7 +166,7 @@ impl GraphicsSettings {
             lod_distance: 200,
             sprite_render_distance: 350,
             figure_lod_render_distance: 450,
-            lod_detail: 375,
+            lod_detail: 325,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::Medium,
@@ -195,7 +195,7 @@ impl GraphicsSettings {
             lod_distance: 450,
             sprite_render_distance: 800,
             figure_lod_render_distance: 600,
-            lod_detail: 500,
+            lod_detail: 400,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::High,

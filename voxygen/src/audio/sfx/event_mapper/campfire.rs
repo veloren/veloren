@@ -2,7 +2,7 @@
 use crate::{
     AudioFrontend,
     audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
-    scene::{Camera, Terrain},
+    scene::{Camera, FigureMgr, Terrain},
 };
 
 use super::EventMapper;
@@ -46,6 +46,7 @@ impl EventMapper for CampfireEventMapper {
         triggers: &SfxTriggers,
         _terrain: &Terrain<TerrainChunk>,
         _client: &Client,
+        _figure_mgr: &FigureMgr,
     ) {
         let ecs = state.ecs();
 

@@ -74,8 +74,8 @@ pub struct Globals {
     cam_mode: u32,
     sprite_render_distance: f32,
     player_ori: f32,
-    // To keep 16-byte-aligned.
-    globals_dummy: [f32; 2],
+    screen_fade: f32,
+    globals_dummy: f32,
 }
 /// Make sure Globals is 16-byte-aligned.
 const _: () = assert!(core::mem::size_of::<Globals>().is_multiple_of(16));
@@ -125,6 +125,7 @@ impl Globals {
         cam_mode: CameraMode,
         sprite_render_distance: f32,
         player_ori: f32,
+        screen_fade: f32,
     ) -> Self {
         Self {
             view_mat: view_mat.into_col_arrays(),
@@ -196,7 +197,8 @@ impl Globals {
             cam_mode: cam_mode as u32,
             sprite_render_distance,
             player_ori,
-            globals_dummy: [0.0; 2],
+            screen_fade: screen_fade.clamp(0.0, 1.0),
+            globals_dummy: 0.0,
         }
     }
 }
@@ -229,6 +231,7 @@ impl Default for Globals {
             CameraMode::ThirdPerson,
             250.0,
             0.0,
+            1.0,
         )
     }
 }

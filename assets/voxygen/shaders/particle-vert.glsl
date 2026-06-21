@@ -27,6 +27,7 @@ layout(location = 5) in int inst_mode;
 layout(location = 6) in vec3 inst_dir;
 layout(location = 7) in vec3 inst_pos;
 layout(location = 8) in vec2 inst_start_wind_vel;
+layout(location = 9) in vec2 inst_voxel_light;
 
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) flat out vec3 f_norm;
@@ -35,6 +36,7 @@ layout(location = 2) out vec4 f_col;
 //layout(location = x) out float f_light;
 layout(location = 3) out float f_reflect;
 layout(location = 4) flat out int f_mode;
+layout(location = 5) out vec2 f_voxel_light;
 
 const float SCALE = 1.0 / 11.0;
 
@@ -119,6 +121,9 @@ const int ELEPHANT_VACUUM = 77;
 const int ELECTRIC_SPARKS = 78;
 const int FLAMETHROWER_BLUE = 79;
 const int FLAME_CLOAK_ORBIT = 80;
+const int DUST = 81;
+const int CAVE_DUST = 82;
+const int BUBBLE_AMBIENT = 83;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -144,6 +149,14 @@ float loop_inst_time(float period, float scale) {
 
 vec3 linear_motion(vec3 init_offs, vec3 vel) {
     return init_offs + vel * lifetime();
+}
+
+vec3 on_floor(float z, float bounce, vec3 pos) {
+    if (pos.z < z) {
+        return vec3(pos.xy, z + abs(sin(z - pos.z)) * bounce / (1.0 + z - pos.z));
+    } else {
+        return pos;
+    }
 }
 
 vec3 quadratic_bezier_motion(vec3 start, vec3 ctrl0, vec3 end) {
@@ -348,14 +361,16 @@ void main() {
             );
             break;
         case SHRAPNEL:
+            vec2 vel = vec2(rand4, rand5) * 2.0;
+            float momentum = 1.0 - 1.0 / (1 + lifetime() * 1.0);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand4, rand5, rand6)) * 20.0 + grav_vel(earth_gravity)
+                vec3(
+                    vel * momentum,
+                    on_floor(-0.4, 0.25, linear_motion(vec3(0), vec3(vec2(0), 4.0 + rand6) + grav_vel(earth_gravity))).z
                 ),
-                vec3(1),
-                vec4(vec3(0.25), 1),
-                spin_in_axis(vec3(1,0,0),0)
+                vec3(1.5 + rand1 * 0.25) * (1.0 - slow_start(0.025)),
+                vec4(mix(vec3(0.1, 0.1, 0.15), vec3(0.15, 0.1, 0.05), abs(rand2)), 1),
+                spin_in_axis(vec3(vel.yx * vec2(-1, 1),0), momentum * 1.5 * (10.0 + rand5 * 5.0))
             );
             break;
         case BIG_SHRAPNEL:
@@ -372,74 +387,62 @@ void main() {
             break;
         case FIREWORK_BLUE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(0, 0, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.2, 0.2, 1), vec3(0, 0.3, 0.2), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_GREEN:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(0, 2, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.2, 1, 0.2), vec3(0.4, 0.3, 0), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_PURPLE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 0, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.5, 0.2, 1), vec3(0.2, 0.0, 0.1), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_RED:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 0, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(1, 0.2, 0.2), vec3(0.4, 0.25, 0), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_WHITE:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 2, 2), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(0.7), vec3(0.1, 0.15, 0.2), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case FIREWORK_YELLOW:
             f_reflect = 0.0; // Fire doesn't reflect light, it emits it
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 2.5);
             attr = Attr(
-                linear_motion(
-                    vec3(0),
-                    normalize(vec3(rand1, rand2, rand3)) * 40.0 + grav_vel(earth_gravity)
-                ),
-                vec3(3.0 + rand0),
-                vec4(vec3(2, 2, 0), 1),
-                identity()
+                normalize(vec3(rand1, rand2, rand3)) * (50.0 + rand0 * 5.0) * momentum + grav_vel(earth_gravity),
+                vec3(4.0) * slow_end(0.2),
+                vec4(mix(vec3(1, 0.8, 0), vec3(0.3, 0.1, 0.1), percent()) * (15.0 + sin(lifetime() * 8.0 + rand5 * 30.0) * 12.0), 1),
+                spin_in_axis(vec3(1,1,1),percent() * rand1 * 30.0)
             );
             break;
         case LEAF:
@@ -721,8 +724,8 @@ void main() {
             vec3 start_off = vec3(abs(fract(vec3(vec2(z) * vec2(0.015, 0.01), 0)) - 0.5) * z * 0.4);
             attr = Attr(
                 inst_dir * percent() + start_off,
-                vec3(max(3.0, 0.05 * length(start_pos + inst_dir * percent()))),
-                vec4(10.0, 20.0, 50.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
+                vec3(max(3.0, 0.25 * length(start_pos + inst_dir * percent()))),
+                vec4(10.0, 10.0, 25.0, 1.0),// * (1.0 - length(inst_dir) * 0.1),
                 identity()//spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
             );
             break;
@@ -1079,7 +1082,7 @@ void main() {
             );
             break;
         case SPORE:
-            f_reflect = 0.0;
+            f_reflect = 1.0;
             attr = Attr(
                 linear_motion(
                     vec3(0),
@@ -1125,8 +1128,8 @@ void main() {
         case WATER_FOAM:
             f_reflect = 0.1;
             attr = Attr(
-                inst_dir * pow(percent(), 0.5) * 0.5 + percent() * percent() * vec3(0, 0, -50),
-                vec3((1.5 * (1 - slow_start(0.2)))),
+                vec3(inst_dir.xyz * percent() - vec3(0, 0, pow(lifetime(), 2) * earth_gravity)),
+                vec3((1.0 * (1 - slow_start(0.2)))),
                 vec4(0.5, 0.75, 1.0, 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
             );
@@ -1241,15 +1244,24 @@ void main() {
             );
             break;
         case BUBBLE:
-            f_reflect = 0.0;
+            f_reflect = 1.0;
             attr = Attr(
                 linear_motion(
                     vec3(0),
-                    vec3(rand2 * 0.1, rand3 * 0.1, 1.0 + rand4 * 0.1)
+                    vec3(sin(lifetime() * vec2(rand2 * 5.0, rand3 * 3.0)) * 0.5, 1.0 + rand4 * 0.1)
                 ),
-                vec3(1.0 - slow_start(0.1)) * 3.0 * (1.0 + sin(lifetime() * 20.0) * 0.2 + rand2 * 0.3),
-                vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.5, 0.75, 1.0), abs(rand3)), 1),
+                vec3(1.0 - slow_start(0.1)) * 1.5 * (1.0 + sin(lifetime() * 20.0) * 0.3 + rand2 * 0.3),
+                vec4(mix(vec3(0.4, 0.7, 0.8), vec3(0.2, 0.75, 1.0), abs(rand3)), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 5 + 3 * rand9)
+            );
+            break;
+        case BUBBLE_AMBIENT:
+            f_reflect = 1.0;
+            attr = Attr(
+                vec3(sin(lifetime() * vec2(1.5, 3.0)) * 0.5, 30) * (percent() - 1.0),
+                vec3(1.0 - slow_start(0.01)) * 1.5 * (1.0 + sin(lifetime() * 20.0) * 0.3 + rand2 * 0.3),
+                vec4(mix(vec3(0.4, 0.7, 0.8), vec3(0.2, 0.75, 1.0), abs(rand3)), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), percent() * 40 + 3 * rand9)
             );
             break;
         case ELEPHANT_VACUUM:
@@ -1296,6 +1308,33 @@ void main() {
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 6.0 + rand9 * 2.0)
             );
             break;
+        case DUST:
+            vel = vec2(rand4, rand5);
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 1.0);
+            attr = Attr(
+                vec3(
+                    vel * 0.2 + vel * momentum,
+                    on_floor(0.1, 0.25, linear_motion(vec3(0), vec3(vec2(0), 3.0 + rand6) + grav_vel(earth_gravity))).z
+                ),
+                vec3(1.0 - slow_start(0.05)) * 1.5,
+                vec4(min(srgb_to_linear(inst_dir) * (1.0 + rand2 * 0.35), vec3(1)), 1),
+                spin_in_axis(vec3(1,0,1), percent() * 3.0 + rand5 * 25.0)
+            );
+            break;
+        case CAVE_DUST:
+            vel = vec2(rand4, rand5);
+            momentum = 1.0 - 1.0 / (1 + lifetime() * 1.0);
+            attr = Attr(
+                linear_motion(
+                    vec3(0),
+                    vec3(0, 0, -1)
+                )
+                    + vec3(sin(lifetime()), sin(lifetime() + 0.7), sin(lifetime() * 0.5)) * 0.5,
+                vec3(1.0 - slow_start(0.05)),
+                vec4(0.6, 0.65, 0.75, 1),
+                spin_in_axis(vec3(1,1,1), lifetime() * 2.0)
+            );
+            break;
         default:
             attr = Attr(
                 linear_motion(
@@ -1336,6 +1375,7 @@ void main() {
     f_col = vec4(attr.col.rgb, attr.col.a);
 
     f_mode = inst_mode;
+    f_voxel_light = inst_voxel_light;
 
     gl_Position =
         all_mat *

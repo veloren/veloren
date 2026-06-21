@@ -1,4 +1,4 @@
-use super::super::{AaMode, GlobalsLayouts, Vertex as VertexTrait};
+use super::super::{ExperimentalShader, GlobalsLayouts, PipelineModes, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
@@ -131,6 +131,9 @@ pub enum ParticleMode {
     ElectricSparks = 78,
     FlamethrowerBlue = 79,
     FlameCloakOrbit = 80,
+    Dust = 81,
+    CaveDust = 82,
+    BubbleAmbient = 83,
 }
 
 impl ParticleMode {
@@ -155,8 +158,8 @@ pub struct Instance {
     // can save 32 bits per instance, and have cleaner tailor made code.
     inst_mode: i32,
 
-    // A direction for particles to move in
-    inst_dir: [f32; 3],
+    // A direction for particles to move in. Alternatively, a color.
+    inst_dir_color: [f32; 3],
 
     // a triangle is: f32 x 3 x 3 x 1  = 288 bits
     // a quad is:     f32 x 3 x 3 x 2  = 576 bits
@@ -171,6 +174,13 @@ pub struct Instance {
     inst_pos: [f32; 3],
 
     inst_start_wind_vel: [f32; 2],
+
+    // The voxel lighting at the particle's expected position.
+    //
+    // First element is sunlight, second is glow light.
+    //
+    // If in doubt, use (1.0, 0.0).
+    inst_voxel_light: [f32; 2],
 }
 
 impl Instance {
@@ -189,7 +199,8 @@ impl Instance {
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
-            inst_dir: [0.0, 0.0, 0.0],
+            inst_dir_color: [0.0, 0.0, 0.0],
+            inst_voxel_light: [1.0, 0.0],
         }
     }
 
@@ -209,12 +220,41 @@ impl Instance {
             inst_mode: inst_mode as i32,
             inst_pos: inst_pos.into_array(),
             inst_start_wind_vel: inst_start_wind_vel.into_array(),
-            inst_dir: (inst_pos2 - inst_pos).into_array(),
+            inst_dir_color: (inst_pos2 - inst_pos).into_array(),
+            inst_voxel_light: [1.0, 0.0],
+        }
+    }
+
+    pub fn new_colored(
+        inst_time: f64,
+        lifespan: f32,
+        inst_mode: ParticleMode,
+        inst_pos: Vec3<f32>,
+        col: Rgb<f32>,
+        inst_start_wind_vel: Vec2<f32>,
+    ) -> Self {
+        use rand::RngExt;
+        Self {
+            inst_time: (inst_time % super::TIME_OVERFLOW) as f32,
+            inst_lifespan: lifespan,
+            inst_entropy: rand::rng().random(),
+            inst_mode: inst_mode as i32,
+            inst_pos: inst_pos.into_array(),
+            inst_start_wind_vel: inst_start_wind_vel.into_array(),
+            inst_dir_color: col.into_array(),
+            inst_voxel_light: [1.0, 0.0],
+        }
+    }
+
+    pub fn with_light(self, sun_light: f32, glow_light: f32) -> Self {
+        Self {
+            inst_voxel_light: [sun_light, glow_light],
+            ..self
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3, 8 => Float32x2];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 8] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32, 5 => Sint32, 6 => Float32x3, 7 => Float32x3, 8 => Float32x2, 9 => Float32x2];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Instance,
@@ -245,8 +285,8 @@ impl ParticlePipeline {
         vs_module: &wgpu::ShaderModule,
         fs_module: &wgpu::ShaderModule,
         global_layout: &GlobalsLayouts,
-        aa_mode: AaMode,
         format: wgpu::TextureFormat,
+        pipeline_modes: &PipelineModes,
     ) -> Self {
         common_base::span!(_guard, "ParticlePipeline::new");
         let render_pipeline_layout =
@@ -256,7 +296,7 @@ impl ParticlePipeline {
                 bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
             });
 
-        let samples = aa_mode.samples();
+        let samples = pipeline_modes.aa.samples();
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Particle pipeline"),
@@ -273,7 +313,14 @@ impl ParticlePipeline {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 unclipped_depth: false,
-                polygon_mode: wgpu::PolygonMode::Fill,
+                polygon_mode: if pipeline_modes
+                    .experimental_shaders
+                    .contains(&ExperimentalShader::Wireframe)
+                {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
                 conservative: false,
             },
             depth_stencil: Some(wgpu::DepthStencilState {

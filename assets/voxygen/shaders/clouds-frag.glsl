@@ -262,7 +262,7 @@ void main() {
                         vec3 refl_col;
                         float not_underground = 1.0;
                         // Make underground water look more correct
-                        #if (REFLECTION_MODE >= REFLECTION_MODE_HIGH)
+                        #if (REFLECTION_MODE >= REFLECTION_MODE_MEDIUM)
                             float f_alt = alt_at(wpos.xy);
                             not_underground = clamp((wpos.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
                         #endif

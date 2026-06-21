@@ -258,31 +258,15 @@ float horizon_at2(vec4 f_horizons, float alt, vec3 pos, vec4 light_dir) {
 // }
 
 vec2 splay(vec2 pos) {
-    // const float SPLAY_MULT = 1048576.0;
-    float len_2 = dot(pos, pos);
-    float len_pow = len_2 * sqrt(len_2);
-    // float len_pow = pow(len/* * SQRT_2*//* * 0.5*/, 3.0);
-    // vec2 splayed = pos * pow(len * 0.5, 3.0) * SPLAY_MULT;
-    const float SQRT_2 = sqrt(2.0) / 2.0;
-    // /const float CBRT_2 = cbrt(2.0) / 2.0;
-    // vec2 splayed = pos * (view_distance.x * SQRT_2 + pow(len * 0.5, 3.0) * (SPLAY_MULT - view_distance.x));
-    vec2 splayed = pos * (view_distance.x * SQRT_2 + len_pow * (textureSize(sampler2D(t_alt, s_alt), 0) * 32.0/* - view_distance.x*/));
+    vec2 scale = textureSize(sampler2D(t_alt, s_alt), 0) * 32.0;
+    float lod_dist = view_distance.x * 0.95 / max(scale.x, scale.y);
+    float dist = max(abs(pos.x), abs(pos.y));
+    float stretch = (pow(dist, 5.5) * 0.75 + dist * 0.25) * (1.0 - lod_dist) + lod_dist;
+    vec2 splayed = pos * stretch * scale;
     if (abs(pos.x) > 0.99 || abs(pos.y) > 0.99) {
-        splayed *= 10.0;
+        splayed *= 50.0;
     }
     return splayed;
-
-    // Radial: pos.x = r - view_distance.x from focus_pos, pos.y = θ from cam_pos to focus_pos on xy plane.
-    // const float PI_2 = 3.1415926535897932384626433832795;
-    // float squared = pos.x * pos.x;
-    // // // vec2 splayed2 = pos * vec2(squared * (SPLAY_MULT - view_distance.x), PI);
-    // vec2 splayed2 = pos * vec2(squared * (textureSize(t_alt, 0).x * 32.0 - view_distance.x), PI);
-    // float r = splayed2.x + view_distance.x;
-    // vec2 theta = vec2(cos(splayed2.y), sin(splayed2.y));
-    // return r * theta;
-    // // mat2 rot_mat = mat2(vec2(theta.x, -theta.y), theta.yx);
-    // // return r * /*normalize(normalize(focus_pos.xy - cam_pos.xy) + theta);*/rot_mat * normalize(focus_pos.xy - cam_pos.xy);
-    // return splayed;
 }
 
 vec3 lod_norm(vec2 f_pos/*vec3 pos*/, vec4 square) {
@@ -345,16 +329,11 @@ vec3 lod_pos(vec2 pos, vec2 focus_pos) {
     vec2 delta = splay(pos);
     vec2 hpos = focus_pos + delta;
 
-    #ifndef EXPERIMENTAL_BAREMINIMUM
-        vec2 nhpos = hpos;
-        // vec2 lod_shift = splay(abs(pos) - 1.0 / view_distance.y);
-        float shift = 15.0;// min(lod_shift.x, lod_shift.y) * 0.5;
-        for (int i = 0; i < 3; i ++) {
-            // vec4 square = focus_pos.xy + vec4(splay(pos - vec2(1.0, 1.0), splay(pos + vec2(1.0, 1.0))));
-            nhpos -= lod_norm(hpos).xy * shift;
-        }
-        hpos = hpos + normalize(nhpos - hpos + 0.001) * min(length(nhpos - hpos), 32);
-    #endif
+    vec2 dir = normalize(pos);
+    float shift = 150.0 * pow(length(pos), 3.0);// min(lod_shift.x, lod_shift.y) * 0.5;
+    for (int i = 1; i < 10; i ++) {
+        hpos -= dir * dot(normalize(lod_norm(hpos)).xy, dir) * shift / float(i);
+    }
 
     return vec3(hpos, alt_at_real(hpos));
 }
