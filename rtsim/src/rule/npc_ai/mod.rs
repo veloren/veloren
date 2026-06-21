@@ -773,7 +773,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                 .then(just(move |ctx, _| ctx.controller.set_new_home(new_home))));
         }
 
-        let day_period = DayPeriod::from(ctx.time_of_day.0);
+        let day_period = ctx.npc.get_day_period(ctx.time_of_day);
         let is_weekend = (ctx.time_of_day.day() as u64).is_multiple_of(6);
         let is_evening = day_period == DayPeriod::Evening;
 
@@ -807,7 +807,7 @@ fn villager(visiting_site: SiteId) -> impl Action<DefaultState> {
                         .then(travel_to_point(house_wpos, 0.65))
                         .debug(|| "walk to house")
                         .then(socialize().repeat().map_state(|state: &mut DefaultState| &mut state.socialize_timer).debug(|| "wait in house"))
-                        .stop_if(|ctx: &mut NpcCtx| DayPeriod::from(ctx.time_of_day.0).is_light())
+                        .stop_if(|ctx: &mut NpcCtx| ctx.npc.get_day_period(ctx.time_of_day).is_light())
                         .then(just(|ctx, _| {
                             ctx.controller
                                 .say(None, Content::localized("npc-speech-day_time"))
