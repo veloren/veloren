@@ -152,13 +152,13 @@ mod tests {
     use super::*;
     use std::{fs, path::Path};
 
-    enum FsNode<'a> {
+    pub(super) enum FsNode<'a> {
         File(&'a str, &'a str),
         Dir(&'a str, Vec<FsNode<'a>>),
     }
 
     impl FileSystem {
-        fn scope<R>(f: &dyn Fn(FileSystem, &Path, &Path) -> R) -> R {
+        pub(super) fn scope<R>(f: &dyn Fn(FileSystem, &Path, &Path) -> R) -> R {
             let tempdir = tempfile::tempdir().expect("failed to get tempdir");
             let default = RawFs::new(tempdir.path())
                 .expect("failed to create temporary filesystem for assets");
@@ -181,17 +181,17 @@ mod tests {
             f(this, tempdir.path(), tempdir_override.path())
         }
 
-        fn read_to_str(&self, id: &str, ext: &str) -> String {
+        pub(super) fn read_to_str(&self, id: &str, ext: &str) -> String {
             std::str::from_utf8(self.read(id, ext).unwrap().as_ref())
                 .unwrap()
                 .to_owned()
         }
 
-        fn mock_file(dir: &Path, filename: &str, content: &str) {
+        pub(super) fn mock_file(dir: &Path, filename: &str, content: &str) {
             fs::write(dir.join(filename), content).unwrap();
         }
 
-        fn mock_tree(dir: &Path, tree: Vec<FsNode<'_>>) {
+        pub(super) fn mock_tree(dir: &Path, tree: Vec<FsNode<'_>>) {
             fn create_mock_node(path: &Path, node: FsNode<'_>) {
                 match node {
                     FsNode::File(name, content) => FileSystem::mock_file(path, name, content),
@@ -252,9 +252,9 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
     fn test_read_dir() {
         FileSystem::scope(&|fs, main_path, _override_path| {
+            #[rustfmt::skip]
             FileSystem::mock_tree(main_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(5)")
@@ -266,15 +266,16 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
-    fn test_read_dir_override() {
+    fn test_read_dirfile_override() {
         FileSystem::scope(&|fs, main_path, override_path| {
+            #[rustfmt::skip]
             FileSystem::mock_tree(main_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(5)")
                 ]),
             ]);
 
+            #[rustfmt::skip]
             FileSystem::mock_tree(override_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(6)")
@@ -286,9 +287,9 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
-    fn test_read_dir_override_only() {
+    fn test_read_dirfile_override_only() {
         FileSystem::scope(&|fs, _main_path, override_path| {
+            #[rustfmt::skip]
             FileSystem::mock_tree(override_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(5)")
@@ -300,10 +301,10 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
-    fn test_read_dir_partial_override() {
+    fn test_read_dirfile_partial_override() {
         FileSystem::scope(&|fs, main_path, override_path| {
             // creating dir with two files
+            #[rustfmt::skip]
             FileSystem::mock_tree(main_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(5)"),
@@ -312,6 +313,7 @@ mod tests {
             ]);
 
             // overriding only template here, main is still same
+            #[rustfmt::skip]
             FileSystem::mock_tree(override_path, vec![
                 FsNode::Dir("entity", vec![
                     FsNode::File("template.ron", "(5)")
@@ -324,10 +326,57 @@ mod tests {
     }
 
     #[test]
-    #[rustfmt::skip]
+    // I still dont understand how this one can fails while
+    // previous one doesn't, but that's why Source has two methods, I suppose.
+    //
+    // At the time of writing, broken implementation passed previous, but not
+    // that one.
+    //
+    // P.s. the difference is that before we were asserting fs.read(), and this
+    // time we're asserting fs.read_dir(), and apparently fs.read() works
+    // independently of fs.read_dir().
+    fn test_read_dir_actually() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            // creating dir with two files
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)"),
+                    FsNode::File("main.ron", "(7)")
+                ]),
+            ]);
+
+            // overriding only template here, main is still same
+            #[rustfmt::skip]
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(6)"),
+                    FsNode::File("fun.ron", "(5)")
+                ]),
+            ]);
+
+            let mut files: Vec<String> = vec![];
+            let _ = fs.read_dir("entity", &mut |e: DirEntry| match e {
+                DirEntry::File(path, ext) => files.push(format!("{path}.{ext}")),
+                DirEntry::Directory(path) => files.push(format!("{path}/")),
+            });
+            files.sort();
+            assert_eq!(files, vec![
+                // override only
+                "entity.fun.ron".to_owned(),
+                // main only
+                "entity.main.ron".to_owned(),
+                // shared and overriden
+                "entity.template.ron".to_owned(),
+            ]);
+        })
+    }
+
+    #[test]
     fn test_read_dir_notfound() {
         FileSystem::scope(&|fs, main_path, override_path| {
             // creating dir with two files
+            #[rustfmt::skip]
             FileSystem::mock_tree(main_path, vec![
                 FsNode::Dir("entity", vec![FsNode::File(
                     "template.ron",
@@ -336,6 +385,7 @@ mod tests {
             ]);
 
             // creating dir with two files
+            #[rustfmt::skip]
             FileSystem::mock_tree(override_path, vec![
                 FsNode::Dir("entity", vec![FsNode::File(
                     "template.ron",
@@ -343,14 +393,206 @@ mod tests {
                 )])
             ]);
 
-
-            // reading non-existent file should report the error and a path
+            // Reading non-existent file should report the error and a path
+            //
+            // NOTE: basically a guard for potential assets_manager regressions
+            // since uh, things accidentally happened in the past.
             let res = fs.read("loadout.template", "ron");
             assert_eq!(res.as_ref().unwrap_err().kind(), io::ErrorKind::NotFound);
-            let msg = format!("{:?}", &res.unwrap_err());
+            let msg = format!("{:#?}", &res.unwrap_err());
             if msg.find("loadout/template.ron").is_none() {
                 panic!("error message doesn't contain path:\n{msg}");
             }
+        })
+    }
+}
+
+#[cfg(test)]
+mod integration {
+    use super::{tests::*, *};
+    use assets_manager::{Asset, AssetCache, FileAsset, SharedString};
+    use hashbrown::HashSet;
+    use serde::Deserialize;
+    use std::borrow::Cow;
+
+    #[derive(Deserialize, Clone, Debug, PartialEq)]
+    struct WowManifest {
+        prefix: usize,
+    }
+
+    #[derive(Deserialize, Clone, Debug, PartialEq)]
+    struct WowFragment {
+        pieces: Vec<usize>,
+    }
+
+    #[derive(Deserialize, Clone, Debug, PartialEq)]
+    struct WowAsset {
+        prefix: usize,
+        pieces: HashSet<usize>,
+    }
+
+    impl FileAsset for WowManifest {
+        const EXTENSION: &'static str = "ron";
+
+        fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+            assets_manager::asset::load_ron(&bytes)
+        }
+    }
+
+    impl FileAsset for WowFragment {
+        const EXTENSION: &'static str = "json";
+
+        fn from_bytes(bytes: Cow<[u8]>) -> Result<Self, BoxedError> {
+            assets_manager::asset::load_json(&bytes)
+        }
+    }
+
+    // Pattern trying to simulate our i18n bundle
+    impl crate::Asset for WowAsset {
+        fn load(cache: &AssetCache, path: &SharedString) -> Result<Self, BoxedError> {
+            let manifest = cache
+                .load::<WowManifest>(&[path, ".", "_manifest"].concat())?
+                .cloned();
+
+            let mut total_pieces = HashSet::new();
+
+            for id in cache.load_rec_dir::<WowFragment>(path)?.read().ids() {
+                match cache.load::<WowFragment>(id) {
+                    Ok(handle) => {
+                        let WowFragment { pieces } = &handle.read().clone();
+                        for piece in pieces {
+                            if !total_pieces.insert(*piece) {
+                                panic!("duplicate piece ({piece}) in: {id}");
+                            }
+                        }
+                    },
+                    // In i18n we warn here, but panics are more visible for
+                    // tests, and errors shouldn't really be happening here.
+                    //
+                    // Probably.
+                    Err(err) => panic!("error during loading: {id}\n{err:#?}"),
+                }
+            }
+
+            Ok(Self {
+                prefix: manifest.prefix,
+                pieces: total_pieces,
+            })
+        }
+    }
+
+    #[test]
+    fn test_read_dir() {
+        FileSystem::scope(&|fs, main_path, _override_path| {
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    FsNode::File("first.json", r#"{"pieces": [1, 2]}"#),
+                    FsNode::File("second.json", r#"{"pieces": [3, 4]}"#),
+                ]),
+            ]);
+
+            let cache = AssetCache::with_source(fs);
+            let asset = WowAsset::load(&cache, &"entity".into()).unwrap();
+            assert_eq!(asset, WowAsset {
+                prefix: 5,
+                pieces: [1, 2, 3, 4].into(),
+            });
+        })
+    }
+
+    #[test]
+    fn test_read_dir_override() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    FsNode::File("first.json", r#"{"pieces": [1, 2]}"#),
+                    FsNode::File("second.json", r#"{"pieces": [3, 4]}"#),
+                ]),
+            ]);
+
+            #[rustfmt::skip]
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    FsNode::File("first.json", r#"{"pieces": [5, 6]}"#),
+                    FsNode::File("second.json", r#"{"pieces": [3, 4]}"#),
+                ]),
+            ]);
+
+            let cache = AssetCache::with_source(fs);
+            let asset = WowAsset::load(&cache, &"entity".into()).unwrap();
+            assert_eq!(asset, WowAsset {
+                prefix: 5,
+                pieces: [5, 6, 3, 4].into(),
+            });
+        })
+    }
+
+    #[test]
+    fn test_read_dir_partial_override() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    FsNode::File("first.json", r#"{"pieces": [1, 2]}"#),
+                    FsNode::File("second.json", r#"{"pieces": [3, 4]}"#),
+                ]),
+            ]);
+
+            #[rustfmt::skip]
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    // overriding only one of the files
+                    FsNode::File("first.json", r#"{"pieces": [5, 6]}"#),
+                ]),
+            ]);
+
+            let cache = AssetCache::with_source(fs);
+            let asset = WowAsset::load(&cache, &"entity".into()).unwrap();
+            assert_eq!(asset, WowAsset {
+                prefix: 5,
+                pieces: [5, 6, 3, 4].into(),
+            });
+        })
+    }
+
+    #[test]
+    fn test_read_dir_partial_nested_override() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            #[rustfmt::skip]
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 5)"),
+                    FsNode::Dir("nest", vec![
+                        FsNode::File("first.json", r#"{"pieces": [1, 2]}"#),
+                        FsNode::File("second.json", r#"{"pieces": [3, 4]}"#),
+                    ]),
+                ]),
+            ]);
+
+            #[rustfmt::skip]
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("_manifest.ron", "(prefix: 7)"),
+                    FsNode::Dir("nest", vec![
+                        // overriding only one file, nested into directory
+                        FsNode::File("first.json", r#"{"pieces": [5, 6]}"#),
+                    ]),
+                ]),
+            ]);
+
+            let cache = AssetCache::with_source(fs);
+            let asset = WowAsset::load(&cache, &"entity".into()).unwrap();
+            assert_eq!(asset, WowAsset {
+                prefix: 7,
+                pieces: [5, 6, 3, 4].into(),
+            });
         })
     }
 }
