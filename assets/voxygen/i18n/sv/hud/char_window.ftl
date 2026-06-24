@@ -1,4 +1,4 @@
-character_window-character_name = Karaktärens namn
+character_window-character_name = Spelfigurens namn
 character_window-character_stats =
     Uthållighet
 

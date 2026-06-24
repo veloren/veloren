@@ -1,0 +1,14 @@
+object-bomb = ilo pi seli pakala
+    .desc = ni li wile seli pakala a. ona li pona mute tawa jan pakala!
+weapon-projectile-fireworks_blue = palisa pi pakala kule pi laso telo
+    .desc = o lon ala poka ona a.
+weapon-projectile-fireworks_green = palisa pi pakala kule pi laso kasi
+    .desc = o lukin e kasi suli.
+weapon-projectile-fireworks_red = palisa pi pakala kule loje
+    .desc = jan li ken kepeken ona tawa ni: ona li lon poka moli li wile e jan ante.
+weapon-projectile-fireworks_white = palisa pi pakala kule walo
+    .desc = ona li suno sama mun.
+weapon-projectile-fireworks_yellow = palisa pi pakala kule jelo
+    .desc = jan misikeke suli li moli tan ni: ona li kepeken ni lon insa tomo.
+weapon-projectile-fireworks_purple = palisa pi pakala kule pi laso loje
+    .desc = pona mute tawa jan pi nasin nasa.

@@ -22,3 +22,4 @@ hud-bag-inactive_offhand = luka ante pi lon ala
 hud-bag-swap_equipped_weapons_title = o ante e ilo utala lon luka
 hud-bag-swap_equipped_weapons_desc = o luka e { $key }
 hud-bag-bag = poki
+hud-bag-tabard = len namako

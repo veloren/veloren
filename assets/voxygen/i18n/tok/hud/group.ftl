@@ -1,0 +1,16 @@
+hud-group = kulupu
+hud-group-invite_to_join = jan [{ $name }] li wile e ni: sina lon kulupu ona!
+hud-group-invite_to_trade = jan [{ $name }] li wile esun tawa sina.
+hud-group-invite-accepted = { $target } li kama lon kulupu sina.
+hud-group-invite-declined = { $target } li wile ala lon kulupu sina.
+hud-group-invite-timed_out = wile lon kulupu tawa jan { $target } li pini tan tempo.
+hud-group-invite = o kama
+hud-group-kick = o weka
+hud-group-assign_leader = o kama lawa
+hud-group-leave = o weka tan kulupu
+hud-group-dead = moli
+hud-group-out_of_range = lon weka
+hud-group-add_friend = o kama jan pona
+hud-group-link_group = o wan e kulupu
+hud-group-in_menu = lon lipu
+hud-group-members = jan kulupu

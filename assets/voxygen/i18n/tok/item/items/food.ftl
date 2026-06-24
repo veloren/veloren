@@ -46,3 +46,18 @@ object-blue_cheese = ko laso
     .desc = kon li nasa, taso ona li pona moku.
 object-cactus_drink = telo pi kasi kipisi
     .desc = ona li jo ala e kipisi a.
+object-cheese = ko jelo pi jan lili
+    .desc = ona li tan telo mama tan pali nanpa wan pi jan lili. ona li pona kon li pona moku a!
+object-coconut_half = sike kiwen telo
+    .desc = ona li jo pona e telo e ko. tenpo mute la ona li lon kasi suli lon poka telo.
+object-honeycorn = kili pan pi ko suwi
+    .desc = suwi a.
+object-sunflower_ice_tea = telo kasi lete pi kasi suwi suno
+    .desc = ona li tan sike mama pona pi kasi suwi suno.
+sprite-spore-corruption_spore = ko pi kama ike
+    .desc =
+        sina ken pilin e kon ike lon insa.
+
+        ken la sina luka e ona lon tenpo suli la ike li kama...
+object-pumpkin_spice_brew = telo namako pi kasi pi loje jelo
+    .desc = ona li tan kasi jaki pi loje jelo.
