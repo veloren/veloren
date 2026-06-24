@@ -146,3 +146,211 @@ impl Source for FileSystem {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, path::Path};
+
+    enum FsNode<'a> {
+        File(&'a str, &'a str),
+        Dir(&'a str, Vec<FsNode<'a>>),
+    }
+
+    impl FileSystem {
+        fn scope<R>(f: &dyn Fn(FileSystem, &Path, &Path) -> R) -> R {
+            let tempdir = tempfile::tempdir().expect("failed to get tempdir");
+            let default = RawFs::new(tempdir.path())
+                .expect("failed to create temporary filesystem for assets");
+
+            let tempdir_override =
+                tempfile::tempdir().expect("failed to get tempdir for overrides");
+            let override_dir = RawFs::new(tempdir_override.path())
+                .expect("failed to create temprorary override filesystem");
+
+            // NOTE: we're using closure pattern here, because otherwise
+            // tempdirs would get dropped about here, and run their
+            // destructors, which would remove directories.
+            // Instead they will get called at the end of this function,
+            // after the test closure gets called.
+            let this = Self {
+                default,
+                override_dir: Some(override_dir),
+            };
+
+            f(this, tempdir.path(), tempdir_override.path())
+        }
+
+        fn read_to_str(&self, id: &str, ext: &str) -> String {
+            std::str::from_utf8(self.read(id, ext).unwrap().as_ref())
+                .unwrap()
+                .to_owned()
+        }
+
+        fn mock_file(dir: &Path, filename: &str, content: &str) {
+            fs::write(dir.join(filename), content).unwrap();
+        }
+
+        fn mock_tree(dir: &Path, tree: Vec<FsNode<'_>>) {
+            fn create_mock_node(path: &Path, node: FsNode<'_>) {
+                match node {
+                    FsNode::File(name, content) => FileSystem::mock_file(path, name, content),
+                    FsNode::Dir(name, entries) => {
+                        for entry in entries {
+                            fs::create_dir_all(path.join(name)).unwrap();
+                            create_mock_node(&path.join(name), entry);
+                        }
+                    },
+                }
+            }
+
+            for entry in tree {
+                create_mock_node(dir, entry);
+            }
+        }
+    }
+
+    // -- Some basic tests for the DSL above
+
+    #[test]
+    fn test_mock_tree() {
+        FileSystem::scope(&|fs, main_path, _override_path| {
+            FileSystem::mock_tree(main_path, vec![FsNode::File("template.ron", "(5)")]);
+
+            assert_eq!(fs.read_to_str("template", "ron"), "(5)");
+        })
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion `left == right` failed")]
+    fn test_mock_file_properly_fails() {
+        FileSystem::scope(&|fs, main_path, _override_path| {
+            FileSystem::mock_file(main_path, "template.ron", "(5)");
+
+            assert_eq!(fs.read_to_str("template", "ron"), "(6)");
+        })
+    }
+
+    // -- Now finally testing our FileSystem
+
+    #[test]
+    fn test_read_main() {
+        FileSystem::scope(&|fs, main_path, _override_path| {
+            FileSystem::mock_file(main_path, "template.ron", "(5)");
+
+            assert_eq!(fs.read_to_str("template", "ron"), "(5)");
+        })
+    }
+
+    #[test]
+    fn test_read_override() {
+        FileSystem::scope(&|fs, _main_path, override_path| {
+            FileSystem::mock_file(override_path, "template.ron", "(5)");
+
+            assert_eq!(fs.read_to_str("template", "ron"), "(5)");
+        })
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_read_dir() {
+        FileSystem::scope(&|fs, main_path, _override_path| {
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)")
+                ]),
+            ]);
+
+            assert_eq!(fs.read_to_str("entity.template", "ron"), "(5)");
+        })
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_read_dir_override() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)")
+                ]),
+            ]);
+
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(6)")
+                ]),
+            ]);
+
+            assert_eq!(fs.read_to_str("entity.template", "ron"), "(6)");
+        })
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_read_dir_override_only() {
+        FileSystem::scope(&|fs, _main_path, override_path| {
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)")
+                ]),
+            ]);
+
+            assert_eq!(fs.read_to_str("entity.template", "ron"), "(5)");
+        })
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_read_dir_partial_override() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            // creating dir with two files
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)"),
+                    FsNode::File("main.ron", "(7)")
+                ]),
+            ]);
+
+            // overriding only template here, main is still same
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![
+                    FsNode::File("template.ron", "(5)")
+                ]),
+            ]);
+
+            assert_eq!(fs.read_to_str("entity.template", "ron"), "(5)");
+            assert_eq!(fs.read_to_str("entity.main", "ron"), "(7)");
+        })
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn test_read_dir_notfound() {
+        FileSystem::scope(&|fs, main_path, override_path| {
+            // creating dir with two files
+            FileSystem::mock_tree(main_path, vec![
+                FsNode::Dir("entity", vec![FsNode::File(
+                    "template.ron",
+                    "(5)",
+                )])
+            ]);
+
+            // creating dir with two files
+            FileSystem::mock_tree(override_path, vec![
+                FsNode::Dir("entity", vec![FsNode::File(
+                    "template.ron",
+                    "(5)",
+                )])
+            ]);
+
+
+            // reading non-existent file should report the error and a path
+            let res = fs.read("loadout.template", "ron");
+            assert_eq!(res.as_ref().unwrap_err().kind(), io::ErrorKind::NotFound);
+            let msg = format!("{:?}", &res.unwrap_err());
+            if msg.find("loadout/template.ron").is_none() {
+                panic!("error message doesn't contain path:\n{msg}");
+            }
+        })
+    }
+}

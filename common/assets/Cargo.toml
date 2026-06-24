@@ -28,6 +28,8 @@ serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 walkdir = "2.3.2"
+serde = { workspace = true }
+tempfile = "3.27.0"
 
 [features]
 hot-reloading = ["assets_manager/hot-reloading"]
