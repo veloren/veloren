@@ -182,3 +182,4 @@ hud-settings-game_buttons = Кнопкі Гульні
 hud-settings-game_layers = Гульнявыя Пласты
 hud-settings-menu_buttons = Кнопкі Меню
 hud-settings-row_background_opacity = Празрыстасць Фону Радка
+hud-settings-indoor_ambience = Вызначэнне атмасферы ў памяшканні
