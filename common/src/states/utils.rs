@@ -210,19 +210,15 @@ impl Body {
     /// Attempt to determine the maximum speed of the character
     /// when moving on the ground
     pub fn max_speed_approx(&self) -> f32 {
-        // Inverse kinematics: at what velocity will acceleration
-        // be cancelled out by friction drag?
-        // Note: we assume no air, since it's such a small factor.
-        // Derived via...
-        // v = (v + dv / 30) * (1 - drag).powi(2) (accel cancels drag)
-        // => 1 = (1 + (dv / 30) / v) * (1 - drag).powi(2)
-        // => 1 / (1 - drag).powi(2) = 1 + (dv / 30) / v
-        // => 1 / (1 - drag).powi(2) - 1 = (dv / 30) / v
-        // => 1 / (1 / (1 - drag).powi(2) - 1) = v / (dv / 30)
-        // => (dv / 30) / (1 / (1 - drag).powi(2) - 1) = v
         let v = match self {
             Body::Ship(ship) => ship.get_speed(),
-            _ => (-self.base_accel() * 6.0 / self.mass().0) / ((1.0 - FRIC_GROUND).powi(2) - 1.0),
+            // NOTE: that denominator evaluates to constant, at the time
+            // of writing it's ~9.751134.
+            //
+            // We still have the formula here, for the sake of completeness,
+            // and also for when we'll split FRIC_GROUND to be different
+            // on the snow/ice/etc.
+            _ => -self.base_accel() / (60.0 * (1.0 - FRIC_GROUND).ln()),
         };
         debug_assert!(v >= 0.0, "Speed must be positive!");
         v
