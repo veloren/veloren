@@ -8,7 +8,8 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 [target.x86_64-pc-windows-gnu]
 rustflags = [
     # Required for mimalloc
-    "-C", "link-arg=-lpsapi",
+    "-C",
+    "link-arg=-lpsapi",
 ]
 
 # Clever way to get workspace dir, from https://github.com/rust-lang/cargo/issues/3946#issuecomment-973132993
@@ -37,5 +38,5 @@ tracy-voxygen = "run --bin veloren-voxygen --no-default-features --features trac
 dbg-voxygen = "run --bin veloren-voxygen --profile debuginfo"
 # misc
 swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
-ci-clippy = "clippy --all-targets --locked --features=bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,asset_tweak,bin,stat"
+ci-clippy = "clippy --all-targets --locked --features=bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,bin,stat"
 ci-clippy2 = "clippy -p veloren-voxygen --locked --no-default-features --features=default-publish"
