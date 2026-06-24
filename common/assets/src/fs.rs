@@ -399,7 +399,7 @@ mod tests {
             // since uh, things accidentally happened in the past.
             let res = fs.read("loadout.template", "ron");
             assert_eq!(res.as_ref().unwrap_err().kind(), io::ErrorKind::NotFound);
-            let msg = format!("{:#?}", &res.unwrap_err());
+            let msg = format!("{:#?}", res.unwrap_err());
             if msg.find("loadout/template.ron").is_none() {
                 panic!("error message doesn't contain path:\n{msg}");
             }
