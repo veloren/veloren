@@ -70,7 +70,7 @@ deflate = { version = "1.0.0", optional = true }
 flate2 = { version = "1.0.20", optional = true }
 num-traits = { workspace = true, optional = true }
 fallible-iterator = { version = "0.3.0", optional = true }
-rstar = { version = "0.12", optional = true }
+rstar = { version = "0.13", optional = true }
 clap = { workspace = true, optional = true }
 signal-hook = { workspace = true, optional = true }
 indicatif = { version = "0.18", optional = true }

@@ -608,7 +608,7 @@ impl NearestNeighbor for KdTree<U32F0, u16, 3, 32, u32> {
 
 impl<P: RTreeParams> NearestNeighbor for RTree<ColorPoint, P> {
     fn nearest_neighbor(&self, x: &Rgb<u8>) -> Option<u8> {
-        self.nearest_neighbor(&[x.r as i32, x.g as i32, x.b as i32])
+        self.nearest_neighbor([x.r as i32, x.g as i32, x.b as i32])
             .map(|p| p.index)
     }
 }
