@@ -8712,6 +8712,7 @@ dependencies = [
  "lazy_static",
  "ron",
  "serde",
+ "tempfile",
  "tracing",
  "walkdir",
  "wavefront",
