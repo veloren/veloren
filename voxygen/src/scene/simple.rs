@@ -302,6 +302,7 @@ impl Scene {
                 ground_vel: Vec3::zero(),
                 primary_trail_points: None,
                 secondary_trail_points: None,
+                squash: 1.0,
             }
         }
 
