@@ -70,7 +70,7 @@ use common::{
     terrain::{SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     util::{Dir, div::checked_div},
-    vol::RectRasterableVol,
+    vol::{ReadVol, RectRasterableVol},
 };
 use common_base::span;
 use common_state::State;
@@ -1458,6 +1458,19 @@ impl FigureMgr {
                     })
                     .unwrap_or(0.0);
 
+                // When under an obstacle, characters get 'squashed'
+                let squash = ((read_data
+                    .terrain_grid
+                    .ray(pos.0 + Vec3::unit_z(), pos.0 + Vec3::unit_z() * 3.0)
+                    .ignore_error()
+                    .max_iter(4)
+                    .until(|b| b.is_solid())
+                    .cast()
+                    .0
+                    + 1.0)
+                    / body.height())
+                .min(1.0);
+
                 let state = self
                     .states
                     .character_states
@@ -1465,7 +1478,7 @@ impl FigureMgr {
                     .or_insert_with(|| {
                         FigureState::new(
                             renderer,
-                            CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                             body,
                         )
                     });
@@ -1497,7 +1510,7 @@ impl FigureMgr {
                     // Standing or Skating
                     (true, false, false, false, _) | (_, _, false, false, true) => {
                         anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1517,7 +1530,7 @@ impl FigureMgr {
                     // Running
                     (true, true, false, false, _) => {
                         anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1540,7 +1553,7 @@ impl FigureMgr {
                     // In air
                     (false, _, false, false, _) => {
                         anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1559,7 +1572,7 @@ impl FigureMgr {
                     },
                     // Swim
                     (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
-                        &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                        &CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                         (
                             active_tool_kind,
                             second_tool_kind,
@@ -1578,7 +1591,7 @@ impl FigureMgr {
                     // Mount
                     (_, _, _, true, _) => {
                         let base = anim::character::MountAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(holding_lantern, back_carry_offset, squash),
                             (
                                 active_tool_kind,
                                 second_tool_kind,

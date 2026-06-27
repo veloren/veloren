@@ -23,10 +23,12 @@ use common::{
         item::ItemKind,
         ship,
     },
+    resources::TimeOfDay,
     slowjob::SlowJobPool,
     terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
 };
+use specs::WorldExt;
 use std::sync::Arc;
 use vek::*;
 use winit::event::MouseButton;
@@ -221,9 +223,10 @@ impl Scene {
             view_mat_inv,
             ..
         } = self.camera.dependents();
-        const VD: f32 = 0.0; // View Distance
 
-        const TIME: f64 = 8.6 * 60.0 * 60.0;
+        let time_of_day = client.state().ecs().read_resource::<TimeOfDay>();
+
+        const VD: f32 = 0.0; // View Distance
         const SHADOW_NEAR: f32 = 0.25;
         const SHADOW_FAR: f32 = 1.0;
 
@@ -238,7 +241,7 @@ impl Scene {
             VD,
             self.lod.get_data().tgt_detail as f32,
             self.map_bounds,
-            TIME,
+            time_of_day.0,
             scene_data.time,
             0.0,
             renderer.resolution().as_(),
@@ -304,7 +307,11 @@ impl Scene {
 
         if let Some(body) = scene_data.body {
             let char_state = self.char_state.get_or_insert_with(|| {
-                FigureState::new(renderer, CharacterSkeleton::default(), body)
+                FigureState::new(
+                    renderer,
+                    CharacterSkeleton::new(!time_of_day.day_period().is_light(), 0.0, 1.0),
+                    body,
+                )
             });
             let params = figure_params(scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
