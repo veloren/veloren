@@ -126,6 +126,8 @@ impl LoadedLib {
 
         lib_path
     }
+
+    pub fn reload_count(&self) -> u64 { self.reload_count }
 }
 
 /// Initialise a watcher.

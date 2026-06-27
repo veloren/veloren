@@ -793,6 +793,24 @@ impl Server {
             .calendar_now();
         *self.state.ecs_mut().write_resource::<Calendar>() = new_calendar;
 
+        #[cfg(feature = "hot-site")]
+        if let Ok(lib) = world::LIB.lock()
+            && let Some(lib) = &*lib
+        {
+            static LAST_COUNT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let last_count = LAST_COUNT.load(std::sync::atomic::Ordering::Relaxed);
+
+            let new_count = lib.reload_count();
+
+            if new_count > last_count {
+                LAST_COUNT.store(new_count, std::sync::atomic::Ordering::Relaxed);
+
+                let count = cmd::reload_chunks_inner(self, Vec3::zero(), None, true);
+
+                tracing::info!("Reloaded {count} chunks");
+            }
+        }
+
         // This tick function is the centre of the Veloren universe. Most server-side
         // things are managed from here, and as such it's important that it
         // stays organised. Please consult the core developers before making

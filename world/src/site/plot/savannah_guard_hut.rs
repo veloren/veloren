@@ -49,9 +49,12 @@ impl SavannahGuardHut {
 
 impl Structure for SavannahGuardHut {
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"render_savannahhut\0";
+    const UPDATE_FN: &'static [u8] = b"render_savannahguardhut\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", unsafe(export_name = "render_savannahhut"))]
+    #[cfg_attr(
+        feature = "be-dyn-lib",
+        unsafe(export_name = "render_savannahguardhut")
+    )]
     fn render_inner(&self, _site: &Site, _land: &Land, painter: &Painter) {
         let reed = Fill::Brick(BlockKind::Misc, Rgb::new(72, 55, 46), 22);
         let reed2 = Fill::Brick(BlockKind::Misc, Rgb::new(100, 77, 64), 22);
