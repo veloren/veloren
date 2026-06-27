@@ -217,6 +217,10 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     pub fn clear(&mut self) { self.chunks.clear(); }
 
+    pub fn retain(&mut self, mut f: impl FnMut(Vec2<i32>) -> bool) {
+        self.chunks.retain(|p, _| f(*p));
+    }
+
     pub fn drain(&mut self) -> hash_map::Drain<'_, Vec2<i32>, Arc<V>> { self.chunks.drain() }
 
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
