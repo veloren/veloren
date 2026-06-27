@@ -149,7 +149,8 @@ impl Skeleton for CharacterSkeleton {
             ..tr
         };
         let squash_limb = |tr: Transform<f32, f32, f32>| Transform {
-            position: tr.position * Vec3::new(1.0, 1.0, self.squash.powi(2)),
+            position: tr.position * Vec3::new(1.0, 1.0, self.squash.powi(2))
+                + Vec3::new(0.0, (1.0 - self.squash).max(0.0) * 5.0, 0.0),
             orientation: tr.orientation
                 * Quaternion::rotation_x((1.0 - self.squash).max(0.0) * 2.0),
             ..tr
