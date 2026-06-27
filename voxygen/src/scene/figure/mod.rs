@@ -1414,22 +1414,27 @@ impl FigureMgr {
             ground_vel: physics.ground_vel,
             primary_trail_points: self.trail_points(data.scene_data, entity, true),
             secondary_trail_points: self.trail_points(data.scene_data, entity, false),
-            // When under an obstacle, characters get 'squashed'
-            squash: (1..(scale * 4.0).ceil() as i32)
-                .find(|z| {
-                    // Chosen to avoid squashing due to neighbouring blocks
-                    let rad = body.max_radius().min(0.4);
-                    ((pos.0.x - rad) as i32..=(pos.0.x + rad) as i32).any(|x| {
-                        ((pos.0.y - rad) as i32..=(pos.0.y + rad) as i32).any(|y| {
-                            read_data
-                                .terrain_grid
-                                .get(Vec3::new(x, y, pos.0.z.floor() as i32 + z))
-                                .map_or(false, |b| b.is_solid())
+            // When under an obstacle, and when not crouching, characters get 'squashed' to avoid
+            // head clipping
+            squash: if character.map_or(true, |cs| cs.is_stealthy()) {
+                1.0
+            } else {
+                (1..(scale * 4.0).ceil() as i32)
+                    .find(|z| {
+                        // Chosen to avoid squashing due to neighbouring blocks
+                        let rad = body.max_radius().min(0.4);
+                        ((pos.0.x - rad) as i32..=(pos.0.x + rad) as i32).any(|x| {
+                            ((pos.0.y - rad) as i32..=(pos.0.y + rad) as i32).any(|y| {
+                                read_data
+                                    .terrain_grid
+                                    .get(Vec3::new(x, y, pos.0.z.floor() as i32 + z))
+                                    .map_or(false, |b| b.is_solid())
+                            })
                         })
                     })
-                })
-                .map(|z| ((z as f32 - pos.0.z.fract()) / body.height()).min(1.0))
-                .unwrap_or(1.0),
+                    .map(|z| ((z as f32 - pos.0.z.fract()) / body.height()).min(1.0))
+                    .unwrap_or(1.0)
+            },
         };
 
         match body {
@@ -8444,9 +8449,9 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         span!(_guard, "update", "FigureState::update");
 
         self.meta.squash = Lerp::lerp(
-            self.meta.squash,
             *squash,
-            inline_tweak::tweak!(0.25) * 0.5f32.powf(*dt),
+            self.meta.squash,
+            0.5f32.powf(*dt * inline_tweak::tweak!(50.0)),
         );
 
         // NOTE: As long as update() always gets called after get_or_create_model(), and
