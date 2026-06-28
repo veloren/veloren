@@ -101,7 +101,6 @@ impl Scene {
         );
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
-        camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(start_angle, 0.1, 0.0));
 
         let figure_atlas = FigureAtlas::new(renderer);
@@ -123,12 +122,10 @@ impl Scene {
 
         let world = client.world_data();
         let char_chunk = world.chunk_size().map(|e| e as i32 / 2);
-        let char_pos = char_chunk.cpos_to_wpos().map(|e| e as f32).with_z(
-            world
-                .lod_alt
-                .get(char_chunk)
-                .map_or(0.0, |z| *z as f32 + 48.0),
-        );
+        let char_pos = char_chunk
+            .cpos_to_wpos()
+            .map(|e| e as f32)
+            .with_z(world.alt_at(char_chunk).unwrap_or(0.0) + 200.0);
         client.set_lod_pos_fallback(char_pos.xy());
         client.set_lod_distance(settings.graphics.lod_distance);
 
@@ -203,8 +200,9 @@ impl Scene {
         inventory: Option<&Inventory>,
         client: &Client,
     ) {
+        self.camera.set_distance(6.0);
         self.camera
-            .force_focus_pos(self.char_pos + Vec3::unit_z() * 1.5);
+            .force_focus_pos(self.char_pos + Vec3::unit_z() * 2.0);
         let ori = self.camera.get_tgt_orientation();
         self.camera
             .set_orientation(Vec3::new(ori.x, ori.y.max(-0.25), ori.z));
