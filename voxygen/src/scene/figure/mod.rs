@@ -8448,11 +8448,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
     ) {
         span!(_guard, "update", "FigureState::update");
 
-        self.meta.squash = Lerp::lerp(
-            *squash,
-            self.meta.squash,
-            0.5f32.powf(*dt * inline_tweak::tweak!(50.0)),
-        );
+        self.meta.squash = Lerp::lerp(*squash, self.meta.squash, 0.5f32.powf(*dt * 50.0));
 
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we
