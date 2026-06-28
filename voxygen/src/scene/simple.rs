@@ -231,6 +231,29 @@ impl Scene {
         self.lod
             .maintain(renderer, client, self.camera.get_focus_pos(), &self.camera);
 
+        let lantern_light = if !time_of_day.day_period().is_light()
+            && let Some(char_state) = &self.char_state
+            && let Some(inv) = inventory
+            && let Some(item) = inv.equipped(EquipSlot::Lantern)
+            && let ItemKind::Lantern(lantern) = &*item.kind()
+        {
+            let pos = char_state.wpos_of(
+                char_state
+                    .computed_skeleton
+                    .lantern
+                    .mul_point(Vec3::new(0.0, 0.0, -5.5)),
+            );
+            let mut light = Light::new(pos, lantern.color(), lantern.strength());
+            if let Some((dir, fov)) = lantern.dir {
+                light =
+                    light.with_dir(char_state.computed_skeleton.lantern.mul_direction(dir), fov);
+            }
+            Some(light)
+        } else {
+            None
+        };
+        renderer.update_consts(&mut self.data.lights, lantern_light.as_slice());
+
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
             proj_mat,
@@ -244,7 +267,7 @@ impl Scene {
             0.0,
             renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
-            0,
+            lantern_light.is_some() as usize,
             0,
             0,
             BlockKind::Air,
@@ -306,11 +329,7 @@ impl Scene {
 
         if let Some(body) = scene_data.body {
             let char_state = self.char_state.get_or_insert_with(|| {
-                FigureState::new(
-                    renderer,
-                    CharacterSkeleton::new(!time_of_day.day_period().is_light(), 0.0, 1.0),
-                    body,
-                )
+                FigureState::new(renderer, CharacterSkeleton::new(false, 0.0, 1.0), body)
             });
             let params = figure_params(scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
@@ -327,6 +346,7 @@ impl Scene {
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
             char_state.skeleton = Lerp::lerp(&char_state.skeleton, &tgt_skeleton, dt_lerp);
+            char_state.skeleton.holding_lantern = lantern_light.is_some();
             let (model, _) = self.char_model_cache.get_or_create_model(
                 renderer,
                 &mut self.figure_atlas,
