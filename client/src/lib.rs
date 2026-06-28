@@ -196,6 +196,14 @@ impl WorldData {
     pub fn min_chunk_alt(&self) -> f32 { self.map.2.x }
 
     pub fn max_chunk_alt(&self) -> f32 { self.map.2.y }
+
+    pub fn alt_at(&self, cpos: Vec2<i32>) -> Option<f32> {
+        let [a, b, _, _] = self.lod_alt.get(cpos)?.to_le_bytes();
+        Some(
+            (a as f32 * (1.0 / 256.0) + b as f32) * (1.0 / 256.0) * self.max_chunk_alt()
+                + self.min_chunk_alt(),
+        )
+    }
 }
 
 pub struct SiteMarker {

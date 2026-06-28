@@ -70,7 +70,7 @@ use common::{
     terrain::{SpriteKind, TerrainChunk, TerrainGrid},
     uid::IdMaps,
     util::{Dir, div::checked_div},
-    vol::RectRasterableVol,
+    vol::{ReadVol, RectRasterableVol},
 };
 use common_base::span;
 use common_state::State;
@@ -1414,6 +1414,27 @@ impl FigureMgr {
             ground_vel: physics.ground_vel,
             primary_trail_points: self.trail_points(data.scene_data, entity, true),
             secondary_trail_points: self.trail_points(data.scene_data, entity, false),
+            // When under an obstacle, and when not crouching, characters get 'squashed' to avoid
+            // head clipping
+            squash: if character.map_or(true, |cs| cs.is_stealthy()) {
+                1.0
+            } else {
+                (1..(scale * 4.0).ceil() as i32)
+                    .find(|z| {
+                        // Chosen to avoid squashing due to neighbouring blocks
+                        let rad = body.max_radius().min(0.4);
+                        ((pos.0.x - rad) as i32..=(pos.0.x + rad) as i32).any(|x| {
+                            ((pos.0.y - rad) as i32..=(pos.0.y + rad) as i32).any(|y| {
+                                read_data
+                                    .terrain_grid
+                                    .get(Vec3::new(x, y, pos.0.z.floor() as i32 + z))
+                                    .map_or(false, |b| b.is_solid())
+                            })
+                        })
+                    })
+                    .map(|z| ((z as f32 - pos.0.z.fract()) / body.height()).min(1.0))
+                    .unwrap_or(1.0)
+            },
         };
 
         match body {
@@ -1465,7 +1486,11 @@ impl FigureMgr {
                     .or_insert_with(|| {
                         FigureState::new(
                             renderer,
-                            CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            CharacterSkeleton::new(
+                                holding_lantern,
+                                back_carry_offset,
+                                common_params.squash,
+                            ),
                             body,
                         )
                     });
@@ -1497,7 +1522,11 @@ impl FigureMgr {
                     // Standing or Skating
                     (true, false, false, false, _) | (_, _, false, false, true) => {
                         anim::character::StandAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                back_carry_offset,
+                                state.squash,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1517,7 +1546,11 @@ impl FigureMgr {
                     // Running
                     (true, true, false, false, _) => {
                         anim::character::RunAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                back_carry_offset,
+                                state.squash,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1540,7 +1573,11 @@ impl FigureMgr {
                     // In air
                     (false, _, false, false, _) => {
                         anim::character::JumpAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                back_carry_offset,
+                                state.squash,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -1559,7 +1596,7 @@ impl FigureMgr {
                     },
                     // Swim
                     (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
-                        &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                        &CharacterSkeleton::new(holding_lantern, back_carry_offset, state.squash),
                         (
                             active_tool_kind,
                             second_tool_kind,
@@ -1578,7 +1615,11 @@ impl FigureMgr {
                     // Mount
                     (_, _, _, true, _) => {
                         let base = anim::character::MountAnimation::update_skeleton(
-                            &CharacterSkeleton::new(holding_lantern, back_carry_offset),
+                            &CharacterSkeleton::new(
+                                holding_lantern,
+                                back_carry_offset,
+                                state.squash,
+                            ),
                             (
                                 active_tool_kind,
                                 second_tool_kind,
@@ -8253,6 +8294,7 @@ pub struct FigureStateMeta {
     pub last_glow: (Vec3<f32>, f32),
     acc_vel: f32,
     bound: pipelines::figure::BoundLocals,
+    squash: f32,
 }
 
 impl FigureStateMeta {
@@ -8310,6 +8352,7 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub ground_vel: Vec3<f32>,
     pub primary_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     pub secondary_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    pub squash: f32,
 }
 
 pub trait FigureData: Sized {
@@ -8367,6 +8410,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
                 last_glow: (Vec3::zero(), 0.0),
                 acc_vel: 0.0,
                 bound: renderer.create_figure_bound_locals(&[FigureLocals::default()], bone_consts),
+                squash: 1.0,
             },
             skeleton,
             computed_skeleton,
@@ -8393,6 +8437,7 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
             ground_vel,
             primary_trail_points,
             secondary_trail_points,
+            squash,
         }: &FigureUpdateCommonParameters,
         state_animation_rate: f32,
         model: Option<&impl ModelEntry>,
@@ -8402,6 +8447,8 @@ impl<S: Skeleton, D: FigureData> FigureState<S, D> {
         skel_body: S::Body,
     ) {
         span!(_guard, "update", "FigureState::update");
+
+        self.meta.squash = Lerp::lerp(*squash, self.meta.squash, 0.5f32.powf(*dt * 50.0));
 
         // NOTE: As long as update() always gets called after get_or_create_model(), and
         // visibility is not set again until after the model is rendered, we

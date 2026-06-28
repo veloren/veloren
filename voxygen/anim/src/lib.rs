@@ -19,7 +19,7 @@ macro_rules! skeleton_impls {
             )?
         }
     } => {
-        #[derive(Clone, Default)]
+        #[derive(Clone)]
         pub struct $ComputedSkeleton {
             $(pub $mesh_bone: $crate::vek::Mat4<f32>,)*
         }

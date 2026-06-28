@@ -8669,6 +8669,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.17.1",
  "indexmap 2.14.0",
+ "inline_tweak",
  "itertools 0.14.0",
  "kiddo",
  "lazy_static",

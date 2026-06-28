@@ -23,10 +23,12 @@ use common::{
         item::ItemKind,
         ship,
     },
+    resources::TimeOfDay,
     slowjob::SlowJobPool,
     terrain::{BlockKind, CoordinateConversions},
     vol::{BaseVol, ReadVol},
 };
+use specs::WorldExt;
 use std::sync::Arc;
 use vek::*;
 use winit::event::MouseButton;
@@ -99,7 +101,6 @@ impl Scene {
         );
 
         let mut camera = Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson);
-        camera.set_distance(3.4);
         camera.set_orientation(Vec3::new(start_angle, 0.1, 0.0));
 
         let figure_atlas = FigureAtlas::new(renderer);
@@ -121,12 +122,10 @@ impl Scene {
 
         let world = client.world_data();
         let char_chunk = world.chunk_size().map(|e| e as i32 / 2);
-        let char_pos = char_chunk.cpos_to_wpos().map(|e| e as f32).with_z(
-            world
-                .lod_alt
-                .get(char_chunk)
-                .map_or(0.0, |z| *z as f32 + 48.0),
-        );
+        let char_pos = char_chunk
+            .cpos_to_wpos()
+            .map(|e| e as f32)
+            .with_z(world.alt_at(char_chunk).unwrap_or(0.0) + 200.0);
         client.set_lod_pos_fallback(char_pos.xy());
         client.set_lod_distance(settings.graphics.lod_distance);
 
@@ -201,8 +200,9 @@ impl Scene {
         inventory: Option<&Inventory>,
         client: &Client,
     ) {
+        self.camera.set_distance(6.0);
         self.camera
-            .force_focus_pos(self.char_pos + Vec3::unit_z() * 1.5);
+            .force_focus_pos(self.char_pos + Vec3::unit_z() * 2.0);
         let ori = self.camera.get_tgt_orientation();
         self.camera
             .set_orientation(Vec3::new(ori.x, ori.y.max(-0.25), ori.z));
@@ -221,14 +221,38 @@ impl Scene {
             view_mat_inv,
             ..
         } = self.camera.dependents();
-        const VD: f32 = 0.0; // View Distance
 
-        const TIME: f64 = 8.6 * 60.0 * 60.0;
+        let time_of_day = client.state().ecs().read_resource::<TimeOfDay>();
+
+        const VD: f32 = 0.0; // View Distance
         const SHADOW_NEAR: f32 = 0.25;
         const SHADOW_FAR: f32 = 1.0;
 
         self.lod
             .maintain(renderer, client, self.camera.get_focus_pos(), &self.camera);
+
+        let lantern_light = if !time_of_day.day_period().is_light()
+            && let Some(char_state) = &self.char_state
+            && let Some(inv) = inventory
+            && let Some(item) = inv.equipped(EquipSlot::Lantern)
+            && let ItemKind::Lantern(lantern) = &*item.kind()
+        {
+            let pos = char_state.wpos_of(
+                char_state
+                    .computed_skeleton
+                    .lantern
+                    .mul_point(Vec3::new(0.0, 0.0, -5.5)),
+            );
+            let mut light = Light::new(pos, lantern.color(), lantern.strength());
+            if let Some((dir, fov)) = lantern.dir {
+                light =
+                    light.with_dir(char_state.computed_skeleton.lantern.mul_direction(dir), fov);
+            }
+            Some(light)
+        } else {
+            None
+        };
+        renderer.update_consts(&mut self.data.lights, lantern_light.as_slice());
 
         renderer.update_consts(&mut self.data.globals, &[Globals::new(
             view_mat,
@@ -238,12 +262,12 @@ impl Scene {
             VD,
             self.lod.get_data().tgt_detail as f32,
             self.map_bounds,
-            TIME,
+            time_of_day.0,
             scene_data.time,
             0.0,
             renderer.resolution().as_(),
             Vec2::new(SHADOW_NEAR, SHADOW_FAR),
-            0,
+            lantern_light.is_some() as usize,
             0,
             0,
             BlockKind::Air,
@@ -299,12 +323,13 @@ impl Scene {
                 ground_vel: Vec3::zero(),
                 primary_trail_points: None,
                 secondary_trail_points: None,
+                squash: 1.0,
             }
         }
 
         if let Some(body) = scene_data.body {
             let char_state = self.char_state.get_or_insert_with(|| {
-                FigureState::new(renderer, CharacterSkeleton::default(), body)
+                FigureState::new(renderer, CharacterSkeleton::new(false, 0.0, 1.0), body)
             });
             let params = figure_params(scene_data.delta_time, self.char_pos);
             let tgt_skeleton = anim::character::IdleAnimation::update_skeleton(
@@ -321,6 +346,7 @@ impl Scene {
             );
             let dt_lerp = (scene_data.delta_time * 15.0).min(1.0);
             char_state.skeleton = Lerp::lerp(&char_state.skeleton, &tgt_skeleton, dt_lerp);
+            char_state.skeleton.holding_lantern = lantern_light.is_some();
             let (model, _) = self.char_model_cache.get_or_create_model(
                 renderer,
                 &mut self.figure_atlas,

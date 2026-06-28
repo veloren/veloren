@@ -416,7 +416,7 @@ fn load_npc_bones(
                 .unwrap_or(0.0);
 
             let skel = anim::character::StandAnimation::update_skeleton(
-                &CharacterSkeleton::new(false, back_carry_offset),
+                &CharacterSkeleton::new(false, back_carry_offset, 1.0),
                 (
                     active_tool_kind,
                     second_tool_kind,

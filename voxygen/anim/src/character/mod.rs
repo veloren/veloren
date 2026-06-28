@@ -106,13 +106,15 @@ skeleton_impls!(struct CharacterSkeleton ComputedCharacterSkeleton {
     off_weapon_trail: bool,
     // Cannot exist at same time as weapon trails. Since gliding and attacking are mutually exclusive, should never be a concern.
     glider_trails: bool,
+    squash: f32,
 });
 
 impl CharacterSkeleton {
-    pub fn new(holding_lantern: bool, back_carry_offset: f32) -> Self {
+    pub fn new(holding_lantern: bool, back_carry_offset: f32, squash: f32) -> Self {
         Self {
             holding_lantern,
             back_carry_offset,
+            squash,
             ..Self::default()
         }
     }
@@ -139,16 +141,31 @@ impl Skeleton for CharacterSkeleton {
         // appiles to other body variant animations)
         let base_mat = base_mat * Mat4::scaling_3d(body.height() * (1.0 / 25.0));
 
+        let squash_chest = |tr: Transform<f32, f32, f32>| Transform {
+            position: tr.position * Vec3::new(1.0, 1.0, self.squash.powi(2))
+                + Vec3::new(0.0, (self.squash - 1.0).min(0.0) * 8.0, 0.0),
+            orientation: tr.orientation
+                * Quaternion::rotation_x((self.squash - 1.0).min(0.0) * 2.0),
+            ..tr
+        };
+        let squash_limb = |tr: Transform<f32, f32, f32>| Transform {
+            position: tr.position * Vec3::new(1.0, 1.0, self.squash.powi(2))
+                + Vec3::new(0.0, (1.0 - self.squash).max(0.0) * 5.0, 0.0),
+            orientation: tr.orientation
+                * Quaternion::rotation_x((1.0 - self.squash).max(0.0) * 2.0),
+            ..tr
+        };
+
         let torso_mat = base_mat * Mat4::<f32>::from(self.torso);
-        let chest_mat = torso_mat * Mat4::<f32>::from(self.chest);
-        let head_mat = chest_mat * Mat4::<f32>::from(self.head);
+        let chest_mat = torso_mat * Mat4::<f32>::from(squash_chest(self.chest));
+        let head_mat = chest_mat * Mat4::<f32>::from(squash_limb(self.head));
         let shorts_mat = chest_mat * Mat4::<f32>::from(self.shorts);
         let control_mat = chest_mat * Mat4::<f32>::from(self.control);
         let control_l_mat = control_mat * Mat4::<f32>::from(self.control_l);
         let control_r_mat = control_mat * Mat4::<f32>::from(self.control_r);
-        let hand_r_mat = control_r_mat * Mat4::<f32>::from(self.hand_r);
+        let hand_r_mat = control_r_mat * Mat4::<f32>::from(squash_limb(self.hand_r));
 
-        let hand_l_mat = Mat4::<f32>::from(self.hand_l);
+        let hand_l_mat = Mat4::<f32>::from(squash_limb(self.hand_l));
         let lantern_mat = if self.holding_lantern {
             hand_r_mat
         } else {
