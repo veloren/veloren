@@ -40,7 +40,7 @@ COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/src/target \
-    cargo build --release -p veloren-server-cli \
+    cargo build --release -p veloren-server-cli --features glitch-auth \
     && mkdir -p /src/artifacts \
     && cp /src/target/release/veloren-server-cli /src/artifacts/veloren-server-cli
 
@@ -51,7 +51,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/src/target \
-    cargo build --release -p veloren-voxygen --no-default-features \
+    cargo build --release -p veloren-voxygen --no-default-features --features glitch-web \
     && mkdir -p /src/artifacts \
     && cp /src/target/release/veloren-voxygen /src/artifacts/veloren-voxygen
 
@@ -94,6 +94,7 @@ COPY --from=builder /src/artifacts/veloren-server-cli /opt/veloren-server-cli
 COPY --from=builder /src/artifacts/veloren-voxygen /opt/veloren-voxygen
 COPY --from=builder /src/artifacts/veloren-auth-provisioner /usr/local/bin/veloren-auth-provisioner
 COPY --from=builder /src/assets /opt/assets
+COPY glitch/streamed-native/ /usr/local/share/veloren-glitch/
 COPY docker/glitch-entrypoint.sh /usr/local/bin/glitch-entrypoint.sh
 COPY docker/glitch-web-entrypoint.sh /usr/local/bin/glitch-web-entrypoint.sh
 

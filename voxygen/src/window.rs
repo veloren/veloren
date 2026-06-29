@@ -205,6 +205,27 @@ pub enum LastInput {
     Controller,
 }
 
+#[cfg(feature = "glitch-web")]
+fn glitch_env_flag(name: &str) -> bool {
+    std::env::var(name)
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+        .unwrap_or(false)
+}
+
+#[cfg(feature = "glitch-web")]
+fn glitch_env_f64(name: &str, default: f64) -> f64 {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.trim().parse::<f64>().ok())
+        .filter(|value| value.is_finite())
+        .unwrap_or(default)
+}
+
 pub struct Window {
     renderer: Renderer,
     window: Arc<winit::window::Window>,
@@ -227,6 +248,8 @@ pub struct Window {
     gilrs: Option<Gilrs>,
     pub controller_modifiers: Vec<Button>,
     cursor_position: winit::dpi::PhysicalPosition<f64>,
+    #[cfg(feature = "glitch-web")]
+    glitch_vnc_last_cursor_position: Option<winit::dpi::PhysicalPosition<f64>>,
     mouse_emulation_vec: Vec2<f32>,
     controller_type: ControllerType,
     last_input: LastInput,
@@ -341,6 +364,8 @@ impl Window {
             gilrs,
             controller_modifiers: Vec::new(),
             cursor_position: winit::dpi::PhysicalPosition::new(0.0, 0.0),
+            #[cfg(feature = "glitch-web")]
+            glitch_vnc_last_cursor_position: None,
             mouse_emulation_vec: Vec2::zero(),
             controller_type: ControllerType::Xbox,
             last_input: LastInput::KeyboardMouse,
@@ -825,6 +850,15 @@ impl Window {
             },
             WindowEvent::Focused(state) => {
                 self.focused = state;
+                #[cfg(feature = "glitch-web")]
+                {
+                    if state && self.cursor_grabbed {
+                        self.cursor_position = self.window_center_position();
+                        self.glitch_vnc_last_cursor_position = None;
+                    } else if !state {
+                        self.glitch_vnc_last_cursor_position = None;
+                    }
+                }
                 self.events.push(Event::Focused(state));
             },
             WindowEvent::CursorMoved { position, .. } => {
@@ -837,36 +871,80 @@ impl Window {
                     // default pitch/yaw, often looking straight down at the player.
                     //
                     // When the streamed-native entrypoint enables GLITCH_VNC_ABSOLUTE_MOUSE,
-                    // translate absolute CursorMoved deltas around the grab anchor into the
-                    // same CursorPan event used by normal relative mouse motion, then reset
-                    // the cursor back to the anchor as before.
-                    let glitch_vnc_absolute_mouse = std::env::var("GLITCH_VNC_ABSOLUTE_MOUSE")
-                        .map(|value| {
-                            matches!(
-                                value.trim().to_ascii_lowercase().as_str(),
-                                "1" | "true" | "yes" | "on"
+                    // translate noVNC absolute movement into the same CursorPan event used
+                    // by normal relative mouse motion, then try to keep the X cursor
+                    // centered as before.
+                    #[cfg(feature = "glitch-web")]
+                    {
+                        let glitch_vnc_absolute_mouse =
+                            glitch_env_flag("GLITCH_VNC_ABSOLUTE_MOUSE");
+
+                        if glitch_vnc_absolute_mouse && self.focused {
+                            // When the injected noVNC pointer-lock bridge is active, the browser
+                            // sends center-relative movement as synthetic absolute pointer events.
+                            // If the bridge is unavailable, fall back to deltas between real noVNC
+                            // positions and ignore the large warp events caused by our recentering.
+                            let max_x_delta =
+                                glitch_env_f64("GLITCH_VNC_ABSOLUTE_MOUSE_MAX_DELTA", 48.0)
+                                    .max(0.0);
+                            let max_y_delta =
+                                glitch_env_f64("GLITCH_VNC_ABSOLUTE_MOUSE_MAX_Y_DELTA", 28.0)
+                                    .max(0.0);
+                            let deadzone =
+                                glitch_env_f64("GLITCH_VNC_ABSOLUTE_MOUSE_DEADZONE", 1.8).max(0.0);
+                            let x_scale = glitch_env_f64(
+                                "GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE",
+                                0.015,
                             )
-                        })
-                        .unwrap_or(false);
+                            .max(0.0) as f32;
+                            let y_scale = glitch_env_f64(
+                                "GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE",
+                                0.006,
+                            )
+                            .max(0.0) as f32;
+                            let pointer_lock_mouse = glitch_env_flag("GLITCH_NOVNC_POINTER_LOCK");
 
-                    if glitch_vnc_absolute_mouse && self.focused {
-                        let dx = position.x - self.cursor_position.x;
-                        let dy = position.y - self.cursor_position.y;
+                            let delta = if pointer_lock_mouse {
+                                self.glitch_vnc_last_cursor_position = None;
+                                Some((
+                                    position.x - self.cursor_position.x,
+                                    position.y - self.cursor_position.y,
+                                ))
+                            } else if let Some(last_position) = self.glitch_vnc_last_cursor_position {
+                                Some((position.x - last_position.x, position.y - last_position.y))
+                            } else {
+                                self.glitch_vnc_last_cursor_position = Some(position);
+                                None
+                            };
 
-                        // Ignore giant warps caused by initial focus, resize, or the reset
-                        // itself. Real noVNC mouse deltas should be small and frequent.
-                        const MAX_GLITCH_VNC_CURSOR_PAN_DELTA: f64 = 250.0;
+                            if let Some((dx, dy)) = delta {
+                                if dx.abs() <= max_x_delta && dy.abs() <= max_y_delta {
+                                    if !pointer_lock_mouse {
+                                        self.glitch_vnc_last_cursor_position = Some(position);
+                                    }
 
-                        if (dx != 0.0 || dy != 0.0)
-                            && dx.abs() <= MAX_GLITCH_VNC_CURSOR_PAN_DELTA
-                            && dy.abs() <= MAX_GLITCH_VNC_CURSOR_PAN_DELTA
-                        {
-                            let mouse_y_inversion = if self.mouse_y_inversion { -1.0 } else { 1.0 };
-                            self.events.push(Event::CursorPan(Vec2::new(
-                                dx as f32 * (self.pan_sensitivity as f32 / 100.0),
-                                dy as f32
-                                    * (self.pan_sensitivity as f32 * mouse_y_inversion / 100.0),
-                            )));
+                                    let pan_dx = if dx.abs() > deadzone { dx } else { 0.0 };
+                                    let pan_dy = if dy.abs() > deadzone { dy } else { 0.0 };
+
+                                    if pan_dx != 0.0 || pan_dy != 0.0 {
+                                        let mouse_y_inversion = if self.mouse_y_inversion {
+                                            -1.0
+                                        } else {
+                                            1.0
+                                        };
+                                        let pan_sensitivity = self.pan_sensitivity as f32 / 100.0;
+                                        self.events.push(Event::CursorPan(Vec2::new(
+                                            pan_dx as f32 * x_scale * pan_sensitivity,
+                                            pan_dy as f32
+                                                * y_scale
+                                                * pan_sensitivity
+                                                * mouse_y_inversion,
+                                        )));
+                                    }
+                                }
+                            }
+
+                            self.cursor_position = self.window_center_position();
                         }
                     }
 
@@ -920,6 +998,13 @@ impl Window {
         use winit::window::CursorGrabMode;
 
         self.cursor_grabbed = grab;
+        #[cfg(feature = "glitch-web")]
+        {
+            self.glitch_vnc_last_cursor_position = None;
+            if grab {
+                self.cursor_position = self.window_center_position();
+            }
+        }
         self.window.set_cursor_visible(!grab);
         let res = if grab {
             self.window
@@ -945,6 +1030,12 @@ impl Window {
                 error!("Error resetting cursor position: {:?}", err);
             })
         }
+    }
+
+    #[cfg(feature = "glitch-web")]
+    fn window_center_position(&self) -> winit::dpi::PhysicalPosition<f64> {
+        let size = self.window.inner_size();
+        winit::dpi::PhysicalPosition::new(size.width as f64 / 2.0, size.height as f64 / 2.0)
     }
 
     pub fn toggle_fullscreen(&mut self, settings: &mut Settings, config_dir: &std::path::Path) {

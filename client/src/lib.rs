@@ -1133,6 +1133,7 @@ impl Client {
     ) -> Result<(), Error> {
         // Authentication
         let token_or_username = match &server_info.auth_provider {
+            #[cfg(feature = "glitch-auth")]
             // Glitch mode intentionally bypasses Veloren account registration.
             // The launcher supplies:
             //   username = Glitch install_id

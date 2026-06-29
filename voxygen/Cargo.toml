@@ -36,6 +36,7 @@ egui-ui = ["voxygen-egui", "egui", "egui-wgpu", "egui-winit"]
 shaderc-from-source = ["shaderc/build-from-source"]
 discord = ["discord-sdk"]
 bin_cmd_doc_gen = []
+glitch-web = ["client/glitch-auth"]
 
 # We don't ship egui with published release builds so a separate feature is required that excludes it.
 default-publish = [

@@ -15,6 +15,7 @@ persistent_world = []
 hot-reloading = ["common/hot-reloading"]
 hot-agent = ["server-agent/use-dyn-lib"]
 hot-site = ["world/use-dyn-lib"]
+glitch-auth = ["dep:reqwest"]
 
 default = ["worldgen", "plugins", "persistent_world", "simd"]
 
@@ -62,7 +63,7 @@ lazy_static = { workspace = true }
 ron = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 rand = { workspace = true }
 hashbrown = { workspace = true }
 parking_lot = { version = "0.12" }

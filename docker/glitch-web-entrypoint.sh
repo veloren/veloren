@@ -55,8 +55,15 @@ export GLITCH_VNC_ABSOLUTE_MOUSE="${GLITCH_VNC_ABSOLUTE_MOUSE:-1}"
 export GLITCH_VNC_ABSOLUTE_MOUSE_MAX_DELTA="${GLITCH_VNC_ABSOLUTE_MOUSE_MAX_DELTA:-48}"
 export GLITCH_VNC_ABSOLUTE_MOUSE_MAX_Y_DELTA="${GLITCH_VNC_ABSOLUTE_MOUSE_MAX_Y_DELTA:-28}"
 export GLITCH_VNC_ABSOLUTE_MOUSE_DEADZONE="${GLITCH_VNC_ABSOLUTE_MOUSE_DEADZONE:-1.8}"
-export GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE="${GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE:-0.12}"
-export GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE="${GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE:-0.035}"
+export GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE="${GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE:-0.015}"
+export GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE="${GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE:-0.006}"
+export GLITCH_NOVNC_POINTER_LOCK="${GLITCH_NOVNC_POINTER_LOCK:-1}"
+export GLITCH_NOVNC_POINTER_LOCK_X_SCALE="${GLITCH_NOVNC_POINTER_LOCK_X_SCALE:-1.0}"
+export GLITCH_NOVNC_POINTER_LOCK_Y_SCALE="${GLITCH_NOVNC_POINTER_LOCK_Y_SCALE:-1.0}"
+export GLITCH_NOVNC_POINTER_LOCK_MAX_DELTA="${GLITCH_NOVNC_POINTER_LOCK_MAX_DELTA:-48}"
+export GLITCH_X11_MOUSE_BRIDGE="${GLITCH_X11_MOUSE_BRIDGE:-1}"
+export GLITCH_X11_MOUSE_BRIDGE_PORT="${GLITCH_X11_MOUSE_BRIDGE_PORT:-6090}"
+export GLITCH_X11_MOUSE_MAX_DELTA="${GLITCH_X11_MOUSE_MAX_DELTA:-80}"
 export VELOREN_CLIENT_START_DELAY_SECONDS="${VELOREN_CLIENT_START_DELAY_SECONDS:-8}"
 
 # Glitch Cloud Save. Slot 0 is the whole Veloren streamed-native userdata archive.
@@ -746,6 +753,40 @@ glitch_shutdown_save() {
   glitch_upload_cloud_save || true
 }
 
+start_glitch_x11_mouse_bridge() {
+  if [ "${GLITCH_X11_MOUSE_BRIDGE:-1}" != "1" ]; then
+    log "Mouse: X11 relative bridge disabled by GLITCH_X11_MOUSE_BRIDGE=${GLITCH_X11_MOUSE_BRIDGE:-}"
+    return 0
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    log "Mouse: python3 missing; X11 relative bridge disabled."
+    return 0
+  fi
+
+  local bridge_script="${GLITCH_X11_MOUSE_BRIDGE_SCRIPT:-/usr/local/share/veloren-glitch/x11_mouse_bridge.py}"
+  if [ ! -f "$bridge_script" ]; then
+    log "Mouse: X11 bridge script not found at ${bridge_script}; bridge disabled."
+    return 0
+  fi
+
+  pkill -f '[g]litch.*/x11_mouse_bridge.py' 2>/dev/null || true
+  GLITCH_X11_MOUSE_BRIDGE_PORT="${GLITCH_X11_MOUSE_BRIDGE_PORT:-6090}" \
+    GLITCH_X11_MOUSE_MAX_DELTA="${GLITCH_X11_MOUSE_MAX_DELTA:-80}" \
+    python3 "$bridge_script" \
+    >/tmp/glitch-x11-mouse-bridge.log 2>&1 &
+  GLITCH_X11_MOUSE_BRIDGE_PID="$!"
+
+  sleep 0.2
+  if ! kill -0 "$GLITCH_X11_MOUSE_BRIDGE_PID" 2>/dev/null; then
+    log "Mouse: X11 bridge failed to start."
+    cat /tmp/glitch-x11-mouse-bridge.log 2>/dev/null || true
+    return 0
+  fi
+
+  log "Mouse: X11 relative bridge listening on :${GLITCH_X11_MOUSE_BRIDGE_PORT:-6090}"
+}
+
 
 
 # GLITCH_CONTAINER_AUDIO_PROXY_HELPERS_V1:
@@ -755,6 +796,7 @@ start_glitch_container_public_proxy() {
   local public_port="${GLITCH_PUBLIC_PORT:-6080}"
   local novnc_port="${GLITCH_NOVNC_INTERNAL_PORT:-6082}"
   local audio_port="${GLITCH_AUDIO_PORT:-6081}"
+  local x11_mouse_port="${GLITCH_X11_MOUSE_BRIDGE_PORT:-6090}"
 
   if ! command -v nginx >/dev/null 2>&1; then
     log "Container proxy: nginx missing; cannot expose audio on same public port."
@@ -799,6 +841,24 @@ http {
             proxy_set_header Host \$host;
             proxy_set_header X-Forwarded-Proto \$scheme;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        }
+
+        location = /glitch-x11-mouse-ws {
+            proxy_pass http://127.0.0.1:${x11_mouse_port};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host \$host;
+            proxy_read_timeout 3600s;
+            proxy_send_timeout 3600s;
+            proxy_buffering off;
+        }
+
+        location = /glitch-x11-mouse-delta {
+            proxy_pass http://127.0.0.1:${x11_mouse_port};
+            proxy_http_version 1.1;
+            proxy_set_header Host \$host;
+            proxy_buffering off;
         }
 
         location /glitch-audio {
@@ -1125,6 +1185,38 @@ else:
 
 path.write_text(text)
 GLITCH_AUDIO_INJECT_PY
+}
+
+inject_glitch_pointer_lock_into_novnc() {
+  if [ "${GLITCH_NOVNC_POINTER_LOCK:-1}" != "1" ]; then
+    log "Mouse: noVNC pointer lock patch disabled by GLITCH_NOVNC_POINTER_LOCK=${GLITCH_NOVNC_POINTER_LOCK:-}"
+    return 0
+  fi
+
+  local html
+  html="$(find_novnc_html_for_audio_patch || true)"
+
+  if [ -z "$html" ] || [ ! -f "$html" ]; then
+    log "Mouse: noVNC HTML file not found; pointer lock patch will not be injected."
+    return 0
+  fi
+
+  if grep -q "GLITCH_NOVNC_POINTER_LOCK_MOUSE_V1" "$html"; then
+    log "Mouse: noVNC pointer lock patch already injected into $html"
+    return 0
+  fi
+
+  local injector="${GLITCH_NOVNC_POINTER_LOCK_INJECTOR:-/usr/local/share/veloren-glitch/inject_novnc_pointer_lock.py}"
+  local script="${GLITCH_NOVNC_POINTER_LOCK_SCRIPT:-/usr/local/share/veloren-glitch/novnc_pointer_lock_mouse.js}"
+  local target="${GLITCH_NOVNC_POINTER_LOCK_TARGET:-glitch-novnc-pointer-lock-mouse.js}"
+
+  if [ ! -f "$injector" ] || [ ! -f "$script" ]; then
+    log "Mouse: pointer lock assets missing; injector=$injector script=$script"
+    return 0
+  fi
+
+  log "Mouse: injecting noVNC pointer lock patch into $html"
+  python3 "$injector" "$html" "$script" "$target"
 }
 
 start_glitch_audio_stack() {
@@ -1475,7 +1567,9 @@ WEBSOCKIFY_PID=$!
 wait_for_http "http://127.0.0.1:${WEB_PORT}/vnc.html" "$STREAM_READY_TIMEOUT"
 check_process_alive "$WEBSOCKIFY_PID" "websockify"
 log "Stream endpoint is up: ${BROWSER_URL_PATH}"
+start_glitch_x11_mouse_bridge || true
 start_glitch_container_public_proxy || true
+inject_glitch_pointer_lock_into_novnc || true
 start_glitch_audio_stack || true
 show_glitch_loading_splash "Glitch is preparing Veloren...\nWaiting for your Glitch play session."
 

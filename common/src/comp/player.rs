@@ -4,10 +4,7 @@ use uuid::Uuid;
 
 use crate::resources::{BattleMode, Time};
 
-/// Glitch usernames returned by the validate route may be longer than Veloren's
-/// original 32-character alias limit. The Glitch auth bridge sanitizes and
-/// truncates display names to this value before login succeeds.
-pub const MAX_ALIAS_LEN: usize = 64;
+pub const MAX_ALIAS_LEN: usize = 32;
 
 #[derive(Debug)]
 pub enum DisconnectReason {

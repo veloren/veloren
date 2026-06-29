@@ -22,6 +22,7 @@ bin_bot = [
 ]
 tracy = ["common-base/tracy"]
 tick_network = []
+glitch-auth = []
 
 default = ["simd"]
 

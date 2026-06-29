@@ -28,7 +28,7 @@ use i18n::{LocalizationGuard, LocalizationHandle, fluent_args};
 use server::ServerInitStage;
 #[cfg(any(feature = "singleplayer", feature = "plugins"))]
 use specs::WorldExt;
-use std::{cell::RefCell, env, path::Path, rc::Rc, sync::Arc};
+use std::{cell::RefCell, path::Path, rc::Rc, sync::Arc};
 use tokio::runtime;
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -68,6 +68,7 @@ pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
     init: InitState,
     scene: Scene,
+    #[cfg(feature = "glitch-web")]
     glitch_autoconnect_attempted: bool,
 }
 
@@ -78,6 +79,7 @@ impl MainMenuState {
             main_menu_ui: MainMenuUi::new(global_state),
             init: InitState::None,
             scene: Scene::new(global_state.window.renderer_mut()),
+            #[cfg(feature = "glitch-web")]
             glitch_autoconnect_attempted: false,
         }
     }
@@ -113,49 +115,52 @@ impl PlayState for MainMenuState {
         // Pull in localizations
         let localized_strings = &global_state.i18n.read();
 
-        // Glitch web-stream mode: when Voxygen is launched inside a browser-streamed
-        // container, there is no useful reason to show the login form. The container
-        // receives a Glitch install/session identity from the platform and connects
-        // immediately to the assigned Veloren server.
-        if !self.glitch_autoconnect_attempted
-            && env::var("VELOREN_GLITCH_AUTOCONNECT").as_deref() == Ok("1")
+        #[cfg(feature = "glitch-web")]
         {
-            self.glitch_autoconnect_attempted = true;
+            // Glitch web-stream mode: when Voxygen is launched inside a browser-streamed
+            // container, there is no useful reason to show the login form. The container
+            // receives a Glitch install/session identity from the platform and connects
+            // immediately to the assigned Veloren server.
+            if !self.glitch_autoconnect_attempted
+                && std::env::var("VELOREN_GLITCH_AUTOCONNECT").as_deref() == Ok("1")
+            {
+                self.glitch_autoconnect_attempted = true;
 
-            let username = env::var("GLITCH_INSTALL_ID")
-                .or_else(|_| env::var("VELOREN_USERNAME"))
-                .unwrap_or_default();
-            let password = env::var("GLITCH_SHARED_PASSWORD")
-                .or_else(|_| env::var("VELOREN_PASSWORD"))
-                .unwrap_or_default();
-            let server_address = env::var("VELOREN_SERVER_ADDRESS").unwrap_or_else(|_| {
-                let host = env::var("VELOREN_SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-                let port = env::var("VELOREN_SERVER_PORT").unwrap_or_else(|_| "14004".to_string());
-                format!("{host}:{port}")
-            });
+                let username = std::env::var("GLITCH_INSTALL_ID")
+                    .or_else(|_| std::env::var("VELOREN_USERNAME"))
+                    .unwrap_or_default();
+                let password = std::env::var("GLITCH_SHARED_PASSWORD")
+                    .or_else(|_| std::env::var("VELOREN_PASSWORD"))
+                    .unwrap_or_default();
+                let server_address = std::env::var("VELOREN_SERVER_ADDRESS").unwrap_or_else(|_| {
+                    let host = std::env::var("VELOREN_SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+                    let port = std::env::var("VELOREN_SERVER_PORT").unwrap_or_else(|_| "14004".to_string());
+                    format!("{host}:{port}")
+                });
 
-            if username.is_empty() || password.is_empty() || server_address.is_empty() {
-                tracing::warn!(
-                    "VELOREN_GLITCH_AUTOCONNECT=1 but GLITCH_INSTALL_ID, GLITCH_SHARED_PASSWORD, or server address is missing"
-                );
-            } else {
-                tracing::info!(%server_address, "Glitch autoconnect: starting streamed-client login");
+                if username.is_empty() || password.is_empty() || server_address.is_empty() {
+                    tracing::warn!(
+                        "VELOREN_GLITCH_AUTOCONNECT=1 but GLITCH_INSTALL_ID, GLITCH_SHARED_PASSWORD, or server address is missing"
+                    );
+                } else {
+                    tracing::info!(%server_address, "Glitch autoconnect: starting streamed-client login");
 
-                attempt_login(
-                    &mut global_state.info_message,
-                    username,
-                    password,
-                    ConnectionArgs::Tcp {
-                        hostname: server_address,
-                        prefer_ipv6: false,
-                    },
-                    &mut self.init,
-                    &global_state.tokio_runtime,
-                    Some(global_state.settings.language.selected_language.clone()),
-                    &global_state.i18n,
-                    &global_state.config_dir,
-                    global_state.args.client_type.0,
-                );
+                    attempt_login(
+                        &mut global_state.info_message,
+                        username,
+                        password,
+                        ConnectionArgs::Tcp {
+                            hostname: server_address,
+                            prefer_ipv6: false,
+                        },
+                        &mut self.init,
+                        &global_state.tokio_runtime,
+                        Some(global_state.settings.language.selected_language.clone()),
+                        &global_state.i18n,
+                        &global_state.config_dir,
+                        global_state.args.client_type.0,
+                    );
+                }
             }
         }
 

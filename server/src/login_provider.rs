@@ -4,14 +4,21 @@ use crate::{
 };
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
 use chrono::Utc;
-use common::comp::{AdminRole, MAX_ALIAS_LEN};
+use common::comp::AdminRole;
+#[cfg(feature = "glitch-auth")]
+use common::comp::MAX_ALIAS_LEN;
 use common_net::msg::RegisterError;
 use hashbrown::HashMap;
-use specs::Component;
+#[cfg(feature = "glitch-auth")]
 use serde::Deserialize;
-use std::{env, str::FromStr, sync::Arc, time::Duration};
+use specs::Component;
+#[cfg(feature = "glitch-auth")]
+use std::{env, time::Duration};
+use std::{str::FromStr, sync::Arc};
 use tokio::{runtime::Runtime, sync::oneshot};
-use tracing::{error, info, warn};
+use tracing::{error, info};
+#[cfg(feature = "glitch-auth")]
+use tracing::warn;
 
 /// Determines whether a user is banned, given a ban record connected to a user,
 /// the `AdminRecord` of that user (if it exists), and the current time.
@@ -62,6 +69,7 @@ impl Component for PendingLogin {
     type Storage = specs::DenseVecStorage<Self>;
 }
 
+#[cfg(feature = "glitch-auth")]
 #[derive(Clone)]
 struct GlitchAuthConfig {
     api_base_url: String,
@@ -72,6 +80,7 @@ struct GlitchAuthConfig {
     game_version: String,
 }
 
+#[cfg(feature = "glitch-auth")]
 impl GlitchAuthConfig {
     fn from_provider_addr(addr: &str) -> Self {
         let api_base_url = env::var("GLITCH_API_BASE_URL").unwrap_or_else(|_| {
@@ -101,6 +110,7 @@ impl GlitchAuthConfig {
     }
 }
 
+#[cfg(feature = "glitch-auth")]
 #[derive(Deserialize)]
 struct GlitchValidateResponse {
     valid: Option<bool>,
@@ -111,6 +121,7 @@ struct GlitchValidateResponse {
 
 enum AuthMode {
     Veloren(Arc<AuthClient>),
+    #[cfg(feature = "glitch-auth")]
     Glitch(GlitchAuthConfig),
     None,
 }
@@ -125,7 +136,17 @@ impl LoginProvider {
         tracing::trace!(?auth_addr, "Starting LoginProvider");
 
         let auth_mode = match auth_addr {
-            Some(addr) if addr.starts_with("glitch://") => AuthMode::Glitch(GlitchAuthConfig::from_provider_addr(&addr)),
+            Some(addr) if addr.starts_with("glitch://") => {
+                #[cfg(feature = "glitch-auth")]
+                {
+                    AuthMode::Glitch(GlitchAuthConfig::from_provider_addr(&addr))
+                }
+
+                #[cfg(not(feature = "glitch-auth"))]
+                {
+                    panic!("glitch:// auth requires the veloren-server glitch-auth feature")
+                }
+            },
             Some(addr) => {
                 let (scheme, authority) = addr.split_once("://").expect("invalid auth url");
 
@@ -159,6 +180,7 @@ impl LoginProvider {
             // Glitch mode expects "install_id:shared_password" from the client.
             // The install_id is the deterministic Glitch identity. The visible
             // Veloren alias is pulled from the Glitch validate response.
+            #[cfg(feature = "glitch-auth")]
             AuthMode::Glitch(cfg) => {
                 let cfg = cfg.clone();
                 let username_or_token = username_or_token.to_string();
@@ -268,6 +290,7 @@ impl LoginProvider {
         }
     }
 
+    #[cfg(feature = "glitch-auth")]
     async fn query_glitch(
         cfg: GlitchAuthConfig,
         username_or_token: &str,
@@ -361,6 +384,7 @@ impl LoginProvider {
         Ok((veloren_alias, derive_uuid(install_id)))
     }
 
+    #[cfg(feature = "glitch-auth")]
     fn normalize_glitch_alias(raw_name: &str, fallback_install_id: &str) -> String {
         let mut alias = raw_name
             .trim()
@@ -395,7 +419,10 @@ impl LoginProvider {
                 //TODO: optimize
                 self.runtime.block_on(srv.username_to_uuid(&username))
             },
+            #[cfg(feature = "glitch-auth")]
             AuthMode::Glitch(_) | AuthMode::None => Ok(derive_uuid(username)),
+            #[cfg(not(feature = "glitch-auth"))]
+            AuthMode::None => Ok(derive_uuid(username)),
         }
     }
 
@@ -409,7 +436,10 @@ impl LoginProvider {
                 //TODO: optimize
                 self.runtime.block_on(srv.uuid_to_username(uuid))
             },
+            #[cfg(feature = "glitch-auth")]
             AuthMode::Glitch(_) | AuthMode::None => Ok(fallback_alias.into()),
+            #[cfg(not(feature = "glitch-auth"))]
+            AuthMode::None => Ok(fallback_alias.into()),
         }
     }
 }

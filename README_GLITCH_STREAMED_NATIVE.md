@@ -49,19 +49,41 @@ docker/Dockerfile.glitch-veloren-web
   Builds the streamed-native image.
   Installs runtime dependencies for Xvfb, x11vnc, noVNC, websockify, nginx,
   PulseAudio, ffmpeg, and the non-root audio runtime user.
+  Enables the optional Rust features needed for Glitch: server-cli
+  `glitch-auth` and voxygen `glitch-web`.
 
 docker/glitch-web-entrypoint.sh
   Main streamed-native boot script.
   Starts the virtual display, noVNC, nginx proxy, PulseAudio user daemon,
   local Veloren server, Voxygen client, cloud-save helpers, and audio stream.
 
+glitch/streamed-native
+  Browser-streamed helper assets copied only into the Glitch web image,
+  including the noVNC pointer-lock injector and X11 mouse bridge.
+
 voxygen/src/window.rs
-  Contains the noVNC mouse compatibility patch.
-  Current best-known state restores the first-generation absolute mouse mapping.
+  Contains the noVNC mouse compatibility patch behind the optional
+  `glitch-web` feature. Normal Voxygen builds do not compile this path.
 
 glitch/veloren-auth-provisioner
   Provisions or maps a Veloren login identity from Glitch runtime identity.
 ```
+
+## Optional build gates
+
+The Veloren code changes are opt-in:
+
+```text
+server-cli feature: glitch-auth
+  Enables glitch:// server auth and the optional reqwest dependency.
+
+voxygen feature: glitch-web
+  Enables Glitch browser-stream autoconnect and noVNC absolute mouse handling.
+  This also enables the client-side glitch-auth login adapter.
+```
+
+The Glitch Docker image enables both features. Regular Veloren builds keep the
+upstream defaults.
 
 ## Runtime environment variables
 
@@ -172,15 +194,71 @@ Best-known current state:
 ```text
 GLITCH_NOVNC_CAMERA_MOUSE_FIX_V1 restored in voxygen/src/window.rs
 GLITCH_VNC_ABSOLUTE_MOUSE defaults to 1 in docker/glitch-web-entrypoint.sh
+GLITCH_NOVNC_POINTER_LOCK defaults to 1 and injects a noVNC browser patch
+GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE / Y_SCALE tune streamed camera sensitivity
+Default streamed mouse scale is currently X=0.015, Y=0.006
+Pointer-locked noVNC sends center-relative motion into Veloren. If pointer lock
+is not available, the fallback derives motion from consecutive real absolute
+events and ignores cursor recenter/focus warps.
+The noVNC bridge catches async pointer-lock rejections and waits briefly after
+lock exit before asking Chrome to capture the mouse again.
+The stream also starts a same-origin X11 mouse WebSocket bridge as a fallback:
+pointer-locked noVNC movement is mirrored into XTest relative mouse motion for
+older Voxygen binaries that do not include the Rust-side noVNC cursor patch.
 Later over-tuned V3 mouse mapping was reverted
 ```
+
+When the stream is embedded, the parent iframe must allow pointer lock:
+
+```html
+<iframe
+  src="https://.../vnc.html?autoconnect=1&resize=scale&quality=8&compression=1&shared=1"
+  allow="pointer-lock; fullscreen"
+></iframe>
+```
+
+Without `allow="pointer-lock"`, the browser may deny mouse capture. The noVNC
+patch suppresses raw absolute mousemove events while unlocked so the camera does
+not keep receiving iframe-edge coordinates.
+
+The injected page script also exposes an integration point for wrapper/bridge
+scripts such as Aegis:
+
+```js
+window.__glitchNoVNCPointerLockMouseV1.sendRelativeMouse(dx, dy, buttonMask);
+
+window.dispatchEvent(new CustomEvent("aegis:mouse-delta", {
+  detail: { dx, dy, buttonMask }
+}));
+```
+
+Supported external delta event names are `aegis:mouse-delta`,
+`aegis:pointer-delta`, `aegis-bridge:mouse-delta`,
+`aegis-bridge:pointer-delta`, `glitch:mouse-delta`,
+`glitch:pointer-delta`, and `glitch-novnc-pointer-delta`. The script also
+dispatches `glitch:novnc-pointer-lock-loading`,
+`glitch:novnc-pointer-lock-ready`, `glitch:novnc-pointer-lock-active`,
+`glitch:novnc-pointer-lock-released`, and
+`glitch:novnc-pointer-lock-error`.
 
 Check mouse patch state:
 
 ```bash
-grep -n "GLITCH_NOVNC_CAMERA_MOUSE_FIX\|MAX_GLITCH_VNC_CURSOR_PAN_DELTA" voxygen/src/window.rs || true
+grep -n "GLITCH_NOVNC_CAMERA_MOUSE_FIX\|GLITCH_NOVNC_POINTER_LOCK\|GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE" voxygen/src/window.rs || true
 
-grep -n "GLITCH_VNC_ABSOLUTE_MOUSE\|GLITCH_REVERT_NOVNC_MOUSE_OPTIMAL\|GLITCH_MOUSE_V1_LITE_RESTORE" docker/glitch-web-entrypoint.sh || true
+grep -n "GLITCH_NOVNC_POINTER_LOCK\|GLITCH_VNC_ABSOLUTE_MOUSE\|GLITCH_REVERT_NOVNC_MOUSE_OPTIMAL\|GLITCH_MOUSE_V1_LITE_RESTORE" docker/glitch-web-entrypoint.sh || true
+
+grep -n "GLITCH_NOVNC_POINTER_LOCK_MOUSE_V1" glitch/streamed-native/novnc_pointer_lock_mouse.js || true
+```
+
+Preview the noVNC sensitivity math without building or launching the game:
+
+```bash
+scripts/glitch-mouse-sensitivity.sh
+
+GLITCH_VNC_ABSOLUTE_MOUSE_X_SCALE=0.007 \
+GLITCH_VNC_ABSOLUTE_MOUSE_Y_SCALE=0.003 \
+scripts/glitch-mouse-sensitivity.sh
 ```
 
 ## Local Docker test

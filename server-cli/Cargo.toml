@@ -28,6 +28,7 @@ plugins = ["server/plugins"]
 hot-reloading = ["server/hot-reloading"]
 hot-agent = ["server/hot-agent", "agent"]
 hot-site = ["server/hot-site", "world"]
+glitch-auth = ["server/glitch-auth"]
 
 [dependencies]
 server = { package = "veloren-server", path = "../server", default-features = false, features = [
