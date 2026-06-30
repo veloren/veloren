@@ -30,13 +30,13 @@ use super::soundcache::{AnySoundData, AnySoundHandle};
 /// observe to prevent tracking distant entities. It approximates the distance
 /// at which the volume of the sfx emitted is too quiet to be meaningful for the
 /// player.
-pub const SFX_DIST_LIMIT: f32 = 500.0;
+pub const SFX_DIST_LIMIT: f32 = 256.0;
 pub const SFX_DIST_LIMIT_SQR: f32 = SFX_DIST_LIMIT * SFX_DIST_LIMIT;
 
 pub fn calculate_player_attenuation(player_pos: Vec3<f32>, emitter_pos: Vec3<f32>) -> f32 {
     1.0 - (player_pos.distance(emitter_pos) * (1.0 / SFX_DIST_LIMIT))
         .clamp(0.0, 1.0)
-        .powf(1.0 / 3.0)
+        .powf(1.0 / 2.0)
 }
 
 /// Each `MusicChannel` has a `MusicChannelTag` which help us determine when we
