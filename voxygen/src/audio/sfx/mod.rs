@@ -981,14 +981,17 @@ impl SfxMgr {
 
                 if energy > 0.0 {
                     let (sfx, volume) = if energy < 10.0 {
-                        (SfxEvent::SplashSmall, energy / 20.0)
+                        (SfxEvent::SplashSmall, (energy / 20.0).max(0.25))
                     } else if energy < 100.0 {
-                        (SfxEvent::SplashMedium, (energy - 10.0) / 90.0 + 0.5)
+                        (SfxEvent::SplashMedium, ((energy - 10.0) / 50.0 + 0.9))
                     } else {
-                        (SfxEvent::SplashBig, (energy / 100.0).sqrt() + 0.5)
+                        (
+                            SfxEvent::SplashBig,
+                            ((energy / 100.0).sqrt() + 0.5).min(2.0),
+                        )
                     };
                     let sfx_trigger_item = triggers.0.get_key_value(&sfx);
-                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume.min(2.0)));
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(volume));
                 }
             },
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => {},

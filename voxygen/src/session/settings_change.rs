@@ -358,6 +358,7 @@ impl SettingsChange {
                         audio.set_ambience_volume(settings.audio.ambience_volume.get_checked());
                         audio.set_sfx_volume(settings.audio.sfx_volume.get_checked());
                         audio.set_music_spacing(settings.audio.music_spacing);
+                        audio.set_num_sfx_channels(settings.audio.num_sfx_channels);
                     },
                 }
             },
