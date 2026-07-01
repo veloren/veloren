@@ -19,7 +19,7 @@ main-notice =
 
     ~ kulupu pali
 main-login_process =
-    musi pi jan mute la:
+    musi kulupu la:
 
     o sona e ni: sina wile musi lon kulupu pi wile sijelo la, sina o jo e sijelo.
 
@@ -34,3 +34,11 @@ main-singleplayer-regenerate = o pali sin
 main-singleplayer-map_large_extra_warning = ni li wile e wawa tan ilo sina sama ni: sina pali e ma { $count } kepeken nasin pi nasa ala.
 main-singleplayer-world_name = nimi ma
 main-singleplayer-map_scale = suli sewi
+main-unbound_key_tip = nena ala
+main-credits = nimi pi jan pali
+main-credits-created_by = tan jan
+main-credits-music = kalama musi
+main-credits-sound = kalama ijo
+main-credits-fonts = nasin sitelen
+main-credits-other_art = sitelen ante
+main-credits-contributors = jan pana
