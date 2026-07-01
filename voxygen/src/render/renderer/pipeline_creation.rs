@@ -960,6 +960,7 @@ fn create_ingame_and_shadow_pipelines(
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
 pub(super) fn initial_create_pipelines(
     device: wgpu::Device,
+    backend: wgpu::Backend,
     layouts: Layouts,
     shaders: Shaders,
     pipeline_modes: PipelineModes,
@@ -978,9 +979,16 @@ pub(super) fn initial_create_pipelines(
     // Process shaders into modules
     let shader_modules = ShaderModules::new(&device, &shaders, &pipeline_modes, has_shadow_views)?;
 
+    let is_opengl = matches!(backend, wgpu::Backend::Gl);
     // Create threadpool for parallel portion
     let pool = rayon::ThreadPoolBuilder::new()
         .thread_name(|n| format!("pipeline-creation-{}", n))
+        // Use a single thread for opengl because the pipeline creation is serialized by a lock in
+        // the backend anyway and having many threads waiting for the lock for a long time can
+        // trigger a time based deadlock detection panic used in the backend.
+        //
+        // 0 tells rayon to select the number automatically
+        .num_threads(if is_opengl { 1 } else { 0 })
         .build()
         .unwrap();
 
@@ -1038,6 +1046,7 @@ pub(super) fn initial_create_pipelines(
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
 pub(super) fn recreate_pipelines(
     device: wgpu::Device,
+    backend: wgpu::Backend,
     immutable_layouts: Arc<ImmutableLayouts>,
     shaders: Shaders,
     pipeline_modes: PipelineModes,
@@ -1057,9 +1066,12 @@ pub(super) fn recreate_pipelines(
 > {
     prof_span!(_guard, "recreate_pipelines");
 
+    let is_opengl = matches!(backend, wgpu::Backend::Gl);
     // Create threadpool for parallel portion
     let pool = rayon::ThreadPoolBuilder::new()
         .thread_name(|n| format!("pipeline-recreation-{}", n))
+        // 0 tells rayon to select the number automatically
+        .num_threads(if is_opengl { 1 } else { 0 })
         .build()
         .unwrap();
     let pool = Arc::new(pool);
