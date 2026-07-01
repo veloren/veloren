@@ -270,7 +270,7 @@ common-abilities-hammer-thunderclap = Coup de tonnerre
 common-abilities-hammer-earthshaker = Tremble-Terre
     .desc =
         Frappez le sol avec votre marteau pour libérer une onde de choc autour de vous.
-        Réduis la vitesse de mouvement et les regain d'endurance de vos ennemis.
+        Réduit la vitesse de mouvement et les regains d'endurance de vos ennemis.
         Nécessite { $min_combo } combo pour être utilisé.
 common-abilities-hammer-judgement = Jugement
     .desc =

@@ -240,3 +240,16 @@ command-lantern-adjusted-strength = Вы змянілі сілу полымя.
 command-lantern-adjusted-strength-color = Вы змянілі сілу і колер полымя...
 command-explosion-power-too-high = Магутнасць выбуху не можа перавышаць { $power }
 command-explosion-power-too-low = Сіла выбуху павінна быць больш, чым { $power }
+command-disconnectall-confirm =
+    Калі ласка, выканайце каманду яшчэ раз, дадаўшы «confirm» у якасці другога аргумента, каб пацвердзіць
+    што вы хочаце адключыць усіх гульцоў ад сервера
+command-invalid-skill-group = { $group } не група навыкаў!
+command-unknown = Невядомая каманда
+command-disabled-by-settings = Каманда адключана ў наладах
+command-battlemode-intown = Вы павінны знаходзіцца ў горадзе, каб перамкнуць баявы рэжым!
+command-battlemode-cooldown = Перыяд чакання актыўны. Паспрабуйце яшчэ раз праз { $cooldown } секундаў
+command-battlemode-available-modes = Даступныя рэжымы: PvP, PvE
+command-battlemode-same = Спроба ўсталяваць той жа баявы рэжым
+command-battlemode-updated = Новы баявы рэжым: { $battlemode }
+command-buff-unknown = Невядомы баф: { $buff }
+command-buff-data = Для аргумента бафу «{ $buff }» патрабуюцца дадатковыя дадзеныя
