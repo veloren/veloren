@@ -180,9 +180,7 @@ pub struct Renderer {
     // minimizing and this causes a bunch of validation errors
     is_minimized: bool,
 
-    // To remember the backend info after initialization for debug display purposes
-    graphics_backend_str: String,
-    // To remember backend after initialiation for other purposes.
+    // To remember backend after initialiation for debug info and other purposes.
     graphics_backend: wgpu::Backend,
 
     /// The texture format used for the intermediate rendering passes
@@ -287,7 +285,6 @@ impl Renderer {
             ?supported_limits.max_texture_dimension_2d,
             "selected graphics device"
         );
-        let graphics_backend_str = format!("{:?}", info.backend);
         let graphics_backend = info.backend;
 
         let required_limits = wgpu::Limits {
@@ -649,7 +646,6 @@ impl Renderer {
 
             is_minimized: false,
 
-            graphics_backend_str,
             graphics_backend,
 
             intermediate_format,
@@ -660,7 +656,7 @@ impl Renderer {
     }
 
     /// Get the graphics backend being used.
-    pub fn graphics_backend(&self) -> &str { &self.graphics_backend_str }
+    pub fn graphics_backend(&self) -> wgpu::Backend { self.graphics_backend }
 
     /// Check the status of the intial pipeline creation
     /// Returns `None` if complete
