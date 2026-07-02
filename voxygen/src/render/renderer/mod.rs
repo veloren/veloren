@@ -180,8 +180,8 @@ pub struct Renderer {
     // minimizing and this causes a bunch of validation errors
     is_minimized: bool,
 
-    // To remember the backend info after initialization for debug purposes
-    graphics_backend: String,
+    // To remember backend after initialiation for debug info and other purposes.
+    graphics_backend: wgpu::Backend,
 
     /// The texture format used for the intermediate rendering passes
     intermediate_format: wgpu::TextureFormat,
@@ -285,7 +285,7 @@ impl Renderer {
             ?supported_limits.max_texture_dimension_2d,
             "selected graphics device"
         );
-        let graphics_backend = format!("{:?}", info.backend);
+        let graphics_backend = info.backend;
 
         let required_limits = wgpu::Limits {
             max_texture_dimension_1d: 0,
@@ -493,6 +493,7 @@ impl Renderer {
 
         let (interface_pipelines, creating) = pipeline_creation::initial_create_pipelines(
             device.clone(),
+            graphics_backend,
             Layouts {
                 immutable: Arc::clone(&layouts.immutable),
                 postprocess: Arc::clone(&layouts.postprocess),
@@ -654,8 +655,8 @@ impl Renderer {
         })
     }
 
-    /// Get the graphics backend being used
-    pub fn graphics_backend(&self) -> &str { &self.graphics_backend }
+    /// Get the graphics backend being used.
+    pub fn graphics_backend(&self) -> wgpu::Backend { self.graphics_backend }
 
     /// Check the status of the intial pipeline creation
     /// Returns `None` if complete
@@ -1317,6 +1318,7 @@ impl Renderer {
                     pipeline_modes.clone(),
                     pipeline_creation::recreate_pipelines(
                         self.device.clone(),
+                        self.graphics_backend,
                         Arc::clone(&self.layouts.immutable),
                         self.shaders.cloned(),
                         pipeline_modes,
