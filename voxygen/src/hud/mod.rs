@@ -40,7 +40,7 @@ pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
 pub use subtitles::Subtitle;
 
-use bag::Bag;
+use bag::{Bag, Bag2};
 use buffs::BuffsBar;
 use buttons::Buttons;
 use change_notification::{ChangeNotification, NotificationReason};
@@ -310,6 +310,7 @@ widget_ids! {
         minimap,
         prompt_dialog,
         bag,
+        bag2,
         trade,
         social,
         quest,
@@ -3533,7 +3534,7 @@ impl Hud {
                 poises.get(entity),
             )
         {
-            for event in Bag::new(
+            /*for event in Bag::new(
                 client,
                 &info,
                 global_state,
@@ -3590,6 +3591,52 @@ impl Hud {
                     bag::Event::MoveBag(pos) => {
                         global_state.settings.hud_position.bag.own = pos;
                     },
+                }
+            }*/
+
+            for event in Bag2::new(
+                global_state,
+                client,
+                &info,
+                &self.imgs,
+                &self.item_imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+                item_tooltip_manager,
+                &mut self.slot_manager,
+                self.pulse,
+                i18n,
+                &self.item_i18n,
+                player_stats,
+                skill_set,
+                health,
+                energy,
+                &self.show,
+                body,
+                &msm,
+                &rbm,
+                poise,
+                &self.menu_events,
+            )
+            .set(self.ids.bag2, ui_widgets)
+            {
+                match event {
+                    bag::Event::Close => {
+                        self.show.stats = false;
+                        Self::show_bag(&mut self.slot_manager, &mut self.show, false);
+                        if !self.show.social {
+                            self.show.want_grab = true;
+                            self.force_ungrab = false;
+                        } else {
+                            self.force_ungrab = true
+                        };
+                        // Also closes any open trade windows
+                        if self.show.trade {
+                            self.events.push(Event::TradeAction(TradeAction::Decline));
+                        }
+                    },
+                    _ => {},
                 }
             }
         }

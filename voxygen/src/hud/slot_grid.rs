@@ -20,7 +20,7 @@ use common::{
     comp::{
         Inventory,
         inventory::slot::Slot,
-        item::{ItemDef, ItemDesc, ItemI18n, Quality},
+        item::{Item, ItemDef, ItemDesc, ItemI18n, Quality},
     },
 };
 use conrod_core::{
@@ -49,16 +49,17 @@ pub struct SlotGrid<'a> {
     fonts: &'a Fonts,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
-    inventory: &'a Inventory,
+    items: Vec<(Slot, Option<&'a Item>)>,
+    inventory: &'a Inventory, // Is full inventory needed here
     item_tooltip: &'a ItemTooltip<'a>,
     localized_strings: &'a Localization,
     item_i18n: &'a ItemI18n,
-    entity: EcsEntity,
+    entity: EcsEntity, // Is entity needed
     last_input: &'a LastInput,
     pulse: f32,
     menu_events: &'a Vec<MenuInput>,
     active_content: usize,
-    is_us: bool,
+    is_us: bool, // is is_us needed
     details_mode: bool,
     show_salvage: bool,
     columns: usize,
@@ -102,6 +103,7 @@ impl<'a> SlotGrid<'a> {
         fonts: &'a Fonts,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
+        items: Vec<(Slot, Option<&'a Item>)>,
         inventory: &'a Inventory,
         item_tooltip: &'a ItemTooltip<'a>,
         localized_strings: &'a Localization,
@@ -120,6 +122,7 @@ impl<'a> SlotGrid<'a> {
             fonts,
             item_tooltip_manager,
             slot_manager,
+            items,
             inventory,
             item_tooltip,
             localized_strings,
@@ -279,7 +282,7 @@ impl<'a> Widget for SlotGrid<'a> {
             pulse: self.pulse,
         };
 
-        let mut items = self
+        /*let mut items = self
             .inventory
             .slots_with_id()
             .map(|(slot, item)| (Slot::Inventory(slot), item.as_ref()))
@@ -289,6 +292,30 @@ impl<'a> Widget for SlotGrid<'a> {
                     .enumerate()
                     .map(|(i, item)| (Slot::Overflow(i), Some(item))),
             )
+            .filter(|(_pos, item_opt)| {
+                if self.gear_filter {
+                    // Manually filter down to just gear here
+                    if let Some(item) = item_opt {
+                        match &*item.kind() {
+                            // Keep armor, unless it's a bag
+                            ItemKind::Armor(_) => !item.tags().contains(&ItemTag::Bag),
+                            // Keep tools/weapons, unless they are crafting tools
+                            ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
+                            // Keep weapon components and gliders
+                            ItemKind::ModularComponent(_) => true,
+                            ItemKind::Glider => true,
+                            // Filter out everything else (food, mats, potions)
+                            _ => false,
+                        }
+                    } else {
+                        // Filter out empty slots entirely in gear view
+                        false
+                    }
+                } else {
+                    // filter nothing (normal inventory behavior)
+                    true
+                }
+            })
             .collect::<Vec<_>>();
         if self.details_mode && !self.is_us {
             items.sort_by_cached_key(|(_, item)| {
@@ -308,9 +335,9 @@ impl<'a> Widget for SlotGrid<'a> {
                     }),
                 )
             });
-        }
+        }*/
 
-        for (i, (pos, item)) in items.into_iter().enumerate() {
+        for (i, (pos, item)) in self.items.into_iter().enumerate() {
             if self.details_mode && !self.is_us && item.is_none() {
                 continue;
             }
