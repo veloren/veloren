@@ -415,20 +415,20 @@ impl<'a> Trade<'a> {
                 self.slot_manager,
                 self.pulse,
                 &Vec::new(),
-                0,
+                0, // active_content
                 self.localized_strings,
                 self.item_i18n,
-                false,
-                true,
-                false,
+                false, // show_stats
+                true,  // show_bag_inv
+                false, // on_right
                 &item_tooltip,
-                name,
+                name, // playername
                 entity,
-                false,
+                false, // is_us
                 inventory,
                 &state.bg_ids,
-                false,
-                self.show.trade_details,
+                false,                   // show_salvage
+                self.show.trade_details, // details_mode
             )
             .set(state.ids.inventory_scroller, ui)
             {

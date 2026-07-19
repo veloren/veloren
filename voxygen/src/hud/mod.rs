@@ -40,7 +40,7 @@ pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
 pub use subtitles::Subtitle;
 
-use bag::{Bag, Bag2};
+use bag::Bag2;
 use buffs::BuffsBar;
 use buttons::Buttons;
 use change_notification::{ChangeNotification, NotificationReason};
@@ -917,6 +917,7 @@ pub struct Show {
     crafting: bool,
     bag: bool,
     bag_inv: bool,
+    bag_menu_split: bool,
     bag_details: bool,
     trade: bool,
     trade_details: bool,
@@ -958,6 +959,7 @@ impl Show {
             crafting: false,
             bag: false,
             bag_inv: false,
+            bag_menu_split: false,
             bag_details: false,
             trade: false,
             trade_details: false,
@@ -3618,11 +3620,12 @@ impl Hud {
                 &rbm,
                 poise,
                 &self.menu_events,
+                true,
             )
             .set(self.ids.bag2, ui_widgets)
             {
                 match event {
-                    bag::Event::Close => {
+                    bag::Bag2Event::Close => {
                         self.show.stats = false;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, false);
                         if !self.show.social {
@@ -3636,7 +3639,25 @@ impl Hud {
                             self.events.push(Event::TradeAction(TradeAction::Decline));
                         }
                     },
-                    _ => {},
+                    bag::Bag2Event::MoveBag(pos) => {
+                        global_state.settings.hud_position.bag.own = pos;
+                    },
+                    bag::Bag2Event::BagExpand => {
+                        self.show.bag_menu_split = !self.show.bag_menu_split
+                    },
+                    bag::Bag2Event::SetDetailsMode(mode) => self.show.bag_details = mode,
+                    bag::Bag2Event::ChangeInventorySortOrder(sort_order) => {
+                        self.events
+                            .push(Event::SettingsChange(SettingsChange::Inventory(
+                                Inventory::ChangeSortOrder(sort_order),
+                            )));
+                    },
+                    bag::Bag2Event::SortInventory(sort_order) => {
+                        self.events.push(Event::SortInventory(sort_order))
+                    },
+                    bag::Bag2Event::SwapEquippedWeapons => {
+                        self.events.push(Event::SwapEquippedWeapons)
+                    },
                 }
             }
         }
