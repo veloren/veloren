@@ -40,7 +40,7 @@ pub use loot_scroller::LootMessage;
 pub use settings_window::ScaleChange;
 pub use subtitles::Subtitle;
 
-use bag::Bag2;
+use bag::BagManager;
 use buffs::BuffsBar;
 use buttons::Buttons;
 use change_notification::{ChangeNotification, NotificationReason};
@@ -310,7 +310,6 @@ widget_ids! {
         minimap,
         prompt_dialog,
         bag,
-        bag2,
         trade,
         social,
         quest,
@@ -916,7 +915,6 @@ pub struct Show {
     intro: bool,
     crafting: bool,
     bag: bool,
-    bag_inv: bool,
     bag_menu_split: bool,
     bag_details: bool,
     trade: bool,
@@ -958,7 +956,6 @@ impl Show {
             intro: false,
             crafting: false,
             bag: false,
-            bag_inv: false,
             bag_menu_split: false,
             bag_details: false,
             trade: false,
@@ -3536,10 +3533,10 @@ impl Hud {
                 poises.get(entity),
             )
         {
-            /*for event in Bag::new(
+            for event in BagManager::new(
+                global_state,
                 client,
                 &info,
-                global_state,
                 &self.imgs,
                 &self.item_imgs,
                 &self.fonts,
@@ -3564,9 +3561,7 @@ impl Hud {
             .set(self.ids.bag, ui_widgets)
             {
                 match event {
-                    bag::Event::BagExpand => self.show.bag_inv = !self.show.bag_inv,
-                    bag::Event::SetDetailsMode(mode) => self.show.bag_details = mode,
-                    bag::Event::Close => {
+                    bag::BagEvent::Close => {
                         self.show.stats = false;
                         Self::show_bag(&mut self.slot_manager, &mut self.show, false);
                         if !self.show.social {
@@ -3580,82 +3575,23 @@ impl Hud {
                             self.events.push(Event::TradeAction(TradeAction::Decline));
                         }
                     },
-                    bag::Event::ChangeInventorySortOrder(sort_order) => {
-                        self.events
-                            .push(Event::SettingsChange(SettingsChange::Inventory(
-                                Inventory::ChangeSortOrder(sort_order),
-                            )));
-                    },
-                    bag::Event::SortInventory(sort_order) => {
-                        self.events.push(Event::SortInventory(sort_order))
-                    },
-                    bag::Event::SwapEquippedWeapons => self.events.push(Event::SwapEquippedWeapons),
-                    bag::Event::MoveBag(pos) => {
+                    bag::BagEvent::MoveBag(pos) => {
                         global_state.settings.hud_position.bag.own = pos;
                     },
-                }
-            }*/
-
-            for event in Bag2::new(
-                global_state,
-                client,
-                &info,
-                &self.imgs,
-                &self.item_imgs,
-                &self.fonts,
-                &self.rot_imgs,
-                tooltip_manager,
-                item_tooltip_manager,
-                &mut self.slot_manager,
-                self.pulse,
-                i18n,
-                &self.item_i18n,
-                player_stats,
-                skill_set,
-                health,
-                energy,
-                &self.show,
-                body,
-                &msm,
-                &rbm,
-                poise,
-                &self.menu_events,
-                true,
-            )
-            .set(self.ids.bag2, ui_widgets)
-            {
-                match event {
-                    bag::Bag2Event::Close => {
-                        self.show.stats = false;
-                        Self::show_bag(&mut self.slot_manager, &mut self.show, false);
-                        if !self.show.social {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                        // Also closes any open trade windows
-                        if self.show.trade {
-                            self.events.push(Event::TradeAction(TradeAction::Decline));
-                        }
-                    },
-                    bag::Bag2Event::MoveBag(pos) => {
-                        global_state.settings.hud_position.bag.own = pos;
-                    },
-                    bag::Bag2Event::BagExpand => {
+                    bag::BagEvent::BagExpand => {
                         self.show.bag_menu_split = !self.show.bag_menu_split
                     },
-                    bag::Bag2Event::SetDetailsMode(mode) => self.show.bag_details = mode,
-                    bag::Bag2Event::ChangeInventorySortOrder(sort_order) => {
+                    bag::BagEvent::SetDetailsMode(mode) => self.show.bag_details = mode,
+                    bag::BagEvent::ChangeInventorySortOrder(sort_order) => {
                         self.events
                             .push(Event::SettingsChange(SettingsChange::Inventory(
                                 Inventory::ChangeSortOrder(sort_order),
                             )));
                     },
-                    bag::Bag2Event::SortInventory(sort_order) => {
+                    bag::BagEvent::SortInventory(sort_order) => {
                         self.events.push(Event::SortInventory(sort_order))
                     },
-                    bag::Bag2Event::SwapEquippedWeapons => {
+                    bag::BagEvent::SwapEquippedWeapons => {
                         self.events.push(Event::SwapEquippedWeapons)
                     },
                 }

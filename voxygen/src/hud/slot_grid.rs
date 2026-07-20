@@ -49,6 +49,7 @@ pub enum SlotEvents {
     ExitLeft,
     ExitRight,
     ExitDown,
+    FilteredSize(usize),
 }
 
 #[derive(WidgetCommon)]
@@ -86,6 +87,7 @@ widget_ids! {
         inv_slot_amounts[],
 
         context_menu,
+        spacing_below,
     }
 }
 
@@ -182,121 +184,7 @@ impl<'a> Widget for SlotGrid<'a> {
             })
         }
 
-        // Calculate formatting info
-        let total_slots = self.inventory.capacity() + self.inventory.overflow_items().count();
-        let cols = if self.details_mode { 1 } else { self.columns };
-
-        let mut events = Vec::new();
-
-        // MENU INPUTS: change the slot focus
-        // Up: go up a row (no wrap)
-        // Down: go down a row (no wrap)
-        // Left: move left a column (no wrap)
-        // Right: move right a column (no wrap)
-        // LocalFocus: Change local focus
-        // Apply: select the current slot
-        // Back: close the bag menu
-        let mut clicked = false;
-        if selected.is_none() && self.is_focused == true {
-            for event in self.menu_events {
-                match *event {
-                    MenuInput::Up => state.update(|s| {
-                        let [x, y] = s.active_slot;
-                        if y > 0 {
-                            s.active_slot = [x, y - 1];
-                        } else {
-                            events.push(SlotEvents::ExitUp);
-                        }
-                    }),
-                    MenuInput::Down => state.update(|s| {
-                        let [x, y] = s.active_slot;
-                        if y < (total_slots / cols) {
-                            s.active_slot = [x, y + 1];
-                        } else {
-                            events.push(SlotEvents::ExitDown);
-                        }
-                    }),
-                    MenuInput::Left => state.update(|s| {
-                        let [x, y] = s.active_slot;
-                        if x > 0 {
-                            s.active_slot = [x - 1, y];
-                        } else {
-                            events.push(SlotEvents::ExitLeft);
-                        }
-                    }),
-                    MenuInput::Right => state.update(|s| {
-                        let [x, y] = s.active_slot;
-                        // Only go right if there are slots to go to
-                        if x < self.columns - 1 && (y * cols) + (x + 1) < total_slots {
-                            s.active_slot = [x + 1, y];
-                        } else {
-                            events.push(SlotEvents::ExitRight);
-                        }
-                    }),
-                    MenuInput::Apply => {
-                        clicked = true;
-                    },
-                    MenuInput::Back => {
-                        events.push(SlotEvents::Close);
-                    },
-                    _ => {},
-                }
-            }
-        }
-
-        // Create available inventory slot widgets
-        if state.ids.item_slots.len() < self.inventory.capacity() {
-            state.update(|s| {
-                s.ids.item_slots.resize(
-                    self.inventory.capacity() + self.inventory.overflow_items().count(),
-                    &mut ui.widget_id_generator(),
-                );
-                s.ids
-                    .inv_slot_names
-                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
-                s.ids
-                    .inv_slot_amounts
-                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
-            });
-        }
-
-        // Determine the range of inventory slots that are provided by the loadout item
-        // that the mouse is over
-        let mouseover_loadout_slots = self
-            .slot_manager
-            .mouse_over_slot
-            .and_then(|x| {
-                if let SlotKind::Equip(e) = x {
-                    self.inventory.get_slot_range_for_equip_slot(e)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(0usize..0usize);
-
-        // Display inventory contents
-        let mut slot_maker = SlotMaker {
-            empty_slot: self.imgs.inv_slot,
-            hovered_slot: self.imgs.skillbar_index,
-            filled_slot: self.imgs.inv_slot,
-            selected_slot: self.imgs.inv_slot_sel,
-            background_color: Some(UI_MAIN),
-            content_size: ContentSize {
-                width_height_ratio: 1.0,
-                max_fraction: 0.75,
-            },
-            selected_content_scale: 1.067,
-            amount_font: self.fonts.cyri.conrod_id,
-            amount_margins: Vec2::new(-4.0, 0.0),
-            amount_font_size: self.fonts.cyri.scale(12),
-            amount_text_color: TEXT_COLOR,
-            content_source: self.inventory,
-            image_source: self.item_imgs,
-            slot_manager: Some(self.slot_manager),
-            last_input: self.last_input,
-            pulse: self.pulse,
-        };
-
+        // Filter inventory
         let inventory_iter = || {
             self.inventory
                 .slots_with_id()
@@ -371,13 +259,127 @@ impl<'a> Widget for SlotGrid<'a> {
             });
         }
 
-        // Add the first empty slot to items list to help with removing gear and
-        // visualizing more space is available
+        // Add the first empty slot (if any) to the items list to help with removing
+        // gear and visualizing when more space is available
         if self.filter != TabFilters::None && self.filter != TabFilters::Minerals {
             if let Some(empty_slot) = inventory_iter().find(|(_, item)| item.is_none()) {
                 items.push(empty_slot);
             }
         }
+
+        // Calculate formatting info
+        let total_slots = items.len();
+        let cols = if self.details_mode { 1 } else { self.columns };
+
+        let mut events = Vec::new();
+
+        // MENU INPUTS: change the slot focus
+        // Up: go up a row (no wrap)
+        // Down: go down a row (no wrap)
+        // Left: move left a column (no wrap)
+        // Right: move right a column (no wrap)
+        // LocalFocus: Change local focus
+        // Apply: select the current slot
+        // Back: close the bag menu
+        let mut clicked = false;
+        if selected.is_none() && self.is_focused == true {
+            for event in self.menu_events {
+                match *event {
+                    MenuInput::Up => state.update(|s| {
+                        let [x, y] = s.active_slot;
+                        if y > 0 {
+                            s.active_slot = [x, y - 1];
+                        } else {
+                            events.push(SlotEvents::ExitUp);
+                        }
+                    }),
+                    MenuInput::Down => state.update(|s| {
+                        let [x, y] = s.active_slot;
+                        if y < (total_slots / cols) {
+                            s.active_slot = [x, y + 1];
+                        } else {
+                            events.push(SlotEvents::ExitDown);
+                        }
+                    }),
+                    MenuInput::Left => state.update(|s| {
+                        let [x, y] = s.active_slot;
+                        if x > 0 {
+                            s.active_slot = [x - 1, y];
+                        } else {
+                            events.push(SlotEvents::ExitLeft);
+                        }
+                    }),
+                    MenuInput::Right => state.update(|s| {
+                        let [x, y] = s.active_slot;
+                        // Only go right if there are slots to go to
+                        if x < self.columns - 1 && (y * cols) + (x + 1) < total_slots {
+                            s.active_slot = [x + 1, y];
+                        } else {
+                            events.push(SlotEvents::ExitRight);
+                        }
+                    }),
+                    MenuInput::Apply => {
+                        clicked = true;
+                    },
+                    MenuInput::Back => {
+                        events.push(SlotEvents::Close);
+                    },
+                    _ => {},
+                }
+            }
+        }
+
+        // Create available inventory slot widgets
+        if state.ids.item_slots.len() < total_slots {
+            state.update(|s| {
+                s.ids
+                    .item_slots
+                    .resize(total_slots, &mut ui.widget_id_generator());
+                s.ids
+                    .inv_slot_names
+                    .resize(total_slots, &mut ui.widget_id_generator());
+                s.ids
+                    .inv_slot_amounts
+                    .resize(total_slots, &mut ui.widget_id_generator());
+            });
+        }
+
+        // Determine the range of inventory slots that are provided by the loadout item
+        // that the mouse is over
+        let mouseover_loadout_slots = self
+            .slot_manager
+            .mouse_over_slot
+            .and_then(|x| {
+                if let SlotKind::Equip(e) = x {
+                    self.inventory.get_slot_range_for_equip_slot(e)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(0usize..0usize);
+
+        // Display inventory contents
+        let mut slot_maker = SlotMaker {
+            empty_slot: self.imgs.inv_slot,
+            hovered_slot: self.imgs.skillbar_index,
+            filled_slot: self.imgs.inv_slot,
+            selected_slot: self.imgs.inv_slot_sel,
+            background_color: Some(UI_MAIN),
+            content_size: ContentSize {
+                width_height_ratio: 1.0,
+                max_fraction: 0.75,
+            },
+            selected_content_scale: 1.067,
+            amount_font: self.fonts.cyri.conrod_id,
+            amount_margins: Vec2::new(-4.0, 0.0),
+            amount_font_size: self.fonts.cyri.scale(12),
+            amount_text_color: TEXT_COLOR,
+            content_source: self.inventory,
+            image_source: self.item_imgs,
+            slot_manager: Some(self.slot_manager),
+            last_input: self.last_input,
+            pulse: self.pulse,
+        };
 
         for (i, (pos, item)) in items.into_iter().enumerate() {
             if self.details_mode && !self.is_us && item.is_none() {
@@ -525,6 +527,14 @@ impl<'a> Widget for SlotGrid<'a> {
                 });
             }
         }
+
+        // Add padding beneath the last row of items to make scrolling feel more natural
+        Rectangle::fill_with([1.0, 15.0], color::TRANSPARENT)
+            .down_from(state.ids.item_slots[state.ids.item_slots.len() - 1], 0.0)
+            .set(state.ids.spacing_below, ui);
+
+        // Not exactly an event, but I have to return the filtered list size somehow
+        events.push(SlotEvents::FilteredSize(total_slots));
 
         // Open context menu if any slot is selected
         if state.active_context_slot.is_some() {
