@@ -211,9 +211,13 @@ pub fn handle_create_npc(server: &mut Server, ev: CreateNpcEvent) -> EcsEntity {
                 &state.ecs().read_storage(),
                 &uids,
                 &mut |entity, group_change| {
-                    group_change
-                        .try_map_ref(|e| uids.get(*e).copied())
-                        .zip(clients.get(entity))
+                    clients
+                        .get(entity)
+                        .and_then(|c| {
+                            group_change
+                                .try_map_ref(|e| uids.get(*e).copied())
+                                .map(|g| (g, c))
+                        })
                         .map(|(g, c)| {
                             // Might be unnecessary, but maybe pets can somehow have map
                             // markers in the future

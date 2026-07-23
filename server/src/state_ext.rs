@@ -1238,9 +1238,13 @@ impl StateExt for State {
                 &uids,
                 &self.ecs().entities(),
                 &mut |entity, group_change| {
-                    group_change
-                        .try_map_ref(|e| uids.get(*e).copied())
-                        .zip(clients.get(entity))
+                    clients
+                        .get(entity)
+                        .and_then(|c| {
+                            group_change
+                                .try_map_ref(|e| uids.get(*e).copied())
+                                .map(|g| (g, c))
+                        })
                         .map(|(g, c)| {
                             update_map_markers(&map_markers, &uids, c, &group_change);
                             c.send_fallible(ServerGeneral::GroupUpdate(g));

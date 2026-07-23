@@ -32,6 +32,7 @@ pub struct QueryServer {
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Metrics {
     pub received_packets: u32,
+    /// Note, these are not counted in `received_packets`.
     pub dropped_packets: u32,
     pub invalid_packets: u32,
     pub proccessing_errors: u32,

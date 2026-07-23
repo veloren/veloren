@@ -272,9 +272,13 @@ pub fn handle_invite_accept(data: &mut InviteResponseData, entity: Entity) {
                     &data.alignments,
                     &data.uids,
                     |entity, group_change| {
-                        group_change
-                            .try_map_ref(|e| data.uids.get(*e).copied())
-                            .zip(data.clients.get(entity))
+                        data.clients
+                            .get(entity)
+                            .and_then(|c| {
+                                group_change
+                                    .try_map_ref(|e| data.uids.get(*e).copied())
+                                    .map(|g| (g, c))
+                            })
                             .map(|(g, c)| {
                                 update_map_markers(&data.map_markers, &data.uids, c, &group_change);
                                 c.send_fallible(ServerGeneral::GroupUpdate(g));
