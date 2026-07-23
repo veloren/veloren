@@ -1,9 +1,14 @@
 use super::img_ids::Imgs;
-use crate::{Settings, game_input::GameInput, settings::Button, window::ControllerType};
+use crate::{
+    Settings,
+    game_input::GameInput,
+    settings::Button,
+    window::{ControllerType, MenuInput},
+};
 use conrod_core::image::Id as ConrodImageId;
 use gilrs::Button as GilButton;
 
-/// returns the left trigger (dark) icon based on controller type
+/// Returns the left trigger (dark) icon based on controller type
 pub fn fetch_skillbar_gamepad_left(ctrl_type: ControllerType, imgs: &Imgs) -> ConrodImageId {
     match ctrl_type {
         ControllerType::Xbox => imgs.left_trigger_xbox_dark,
@@ -13,7 +18,7 @@ pub fn fetch_skillbar_gamepad_left(ctrl_type: ControllerType, imgs: &Imgs) -> Co
     }
 }
 
-/// returns the right trigger (dark) icon based on controller type
+/// Returns the right trigger (dark) icon based on controller type
 pub fn fetch_skillbar_gamepad_right(ctrl_type: ControllerType, imgs: &Imgs) -> ConrodImageId {
     match ctrl_type {
         ControllerType::Xbox => imgs.right_trigger_xbox_dark,
@@ -23,10 +28,10 @@ pub fn fetch_skillbar_gamepad_right(ctrl_type: ControllerType, imgs: &Imgs) -> C
     }
 }
 
-/// represents an input that has no binding.
+/// Represents an input that has no binding
 pub const UNBOUND_KEY: &str = ":none:";
 
-/// gets a string output for the controller input
+/// Gets a string output for the controller input based on GameInput data
 ///
 /// a multi-input action will return like ":mod2: + :mod1: + :main:"
 pub fn get_controller_input_string(
@@ -75,7 +80,34 @@ pub fn get_controller_input_string(
     }
 }
 
-/// returns a ConrodImageId for valid strings
+/// Gets a string output for the controller input based on MenuInput data
+pub fn get_controller_input_string_menu(
+    input: MenuInput,
+    settings: &Settings,
+    ctrl: ControllerType,
+) -> Option<String> {
+    // Extract just the button name
+    let get_tag = |b: Button| {
+        let mut name = match b {
+            Button::Simple(inner) => format!("{:?}", inner),
+            _ => format!("{:?}", b),
+        };
+        match ctrl {
+            ControllerType::Xbox => name.push_str("_x"),
+            ControllerType::Nintendo => name.push_str("_n"),
+            ControllerType::Playstation => name.push_str("_p"),
+            _ => {},
+        }
+        format!(":{}:", name)
+    };
+
+    settings
+        .controller
+        .get_menu_button_binding(input)
+        .map(get_tag)
+}
+
+/// Returns a ConrodImageId for valid strings
 pub fn get_controller_icon_id_from_string(name: &str, imgs: &Imgs) -> ConrodImageId {
     // TODO: either gilrs or we have to swap nintendo buttons to be accurate. Figure
     // it out when controller type detection is working.

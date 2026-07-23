@@ -9,7 +9,7 @@ use super::{
 use crate::{
     GlobalState,
     game_input::GameInput,
-    hud::slot_grid::TabFilters,
+    hud::{controller_icons as icon_utils, slot_grid::TabFilters},
     settings::{
         HudPositionSettings,
         hud_position::{
@@ -23,7 +23,7 @@ use crate::{
         fonts::Fonts,
         slot::{ContentSize, SlotMaker},
     },
-    window::MenuInput,
+    window::{LastInput, MenuInput},
 };
 use client::Client;
 use common::{
@@ -36,8 +36,7 @@ use common::{
     recipe::RecipeBookManifest,
 };
 use conrod_core::{
-    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, builder_method,
-    builder_methods, color,
+    Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon, builder_methods, color,
     widget::{self, Button, Image, Rectangle, Scrollbar, State as ConrodState, Text},
     widget_ids,
 };
@@ -60,6 +59,7 @@ widget_ids! {
     pub struct InventoryScrollerIds {
         draggable_area,
         inv_alignment,
+        spacing_above,
         slot_grid,
         //coin_ico,
         space_txt,
@@ -112,6 +112,8 @@ pub struct InventoryScroller<'a> {
 }
 
 impl<'a> InventoryScroller<'a> {
+    // InventoryScroller is only used by the trade screen now, and should be removed
+    // sometime TODO: replace this with the new bag defined further below
     #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
@@ -262,7 +264,7 @@ impl<'a> InventoryScroller<'a> {
         ui: &mut UiCell<'_>,
     ) {
         // MENU INPUTS: change the inventory button/filter focus
-        // LocalFocus: change local window focus
+        // Back: creates a close event
         if self.active_content == 1 {
             for event in self.menu_events {
                 match *event {
@@ -277,7 +279,65 @@ impl<'a> InventoryScroller<'a> {
             }
         }
 
-        let space_max = self.inventory.slots().count();
+        let grid_width = 376.0;
+        let grid_height = if self.show_bag_inv && !self.on_right {
+            450.0 // This for the left bag
+        } else if self.show_bag_inv && self.on_right {
+            600.0 // This for the expanded right bag
+        } else {
+            200.0
+        };
+
+        // Alignment for Grid
+        Rectangle::fill_with([grid_width, grid_height], color::TRANSPARENT)
+            .mid_bottom_with_margin_on(self.bg_ids.bg_frame, 21.0)
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment, ui);
+
+        // Adds spacing above the slots to make scrolling feel a bit more natural
+        Rectangle::fill_with([grid_width, 5.0], color::TRANSPARENT)
+            .mid_top_of(state.ids.inv_alignment)
+            .set(state.ids.spacing_above, ui);
+
+        let mut space_max = 0;
+
+        // Bag Slots
+        for event in SlotGrid::new(
+            self.client,
+            self.imgs,
+            self.item_imgs,
+            self.fonts,
+            self.item_tooltip_manager,
+            self.slot_manager,
+            self.inventory,
+            self.item_tooltip,
+            self.localized_strings,
+            self.item_i18n,
+            self.entity,
+            &self.global_state.window.last_input(),
+            self.pulse,
+            self.menu_events,
+            self.is_us,
+            self.details_mode,
+            self.show_salvage,
+        )
+        .columns(6)
+        .spacing(if self.details_mode { 0.0 } else { 5.8 })
+        .slot_size(if self.details_mode { 20.0 } else { 57.8 })
+        .w_of(state.ids.inv_alignment)
+        .down_from(state.ids.spacing_above, 0.0)
+        .set(state.ids.slot_grid, ui)
+        {
+            match event {
+                SlotEvents::Close => {
+                    events.push(InventoryScrollerEvent::Close);
+                },
+                SlotEvents::FilteredSize(size) => {
+                    space_max = size;
+                },
+                _ => {},
+            }
+        }
 
         // Slots Scrollbar
         if space_max > 45 && !self.show_bag_inv {
@@ -325,65 +385,6 @@ impl<'a> InventoryScroller<'a> {
                 .color(UI_MAIN)
                 .middle_of(state.ids.second_phase_scrollbar_bg)
                 .set(state.ids.left_scrollbar_slots, ui);
-        }
-
-        let grid_width = 362.0;
-        let grid_height = if self.show_bag_inv && !self.on_right {
-            440.0 // This for the left bag
-        } else if self.show_bag_inv && self.on_right {
-            600.0 // This for the expanded right bag
-        } else {
-            200.0
-        };
-
-        // Alignment for Grid
-        Rectangle::fill_with([grid_width, grid_height], color::TRANSPARENT)
-            .bottom_left_with_margins_on(
-                self.bg_ids.bg_frame,
-                29.0,
-                if self.show_bag_inv && !self.on_right {
-                    28.0
-                } else {
-                    46.5
-                },
-            )
-            .scroll_kids_vertically()
-            .set(state.ids.inv_alignment, ui);
-
-        // Bag Slots
-        // Create available inventory slot widgets
-        for event in SlotGrid::new(
-            self.client,
-            self.imgs,
-            self.item_imgs,
-            self.fonts,
-            self.item_tooltip_manager,
-            self.slot_manager,
-            self.inventory,
-            self.item_tooltip,
-            self.localized_strings,
-            self.item_i18n,
-            self.entity,
-            &self.global_state.window.last_input(),
-            self.pulse,
-            self.menu_events,
-            self.is_us,
-            self.details_mode,
-            self.show_salvage,
-        )
-        .columns(9) // 6 columns and default spacing is better imo
-        .spacing(0.0)
-        .slot_size(if self.details_mode { 20.0 } else { 40.0 }) // 55.0 for 6 columns
-        .wh_of(state.ids.inv_alignment)
-        .top_left_of(state.ids.inv_alignment)
-        .set(state.ids.slot_grid, ui)
-        {
-            match event {
-                super::slot_grid::SlotEvents::Close => {
-                    events.push(InventoryScrollerEvent::Close);
-                },
-                _ => {},
-            }
         }
     }
 
@@ -567,6 +568,7 @@ pub struct TabPackage<'a> {
     fonts: &'a Fonts,
     localized_strings: &'a Localization,
     item_i18n: &'a ItemI18n,
+    pulse: f32,
 }
 
 widget_ids! {
@@ -622,6 +624,10 @@ pub struct BagManager<'a> {
 }
 
 impl<'a> BagManager<'a> {
+    /// Manages the primary player inventory window, as well as the secondary
+    /// split screen window. The secondary window only displays the gear tab,
+    /// and will auto collapse when trading
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         global_state: &'a GlobalState,
         client: &'a Client,
@@ -731,9 +737,7 @@ impl Widget for BagManager<'_> {
         )
         .set(state.ids.primary_bag, ui)
         {
-            match event {
-                _ => events.push(event),
-            }
+            events.push(event)
         }
 
         // This is the secondary bag, visibile in split screen mode to show gear next to
@@ -769,9 +773,7 @@ impl Widget for BagManager<'_> {
             .add_secondary(&state.bg_ids_primary)
             .set(state.ids.secondary_bag, ui)
             {
-                match event {
-                    _ => events.push(event),
-                }
+                events.push(event)
             }
         }
 
@@ -844,6 +846,9 @@ impl<'a> BagWindow<'a> {
         add_secondary { primary_bg_ids = Some(&'a BackgroundIds) }
     }
 
+    /// Creates an inventory/bag window with multiple horizontal tabs used to
+    /// filter the items down into more manageable groups
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         global_state: &'a GlobalState,
         client: &'a Client,
@@ -917,8 +922,7 @@ impl<'a> BagWindow<'a> {
         let bag_size: Vec2<f64> = if self.is_player {
             [DEFAULT_OWN_BAG_WIDTH, DEFAULT_OWN_BAG_HEIGHT].into()
         } else {
-            [DEFAULT_OWN_BAG_WIDTH, DEFAULT_OWN_BAG_HEIGHT].into()
-            //[DEFAULT_OTHER_BAG_WIDTH, DEFAULT_OTHER_BAG_HEIGHT].into()
+            [DEFAULT_OTHER_BAG_WIDTH, DEFAULT_OTHER_BAG_HEIGHT].into()
         };
 
         let pos_delta: Vec2<f64> = ui
@@ -962,7 +966,7 @@ impl<'a> BagWindow<'a> {
             }));
         }
 
-        Rectangle::fill_with([424.0, 48.0], color::TRANSPARENT)
+        Rectangle::fill_with([424.0, 71.0], color::TRANSPARENT)
             .top_left_with_margin_on(self.bg_ids.bg_frame, 0.0)
             .set(state.ids.draggable_area, ui);
     }
@@ -988,19 +992,24 @@ impl Widget for BagWindow<'_> {
         let _i18n = &self.localized_strings;
         let mut events = Vec::new();
 
+        // If no primary bag ids were passed in, assume it is secondary bag
         let is_primary = self.primary_bg_ids.is_none();
+        // The gear tab should not be opened in the primary window if using split screen
+        // When trading, split screen is temporarily minimized
+        let block_gear_tab = self.show.bag_menu_split && !self.show.trade;
 
         // MENU INPUTS: change bag tabs
         // PageDown: try to go left a tab (no wrap)
         // PageUp: try to go right a tab (no wrap)
         if !is_primary {
-            // Secondary window is always the gear screen
+            // Secondary window is always the gear tab
             if state.active_tab != BagTab::Gear {
                 state.update(|s| {
                     s.active_tab = BagTab::Gear;
                 })
             }
         } else {
+            // Changes tabs on primary window
             for event in self.menu_events {
                 match *event {
                     MenuInput::PageDown => {
@@ -1011,8 +1020,6 @@ impl Widget for BagWindow<'_> {
                                 s.active_tab = BagTab::Minerals;
                             } else if s.active_tab == BagTab::Minerals {
                                 s.active_tab = BagTab::Inventory;
-                            } else if s.active_tab == BagTab::Inventory {
-                                s.active_tab = BagTab::Gear;
                             } else {
                                 s.active_tab = BagTab::Gear;
                             }
@@ -1025,8 +1032,6 @@ impl Widget for BagWindow<'_> {
                             s.active_tab = BagTab::Minerals;
                         } else if s.active_tab == BagTab::Minerals {
                             s.active_tab = BagTab::Food;
-                        } else if s.active_tab == BagTab::Food {
-                            s.active_tab = BagTab::Quest;
                         } else {
                             s.active_tab = BagTab::Quest;
                         }
@@ -1037,6 +1042,14 @@ impl Widget for BagWindow<'_> {
             }
         }
 
+        // Block any attempts to open the gear screen when it shouldn't be open (i.e.,
+        // split screen is being used)
+        if block_gear_tab && state.active_tab == BagTab::Gear && is_primary {
+            state.update(|s| {
+                s.active_tab = BagTab::Inventory;
+            })
+        }
+
         // Background image/frame
         let bag_pos = if self.is_player {
             &self.global_state.settings.hud_position.bag.own
@@ -1044,23 +1057,24 @@ impl Widget for BagWindow<'_> {
             &self.global_state.settings.hud_position.bag.other
         };
         let bg_img = if self.is_player {
-            self.imgs.player_inv_bg_bag2
+            self.imgs.player_inv_bg_bag
         } else {
-            self.imgs.player_inv_bg_bag2
+            // TODO: Create other background when InvenotryScroller is removed
+            self.imgs.player_inv_bg_bag
         };
-        let bg_frame_img = self.imgs.player_inv_frame_bag2;
+        let bg_frame_img = self.imgs.player_inv_frame_bag;
 
         let mut bg = Image::new(bg_img).w_h(424.0, 700.0).color(Some(UI_MAIN));
         if self.is_player && is_primary {
             bg = bg.bottom_right_with_margins_on(ui.window, bag_pos.y, bag_pos.x);
-        } else if !self.is_player && is_primary {
+        } else if !self.is_player {
             bg = bg.bottom_left_with_margins_on(ui.window, bag_pos.y, bag_pos.x);
         } else {
-            // split window should be rendered left of the primary window
+            // Split window should be rendered left of the primary window
             if let Some(primary_ids) = self.primary_bg_ids {
                 bg = bg.left_from(primary_ids.bg, 0.0);
             } else {
-                // fallback---shouldn't ever be called, but just in case
+                // Fallback---shouldn't ever be called, but just in case
                 // Only rendered next to players inventory, so always bottom right
                 bg = bg.bottom_right_with_margins_on(ui.window, bag_pos.y, bag_pos.x)
             }
@@ -1075,11 +1089,11 @@ impl Widget for BagWindow<'_> {
 
         // Window title
         let title_txt = match state.active_tab {
-            BagTab::Gear => "Gear",
-            BagTab::Inventory => "Inventory",
-            BagTab::Minerals => "Minerals",
-            BagTab::Food => "Food",
-            BagTab::Quest => "Quest Items",
+            BagTab::Gear => &self.localized_strings.get_msg("hud-bag-gear-tab"),
+            BagTab::Inventory => &self.localized_strings.get_msg("gameinput-inventory"),
+            BagTab::Minerals => &self.localized_strings.get_msg("hud-bag-ingredients-tab"),
+            BagTab::Food => &self.localized_strings.get_msg("hud-crafting-tabs-food"),
+            BagTab::Quest => &self.localized_strings.get_msg("hud-bag-quest-items-tab"),
         };
         Rectangle::fill_with([0.0, 0.0], color::TRANSPARENT)
             .mid_top_with_margin_on(self.bg_ids.bg_frame, 16.5)
@@ -1120,15 +1134,17 @@ impl Widget for BagWindow<'_> {
                 events.push(BagEvent::Close);
             }
 
+            let tab_space = 12.5;
+
             // Minerals tab
-            if Button::image(self.imgs.bag_ico)
+            let tab_img = if state.active_tab == BagTab::Minerals {
+                self.imgs.bag_tab_press
+            } else {
+                self.imgs.bag_tab
+            };
+            if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .mid_top_with_margin_on(state.ids.bag_title, 29.0)
-                .color(if state.active_tab == BagTab::Minerals {
-                    Color::Rgba(1.0, 0.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(1.0, 0.0, 1.0, 0.0)
-                })
+                .mid_top_with_margin_on(self.bg_ids.bg_frame, 34.5)
                 .set(state.ids.minerals_tab, ui)
                 .was_clicked()
             {
@@ -1138,14 +1154,14 @@ impl Widget for BagWindow<'_> {
             }
 
             // Inventory tab
-            if Button::image(self.imgs.bag_ico)
+            let tab_img = if state.active_tab == BagTab::Inventory {
+                self.imgs.bag_tab_press
+            } else {
+                self.imgs.bag_tab
+            };
+            if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .left_from(state.ids.minerals_tab, 10.0)
-                .color(if state.active_tab == BagTab::Inventory {
-                    Color::Rgba(1.0, 0.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(1.0, 0.0, 1.0, 0.0)
-                })
+                .left_from(state.ids.minerals_tab, tab_space)
                 .set(state.ids.inventory_tab, ui)
                 .was_clicked()
             {
@@ -1155,31 +1171,34 @@ impl Widget for BagWindow<'_> {
             }
 
             // Gear tab
-            if Button::image(self.imgs.char_art)
-                .w_h(32.5, 30.0)
-                .left_from(state.ids.inventory_tab, 10.0)
-                .color(if state.active_tab == BagTab::Gear {
-                    Color::Rgba(1.0, 0.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(1.0, 0.0, 1.0, 0.0)
-                })
+            let tab_img = if state.active_tab == BagTab::Gear || block_gear_tab {
+                self.imgs.gear_tab_press
+            } else {
+                self.imgs.gear_tab
+            };
+            if Button::image(tab_img)
+                .w_h(30.0, 30.0)
+                .left_from(state.ids.inventory_tab, tab_space)
                 .set(state.ids.gear_tab, ui)
                 .was_clicked()
             {
-                state.update(|s| {
-                    s.active_tab = BagTab::Gear;
-                })
+                // Can't open gear tab when using split screen
+                if is_primary && !block_gear_tab {
+                    state.update(|s| {
+                        s.active_tab = BagTab::Gear;
+                    })
+                }
             }
 
             // Food tab
-            if Button::image(self.imgs.bag_ico)
+            let tab_img = if state.active_tab == BagTab::Food {
+                self.imgs.bag_tab_press
+            } else {
+                self.imgs.bag_tab
+            };
+            if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .right_from(state.ids.minerals_tab, 10.0)
-                .color(if state.active_tab == BagTab::Food {
-                    Color::Rgba(1.0, 0.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(1.0, 0.0, 1.0, 0.0)
-                })
+                .right_from(state.ids.minerals_tab, tab_space)
                 .set(state.ids.food_tab, ui)
                 .was_clicked()
             {
@@ -1189,14 +1208,14 @@ impl Widget for BagWindow<'_> {
             }
 
             // Quest items tab
-            if Button::image(self.imgs.bag_ico)
+            let tab_img = if state.active_tab == BagTab::Quest {
+                self.imgs.bag_tab_press
+            } else {
+                self.imgs.bag_tab
+            };
+            if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .right_from(state.ids.food_tab, 10.0)
-                .color(if state.active_tab == BagTab::Food {
-                    Color::Rgba(1.0, 0.0, 1.0, 1.0)
-                } else {
-                    Color::Rgba(1.0, 0.0, 1.0, 0.0)
-                })
+                .right_from(state.ids.food_tab, tab_space)
                 .set(state.ids.quest_tab, ui)
                 .was_clicked()
             {
@@ -1205,15 +1224,45 @@ impl Widget for BagWindow<'_> {
                 })
             }
 
-            Text::new("Q")
-                .left_from(state.ids.gear_tab, 10.0)
+            // Left and right menu button inputs
+            let right_key = match self.global_state.window.last_input() {
+                LastInput::Controller => icon_utils::get_controller_input_string_menu(
+                    MenuInput::PageUp,
+                    &self.global_state.settings,
+                    self.global_state.window.controller_type(),
+                )
+                .unwrap_or_default(),
+                LastInput::Keyboard | LastInput::Mouse => self
+                    .global_state
+                    .settings
+                    .controls
+                    .get_menu_binding(MenuInput::PageUp)
+                    .map_or_else(|| "".into(), |key| key.display_string()),
+            };
+            let left_key = match self.global_state.window.last_input() {
+                LastInput::Controller => icon_utils::get_controller_input_string_menu(
+                    MenuInput::PageDown,
+                    &self.global_state.settings,
+                    self.global_state.window.controller_type(),
+                )
+                .unwrap_or_default(),
+                LastInput::Keyboard | LastInput::Mouse => self
+                    .global_state
+                    .settings
+                    .controls
+                    .get_menu_binding(MenuInput::PageDown)
+                    .map_or_else(|| "".into(), |key| key.display_string()),
+            };
+
+            Text::new(&left_key)
+                .left_from(state.ids.gear_tab, tab_space)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(22))
                 .color(TEXT_COLOR)
                 .set(state.ids.left_button, ui);
 
-            Text::new("E")
-                .right_from(state.ids.quest_tab, 10.0)
+            Text::new(&right_key)
+                .right_from(state.ids.quest_tab, tab_space)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(22))
                 .color(TEXT_COLOR)
@@ -1298,6 +1347,7 @@ impl Widget for BagWindow<'_> {
                 fonts: self.fonts,
                 localized_strings: self.localized_strings,
                 item_i18n: self.item_i18n,
+                pulse: self.pulse,
             };
 
             match state.active_tab {
@@ -1312,17 +1362,16 @@ impl Widget for BagWindow<'_> {
                         self.tooltip_manager,
                         self.item_tooltip_manager,
                         self.slot_manager,
-                        self.pulse,
-                        &self.stats,
-                        &self.skill_set,
-                        &self.health,
-                        &self.energy,
-                        &self.show,
-                        &self.body,
-                        &self.msm,
-                        &self.poise,
-                        &self.menu_events,
-                        &self.bg_ids,
+                        self.stats,
+                        self.skill_set,
+                        self.health,
+                        self.energy,
+                        self.show,
+                        self.body,
+                        self.msm,
+                        self.poise,
+                        self.menu_events,
+                        self.bg_ids,
                     )
                     .set(state.ids.gear_tab_content, ui)
                     {
@@ -1345,11 +1394,13 @@ impl Widget for BagWindow<'_> {
                         self.tooltip_manager,
                         self.item_tooltip_manager,
                         self.slot_manager,
-                        self.pulse,
-                        &self.menu_events,
-                        &self.bg_ids,
+                        self.menu_events,
+                        self.bg_ids,
                         self.show.bag_details,
+                        self.show.crafting_fields.salvage,
                     )
+                    .expanded_window(self.show.bag_menu_split)
+                    .trading(self.show.trade)
                     .set(state.ids.inventory_tab_content, ui)
                     {
                         match event {
@@ -1382,12 +1433,14 @@ impl Widget for BagWindow<'_> {
                         self.tooltip_manager,
                         self.item_tooltip_manager,
                         self.slot_manager,
-                        self.pulse,
-                        &self.menu_events,
-                        &self.bg_ids,
+                        self.menu_events,
+                        self.bg_ids,
                         self.show.bag_details,
+                        self.show.crafting_fields.salvage,
                     )
-                    .filter(TabFilters::Minerals)
+                    .filter(TabFilters::Ingredients)
+                    .expanded_window(self.show.bag_menu_split)
+                    .trading(self.show.trade)
                     .set(state.ids.minerals_tab_content, ui)
                     {
                         match event {
@@ -1420,12 +1473,14 @@ impl Widget for BagWindow<'_> {
                         self.tooltip_manager,
                         self.item_tooltip_manager,
                         self.slot_manager,
-                        self.pulse,
-                        &self.menu_events,
-                        &self.bg_ids,
+                        self.menu_events,
+                        self.bg_ids,
                         self.show.bag_details,
+                        self.show.crafting_fields.salvage,
                     )
                     .filter(TabFilters::Food)
+                    .expanded_window(self.show.bag_menu_split)
+                    .trading(self.show.trade)
                     .set(state.ids.food_tab_content, ui)
                     {
                         match event {
@@ -1458,12 +1513,14 @@ impl Widget for BagWindow<'_> {
                         self.tooltip_manager,
                         self.item_tooltip_manager,
                         self.slot_manager,
-                        self.pulse,
-                        &self.menu_events,
-                        &self.bg_ids,
+                        self.menu_events,
+                        self.bg_ids,
                         self.show.bag_details,
+                        self.show.crafting_fields.salvage,
                     )
                     .filter(TabFilters::QuestItems)
+                    .expanded_window(self.show.bag_menu_split)
+                    .trading(self.show.trade)
                     .set(state.ids.quest_tab_content, ui)
                     {
                         match event {
@@ -1532,18 +1589,23 @@ pub struct InventoryMenu<'a> {
     tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
-    pulse: f32,
     menu_events: &'a Vec<MenuInput>,
     bag_ids: &'a BackgroundIds,
-    bag_details: bool,
+    details_mode: bool,
+    show_salvage: bool,
     filter: TabFilters,
+    expanded_window: bool,
+    trading: bool,
 }
 
 impl<'a> InventoryMenu<'a> {
-    builder_method! {
+    builder_methods! {
         pub filter { filter = TabFilters }
+        pub expanded_window { expanded_window = bool }
+        pub trading { trading = bool }
     }
 
+    /// Displays the contents of an inventory, can be filtered
     pub fn new(
         tab_package: &'a TabPackage<'a>,
         inventory: &'a Inventory,
@@ -1553,10 +1615,10 @@ impl<'a> InventoryMenu<'a> {
         tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
-        pulse: f32,
         menu_events: &'a Vec<MenuInput>,
         bag_ids: &'a BackgroundIds,
-        bag_details: bool,
+        details_mode: bool,
+        show_salvage: bool,
     ) -> Self {
         Self {
             tab_package,
@@ -1568,11 +1630,13 @@ impl<'a> InventoryMenu<'a> {
             tooltip_manager,
             item_tooltip_manager,
             slot_manager,
-            pulse,
             menu_events,
             bag_ids,
-            bag_details,
+            details_mode,
+            show_salvage,
             filter: TabFilters::None,
+            expanded_window: false,
+            trading: false,
         }
     }
 }
@@ -1596,21 +1660,18 @@ impl Widget for InventoryMenu<'_> {
         let i18n = &self.tab_package.localized_strings;
         let mut events = Vec::new();
 
-        // MENU INPUTS: finish up later
-        // Back: closes the window
+        // MENU INPUTS:
+        /*
         for event in self.menu_events {
-            match *event {
-                MenuInput::Back => {
-                    events.push(InventoryMenuEvent::Close);
-                },
-                _ => {},
+            if *event == MenuInput::Back {
+                events.push(InventoryMenuEvent::Close);
             }
-        }
+        }*/
 
         // The grid width and item slot size are all pixel perferct in their alignment
         // However, the slot spacing has a few pixel mismatches, but shouldn't be
         // noticable
-        let grid_width = 376.0; // 381.0; 376.0
+        let grid_width = 376.0;
         let grid_height = 586.0;
 
         // Alignment for Grid
@@ -1640,15 +1701,15 @@ impl Widget for InventoryMenu<'_> {
             self.tab_package.item_i18n,
             self.tab_package.info.viewpoint_entity,
             &self.tab_package.global_state.window.last_input(),
-            self.pulse,
+            self.tab_package.pulse,
             self.menu_events,
             true, // is_us
-            self.bag_details, // details_mode
-            false, // show_salvage
+            self.details_mode,
+            self.show_salvage,
         )
         .columns(6)
-        .spacing(if self.bag_details { 0.0 } else { 5.8 }) // 5.8
-        .slot_size(if self.bag_details { 20.0 } else { 57.8 }) // 58.5; 57.8
+        .spacing(if self.details_mode { 0.0 } else { 5.8 })
+        .slot_size(if self.details_mode { 20.0 } else { 57.8 })
         .filter(self.filter)
         .w_of(state.ids.inv_alignment)
         .down_from(state.ids.spacing_above, 0.0)
@@ -1680,38 +1741,80 @@ impl Widget for InventoryMenu<'_> {
                 .set(state.ids.scrollbar_slots, ui);
         };
 
-        // A visual divider above the item matrix
+        // A visual divider above the item grid
         Rectangle::fill_with([grid_width, 1.5], Color::Rgba(0.314, 0.443, 0.443, 1.0))
             .up_from(state.ids.inv_alignment, 0.0)
             .set(state.ids.scroll_divider, ui);
 
         // Top buttons
-        let right_from_val = 95.0;
-        // Toggle the exanded gear|inventory window
-        if Button::image(self.tab_package.imgs.collapse_btn)
+        //
+        // Toggle the split screen gear|inventory window
+        if !self.trading {
+            // Don't show button when trading
+            if Button::image(if self.expanded_window {
+                self.tab_package.imgs.expand_btn
+            } else {
+                self.tab_package.imgs.collapse_btn
+            })
             .w_h(30.0, 17.0)
-            .hover_image(self.tab_package.imgs.collapse_btn_hover)
-            .press_image(self.tab_package.imgs.collapse_btn_press)
+            .hover_image(if self.expanded_window {
+                self.tab_package.imgs.expand_btn_hover
+            } else {
+                self.tab_package.imgs.collapse_btn_hover
+            })
+            .press_image(if self.expanded_window {
+                self.tab_package.imgs.expand_btn_press
+            } else {
+                self.tab_package.imgs.collapse_btn_press
+            })
+            .align_left_of(state.ids.scroll_divider)
             .up_from(state.ids.scroll_divider, 5.0)
             .with_tooltip(
                 self.tooltip_manager,
-                "Toggle expanded window",
+                &i18n.get_msg("hud-bag-toggle-expanded-window"),
                 "",
                 self.tooltip,
                 color::WHITE,
             )
             .set(state.ids.bag_expand_btn, ui)
             .was_clicked()
-        {
-            events.push(InventoryMenuEvent::BagExpand);
+            {
+                events.push(InventoryMenuEvent::BagExpand);
+            }
         }
 
-        // Sort mode inventory button
+        // Sort inventory button with selected mode -- middle button
+        if Button::image(self.tab_package.imgs.inv_sort_selected_btn)
+            .w_h(30.0, 17.0)
+            .hover_image(self.tab_package.imgs.inv_sort_selected_btn_hover)
+            .press_image(self.tab_package.imgs.inv_sort_selected_btn_press)
+            .align_middle_x_of(state.ids.scroll_divider)
+            .up_from(state.ids.scroll_divider, 5.0)
+            .with_tooltip(
+                self.tooltip_manager,
+                &(match self.tab_package.global_state.settings.inventory.sort_order {
+                    InventorySortOrder::Name => i18n.get_msg("hud-bag-sort_by_name"),
+                    InventorySortOrder::Quality => i18n.get_msg("hud-bag-sort_by_quality"),
+                    InventorySortOrder::Category => i18n.get_msg("hud-bag-sort_by_category"),
+                    InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_tag"),
+                    InventorySortOrder::Amount => i18n.get_msg("hud-bag-sort_by_quantity"),
+                }),
+                "",
+                self.tooltip,
+                color::WHITE,
+            )
+            .set(state.ids.inventory_sort_selected, ui)
+            .was_clicked()
+        {
+            events.push(InventoryMenuEvent::SortInventory);
+        }
+
+        // Sort mode inventory button -- left button
         if Button::image(self.tab_package.imgs.inv_sort_btn)
             .w_h(30.0, 17.0)
             .hover_image(self.tab_package.imgs.inv_sort_btn_hover)
             .press_image(self.tab_package.imgs.inv_sort_btn_press)
-            .right_from(state.ids.bag_expand_btn, right_from_val)
+            .left_from(state.ids.inventory_sort_selected, 10.0)
             .with_tooltip(
                 self.tooltip_manager,
                 &(match self
@@ -1744,32 +1847,7 @@ impl Widget for InventoryMenu<'_> {
             events.push(InventoryMenuEvent::ChangeInventorySortOrder);
         }
 
-        // Sort inventory button with selected mode
-        if Button::image(self.tab_package.imgs.inv_sort_selected_btn)
-            .w_h(30.0, 17.0)
-            .hover_image(self.tab_package.imgs.inv_sort_selected_btn_hover)
-            .press_image(self.tab_package.imgs.inv_sort_selected_btn_press)
-            .right_from(state.ids.inventory_sort, 10.0)
-            .with_tooltip(
-                self.tooltip_manager,
-                &(match self.tab_package.global_state.settings.inventory.sort_order {
-                    InventorySortOrder::Name => i18n.get_msg("hud-bag-sort_by_name"),
-                    InventorySortOrder::Quality => i18n.get_msg("hud-bag-sort_by_quality"),
-                    InventorySortOrder::Category => i18n.get_msg("hud-bag-sort_by_category"),
-                    InventorySortOrder::Tag => i18n.get_msg("hud-bag-sort_by_tag"),
-                    InventorySortOrder::Amount => i18n.get_msg("hud-bag-sort_by_quantity"),
-                }),
-                "",
-                self.tooltip,
-                color::WHITE,
-            )
-            .set(state.ids.inventory_sort_selected, ui)
-            .was_clicked()
-        {
-            events.push(InventoryMenuEvent::SortInventory);
-        }
-
-        // Button to toggle grid/list mode
+        // Button to toggle grid/list mode -- right button
         let (txt, btn, hover, press) = if true {
             (
                 "Grid mode",
@@ -1803,7 +1881,8 @@ impl Widget for InventoryMenu<'_> {
         let bag_space = format!("{}/{}", space_used, space_max);
         let bag_space_percentage = space_used as f32 / space_max as f32;
         Text::new(&bag_space)
-            .right_from(state.ids.bag_details_btn, right_from_val)
+            .align_right_of(state.ids.scroll_divider)
+            .up_from(state.ids.scroll_divider, 7.5)
             .font_id(self.tab_package.fonts.cyri.conrod_id)
             .font_size(self.tab_package.fonts.cyri.scale(14))
             .color(if bag_space_percentage < 0.8 {
@@ -1880,7 +1959,6 @@ pub struct GearMenu<'a> {
     tooltip_manager: &'a mut TooltipManager,
     item_tooltip_manager: &'a mut ItemTooltipManager,
     slot_manager: &'a mut SlotManager,
-    pulse: f32,
     stats: &'a Stats,
     skill_set: &'a SkillSet,
     health: &'a Health,
@@ -1894,6 +1972,9 @@ pub struct GearMenu<'a> {
 }
 
 impl<'a> GearMenu<'a> {
+    /// Displays an entities equipped gear, while showing their stats (and gear
+    /// inventory as well if viewed as a bag tab)
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         tab_package: &'a TabPackage,
         inventory: &'a Inventory,
@@ -1903,7 +1984,6 @@ impl<'a> GearMenu<'a> {
         tooltip_manager: &'a mut TooltipManager,
         item_tooltip_manager: &'a mut ItemTooltipManager,
         slot_manager: &'a mut SlotManager,
-        pulse: f32,
         stats: &'a Stats,
         skill_set: &'a SkillSet,
         health: &'a Health,
@@ -1925,7 +2005,6 @@ impl<'a> GearMenu<'a> {
             tooltip_manager,
             item_tooltip_manager,
             slot_manager,
-            pulse,
             stats,
             skill_set,
             health,
@@ -1961,14 +2040,14 @@ impl Widget for GearMenu<'_> {
         let i18n = &self.tab_package.localized_strings;
         let mut events = Vec::new();
 
-        // MENU INPUTS: manage equipment
+        // MENU INPUTS: manage equipped gear
         // Up: try to go up one
         // Down: try to go down one
         // Left: try to go left one
         // Right: try to move right one
         // Apply: select highlighed gear slot
         // Back: closes the bag
-        if state.is_focused == true {
+        if state.is_focused {
             for event in self.menu_events {
                 match *event {
                     MenuInput::Up => state.update(|s| {
@@ -2198,15 +2277,16 @@ impl Widget for GearMenu<'_> {
             .scroll_kids_vertically()
             .set(state.ids.inv_alignment, ui);
 
-        // Adds spacing above the slots to make scrolling feel a bit more natural
-        Rectangle::fill_with([grid_width, 5.0], color::TRANSPARENT)
-            .mid_top_of(state.ids.inv_alignment)
-            .set(state.ids.spacing_above, ui);
+        if !self.show.bag_menu_split || self.show.trade {
+            // Adds spacing above the slots to make scrolling feel a bit more natural
+            Rectangle::fill_with([grid_width, 5.0], color::TRANSPARENT)
+                .mid_top_of(state.ids.inv_alignment)
+                .set(state.ids.spacing_above, ui);
 
-        let mut space_max = 0;
+            let mut space_max = 0;
 
-        // Bag slots
-        for event in SlotGrid::new(
+            // Bag slots
+            for event in SlotGrid::new(
             self.tab_package.client,
             self.tab_package.imgs,
             self.tab_package.item_imgs,
@@ -2219,11 +2299,11 @@ impl Widget for GearMenu<'_> {
             self.tab_package.item_i18n,
             self.tab_package.info.viewpoint_entity,
             &self.tab_package.global_state.window.last_input(),
-            self.pulse,
+            self.tab_package.pulse,
             self.menu_events,
             true,                  // is_us
             self.show.bag_details, // details_mode
-            false,                 // show_salvage
+            self.show.crafting_fields.salvage,
         )
         .columns(6)
         .spacing(if self.show.bag_details { 0.0 } else { 5.8 })
@@ -2234,41 +2314,42 @@ impl Widget for GearMenu<'_> {
         .w_of(state.ids.inv_alignment)
         .down_from(state.ids.spacing_above, 0.0)
         .set(state.ids.slot_grid, ui)
-        {
-            match event {
-                SlotEvents::Close => events.push(GearMenuEvent::Close),
-                SlotEvents::ExitUp => {
-                    // User went up, out of the item list
-                    // Switch focus to this widget---gear slots
-                    state.update(|s| {
-                        s.is_focused = true;
-                    })
-                },
-                SlotEvents::FilteredSize(size) => {
-                    space_max = size;
-                },
-                _ => {},
+            {
+                match event {
+                    SlotEvents::Close => events.push(GearMenuEvent::Close),
+                    SlotEvents::ExitUp => {
+                        // User went up, out of the item list
+                        // Switch focus to this widget---gear slots
+                        state.update(|s| {
+                            s.is_focused = true;
+                        })
+                    },
+                    SlotEvents::FilteredSize(size) => {
+                        space_max = size;
+                    },
+                    _ => {},
+                }
             }
+
+            // Scrollbar
+            if space_max > 24 {
+                // Scrollbar-BG
+                Image::new(self.tab_package.imgs.scrollbar_bg)
+                    .w_h(9.0, 180.0)
+                    .bottom_right_with_margins_on(self.bag_ids.bg_frame, 24.0, 3.0)
+                    .color(Some(UI_HIGHLIGHT_0))
+                    .set(state.ids.scrollbar_bg, ui);
+                // Scrollbar
+                Scrollbar::y_axis(state.ids.inv_alignment)
+                    .thickness(6.0)
+                    .h(133.0)
+                    .color(UI_MAIN)
+                    .middle_of(state.ids.scrollbar_bg)
+                    .set(state.ids.scrollbar_slots, ui);
+            };
         }
 
-        // Scrollbar
-        if space_max > 24 {
-            // Scrollbar-BG
-            Image::new(self.tab_package.imgs.scrollbar_bg)
-                .w_h(9.0, 180.0)
-                .bottom_right_with_margins_on(self.bag_ids.bg_frame, 24.0, 3.0)
-                .color(Some(UI_HIGHLIGHT_0))
-                .set(state.ids.scrollbar_bg, ui);
-            // Scrollbar
-            Scrollbar::y_axis(state.ids.inv_alignment)
-                .thickness(6.0)
-                .h(133.0)
-                .color(UI_MAIN)
-                .middle_of(state.ids.scrollbar_bg)
-                .set(state.ids.scrollbar_slots, ui);
-        };
-
-        // A visual divider above the item matrix
+        // A visual divider above the item grid
         Rectangle::fill_with([grid_width, 1.5], Color::Rgba(0.314, 0.443, 0.443, 1.0))
             .up_from(state.ids.inv_alignment, 0.0)
             .set(state.ids.scroll_divider, ui);
@@ -2295,7 +2376,7 @@ impl Widget for GearMenu<'_> {
             image_source: self.tab_package.item_imgs,
             slot_manager: Some(self.slot_manager),
             last_input: &self.tab_package.global_state.window.last_input(),
-            pulse: self.pulse,
+            pulse: self.tab_package.pulse,
         };
 
         // NOTE: Yes, macros considered harmful.
@@ -2358,6 +2439,7 @@ impl Widget for GearMenu<'_> {
                 .resize(STATS.len(), &mut ui.widget_id_generator())
         });
         // Stats
+        let block_gear_tab = self.show.bag_menu_split && !self.show.trade;
         let combat_rating = combat_rating(
             self.inventory,
             self.health,
@@ -2369,6 +2451,7 @@ impl Widget for GearMenu<'_> {
         )
         .min(999.9);
         let indicator_col = cr_color(combat_rating);
+        let img_size = if block_gear_tab { 25.0 } else { 20.0 };
         for i in STATS.iter().copied().enumerate() {
             let btn = Button::image(match i.1 {
                 "Health" => self.tab_package.imgs.health_ico,
@@ -2379,7 +2462,7 @@ impl Widget for GearMenu<'_> {
                 "Stealth" => self.tab_package.imgs.stealth_rating_ico,
                 _ => self.tab_package.imgs.nothing,
             })
-            .w_h(20.0, 20.0)
+            .w_h(img_size, img_size)
             .image_color(if i.1 == "Combat Rating" {
                 indicator_col
             } else {
@@ -2419,9 +2502,27 @@ impl Widget for GearMenu<'_> {
                     * 100.0)
             );
             let btn = if i.0 == 0 {
-                btn.top_left_with_margins_on(self.bag_ids.bg_frame, 95.0, 10.0)
+                if !self.show.bag_menu_split || self.show.trade {
+                    // Top left corner of gear tab
+                    btn.top_left_with_margins_on(self.bag_ids.bg_frame, 95.0, 10.0)
+                } else {
+                    // Bottom of gear tab
+                    btn.top_left_with_margins_on(state.ids.inv_alignment, 10.0, 25.0)
+                }
             } else {
-                btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
+                if !self.show.bag_menu_split || self.show.trade {
+                    // Top left corner of gear tab
+                    btn.down_from(state.ids.stat_icons[i.0 - 1], 7.0)
+                } else {
+                    // Bottom of gear tab
+                    if i.0 % 2 != 0 {
+                        // If odd, place beneath previous stat
+                        btn.down_from(state.ids.stat_icons[i.0 - 1], 15.0)
+                    } else {
+                        // If even
+                        btn.right_from(state.ids.stat_icons[i.0 - 2], 90.0)
+                    }
+                }
             };
             let tooltip_head = match i.1 {
                 "Health" => i18n.get_msg("hud-bag-health"),
@@ -2457,7 +2558,11 @@ impl Widget for GearMenu<'_> {
             })
             .right_from(state.ids.stat_icons[i.0], 10.0)
             .font_id(self.tab_package.fonts.cyri.conrod_id)
-            .font_size(self.tab_package.fonts.cyri.scale(14))
+            .font_size(if block_gear_tab {
+                self.tab_package.fonts.cyri.scale(20)
+            } else {
+                self.tab_package.fonts.cyri.scale(14)
+            })
             .color(TEXT_COLOR)
             .graphics_for(state.ids.stat_icons[i.0])
             .set(state.ids.stat_txts[i.0], ui);
@@ -2469,7 +2574,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 15 && state.is_focused == true,
+                state.active_gear_slot == 15 && state.is_focused,
                 false,
             )
             .mid_top_with_margin_on(self.bag_ids.bg_frame, 100.0)
@@ -2489,7 +2594,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 14 && state.is_focused == true,
+                state.active_gear_slot == 14 && state.is_focused,
                 false,
             )
             .mid_bottom_with_margin_on(state.ids.head_slot, -50.0)
@@ -2510,7 +2615,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [80.0; 2],
-                state.active_gear_slot == 12 && state.is_focused == true,
+                state.active_gear_slot == 12 && state.is_focused,
                 false,
             )
             .mid_bottom_with_margin_on(state.ids.neck_slot, -90.0)
@@ -2530,7 +2635,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [65.0; 2],
-                state.active_gear_slot == 11 && state.is_focused == true,
+                state.active_gear_slot == 11 && state.is_focused,
                 false,
             )
             .bottom_left_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
@@ -2550,7 +2655,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [65.0; 2],
-                state.active_gear_slot == 13 && state.is_focused == true,
+                state.active_gear_slot == 13 && state.is_focused,
                 false,
             )
             .bottom_right_with_margins_on(state.ids.chest_slot, 0.0, -80.0)
@@ -2570,7 +2675,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 9 && state.is_focused == true,
+                state.active_gear_slot == 9 && state.is_focused,
                 false,
             )
             .mid_bottom_with_margin_on(state.ids.chest_slot, -50.0)
@@ -2590,7 +2695,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [80.0; 2],
-                state.active_gear_slot == 6 && state.is_focused == true,
+                state.active_gear_slot == 6 && state.is_focused,
                 false,
             )
             .mid_bottom_with_margin_on(state.ids.belt_slot, -90.0)
@@ -2610,7 +2715,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 10 && state.is_focused == true,
+                state.active_gear_slot == 10 && state.is_focused,
                 false,
             )
             .bottom_left_with_margins_on(state.ids.hands_slot, -50.0, 0.0)
@@ -2630,7 +2735,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 8 && state.is_focused == true,
+                state.active_gear_slot == 8 && state.is_focused,
                 false,
             )
             .bottom_right_with_margins_on(state.ids.shoulders_slot, -50.0, 0.0)
@@ -2650,7 +2755,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 5 && state.is_focused == true,
+                state.active_gear_slot == 5 && state.is_focused,
                 false,
             )
             .down_from(state.ids.ring2_slot, 10.0)
@@ -2670,7 +2775,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 7 && state.is_focused == true,
+                state.active_gear_slot == 7 && state.is_focused,
                 false,
             )
             .down_from(state.ids.ring1_slot, 10.0)
@@ -2690,7 +2795,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 18 && state.is_focused == true,
+                state.active_gear_slot == 18 && state.is_focused,
                 false,
             )
             .top_right_with_margins_on(self.bag_ids.bg_frame, 100.0, 5.0)
@@ -2710,7 +2815,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 17 && state.is_focused == true,
+                state.active_gear_slot == 17 && state.is_focused,
                 false,
             )
             .down_from(state.ids.lantern_slot, 5.0)
@@ -2730,7 +2835,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 16 && state.is_focused == true,
+                state.active_gear_slot == 16 && state.is_focused,
                 false,
             )
             .down_from(state.ids.glider_slot, 5.0)
@@ -2750,7 +2855,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [80.0; 2],
-                state.active_gear_slot == 1 && state.is_focused == true,
+                state.active_gear_slot == 1 && state.is_focused,
                 false,
             )
             .bottom_right_with_margins_on(state.ids.back_slot, -90.0, 0.0)
@@ -2770,7 +2875,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [80.0; 2],
-                state.active_gear_slot == 4 && state.is_focused == true,
+                state.active_gear_slot == 4 && state.is_focused,
                 false,
             )
             .bottom_left_with_margins_on(state.ids.feet_slot, -90.0, 0.0)
@@ -2790,7 +2895,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [35.0; 2],
-                state.active_gear_slot == 2 && state.is_focused == true,
+                state.active_gear_slot == 2 && state.is_focused,
                 false,
             )
             .bottom_right_with_margins_on(state.ids.active_mainhand_slot, 0.0, -47.0)
@@ -2810,7 +2915,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [35.0; 2],
-                state.active_gear_slot == 3 && state.is_focused == true,
+                state.active_gear_slot == 3 && state.is_focused,
                 false,
             )
             .bottom_left_with_margins_on(state.ids.active_offhand_slot, 0.0, -47.0)
@@ -2861,7 +2966,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 19 && state.is_focused == true,
+                state.active_gear_slot == 19 && state.is_focused,
                 false,
             )
             .down_from(state.ids.tabard_slot, 25.0)
@@ -2881,7 +2986,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 20 && state.is_focused == true,
+                state.active_gear_slot == 20 && state.is_focused,
                 false,
             )
             .down_from(state.ids.bag1_slot, 5.0)
@@ -2901,7 +3006,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 21 && state.is_focused == true,
+                state.active_gear_slot == 21 && state.is_focused,
                 false,
             )
             .down_from(state.ids.bag2_slot, 5.0)
@@ -2921,7 +3026,7 @@ impl Widget for GearMenu<'_> {
             .fabricate(
                 item_slot,
                 [40.0; 2],
-                state.active_gear_slot == 22 && state.is_focused == true,
+                state.active_gear_slot == 22 && state.is_focused,
                 false,
             )
             .down_from(state.ids.bag3_slot, 2.0)

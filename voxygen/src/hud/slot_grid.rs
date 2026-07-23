@@ -37,7 +37,7 @@ use vek::Vec2;
 #[derive(PartialEq)]
 pub enum TabFilters {
     Gear,
-    Minerals,
+    Ingredients,
     Food,
     QuestItems,
     None,
@@ -109,6 +109,7 @@ impl<'a> SlotGrid<'a> {
         pub filter { filter = TabFilters }
     }
 
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         imgs: &'a Imgs,
@@ -200,38 +201,41 @@ impl<'a> Widget for SlotGrid<'a> {
             .filter(|(_, items_list)| match self.filter {
                 TabFilters::Gear => {
                     if let Some(item) = items_list {
+                        matches!(
+                            &*item.kind(),
+                            ItemKind::Tool(_)
+                                | ItemKind::ModularComponent(_)
+                                | ItemKind::Lantern(_)
+                                | ItemKind::Armor(_)
+                                | ItemKind::Glider
+                        )
+                    } else {
+                        false
+                    }
+                },
+                TabFilters::Ingredients => {
+                    if let Some(item) = items_list {
                         match &*item.kind() {
-                            ItemKind::Tool(_) => true,
-                            ItemKind::ModularComponent(_) => true,
-                            ItemKind::Lantern(_) => true,
-                            ItemKind::Armor(_) => true,
-                            ItemKind::Glider => true,
+                            // Allowing it because 'descriptor' isn't being used
+                            #[allow(deprecated)]
+                            ItemKind::Ingredient { descriptor: _ } => true,
                             _ => false,
                         }
                     } else {
                         false
                     }
                 },
-                TabFilters::Minerals => true,
                 TabFilters::Food => {
                     if let Some(item) = items_list {
-                        if item.tags().contains(&ItemTag::Food)
+                        item.tags().contains(&ItemTag::Food)
                             | item.tags().contains(&ItemTag::Potion)
-                        {
-                            true
-                        } else {
-                            false
-                        }
                     } else {
                         false
                     }
                 },
                 TabFilters::QuestItems => {
                     if let Some(item) = items_list {
-                        match &*item.kind() {
-                            ItemKind::Quest => true,
-                            _ => false,
-                        }
+                        matches!(&*item.kind(), ItemKind::Quest)
                     } else {
                         false
                     }
@@ -261,10 +265,10 @@ impl<'a> Widget for SlotGrid<'a> {
 
         // Add the first empty slot (if any) to the items list to help with removing
         // gear and visualizing when more space is available
-        if self.filter != TabFilters::None && self.filter != TabFilters::Minerals {
-            if let Some(empty_slot) = inventory_iter().find(|(_, item)| item.is_none()) {
-                items.push(empty_slot);
-            }
+        if self.filter != TabFilters::None
+            && let Some(empty_slot) = inventory_iter().find(|(_, item)| item.is_none())
+        {
+            items.push(empty_slot);
         }
 
         // Calculate formatting info
@@ -282,7 +286,7 @@ impl<'a> Widget for SlotGrid<'a> {
         // Apply: select the current slot
         // Back: close the bag menu
         let mut clicked = false;
-        if selected.is_none() && self.is_focused == true {
+        if selected.is_none() && self.is_focused {
             for event in self.menu_events {
                 match *event {
                     MenuInput::Up => state.update(|s| {
@@ -403,8 +407,8 @@ impl<'a> Widget for SlotGrid<'a> {
             // Check if active menu navigation hover
             let menu_hover = state.active_slot[0] == x
                 && state.active_slot[1] == y // Is it the current slot
-                && selected.is_none()        // Is the context menu not open
-                && self.is_focused == true; // Is focus on the inventory
+                && selected.is_none() // Is the context menu not open
+                && self.is_focused; // Is focus on the inventory
 
             let mut slot_widget = slot_maker
                 .fabricate(inv_slot, [self.slot_size as f32; 2], menu_hover, clicked)

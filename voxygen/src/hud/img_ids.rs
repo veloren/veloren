@@ -749,6 +749,10 @@ image_ids! {
         disable_bell_btn: "voxygen.element.ui.generic.buttons.disable_bell_btn",
 
         // Inventory
+        bag_tab: "voxygen.element.ui.bag.icons.bag_tab",
+        bag_tab_press: "voxygen.element.ui.bag.icons.bag_tab_press",
+        gear_tab: "voxygen.element.ui.bag.icons.character",
+        gear_tab_press: "voxygen.element.ui.bag.icons.character_press",
         grid_btn: "voxygen.element.ui.bag.buttons.inv_grid",
         grid_btn_hover: "voxygen.element.ui.bag.buttons.inv_grid_hover",
         grid_btn_press: "voxygen.element.ui.bag.buttons.inv_grid_press",
@@ -776,12 +780,9 @@ image_ids! {
         inv_frame_bag: "voxygen.element.ui.bag.inv_frame_bag",
         inv_bg_bag: "voxygen.element.ui.bag.inv_bg_bag",
         player_inv_frame_bag: "voxygen.element.ui.bag.player_inv_frame_bag",
-        player_inv_frame_bag2: "voxygen.element.ui.bag.bag_bg_test_frame",
         player_inv_bg_bag: "voxygen.element.ui.bag.player_inv_bg_bag",
-        player_inv_bg_bag2: "voxygen.element.ui.bag.bag_bg_test",
         inv_middle_bg_bag: "voxygen.element.ui.bag.inv_middle_bg_bag",
         inv_middle_frame: "voxygen.element.ui.bag.inv_middle_frame",
-        char_art: "voxygen.element.ui.bag.icons.character",
         inv_slot: "voxygen.element.ui.bag.buttons.inv_slot",
         inv_slot_grey: "voxygen.element.ui.bag.buttons.inv_slot_grey",
         inv_slot_common: "voxygen.element.ui.bag.buttons.inv_slot_common",
@@ -795,10 +796,6 @@ image_ids! {
         scrollbar_bg: "voxygen.element.ui.generic.slider.scrollbar",
         scrollbar_bg_big: "voxygen.element.ui.generic.slider.scrollbar_1",
         second_phase_scrollbar_bg: "voxygen.element.ui.bag.second_phase_scrollbar_bg",
-        inv_tab_active: "voxygen.element.ui.bag.buttons.inv_tab_active", // unused
-        inv_tab_inactive: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
-        inv_tab_inactive_hover: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
-        inv_tab_inactive_press: "voxygen.element.ui.bag.buttons.inv_tab_inactive", // unused
         armor_slot: "voxygen.element.ui.generic.buttons.armor_slot",
         armor_slot_sel: "voxygen.element.ui.generic.buttons.armor_slot_selected",
         armor_slot_empty: "voxygen.element.ui.generic.buttons.armor_slot_empty",
