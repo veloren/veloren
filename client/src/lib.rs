@@ -323,7 +323,7 @@ pub struct Client {
     pending_invites: HashSet<Uid>,
     // The pending trade the client is involved in, and it's id
     pending_trade: Option<(TradeId, PendingTrade, Option<SitePrices>)>,
-    waypoint: Option<String>,
+    waypoint: Option<Content>,
 
     network: Option<Network>,
     participant: Option<Participant>,
@@ -367,7 +367,7 @@ pub struct Client {
 /// additional state to handle UI.
 #[derive(Debug, Default)]
 pub struct CharacterList {
-    pub characters: Vec<CharacterItem>,
+    pub characters: Vec<CharacterItem<Content>>,
     pub loading: bool,
 }
 
@@ -2315,7 +2315,7 @@ impl Client {
         }))
     }
 
-    pub fn waypoint(&self) -> &Option<String> { &self.waypoint }
+    pub fn waypoint(&self) -> Option<&Content> { self.waypoint.as_ref() }
 
     pub fn set_battle_mode(&mut self, battle_mode: BattleMode) {
         self.send_msg(ClientGeneral::SetBattleMode(battle_mode));

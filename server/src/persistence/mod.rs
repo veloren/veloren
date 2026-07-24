@@ -27,9 +27,6 @@ use std::{
 };
 use tracing::info;
 
-// re-export waypoint parser for use to look up location names in character list
-pub(crate) use character::parse_waypoint;
-
 /// A struct of the components that are persisted to the DB for each character
 #[derive(Debug)]
 pub struct PersistedComponents {

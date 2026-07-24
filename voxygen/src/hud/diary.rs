@@ -1244,9 +1244,12 @@ impl Widget for Diary<'_> {
                         CharacterStat::Waypoint => self
                             .client
                             .waypoint()
-                            .as_ref()
-                            .cloned()
-                            .unwrap_or_else(|| "Unknown".to_string()),
+                            .map(|c| self.localized_strings.get_content(c))
+                            .unwrap_or_else(|| {
+                                self.localized_strings
+                                    .get_msg("char_selection-uncanny_valley")
+                                    .into_owned()
+                            }),
                         CharacterStat::Hitpoints => format!("{}", self.health.maximum() as u32),
                         CharacterStat::Energy => format!("{}", self.energy.maximum() as u32),
                         CharacterStat::Poise => format!("{}", self.poise.maximum() as u32),

@@ -147,7 +147,7 @@ pub enum ServerGeneral {
     /// Result of loading character data
     CharacterDataLoadResult(Result<UpdateCharacterMetadata, String>),
     /// A list of characters belonging to the a authenticated player was sent
-    CharacterListUpdate(Vec<CharacterItem>),
+    CharacterListUpdate(Vec<CharacterItem<Content>>),
     /// An error occurred while creating or deleting a character
     CharacterActionError(String),
     /// A new character was created
@@ -304,7 +304,7 @@ pub enum InviteAnswer {
 /// not relevant to rendering.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Notification {
-    WaypointSaved { location_name: String },
+    WaypointSaved { location_name: Content },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

@@ -759,22 +759,32 @@ impl Server {
     /// Get a reference to the Chat Cache
     pub fn chat_cache(&self) -> &ChatCache { &self.chat_cache }
 
-    fn parse_locations(&self, character_list_data: &mut [CharacterItem]) {
-        character_list_data.iter_mut().for_each(|c| {
-            let name = c
-                .location
-                .as_ref()
-                .and_then(|s| {
-                    persistence::parse_waypoint(s)
-                        .ok()
-                        .and_then(|(waypoint, _)| waypoint.map(|w| w.get_pos()))
-                })
-                .and_then(|wpos| {
-                    self.world
-                        .get_location_name(self.index.as_index_ref(), wpos.xy().as_::<i32>())
-                });
-            c.location = name;
-        });
+    /// Converts positions to location names for a list of characters.
+    fn get_location_names(
+        &self,
+        character_list: Vec<CharacterItem<Vec3<f32>>>,
+    ) -> Vec<CharacterItem<Content>> {
+        character_list
+            .into_iter()
+            .map(|c| {
+                #[expect(deprecated, reason = "i18n location name")]
+                let name = c
+                    .location
+                    .as_ref()
+                    .and_then(|wpos| {
+                        self.world
+                            .get_location_name(self.index.as_index_ref(), wpos.xy().as_::<i32>())
+                    })
+                    .map(Content::legacy);
+                CharacterItem {
+                    character: c.character,
+                    body: c.body,
+                    hardcore: c.hardcore,
+                    inventory: c.inventory,
+                    location: name,
+                }
+            })
+            .collect()
     }
 
     /// Execute a single server tick, handle input and update the game state by
@@ -1061,24 +1071,22 @@ impl Server {
                 CharacterUpdaterMessage::CharacterScreenResponse(response) => {
                     match response.response_kind {
                         CharacterScreenResponseKind::CharacterList(result) => match result {
-                            Ok(mut character_list_data) => {
-                                self.parse_locations(&mut character_list_data);
-                                self.notify_client(
-                                    response.target_entity,
-                                    ServerGeneral::CharacterListUpdate(character_list_data),
-                                )
-                            },
+                            Ok(list) => self.notify_client(
+                                response.target_entity,
+                                ServerGeneral::CharacterListUpdate(self.get_location_names(list)),
+                            ),
                             Err(error) => self.notify_client(
                                 response.target_entity,
                                 ServerGeneral::CharacterActionError(error.to_string()),
                             ),
                         },
                         CharacterScreenResponseKind::CharacterCreation(result) => match result {
-                            Ok((character_id, mut list)) => {
-                                self.parse_locations(&mut list);
+                            Ok((character_id, list)) => {
                                 self.notify_client(
                                     response.target_entity,
-                                    ServerGeneral::CharacterListUpdate(list),
+                                    ServerGeneral::CharacterListUpdate(
+                                        self.get_location_names(list),
+                                    ),
                                 );
                                 self.notify_client(
                                     response.target_entity,
@@ -1091,11 +1099,12 @@ impl Server {
                             ),
                         },
                         CharacterScreenResponseKind::CharacterEdit(result) => match result {
-                            Ok((character_id, mut list)) => {
-                                self.parse_locations(&mut list);
+                            Ok((character_id, list)) => {
                                 self.notify_client(
                                     response.target_entity,
-                                    ServerGeneral::CharacterListUpdate(list),
+                                    ServerGeneral::CharacterListUpdate(
+                                        self.get_location_names(list),
+                                    ),
                                 );
                                 self.notify_client(
                                     response.target_entity,

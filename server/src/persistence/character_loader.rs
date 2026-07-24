@@ -12,11 +12,12 @@ use crossbeam_channel::{self, TryIter};
 use rusqlite::Connection;
 use std::sync::{Arc, RwLock};
 use tracing::{debug, error};
+use vek::Vec3;
 
-pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, PersistenceError>;
-pub(crate) type CharacterCreationResult =
-    Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
-pub(crate) type CharacterEditResult = Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
+type CharacterList = Vec<CharacterItem<Vec3<f32>>>;
+pub(crate) type CharacterListResult = Result<CharacterList, PersistenceError>;
+pub(crate) type CharacterCreationResult = Result<(CharacterId, CharacterList), PersistenceError>;
+pub(crate) type CharacterEditResult = Result<(CharacterId, CharacterList), PersistenceError>;
 pub(crate) type CharacterDataResult =
     Result<(PersistedComponents, UpdateCharacterMetadata), PersistenceError>;
 type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);

@@ -44,8 +44,6 @@ mod conversions;
 
 pub(crate) type EntityId = i64;
 
-pub(crate) use conversions::convert_waypoint_from_database_json as parse_waypoint;
-
 const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.character";
 const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.inventory";
 const LOADOUT_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.loadout";
@@ -395,13 +393,21 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let (recipe_book, _) = convert_recipe_book_from_database_items(&recipe_book_items)?;
 
+            let location = character_data
+                .waypoint
+                .as_ref()
+                .map(|s| convert_waypoint_from_database_json(s))
+                .transpose()?
+                .and_then(|(waypoint, _)| waypoint)
+                .map(|w| w.get_pos());
+
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
                 hardcore: hardcore.is_some(),
                 inventory: Inventory::with_loadout(loadout, char_body)
                     .with_recipe_book(recipe_book),
-                location: character_data.waypoint.as_ref().cloned(),
+                location,
             })
         })
         .collect()
