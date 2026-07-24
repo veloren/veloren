@@ -8,7 +8,6 @@ BasicAura(
             kind: Burning,
             strength: 3.0,
             duration: Some(6),
-            category: Magical,
         ),
     ],
     aura_duration: Some(8.0),
