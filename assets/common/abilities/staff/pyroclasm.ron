@@ -22,6 +22,7 @@ RapidRanged(
         attack: Some((
             damage: 15,
             knockback: Some(3),
+            damage_kind: Energy,
         )),
     ),
     projectile_body: Object(PyroclasmBolt),

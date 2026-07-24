@@ -18,6 +18,7 @@ BasicRanged(
                 strength: DamageFraction(0.1),
                 chance: 0.8,
             )),
+            damage_kind: Energy,
         )),
         override_collider: Some((
                 p0: (x: 0.0, y: 0.0),
