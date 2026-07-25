@@ -1848,7 +1848,7 @@ impl Widget for InventoryMenu<'_> {
         }
 
         // Button to toggle grid/list mode -- right button
-        let (txt, btn, hover, press) = if true {
+        let (txt, btn, hover, press) = if self.details_mode {
             (
                 "Grid mode",
                 self.tab_package.imgs.grid_btn,

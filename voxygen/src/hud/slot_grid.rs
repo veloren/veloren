@@ -421,7 +421,7 @@ impl<'a> Widget for SlotGrid<'a> {
                 );
 
             // Highlight slots are provided by the loadout item (bag) that the mouse is over
-            if mouseover_loadout_slots.contains(&i) {
+            if self.filter == TabFilters::None && mouseover_loadout_slots.contains(&i) {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
@@ -533,9 +533,11 @@ impl<'a> Widget for SlotGrid<'a> {
         }
 
         // Add padding beneath the last row of items to make scrolling feel more natural
-        Rectangle::fill_with([1.0, 15.0], color::TRANSPARENT)
-            .down_from(state.ids.item_slots[state.ids.item_slots.len() - 1], 0.0)
-            .set(state.ids.spacing_below, ui);
+        if !state.ids.item_slots.is_empty() {
+            Rectangle::fill_with([1.0, 15.0], color::TRANSPARENT)
+                .down_from(state.ids.item_slots[state.ids.item_slots.len() - 1], 0.0)
+                .set(state.ids.spacing_below, ui);
+        }
 
         // Not exactly an event, but I have to return the filtered list size somehow
         events.push(SlotEvents::FilteredSize(total_slots));
