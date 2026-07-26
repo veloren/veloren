@@ -164,15 +164,11 @@ impl<'a> System<'a> for Sys {
                         .0
                         .in_circle_aabr(beam.bezier.start.xy(), beam.range)
                         .filter_map(|target| {
-                            read_data
-                                .positions
-                                .get(target)
-                                .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
-                                .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
-                                .and_then(|l| read_data.bodies.get(target).map(|r| (l, r)))
-                                .map(|(((pos_b, health_b), uid_b), body_b)| {
-                                    (target, uid_b, pos_b, health_b, body_b)
-                                })
+                            let health_b = read_data.healths.get(target)?;
+                            let body_b = read_data.bodies.get(target)?;
+                            let pos_b = read_data.positions.get(target)?;
+                            let uid_b = read_data.uids.get(target)?;
+                            Some((target, uid_b, pos_b, health_b, body_b))
                         });
                     target_iter.for_each(|(target, uid_b, pos_b, health_b, body_b)| {
                         // Check to see if entity has already been hit recently
