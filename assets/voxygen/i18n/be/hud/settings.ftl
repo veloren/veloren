@@ -185,3 +185,4 @@ hud-settings-row_background_opacity = Празрыстасць Фону Радк
 hud-settings-indoor_ambience = Вызначэнне атмасферы ў памяшканні
 hud-settings-keyboard-binding = Спалучэнні клавіш
 hud-settings-instrument_volume = Гучнасць Інструментаў
+hud-settings-cloud_rendering_mode-flat = Плоскі

@@ -503,7 +503,5 @@ common-abilities-hammer-judgement = Juicio
         Requiere { $min_combo } de combo para usarlo.
 common-abilities-bow-heavy_nock = Golpe fuerte
     .desc = Dispara con tu arco una flecha pesada para empujar el objetivo. Entre más ligero sea y más cerca estés, mayor será el empuje.
-common-abilities-bow-death_volley_heavy_shot = Muerte en Abanico
-    .desc = Lanza una ráfaga de flechas al aire que se dispersarán en una lluvia mortal.
 common-abilities-bow-fusillade = Ráfaga
     .desc = Prepara varias flechas a la vez para disparar una ráfaga corta de flechas a larga distancia.
