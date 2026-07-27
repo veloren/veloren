@@ -166,8 +166,10 @@ impl CharacterBehavior for Data {
                     c.timer = tick_attack_or_default(data, self.timer, None);
                 }
             },
-            StageSection::Recover if self.timer < self.static_data.recover_duration => {
-                if let CharacterState::LeapRanged(c) = &mut update.character {
+            StageSection::Recover => {
+                if self.timer < self.static_data.recover_duration
+                    && let CharacterState::LeapRanged(c) = &mut update.character
+                {
                     c.timer = tick_attack_or_default(data, self.timer, None);
                 }
             },
