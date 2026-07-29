@@ -174,9 +174,9 @@ image_ids! {
         pvp_on: "voxygen.element.ui.social.pvp_on",
         pvp_off: "voxygen.element.ui.social.pvp_off",
 
-        map_button: "voxygen.element.ui.generic.buttons.map",
-        map_hover: "voxygen.element.ui.generic.buttons.map_hover",
-        map_press: "voxygen.element.ui.generic.buttons.map_press",
+        map_button: "voxygen.element.ui.generic.buttons.map", // unused
+        map_hover: "voxygen.element.ui.generic.buttons.map_hover", // unused
+        map_press: "voxygen.element.ui.generic.buttons.map_press", // unused
 
         spellbook_button: "voxygen.element.ui.generic.buttons.spellbook",
         spellbook_hover: "voxygen.element.ui.generic.buttons.spellbook_hover", // unused
@@ -573,7 +573,7 @@ image_ids! {
         m2_ico: "voxygen.element.ui.generic.icons.m2",
         m_scroll_ico: "voxygen.element.ui.generic.icons.m_scroll",
         m_move_ico: "voxygen.element.ui.generic.icons.m_move",
-        m_click_ico: "voxygen.element.ui.generic.icons.m_click", // unused
+        m_click_ico: "voxygen.element.ui.generic.icons.m_click",
         skillbar_slot: "voxygen.element.ui.skillbar.slot",
         bag_ico: "voxygen.element.ui.generic.buttons.bag",
         skillbar_index: "voxygen.element.ui.generic.buttons.hotbar_index",

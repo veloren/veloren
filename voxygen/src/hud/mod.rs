@@ -2,7 +2,6 @@
 mod animation;
 mod bag;
 mod buffs;
-mod buttons;
 mod change_notification;
 mod chat;
 mod crafting;
@@ -42,7 +41,6 @@ pub use subtitles::Subtitle;
 
 use bag::Bag;
 use buffs::BuffsBar;
-use buttons::Buttons;
 use change_notification::{ChangeNotification, NotificationReason};
 use chat::Chat;
 use chrono::NaiveTime;
@@ -65,7 +63,7 @@ use slot_grid::SlotGrid;
 use social::Social;
 use subtitles::Subtitles;
 use trade::Trade;
-use tutorial::Tutorial;
+use tutorial::{DynamicTutorial, Tutorial};
 
 use crate::{
     GlobalState,
@@ -3140,22 +3138,9 @@ impl Hud {
         let msm = ecs.read_resource::<MaterialStatManifest>();
         let time = ecs.read_resource::<Time>();
 
-        match Buttons::new(
-            &self.imgs,
-            &self.fonts,
-            global_state,
-            &self.rot_imgs,
-            tooltip_manager,
-            i18n,
-        )
-        .set(self.ids.buttons, ui_widgets)
-        {
-            Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(global_state),
-            Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
-            Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
-            Some(buttons::Event::ToggleCrafting) => self.show.toggle_crafting(),
-            None => {},
-        }
+        // Action text in bottom right corner
+        DynamicTutorial::new(global_state, client, &self.fonts, &self.imgs, i18n)
+            .set(self.ids.buttons, ui_widgets);
 
         // Group Window
         for event in Group::new(

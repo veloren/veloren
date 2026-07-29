@@ -124,6 +124,8 @@ pub fn get_controller_icon_id_from_string(name: &str, imgs: &Imgs) -> ConrodImag
         // gilrs supports c and z buttons, so here they are (no custom icons though)
         "c" => imgs.south_button_a,
         "z" => imgs.east_button_b,
+        // Mouse
+        "middleclick" => imgs.m_click_ico,
         _ => imgs.no_button,
     }
 }

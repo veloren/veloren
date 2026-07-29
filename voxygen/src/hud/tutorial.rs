@@ -25,7 +25,7 @@ use std::{borrow::Cow, time::Duration};
 use vek::*;
 
 use super::{
-    GameInput, Outcome, Show, TEXT_COLOR, UserNotification,
+    BLACK, GameInput, Outcome, Show, TEXT_COLOR, UserNotification,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
 };
@@ -721,6 +721,231 @@ impl Widget for Tutorial<'_> {
             .font_size(self.fonts.cyri.scale(16))
             .color(TEXT_COLOR.with_alpha(anim_alpha))
             .set(state.ids.text, ui);
+        }
+    }
+}
+
+widget_ids! {
+    pub struct DynTutorialIds {
+        dropshadow_txt_ids[],
+        txt_ids[],
+    }
+}
+
+#[derive(WidgetCommon)]
+pub struct DynamicTutorial<'a> {
+    global_state: &'a GlobalState,
+    client: &'a Client,
+    fonts: &'a Fonts,
+    imgs: &'a Imgs,
+    localized_strings: &'a Localization,
+    #[conrod(common_builder)]
+    common: widget::CommonBuilder,
+}
+
+pub struct DynTutorialState {
+    ids: DynTutorialIds,
+}
+
+impl<'a> DynamicTutorial<'a> {
+    pub fn new(
+        global_state: &'a GlobalState,
+        client: &'a Client,
+        fonts: &'a Fonts,
+        imgs: &'a Imgs,
+        localized_strings: &'a Localization,
+    ) -> Self {
+        Self {
+            global_state,
+            client,
+            fonts,
+            imgs,
+            localized_strings,
+            common: widget::CommonBuilder::default(),
+        }
+    }
+}
+
+impl Widget for DynamicTutorial<'_> {
+    type Event = ();
+    type State = DynTutorialState;
+    type Style = ();
+
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        DynTutorialState {
+            ids: DynTutorialIds::new(id_gen),
+        }
+    }
+
+    fn style(&self) -> Self::Style {}
+
+    fn update(self, args: widget::UpdateArgs<Self>) {
+        common_base::prof_span!("DynamicTutorial::update");
+        let widget::UpdateArgs { state, ui, .. } = args;
+        let i18n = &self.localized_strings;
+        let mut action_txt: Vec<String> = Vec::new();
+
+        // Fetch the GameInput
+        let get_input_str = |input: GameInput| -> String {
+            match self.global_state.window.last_input() {
+                LastInput::Controller => icon_utils::get_controller_input_string(
+                    input,
+                    &self.global_state.settings,
+                    self.global_state.window.controller_type(),
+                )
+                .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
+                LastInput::Keyboard | LastInput::Mouse => self
+                    .global_state
+                    .settings
+                    .controls
+                    .get_binding(input)
+                    .map_or_else(
+                        || "".into(),
+                        |key| {
+                            let display_str = key.display_string();
+                            if display_str == "Middle Click" {
+                                // Render as an icon instead of text
+                                ":middleclick:".to_string()
+                            } else {
+                                display_str
+                            }
+                        },
+                    ),
+            }
+        };
+
+        let (is_climbing, is_wielding) = self
+            .client
+            .current::<comp::CharacterState>()
+            .map_or((false, false), |cs| {
+                (matches!(cs, comp::CharacterState::Climb(_)), cs.is_wield())
+            });
+
+        // Fetch action text based on current state
+        if is_climbing {
+            // Climbing actions
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::WallJump),
+                i18n.get_msg("gameinput-walljump")
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Sneak),
+                i18n.get_msg("hud-context-menu-drop")
+            ));
+        } else if self
+            .client
+            .current::<comp::PhysicsState>()
+            .map_or(false, |ps| ps.in_liquid().is_some())
+        {
+            // Swimming actions
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::SwimDown),
+                i18n.get_msg("gameinput-swimdown")
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::SwimUp),
+                i18n.get_msg("gameinput-swimup")
+            ));
+        } else if is_wielding {
+            // Combat actions
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::ToggleWield),
+                i18n.get_msg("gameinput-togglewield"),
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Block),
+                i18n.get_msg("gameinput-block")
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Roll),
+                i18n.get_msg("gameinput-roll")
+            ));
+        } else if self
+            .client
+            .state()
+            .ecs()
+            .read_resource::<TimeOfDay>()
+            .day_period()
+            .is_dark()
+        {
+            // Generic actions (night)
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Glide),
+                i18n.get_msg("gameinput-glide"),
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Sneak),
+                i18n.get_msg("gameinput-sneak"),
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::ToggleLantern),
+                i18n.get_msg("common-kind-lantern"),
+            ));
+        } else {
+            // Generic actions (day)
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Glide),
+                i18n.get_msg("gameinput-glide"),
+            ));
+            action_txt.push(format!(
+                "{} {}",
+                get_input_str(GameInput::Sneak),
+                i18n.get_msg("gameinput-sneak"),
+            ));
+        }
+
+        // Widget IDs
+        state.update(|s| {
+            s.ids
+                .txt_ids
+                .resize(action_txt.len(), &mut ui.widget_id_generator());
+            s.ids
+                .dropshadow_txt_ids
+                .resize(action_txt.len(), &mut ui.widget_id_generator());
+        });
+
+        // Place text widgets
+        for (i, text) in action_txt.iter().enumerate() {
+            let mut shadow_txt = RichText::new(text, self.imgs)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(BLACK);
+            let mut main_txt = RichText::new(text, self.imgs)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(TEXT_COLOR);
+
+            if i == 0 {
+                // First action anchors to the window
+                shadow_txt = shadow_txt.bottom_right_with_margins_on(ui.window, 4.0, 6.0);
+
+                main_txt = main_txt.bottom_right_with_margins_on(ui.window, 5.0, 5.0);
+            } else {
+                // Subsequent actions go above the previous widget
+                let prev_shadow_id = state.ids.dropshadow_txt_ids[i - 1];
+                shadow_txt = shadow_txt
+                    .align_right_of(prev_shadow_id)
+                    .up_from(prev_shadow_id, 5.0);
+
+                let prev_main_id = state.ids.txt_ids[i - 1];
+                main_txt = main_txt
+                    .align_right_of(prev_main_id)
+                    .up_from(prev_main_id, 5.0);
+            }
+
+            shadow_txt.set(state.ids.dropshadow_txt_ids[i], ui);
+            main_txt.set(state.ids.txt_ids[i], ui);
         }
     }
 }
