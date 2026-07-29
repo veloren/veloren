@@ -265,8 +265,6 @@ buff-combo_generation = Kombogenerering
         }
 buff-resting_heal = Villäkning
     .desc = Vilande läker { $rate } % hälsopoäng per sekund.
-buff-heartseeker = Hjärtsökare
-    .desc = Din nästa pil kommer träffa din fiende som om det orsakade ett hjärtsår, vilket leder till ett mer allvarligt sår och ger dig energi.
 buff-eagleeye = Örnöga
     .desc = Du ser tydligt sårbara delar på dina mål och har smidigheten som krävs för att sikta varje pil till dessa delar.
 buff-chilled = Kyld
