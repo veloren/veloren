@@ -1447,6 +1447,12 @@
             "common.items.armor.misc.chest.worker_orange_1",
         ): "armor-misc-chest-worker_orange_1",
         Simple(
+            "common.items.armor.misc.chest.worker_pink_0",
+        ): "armor-misc-chest-worker_pink_0",
+        Simple(
+            "common.items.armor.misc.chest.worker_pink_1",
+        ): "armor-misc-chest-worker_pink_1",
+        Simple(
             "common.items.armor.misc.chest.worker_purple_0",
         ): "armor-misc-chest-worker_purple_0",
         Simple(

@@ -25,6 +25,8 @@
         (1, Item("common.items.armor.misc.chest.worker_yellow_1")),
         (1, Item("common.items.armor.misc.chest.worker_orange_0")),
         (1, Item("common.items.armor.misc.chest.worker_orange_1")),
+        (1, Item("common.items.armor.misc.chest.worker_pink_0")),
+        (1, Item("common.items.armor.misc.chest.worker_pink_1")),
     ]),
     legs: Choice([
         (1, Item("common.items.armor.misc.pants.worker_blue")),

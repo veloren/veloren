@@ -117,6 +117,14 @@
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ),
+        "common.items.armor.misc.chest.worker_pink_0": (
+            vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
+            color: Some((163, 90, 104))
+        ),
+        "common.items.armor.misc.chest.worker_pink_1": (
+            vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
+            color: Some((163, 90, 104))
+        ),
         "common.items.armor.twigsleaves.chest": (
             vox_spec: ("armor.twigsleaves.chest", (-7.0, -3.5, 2.0)),
             color: None

@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Pink Worker Shirt",
+    legacy_description: "Was used by a farmer, until recently.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(3.0)),
+        )),
+    )),
+    quality: Low,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)
