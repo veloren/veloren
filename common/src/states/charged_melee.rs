@@ -116,7 +116,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if input_is_pressed(data, self.static_data.ability_info.input)
-                    && update.energy.current() >= 1.0
+                    && (update.energy.current() >= self.static_data.energy_drain * data.dt.0)
                     && self.timer < self.static_data.charge_duration
                 {
                     let charge = (self.timer.as_secs_f32()
@@ -134,7 +134,7 @@ impl CharacterBehavior for Data {
                         .energy
                         .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else if input_is_pressed(data, self.static_data.ability_info.input)
-                    && update.energy.current() >= 1.0
+                    && (update.energy.current() >= self.static_data.energy_drain * data.dt.0)
                 {
                     // Maintains charge
                     if let CharacterState::ChargedMelee(c) = &mut update.character {

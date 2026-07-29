@@ -92,7 +92,7 @@ impl CharacterBehavior for Data {
             },
             StageSection::Charge => {
                 if (!input_is_pressed(data, self.static_data.ability_info.input)
-                    || update.energy.current() < 1.0)
+                    || (update.energy.current() <= self.static_data.energy_drain * data.dt.0))
                     && !self.exhausted
                 {
                     let charge_frac = self.charge_frac();
