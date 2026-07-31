@@ -8,7 +8,7 @@ extern crate rusqlite;
 
 use super::{error::PersistenceError, models::*};
 use crate::{
-    comp::{self, Inventory},
+    comp::{self, Inventory, MapMarker, Waypoint},
     persistence::{
         EditableComponents, PersistedComponents,
         character::conversions::{
@@ -122,6 +122,24 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
     Ok(items)
 }
 
+fn convert_waypoint_or_warn(
+    waypoint_json: Option<&str>,
+    char_id: CharacterId,
+) -> (Option<Waypoint>, Option<MapMarker>) {
+    match waypoint_json.map(convert_waypoint_from_database_json) {
+        Some(Ok(w)) => w,
+        Some(Err(e)) => {
+            warn!(
+                "Error reading waypoint from database for character ID
+    {}, error: {}",
+                char_id.0, e
+            );
+            (None, None)
+        },
+        None => (None, None),
+    }
+}
+
 /// Load stored data for a character.
 ///
 /// After first logging in, and after a character is selected, we fetch this
@@ -173,22 +191,8 @@ pub fn load_character_data(
         },
     )?;
 
-    let (char_waypoint, char_map_marker) = match character_data
-        .waypoint
-        .as_ref()
-        .map(|x| convert_waypoint_from_database_json(x))
-    {
-        Some(Ok(w)) => w,
-        Some(Err(e)) => {
-            warn!(
-                "Error reading waypoint from database for character ID
-    {}, error: {}",
-                char_id.0, e
-            );
-            (None, None)
-        },
-        None => (None, None),
-    };
+    let (char_waypoint, char_map_marker) =
+        convert_waypoint_or_warn(character_data.waypoint.as_deref(), char_id);
 
     let mut stmt = connection.prepare_cached(
         "
@@ -393,13 +397,11 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let (recipe_book, _) = convert_recipe_book_from_database_items(&recipe_book_items)?;
 
-            let location = character_data
-                .waypoint
-                .as_ref()
-                .map(|s| convert_waypoint_from_database_json(s))
-                .transpose()?
-                .and_then(|(waypoint, _)| waypoint)
-                .map(|w| w.get_pos());
+            let (char_waypoint, _char_map_marker) = convert_waypoint_or_warn(
+                character_data.waypoint.as_deref(),
+                CharacterId(character_data.character_id),
+            );
+            let location = char_waypoint.map(|w| w.get_pos());
 
             Ok(CharacterItem {
                 character: char,
