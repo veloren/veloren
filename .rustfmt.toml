@@ -1,5 +1,6 @@
-hard_tabs = false
+edition = "2024"
 style_edition = "2024"
+hard_tabs = false
 
 format_code_in_doc_comments = true
 format_strings = true
