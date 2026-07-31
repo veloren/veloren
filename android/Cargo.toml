@@ -1,0 +1,16 @@
+[package]
+name = "veloren_android"
+version = "0.1.0"
+edition = "2021"
+publish = false
+# Build as a native library (.so)
+crate-type = ["cdylib"]
+
+[dependencies]
+jni = "0.25"          # JNI bindings
+log = "0.4"
+android_logger = "0.11"
+
+[profile.release]
+opt-level = 3
+lto = true

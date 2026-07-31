@@ -1,42 +1,5 @@
-[target.x86_64-unknown-linux-gnu]
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-
-[target.aarch64-unknown-linux-gnu]
-linker = "aarch64-linux-gnu-gcc"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-
-[target.x86_64-pc-windows-gnu]
-rustflags = [
-    # Required for mimalloc
-    "-C",
-    "link-arg=-lpsapi",
-]
-
-# Clever way to get workspace dir, from https://github.com/rust-lang/cargo/issues/3946#issuecomment-973132993
-[env]
-CARGO_WORKSPACE_DIR = { value = "", relative = true }
-
-[alias]
-# tools
-cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
-csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_export"
-csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
-find_unused = "run --manifest-path common/Cargo.toml --bin find_unused"
-dot-recipes = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin recipe_graphviz"
-dot-skills = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin skill_graphviz"
-img-export = "run --manifest-path voxygen/Cargo.toml --features=bin_img-export --bin img-export"
-# server-cli
-server = "run --bin veloren-server-cli"
-test-server = "run --bin veloren-server-cli --no-default-features --features simd"
-tracy-server = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
-tracy-server-debuginfo = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow_debuginfo"
-tracy-server-releasedebuginfo = "run --bin veloren-server-cli --features tracy,simd --profile releasedebuginfo"
-tracy-test-server = "run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
-# voxygen
-test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd,egui-ui,shaderc-from-source,hot-reloading"
-tracy-voxygen = "run --bin veloren-voxygen --no-default-features --features tracy,simd,egui-ui,shaderc-from-source --profile no_overflow"
-dbg-voxygen = "run --bin veloren-voxygen --profile debuginfo"
-# misc
-swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
-ci-clippy = "clippy --all-targets --locked --features=bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,bin,stat"
-ci-clippy2 = "clippy -p veloren-voxygen --locked --no-default-features --features=default-publish"
+[target.aarch64-linux-android]
+# Use the NDK-provided clang wrapper and ar. Ensure ANDROID_NDK_HOME is set.
+ar = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-ar"
+linker = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+rustflags = ["-C", "link-arg=-landroid", "-C", "link-arg=-llog"]
