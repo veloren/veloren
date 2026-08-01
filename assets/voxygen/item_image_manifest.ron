@@ -2005,6 +2005,14 @@
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((135, 82, 67)),
     ),
+    Simple("common.items.armor.misc.chest.worker_pink_0"): VoxTrans(
+        "voxel.armor.misc.chest.worker_green",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((163, 90, 104)),
+    ),
+    Simple("common.items.armor.misc.chest.worker_pink_1"): VoxTrans(
+        "voxel.armor.misc.chest.shirt_white",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1, 0, Some((163, 90, 104)),
+    ),
     // Alchemist
     Simple("common.items.armor.alchemist.belt"): VoxTrans(
         "voxel.armor.alchemist",

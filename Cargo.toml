@@ -45,6 +45,16 @@ rust.tail_expr_drop_order = { level = "allow", priority = 1 }
 rust.edition_2024_expr_fragment_specifier = { level = "allow", priority = 1 }
 rust.keyword_idents_2024 = { level = "allow", priority = 1 }
 
+[workspace.lints.clippy]
+# This lint is widely considered an annoyance by Veloren developers and doesn't pay its way.
+unnecessary_map_or = "allow"
+# This suggests turning if statements into if guards in the match. This is
+# often not ideal because this can make the match arms inconsistent and make
+# them reliant on being followed by a no-op wildcard arm.
+collapsible_match = "allow"
+# bug in current version (fixed in latest nightly)
+manual_option_zip = "allow"
+
 ### PROFILES ###
 
 # default profile for devs, fast to compile, okay enough to run, no debug information
@@ -240,6 +250,3 @@ specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840b
 # naga = { path = "../wgpu/naga" }
 
 
-[workspace.lints.clippy]
-# This lint is widely considered an annoyance by Veloren developers and doesn't pay its way.
-unnecessary_map_or = "allow"
