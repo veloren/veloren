@@ -3878,6 +3878,8 @@ fn handle_set_waypoint(
     );
 
     if let Some(location_name) = location_name {
+        #[expect(deprecated, reason = "i18n location name")]
+        let location_name = Content::legacy(location_name);
         server.notify_client(
             target,
             ServerGeneral::Notification(Notification::WaypointSaved { location_name }),

@@ -21,11 +21,10 @@ pub struct Character {
 /// Data needed to render a single character item in the character list
 /// presented during character selection.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CharacterItem {
+pub struct CharacterItem<Location> {
     pub character: Character,
     pub body: comp::Body,
     pub hardcore: bool,
     pub inventory: Inventory,
-    // this string changes between database representation and human readable name in server.tick
-    pub location: Option<String>,
+    pub location: Option<Location>,
 }

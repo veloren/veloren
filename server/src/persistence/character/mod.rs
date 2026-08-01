@@ -8,7 +8,7 @@ extern crate rusqlite;
 
 use super::{error::PersistenceError, models::*};
 use crate::{
-    comp::{self, Inventory},
+    comp::{self, Inventory, MapMarker, Waypoint},
     persistence::{
         EditableComponents, PersistedComponents,
         character::conversions::{
@@ -43,8 +43,6 @@ use tracing::{debug, error, trace, warn};
 mod conversions;
 
 pub(crate) type EntityId = i64;
-
-pub(crate) use conversions::convert_waypoint_from_database_json as parse_waypoint;
 
 const CHARACTER_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.character";
 const INVENTORY_PSEUDO_CONTAINER_DEF_ID: &str = "veloren.core.pseudo_containers.inventory";
@@ -124,6 +122,24 @@ pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, Persi
     Ok(items)
 }
 
+fn convert_waypoint_or_warn(
+    waypoint_json: Option<&str>,
+    char_id: CharacterId,
+) -> (Option<Waypoint>, Option<MapMarker>) {
+    match waypoint_json.map(convert_waypoint_from_database_json) {
+        Some(Ok(w)) => w,
+        Some(Err(e)) => {
+            warn!(
+                "Error reading waypoint from database for character ID
+    {}, error: {}",
+                char_id.0, e
+            );
+            (None, None)
+        },
+        None => (None, None),
+    }
+}
+
 /// Load stored data for a character.
 ///
 /// After first logging in, and after a character is selected, we fetch this
@@ -175,22 +191,8 @@ pub fn load_character_data(
         },
     )?;
 
-    let (char_waypoint, char_map_marker) = match character_data
-        .waypoint
-        .as_ref()
-        .map(|x| convert_waypoint_from_database_json(x))
-    {
-        Some(Ok(w)) => w,
-        Some(Err(e)) => {
-            warn!(
-                "Error reading waypoint from database for character ID
-    {}, error: {}",
-                char_id.0, e
-            );
-            (None, None)
-        },
-        None => (None, None),
-    };
+    let (char_waypoint, char_map_marker) =
+        convert_waypoint_or_warn(character_data.waypoint.as_deref(), char_id);
 
     let mut stmt = connection.prepare_cached(
         "
@@ -395,13 +397,19 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
 
             let (recipe_book, _) = convert_recipe_book_from_database_items(&recipe_book_items)?;
 
+            let (char_waypoint, _char_map_marker) = convert_waypoint_or_warn(
+                character_data.waypoint.as_deref(),
+                CharacterId(character_data.character_id),
+            );
+            let location = char_waypoint.map(|w| w.get_pos());
+
             Ok(CharacterItem {
                 character: char,
                 body: char_body,
                 hardcore: hardcore.is_some(),
                 inventory: Inventory::with_loadout(loadout, char_body)
                     .with_recipe_book(recipe_book),
-                location: character_data.waypoint.as_ref().cloned(),
+                location,
             })
         })
         .collect()

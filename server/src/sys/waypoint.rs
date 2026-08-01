@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::client::Client;
 use common::{
-    comp::{CharacterState, PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
+    comp::{CharacterState, Content, PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
     resources::Time,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -83,6 +83,8 @@ impl<'a> System<'a> for Sys {
                         );
 
                         if let Some(location_name) = location_name {
+                            #[expect(deprecated, reason = "i18n location name")]
+                            let location_name = Content::legacy(location_name);
                             client.send_fallible(ServerGeneral::Notification(
                                 Notification::WaypointSaved { location_name },
                             ));
