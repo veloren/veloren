@@ -3,7 +3,7 @@ use crate::{
     hud::controller_icons as icon_utils,
     session::interactable::{EntityInteraction, Interactable},
     ui::{ImageFrame, RichText, Tooltip, TooltipManager, Tooltipable, fonts::Fonts},
-    window::{ControllerType, LastInput},
+    window::{ControllerType, KeyMouse, LastInput},
 };
 use client::Client;
 use common::{
@@ -794,23 +794,21 @@ impl Widget for DynamicTutorial<'_> {
                     self.global_state.window.controller_type(),
                 )
                 .unwrap_or_else(|| icon_utils::UNBOUND_KEY.to_string()),
-                LastInput::Keyboard | LastInput::Mouse => self
-                    .global_state
-                    .settings
-                    .controls
-                    .get_binding(input)
-                    .map_or_else(
-                        || "".into(),
-                        |key| {
-                            let display_str = key.display_string();
-                            if display_str == "Middle Click" {
-                                // Render as an icon instead of text
+                LastInput::Keyboard | LastInput::Mouse => {
+                    let input_key = self.global_state.settings.controls.get_binding(input);
+
+                    match input_key {
+                        Some(key) => {
+                            if key == KeyMouse::Mouse(winit::event::MouseButton::Middle) {
+                                // Renders an icon instead of text
                                 ":middleclick:".to_string()
                             } else {
-                                display_str
+                                format!("[{}]", key.display_string())
                             }
                         },
-                    ),
+                        None => icon_utils::UNBOUND_KEY.to_string(),
+                    }
+                },
             }
         };
 
@@ -831,7 +829,7 @@ impl Widget for DynamicTutorial<'_> {
             ));
             action_txt.push(format!(
                 "{} {}",
-                get_input_str(GameInput::Sneak),
+                get_input_str(GameInput::CancelClimb),
                 i18n.get_msg("hud-context-menu-drop")
             ));
         } else if self
