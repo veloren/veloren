@@ -38,6 +38,7 @@ pub struct GraphicsSettings {
     pub lod_distance: u32,
     pub sprite_render_distance: u32,
     pub particles_enabled: bool,
+    pub particles_chance: f32,
     pub weapon_trails_enabled: bool,
     pub figure_lod_render_distance: u32,
     pub max_fps: Fps,
@@ -60,6 +61,7 @@ impl Default for GraphicsSettings {
             lod_distance: 200,
             sprite_render_distance: 100,
             particles_enabled: true,
+            particles_chance: 1.0,
             weapon_trails_enabled: true,
             figure_lod_render_distance: 300,
             max_fps: Fps::Max(60),
@@ -86,6 +88,7 @@ impl GraphicsSettings {
             sprite_render_distance: 80,
             figure_lod_render_distance: 100,
             lod_detail: 80,
+            particles_chance: 0.1,
             render_mode: RenderMode {
                 aa: AaMode::FxUpscale,
                 cloud: CloudMode::Flat,
@@ -112,6 +115,7 @@ impl GraphicsSettings {
             sprite_render_distance: 125,
             figure_lod_render_distance: 200,
             lod_detail: 180,
+            particles_chance: 0.25,
             render_mode: RenderMode {
                 aa: AaMode::FxUpscale,
                 cloud: CloudMode::Low,
@@ -138,6 +142,7 @@ impl GraphicsSettings {
             sprite_render_distance: 250,
             figure_lod_render_distance: 350,
             lod_detail: 250,
+            particles_chance: 0.5,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::Medium,
@@ -167,6 +172,7 @@ impl GraphicsSettings {
             sprite_render_distance: 350,
             figure_lod_render_distance: 450,
             lod_detail: 325,
+            particles_chance: 0.75,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::Medium,
@@ -196,6 +202,7 @@ impl GraphicsSettings {
             sprite_render_distance: 800,
             figure_lod_render_distance: 600,
             lod_detail: 400,
+            particles_chance: 1.0,
             render_mode: RenderMode {
                 aa: AaMode::Fxaa,
                 cloud: CloudMode::High,

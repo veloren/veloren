@@ -109,6 +109,7 @@ hud-settings-fullscreen_mode-exclusive = Exclusive
 hud-settings-fullscreen_mode-borderless = Borderless
 hud-settings-gpu_profiler = Enable GPU timing (not supported everywhere)
 hud-settings-particles = Particles
+hud-settings-particle-chance = Particle Chance
 hud-settings-lossy_terrain_compression = Lossy terrain compression
 hud-settings-weapon_trails = Weapon trails
 hud-settings-flashing_lights = Flashing lights

@@ -155,6 +155,7 @@ pub struct SceneData<'a> {
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
     pub particles_enabled: bool,
+    pub particles_chance: f32,
     pub weapon_trails_enabled: bool,
     pub flashing_lights_enabled: bool,
     pub figure_lod_render_distance: f32,

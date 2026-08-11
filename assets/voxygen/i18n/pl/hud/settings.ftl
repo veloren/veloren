@@ -89,6 +89,7 @@ hud-settings-fullscreen_mode-exclusive = Ekskluzywny (przejęcie)
 hud-settings-fullscreen_mode-borderless = Okno bez ramek (łatwiejsze alt-tab'owanie)
 hud-settings-gpu_profiler = Włącz taktowanie GPU (Nie zawsze wspierane)
 hud-settings-particles = Cząsteczki
+hud-settings-particle-chance = Szansa Cząsteczek
 hud-settings-lossy_terrain_compression = Stratna kompresja terenu (dla wolnych połączeń)
 hud-settings-weapon_trails = Smugi za bronią (efekt ataku)
 hud-settings-flashing_lights = Migające światła

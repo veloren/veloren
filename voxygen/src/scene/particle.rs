@@ -73,7 +73,7 @@ impl ParticleMgr {
 
         match outcome {
             Outcome::Lightning { pos } => {
-                self.particles.resize_with(self.particles.len() + 800, || {
+                self.add_particles(scene_data.particles_chance, 800, || {
                     Particle::new_directed(
                         Duration::from_secs_f32(rng.random_range(0.5..1.0)),
                         time,
@@ -87,7 +87,7 @@ impl ParticleMgr {
             Outcome::SpriteDelete { pos, sprite } => match sprite {
                 SpriteKind::SeaUrchin => {
                     let pos = pos.map(|e| e as f32 + 0.5);
-                    self.particles.resize_with(self.particles.len() + 10, || {
+                    self.add_particles(scene_data.particles_chance, 10, || {
                         Particle::new_directed(
                             Duration::from_secs_f32(rng.random_range(0.1..0.5)),
                             time,
@@ -111,8 +111,9 @@ impl ParticleMgr {
                 if *is_attack {
                     match reagent {
                         Some(Reagent::Green) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (60.0 * power.abs()) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (60.0 * power.abs()) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_secs_f32(rng.random_range(0.2..3.0)),
@@ -129,8 +130,9 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::Red) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (75.0 * power.abs()) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (75.0 * power.abs()) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(500),
@@ -147,8 +149,9 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::White) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (75.0 * power.abs()) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (75.0 * power.abs()) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(500),
@@ -165,8 +168,9 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::Purple) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (75.0 * power.abs()) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (75.0 * power.abs()) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(500),
@@ -183,8 +187,9 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::FireRain) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (5.0 * power.abs()) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (5.0 * power.abs()) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(300),
@@ -201,8 +206,9 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::FireGigas) => {
-                            self.particles.resize_with(
-                                self.particles.len() + (4.0 * radius.powi(2)) as usize,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                (4.0 * radius.powi(2)) as usize,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(500),
@@ -219,7 +225,7 @@ impl ParticleMgr {
                             );
                         },
                         Some(Reagent::Earth) => {
-                            self.particles.resize_with(self.particles.len() + 150, || {
+                            self.add_particles(scene_data.particles_chance, 150, || {
                                 Particle::new(
                                     Duration::from_millis(250),
                                     time,
@@ -232,8 +238,9 @@ impl ParticleMgr {
                         _ => {},
                     }
                 } else {
-                    self.particles.resize_with(
-                        self.particles.len() + if reagent.is_some() { 300 } else { 150 },
+                    self.add_particles(
+                        scene_data.particles_chance,
+                        if reagent.is_some() { 300 } else { 150 },
                         || {
                             Particle::new(
                                 Duration::from_millis(if reagent.is_some() {
@@ -260,8 +267,9 @@ impl ParticleMgr {
                         },
                     );
 
-                    self.particles.resize_with(
-                        self.particles.len() + if reagent.is_some() { 100 } else { 200 },
+                    self.add_particles(
+                        scene_data.particles_chance,
+                        if reagent.is_some() { 100 } else { 200 },
                         || {
                             Particle::new(
                                 Duration::from_secs(4),
@@ -279,7 +287,7 @@ impl ParticleMgr {
             },
             Outcome::BreakBlock { pos, .. } => {
                 // TODO: Use color field when particle colors are a thing
-                self.particles.resize_with(self.particles.len() + 30, || {
+                self.add_particles(scene_data.particles_chance, 30, || {
                     Particle::new(
                         Duration::from_millis(rng.random_range(1500..2000)),
                         time,
@@ -292,8 +300,9 @@ impl ParticleMgr {
             Outcome::DamagedBlock {
                 pos, stage_changed, ..
             } => {
-                self.particles.resize_with(
-                    self.particles.len() + if *stage_changed { 30 } else { 10 },
+                self.add_particles(
+                    scene_data.particles_chance,
+                    if *stage_changed { 30 } else { 10 },
                     || {
                         Particle::new(
                             Duration::from_millis(rng.random_range(1000..1500)),
@@ -308,7 +317,7 @@ impl ParticleMgr {
             Outcome::SpriteUnlocked { .. } => {},
             Outcome::FailedSpriteUnlock { pos } => {
                 // TODO: Use color field when particle colors are a thing
-                self.particles.resize_with(self.particles.len() + 10, || {
+                self.add_particles(scene_data.particles_chance, 10, || {
                     Particle::new(
                         Duration::from_millis(50),
                         time,
@@ -320,85 +329,79 @@ impl ParticleMgr {
             },
             Outcome::SummonedCreature { pos, body } => match body {
                 Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Husk) => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
-                        || {
-                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
-                            let end_pos = pos
-                                + Vec3::new(
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    0.0,
-                                )
-                                .normalized()
-                                    * (body.max_radius() + 4.0)
-                                + Vec3::unit_z() * (body.height() + 2.0) * rng.random::<f32>();
-
-                            Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::CultistFlame,
-                                start_pos,
-                                end_pos,
-                                scene_data,
+                    let final_amount =
+                        2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                        let end_pos = pos
+                            + Vec3::new(
+                                2.0 * rng.random::<f32>() - 1.0,
+                                2.0 * rng.random::<f32>() - 1.0,
+                                0.0,
                             )
-                        },
-                    );
+                            .normalized()
+                                * (body.max_radius() + 4.0)
+                            + Vec3::unit_z() * (body.height() + 2.0) * rng.random::<f32>();
+
+                        Particle::new_directed(
+                            Duration::from_secs_f32(0.5),
+                            time,
+                            ParticleMode::CultistFlame,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Boreal) => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
-                        || {
-                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
-                            let end_pos = pos
-                                + Vec3::new(
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    0.0,
-                                )
-                                .normalized()
-                                    * (body.max_radius() + 4.0)
-                                + Vec3::unit_z() * (body.height() + 20.0) * rng.random::<f32>();
-
-                            Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::GigaSnow,
-                                start_pos,
-                                end_pos,
-                                scene_data,
+                    let final_amount =
+                        2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                        let end_pos = pos
+                            + Vec3::new(
+                                2.0 * rng.random::<f32>() - 1.0,
+                                2.0 * rng.random::<f32>() - 1.0,
+                                0.0,
                             )
-                        },
-                    );
+                            .normalized()
+                                * (body.max_radius() + 4.0)
+                            + Vec3::unit_z() * (body.height() + 20.0) * rng.random::<f32>();
+
+                        Particle::new_directed(
+                            Duration::from_secs_f32(0.5),
+                            time,
+                            ParticleMode::GigaSnow,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 Body::BipedSmall(b) if matches!(b.species, body::biped_small::Species::Ashen) => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
-                        || {
-                            let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
-                            let end_pos = pos
-                                + Vec3::new(
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    2.0 * rng.random::<f32>() - 1.0,
-                                    0.0,
-                                )
-                                .normalized()
-                                    * (body.max_radius() + 4.0)
-                                + Vec3::unit_z() * (body.height() + 20.0) * rng.random::<f32>();
-
-                            Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::FlameThrower,
-                                start_pos,
-                                end_pos,
-                                scene_data,
+                    let final_amount =
+                        2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos + Vec3::unit_z() * body.height() / 2.0;
+                        let end_pos = pos
+                            + Vec3::new(
+                                2.0 * rng.random::<f32>() - 1.0,
+                                2.0 * rng.random::<f32>() - 1.0,
+                                0.0,
                             )
-                        },
-                    );
+                            .normalized()
+                                * (body.max_radius() + 4.0)
+                            + Vec3::unit_z() * (body.height() + 20.0) * rng.random::<f32>();
+
+                        Particle::new_directed(
+                            Duration::from_secs_f32(0.5),
+                            time,
+                            ParticleMode::FlameThrower,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 _ => {},
             },
@@ -414,7 +417,7 @@ impl ParticleMgr {
                         })
                         .unwrap_or(false)
                     {
-                        self.particles.resize_with(self.particles.len() + 30, || {
+                        self.add_particles(scene_data.particles_chance, 30, || {
                             Particle::new(
                                 Duration::from_millis(250),
                                 time,
@@ -428,7 +431,7 @@ impl ParticleMgr {
             },
             Outcome::Block { pos, parry, .. } => {
                 if *parry {
-                    self.particles.resize_with(self.particles.len() + 10, || {
+                    self.add_particles(scene_data.particles_chance, 10, || {
                         Particle::new(
                             Duration::from_millis(200),
                             time,
@@ -440,7 +443,7 @@ impl ParticleMgr {
                 }
             },
             Outcome::GroundSlam { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 100, || {
+                self.add_particles(scene_data.particles_chance, 100, || {
                     Particle::new(
                         Duration::from_millis(1000),
                         time,
@@ -451,7 +454,7 @@ impl ParticleMgr {
                 });
             },
             Outcome::FireLowShockwave { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 100, || {
+                self.add_particles(scene_data.particles_chance, 100, || {
                     Particle::new(
                         Duration::from_millis(1000),
                         time,
@@ -462,7 +465,7 @@ impl ParticleMgr {
                 });
             },
             Outcome::SurpriseEgg { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 50, || {
+                self.add_particles(scene_data.particles_chance, 50, || {
                     Particle::new(
                         Duration::from_millis(1000),
                         time,
@@ -473,68 +476,75 @@ impl ParticleMgr {
                 });
             },
             Outcome::FlashFreeze { pos, .. } => {
-                self.particles.resize_with(
-                    self.particles.len()
-                        + 2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1))),
-                    || {
-                        let start_pos = pos + Vec3::unit_z() - 1.0;
-                        let end_pos = pos
-                            + Vec3::new(
-                                4.0 * rng.random::<f32>() - 1.0,
-                                4.0 * rng.random::<f32>() - 1.0,
-                                0.0,
-                            )
-                            .normalized()
-                                * 1.5
-                            + Vec3::unit_z()
-                            + 5.0 * rng.random::<f32>();
-
-                        Particle::new_directed(
-                            Duration::from_secs_f32(0.5),
-                            time,
-                            ParticleMode::GigaSnow,
-                            start_pos,
-                            end_pos,
-                            scene_data,
+                let final_amount =
+                    2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(1)));
+                self.add_particles(scene_data.particles_chance, final_amount, || {
+                    let start_pos = pos + Vec3::unit_z() - 1.0;
+                    let end_pos = pos
+                        + Vec3::new(
+                            4.0 * rng.random::<f32>() - 1.0,
+                            4.0 * rng.random::<f32>() - 1.0,
+                            0.0,
                         )
-                    },
-                );
+                        .normalized()
+                            * 1.5
+                        + Vec3::unit_z()
+                        + 5.0 * rng.random::<f32>();
+
+                    Particle::new_directed(
+                        Duration::from_secs_f32(0.5),
+                        time,
+                        ParticleMode::GigaSnow,
+                        start_pos,
+                        end_pos,
+                        scene_data,
+                    )
+                });
             },
             Outcome::CyclopsCharge { pos } => {
-                self.particles.push(Particle::new_directed(
-                    Duration::from_secs_f32(rng.random_range(0.1..0.2)),
-                    time,
-                    ParticleMode::CyclopsCharge,
-                    *pos + Vec3::new(0.0, 0.0, 5.3),
-                    *pos + Vec3::new(0.0, 0.0, 5.6 + 0.5 * rng.random_range(0.0..0.2)),
-                    scene_data,
-                ));
+                self.push_particle(
+                    scene_data.particles_chance,
+                    Particle::new_directed(
+                        Duration::from_secs_f32(rng.random_range(0.1..0.2)),
+                        time,
+                        ParticleMode::CyclopsCharge,
+                        *pos + Vec3::new(0.0, 0.0, 5.3),
+                        *pos + Vec3::new(0.0, 0.0, 5.6 + 0.5 * rng.random_range(0.0..0.2)),
+                        scene_data,
+                    ),
+                );
             },
             Outcome::PyroclasmCharge { .. } => {},
             Outcome::FlamethrowerCharge { pos }
             | Outcome::FuseCharge { pos }
             | Outcome::FireBreathCharge { pos } => {
-                self.particles.push(Particle::new_directed(
-                    Duration::from_secs_f32(rng.random_range(0.1..0.2)),
-                    time,
-                    ParticleMode::CampfireFire,
-                    *pos + Vec3::new(0.0, 0.0, 1.2),
-                    *pos + Vec3::new(0.0, 0.0, 1.5 + 0.5 * rng.random_range(0.0..0.2)),
-                    scene_data,
-                ));
+                self.push_particle(
+                    scene_data.particles_chance,
+                    Particle::new_directed(
+                        Duration::from_secs_f32(rng.random_range(0.1..0.2)),
+                        time,
+                        ParticleMode::CampfireFire,
+                        *pos + Vec3::new(0.0, 0.0, 1.2),
+                        *pos + Vec3::new(0.0, 0.0, 1.5 + 0.5 * rng.random_range(0.0..0.2)),
+                        scene_data,
+                    ),
+                );
             },
             Outcome::TerracottaStatueCharge { pos } => {
-                self.particles.push(Particle::new_directed(
-                    Duration::from_secs_f32(rng.random_range(0.1..0.2)),
-                    time,
-                    ParticleMode::FireworkYellow,
-                    *pos + Vec3::new(0.0, 0.0, 4.0),
-                    *pos + Vec3::new(0.0, 0.0, 5.0 + 0.5 * rng.random_range(0.3..0.8)),
-                    scene_data,
-                ));
+                self.push_particle(
+                    scene_data.particles_chance,
+                    Particle::new_directed(
+                        Duration::from_secs_f32(rng.random_range(0.1..0.2)),
+                        time,
+                        ParticleMode::FireworkYellow,
+                        *pos + Vec3::new(0.0, 0.0, 4.0),
+                        *pos + Vec3::new(0.0, 0.0, 5.0 + 0.5 * rng.random_range(0.3..0.8)),
+                        scene_data,
+                    ),
+                );
             },
             Outcome::Death { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 40, || {
+                self.add_particles(scene_data.particles_chance, 40, || {
                     Particle::new(
                         Duration::from_millis(400 + rng.random_range(0..100)),
                         time,
@@ -548,7 +558,7 @@ impl ParticleMgr {
                 });
             },
             Outcome::GroundDig { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 12, || {
+                self.add_particles(scene_data.particles_chance, 12, || {
                     Particle::new(
                         Duration::from_millis(200),
                         time,
@@ -559,7 +569,7 @@ impl ParticleMgr {
                 });
             },
             Outcome::TeleportedByPortal { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 80, || {
+                self.add_particles(scene_data.particles_chance, 80, || {
                     Particle::new_directed(
                         Duration::from_millis(500),
                         time,
@@ -575,7 +585,7 @@ impl ParticleMgr {
                 });
             },
             Outcome::ClayGolemDash { pos, .. } => {
-                self.particles.resize_with(self.particles.len() + 100, || {
+                self.add_particles(scene_data.particles_chance, 100, || {
                     Particle::new(
                         Duration::from_millis(1000),
                         time,
@@ -596,7 +606,7 @@ impl ParticleMgr {
                     let heads = figure_mgr.get_heads(scene_data, entity);
                     let head_pos = pos.0 + heads.get(*head).copied().unwrap_or_default();
 
-                    self.particles.resize_with(self.particles.len() + 40, || {
+                    self.add_particles(scene_data.particles_chance, 40, || {
                         Particle::new(
                             Duration::from_millis(1000),
                             time,
@@ -626,40 +636,39 @@ impl ParticleMgr {
                     let count = ((2.5 * energy.sqrt()).ceil() as usize).min(500);
                     let mut i = 0;
                     let r = 0.5 / count as f32;
-                    self.particles
-                        .resize_with(self.particles.len() + count, || {
-                            let t = i as f32 / count as f32 + rng.random_range(-r..=r);
-                            i += 1;
-                            let angle = t * TAU;
-                            let s = angle.sin();
-                            let c = angle.cos();
-                            let energy = energy
-                                * f32::abs(
-                                    rng.random_range(0.0..1.0) + rng.random_range(0.0..1.0) - 0.5,
-                                );
+                    self.add_particles(scene_data.particles_chance, count, || {
+                        let t = i as f32 / count as f32 + rng.random_range(-r..=r);
+                        i += 1;
+                        let angle = t * TAU;
+                        let s = angle.sin();
+                        let c = angle.cos();
+                        let energy = energy
+                            * f32::abs(
+                                rng.random_range(0.0..1.0) + rng.random_range(0.0..1.0) - 0.5,
+                            );
 
-                            let axis = -Vec3::unit_z();
-                            let plane = Vec3::new(c, s, 0.0);
+                        let axis = -Vec3::unit_z();
+                        let plane = Vec3::new(c, s, 0.0);
 
-                            let pos = *pos + plane * rng.random_range(0.0..0.5);
+                        let pos = *pos + plane * rng.random_range(0.0..0.5);
 
-                            let energy = energy.sqrt() * 0.5;
+                        let energy = energy.sqrt() * 0.5;
 
-                            let dir = plane * (1.0 + energy) - axis * energy * 1.5;
+                        let dir = plane * (1.0 + energy) - axis * energy * 1.5;
 
-                            Particle::new_directed(
-                                Duration::from_millis(4000),
-                                time,
-                                mode,
-                                pos,
-                                pos + dir,
-                                scene_data,
-                            )
-                        });
+                        Particle::new_directed(
+                            Duration::from_millis(4000),
+                            time,
+                            mode,
+                            pos,
+                            pos + dir,
+                            scene_data,
+                        )
+                    });
                 }
             },
             Outcome::Transformation { pos } => {
-                self.particles.resize_with(self.particles.len() + 100, || {
+                self.add_particles(scene_data.particles_chance, 100, || {
                     Particle::new(
                         Duration::from_millis(1400),
                         time,
@@ -670,8 +679,9 @@ impl ParticleMgr {
                 });
             },
             Outcome::FirePillarIndicator { pos, radius } => {
-                self.particles.resize_with(
-                    self.particles.len() + radius.powi(2) as usize / 2,
+                self.add_particles(
+                    scene_data.particles_chance,
+                    radius.powi(2) as usize / 2,
                     || {
                         Particle::new_directed(
                             Duration::from_millis(500),
@@ -754,6 +764,21 @@ impl ParticleMgr {
         }
     }
 
+    fn push_particle(&mut self, chance: f32, particle: Particle) {
+        let mut rng = rand::rng();
+        if rng.random_bool(chance.into()) {
+            self.particles.push(particle);
+        }
+    }
+
+    fn add_particles<F>(&mut self, chance: f32, amount: usize, f: F)
+    where
+        F: FnMut() -> Particle,
+    {
+        self.particles
+            .resize_with(self.particles.len() + (amount as f32 * chance) as usize, f);
+    }
+
     fn maintain_equipment_particles(&mut self, scene_data: &SceneData, figure_mgr: &FigureMgr) {
         prof_span!("ParticleMgr::maintain_armor_particles");
         let ecs = scene_data.state.ecs();
@@ -832,7 +857,7 @@ impl ParticleMgr {
             let dt = scene_data.state.get_delta_time();
             if rng.random_bool((0.25 * dt as f64).min(1.0)) {
                 let time = scene_data.state.get_time();
-                self.particles.resize_with(self.particles.len() + 10, || {
+                self.add_particles(scene_data.particles_chance, 10, || {
                     Particle::new(
                         Duration::from_millis(1500),
                         time,
@@ -868,14 +893,17 @@ impl ParticleMgr {
             let start_pos = state.wpos_of(state.computed_skeleton.main.mul_point(blade_offset));
             let end_pos = start_pos + rng.random_range(1.0..2.0) * Vec3::<f32>::unit_z();
 
-            self.particles.push(Particle::new_directed(
-                Duration::from_millis(500),
-                time,
-                ParticleMode::FlameThrower,
-                start_pos,
-                end_pos,
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new_directed(
+                    Duration::from_millis(500),
+                    time,
+                    ParticleMode::FlameThrower,
+                    start_pos,
+                    end_pos,
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -909,14 +937,17 @@ impl ParticleMgr {
                     .scheduler
                     .heartbeats(Duration::from_millis(1000 / speed.min(500.0) as u64))
                 {
-                    self.particles.push(Particle::new(
-                        Duration::from_secs(1),
-                        time,
-                        ParticleMode::Bubble,
-                        pos.0.map(|e| e + rng.random_range(-0.1..0.1))
-                            - vel.0 * dt * rng.random::<f32>(),
-                        scene_data,
-                    ));
+                    self.push_particle(
+                        scene_data.particles_chance,
+                        Particle::new(
+                            Duration::from_secs(1),
+                            time,
+                            ParticleMode::Bubble,
+                            pos.0.map(|e| e + rng.random_range(-0.1..0.1))
+                                - vel.0 * dt * rng.random::<f32>(),
+                            scene_data,
+                        ),
+                    );
                 }
             }
         }
@@ -1010,8 +1041,10 @@ impl ParticleMgr {
             .try_normalized()
             .unwrap_or(Vec3::unit_y());
 
-        self.particles
-            .resize_with(self.particles.len() + usize::from(heartbeats) * 6, || {
+        self.add_particles(
+            scene_data.particles_chance,
+            usize::from(heartbeats) * 6,
+            || {
                 let spread = Vec3::new(
                     rng.random_range(-0.2..0.2_f32),
                     rng.random_range(-0.2..0.2_f32),
@@ -1029,7 +1062,8 @@ impl ParticleMgr {
                     tail,
                     scene_data,
                 )
-            });
+            },
+        );
     }
 
     fn maintain_pyroclasm_charge_particles(
@@ -1066,8 +1100,9 @@ impl ParticleMgr {
             let particle_density_hb: usize = (radius * 4.0).floor() as usize;
             let particle_density_lifespan: u64 = (radius * 75.0).floor() as u64;
 
-            self.particles.resize_with(
-                self.particles.len() + usize::from(heartbeats) * particle_density_hb,
+            self.add_particles(
+                scene_data.particles_chance,
+                usize::from(heartbeats) * particle_density_hb,
                 || {
                     let theta = rng.random_range(0.0..TAU);
                     let spawn = pos + Vec3::new(theta.cos() * r, theta.sin() * r, z);
@@ -1112,14 +1147,17 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(20)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(150),
-                time,
-                ParticleMode::GunPowderSpark,
-                pos.map(|e| e + rng.random_range(-0.2..0.2))
-                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(150),
+                    time,
+                    ParticleMode::GunPowderSpark,
+                    pos.map(|e| e + rng.random_range(-0.2..0.2))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1130,24 +1168,30 @@ impl ParticleMgr {
 
         // sparks
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(1500),
-                time,
-                ParticleMode::GunPowderSpark,
-                pos.map(|e| e + rng.random_range(-0.4..0.4)),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(1500),
+                    time,
+                    ParticleMode::GunPowderSpark,
+                    pos.map(|e| e + rng.random_range(-0.4..0.4)),
+                    scene_data,
+                ),
+            );
         }
 
         // smoke
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(1500),
-                time,
-                ParticleMode::CampfireSmoke,
-                pos.map(|e| e + rng.random_range(-0.4..0.4)),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(1500),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos.map(|e| e + rng.random_range(-0.4..0.4)),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1156,7 +1200,7 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         if rng.random_bool(0.05) {
-            self.particles.resize_with(self.particles.len() + 1, || {
+            self.add_particles(scene_data.particles_chance, 1, || {
                 let rand_offset = Vec3::new(
                     rng.random_range(-5.0..5.0),
                     rng.random_range(-5.0..5.0),
@@ -1226,22 +1270,20 @@ impl ParticleMgr {
         let time = scene_data.state.get_time();
         let mut rng = rand::rng();
 
-        self.particles.resize_with(
-            self.particles.len()
-                + particle_count * self.scheduler.heartbeats(Duration::from_millis(33)) as usize,
-            || {
-                let t = rng.random_range(0.0..1.0);
-                let p = start * t + end * (1.0 - t) - Vec3::new(0.0, 0.0, 0.5);
+        let final_amount =
+            particle_count * self.scheduler.heartbeats(Duration::from_millis(33)) as usize;
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            let t = rng.random_range(0.0..1.0);
+            let p = start * t + end * (1.0 - t) - Vec3::new(0.0, 0.0, 0.5);
 
-                Particle::new(
-                    Duration::from_millis(500),
-                    time,
-                    ParticleMode::GroundShockwave,
-                    p,
-                    scene_data,
-                )
-            },
-        );
+            Particle::new(
+                Duration::from_millis(500),
+                time,
+                ParticleMode::GroundShockwave,
+                p,
+                scene_data,
+            )
+        });
     }
 
     fn maintain_campfirelit_particles(
@@ -1256,26 +1298,32 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(25)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(800),
-                time,
-                ParticleMode::CampfireFire,
-                pos + Vec2::broadcast(())
-                    .map(|_| rand::rng().random_range(-0.3..0.3))
-                    .with_z(0.1),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(800),
+                    time,
+                    ParticleMode::CampfireFire,
+                    pos + Vec2::broadcast(())
+                        .map(|_| rand::rng().random_range(-0.3..0.3))
+                        .with_z(0.1),
+                    scene_data,
+                ),
+            );
         }
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(50)) {
-            self.particles.push(Particle::new(
-                Duration::from_secs(10),
-                time,
-                ParticleMode::CampfireSmoke,
-                pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
-                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_secs(10),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1291,22 +1339,28 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(20)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(250),
-                time,
-                ParticleMode::BarrelOrgan,
-                pos,
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(250),
+                    time,
+                    ParticleMode::BarrelOrgan,
+                    pos,
+                    scene_data,
+                ),
+            );
 
-            self.particles.push(Particle::new(
-                Duration::from_secs(10),
-                time,
-                ParticleMode::BarrelOrgan,
-                pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
-                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_secs(10),
+                    time,
+                    ParticleMode::BarrelOrgan,
+                    pos.map(|e| e + rand::rng().random_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1322,22 +1376,28 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(4)) {
-            self.particles.push(Particle::new(
-                Duration::from_millis(500),
-                time,
-                ParticleMode::CampfireFire,
-                pos.map(|e| e + rng.random_range(-0.25..0.25))
-                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
-            self.particles.push(Particle::new(
-                Duration::from_secs(1),
-                time,
-                ParticleMode::CampfireSmoke,
-                pos.map(|e| e + rng.random_range(-0.25..0.25))
-                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(500),
+                    time,
+                    ParticleMode::CampfireFire,
+                    pos.map(|e| e + rng.random_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_secs(1),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos.map(|e| e + rng.random_range(-0.25..0.25))
+                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1353,34 +1413,30 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         // fire
-        self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(2))),
-            || {
-                Particle::new(
-                    Duration::from_millis(500),
-                    time,
-                    ParticleMode::CampfireFire,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25))
-                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(2)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_millis(500),
+                time,
+                ParticleMode::CampfireFire,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                scene_data,
+            )
+        });
 
         // smoke
-        self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-            || {
-                Particle::new(
-                    Duration::from_secs(2),
-                    time,
-                    ParticleMode::CampfireSmoke,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25))
-                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(5)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_secs(2),
+                time,
+                ParticleMode::CampfireSmoke,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt),
+                scene_data,
+            )
+        });
     }
 
     fn maintain_fireraindrop_particles(
@@ -1395,21 +1451,18 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         // trace
-        self.particles.resize_with(
-            self.particles.len()
-                + usize::from(self.scheduler.heartbeats(Duration::from_millis(100))),
-            || {
-                Particle::new(
-                    Duration::from_millis(300),
-                    time,
-                    ParticleMode::FieryDropletTrace,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25))
-                        + Vec3::new(0.0, 0.0, 0.5)
-                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(100)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_millis(300),
+                time,
+                ParticleMode::FieryDropletTrace,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + Vec3::new(0.0, 0.0, 0.5)
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                scene_data,
+            )
+        });
     }
 
     fn maintain_boltnature_particles(
@@ -1423,19 +1476,17 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         // nature
-        self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(2))),
-            || {
-                Particle::new(
-                    Duration::from_millis(500),
-                    time,
-                    ParticleMode::CampfireSmoke,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25))
-                        + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(2)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_millis(500),
+                time,
+                ParticleMode::CampfireSmoke,
+                pos.map(|e| e + rng.random_range(-0.25..0.25))
+                    + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                scene_data,
+            )
+        });
     }
 
     fn maintain_tornado_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
@@ -1443,18 +1494,16 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         // air particles
-        self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-            || {
-                Particle::new(
-                    Duration::from_millis(1000),
-                    time,
-                    ParticleMode::Tornado,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25)),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(5)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_millis(1000),
+                time,
+                ParticleMode::Tornado,
+                pos.map(|e| e + rng.random_range(-0.25..0.25)),
+                scene_data,
+            )
+        });
     }
 
     fn maintain_fiery_tornado_particles(&mut self, scene_data: &SceneData, pos: Vec3<f32>) {
@@ -1462,18 +1511,16 @@ impl ParticleMgr {
         let mut rng = rand::rng();
 
         // air particles
-        self.particles.resize_with(
-            self.particles.len() + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-            || {
-                Particle::new(
-                    Duration::from_millis(1000),
-                    time,
-                    ParticleMode::FieryTornado,
-                    pos.map(|e| e + rng.random_range(-0.25..0.25)),
-                    scene_data,
-                )
-            },
-        );
+        let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(5)));
+        self.add_particles(scene_data.particles_chance, final_amount, || {
+            Particle::new(
+                Duration::from_millis(1000),
+                time,
+                ParticleMode::FieryTornado,
+                pos.map(|e| e + rng.random_range(-0.25..0.25)),
+                scene_data,
+            )
+        });
     }
 
     fn maintain_bomb_particles(
@@ -1489,22 +1536,28 @@ impl ParticleMgr {
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(10)) {
             // sparks
-            self.particles.push(Particle::new(
-                Duration::from_millis(1500),
-                time,
-                ParticleMode::GunPowderSpark,
-                pos,
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(1500),
+                    time,
+                    ParticleMode::GunPowderSpark,
+                    pos,
+                    scene_data,
+                ),
+            );
 
             // smoke
-            self.particles.push(Particle::new(
-                Duration::from_secs(2),
-                time,
-                ParticleMode::CampfireSmoke,
-                pos + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_secs(2),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos + vel.map_or(Vec3::zero(), |v| -v.0 * dt * rng.random::<f32>()),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1518,14 +1571,17 @@ impl ParticleMgr {
             let outer_pos =
                 pos + (Vec2::unit_x().rotated_z(rng.random_range((0.)..PI * 2.)) * 2.7).with_z(0.);
 
-            self.particles.push(Particle::new_directed(
-                Duration::from_secs_f32(rng.random_range(0.4..0.8)),
-                time,
-                ParticleMode::CultistFlame,
-                outer_pos,
-                outer_pos + Vec3::unit_z() * rng.random_range(5.0..7.0),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new_directed(
+                    Duration::from_secs_f32(rng.random_range(0.4..0.8)),
+                    time,
+                    ParticleMode::CultistFlame,
+                    outer_pos,
+                    outer_pos + Vec3::unit_z() * rng.random_range(5.0..7.0),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1541,14 +1597,17 @@ impl ParticleMgr {
                     * rng.random_range(1.0..2.9))
                 .with_z(0.);
 
-            self.particles.push(Particle::new_directed(
-                Duration::from_secs_f32(rng.random_range(0.5..3.0)),
-                time,
-                ParticleMode::CultistFlame,
-                outer_pos,
-                outer_pos + Vec3::unit_z() * rng.random_range(3.0..4.0),
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new_directed(
+                    Duration::from_secs_f32(rng.random_range(0.5..3.0)),
+                    time,
+                    ParticleMode::CultistFlame,
+                    outer_pos,
+                    outer_pos + Vec3::unit_z() * rng.random_range(3.0..4.0),
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1558,13 +1617,16 @@ impl ParticleMgr {
 
         for _ in 0..self.scheduler.heartbeats(Duration::from_millis(1)) {
             // sparks
-            self.particles.push(Particle::new(
-                Duration::from_millis(25),
-                time,
-                ParticleMode::GunPowderSpark,
-                pos,
-                scene_data,
-            ));
+            self.push_particle(
+                scene_data.particles_chance,
+                Particle::new(
+                    Duration::from_millis(25),
+                    time,
+                    ParticleMode::GunPowderSpark,
+                    pos,
+                    scene_data,
+                ),
+            );
         }
     }
 
@@ -1628,24 +1690,23 @@ impl ParticleMgr {
                         let scale = scale.map_or(1.0, |s| s.0);
                         // Kicking up dust/particles
                         let dust_particles = (scale * 4.0).ceil() as usize;
-                        self.particles
-                            .resize_with(self.particles.len() + dust_particles, || {
-                                Particle::new_colored(
-                                    Duration::from_millis(750),
-                                    time,
-                                    ParticleMode::Dust,
-                                    // Spread the particles around the foot
-                                    foot_pos
-                                        + Vec2::broadcast(scale)
-                                            .map(|s| rng.random_range(-0.1..0.1) * s),
-                                    // To avoid the particle being unduly lit in dark areas, have
-                                    // it take on the voxel
-                                    // lighting conditions of the parent figure.
-                                    color.as_() * (1.0 / 255.0),
-                                    scene_data,
-                                )
-                                .with_light(char_state.meta.last_light, char_state.meta.last_glow.1)
-                            });
+                        self.add_particles(scene_data.particles_chance, dust_particles, || {
+                            Particle::new_colored(
+                                Duration::from_millis(750),
+                                time,
+                                ParticleMode::Dust,
+                                // Spread the particles around the foot
+                                foot_pos
+                                    + Vec2::broadcast(scale)
+                                        .map(|s| rng.random_range(-0.1..0.1) * s),
+                                // To avoid the particle being unduly lit in dark areas, have
+                                // it take on the voxel
+                                // lighting conditions of the parent figure.
+                                color.as_() * (1.0 / 255.0),
+                                scene_data,
+                            )
+                            .with_light(char_state.meta.last_light, char_state.meta.last_glow.1)
+                        });
                         // Exposure to sunlight: proxy for how wet the ground is
                         if char_state.meta.last_light > 0.9 {
                             // Splashing in the rain
@@ -1656,8 +1717,9 @@ impl ParticleMgr {
                                     * 100.0)
                                     .ceil()
                                     .min(16.0) as usize;
-                            self.particles.resize_with(
-                                self.particles.len() + splash_particles,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                splash_particles,
                                 || {
                                     Particle::new_directed(
                                         Duration::from_millis(2500),
@@ -1700,42 +1762,38 @@ impl ParticleMgr {
                     // framerates. Unfortunately, there's not really a better way to do this today,
                     // because animations have no way to emit events.
                     if hand.mul_direction(Vec3::unit_z()).z < 0.0 {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(90))),
-                            || {
-                                Particle::new(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::Bubble,
-                                    state.wpos_of(hand.mul_point(Vec3::zero()))
-                                        - vel.0 * dt * rng.random::<f32>(),
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(90)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            Particle::new(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::Bubble,
+                                state.wpos_of(hand.mul_point(Vec3::zero()))
+                                    - vel.0 * dt * rng.random::<f32>(),
+                                scene_data,
+                            )
+                        });
                     }
                 }
             }
 
             match character_state {
                 CharacterState::Boost(_) => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(10))),
-                        || {
-                            Particle::new(
-                                Duration::from_millis(250),
-                                time,
-                                ParticleMode::PortalFizz,
-                                // Output particles from broom, not from character ass
-                                interpolated.pos
-                                    - ori.to_horizontal().look_dir().to_vec()
-                                    - vel.map_or(Vec3::zero(), |v| v.0 * dt * rng.random::<f32>()),
-                                scene_data,
-                            )
-                        },
-                    );
+                    let final_amount =
+                        usize::from(self.scheduler.heartbeats(Duration::from_millis(10)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        Particle::new(
+                            Duration::from_millis(250),
+                            time,
+                            ParticleMode::PortalFizz,
+                            // Output particles from broom, not from character ass
+                            interpolated.pos
+                                - ori.to_horizontal().look_dir().to_vec()
+                                - vel.map_or(Vec3::zero(), |v| v.0 * dt * rng.random::<f32>()),
+                            scene_data,
+                        )
+                    });
                 },
                 CharacterState::BasicMelee(c) => {
                     if let Some(specifier) = c.static_data.frontend_specifier {
@@ -1744,12 +1802,13 @@ impl ParticleMgr {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
                                     let mut rng = rand::rng();
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + 10
-                                            + usize::from(
-                                                self.scheduler.heartbeats(Duration::from_millis(5)),
-                                            ),
+                                    let final_amount = 10
+                                        + usize::from(
+                                            self.scheduler.heartbeats(Duration::from_millis(5)),
+                                        );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             Particle::new(
                                                 Duration::from_millis(1000),
@@ -1768,12 +1827,12 @@ impl ParticleMgr {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
                                     let mut rng = rand::rng();
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + 3
-                                            + usize::from(
-                                                self.scheduler.heartbeats(Duration::from_millis(5)),
-                                            ),
+                                    let final_amount = 3 + usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(5)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             Particle::new(
                                                 Duration::from_millis(600),
@@ -1801,10 +1860,9 @@ impl ParticleMgr {
                                     // Particles for vortex
                                     let heartbeats =
                                         self.scheduler.heartbeats(Duration::from_millis(3));
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + range.powi(2) as usize * usize::from(heartbeats)
-                                                / 150,
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        range.powi(2) as usize * usize::from(heartbeats) / 150,
                                         || {
                                             let rand_dist =
                                                 range * (1.0 - rng.random::<f32>().powi(10));
@@ -1843,11 +1901,10 @@ impl ParticleMgr {
                                             let heartbeats = self
                                                 .scheduler
                                                 .heartbeats(Duration::from_millis(20));
-                                            self.particles.resize_with(
-                                                self.particles.len()
-                                                    + range.powi(2) as usize
-                                                        * usize::from(heartbeats)
-                                                        / 150,
+                                            self.add_particles(
+                                                scene_data.particles_chance,
+                                                range.powi(2) as usize * usize::from(heartbeats)
+                                                    / 150,
                                                 || {
                                                     let start_pos = interpolated_b.pos
                                                         + Vec3::unit_z() * body_b.height() * 0.5
@@ -1874,12 +1931,12 @@ impl ParticleMgr {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let time = scene_data.state.get_time();
                                     let mut rng = rand::rng();
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + 3
-                                            + usize::from(
-                                                self.scheduler.heartbeats(Duration::from_millis(5)),
-                                            ),
+                                    let final_amount = 3 + usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(5)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             Particle::new(
                                                 Duration::from_millis(1000),
@@ -1927,12 +1984,12 @@ impl ParticleMgr {
                                     let (from, to) = (Vec3::<f32>::unit_z(), ori);
                                     let m = Mat3::<f32>::rotation_from_to_3d(from, to);
 
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + 5
-                                            + usize::from(
-                                                self.scheduler.heartbeats(Duration::from_millis(5)),
-                                            ),
+                                    let final_amount = 5 + usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(5)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             let trunk_pos = interpolated.pos + beam_offsets;
 
@@ -1966,11 +2023,12 @@ impl ParticleMgr {
                         match specifier {
                             states::rapid_ranged::FrontendSpecifier::FireRainPhoenix => {
                                 // base, dark clouds
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + 2 * usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(25)),
-                                        ),
+                                let final_amount = 2 * usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(25)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let rand_pos = {
                                             let theta = rng.random::<f32>() * TAU;
@@ -2005,11 +2063,12 @@ impl ParticleMgr {
                                         )
                                     },
                                 );
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + 2 * usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(25)),
-                                        ),
+                                let final_amount = 2 * usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(25)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let rand_pos = {
                                             let theta = rng.random::<f32>() * TAU;
@@ -2085,11 +2144,12 @@ impl ParticleMgr {
                     if let Some(specifier) = c.static_data.frontend_specifier {
                         match specifier {
                             states::blink::FrontendSpecifier::CultistFlame => {
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(10)),
-                                        ),
+                                let final_amount = usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(10)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let center_pos =
                                             interpolated.pos + Vec3::unit_z() * body.height() / 2.0;
@@ -2122,11 +2182,12 @@ impl ParticleMgr {
                                 );
                             },
                             states::blink::FrontendSpecifier::FlameThrower => {
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(10)),
-                                        ),
+                                let final_amount = usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(10)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let center_pos =
                                             interpolated.pos + Vec3::unit_z() * body.height() / 2.0;
@@ -2167,11 +2228,12 @@ impl ParticleMgr {
                             states::self_buff::FrontendSpecifier::FromTheAshes => {
                                 if matches!(c.stage_section, StageSection::Action) {
                                     let pos = interpolated.pos;
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + 2 * usize::from(
-                                                self.scheduler.heartbeats(Duration::from_millis(1)),
-                                            ),
+                                    let final_amount = 2 * usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(1)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             let start_pos = pos + Vec3::unit_z() - 1.0;
                                             let end_pos = pos
@@ -2195,12 +2257,12 @@ impl ParticleMgr {
                                             )
                                         },
                                     );
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + usize::from(
-                                                self.scheduler
-                                                    .heartbeats(Duration::from_millis(10)),
-                                            ),
+                                    let final_amount = usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(10)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             Particle::new(
                                                 Duration::from_millis(650),
@@ -2212,12 +2274,12 @@ impl ParticleMgr {
                                             )
                                         },
                                     );
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + usize::from(
-                                                self.scheduler
-                                                    .heartbeats(Duration::from_millis(40)),
-                                            ),
+                                    let final_amount = usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(40)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             Particle::new(
                                                 Duration::from_millis(1000),
@@ -2228,12 +2290,12 @@ impl ParticleMgr {
                                             )
                                         },
                                     );
-                                    self.particles.resize_with(
-                                        self.particles.len()
-                                            + usize::from(
-                                                self.scheduler
-                                                    .heartbeats(Duration::from_millis(14)),
-                                            ),
+                                    let final_amount = usize::from(
+                                        self.scheduler.heartbeats(Duration::from_millis(14)),
+                                    );
+                                    self.add_particles(
+                                        scene_data.particles_chance,
+                                        final_amount,
                                         || {
                                             let pos1 =
                                                 pos.map(|e| e + rng.random_range(-0.25..0.25));
@@ -2262,29 +2324,26 @@ impl ParticleMgr {
                         .any(|buff_desc| matches!(buff_desc.kind, BuffKind::Frenzied))
                         && matches!(c.stage_section, StageSection::Action)
                     {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-                            || {
-                                let start_pos = interpolated.pos
-                                    + Vec3::new(
-                                        body.max_radius(),
-                                        body.max_radius(),
-                                        body.height() / 2.0,
-                                    )
-                                    .map(|d| d * rng.random_range(-1.0..1.0));
-                                let end_pos =
-                                    interpolated.pos + (start_pos - interpolated.pos) * 6.0;
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::Enraged,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(5)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = interpolated.pos
+                                + Vec3::new(
+                                    body.max_radius(),
+                                    body.max_radius(),
+                                    body.height() / 2.0,
                                 )
-                            },
-                        );
+                                .map(|d| d * rng.random_range(-1.0..1.0));
+                            let end_pos = interpolated.pos + (start_pos - interpolated.pos) * 6.0;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::Enraged,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     }
                 },
                 CharacterState::BasicBeam(beam) => {
@@ -2295,35 +2354,30 @@ impl ParticleMgr {
                     if specifier == beam::FrontendSpecifier::PhoenixLaser
                         && matches!(beam.stage_section, StageSection::Buildup)
                     {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + 2 * usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(2)),
-                                ),
-                            || {
-                                let mut left_right_alignment =
-                                    dir.cross(Vec3::new(0.0, 0.0, 1.0)).normalized();
-                                if rng.random_bool(0.5) {
-                                    left_right_alignment *= -1.0;
-                                }
-                                let start = interpolated.pos
-                                    + left_right_alignment * 4.0
-                                    + dir.normalized() * 6.0;
-                                let lifespan = Duration::from_secs_f32(0.5);
-                                Particle::new_directed(
-                                    lifespan,
-                                    time,
-                                    ParticleMode::PhoenixBuildUpAim,
-                                    start,
-                                    interpolated.pos
-                                        + dir.normalized() * 3.0
-                                        + left_right_alignment * 0.4
-                                        + vel
-                                            .map_or(Vec3::zero(), |v| v.0 * lifespan.as_secs_f32()),
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            2 * usize::from(self.scheduler.heartbeats(Duration::from_millis(2)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let mut left_right_alignment =
+                                dir.cross(Vec3::new(0.0, 0.0, 1.0)).normalized();
+                            if rng.random_bool(0.5) {
+                                left_right_alignment *= -1.0;
+                            }
+                            let start = interpolated.pos
+                                + left_right_alignment * 4.0
+                                + dir.normalized() * 6.0;
+                            let lifespan = Duration::from_secs_f32(0.5);
+                            Particle::new_directed(
+                                lifespan,
+                                time,
+                                ParticleMode::PhoenixBuildUpAim,
+                                start,
+                                interpolated.pos
+                                    + dir.normalized() * 3.0
+                                    + left_right_alignment * 0.4
+                                    + vel.map_or(Vec3::zero(), |v| v.0 * lifespan.as_secs_f32()),
+                                scene_data,
+                            )
+                        });
                     }
                 },
                 CharacterState::Glide(glide) => {
@@ -2349,10 +2403,9 @@ impl ParticleMgr {
                                 minmax_norm(wind_speed, MIN_AIR_VEL, MAX_AIR_VEL),
                             );
 
-                        let new_count = self.particles.len()
-                            + usize::from(
-                                self.scheduler.heartbeats(Duration::from_millis(heartbeat)),
-                            );
+                        let new_count = usize::from(
+                            self.scheduler.heartbeats(Duration::from_millis(heartbeat)),
+                        );
 
                         // More number, longer particles
                         let duration = Lerp::lerp(
@@ -2362,7 +2415,7 @@ impl ParticleMgr {
                         );
                         let duration = Duration::from_millis(duration);
 
-                        self.particles.resize_with(new_count, || {
+                        self.add_particles(scene_data.particles_chance, new_count, || {
                             let start_pos = interpolated.pos
                                 + Vec3::new(
                                     body.max_radius(),
@@ -2389,7 +2442,7 @@ impl ParticleMgr {
                             && let Some(tp1) = figure_state.secondary_abs_trail_points
                         {
                             for _ in 0..self.scheduler.heartbeats(Duration::from_millis(5)) {
-                                self.particles.push(Particle::new(
+                                self.push_particle(scene_data.particles_chance, Particle::new(
                                     Duration::from_secs(2),
                                     time,
                                     ParticleMode::EngineJet,
@@ -2410,11 +2463,12 @@ impl ParticleMgr {
                     {
                         match specifier {
                             states::transform::FrontendSpecifier::Evolve => {
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(10)),
-                                        ),
+                                let final_amount = usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(10)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let start_pos = interpolated.pos
                                             + (Vec2::unit_y()
@@ -2435,11 +2489,12 @@ impl ParticleMgr {
                                 )
                             },
                             states::transform::FrontendSpecifier::Cursekeeper => {
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + usize::from(
-                                            self.scheduler.heartbeats(Duration::from_millis(10)),
-                                        ),
+                                let final_amount = usize::from(
+                                    self.scheduler.heartbeats(Duration::from_millis(10)),
+                                );
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    final_amount,
                                     || {
                                         let start_pos = interpolated.pos
                                             + (Vec2::unit_y()
@@ -2493,8 +2548,9 @@ impl ParticleMgr {
 
                                 let tail_angle: f32 = 0.4;
                                 let tail_range = 3.5_f32;
-                                self.particles.resize_with(
-                                    self.particles.len() + usize::from(heartbeats) * 3,
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    usize::from(heartbeats) * 3,
                                     || {
                                         let phi = rng.random_range(0.0..tail_angle);
                                         let theta = rng.random_range(0.0..TAU);
@@ -2523,8 +2579,9 @@ impl ParticleMgr {
                                 let nose_pos = pos + look_dir * 3.0;
                                 let nose_angle: f32 = 2.8; //
                                 let nose_range = 3.0_f32;
-                                self.particles.resize_with(
-                                    self.particles.len() + usize::from(heartbeats) * 6,
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    usize::from(heartbeats) * 6,
                                     || {
                                         let phi = rng.random_range(0.0..nose_angle);
                                         let theta = rng.random_range(0.0..TAU);
@@ -2602,7 +2659,6 @@ impl ParticleMgr {
                 .unwrap_or(*ori.look_dir());
             let raycast_distance = |from, to| terrain.ray(from, to).until(Block::is_solid).cast().0;
 
-            self.particles.reserve(beam_tick_count as usize);
             match beam.specifier {
                 beam::FrontendSpecifier::Flamethrower => {
                     let (from, to) = (Vec3::<f32>::unit_z(), beam_dir);
@@ -2622,15 +2678,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::FlameThrower,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::FlameThrower,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::FireGigasOverheat => {
@@ -2651,15 +2710,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::FireGigasOverheat,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::FireGigasOverheat,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::FirePillar | beam::FrontendSpecifier::FlameWallPillar => {
@@ -2676,15 +2738,18 @@ impl ParticleMgr {
                         let theta: f32 = rng.random_range(0.0..2.0 * PI);
                         let radius = beam.start_radius * (1.0 - rng.random::<f32>().powi(8));
                         let offset = Vec3::new(radius * theta.cos(), radius * theta.sin(), 0.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::FirePillar,
-                            beam.bezier.start + offset,
-                            beam.bezier.start + offset + beam.range * Vec3::unit_z(),
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::FirePillar,
+                                beam.bezier.start + offset,
+                                beam.bezier.start + offset + beam.range * Vec3::unit_z(),
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Cultist => {
@@ -2704,15 +2769,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::CultistFlame,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::CultistFlame,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::LifestealBeam => {
@@ -2725,22 +2793,25 @@ impl ParticleMgr {
                     let bezier_end = beam.bezier.start + beam_dir * beam.range;
                     let distance = raycast_distance(beam.bezier.start, bezier_end);
                     for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::LifestealBeam,
-                            beam.bezier.start,
-                            bezier_end,
-                            scene_data,
-                            |_from, _to| distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::LifestealBeam,
+                                beam.bezier.start,
+                                bezier_end,
+                                scene_data,
+                                |_from, _to| distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Gravewarden => {
                     for i in 0..beam_tick_count {
                         let mut offset = 0.5;
                         let side = Vec2::new(-beam_dir.y, beam_dir.x);
-                        self.particles.resize_with(self.particles.len() + 2, || {
+                        self.add_particles(scene_data.particles_chance, 2, || {
                             offset = -offset;
                             Particle::new_directed_with_collision(
                                 Duration::from_secs_f64(beam.duration.0),
@@ -2758,15 +2829,18 @@ impl ParticleMgr {
                     let bezier_end = beam.bezier.start + beam_dir * beam.range;
                     let distance = raycast_distance(beam.bezier.start, bezier_end);
                     for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::WebStrand,
-                            beam.bezier.start,
-                            bezier_end,
-                            scene_data,
-                            |_from, _to| distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::WebStrand,
+                                beam.bezier.start,
+                                bezier_end,
+                                scene_data,
+                                |_from, _to| distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Bubbles => {
@@ -2778,15 +2852,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Bubbles,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Bubbles,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Poison => {
@@ -2798,15 +2875,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Poison,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Poison,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Ink => {
@@ -2818,15 +2898,18 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Bubbles,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Bubbles,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Steam => {
@@ -2838,30 +2921,36 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Steam,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Steam,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Lightning => {
                     let bezier_end = beam.bezier.start + beam_dir * beam.range;
                     let distance = raycast_distance(beam.bezier.start, bezier_end);
                     for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Lightning,
-                            beam.bezier.start,
-                            bezier_end,
-                            scene_data,
-                            |_from, _to| distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Lightning,
+                                beam.bezier.start,
+                                bezier_end,
+                                scene_data,
+                                |_from, _to| distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::Frost => {
@@ -2873,30 +2962,36 @@ impl ParticleMgr {
                         let offset_z =
                             Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos());
                         let random_ori = offset_z * m * Vec3::new(-1.0, -1.0, 1.0);
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::Ice,
-                            beam.bezier.start,
-                            beam.bezier.start + random_ori * beam.range,
-                            scene_data,
-                            raycast_distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::Ice,
+                                beam.bezier.start,
+                                beam.bezier.start + random_ori * beam.range,
+                                scene_data,
+                                raycast_distance,
+                            ),
+                        );
                     }
                 },
                 beam::FrontendSpecifier::PhoenixLaser => {
                     let bezier_end = beam.bezier.start + beam_dir * beam.range;
                     let distance = raycast_distance(beam.bezier.start, bezier_end);
                     for i in 0..beam_tick_count {
-                        self.particles.push(Particle::new_directed_with_collision(
-                            Duration::from_secs_f64(beam.duration.0),
-                            time + distributed_time * i as f64,
-                            ParticleMode::PhoenixBeam,
-                            beam.bezier.start,
-                            bezier_end,
-                            scene_data,
-                            |_from, _to| distance,
-                        ));
+                        self.push_particle(
+                            scene_data.particles_chance,
+                            Particle::new_directed_with_collision(
+                                Duration::from_secs_f64(beam.duration.0),
+                                time + distributed_time * i as f64,
+                                ParticleMode::PhoenixBeam,
+                                beam.bezier.start,
+                                bezier_end,
+                                scene_data,
+                                |_from, _to| distance,
+                            ),
+                        );
                     }
                 },
             }
@@ -2927,9 +3022,9 @@ impl ParticleMgr {
                         ..
                     } => {
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                        self.add_particles(
+                            scene_data.particles_chance,
+                            aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.random::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
@@ -2964,9 +3059,9 @@ impl ParticleMgr {
                             continue;
                         }
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                        self.add_particles(
+                            scene_data.particles_chance,
+                            aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.random::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
@@ -2994,10 +3089,9 @@ impl ParticleMgr {
                         match aura.frontend_specifier {
                             Some(aura::Specifier::FieryAura) => {
                                 //Flame Cloak
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + aura.radius.powi(2) as usize * usize::from(heartbeats)
-                                            / 3,
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    aura.radius.powi(2) as usize * usize::from(heartbeats) / 3,
                                     || {
                                         let orbit_speed = 1.0_f32;
                                         let theta = time as f32 * orbit_speed
@@ -3023,10 +3117,9 @@ impl ParticleMgr {
                             },
                             None => {
                                 //Gnarling Totem Red
-                                self.particles.resize_with(
-                                    self.particles.len()
-                                        + aura.radius.powi(2) as usize * usize::from(heartbeats)
-                                            / 300,
+                                self.add_particles(
+                                    scene_data.particles_chance,
+                                    aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
                                     || {
                                         let rand_pos = {
                                             let theta = rng.random::<f32>() * TAU;
@@ -3059,9 +3152,9 @@ impl ParticleMgr {
                         ..
                     } => {
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                        self.add_particles(
+                            scene_data.particles_chance,
+                            aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.random::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
@@ -3091,9 +3184,9 @@ impl ParticleMgr {
                         });
                         if is_new_aura {
                             let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                            self.particles.resize_with(
-                                self.particles.len()
-                                    + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            self.add_particles(
+                                scene_data.particles_chance,
+                                aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
                                 || {
                                     let rand_angle = rng.random_range(0.0..TAU);
                                     let offset =
@@ -3119,9 +3212,9 @@ impl ParticleMgr {
                         ..
                     } => {
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 900,
+                        self.add_particles(
+                            scene_data.particles_chance,
+                            aura.radius.powi(2) as usize * usize::from(heartbeats) / 900,
                             || {
                                 let rand_dist = aura.radius * (1.0 - rng.random::<f32>().powi(100));
                                 let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
@@ -3144,33 +3237,32 @@ impl ParticleMgr {
                         let num_particles = aura.radius.powi(2) * dt / 50.0;
                         let num_particles = num_particles.floor() as usize
                             + usize::from(rng.random_bool(f64::from(num_particles % 1.0)));
-                        self.particles
-                            .resize_with(self.particles.len() + num_particles, || {
-                                let rand_pos = {
-                                    let theta = rng.random::<f32>() * TAU;
-                                    let radius = aura.radius * rng.random::<f32>().sqrt();
-                                    let x = radius * theta.sin();
-                                    let y = radius * theta.cos();
-                                    Vec2::new(x, y) + pos.xy()
-                                };
-                                let duration = Duration::from_secs_f64(
-                                    aura.end_time
-                                        .map_or(1.0, |end| end.0 - time)
-                                        .clamp(0.0, 1.0),
-                                );
-                                Particle::new_directed(
-                                    duration,
-                                    time,
-                                    ParticleMode::FieryBurstAsh,
-                                    pos,
-                                    Vec3::new(
+                        self.add_particles(scene_data.particles_chance, num_particles, || {
+                            let rand_pos = {
+                                let theta = rng.random::<f32>() * TAU;
+                                let radius = aura.radius * rng.random::<f32>().sqrt();
+                                let x = radius * theta.sin();
+                                let y = radius * theta.cos();
+                                Vec2::new(x, y) + pos.xy()
+                            };
+                            let duration = Duration::from_secs_f64(
+                                aura.end_time
+                                    .map_or(1.0, |end| end.0 - time)
+                                    .clamp(0.0, 1.0),
+                            );
+                            Particle::new_directed(
+                                duration,
+                                time,
+                                ParticleMode::FieryBurstAsh,
+                                pos,
+                                Vec3::new(
                                                     0.0,    // radius of rand spawn
                                                     20.0,   // integer part - radius of the curve part, fractional part - relative time of setting particle on fire
                                                     5.5)    // height of the flight
                                                     + rand_pos.with_z(pos.z),
-                                    scene_data,
-                                )
-                            });
+                                scene_data,
+                            )
+                        });
                     },
                     _ => {},
                 }
@@ -3204,35 +3296,33 @@ impl ParticleMgr {
                 use buff::BuffKind;
                 match buff_kind {
                     BuffKind::Cursed | BuffKind::Burning => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.height() * 0.25
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.25;
-                                let end_pos = start_pos
-                                    + Vec3::unit_z() * body.height()
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized();
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    if matches!(buff_kind, BuffKind::Cursed) {
-                                        ParticleMode::CultistFlame
-                                    } else {
-                                        ParticleMode::FlameThrower
-                                    },
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(15)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.25
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.25;
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * body.height()
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized();
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                if matches!(buff_kind, BuffKind::Cursed) {
+                                    ParticleMode::CultistFlame
+                                } else {
+                                    ParticleMode::FlameThrower
+                                },
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::PotionSickness => {
                         let mut multiplicity = 0;
@@ -3247,64 +3337,54 @@ impl ParticleMgr {
                         {
                             multiplicity = 1;
                         }
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + multiplicity
-                                    * usize::from(
-                                        self.scheduler.heartbeats(Duration::from_millis(25)),
-                                    ),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
-                                let (radius, theta) = (
-                                    rng.random_range(0.0f32..1.0).sqrt(),
-                                    rng.random_range(0.0..TAU),
-                                );
-                                let end_pos = pos
-                                    + *ori.look_dir()
-                                    + Vec3::<f32>::new(
-                                        radius * theta.cos(),
-                                        radius * theta.sin(),
-                                        0.0,
-                                    ) * 0.25;
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::PotionSickness,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount = multiplicity
+                            * usize::from(self.scheduler.heartbeats(Duration::from_millis(25)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos =
+                                pos + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0));
+                            let (radius, theta) = (
+                                rng.random_range(0.0f32..1.0).sqrt(),
+                                rng.random_range(0.0..TAU),
+                            );
+                            let end_pos = pos
+                                + *ori.look_dir()
+                                + Vec3::<f32>::new(radius * theta.cos(), radius * theta.sin(), 0.0)
+                                    * 0.25;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::PotionSickness,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::Frenzied => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::new(
-                                        body.max_radius(),
-                                        body.max_radius(),
-                                        body.height() / 2.0,
-                                    )
-                                    .map(|d| d * rng.random_range(-1.0..1.0));
-                                let end_pos = start_pos
-                                    + Vec3::unit_z() * body.height()
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized();
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::Enraged,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(15)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::new(
+                                    body.max_radius(),
+                                    body.max_radius(),
+                                    body.height() / 2.0,
                                 )
-                            },
-                        );
+                                .map(|d| d * rng.random_range(-1.0..1.0));
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * body.height()
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized();
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::Enraged,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::Polymorphed => {
                         let mut multiplicity = 0;
@@ -3319,158 +3399,133 @@ impl ParticleMgr {
                         {
                             multiplicity = 1;
                         }
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + multiplicity
-                                    * self.scheduler.heartbeats(Duration::from_millis(3)) as usize,
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0))
-                                        / 2.0;
-                                let end_pos = start_pos
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 5.0;
+                        let final_amount = multiplicity
+                            * self.scheduler.heartbeats(Duration::from_millis(3)) as usize;
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.eye_height(scale.map_or(1.0, |s| s.0))
+                                    / 2.0;
+                            let end_pos = start_pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 5.0;
 
-                                Particle::new_directed(
-                                    Duration::from_secs(2),
-                                    time,
-                                    ParticleMode::Explosion,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        )
+                            Particle::new_directed(
+                                Duration::from_secs(2),
+                                time,
+                                ParticleMode::Explosion,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        })
                     },
                     BuffKind::IgniteArrow => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(150)),
-                                ),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.height() * 0.45
-                                    + ori.look_dir().xy().rotated_z(0.6)
-                                        * body.front_radius()
-                                        * 2.5
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                let end_pos = start_pos
-                                    + Vec3::unit_z() * 0.7
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::FlameThrower,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(150)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * 0.7
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::FlameThrower,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::FreezeArrow => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(400)),
-                                ),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.height() * 0.45
-                                    + ori.look_dir().xy().rotated_z(0.6)
-                                        * body.front_radius()
-                                        * 2.5
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                let end_pos = start_pos
-                                    + Vec3::unit_z() * 1.0
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                Particle::new_directed(
-                                    Duration::from_millis(500),
-                                    time,
-                                    ParticleMode::Ice,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(400)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos
+                                + Vec3::unit_z() * 1.0
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_millis(500),
+                                time,
+                                ParticleMode::Ice,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::DrenchArrow => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(
-                                    self.scheduler.heartbeats(Duration::from_millis(500)),
-                                ),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.height() * 0.45
-                                    + ori.look_dir().xy().rotated_z(0.6)
-                                        * body.front_radius()
-                                        * 2.5
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                let end_pos = start_pos - Vec3::unit_z() * 0.7
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.05;
-                                Particle::new_directed(
-                                    Duration::from_secs(1),
-                                    time,
-                                    ParticleMode::CultistFlame,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(500)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            let end_pos = start_pos - Vec3::unit_z() * 0.7
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.05;
+                            Particle::new_directed(
+                                Duration::from_secs(1),
+                                time,
+                                ParticleMode::CultistFlame,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     BuffKind::JoltArrow => {
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(20))),
-                            || {
-                                let start_pos = pos
-                                    + Vec3::unit_z() * body.height() * 0.45
-                                    + ori.look_dir().xy().rotated_z(0.6)
-                                        * body.front_radius()
-                                        * 2.5
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.2;
-                                let end_pos = start_pos
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.5;
-                                Particle::new_directed(
-                                    Duration::from_millis(150),
-                                    time,
-                                    ParticleMode::ElectricSparks,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(20)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = pos
+                                + Vec3::unit_z() * body.height() * 0.45
+                                + ori.look_dir().xy().rotated_z(0.6) * body.front_radius() * 2.5
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.2;
+                            let end_pos = start_pos
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.5;
+                            Particle::new_directed(
+                                Duration::from_millis(150),
+                                time,
+                                ParticleMode::ElectricSparks,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     },
                     _ => {},
                 }
@@ -3678,44 +3733,43 @@ impl ParticleMgr {
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.random::<f32>() < avg_particles.fract()) as usize;
 
-                    self.particles
-                        .resize_with(self.particles.len() + particle_count, || {
-                            match blocks {
-                                BlockParticleSlice::Positions(blocks) => {
-                                    // Can't fail, resize only occurs if blocks > 0
-                                    let block_pos = Vec3::from(
-                                        chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
-                                    ) + blocks.choose(&mut rng).copied().unwrap();
-                                    Particle::new(
-                                        Duration::from_secs_f32(particles.lifetime),
-                                        time,
-                                        particles.mode,
-                                        block_pos.map(|e: i32| e as f32 + rng.random::<f32>()),
-                                        scene_data,
-                                    )
-                                    .with_light(particles.sunlight_level, 0.0)
-                                },
-                                BlockParticleSlice::PositionsAndDirs(blocks) => {
-                                    // Can't fail, resize only occurs if blocks > 0
-                                    let (block_offset, particle_dir) =
-                                        blocks.choose(&mut rng).copied().unwrap();
-                                    let block_pos = Vec3::from(
-                                        chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
-                                    ) + block_offset;
-                                    let particle_pos =
-                                        block_pos.map(|e: i32| e as f32 + rng.random::<f32>());
-                                    Particle::new_directed(
-                                        Duration::from_secs_f32(particles.lifetime),
-                                        time,
-                                        particles.mode,
-                                        particle_pos,
-                                        particle_pos + particle_dir,
-                                        scene_data,
-                                    )
-                                    .with_light(particles.sunlight_level, 0.0)
-                                },
-                            }
-                        })
+                    self.add_particles(scene_data.particles_chance, particle_count, || {
+                        match blocks {
+                            BlockParticleSlice::Positions(blocks) => {
+                                // Can't fail, resize only occurs if blocks > 0
+                                let block_pos = Vec3::from(
+                                    chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                                ) + blocks.choose(&mut rng).copied().unwrap();
+                                Particle::new(
+                                    Duration::from_secs_f32(particles.lifetime),
+                                    time,
+                                    particles.mode,
+                                    block_pos.map(|e: i32| e as f32 + rng.random::<f32>()),
+                                    scene_data,
+                                )
+                                .with_light(particles.sunlight_level, 0.0)
+                            },
+                            BlockParticleSlice::PositionsAndDirs(blocks) => {
+                                // Can't fail, resize only occurs if blocks > 0
+                                let (block_offset, particle_dir) =
+                                    blocks.choose(&mut rng).copied().unwrap();
+                                let block_pos = Vec3::from(
+                                    chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32),
+                                ) + block_offset;
+                                let particle_pos =
+                                    block_pos.map(|e: i32| e as f32 + rng.random::<f32>());
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(particles.lifetime),
+                                    time,
+                                    particles.mode,
+                                    particle_pos,
+                                    particle_pos + particle_dir,
+                                    scene_data,
+                                )
+                                .with_light(particles.sunlight_level, 0.0)
+                            },
+                        }
+                    })
                 });
             }
 
@@ -3740,44 +3794,43 @@ impl ParticleMgr {
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.random::<f32>() < avg_particles.fract()) as usize;
 
-                    self.particles
-                        .resize_with(self.particles.len() + particle_count, || {
-                            match blocks {
-                                BlockParticleSlice::Positions(blocks) => {
-                                    let rel_pos = blocks
+                    self.add_particles(scene_data.particles_chance, particle_count, || {
+                        match blocks {
+                            BlockParticleSlice::Positions(blocks) => {
+                                let rel_pos = blocks
                                         .choose(&mut rng)
                                         .copied()
                                         // Can't fail, resize only occurs if blocks > 0
                                         .unwrap()
                                         .map(|e: i32| e as f32 + rng.random::<f32>());
-                                    let wpos = mat.mul_point(rel_pos);
+                                let wpos = mat.mul_point(rel_pos);
 
-                                    Particle::new(
-                                        Duration::from_secs_f32(particles.lifetime),
-                                        time,
-                                        particles.mode,
-                                        wpos,
-                                        scene_data,
-                                    )
-                                },
-                                BlockParticleSlice::PositionsAndDirs(blocks) => {
-                                    // Can't fail, resize only occurs if blocks > 0
-                                    let (block_offset, particle_dir) =
-                                        blocks.choose(&mut rng).copied().unwrap();
-                                    let particle_pos =
-                                        block_offset.map(|e: i32| e as f32 + rng.random::<f32>());
-                                    let wpos = mat.mul_point(particle_pos);
-                                    Particle::new_directed(
-                                        Duration::from_secs_f32(particles.lifetime),
-                                        time,
-                                        particles.mode,
-                                        wpos,
-                                        wpos + mat.mul_direction(particle_dir),
-                                        scene_data,
-                                    )
-                                },
-                            }
-                        })
+                                Particle::new(
+                                    Duration::from_secs_f32(particles.lifetime),
+                                    time,
+                                    particles.mode,
+                                    wpos,
+                                    scene_data,
+                                )
+                            },
+                            BlockParticleSlice::PositionsAndDirs(blocks) => {
+                                // Can't fail, resize only occurs if blocks > 0
+                                let (block_offset, particle_dir) =
+                                    blocks.choose(&mut rng).copied().unwrap();
+                                let particle_pos =
+                                    block_offset.map(|e: i32| e as f32 + rng.random::<f32>());
+                                let wpos = mat.mul_point(particle_pos);
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(particles.lifetime),
+                                    time,
+                                    particles.mode,
+                                    wpos,
+                                    wpos + mat.mul_direction(particle_dir),
+                                    scene_data,
+                                )
+                            },
+                        }
+                    })
                 }
             }
         }
@@ -3951,7 +4004,6 @@ impl ParticleMgr {
 
                         let particle_count_factor = radians / (3.0 * scale);
                         let new_particle_count = distance * particle_count_factor;
-                        self.particles.reserve(new_particle_count as usize);
 
                         for d in 0..(new_particle_count as i32) {
                             let arc_position = theta + dtheta * d as f32 / particle_count_factor;
@@ -3984,13 +4036,16 @@ impl ParticleMgr {
                                             let position_snapped =
                                                 ((position / scale).floor() + 0.5) * scale;
 
-                                            self.particles.push(Particle::new(
-                                                Duration::from_millis(250),
-                                                time,
-                                                ParticleMode::GroundShockwave,
-                                                position_snapped,
-                                                scene_data,
-                                            ));
+                                            self.push_particle(
+                                                scene_data.particles_chance,
+                                                Particle::new(
+                                                    Duration::from_millis(250),
+                                                    time,
+                                                    ParticleMode::GroundShockwave,
+                                                    position_snapped,
+                                                    scene_data,
+                                                ),
+                                            );
                                             last_air = false;
                                         }
                                     } else {
@@ -4010,13 +4065,16 @@ impl ParticleMgr {
                             let position = pos
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                            self.particles.push(Particle::new(
-                                Duration::from_secs_f32((distance + 10.0) / 50.0),
-                                time,
-                                ParticleMode::FireShockwave,
-                                position,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new(
+                                    Duration::from_secs_f32((distance + 10.0) / 50.0),
+                                    time,
+                                    ParticleMode::FireShockwave,
+                                    position,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4034,7 +4092,6 @@ impl ParticleMgr {
 
                         let particle_count_factor = radians / (3.0 * scale);
                         let new_particle_count = distance * particle_count_factor;
-                        self.particles.reserve(new_particle_count as usize);
 
                         for d in 0..(new_particle_count as i32) {
                             let arc_position = theta + dtheta * d as f32 / particle_count_factor;
@@ -4067,13 +4124,16 @@ impl ParticleMgr {
                                             let position_snapped =
                                                 ((position / scale).floor() + 0.5) * scale;
 
-                                            self.particles.push(Particle::new(
-                                                Duration::from_millis(250),
-                                                time,
-                                                ParticleMode::FireLowShockwave,
-                                                position_snapped,
-                                                scene_data,
-                                            ));
+                                            self.push_particle(
+                                                scene_data.particles_chance,
+                                                Particle::new(
+                                                    Duration::from_millis(250),
+                                                    time,
+                                                    ParticleMode::FireLowShockwave,
+                                                    position_snapped,
+                                                    scene_data,
+                                                ),
+                                            );
                                             last_air = false;
                                         }
                                     } else {
@@ -4094,10 +4154,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_length {
                         let angle = dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -4109,14 +4165,17 @@ impl ParticleMgr {
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
-                            self.particles.push(Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::Water,
-                                pos1,
-                                pos2,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Water,
+                                    pos1,
+                                    pos2,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4130,10 +4189,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_length {
                         let angle = dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -4145,14 +4200,17 @@ impl ParticleMgr {
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
-                            self.particles.push(Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::Lightning,
-                                pos1,
-                                pos2,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Lightning,
+                                    pos1,
+                                    pos2,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4166,10 +4224,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_length {
                         let angle = dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -4181,14 +4235,17 @@ impl ParticleMgr {
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
-                            self.particles.push(Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::Steam,
-                                pos1,
-                                pos2,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Steam,
+                                    pos1,
+                                    pos2,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4202,10 +4259,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_length {
                         let angle = theta + dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -4217,14 +4270,17 @@ impl ParticleMgr {
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
-                            self.particles.push(Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::Poison,
-                                pos1,
-                                pos2,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Poison,
+                                    pos1,
+                                    pos2,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4238,12 +4294,6 @@ impl ParticleMgr {
                     let heartbeats = self
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
-
-                    // Reserves capacity for new particles
-                    let new_particle_count =
-                        particles_per_length * heartbeats as usize * particles_per_height;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_height {
                         let height = (i as f32 / (particles_per_height as f32 - 1.0)) * 4.0;
                         for j in 0..particles_per_length {
@@ -4258,14 +4308,17 @@ impl ParticleMgr {
                                 let pos2 = pos1 + direction;
                                 let time = time + dt as f64;
 
-                                self.particles.push(Particle::new_directed(
-                                    Duration::from_secs_f32(0.5),
-                                    time,
-                                    ParticleMode::Poison,
-                                    pos1,
-                                    pos2,
-                                    scene_data,
-                                ));
+                                self.push_particle(
+                                    scene_data.particles_chance,
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(0.5),
+                                        time,
+                                        ParticleMode::Poison,
+                                        pos1,
+                                        pos2,
+                                        scene_data,
+                                    ),
+                                );
                             }
                         }
                     }
@@ -4280,10 +4333,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(1.0 / speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
-
                     for i in 0..particles_per_length {
                         let angle = theta + dtheta * i as f32;
                         let direction = Vec3::new(angle.cos(), angle.sin(), 0.0);
@@ -4295,14 +4344,17 @@ impl ParticleMgr {
                             let pos2 = pos1 + (Vec3::unit_z() + direction) * 3.0;
                             let time = time + dt as f64;
 
-                            self.particles.push(Particle::new_directed(
-                                Duration::from_secs_f32(0.5),
-                                time,
-                                ParticleMode::Ink,
-                                pos1,
-                                pos2,
-                                scene_data,
-                            ));
+                            self.push_particle(
+                                scene_data.particles_chance,
+                                Particle::new_directed(
+                                    Duration::from_secs_f32(0.5),
+                                    time,
+                                    ParticleMode::Ink,
+                                    pos1,
+                                    pos2,
+                                    scene_data,
+                                ),
+                            );
                         }
                     }
                 },
@@ -4321,9 +4373,6 @@ impl ParticleMgr {
                         .scheduler
                         .heartbeats(Duration::from_secs_f32(3.0 / scaled_speed));
 
-                    // Reserves capacity for new particles
-                    let new_particle_count = particles_per_length * heartbeats as usize;
-                    self.particles.reserve(new_particle_count);
                     // higher wave when wave doesn't require ground
                     let wave = if matches!(shockwave.properties.dodgeable, Dodgeable::Jump) {
                         0.5
@@ -4389,14 +4438,17 @@ impl ParticleMgr {
 
                             for a in 1..=5 {
                                 let (pos1, pos2) = get_positions(a);
-                                self.particles.push(Particle::new_directed(
-                                    Duration::from_secs_f32(0.5),
-                                    time,
-                                    ParticleMode::IceSpikes,
-                                    pos1,
-                                    pos2,
-                                    scene_data,
-                                ));
+                                self.push_particle(
+                                    scene_data.particles_chance,
+                                    Particle::new_directed(
+                                        Duration::from_secs_f32(0.5),
+                                        time,
+                                        ParticleMode::IceSpikes,
+                                        pos1,
+                                        pos2,
+                                        scene_data,
+                                    ),
+                                );
                             }
                         }
                     }
@@ -4424,110 +4476,102 @@ impl ParticleMgr {
             use comp::{FrontendMarker, visual::TorusMode};
             match marker {
                 FrontendMarker::IgniteArrow => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(150))),
-                        || {
-                            let start_pos = pos
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            let end_pos = start_pos
-                                + Vec3::unit_z() * 0.7
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            Particle::new_directed(
-                                Duration::from_secs(1),
-                                time,
-                                ParticleMode::FlameThrower,
-                                start_pos,
-                                end_pos,
-                                scene_data,
-                            )
-                        },
-                    );
+                    let final_amount =
+                        usize::from(self.scheduler.heartbeats(Duration::from_millis(150)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        let end_pos = start_pos
+                            + Vec3::unit_z() * 0.7
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        Particle::new_directed(
+                            Duration::from_secs(1),
+                            time,
+                            ParticleMode::FlameThrower,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 FrontendMarker::FreezeArrow => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(400))),
-                        || {
-                            let start_pos = pos
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            let end_pos = start_pos
-                                + Vec3::unit_z() * 1.0
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            Particle::new_directed(
-                                Duration::from_millis(500),
-                                time,
-                                ParticleMode::Ice,
-                                start_pos,
-                                end_pos,
-                                scene_data,
-                            )
-                        },
-                    );
+                    let final_amount =
+                        usize::from(self.scheduler.heartbeats(Duration::from_millis(400)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        let end_pos = start_pos
+                            + Vec3::unit_z() * 1.0
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        Particle::new_directed(
+                            Duration::from_millis(500),
+                            time,
+                            ParticleMode::Ice,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 FrontendMarker::DrenchArrow => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(500))),
-                        || {
-                            let start_pos = pos
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            let end_pos = start_pos - Vec3::unit_z() * 0.7
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.05;
-                            Particle::new_directed(
-                                Duration::from_secs(1),
-                                time,
-                                ParticleMode::CultistFlame,
-                                start_pos,
-                                end_pos,
-                                scene_data,
-                            )
-                        },
-                    );
+                    let final_amount =
+                        usize::from(self.scheduler.heartbeats(Duration::from_millis(500)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        let end_pos = start_pos - Vec3::unit_z() * 0.7
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.05;
+                        Particle::new_directed(
+                            Duration::from_secs(1),
+                            time,
+                            ParticleMode::CultistFlame,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 FrontendMarker::JoltArrow => {
-                    self.particles.resize_with(
-                        self.particles.len()
-                            + usize::from(self.scheduler.heartbeats(Duration::from_millis(20))),
-                        || {
-                            let start_pos = pos
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.2;
-                            let end_pos = start_pos
-                                + Vec3::<f32>::zero()
-                                    .map(|_| rng.random_range(-1.0..1.0))
-                                    .normalized()
-                                    * 0.5;
-                            Particle::new_directed(
-                                Duration::from_millis(150),
-                                time,
-                                ParticleMode::ElectricSparks,
-                                start_pos,
-                                end_pos,
-                                scene_data,
-                            )
-                        },
-                    );
+                    let final_amount =
+                        usize::from(self.scheduler.heartbeats(Duration::from_millis(20)));
+                    self.add_particles(scene_data.particles_chance, final_amount, || {
+                        let start_pos = pos
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.2;
+                        let end_pos = start_pos
+                            + Vec3::<f32>::zero()
+                                .map(|_| rng.random_range(-1.0..1.0))
+                                .normalized()
+                                * 0.5;
+                        Particle::new_directed(
+                            Duration::from_millis(150),
+                            time,
+                            ParticleMode::ElectricSparks,
+                            start_pos,
+                            end_pos,
+                            scene_data,
+                        )
+                    });
                 },
                 FrontendMarker::Torus(major_r, torus_mode) => {
                     let time = scene_data.state.get_time();
@@ -4550,8 +4594,9 @@ impl ParticleMgr {
                     let minor_r: f32 = major_r / 1.5;
                     let flame_reach: f32 = fwd.magnitude();
 
-                    self.particles.resize_with(
-                        self.particles.len() + usize::from(heartbeats) * 8,
+                    self.add_particles(
+                        scene_data.particles_chance,
+                        usize::from(heartbeats) * 8,
                         || {
                             let u = rng.random_range(0.0..TAU); // Angle around ring
                             let v = rng.random_range(0.0..TAU); // Angle within tube
@@ -4614,30 +4659,27 @@ impl ParticleMgr {
             let height = body.map_or(2.0, |b| b.height());
             let radius = body.map_or(1.0, |b| b.max_radius());
             let pos = pos + Vec3::unit_z() * height / 2.0;
-            self.particles.resize_with(
-                self.particles.len()
-                    + usize::from(self.scheduler.heartbeats(Duration::from_millis(5))),
-                || {
-                    let start_pos = pos
-                        + Vec3::<f32>::zero()
-                            .map(|_| rng.random_range(-1.0..1.0))
-                            .normalized()
-                            * radius;
-                    let end_pos = start_pos
-                        + Vec3::<f32>::zero()
-                            .map(|_| rng.random_range(-1.0..1.0))
-                            .normalized()
-                            * (radius + 0.5);
-                    Particle::new_directed(
-                        Duration::from_millis(200),
-                        time,
-                        ParticleMode::ElectricSparks,
-                        start_pos,
-                        end_pos,
-                        scene_data,
-                    )
-                },
-            );
+            let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(5)));
+            self.add_particles(scene_data.particles_chance, final_amount, || {
+                let start_pos = pos
+                    + Vec3::<f32>::zero()
+                        .map(|_| rng.random_range(-1.0..1.0))
+                        .normalized()
+                        * radius;
+                let end_pos = start_pos
+                    + Vec3::<f32>::zero()
+                        .map(|_| rng.random_range(-1.0..1.0))
+                        .normalized()
+                        * (radius + 0.5);
+                Particle::new_directed(
+                    Duration::from_millis(200),
+                    time,
+                    ParticleMode::ElectricSparks,
+                    start_pos,
+                    end_pos,
+                    scene_data,
+                )
+            });
 
             let num = arcing.hit_entities.len();
             if num > 1 && (time - arcing.last_arc_time.0 < arcing.properties.min_delay.0) {
@@ -4666,30 +4708,28 @@ impl ParticleMgr {
                     for segment in 0..(segments - 1) {
                         let t_0 = segment as f32 / segments as f32;
                         let t_1 = (segment + 2) as f32 / segments as f32;
-                        self.particles.resize_with(
-                            self.particles.len()
-                                + usize::from(self.scheduler.heartbeats(Duration::from_millis(30))),
-                            || {
-                                let start_pos = bezier.evaluate(t_0)
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.2;
-                                let end_pos = bezier.evaluate(t_1)
-                                    + Vec3::<f32>::zero()
-                                        .map(|_| rng.random_range(-1.0..1.0))
-                                        .normalized()
-                                        * 0.2;
-                                Particle::new_directed(
-                                    Duration::from_millis(150),
-                                    time,
-                                    ParticleMode::ElectricSparks,
-                                    start_pos,
-                                    end_pos,
-                                    scene_data,
-                                )
-                            },
-                        );
+                        let final_amount =
+                            usize::from(self.scheduler.heartbeats(Duration::from_millis(30)));
+                        self.add_particles(scene_data.particles_chance, final_amount, || {
+                            let start_pos = bezier.evaluate(t_0)
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.2;
+                            let end_pos = bezier.evaluate(t_1)
+                                + Vec3::<f32>::zero()
+                                    .map(|_| rng.random_range(-1.0..1.0))
+                                    .normalized()
+                                    * 0.2;
+                            Particle::new_directed(
+                                Duration::from_millis(150),
+                                time,
+                                ParticleMode::ElectricSparks,
+                                start_pos,
+                                end_pos,
+                                scene_data,
+                            )
+                        });
                     }
                 }
             }
@@ -4714,42 +4754,36 @@ impl ParticleMgr {
             let radius = pool.properties.radius;
 
             // Fire particles spread across the pool radius.
-            self.particles.resize_with(
-                self.particles.len()
-                    + usize::from(self.scheduler.heartbeats(Duration::from_millis(20))),
-                || {
-                    Particle::new(
-                        Duration::from_millis(700),
-                        time,
-                        ParticleMode::CampfireFire,
-                        pos + Vec3::new(
-                            rng.random_range(-radius..radius),
-                            rng.random_range(-radius..radius),
-                            0.1,
-                        ),
-                        scene_data,
-                    )
-                },
-            );
+            let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(20)));
+            self.add_particles(scene_data.particles_chance, final_amount, || {
+                Particle::new(
+                    Duration::from_millis(700),
+                    time,
+                    ParticleMode::CampfireFire,
+                    pos + Vec3::new(
+                        rng.random_range(-radius..radius),
+                        rng.random_range(-radius..radius),
+                        0.1,
+                    ),
+                    scene_data,
+                )
+            });
 
             // Smoke rises above the pool.
-            self.particles.resize_with(
-                self.particles.len()
-                    + usize::from(self.scheduler.heartbeats(Duration::from_millis(60))),
-                || {
-                    Particle::new(
-                        Duration::from_secs(6),
-                        time,
-                        ParticleMode::CampfireSmoke,
-                        pos + Vec3::new(
-                            rng.random_range(-radius * 0.6..radius * 0.6),
-                            rng.random_range(-radius * 0.6..radius * 0.6),
-                            rng.random_range(0.5..1.5),
-                        ),
-                        scene_data,
-                    )
-                },
-            );
+            let final_amount = usize::from(self.scheduler.heartbeats(Duration::from_millis(60)));
+            self.add_particles(scene_data.particles_chance, final_amount, || {
+                Particle::new(
+                    Duration::from_secs(6),
+                    time,
+                    ParticleMode::CampfireSmoke,
+                    pos + Vec3::new(
+                        rng.random_range(-radius * 0.6..radius * 0.6),
+                        rng.random_range(-radius * 0.6..radius * 0.6),
+                        rng.random_range(0.5..1.5),
+                    ),
+                    scene_data,
+                )
+            });
         }
     }
 

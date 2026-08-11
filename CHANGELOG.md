@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Menu inputs can now be remapped in settings->controls
 - Selecting an inventory slot will now open a new context menu
 - A 'flat' cloud rendering mode
+- A 'particle chance' slider to control the amount of particles
 
 ### Changed
 
