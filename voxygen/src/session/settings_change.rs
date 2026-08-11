@@ -134,6 +134,7 @@ pub enum Graphics {
 
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
+    ChangeParticleChance(f32),
     ToggleWeaponTrailsEnabled(bool),
 
     ResetGraphicsSettings,
@@ -642,6 +643,9 @@ impl SettingsChange {
                     },
                     Graphics::ToggleParticlesEnabled(particles_enabled) => {
                         settings.graphics.particles_enabled = particles_enabled;
+                    },
+                    Graphics::ChangeParticleChance(particles_chance) => {
+                        settings.graphics.particles_chance = particles_chance;
                     },
                     Graphics::ToggleWeaponTrailsEnabled(weapon_trails_enabled) => {
                         settings.graphics.weapon_trails_enabled = weapon_trails_enabled;

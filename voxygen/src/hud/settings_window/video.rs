@@ -112,6 +112,9 @@ widget_ids! {
         //
         particles_button,
         particles_label,
+        particles_chance_label,
+        particles_chance_slider,
+        particles_chance_value,
         weapon_trails_button,
         weapon_trails_label,
         flashing_lights_button,
@@ -1441,11 +1444,48 @@ impl Widget for Video<'_> {
             events.push(GraphicsChange::ToggleParticlesEnabled(particles_enabled));
         }
 
+        // Particle chance
+        let particle_chance = self.global_state.settings.graphics.particles_chance;
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-particle-chance"),
+        )
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .right_from(state.ids.particles_label, 64.0)
+        .color(TEXT_COLOR)
+        .set(state.ids.particles_chance_label, ui);
+
+        if let Some(new_val) = ImageSlider::continuous(
+            particle_chance,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .right_from(state.ids.particles_chance_label, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.particles_chance_slider, ui)
+        {
+            events.push(GraphicsChange::ChangeParticleChance(new_val));
+        }
+
+        Text::new(format!("{}%", (particle_chance * 100.0) as i32).as_str())
+            .right_from(state.ids.particles_chance_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.particles_chance_value, ui);
+
         // Weapon trails
         Text::new(&self.localized_strings.get_msg("hud-settings-weapon_trails"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .right_from(state.ids.particles_label, 64.0)
+            .down_from(state.ids.particles_label, 8.0)
             .color(TEXT_COLOR)
             .set(state.ids.weapon_trails_label, ui);
 
@@ -1474,7 +1514,7 @@ impl Widget for Video<'_> {
         )
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
-        .down_from(state.ids.particles_label, 25.0)
+        .down_from(state.ids.weapon_trails_label, 25.0)
         .color(TEXT_COLOR)
         .set(state.ids.flashing_lights_label, ui);
 
