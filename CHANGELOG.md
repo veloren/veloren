@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mindflayer drops glowing remains with 25% chance
 - Quests now give larger coin rewards, and trader NPCs have higher amounts of coins to be able to afford to pay for the larger quest rewards
 - Improved LoD voxel effect
+- Improved dual wielding animations
 
 ### Removed
 

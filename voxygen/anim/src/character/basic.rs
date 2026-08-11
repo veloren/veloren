@@ -1981,25 +1981,86 @@ impl Animation for BasicAction {
                 let move2 = move2base.powi(2) * pullback;
                 let tension = (chargebase * 20.0).sin();
 
-                next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(s_a.ahl.3) * Quaternion::rotation_y(s_a.ahl.4);
-                next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
-                next.hand_r.orientation =
-                    Quaternion::rotation_x(s_a.ahr.3) * Quaternion::rotation_z(s_a.ahr.5);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahl.2);
+                            next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3)
+                                * Quaternion::rotation_y(s_a.ahl.4);
+                            next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                            next.hand_r.orientation = Quaternion::rotation_x(s_a.ahr.3)
+                                * Quaternion::rotation_z(s_a.ahr.5);
 
-                next.control.position = Vec3::new(
-                    s_a.ac.0 + 0.5 + move1 * 7.0,
-                    s_a.ac.1 + 9.0 + move1 * -4.0,
-                    s_a.ac.2 + 2.5 + move1 * 18.0 + tension / 5.0,
-                );
-                next.control.orientation =
-                    Quaternion::rotation_x(s_a.ac.3 - 2.25 + move1 * -1.0 + tension / 30.0)
-                        * Quaternion::rotation_y(s_a.ac.4 - PI)
-                        * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
+                            next.control.position = Vec3::new(
+                                s_a.ac.0 + 0.5 + move1 * 7.0,
+                                s_a.ac.1 + 9.0 + move1 * -4.0,
+                                s_a.ac.2 + 2.5 + move1 * 18.0 + tension / 5.0,
+                            );
+                            next.control.orientation = Quaternion::rotation_x(
+                                s_a.ac.3 - 2.25 + move1 * -1.0 + tension / 30.0,
+                            ) * Quaternion::rotation_y(s_a.ac.4 - PI)
+                                * Quaternion::rotation_z(s_a.ac.5 - 0.2 - move1 * PI);
 
-                next.control.orientation.rotate_x(move2 * -3.0);
-                next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
+                            next.control.orientation.rotate_x(move2 * -3.0);
+                            next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahr.2);
+                            next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3);
+
+                            next.control_l.position = Vec3::new(
+                                s_a.ac.0 + 0.5 + move1 * 1.0,
+                                s_a.ac.1 + 9.0 + move1 * -4.0,
+                                s_a.ac.2 + 2.5 + move1 * 14.0 + tension / 5.0,
+                            );
+
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(move1 * 1.7 + tension / 30.0);
+
+                            next.control_l.orientation.rotate_x(move2 * -3.0);
+                            next.control_l.position += Vec3::new(0.0, move2 * 8.0, move2 * -30.0);
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            next.hand_l.position = Vec3::new(s_a.ahl.0, s_a.ahl.1, s_a.ahr.2);
+                            next.hand_l.orientation = Quaternion::rotation_x(s_a.ahl.3);
+                            next.hand_r.position = Vec3::new(s_a.ahr.0, s_a.ahr.1, s_a.ahr.2);
+                            next.hand_r.orientation = Quaternion::rotation_x(s_a.ahr.3);
+
+                            next.control_l.position = Vec3::new(
+                                s_a.ac.0 + 0.5 + move1 * 1.0,
+                                s_a.ac.1 + 9.0 + move1 * -4.0,
+                                s_a.ac.2 + 2.5 + move1 * 14.0 + tension / 5.0,
+                            );
+
+                            next.control_r.position = Vec3::new(
+                                s_a.ac.0 + 15.0 + move1 * 1.0,
+                                s_a.ac.1 + 9.0 + move1 * -4.0,
+                                s_a.ac.2 + 2.5 + move1 * 14.0 + tension / 5.0,
+                            );
+
+                            next.control_l.orientation =
+                                Quaternion::rotation_x(move1 * 1.7 + tension / 30.0);
+
+                            next.control_r.orientation =
+                                Quaternion::rotation_x(move1 * 1.7 + tension / 30.0);
+
+                            next.control.orientation.rotate_x(move2 * -3.0);
+                            next.control.position += Vec3::new(0.0, move2 * 8.0, move2 * 10.0);
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.axe.execute") => {
                 legacy_initialize();
@@ -2487,35 +2548,138 @@ impl Animation for BasicAction {
                 }
             },
             Some("common.abilities.hammer.solid_smash") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                next.control.orientation.rotate_x(move1 * 2.7);
-                next.control.orientation.rotate_z(move1 * 1.4);
-                next.control.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
-                next.control.orientation.rotate_x(move1 * -1.2);
-                twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
+                            next.control.orientation.rotate_x(move1 * 2.7);
+                            next.control.orientation.rotate_z(move1 * 1.4);
+                            next.control.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
+                            next.control.orientation.rotate_x(move1 * -1.2);
+                            twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
 
-                twist_forward(&mut next, move2, 1.4, 0.5, 0.3, 1.0);
-                next.control.orientation.rotate_x(move2 * -1.9);
-                next.control.orientation.rotate_z(move2 * 0.6);
+                            twist_forward(&mut next, move2, 1.4, 0.5, 0.3, 1.0);
+                            next.control.orientation.rotate_x(move2 * -1.9);
+                            next.control.orientation.rotate_z(move2 * 0.6);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_l.orientation.rotate_x(move1 * 2.7);
+                            next.control_l.position += Vec3::new(-3.0, 5.0, 5.0) * move1;
+                            next.control_l.orientation.rotate_x(move1 * -1.2);
+                            twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
+
+                            twist_forward(&mut next, move2, 1.4, 0.5, 0.3, 1.0);
+                            next.control_l.orientation.rotate_x(move2 * -1.9);
+                            next.control_l.orientation.rotate_z(move2 * -0.6);
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_l.orientation.rotate_x(move1 * 2.7);
+                            next.control_l.position += Vec3::new(-3.0, 5.0, 5.0) * move1;
+                            next.control_l.orientation.rotate_x(move1 * -1.2);
+                            twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
+
+                            twist_forward(&mut next, move2, 1.4, 0.5, 0.3, 1.0);
+                            next.control_l.orientation.rotate_x(move2 * -1.9);
+                            next.control_l.orientation.rotate_z(move2 * -0.6);
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.scornful_swipe") => {
-                hammer_start(&mut next, s_a);
-                let move1_pre = move1.min(0.5) * 2.0;
-                let move1_shake = ((move1.max(0.3) - 0.3) * 15.0).sin();
-                let move1_late = move1.powi(4);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                next.control.orientation.rotate_x(move1_pre * 2.3);
-                next.control.position += Vec3::new(0.0, 2.0, 16.0) * move1_pre;
-                next.control.position += Vec3::new(0.0, 0.0, 4.0) * move1_shake;
-                next.control.orientation.rotate_y(move1_late * 1.6);
-                next.control.position += Vec3::new(-8.0, 0.0, -8.0) * move1_late;
-                twist_back(&mut next, move1_late, 1.0, 0.4, 0.2, 0.7);
-                next.control.orientation.rotate_z(move1_late * 1.2);
+                            let move1_pre = move1.min(0.5) * 2.0;
+                            let move1_shake = ((move1.max(0.3) - 0.3) * 15.0).sin();
+                            let move1_late = move1.powi(4);
 
-                twist_forward(&mut next, move2, 1.9, 0.9, 0.6, 1.1);
-                next.control.orientation.rotate_y(move2 * -1.7);
-                next.control.orientation.rotate_z(move2 * -2.7);
+                            next.control.orientation.rotate_x(move1_pre * 2.3);
+                            next.control.position += Vec3::new(0.0, 2.0, 16.0) * move1_pre;
+                            next.control.position += Vec3::new(0.0, 0.0, 4.0) * move1_shake;
+                            next.control.orientation.rotate_y(move1_late * 1.6);
+                            next.control.position += Vec3::new(-8.0, 0.0, -8.0) * move1_late;
+                            twist_back(&mut next, move1_late, 1.0, 0.4, 0.2, 0.7);
+                            next.control.orientation.rotate_z(move1_late * 1.2);
+
+                            twist_forward(&mut next, move2, 1.9, 0.9, 0.6, 1.1);
+                            next.control.orientation.rotate_y(move2 * -1.7);
+                            next.control.orientation.rotate_z(move2 * -2.7);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            let move1_pre = move1.min(0.5) * 2.0;
+                            let move1_shake = ((move1.max(0.3) - 0.3) * 15.0).sin();
+                            let move1_late = move1.powi(4);
+
+                            next.control_l.orientation.rotate_x(move1_pre * 2.3);
+                            next.control_l.position += Vec3::new(0.0, 2.0, 16.0) * move1_pre;
+                            next.control_l.position += Vec3::new(0.0, 0.0, 4.0) * move1_shake;
+                            next.control_l.orientation.rotate_y(move1_late * 1.6);
+                            next.control_l.position += Vec3::new(-8.0, 0.0, -8.0) * move1_late;
+                            twist_back(&mut next, move1_late, 1.0, 0.4, 0.2, 0.7);
+                            next.control_l.orientation.rotate_z(move1_late * 1.2);
+
+                            twist_forward(&mut next, move2, 1.9, 0.9, 0.6, 1.1);
+                            next.control_l.orientation.rotate_y(move2 * -1.7);
+                            next.control_l.orientation.rotate_z(move2 * -2.7);
+
+                            next.off_weapon_trail = false;
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            let move1_pre = move1.min(0.5) * 2.0;
+                            let move1_shake = ((move1.max(0.3) - 0.3) * 15.0).sin();
+                            let move1_late = move1.powi(4);
+
+                            next.control_r.orientation.rotate_x(move1_pre * 2.3);
+                            next.control_r.position += Vec3::new(0.0, 2.0, 16.0) * move1_pre;
+                            next.control_r.position += Vec3::new(0.0, 0.0, 4.0) * move1_shake;
+                            next.control_r.orientation.rotate_y(move1_late * 1.6);
+                            next.control_r.position += Vec3::new(8.0, 0.0, -8.0) * move1_late;
+                            twist_back(&mut next, -move1_late, 1.0, 0.4, 0.2, 0.7);
+                            next.control_r.orientation.rotate_z(move1_late * 1.2);
+
+                            twist_forward(&mut next, -move2, 1.9, 0.9, 0.6, 1.1);
+                            next.control_r.orientation.rotate_y(move2 * -1.7);
+                            next.control_r.orientation.rotate_z(move2 * -2.7);
+
+                            next.main_weapon_trail = false;
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.heavy_whorl") => {
                 hammer_start(&mut next, s_a);
@@ -2542,33 +2706,138 @@ impl Animation for BasicAction {
                 next.control_r.orientation.rotate_z(move2 * -2.3);
             },
             Some("common.abilities.hammer.breach") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                next.control.orientation.rotate_x(move1 * 2.5);
-                next.control.orientation.rotate_z(move1 * -4.8);
-                next.control.position += Vec3::new(-12.0, 0.0, 22.0) * move1;
-                twist_back(&mut next, move1, 0.6, 0.2, 0.0, 0.3);
+                            next.control.orientation.rotate_x(move1 * 2.5);
+                            next.control.orientation.rotate_z(move1 * -4.8);
+                            next.control.position += Vec3::new(-12.0, 0.0, 22.0) * move1;
+                            twist_back(&mut next, move1, 0.6, 0.2, 0.0, 0.3);
 
-                twist_forward(&mut next, move2, 1.6, 0.4, 0.2, 0.7);
-                next.control.orientation.rotate_x(move2 * -4.5);
-                next.control.position += Vec3::new(0.0, 0.0, -20.0) * move2;
+                            twist_forward(&mut next, move2, 1.6, 0.4, 0.2, 0.7);
+                            next.control.orientation.rotate_x(move2 * -4.5);
+                            next.control.position += Vec3::new(0.0, 0.0, -20.0) * move2;
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_l.orientation.rotate_x(move1 * 2.5);
+                            next.control_l.orientation.rotate_z(move1 * -4.8);
+                            next.control_l.position += Vec3::new(-6.0, 10.0, 22.0) * move1;
+                            twist_back(&mut next, move1, 0.6, 0.2, 0.0, 0.3);
+
+                            twist_forward(&mut next, move2, 1.6, 0.4, 0.2, 0.7);
+                            next.control_l.orientation.rotate_x(move2 * -4.5);
+                            next.control_l.position += Vec3::new(0.0, 0.0, -20.0) * move2;
+
+                            next.off_weapon_trail = false;
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_r.orientation.rotate_x(move1 * 2.2);
+                            next.control_r.orientation.rotate_z(-move1 * -4.8);
+                            next.control_r.position += Vec3::new(2.0, 10.0, 22.0) * move1;
+                            twist_back(&mut next, -move1, 0.6, 0.2, 0.0, 0.3);
+
+                            twist_forward(&mut next, -move2, 1.6, 0.4, 0.2, 0.7);
+                            next.control_r.orientation.rotate_x(move2 * -4.5);
+                            next.control_r.position += Vec3::new(0.0, 0.0, -20.0) * move2;
+
+                            next.main_weapon_trail = false;
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.pile_driver") => {
-                hammer_start(&mut next, s_a);
-                let shake = (move1base * 15.0).sin();
-                let move1 = (move1base * 2.0).min(1.0) * pullback;
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                twist_back(&mut next, move1, 0.9, 0.3, 0.1, 0.5);
-                next.control.orientation.rotate_x(move1 * 2.4);
-                next.control.position += Vec3::new(-14.0, 0.0, 14.0) * move1;
-                next.control.orientation.rotate_z(move1 * 1.8);
+                            let shake = (move1base * 15.0).sin();
+                            let move1 = (move1base * 2.0).min(1.0) * pullback;
 
-                next.control.orientation.rotate_x(shake * 0.15);
+                            twist_back(&mut next, move1, 0.9, 0.3, 0.1, 0.5);
+                            next.control.orientation.rotate_x(move1 * 2.4);
+                            next.control.position += Vec3::new(-14.0, 0.0, 14.0) * move1;
+                            next.control.orientation.rotate_z(move1 * 1.8);
 
-                twist_forward(&mut next, move2, 1.6, 0.5, 0.2, 0.9);
-                next.control.orientation.rotate_x(move2 * -4.0);
-                next.control.orientation.rotate_z(move2 * 0.4);
-                next.control.position += Vec3::new(0.0, 0.0, -12.0) * move2;
+                            next.control.orientation.rotate_x(shake * 0.15);
+
+                            twist_forward(&mut next, move2, 1.6, 0.5, 0.2, 0.9);
+                            next.control.orientation.rotate_x(move2 * -4.0);
+                            next.control.orientation.rotate_z(move2 * 0.4);
+                            next.control.position += Vec3::new(0.0, 0.0, -12.0) * move2;
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            let shake = (move1base * 15.0).sin();
+                            let move1 = (move1base * 2.0).min(1.0) * pullback;
+
+                            twist_back(&mut next, move1, 0.9, 0.3, 0.1, 0.5);
+                            next.control_l.orientation.rotate_x(move1 * 2.4);
+                            next.control_l.position += Vec3::new(-3.0, -4.0, 14.0) * move1;
+                            next.control_l.orientation.rotate_z(move1 * 0.4);
+
+                            next.control_l.orientation.rotate_x(shake * 0.4);
+
+                            twist_forward(&mut next, move2, 1.6, 0.5, 0.2, 0.9);
+                            next.control_l.orientation.rotate_x(move2 * -4.8);
+                            next.control_l.orientation.rotate_z(move2 * 0.8);
+                            next.control_l.position += Vec3::new(10.0, 12.0, -20.0) * move2;
+
+                            next.off_weapon_trail = false;
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            let shake = (move1base * 15.0).sin();
+                            let move1 = (move1base * 2.0).min(1.0) * pullback;
+
+                            twist_back(&mut next, -move1, 0.9, 0.3, 0.1, 0.5);
+                            next.control_r.orientation.rotate_x(move1 * 2.4);
+                            next.control_r.position += Vec3::new(2.0, -4.0, 14.0) * move1;
+                            next.control_r.orientation.rotate_z(move1 * -0.2);
+
+                            next.control_r.orientation.rotate_x(shake * 0.4);
+
+                            twist_forward(&mut next, -move2, 1.6, 0.5, 0.2, 0.9);
+                            next.control_r.orientation.rotate_x(move2 * -4.4);
+                            next.control_r.orientation.rotate_z(move2 * 1.4);
+                            next.control_r.position += Vec3::new(0.0, 20.0, -20.0) * move2;
+
+                            next.main_weapon_trail = false;
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.upheaval") => {
                 hammer_start(&mut next, s_a);
@@ -2605,18 +2874,65 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(0.0, 12.0, 10.0) * move2;
             },
             Some("common.abilities.hammer.wide_wallop") => {
-                hammer_start(&mut next, s_a);
                 let move1 = chargebase.min(1.0) * pullback;
                 let tension = (chargebase * 7.0).sin();
 
-                next.control.orientation.rotate_x(move1 * 1.1 + move2 * 0.6);
-                twist_back(&mut next, move1 + tension / 25.0, 1.7, 0.7, 0.3, 1.1);
-                next.control.orientation.rotate_y(move1 * -0.8);
-                next.control.position += Vec3::new(0.0, 0.0, 6.0) * move1;
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                twist_forward(&mut next, move2, 4.8, 1.7, 0.7, 3.2);
-                next.control.orientation.rotate_y(move2 * 2.0);
-                next.control.orientation.rotate_z(move2 * -1.8);
+                            next.control.orientation.rotate_x(move1 * 1.1 + move2 * 0.6);
+                            twist_back(&mut next, move1 + tension / 25.0, 1.7, 0.7, 0.3, 1.1);
+                            next.control.orientation.rotate_y(move1 * -0.8);
+                            next.control.position += Vec3::new(0.0, 0.0, 6.0) * move1;
+
+                            twist_forward(&mut next, move2, 4.8, 1.7, 0.7, 3.2);
+                            next.control.orientation.rotate_y(move2 * 2.0);
+                            next.control.orientation.rotate_z(move2 * -1.8);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_l
+                                .orientation
+                                .rotate_x(move1 * 1.1 + move2 * 0.6);
+                            twist_back(&mut next, move1 + tension / 25.0, 1.7, 0.7, 0.3, 1.1);
+                            next.control_l.orientation.rotate_y(move1 * -1.8);
+                            next.control_l.position += Vec3::new(0.0, 5.0, 2.0) * move1;
+
+                            twist_forward(&mut next, move2, 4.8, 1.7, 0.7, 3.2);
+                            next.control_l.orientation.rotate_y(move2 * 1.0);
+                            next.control_l.orientation.rotate_z(move2 * -1.0);
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_r
+                                .orientation
+                                .rotate_x(move1 * 1.1 + move2 * 0.6);
+                            twist_back(&mut next, -move1 - tension / 25.0, 1.7, 0.7, 0.3, 1.1);
+                            next.control_r.orientation.rotate_y(move1 * 1.8);
+                            next.control_r.position += Vec3::new(0.0, 5.0, 2.0) * move1;
+
+                            twist_forward(&mut next, -move2, 4.8, 1.7, 0.7, 3.2);
+                            next.control_r.orientation.rotate_y(-move2 * 1.0);
+                            next.control_r.orientation.rotate_z(-move2 * -1.0);
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.intercept") => {
                 hammer_start(&mut next, s_a);
@@ -2656,31 +2972,123 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(-16.0, 12.0, -8.0) * move2;
             },
             Some("common.abilities.hammer.lung_pummel") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                twist_back(&mut next, move1, 1.9, 0.7, 0.3, 1.2);
-                next.control.orientation.rotate_x(move1 * 1.2);
-                next.control.orientation.rotate_z(move1 * 1.0);
-                next.control.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
+                            twist_back(&mut next, move1, 1.9, 0.7, 0.3, 1.2);
+                            next.control.orientation.rotate_x(move1 * 1.2);
+                            next.control.orientation.rotate_z(move1 * 1.0);
+                            next.control.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
 
-                twist_forward(&mut next, move2, 3.4, 1.4, 0.9, 2.1);
-                next.control.orientation.rotate_z(move2 * -4.0);
-                next.control.position += Vec3::new(12.0, 0.0, 14.0) * move2;
+                            twist_forward(&mut next, move2, 3.4, 1.4, 0.9, 2.1);
+                            next.control.orientation.rotate_z(move2 * -4.0);
+                            next.control.position += Vec3::new(12.0, 0.0, 14.0) * move2;
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, move1, 1.9, 0.7, 0.3, 1.2);
+                            next.control_l.orientation.rotate_y(move1 * -1.8);
+                            next.control_l.orientation.rotate_z(move1 * 0.5);
+                            next.control_l.position += Vec3::new(-12.0, 0.0, 0.0) * move1;
+
+                            twist_forward(&mut next, move2, 3.4, 1.4, 0.9, 2.1);
+                            next.control_l.position += Vec3::new(20.0, 15.0, 14.0) * move2;
+
+                            next.off_weapon_trail = false;
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, -move1, 1.9, 0.7, 0.3, 1.2);
+                            next.control_r.orientation.rotate_y(move1 * 1.8);
+                            next.control_r.orientation.rotate_z(move1 * -0.5);
+                            next.control_r.position += Vec3::new(12.0, 0.0, 0.0) * move1;
+
+                            twist_forward(&mut next, -move2, 3.4, 1.4, 0.9, 2.1);
+                            next.control_r.position += Vec3::new(-20.0, 15.0, 14.0) * move2;
+
+                            next.main_weapon_trail = false;
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.helm_crusher") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
-                next.control.orientation.rotate_x(move1 * -0.8);
-                next.control.orientation.rotate_z(move1 * -1.6);
-                next.control.orientation.rotate_x(move1 * 2.8);
-                next.control.position += Vec3::new(-9.0, 0.0, 8.0) * move1;
-                next.control.orientation.rotate_z(move1 * -0.4);
+                            twist_back(&mut next, move1, 0.8, 0.3, 0.1, 0.5);
+                            next.control.orientation.rotate_x(move1 * -0.8);
+                            next.control.orientation.rotate_z(move1 * -1.6);
+                            next.control.orientation.rotate_x(move1 * 2.8);
+                            next.control.position += Vec3::new(-9.0, 0.0, 8.0) * move1;
+                            next.control.orientation.rotate_z(move1 * -0.4);
 
-                twist_forward(&mut next, move2, 1.8, 0.7, 0.4, 1.1);
-                next.control.orientation.rotate_x(move2 * -5.0);
-                next.control.orientation.rotate_z(move2 * -1.0);
-                next.control.position += Vec3::new(-12.0, 0.0, -8.0) * move2;
+                            twist_forward(&mut next, move2, 1.8, 0.7, 0.4, 1.1);
+                            next.control.orientation.rotate_x(move2 * -5.0);
+                            next.control.orientation.rotate_z(move2 * -1.0);
+                            next.control.position += Vec3::new(-12.0, 0.0, -8.0) * move2;
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, move1, 0.9, 0.3, 0.1, 0.5);
+                            next.control_l.orientation.rotate_x(move1 * 2.4);
+                            next.control_l.position += Vec3::new(-3.0, -4.0, 14.0) * move1;
+                            next.control_l.orientation.rotate_z(move1 * 0.4);
+
+                            twist_forward(&mut next, move2, 1.6, 0.5, 0.2, 0.9);
+                            next.control_l.orientation.rotate_x(move2 * -4.8);
+                            next.control_l.orientation.rotate_z(move2 * 0.8);
+                            next.control_l.position += Vec3::new(10.0, 12.0, -20.0) * move2;
+
+                            next.off_weapon_trail = false;
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, -move1, 0.9, 0.3, 0.1, 0.5);
+                            next.control_r.orientation.rotate_x(move1 * 2.4);
+                            next.control_r.position += Vec3::new(2.0, -4.0, 14.0) * move1;
+                            next.control_r.orientation.rotate_z(move1 * -0.2);
+
+                            twist_forward(&mut next, -move2, 1.6, 0.5, 0.2, 0.9);
+                            next.control_r.orientation.rotate_x(move2 * -4.4);
+                            next.control_r.orientation.rotate_z(move2 * 1.4);
+                            next.control_r.position += Vec3::new(0.0, 20.0, -20.0) * move2;
+
+                            next.main_weapon_trail = false;
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.thunderclap") => {
                 hammer_start(&mut next, s_a);
@@ -2745,7 +3153,69 @@ impl Animation for BasicAction {
                 next.control.position += Vec3::new(6.0, -10.0, -14.0) * move2;
             },
             Some("common.abilities.hammer.tenacity") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
+                            next.control.orientation.rotate_x(move1 * 0.6);
+                            next.control.orientation.rotate_y(move1 * 0.9);
+                            next.control.orientation.rotate_x(move1 * -0.6);
+                            next.chest.orientation.rotate_x(move1 * 0.4);
+                            next.control.position += Vec3::new(0.0, 4.0, 3.0) * move1;
+
+                            next.control.position += Vec3::new(
+                                (move2 * 50.0).sin(),
+                                (move2 * 67.0).sin(),
+                                (move2 * 83.0).sin(),
+                            );
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_l.orientation.rotate_x(move1 * 0.6);
+                            next.control_l.orientation.rotate_y(move1 * 5.7);
+                            next.control_l.orientation.rotate_z(move1 * 0.4);
+                            next.chest.orientation.rotate_x(move1 * 0.4);
+                            next.head.orientation.rotate_x(move1 * 0.4);
+                            next.control_l.position += Vec3::new(-5.0, 8.0, 3.0) * move1;
+
+                            next.control_l.position += Vec3::new(
+                                (move2 * 50.0).sin(),
+                                (move2 * 67.0).sin(),
+                                (move2 * 83.0).sin(),
+                            );
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_r.orientation.rotate_x(move1 * 0.6);
+                            next.control_r.orientation.rotate_y(move1 * 5.7);
+                            next.control_r.orientation.rotate_z(move1 * 0.4);
+                            next.chest.orientation.rotate_x(move1 * 0.4);
+                            next.head.orientation.rotate_x(move1 * 0.4);
+                            next.control_r.position += Vec3::new(-15.0, 8.0, 3.0) * move1;
+                            next.control_l.position += Vec3::new(4.0, -6.0, -9.0);
+
+                            next.control_r.position += Vec3::new(
+                                (move2 * 50.0).sin(),
+                                (move2 * 67.0).sin(),
+                                (move2 * 83.0).sin(),
+                            );
+                        },
+                        _ => {},
+                    }
+                }
 
                 next.control.orientation.rotate_x(move1 * 0.6);
                 next.control.orientation.rotate_y(move1 * 0.9);
@@ -2760,35 +3230,130 @@ impl Animation for BasicAction {
                 );
             },
             Some("common.abilities.hammer.tremor") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
 
-                twist_back(&mut next, move1, 1.4, 0.7, 0.5, 0.9);
-                next.foot_l.orientation.rotate_z(move1 * 1.4);
-                next.foot_l.position += Vec3::new(-1.0, -3.0, 0.0) * move1;
-                next.control.orientation.rotate_x(move1 * 2.6);
-                next.control.orientation.rotate_y(move1 * 0.8);
+                            twist_back(&mut next, move1, 1.4, 0.7, 0.5, 0.9);
+                            next.foot_l.orientation.rotate_z(move1 * 1.4);
+                            next.foot_l.position += Vec3::new(-1.0, -3.0, 0.0) * move1;
+                            next.control.orientation.rotate_x(move1 * 2.6);
+                            next.control.orientation.rotate_y(move1 * 0.8);
 
-                twist_forward(&mut next, move2, 2.1, 1.2, 0.9, 1.6);
-                next.foot_l.orientation.rotate_z(move2 * -1.4);
-                next.foot_l.position += Vec3::new(2.0, 7.0, 0.0) * move2;
-                next.control.orientation.rotate_z(move2 * 2.1);
-                next.control.orientation.rotate_x(move2 * -2.0);
-                next.control.orientation.rotate_z(move2 * 1.2);
-                next.control.position += Vec3::new(-16.0, 0.0, 0.0) * move2;
-                next.chest.orientation.rotate_x(-0.8 * move2);
+                            twist_forward(&mut next, move2, 2.1, 1.2, 0.9, 1.6);
+                            next.foot_l.orientation.rotate_z(move2 * -1.4);
+                            next.foot_l.position += Vec3::new(2.0, 7.0, 0.0) * move2;
+                            next.control.orientation.rotate_z(move2 * 2.1);
+                            next.control.orientation.rotate_x(move2 * -2.0);
+                            next.control.orientation.rotate_z(move2 * 1.2);
+                            next.control.position += Vec3::new(-16.0, 0.0, 0.0) * move2;
+                            next.chest.orientation.rotate_x(-0.8 * move2);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, move1, 1.4, 0.7, 0.5, 0.9);
+                            next.foot_l.orientation.rotate_z(move1 * 1.4);
+                            next.foot_l.position += Vec3::new(-1.0, -3.0, 0.0) * move1;
+                            next.control_l.orientation.rotate_x(move1 * 2.6);
+                            next.control_l.position += Vec3::new(0.0, 4.0, 10.0) * move1;
+
+                            twist_forward(&mut next, move2, 2.1, 1.2, 0.9, 1.6);
+                            next.foot_l.orientation.rotate_z(move2 * -1.4);
+                            next.foot_l.position += Vec3::new(2.0, 7.0, 0.0) * move2;
+                            next.control_l.orientation.rotate_z(move2 * 2.1);
+                            next.control_l.orientation.rotate_x(move2 * -2.0);
+                            next.control_l.orientation.rotate_z(move2 * 1.2);
+                            next.control_l.position += Vec3::new(-16.0, 0.0, 0.0) * move2;
+                            next.chest.orientation.rotate_x(-0.8 * move2);
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            twist_back(&mut next, -move1, 1.4, 0.7, 0.5, 0.9);
+                            next.foot_r.orientation.rotate_z(-move1 * 1.4);
+                            next.foot_r.position += Vec3::new(-1.0, -3.0, 0.0) * move1;
+                            next.control_r.orientation.rotate_x(move1 * 2.6);
+                            next.control_r.position += Vec3::new(0.0, 4.0, 10.0) * move1;
+
+                            twist_forward(&mut next, -move2, 2.1, 1.2, 0.9, 1.6);
+                            next.foot_r.orientation.rotate_z(-move2 * -1.4);
+                            next.foot_r.position += Vec3::new(2.0, 7.0, 0.0) * move2;
+                            next.control_r.orientation.rotate_z(move2 * 2.1);
+                            next.control_r.orientation.rotate_x(move2 * -2.0);
+                            next.control_r.orientation.rotate_z(move2 * 1.2);
+                            next.control_r.position += Vec3::new(-16.0, 8.0, 0.0) * move2;
+                            next.chest.orientation.rotate_x(-0.8 * move2);
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.rampart") => {
-                hammer_start(&mut next, s_a);
+                if let Some(ability_info) = d.ability_info {
+                    match ability_info.hand {
+                        Some(HandInfo::TwoHanded) => {
+                            hammer_start(&mut next, s_a);
+                            next.control.orientation.rotate_x(move1 * 0.6);
+                            next.control.orientation.rotate_y(move1 * -PI / 2.0);
+                            next.hand_l.orientation.rotate_y(move1 * -PI);
+                            next.hand_r.orientation.rotate_y(move1 * -PI);
+                            next.control.position += Vec3::new(-5.0, 0.0, 30.0) * move1;
 
-                next.control.orientation.rotate_x(move1 * 0.6);
-                next.control.orientation.rotate_y(move1 * -PI / 2.0);
-                next.hand_l.orientation.rotate_y(move1 * -PI);
-                next.hand_r.orientation.rotate_y(move1 * -PI);
-                next.control.position += Vec3::new(-5.0, 0.0, 30.0) * move1;
+                            next.control.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+                            next.torso.orientation.rotate_x(move2 * -0.6);
+                            next.control.orientation.rotate_x(move2 * 0.6);
+                        },
+                        Some(HandInfo::MainHand) => {
+                            dual_wield_start(&mut next);
 
-                next.control.position += Vec3::new(0.0, 0.0, -10.0) * move2;
-                next.torso.orientation.rotate_x(move2 * -0.6);
-                next.control.orientation.rotate_x(move2 * 0.6);
+                            next.control_l.orientation.rotate_x(move1 * 0.6);
+                            next.control_l.orientation.rotate_y(move1 * -PI);
+                            next.hand_l.orientation.rotate_y(move1 * PI);
+                            next.control_l.position += Vec3::new(8.0, 14.0, 20.0) * move1;
+
+                            next.control_l.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+                            next.torso.orientation.rotate_x(move2 * -0.6);
+                            next.control_l.orientation.rotate_x(move2 * 0.6);
+
+                            next.do_hold_lantern(
+                                s_a,
+                                anim_time,
+                                anim_time,
+                                speednorm,
+                                0.0,
+                                tilt,
+                                Some(d.last_ori),
+                                Some(*d.look_dir),
+                            );
+                        },
+                        Some(HandInfo::OffHand) => {
+                            dual_wield_start(&mut next);
+
+                            next.control_r.orientation.rotate_x(move1 * 0.6);
+                            next.control_r.orientation.rotate_y(move1 * PI);
+                            next.hand_l.orientation.rotate_y(move1 * PI);
+                            next.control_r.position += Vec3::new(-8.0, 14.0, 20.0) * move1;
+
+                            next.control_r.position += Vec3::new(0.0, 0.0, -10.0) * move2;
+                            next.torso.orientation.rotate_x(move2 * -0.6);
+                            next.control_r.orientation.rotate_x(move2 * 0.6);
+                        },
+                        _ => {},
+                    }
+                }
             },
             Some("common.abilities.hammer.seismic_shock") => {
                 hammer_start(&mut next, s_a);
