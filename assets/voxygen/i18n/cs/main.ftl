@@ -114,3 +114,4 @@ main-login-banned_until =
     Byl jsi dočasně zablokován pro následující důvod: { $reason }
     Vyprší: { $end_date }
 main-singleplayer-map_large_extra_warning = Tohle by vyžadovalo podobné zdroje, jako generování { $count } světů s výchozím nastavením.
+main-credits-sound = Zvuk

@@ -754,3 +754,7 @@ armor-cloth-silken-head = Hedvábný Turban
     .desc = Utkaný s péčí zkušeného krejčího...
 armor-cloth-druid-head = Druidský Věnec
     .desc = Neuvěřitelně lehký, s nádechem přírody...
+armor-misc-chest-worker_pink_0 = Růžová Pracovní Košile
+    .desc = Až dosud ji nosil nějaký farmář.
+armor-misc-chest-worker_pink_1 = Růžová Pracovní Košile
+    .desc = Až dosud ji nosil nějaký farmář.

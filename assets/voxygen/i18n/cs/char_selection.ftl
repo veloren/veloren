@@ -27,3 +27,4 @@ char_selection-hardcore_tooltip =
 char_selection-starting_site_kind = Druh: { $kind }
 char_selection-rules = Pravidla
 char_selection-editing_character = Ukládám postavu...
+char_selection-height_scale = Výška

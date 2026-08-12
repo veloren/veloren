@@ -502,3 +502,4 @@ weapon-component-sword-ornate-bloodsteel = Čepel zdobeného meče z krvavé oce
     .desc = { "" }
 weapon-component-sword-sawblade-orichalcum = Mosazný pilový list
     .desc = { "" }
+weapon-modular-comp-fallback-template = { $material-fragment } { $component }

@@ -924,3 +924,6 @@ name-body-theropod-odonto =
 name-body-theropod-dodarock =
     .fem = Kamenovec
     .masc = Kamenovec
+name-body-biped_small-umber_legoom =
+    .fem = Okrová Leguma
+    .masc = Okrový Leguma
