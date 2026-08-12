@@ -174,11 +174,11 @@
           runtimeLibs = with pkgs; [
             wayland
             wayland-protocols
-            libX11
-            libXi
+            libx11
+            libxi
             libxcb
-            libXcursor
-            libXrandr
+            libxcursor
+            libxrandr
             libxkbcommon
             shaderc.lib
             udev
