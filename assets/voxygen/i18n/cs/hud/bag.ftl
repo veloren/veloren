@@ -68,3 +68,6 @@ hud-bag-change_to_sort_by_quality = Změnit na třídění dle Kvality
 hud-bag-change_to_sort_by_category = Změnit na třídění dle Kategorie
 hud-bag-change_to_sort_by_tag = Změnit na třídění dle Značky
 hud-bag-change_to_sort_by_quantity = Změnit na třídění dle Počtu
+hud-context-menu-use = Použít
+hud-context-menu-drop = Vyhodit
+hud-context-menu-cancel = Zrušit

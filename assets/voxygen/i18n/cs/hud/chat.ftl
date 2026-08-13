@@ -56,3 +56,5 @@ hud-loot-pickup-msg =
         [1] { $actor } sebral { $item }
        *[other] { $actor } sebral { $amount }ks { $item }
     }
+hud-chat-singleplayer-motd1 = Celý svět jen pro sebe! Čas se roztáhnout...
+hud-chat-singleplayer-motd2 = Co tvoje vyrovnanost?
