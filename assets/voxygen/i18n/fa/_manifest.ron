@@ -1,0 +1,19 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Persian
+(
+    metadata: (
+        language_name: "فارسی (Persian)",
+        language_identifier: "fa",
+    ),
+    fonts: {
+        "alkhemi": Font (
+            asset_key: "voxygen.font.Alkhemikal",
+            scale_ratio: 1.0,
+        ),
+        "cyri": Font (
+            asset_key: "voxygen.font.GoNotoCurrent",
+            scale_ratio: 1.0,
+        ),
+    }
+)
