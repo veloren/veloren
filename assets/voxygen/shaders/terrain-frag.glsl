@@ -205,7 +205,7 @@ void main() {
         // number of shadow texels
         float grid_cell_to_texel_ratio = 32.0;
 
-        vec2 shadowTexSize = textureSize(sampler2D(t_directed_shadow_maps, s_directed_shadow_maps), 0) / grid_cell_to_texel_ratio;
+        vec2 shadowTexSize = textureSize(sampler2DShadow(t_directed_shadow_maps, s_directed_shadow_maps), 0) / grid_cell_to_texel_ratio;
 
         vec4 one_up_shadow_tex = texture_mat * vec4(one_up, 1.0);
         vec2 oust_snap = floor(one_up_shadow_tex.xy * shadowTexSize / one_up_shadow_tex.w);
