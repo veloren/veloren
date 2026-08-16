@@ -73,6 +73,8 @@ pub enum AreaKind {
     Build,
     #[strum(serialize = "no_durability")]
     NoDurability,
+    #[strum(serialize = "battlemode_change")]
+    BattleModeChange,
 }
 
 lazy_static! {

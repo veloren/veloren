@@ -15,6 +15,10 @@ pub struct BuildArea;
 #[derive(Default)]
 pub struct NoDurabilityArea;
 
+/// An area where one can change battle mode.
+#[derive(Default)]
+pub struct BattleModeChangeArea;
+
 /// NOTE: Please don't add `Deserialize` without checking to make sure we
 /// can guarantee the invariant that every entry in `area_names` points to a
 /// valid id in `areas`.
@@ -92,4 +96,8 @@ impl AreaKind for BuildArea {
 
 impl AreaKind for NoDurabilityArea {
     fn display() -> &'static str { "durability free" }
+}
+
+impl AreaKind for BattleModeChangeArea {
+    fn display() -> &'static str { "battlemode change" }
 }

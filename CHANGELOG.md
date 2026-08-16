@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Selecting an inventory slot will now open a new context menu
 - A 'flat' cloud rendering mode
 - A 'particle chance' slider to control the amount of particles
+- An area kind where players can change battlemode: `/area_add name battlemode_change ...`
 
 ### Changed
 

@@ -96,7 +96,7 @@ use common_net::{
     msg::{ClientType, DisconnectReason, PlayerListUpdate, ServerGeneral, ServerInfo, ServerMsg},
     sync::WorldSyncExt,
 };
-use common_state::{AreasContainer, BlockDiff, BuildArea, State};
+use common_state::{AreasContainer, BattleModeChangeArea, BlockDiff, BuildArea, State};
 use common_systems::add_local_systems;
 use metrics::{EcsSystemMetrics, GameplayMetrics, PhysicsMetrics, TickMetrics};
 use network::{ListenAddr, Network, Pid};
@@ -1654,30 +1654,30 @@ impl Server {
             return;
         }
 
+        let pos = if let Some(pos) = self
+            .state
+            .ecs()
+            .read_storage::<comp::Pos>()
+            .get(client)
+            .copied()
+        {
+            pos
+        } else {
+            self.notify_client(
+                client,
+                ServerGeneral::server_msg(
+                    ChatType::CommandInfo,
+                    Content::localized_with_args("command-position-unavailable", [(
+                        "target", "target",
+                    )]),
+                ),
+            );
+
+            return;
+        };
+
         #[cfg(feature = "worldgen")]
         let in_town = {
-            let pos = if let Some(pos) = self
-                .state
-                .ecs()
-                .read_storage::<comp::Pos>()
-                .get(client)
-                .copied()
-            {
-                pos
-            } else {
-                self.notify_client(
-                    client,
-                    ServerGeneral::server_msg(
-                        ChatType::CommandInfo,
-                        Content::localized_with_args("command-position-unavailable", [(
-                            "target", "target",
-                        )]),
-                    ),
-                );
-
-                return;
-            };
-
             let wpos = pos.0.xy().map(|x| x as i32);
             let chunk_pos = wpos.wpos_to_cpos();
             self.world.civs().sites().any(|site| {
@@ -1694,7 +1694,19 @@ impl Server {
         #[cfg(not(feature = "worldgen"))]
         let in_town = true;
 
-        if !in_town {
+        let in_battlemode_change = {
+            let areas = self
+                .state
+                .ecs()
+                .read_resource::<AreasContainer<BattleModeChangeArea>>();
+
+            areas
+                .areas()
+                .iter()
+                .any(|(_id, aabb)| aabb.contains_point(pos.0.as_()))
+        };
+
+        if !in_town && !in_battlemode_change {
             self.notify_client(
                 client,
                 ServerGeneral::server_msg(
