@@ -2,7 +2,7 @@
 use crate::plugin::PluginMgr;
 #[cfg(feature = "plugins")]
 use crate::plugin::memory_manager::EcsWorld;
-use crate::{BuildArea, NoDurabilityArea};
+use crate::{BattleModeChangeArea, BuildArea, NoDurabilityArea};
 #[cfg(feature = "plugins")]
 use common::uid::IdMaps;
 use common::{
@@ -397,6 +397,7 @@ impl State {
         ecs.insert(ScheduledBlockChange::default());
         ecs.insert(crate::special_areas::AreasContainer::<BuildArea>::default());
         ecs.insert(crate::special_areas::AreasContainer::<NoDurabilityArea>::default());
+        ecs.insert(crate::special_areas::AreasContainer::<BattleModeChangeArea>::default());
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
