@@ -236,7 +236,7 @@ impl Body {
     /// The turn rate in 180°/s (or (rotations per second)/2)
     pub fn base_ori_rate(&self) -> f32 {
         match self {
-            Body::Humanoid(body) => 2.65 / body.scaler(),
+            Body::Humanoid(_) => 2.65,
             Body::QuadrupedSmall(_) => 3.0,
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
                 quadruped_medium::Species::Mammoth => 1.0,
@@ -756,10 +756,14 @@ pub fn handle_orientation(
         target_ori
     } else {
         let target_fraction = {
+            let damping_multiplier = if update.character.is_wield() {
+                1.0
+            } else {
+                1.0 - data.body.ori_damping()
+            };
             // Angle factor used to keep turning rate approximately constant by
             // counteracting slerp turning more with a larger angle
-            let angle_factor =
-                2.0 / (1.0 - update.ori.dot(target_ori) * (1.0 - data.body.ori_damping())).sqrt();
+            let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori) * damping_multiplier).sqrt();
 
             half_turns_per_tick * angle_factor
         };
