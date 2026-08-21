@@ -42,6 +42,8 @@ widget_ids! {
         chat_button_label,
         draggable_windows_button,
         draggable_windows_button_label,
+        biome_change_popups_button,
+        biome_change_popups_button_label,
         ch_title,
         ch_transp_slider,
         ch_transp_value,
@@ -335,13 +337,50 @@ impl Widget for Interface<'_> {
         .color(TEXT_COLOR)
         .set(state.ids.draggable_windows_button_label, ui);
 
+        // Biome change popups
+        let biome_change_popups = ToggleButton::new(
+            self.global_state
+                .settings
+                .interface
+                .toggle_biome_change_popups,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.draggable_windows_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.biome_change_popups_button, ui);
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_biome_change_popups
+            != biome_change_popups
+        {
+            events.push(ToggleBiomeChangePopups(biome_change_popups));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-biome_change_popups"),
+        )
+        .right_from(state.ids.biome_change_popups_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.biome_change_popups_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.biome_change_popups_button_label, ui);
+
         // Row background opacity
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-row_background_opacity"),
         )
-        .down_from(state.ids.draggable_windows_button, 10.0)
+        .down_from(state.ids.biome_change_popups_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

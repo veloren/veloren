@@ -58,6 +58,7 @@ pub struct InterfaceSettings {
     pub xp_bar_skillgroup: Option<SkillGroupKind>,
     pub row_background_opacity: f32,
     pub toggle_draggable_windows: bool,
+    pub toggle_biome_change_popups: bool,
 }
 
 impl Default for InterfaceSettings {
@@ -112,6 +113,7 @@ impl Default for InterfaceSettings {
             xp_bar_skillgroup: Some(SkillGroupKind::General),
             row_background_opacity: 0.025,
             toggle_draggable_windows: true,
+            toggle_biome_change_popups: true,
         }
     }
 }
