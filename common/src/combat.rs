@@ -189,13 +189,13 @@ impl Attack {
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
-        damage: Damage,
+        damage: f32,
         msm: &MaterialStatManifest,
         time: Time,
         emitters: &mut (impl EmitExt<ParryHookEvent> + EmitExt<PoiseChangeEvent>),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
-        if blockable && damage.value > 0.0 {
+        if blockable && damage > 0.0 {
             if let (Some(char_state), Some(ori), Some(inventory)) =
                 (target.char_state, target.ori, target.inventory)
             {
@@ -208,18 +208,17 @@ impl Attack {
                     && block_strength > 0.0
                 {
                     if is_parry {
-                        block_strength = damage.value;
+                        block_strength = damage;
 
                         emitters.emit(ParryHookEvent {
                             defender: target.entity,
                             attacker: attacker.map(|a| a.entity),
                             source,
-                            poise_multiplier: 2.0 - (damage.value / block_strength).min(1.0),
+                            poise_multiplier: 2.0 - (damage / block_strength).min(1.0),
                         });
                     }
 
-                    let poise_cost =
-                        (damage.value / block_strength).min(1.0) * MAX_BLOCK_POISE_COST;
+                    let poise_cost = (damage / block_strength).min(1.0) * MAX_BLOCK_POISE_COST;
 
                     let poise_change = Poise::apply_poise_reduction(
                         poise_cost,
@@ -419,13 +418,17 @@ impl Attack {
             let damage_reduction =
                 Attack::compute_damage_reduction(attacker.as_ref(), target, damage.damage, msm);
 
+            let damage_with_modifier = damage.damage.value * strength_modifier * damage_modifier;
+            let damage_with_precision = damage_with_modifier
+                * (1.0 + precision_mult.unwrap_or(0.0) * (precision_power - 1.0));
+
             let block_damage_decrement = Attack::compute_block_damage_decrement(
                 self.blockable,
                 attacker.as_ref(),
                 target,
                 attack_source,
                 dir,
-                damage.damage,
+                damage_with_precision,
                 msm,
                 time,
                 emitters,
