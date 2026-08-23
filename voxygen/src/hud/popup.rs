@@ -1,5 +1,5 @@
 use super::Show;
-use crate::ui::fonts::Fonts;
+use crate::{GlobalState, ui::fonts::Fonts};
 use client::{self, Client, UserNotification};
 use conrod_core::{
     Color, Colorable, Positionable, Widget, WidgetCommon,
@@ -29,6 +29,7 @@ pub struct Popup<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     show: &'a Show,
+    global_state: &'a GlobalState,
 }
 
 /// Popup notifications for messages such as <Chunk Name>, Waypoint Saved,
@@ -40,6 +41,7 @@ impl<'a> Popup<'a> {
         new_notifications: &'a VecDeque<UserNotification>,
         fonts: &'a Fonts,
         show: &'a Show,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             i18n,
@@ -48,6 +50,7 @@ impl<'a> Popup<'a> {
             fonts,
             common: widget::CommonBuilder::default(),
             show,
+            global_state,
         }
     }
 }
@@ -110,11 +113,18 @@ impl Widget for Popup<'_> {
             {
                 // Update last_region
                 state.update(|s| {
-                    if s.messages.is_empty() {
-                        s.last_message_update = Instant::now();
-                    }
                     s.last_region_name = Some(current.to_owned());
-                    s.messages.push_back(current.to_owned());
+                    if self
+                        .global_state
+                        .settings
+                        .interface
+                        .toggle_biome_change_popups
+                    {
+                        if s.messages.is_empty() {
+                            s.last_message_update = Instant::now();
+                        }
+                        s.messages.push_back(current.to_owned());
+                    }
                 });
             }
         }

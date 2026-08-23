@@ -3189,6 +3189,7 @@ impl Hud {
             &self.new_notifications,
             &self.fonts,
             &self.show,
+            global_state,
         )
         .set(self.ids.popup, ui_widgets);
 
