@@ -552,9 +552,9 @@ widget_ids! {
 pub enum BagTab {
     Gear,
     Inventory,
-    Minerals,
-    Food,
-    Quest,
+    //Ingredients,
+    //Food,
+    //Quest,
 }
 
 /// A collection of dependencies needed for tabs, intended to reduce parameter
@@ -787,16 +787,17 @@ widget_ids! {
         bag_title_dropshadow,
         bag_title,
         close_button,
+        tab_anchor,
         gear_tab,
         inventory_tab,
-        minerals_tab,
-        food_tab,
-        quest_tab,
+        //ingredients_tab,
+        //food_tab,
+        //quest_tab,
         gear_tab_content,
         inventory_tab_content,
-        minerals_tab_content,
-        food_tab_content,
-        quest_tab_content,
+        //ingredients_tab_content,
+        //food_tab_content,
+        //quest_tab_content,
         left_button,
         right_button,
         draggable_area,
@@ -999,8 +1000,8 @@ impl Widget for BagWindow<'_> {
         let block_gear_tab = self.show.bag_menu_split && !self.show.trade;
 
         // MENU INPUTS: change bag tabs
-        // PageDown: try to go left a tab (no wrap)
-        // PageUp: try to go right a tab (no wrap)
+        // PageDown: try to go left a tab (wrap)
+        // PageUp: try to go right a tab (wrap)
         if !is_primary {
             // Secondary window is always the gear tab
             if state.active_tab != BagTab::Gear {
@@ -1014,27 +1015,23 @@ impl Widget for BagWindow<'_> {
                 match *event {
                     MenuInput::PageDown => {
                         state.update(|s| {
-                            if s.active_tab == BagTab::Quest {
-                                s.active_tab = BagTab::Food;
-                            } else if s.active_tab == BagTab::Food {
-                                s.active_tab = BagTab::Minerals;
-                            } else if s.active_tab == BagTab::Minerals {
-                                s.active_tab = BagTab::Inventory;
-                            } else {
+                            if s.active_tab == BagTab::Inventory {
                                 s.active_tab = BagTab::Gear;
+                            } else {
+                                s.active_tab = BagTab::Inventory;
                             }
+
+                            self.slot_manager.idle();
                         });
                     },
                     MenuInput::PageUp => state.update(|s| {
                         if s.active_tab == BagTab::Gear {
                             s.active_tab = BagTab::Inventory;
-                        } else if s.active_tab == BagTab::Inventory {
-                            s.active_tab = BagTab::Minerals;
-                        } else if s.active_tab == BagTab::Minerals {
-                            s.active_tab = BagTab::Food;
                         } else {
-                            s.active_tab = BagTab::Quest;
+                            s.active_tab = BagTab::Gear;
                         }
+
+                        self.slot_manager.idle();
                     }),
                     // All other events are handled by child widgets
                     _ => {},
@@ -1059,7 +1056,7 @@ impl Widget for BagWindow<'_> {
         let bg_img = if self.is_player {
             self.imgs.player_inv_bg_bag
         } else {
-            // TODO: Create other background when InvenotryScroller is removed
+            // TODO: Create other background when InventoryScroller is removed
             self.imgs.player_inv_bg_bag
         };
         let bg_frame_img = self.imgs.player_inv_frame_bag;
@@ -1091,9 +1088,9 @@ impl Widget for BagWindow<'_> {
         let title_txt = match state.active_tab {
             BagTab::Gear => &self.localized_strings.get_msg("hud-bag-gear-tab"),
             BagTab::Inventory => &self.localized_strings.get_msg("gameinput-inventory"),
-            BagTab::Minerals => &self.localized_strings.get_msg("hud-bag-ingredients-tab"),
-            BagTab::Food => &self.localized_strings.get_msg("hud-crafting-tabs-food"),
-            BagTab::Quest => &self.localized_strings.get_msg("hud-bag-quest-items-tab"),
+            //BagTab::Ingredients => &self.localized_strings.get_msg("hud-bag-ingredients-tab"),
+            //BagTab::Food => &self.localized_strings.get_msg("hud-crafting-tabs-food"),
+            //BagTab::Quest => &self.localized_strings.get_msg("hud-bag-quest-items-tab"),
         };
         Rectangle::fill_with([0.0, 0.0], color::TRANSPARENT)
             .mid_top_with_margin_on(self.bg_ids.bg_frame, 16.5)
@@ -1136,22 +1133,10 @@ impl Widget for BagWindow<'_> {
 
             let tab_space = 12.5;
 
-            // Minerals tab
-            let tab_img = if state.active_tab == BagTab::Minerals {
-                self.imgs.bag_tab_press
-            } else {
-                self.imgs.bag_tab
-            };
-            if Button::image(tab_img)
-                .w_h(30.0, 30.0)
-                .mid_top_with_margin_on(self.bg_ids.bg_frame, 34.5)
-                .set(state.ids.minerals_tab, ui)
-                .was_clicked()
-            {
-                state.update(|s| {
-                    s.active_tab = BagTab::Minerals;
-                })
-            }
+            // Tab anchor
+            Rectangle::fill_with([0.0, 0.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(self.bg_ids.bg_frame, 35.5)
+                .set(state.ids.tab_anchor, ui);
 
             // Inventory tab
             let tab_img = if state.active_tab == BagTab::Inventory {
@@ -1161,7 +1146,7 @@ impl Widget for BagWindow<'_> {
             };
             if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .left_from(state.ids.minerals_tab, tab_space)
+                .right_from(state.ids.tab_anchor, tab_space / 2.0)
                 .set(state.ids.inventory_tab, ui)
                 .was_clicked()
             {
@@ -1178,7 +1163,7 @@ impl Widget for BagWindow<'_> {
             };
             if Button::image(tab_img)
                 .w_h(30.0, 30.0)
-                .left_from(state.ids.inventory_tab, tab_space)
+                .left_from(state.ids.tab_anchor, tab_space / 2.0)
                 .set(state.ids.gear_tab, ui)
                 .was_clicked()
             {
@@ -1188,40 +1173,6 @@ impl Widget for BagWindow<'_> {
                         s.active_tab = BagTab::Gear;
                     })
                 }
-            }
-
-            // Food tab
-            let tab_img = if state.active_tab == BagTab::Food {
-                self.imgs.bag_tab_press
-            } else {
-                self.imgs.bag_tab
-            };
-            if Button::image(tab_img)
-                .w_h(30.0, 30.0)
-                .right_from(state.ids.minerals_tab, tab_space)
-                .set(state.ids.food_tab, ui)
-                .was_clicked()
-            {
-                state.update(|s| {
-                    s.active_tab = BagTab::Food;
-                })
-            }
-
-            // Quest items tab
-            let tab_img = if state.active_tab == BagTab::Quest {
-                self.imgs.bag_tab_press
-            } else {
-                self.imgs.bag_tab
-            };
-            if Button::image(tab_img)
-                .w_h(30.0, 30.0)
-                .right_from(state.ids.food_tab, tab_space)
-                .set(state.ids.quest_tab, ui)
-                .was_clicked()
-            {
-                state.update(|s| {
-                    s.active_tab = BagTab::Quest;
-                })
             }
 
             // Left and right menu button inputs
@@ -1262,7 +1213,7 @@ impl Widget for BagWindow<'_> {
                 .set(state.ids.left_button, ui);
 
             Text::new(&right_key)
-                .right_from(state.ids.quest_tab, tab_space)
+                .right_from(state.ids.inventory_tab, tab_space)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(22))
                 .color(TEXT_COLOR)
@@ -1402,126 +1353,6 @@ impl Widget for BagWindow<'_> {
                     .expanded_window(self.show.bag_menu_split)
                     .trading(self.show.trade)
                     .set(state.ids.inventory_tab_content, ui)
-                    {
-                        match event {
-                            InventoryMenuEvent::Close => events.push(BagEvent::Close),
-                            InventoryMenuEvent::BagExpand => events.push(BagEvent::BagExpand),
-                            InventoryMenuEvent::SetDetailsMode => {
-                                events.push(BagEvent::SetDetailsMode(!self.show.bag_details))
-                            },
-                            InventoryMenuEvent::ChangeInventorySortOrder => {
-                                events.push(BagEvent::ChangeInventorySortOrder(
-                                    self.global_state.settings.inventory.sort_order.next(),
-                                ))
-                            },
-                            InventoryMenuEvent::SortInventory => {
-                                events.push(BagEvent::SortInventory(
-                                    self.global_state.settings.inventory.sort_order,
-                                ));
-                            },
-                        }
-                    }
-                },
-                BagTab::Minerals => {
-                    // Minerals tab
-                    for event in InventoryMenu::new(
-                        &tab_package,
-                        inventory,
-                        &tooltip,
-                        &bag_tooltip,
-                        &item_tooltip,
-                        self.tooltip_manager,
-                        self.item_tooltip_manager,
-                        self.slot_manager,
-                        self.menu_events,
-                        self.bg_ids,
-                        self.show.bag_details,
-                        self.show.crafting_fields.salvage,
-                    )
-                    .filter(TabFilters::Ingredients)
-                    .expanded_window(self.show.bag_menu_split)
-                    .trading(self.show.trade)
-                    .set(state.ids.minerals_tab_content, ui)
-                    {
-                        match event {
-                            InventoryMenuEvent::Close => events.push(BagEvent::Close),
-                            InventoryMenuEvent::BagExpand => events.push(BagEvent::BagExpand),
-                            InventoryMenuEvent::SetDetailsMode => {
-                                events.push(BagEvent::SetDetailsMode(!self.show.bag_details))
-                            },
-                            InventoryMenuEvent::ChangeInventorySortOrder => {
-                                events.push(BagEvent::ChangeInventorySortOrder(
-                                    self.global_state.settings.inventory.sort_order.next(),
-                                ))
-                            },
-                            InventoryMenuEvent::SortInventory => {
-                                events.push(BagEvent::SortInventory(
-                                    self.global_state.settings.inventory.sort_order,
-                                ));
-                            },
-                        }
-                    }
-                },
-                BagTab::Food => {
-                    // Food tab
-                    for event in InventoryMenu::new(
-                        &tab_package,
-                        inventory,
-                        &tooltip,
-                        &bag_tooltip,
-                        &item_tooltip,
-                        self.tooltip_manager,
-                        self.item_tooltip_manager,
-                        self.slot_manager,
-                        self.menu_events,
-                        self.bg_ids,
-                        self.show.bag_details,
-                        self.show.crafting_fields.salvage,
-                    )
-                    .filter(TabFilters::Food)
-                    .expanded_window(self.show.bag_menu_split)
-                    .trading(self.show.trade)
-                    .set(state.ids.food_tab_content, ui)
-                    {
-                        match event {
-                            InventoryMenuEvent::Close => events.push(BagEvent::Close),
-                            InventoryMenuEvent::BagExpand => events.push(BagEvent::BagExpand),
-                            InventoryMenuEvent::SetDetailsMode => {
-                                events.push(BagEvent::SetDetailsMode(!self.show.bag_details))
-                            },
-                            InventoryMenuEvent::ChangeInventorySortOrder => {
-                                events.push(BagEvent::ChangeInventorySortOrder(
-                                    self.global_state.settings.inventory.sort_order.next(),
-                                ))
-                            },
-                            InventoryMenuEvent::SortInventory => {
-                                events.push(BagEvent::SortInventory(
-                                    self.global_state.settings.inventory.sort_order,
-                                ));
-                            },
-                        }
-                    }
-                },
-                BagTab::Quest => {
-                    // Quest item tab
-                    for event in InventoryMenu::new(
-                        &tab_package,
-                        inventory,
-                        &tooltip,
-                        &bag_tooltip,
-                        &item_tooltip,
-                        self.tooltip_manager,
-                        self.item_tooltip_manager,
-                        self.slot_manager,
-                        self.menu_events,
-                        self.bg_ids,
-                        self.show.bag_details,
-                        self.show.crafting_fields.salvage,
-                    )
-                    .filter(TabFilters::QuestItems)
-                    .expanded_window(self.show.bag_menu_split)
-                    .trading(self.show.trade)
-                    .set(state.ids.quest_tab_content, ui)
                     {
                         match event {
                             InventoryMenuEvent::Close => events.push(BagEvent::Close),

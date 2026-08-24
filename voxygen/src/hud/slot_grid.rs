@@ -20,7 +20,7 @@ use common::{
     comp::{
         Inventory,
         inventory::slot::Slot,
-        item::{ItemDef, ItemDesc, ItemI18n, ItemKind, ItemTag, Quality},
+        item::{ItemDef, ItemDesc, ItemI18n, ItemKind, Quality},
     },
 };
 use conrod_core::{
@@ -37,9 +37,9 @@ use vek::Vec2;
 #[derive(PartialEq)]
 pub enum TabFilters {
     Gear,
-    Ingredients,
-    Food,
-    QuestItems,
+    //Ingredients,
+    //Food,
+    //QuestItems,
     None,
 }
 
@@ -213,6 +213,10 @@ impl<'a> Widget for SlotGrid<'a> {
                         false
                     }
                 },
+                // The below commented code is used to filter the entire inventory done into
+                // specific categories. These additional inventory tabs were experimented
+                // with, but not included in the initial bag redesign MR
+                /*
                 TabFilters::Ingredients => {
                     if let Some(item) = items_list {
                         match &*item.kind() {
@@ -240,6 +244,7 @@ impl<'a> Widget for SlotGrid<'a> {
                         false
                     }
                 },
+                */
                 TabFilters::None => true,
             })
             .collect::<Vec<_>>();
