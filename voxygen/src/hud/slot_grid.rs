@@ -20,7 +20,7 @@ use common::{
     comp::{
         Inventory,
         inventory::slot::Slot,
-        item::{ItemDef, ItemDesc, ItemI18n, Quality},
+        item::{ItemDef, ItemDesc, ItemI18n, ItemKind, Quality},
     },
 };
 use conrod_core::{
@@ -34,9 +34,22 @@ use specs::Entity as EcsEntity;
 use std::{borrow::Borrow, sync::Arc};
 use vek::Vec2;
 
+#[derive(PartialEq)]
+pub enum TabFilters {
+    Gear,
+    //Ingredients,
+    //Food,
+    //QuestItems,
+    None,
+}
+
 pub enum SlotEvents {
-    ChangeLocalFocus(usize),
     Close,
+    ExitUp,
+    ExitLeft,
+    ExitRight,
+    ExitDown,
+    FilteredSize(usize),
 }
 
 #[derive(WidgetCommon)]
@@ -57,22 +70,24 @@ pub struct SlotGrid<'a> {
     last_input: &'a LastInput,
     pulse: f32,
     menu_events: &'a Vec<MenuInput>,
-    active_content: usize,
     is_us: bool,
     details_mode: bool,
     show_salvage: bool,
     columns: usize,
     spacing: f64,
     slot_size: f64,
+    is_focused: bool,
+    filter: TabFilters,
 }
 
 widget_ids! {
     struct Ids {
-        inventory_slots[],
+        item_slots[],
         inv_slot_names[],
         inv_slot_amounts[],
 
         context_menu,
+        spacing_below,
     }
 }
 
@@ -90,11 +105,11 @@ impl<'a> SlotGrid<'a> {
         pub columns { columns = usize }
         pub spacing { spacing = f64 }
         pub slot_size { slot_size = f64 }
-        pub is_us { is_us = bool }
-        pub details_mode { details_mode = bool }
-        pub show_salvage { show_salvage = bool }
+        pub is_focused { is_focused = bool }
+        pub filter { filter = TabFilters }
     }
 
+    #[expect(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         imgs: &'a Imgs,
@@ -110,7 +125,9 @@ impl<'a> SlotGrid<'a> {
         last_input: &'a LastInput,
         pulse: f32,
         menu_events: &'a Vec<MenuInput>,
-        active_content: usize,
+        is_us: bool,
+        details_mode: bool,
+        show_salvage: bool,
     ) -> Self {
         SlotGrid {
             common: widget::CommonBuilder::default(),
@@ -128,13 +145,14 @@ impl<'a> SlotGrid<'a> {
             last_input,
             pulse,
             menu_events,
-            active_content,
-            is_us: true,
-            details_mode: false,
-            show_salvage: false,
+            is_us,
+            details_mode,
+            show_salvage,
             columns: 6,
             slot_size: 55.0,
             spacing: 6.0,
+            is_focused: true,
+            filter: TabFilters::None,
         }
     }
 }
@@ -167,10 +185,99 @@ impl<'a> Widget for SlotGrid<'a> {
             })
         }
 
-        // Calculate total number of slots (for row calculations)
-        let total_slots = self.inventory.capacity() + self.inventory.overflow_items().count();
+        // Filter inventory
+        let inventory_iter = || {
+            self.inventory
+                .slots_with_id()
+                .map(|(slot, item)| (Slot::Inventory(slot), item.as_ref()))
+                .chain(
+                    self.inventory
+                        .overflow_items()
+                        .enumerate()
+                        .map(|(i, item)| (Slot::Overflow(i), Some(item))),
+                )
+        };
+        let mut items = inventory_iter()
+            .filter(|(_, items_list)| match self.filter {
+                TabFilters::Gear => {
+                    if let Some(item) = items_list {
+                        matches!(
+                            &*item.kind(),
+                            ItemKind::Tool(_)
+                                | ItemKind::ModularComponent(_)
+                                | ItemKind::Lantern(_)
+                                | ItemKind::Armor(_)
+                                | ItemKind::Glider
+                        )
+                    } else {
+                        false
+                    }
+                },
+                // The below commented code is used to filter the entire inventory done into
+                // specific categories. These additional inventory tabs were experimented
+                // with, but not included in the initial bag redesign MR
+                /*
+                TabFilters::Ingredients => {
+                    if let Some(item) = items_list {
+                        match &*item.kind() {
+                            // Allowing it because 'descriptor' isn't being used
+                            #[allow(deprecated)]
+                            ItemKind::Ingredient { descriptor: _ } => true,
+                            _ => false,
+                        }
+                    } else {
+                        false
+                    }
+                },
+                TabFilters::Food => {
+                    if let Some(item) = items_list {
+                        item.tags().contains(&ItemTag::Food)
+                            | item.tags().contains(&ItemTag::Potion)
+                    } else {
+                        false
+                    }
+                },
+                TabFilters::QuestItems => {
+                    if let Some(item) = items_list {
+                        matches!(&*item.kind(), ItemKind::Quest)
+                    } else {
+                        false
+                    }
+                },
+                */
+                TabFilters::None => true,
+            })
+            .collect::<Vec<_>>();
+        if self.details_mode && !self.is_us {
+            items.sort_by_cached_key(|(_, item)| {
+                (
+                    item.is_none(),
+                    item.as_ref().map(|i| {
+                        (
+                            std::cmp::Reverse(i.quality()),
+                            {
+                                // TODO: we do double the work here, optimize?
+                                let (name, _) =
+                                    util::item_text(i, self.localized_strings, self.item_i18n);
+                                name
+                            },
+                            i.amount(),
+                        )
+                    }),
+                )
+            });
+        }
 
-        // Calculate total number of columns
+        // Add the first empty slot (if any) to the items list to help with removing
+        // gear and visualizing when more space is available
+        if self.filter != TabFilters::None
+            && let Some(empty_slot) = inventory_iter().find(|(_, item)| item.is_none())
+        {
+            items.push(empty_slot);
+        }
+
+        // Calculate formatting info
+        let total_slots = items.len();
         let cols = if self.details_mode { 1 } else { self.columns };
 
         let mut events = Vec::new();
@@ -184,25 +291,31 @@ impl<'a> Widget for SlotGrid<'a> {
         // Apply: select the current slot
         // Back: close the bag menu
         let mut clicked = false;
-        if selected.is_none() && self.active_content == 0 {
+        if selected.is_none() && self.is_focused {
             for event in self.menu_events {
                 match *event {
                     MenuInput::Up => state.update(|s| {
                         let [x, y] = s.active_slot;
                         if y > 0 {
                             s.active_slot = [x, y - 1];
+                        } else {
+                            events.push(SlotEvents::ExitUp);
                         }
                     }),
                     MenuInput::Down => state.update(|s| {
                         let [x, y] = s.active_slot;
                         if y < (total_slots / cols) {
                             s.active_slot = [x, y + 1];
+                        } else {
+                            events.push(SlotEvents::ExitDown);
                         }
                     }),
                     MenuInput::Left => state.update(|s| {
                         let [x, y] = s.active_slot;
                         if x > 0 {
                             s.active_slot = [x - 1, y];
+                        } else {
+                            events.push(SlotEvents::ExitLeft);
                         }
                     }),
                     MenuInput::Right => state.update(|s| {
@@ -210,11 +323,10 @@ impl<'a> Widget for SlotGrid<'a> {
                         // Only go right if there are slots to go to
                         if x < self.columns - 1 && (y * cols) + (x + 1) < total_slots {
                             s.active_slot = [x + 1, y];
+                        } else {
+                            events.push(SlotEvents::ExitRight);
                         }
                     }),
-                    MenuInput::LocalFocus => {
-                        events.push(SlotEvents::ChangeLocalFocus(1));
-                    },
                     MenuInput::Apply => {
                         clicked = true;
                     },
@@ -227,18 +339,17 @@ impl<'a> Widget for SlotGrid<'a> {
         }
 
         // Create available inventory slot widgets
-        if state.ids.inventory_slots.len() < self.inventory.capacity() {
+        if state.ids.item_slots.len() < total_slots {
             state.update(|s| {
-                s.ids.inventory_slots.resize(
-                    self.inventory.capacity() + self.inventory.overflow_items().count(),
-                    &mut ui.widget_id_generator(),
-                );
+                s.ids
+                    .item_slots
+                    .resize(total_slots, &mut ui.widget_id_generator());
                 s.ids
                     .inv_slot_names
-                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+                    .resize(total_slots, &mut ui.widget_id_generator());
                 s.ids
                     .inv_slot_amounts
-                    .resize(self.inventory.capacity(), &mut ui.widget_id_generator());
+                    .resize(total_slots, &mut ui.widget_id_generator());
             });
         }
 
@@ -279,37 +390,6 @@ impl<'a> Widget for SlotGrid<'a> {
             pulse: self.pulse,
         };
 
-        let mut items = self
-            .inventory
-            .slots_with_id()
-            .map(|(slot, item)| (Slot::Inventory(slot), item.as_ref()))
-            .chain(
-                self.inventory
-                    .overflow_items()
-                    .enumerate()
-                    .map(|(i, item)| (Slot::Overflow(i), Some(item))),
-            )
-            .collect::<Vec<_>>();
-        if self.details_mode && !self.is_us {
-            items.sort_by_cached_key(|(_, item)| {
-                (
-                    item.is_none(),
-                    item.as_ref().map(|i| {
-                        (
-                            std::cmp::Reverse(i.quality()),
-                            {
-                                // TODO: we do double the work here, optimize?
-                                let (name, _) =
-                                    util::item_text(i, self.localized_strings, self.item_i18n);
-                                name
-                            },
-                            i.amount(),
-                        )
-                    }),
-                )
-            });
-        }
-
         for (i, (pos, item)) in items.into_iter().enumerate() {
             if self.details_mode && !self.is_us && item.is_none() {
                 continue;
@@ -332,8 +412,8 @@ impl<'a> Widget for SlotGrid<'a> {
             // Check if active menu navigation hover
             let menu_hover = state.active_slot[0] == x
                 && state.active_slot[1] == y // Is it the current slot
-                && selected.is_none()        // Is the context menu not open
-                && self.active_content == 0; // Is local focus on the inventory
+                && selected.is_none() // Is the context menu not open
+                && self.is_focused; // Is focus on the inventory
 
             let mut slot_widget = slot_maker
                 .fabricate(inv_slot, [self.slot_size as f32; 2], menu_hover, clicked)
@@ -346,7 +426,7 @@ impl<'a> Widget for SlotGrid<'a> {
                 );
 
             // Highlight slots are provided by the loadout item (bag) that the mouse is over
-            if mouseover_loadout_slots.contains(&i) {
+            if self.filter == TabFilters::None && mouseover_loadout_slots.contains(&i) {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
@@ -384,7 +464,7 @@ impl<'a> Widget for SlotGrid<'a> {
                         .map(|item| item as Arc<dyn ItemDesc>)
                         .collect();
 
-                    let items = salvage_result
+                    let salvage_items = salvage_result
                         .iter()
                         .map(|item| item.borrow())
                         .chain(core::iter::once(item as &dyn ItemDesc));
@@ -393,11 +473,11 @@ impl<'a> Widget for SlotGrid<'a> {
                         .filled_slot(quality_col_img)
                         .with_item_tooltip(
                             self.item_tooltip_manager,
-                            items,
+                            salvage_items,
                             &prices_info,
                             self.item_tooltip,
                         )
-                        .set(state.ids.inventory_slots[i], ui);
+                        .set(state.ids.item_slots[i], ui);
                 } else {
                     slot_widget
                         .filled_slot(quality_col_img)
@@ -407,7 +487,7 @@ impl<'a> Widget for SlotGrid<'a> {
                             &prices_info,
                             self.item_tooltip,
                         )
-                        .set(state.ids.inventory_slots[i], ui);
+                        .set(state.ids.item_slots[i], ui);
                 }
                 if self.details_mode {
                     let (name, _) = util::item_text(item, self.localized_strings, self.item_i18n);
@@ -439,7 +519,7 @@ impl<'a> Widget for SlotGrid<'a> {
                         .set(state.ids.inv_slot_amounts[i], ui);
                 }
             } else {
-                slot_widget.set(state.ids.inventory_slots[i], ui);
+                slot_widget.set(state.ids.item_slots[i], ui);
             }
 
             // Record the position and details of any selected slot
@@ -456,6 +536,16 @@ impl<'a> Widget for SlotGrid<'a> {
                 });
             }
         }
+
+        // Add padding beneath the last row of items to make scrolling feel more natural
+        if !state.ids.item_slots.is_empty() {
+            Rectangle::fill_with([1.0, 15.0], color::TRANSPARENT)
+                .down_from(state.ids.item_slots[state.ids.item_slots.len() - 1], 0.0)
+                .set(state.ids.spacing_below, ui);
+        }
+
+        // Not exactly an event, but I have to return the filtered list size somehow
+        events.push(SlotEvents::FilteredSize(total_slots));
 
         // Open context menu if any slot is selected
         if state.active_context_slot.is_some() {
