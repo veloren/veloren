@@ -186,3 +186,4 @@ hud-settings-indoor_ambience = Detección de Ambiente en Interiores
 hud-settings-keyboard-binding = Atajos de teclado
 hud-settings-instrument_volume = Volumen del Instrumento
 hud-settings-cloud_rendering_mode-flat = Plano
+hud-settings-particle-chance = Probabilidad de Partículas
