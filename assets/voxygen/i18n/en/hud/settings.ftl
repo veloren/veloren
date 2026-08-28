@@ -9,6 +9,7 @@ hud-settings-show_hitboxes = Show hitboxes
 hud-settings-show_chat = Show chat
 hud-settings-draggable_windows = Draggable windows
 hud-settings-biome_change_popups = Biome change popups
+hud-settings-compact_item_slots = Compact item slots
 hud-settings-tips_on_startup = Tips-On-Startup
 hud-settings-ui_scale = UI-Scale
 hud-settings-relative_scaling = Relative Scaling

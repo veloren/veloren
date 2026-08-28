@@ -44,6 +44,8 @@ widget_ids! {
         draggable_windows_button_label,
         biome_change_popups_button,
         biome_change_popups_button_label,
+        compact_item_slots_button,
+        compact_item_slots_button_label,
         ch_title,
         ch_transp_slider,
         ch_transp_value,
@@ -374,13 +376,50 @@ impl Widget for Interface<'_> {
         .color(TEXT_COLOR)
         .set(state.ids.biome_change_popups_button_label, ui);
 
+        // Toggle compact item slots
+        let compact_item_slots = ToggleButton::new(
+            self.global_state
+                .settings
+                .interface
+                .toggle_compact_item_slots,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.biome_change_popups_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.compact_item_slots_button, ui);
+
+        if self
+            .global_state
+            .settings
+            .interface
+            .toggle_compact_item_slots
+            != compact_item_slots
+        {
+            events.push(ToggleCompactItemSlots(compact_item_slots));
+        }
+
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-compact_item_slots"),
+        )
+        .right_from(state.ids.compact_item_slots_button, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.compact_item_slots_button)
+        .color(TEXT_COLOR)
+        .set(state.ids.compact_item_slots_button_label, ui);
+
         // Row background opacity
         Text::new(
             &self
                 .localized_strings
                 .get_msg("hud-settings-row_background_opacity"),
         )
-        .down_from(state.ids.biome_change_popups_button, 10.0)
+        .down_from(state.ids.compact_item_slots_button, 10.0)
         .font_size(self.fonts.cyri.scale(14))
         .font_id(self.fonts.cyri.conrod_id)
         .color(TEXT_COLOR)

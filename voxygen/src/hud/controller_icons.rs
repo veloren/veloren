@@ -98,7 +98,7 @@ pub fn get_controller_input_string_menu(
             ControllerType::Playstation => name.push_str("_p"),
             _ => {},
         }
-        format!(":{}:", name)
+        format!(":{}:", name).to_lowercase()
     };
 
     settings
