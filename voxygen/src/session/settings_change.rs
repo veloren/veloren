@@ -195,6 +195,7 @@ pub enum Interface {
     //Slots
     SlotsUsePrefixes(bool),
     SlotsPrefixSwitchPoint(u32),
+    ToggleCompactItemSlots(bool),
 
     ResetInterfaceSettings,
 }
@@ -840,6 +841,9 @@ impl SettingsChange {
                         session_state
                             .hud
                             .set_slots_prefix_switch_point(slots_prefix_switch_point);
+                    },
+                    Interface::ToggleCompactItemSlots(toggle_compact_item_slots) => {
+                        settings.interface.toggle_compact_item_slots = toggle_compact_item_slots;
                     },
                     Interface::ResetInterfaceSettings => {
                         // Reset Interface Settings
