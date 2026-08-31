@@ -22,9 +22,11 @@ const VALID_STARTER_ITEMS: &[[Option<&str>; 2]] = &[
 ];
 
 #[derive(Debug)]
+#[expect(clippy::enum_variant_names)]
 pub enum CreationError {
     InvalidWeapon,
     InvalidBody,
+    InvalidAlias,
 }
 
 pub fn create_character(
@@ -38,6 +40,9 @@ pub fn create_character(
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
     waypoint: Option<Waypoint>,
 ) -> Result<(), CreationError> {
+    if !common::character::verify_character_name(&character_alias) {
+        return Err(CreationError::InvalidAlias);
+    }
     // quick fix whitelist validation for now; eventually replace the
     // `Option<String>` with an index into a server-provided list of starter
     // items, and replace `comp::body::Body` with `comp::body::humanoid::Body`
@@ -96,6 +101,10 @@ pub fn edit_character(
     body: Body,
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
 ) -> Result<(), CreationError> {
+    if !common::character::verify_character_name(&character_alias) {
+        return Err(CreationError::InvalidAlias);
+    }
+
     if !matches!(body, Body::Humanoid(_)) {
         return Err(CreationError::InvalidBody);
     }
@@ -122,6 +131,10 @@ impl core::fmt::Display for CreationError {
             CreationError::InvalidBody => write!(
                 f,
                 "Invalid Body.\nServer and client might be partially incompatible"
+            ),
+            CreationError::InvalidAlias => write!(
+                f,
+                "Invalid Alias.\nServer and client might be partially incompatible"
             ),
         }
     }

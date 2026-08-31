@@ -182,7 +182,11 @@ impl Sys {
                 #[cfg(not(feature = "worldgen"))]
                     start_site: _,
             } => {
-                if censor.check(&alias) {
+                if !common::character::verify_character_name(&alias) {
+                    client.send(ServerGeneral::CharacterActionError(
+                        "That name is too long".to_owned(),
+                    ))?;
+                } else if censor.check(&alias) {
                     debug!(?alias, "denied alias as it contained a banned word");
                     client.send(ServerGeneral::CharacterActionError(format!(
                         "Alias '{}' contains a banned word",
@@ -243,7 +247,11 @@ impl Sys {
                 }
             },
             ClientGeneral::EditCharacter { id, alias, body } => {
-                if censor.check(&alias) {
+                if !common::character::verify_character_name(&alias) {
+                    client.send(ServerGeneral::CharacterActionError(
+                        "That name is too long".to_owned(),
+                    ))?;
+                } else if censor.check(&alias) {
                     debug!(?alias, "denied alias as it contained a banned word");
                     client.send(ServerGeneral::CharacterActionError(format!(
                         "Alias '{}' contains a banned word",
