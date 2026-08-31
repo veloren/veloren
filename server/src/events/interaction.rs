@@ -131,6 +131,7 @@ impl ServerEvent for DialogueEvent {
         ReadStorage<'a, Uid>,
         ReadStorage<'a, comp::Pos>,
         ReadStorage<'a, Client>,
+        ReadStorage<'a, common::rtsim::ActorId>,
         WriteStorage<'a, comp::Agent>,
         WriteStorage<'a, comp::Inventory>,
         ReadExpect<'a, AbilityMap>,
@@ -144,6 +145,7 @@ impl ServerEvent for DialogueEvent {
             uids,
             positions,
             clients,
+            actors,
             mut agents,
             mut inventories,
             ability_map,
@@ -152,6 +154,20 @@ impl ServerEvent for DialogueEvent {
         ): Self::SystemData<'_>,
     ) {
         for DialogueEvent(sender, target, dialogue) in events {
+            // Both have to be actors to perform dialogs.
+            if !(actors.get(sender).is_some() && actors.get(target).is_some()) {
+                continue;
+            }
+
+            // TODO: We check this because there's currently no way on the client to start
+            // a dialog, but a modified client could technically send a dialog message which
+            // comes with a bunch of issues and possible exploits.
+
+            // Both can't be players to perform dialogs.
+            if clients.get(sender).is_some() && clients.get(target).is_some() {
+                continue;
+            }
+
             let within_range = positions
                 .get(sender)
                 .zip(positions.get(target))
