@@ -19,7 +19,7 @@ use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 use strum::EnumIter;
-use tracing::warn;
+use tracing::error;
 
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd, EnumIter,
@@ -726,11 +726,12 @@ impl Asset for AbilityMap {
                         kind.clone(),
                         set.map_ref(|s| AbilityItem {
                             id: s.clone(),
-                            ability: if let Ok(handle) = cache.load::<Ron<CharacterAbility>>(s) {
-                                handle.cloned().into_inner()
-                            } else {
-                                warn!(?s, "missing specified ability file");
-                                CharacterAbility::default()
+                            ability: match cache.load::<Ron<CharacterAbility>>(s) {
+                                Ok(handle) => handle.cloned().into_inner(),
+                                Err(e) => {
+                                    error!(?e, "Failed to load specified ability file!");
+                                    CharacterAbility::default()
+                                },
                             },
                         }),
                     )
