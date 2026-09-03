@@ -869,7 +869,7 @@ impl Widget for Diary<'_> {
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
-                    last_input: &self.global_state.window.last_input(),
+                    global_state: self.global_state,
                     pulse: 0.0,
                 };
 
@@ -1076,7 +1076,7 @@ impl Widget for Diary<'_> {
                     ),
                     image_source: self.imgs,
                     slot_manager: Some(self.slot_manager),
-                    last_input: &self.global_state.window.last_input(),
+                    global_state: self.global_state,
                     pulse: 0.0,
                 };
 
