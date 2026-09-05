@@ -1,5 +1,5 @@
 //! A widget for selecting a single value along some linear range.
-use crate::{hud::animate_by_pulse, window::LastInput};
+use crate::{GlobalState, hud::animate_by_pulse, window::LastInput};
 use conrod_core::{
     Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon, builder_methods, image,
     input::{keyboard::ModifierKey, state::mouse},
@@ -47,7 +47,7 @@ pub struct SlotMaker<'a, C, I, S: SumSlot> {
     pub content_source: &'a C,
     pub image_source: &'a I,
     pub slot_manager: Option<&'a mut SlotManager<S>>,
-    pub last_input: &'a LastInput,
+    pub global_state: &'a GlobalState,
     pub pulse: f32,
 }
 
@@ -100,7 +100,7 @@ where
             self.image_source,
             menu_hover,
             menu_clicked,
-            self.last_input,
+            self.global_state,
             self.pulse,
         )
         .wh([wh[0] as f64, wh[1] as f64])
@@ -519,7 +519,7 @@ pub struct Slot<'a, K: SlotKey<C, I> + Into<S>, C, I, S: SumSlot> {
     menu_hover: bool,
     menu_click: bool,
 
-    last_input: &'a LastInput,
+    global_state: &'a GlobalState,
 
     pulse: f32,
 
@@ -588,7 +588,7 @@ where
         image_source: &'a I,
         menu_hover: bool,
         menu_click: bool,
-        last_input: &'a LastInput,
+        global_state: &'a GlobalState,
         pulse: f32,
     ) -> Self {
         Self {
@@ -610,7 +610,7 @@ where
             image_source,
             menu_hover,
             menu_click,
-            last_input,
+            global_state,
             pulse,
             common: widget::CommonBuilder::default(),
         }
@@ -765,13 +765,14 @@ where
             .slot_manager
             .as_ref()
             .map_or(false, |sm| sm.mouse_over_slot == Some(slot_key.into()))
-            && *self.last_input == LastInput::Mouse;
+            && self.global_state.window.last_input() == LastInput::Mouse;
 
         // Determine if menu highligh should be shown (for keyboard and controller
         // inputs)
         let is_highlighted_menu = self.menu_hover
-            && (*self.last_input == LastInput::Keyboard
-                || *self.last_input == LastInput::Controller);
+            && (self.global_state.window.last_input_type_menu())
+            && (self.global_state.window.last_input() == LastInput::Controller
+                || self.global_state.window.last_input() == LastInput::Keyboard);
 
         if is_highlighted || is_highlighted_menu {
             Image::new(self.hovered_slot)

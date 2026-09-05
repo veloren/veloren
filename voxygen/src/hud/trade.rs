@@ -509,7 +509,7 @@ impl<'a> Trade<'a> {
             content_source: inventory,
             image_source: self.item_imgs,
             slot_manager: Some(self.slot_manager),
-            last_input: &self.global_state.window.last_input(),
+            global_state: self.global_state,
             pulse: self.pulse,
         };
 

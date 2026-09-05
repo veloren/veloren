@@ -312,6 +312,7 @@ impl<'a> InventoryScroller<'a> {
         // Bag Slots
         for event in SlotGrid::new(
             self.client,
+            self.global_state,
             self.imgs,
             self.item_imgs,
             self.fonts,
@@ -322,7 +323,6 @@ impl<'a> InventoryScroller<'a> {
             self.localized_strings,
             self.item_i18n,
             self.entity,
-            &self.global_state.window.last_input(),
             self.pulse,
             self.menu_events,
             self.is_us,
@@ -1539,6 +1539,7 @@ impl Widget for InventoryMenu<'_> {
         // Bag Slots
         for event in SlotGrid::new(
             self.tab_package.client,
+            self.tab_package.global_state,
             self.tab_package.imgs,
             self.tab_package.item_imgs,
             self.tab_package.fonts,
@@ -1549,7 +1550,6 @@ impl Widget for InventoryMenu<'_> {
             self.tab_package.localized_strings,
             self.tab_package.item_i18n,
             self.tab_package.info.viewpoint_entity,
-            &self.tab_package.global_state.window.last_input(),
             self.tab_package.pulse,
             self.menu_events,
             true, // is_us
@@ -2147,6 +2147,7 @@ impl Widget for GearMenu<'_> {
             // Bag slots
             for event in SlotGrid::new(
             self.tab_package.client,
+            self.tab_package.global_state,
             self.tab_package.imgs,
             self.tab_package.item_imgs,
             self.tab_package.fonts,
@@ -2157,7 +2158,6 @@ impl Widget for GearMenu<'_> {
             self.tab_package.localized_strings,
             self.tab_package.item_i18n,
             self.tab_package.info.viewpoint_entity,
-            &self.tab_package.global_state.window.last_input(),
             self.tab_package.pulse,
             self.menu_events,
             true,                  // is_us
@@ -2234,7 +2234,7 @@ impl Widget for GearMenu<'_> {
             content_source: self.inventory,
             image_source: self.tab_package.item_imgs,
             slot_manager: Some(self.slot_manager),
-            last_input: &self.tab_package.global_state.window.last_input(),
+            global_state: self.tab_package.global_state,
             pulse: self.tab_package.pulse,
         };
 
