@@ -203,6 +203,13 @@ impl Body {
 
     pub fn air_accel(&self) -> f32 { self.base_accel() * 0.025 }
 
+    pub fn ground_accel(&self) -> Option<f32> {
+        match self {
+            Self::FishSmall(_) | Self::FishMedium(_) => None,
+            _ => Some(self.base_accel()),
+        }
+    }
+
     /// Attempt to determine the maximum speed of the character
     /// when moving on the ground
     pub fn max_speed_approx(&self) -> f32 {
@@ -467,12 +474,12 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
     {
         swim_move(data, update, efficiency, submersion);
     } else {
-        basic_move(data, update, efficiency);
+        ground_move(data, update, efficiency);
     }
 }
 
 /// Updates components to move player as if theyre on ground or in air
-fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
+fn ground_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     let section_modifier = match data.character.stage_section() {
         Some(StageSection::Buildup) => data.stats.buildup_move_speed_modifier,
         Some(StageSection::Charge) => data.stats.charge_move_speed_modifier,
@@ -485,7 +492,7 @@ fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
 
     let accel = if let Some(block) = data.physics.on_ground {
         // FRIC_GROUND temporarily used to normalize things around expected values
-        data.body.base_accel()
+        data.body.ground_accel().unwrap_or(0.0)
             * data.scale.map_or(1.0, |s| s.0.sqrt())
             * block.get_traction()
             * block.get_friction()

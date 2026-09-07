@@ -8,7 +8,7 @@ use crate::sys::agent::{
 };
 use common::{
     comp::{
-        self, Agent, Alignment, Body, CharacterState, Controller, Health, Scale,
+        self, Agent, Alignment, CharacterState, Controller, Health, Scale,
         inventory::slot::EquipSlot, item::ItemDesc,
     },
     mounting::Volume,
@@ -196,8 +196,7 @@ impl<'a> System<'a> for Sys {
                         on_ground: physics_state.on_ground.is_some(),
                         in_liquid: physics_state.in_liquid().is_some(),
                         min_tgt_dist: scale * moving_body.map_or(1.0, |body| body.max_radius()),
-                        can_climb: moving_body.is_some_and(Body::can_climb),
-                        can_fly: moving_body.is_some_and(|b| b.fly_thrust().is_some()),
+                        moving_body: moving_body.copied(),
                         vectored_propulsion: moving_body.is_some_and(|b| b.vectored_propulsion()),
                         is_target_loaded: true,
                     };

@@ -1,5 +1,6 @@
 use crate::{
     astar::{Astar, PathResult},
+    comp::Body,
     resources::Time,
     terrain::Block,
     vol::{BaseVol, ReadVol},
@@ -95,14 +96,28 @@ pub struct TraversalConfig {
     pub in_liquid: bool,
     /// The distance to the target below which it is considered reached.
     pub min_tgt_dist: f32,
-    /// Whether the agent can climb.
-    pub can_climb: bool,
-    /// Whether the agent can fly.
-    pub can_fly: bool,
+    /// The body that's moving.
+    pub moving_body: Option<Body>,
     /// Whether the agent has vectored propulsion.
     pub vectored_propulsion: bool,
     /// Whether chunk containing target position is currently loaded
     pub is_target_loaded: bool,
+}
+
+impl TraversalConfig {
+    pub fn fly_thrust(&self) -> Option<f32> { self.moving_body.as_ref().and_then(Body::fly_thrust) }
+
+    pub fn can_fly(&self) -> bool { self.fly_thrust().is_some() }
+
+    pub fn can_climb(&self) -> bool { self.moving_body.as_ref().is_some_and(Body::can_climb) }
+
+    pub fn ground_accel(&self) -> Option<f32> {
+        self.moving_body.as_ref().and_then(Body::ground_accel)
+    }
+
+    pub fn swim_thrust(&self) -> Option<f32> {
+        self.moving_body.as_ref().and_then(Body::swim_thrust)
+    }
 }
 
 const DIAGONALS: [Vec2<i32>; 8] = [
@@ -148,9 +163,7 @@ impl Route {
             let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
-            if !walkable(vol, next0, traversal_cfg.is_target_loaded)
-                || !walkable(vol, next1, traversal_cfg.is_target_loaded)
-            {
+            if !walkable(vol, next0, traversal_cfg) || !walkable(vol, next1, traversal_cfg) {
                 return Err(TraverseStop::InvalidPath);
             }
 
@@ -752,7 +765,7 @@ impl Chaser {
     }
 }
 
-fn walkable<V>(vol: &V, pos: Vec3<i32>, is_target_loaded: bool) -> bool
+fn walkable<V>(vol: &V, pos: Vec3<i32>, traversal_cfg: &TraversalConfig) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
@@ -769,7 +782,7 @@ where
             if below_z > Block::MAX_HEIGHT.ceil() as i32 {
                 break Block::empty();
             }
-        } else if is_target_loaded {
+        } else if traversal_cfg.is_target_loaded {
             break Block::empty();
         } else {
             // If not loaded assume we can walk there.
@@ -791,7 +804,10 @@ where
                 .is_some_and(|h| ((below_z - 1) as f32) < h && h <= below_z as f32)
         });
     let in_liquid = a.is_liquid();
-    (on_ground || in_liquid) && !a.is_solid() && !b.is_solid()
+    ((on_ground && traversal_cfg.ground_accel().is_some())
+        || (in_liquid && traversal_cfg.swim_thrust().is_some()))
+        && !a.is_solid()
+        && !b.is_solid()
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
@@ -818,7 +834,7 @@ fn find_path<V>(
 where
     V: BaseVol<Vox = Block> + ReadVol,
 {
-    let is_walkable = |pos: &Vec3<i32>| walkable(vol, *pos, traversal_cfg.is_target_loaded);
+    let is_walkable = |pos: &Vec3<i32>| walkable(vol, *pos, traversal_cfg);
     let get_walkable_z = |pos| {
         let mut z_incr = 0;
         for _ in 0..32 {
@@ -934,13 +950,13 @@ where
                 (vol.get(pos - Vec3::unit_z())
                     .map(|b| !b.is_liquid())
                     .unwrap_or(traversal_cfg.is_target_loaded)
-                    || traversal_cfg.can_climb
-                    || traversal_cfg.can_fly).then_some(JUMPS.iter())
+                    || traversal_cfg.can_climb()
+                    || traversal_cfg.can_fly()).then_some(JUMPS.iter())
                     .into_iter().flatten()
             )
             .map(move |dir| (pos, dir))
             .filter(move |(pos, dir)| {
-                (traversal_cfg.can_fly || is_walkable(pos) && is_walkable(&(*pos + **dir)))
+                (traversal_cfg.can_fly() || is_walkable(pos) && is_walkable(&(*pos + **dir)))
                     && ((dir.z < 1
                         || vol
                             .get(pos + Vec3::unit_z() * 2)

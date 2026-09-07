@@ -176,15 +176,21 @@ impl AgentData<'_> {
         // Only jump if we are grounded and can't blockhop or if we can fly
         self.jump_if(
             (self.physics_state.on_ground.is_some() && bearing.z > 1.5)
-                || self.traversal_config.can_fly,
+                || self.traversal_config.can_fly(),
             controller,
         );
         controller.inputs.move_z = bearing.z;
     }
 
     pub fn unstuck_if(&self, condition: bool, controller: &mut Controller) {
-        if condition && rng().random_bool(0.05) {
-            if matches!(self.char_state, CharacterState::Climb(_)) || rng().random_bool(0.5) {
+        let on_ground_cant_move =
+            self.traversal_config.on_ground && self.traversal_config.ground_accel().is_none();
+
+        if condition && (on_ground_cant_move || rng().random_bool(0.05)) {
+            if on_ground_cant_move
+                || matches!(self.char_state, CharacterState::Climb(_))
+                || rng().random_bool(0.5)
+            {
                 controller.push_basic_input(InputKind::Jump);
             } else {
                 controller.push_basic_input(InputKind::Roll);
@@ -273,7 +279,7 @@ impl AgentData<'_> {
 
                     // If it has an rtsim destination and can fly, then it should.
                     // If it is flying and bumps something above it, then it should move down.
-                    if self.traversal_config.can_fly
+                    if self.traversal_config.can_fly()
                         && !read_data
                             .terrain
                             .ray(self.pos.0, self.pos.0 + (Vec3::unit_z() * 3.0))
@@ -296,7 +302,7 @@ impl AgentData<'_> {
                         Some(speed_factor),
                     ) {
                         let height_offset = bearing.z
-                            + if self.traversal_config.can_fly {
+                            + if self.traversal_config.can_fly() {
                                 // NOTE: costs 4 us (imbris)
                                 let obstacle_ahead = read_data
                                     .terrain
@@ -666,7 +672,7 @@ impl AgentData<'_> {
 
             // Bats should fly
             // Use a proportional controller as the bouncing effect mimics bat flight
-            if self.traversal_config.can_fly
+            if self.traversal_config.can_fly()
                 && self
                     .inventory
                     .equipped(EquipSlot::ActiveMainhand)
