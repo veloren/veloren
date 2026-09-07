@@ -226,7 +226,7 @@ fn react_on_dangerous_fall(bdata: &mut BehaviorData) -> bool {
 
     if is_falling_dangerous {
         bdata.agent_data.dismount(bdata.controller, bdata.read_data);
-        if bdata.agent_data.traversal_config.can_fly {
+        if bdata.agent_data.traversal_config.can_fly() {
             bdata
                 .agent_data
                 .fly_upward(bdata.controller, bdata.read_data);
