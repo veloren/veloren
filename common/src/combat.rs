@@ -1550,7 +1550,9 @@ impl CombatRequirement {
         let (target_health, target_buffs, target_char_state, target_ori, target_uid) = target;
         let (originator_entity, originator_energy, originator_combo) = originator;
         match self {
-            CombatRequirement::AnyDamage => damage > 0.0 && target_health.is_some(),
+            CombatRequirement::AnyDamage => {
+                damage > Health::HEALTH_EPSILON && target_health.is_some()
+            },
             CombatRequirement::Energy(r) => {
                 if let (Some(entity), Some(energy)) = (originator_entity, originator_energy) {
                     let sufficient_energy = energy.current() >= *r;
@@ -1588,7 +1590,7 @@ impl CombatRequirement {
             CombatRequirement::TargetPoised => target_char_state.is_some_and(|cs| cs.is_stunned()),
             CombatRequirement::BehindTarget => {
                 if let Some(ori) = target_ori {
-                    ori.look_vec().angle_between(dir.with_z(0.0)) < BEHIND_TARGET_ANGLE
+                    ori.look_vec().angle_between(dir.with_z(0.0)) < BEHIND_TARGET_ANGLE.to_radians()
                 } else {
                     false
                 }
