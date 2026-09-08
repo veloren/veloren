@@ -187,3 +187,5 @@ hud-settings-keyboard-binding = Atajos de teclado
 hud-settings-instrument_volume = Volumen del Instrumento
 hud-settings-cloud_rendering_mode-flat = Plano
 hud-settings-particle-chance = Probabilidad de Partículas
+hud-settings-biome_change_popups = Ventanas emergentes de cambios en biomas
+hud-settings-compact_item_slots = Espacios para objetos compactos

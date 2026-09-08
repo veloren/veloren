@@ -320,3 +320,4 @@ command-spawned-entity = Apparition d'une entité avec l'ID : { $id }
 command-aura-invalid-buff-parameters = Paramètres d'effet invalides pour cette aura
 command-outcome-expected_body_arg = Argument attendu mais non fourni pour le corps
 command-aura-spawn = Apparition d'une nouvelle aura attachée à l'entité
+command-experimental-shaders-not-supported = { $shader } n'est pas supporté par cette version du jeu
