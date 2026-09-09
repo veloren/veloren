@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fast river sfx
 - All NPCs don't go to bed & wake up at the same time.
 - Mounted NPC can now properly utilize their free will.
+- Panic related to lag spikes
 
 ## [0.18.0] - 2026-01-23
 
