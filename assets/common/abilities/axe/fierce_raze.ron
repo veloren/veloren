@@ -12,8 +12,8 @@ RapidMelee(
         range: 4.0,
         angle: 10.0,
     ),
-    energy_cost: 6,
-    max_strikes: Some(4),
+    energy_cost: 8,
+    max_strikes: Some(3),
     move_modifier: 0.35,
     ori_modifier: 0.25,
 )

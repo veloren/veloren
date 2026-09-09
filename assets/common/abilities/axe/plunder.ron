@@ -20,7 +20,7 @@ ComboMelee2(
                 swing: Some(Forward(0.7)),
             ),
             custom_combo: (
-                base: Some(3),
+                base: Some(2),
                 conditional: Some((3, TargetPoised)),
                 ),
         ),

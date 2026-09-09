@@ -773,7 +773,7 @@ pub fn ability_description<'a>(
         "common-abilities-hammer-helm_crusher" => (
             loc.get_msg(&ability_i18n_key),
             loc.get_attr_ctx(&ability_i18n_key, "desc", &i18n::fluent_args! {
-                "min_combo" => 10,
+                "min_combo" => 12,
             }),
         ),
         // Default case, no input values
