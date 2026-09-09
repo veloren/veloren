@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All NPCs don't go to bed & wake up at the same time.
 - Mounted NPC can now properly utilize their free will.
 - Fish no longer walk on land.
+- Panic related to lag spikes
 
 ## [0.18.0] - 2026-01-23
 

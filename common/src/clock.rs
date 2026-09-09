@@ -159,6 +159,9 @@ impl Clock {
         self.real_time += Duration::from_secs_f64(self.last_real_dt);
         self.game_time += Duration::from_secs_f64(self.last_game_dt);
 
+        // Ensure game_time doesn't surpass real_time
+        self.game_time = self.game_time.min(self.real_time);
+
         // Calculate the deltas for both real and game clocks. The real clock is
         // absolute: we can't alter the progression of time. However, we can
         // alter the game clock and nudge it toward real time. The reason we
