@@ -3565,7 +3565,13 @@ impl Animation for BasicAction {
 
                 bow_draw(&mut next, move1base * 2.0, d.look_dir.z);
             },
-            Some("common.abilities.bow.hawkstrike_shot") => {
+            Some(
+                "common.abilities.bow.hawkstrike_shot"
+                | "common.abilities.bow.burning_hawkstrike_shot"
+                | "common.abilities.bow.poison_hawkstrike_shot"
+                | "common.abilities.bow.freezing_hawkstrike_shot"
+                | "common.abilities.bow.lightning_hawkstrike_shot",
+            ) => {
                 bow_start(&mut next, s_a);
 
                 let charge = chargebase.min(1.0);

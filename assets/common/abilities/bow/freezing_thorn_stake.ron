@@ -10,7 +10,7 @@ BasicRanged(
             target: EntityOnly,
         ),
         attack: Some((
-            damage: 30,
+            damage: 15,
             buff: Some((
                 kind: Chilled,
                 dur_secs: 10,

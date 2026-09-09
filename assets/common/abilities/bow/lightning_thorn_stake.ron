@@ -11,7 +11,7 @@ BasicRanged(
             max_delay: 60,
         )),
         attack: Some((
-            damage: 30,
+            damage: 15,
             damage_kind: Energy,
         )),
         lifetime_override: Some(30.0),

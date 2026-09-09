@@ -1,26 +1,18 @@
 BasicRanged(
     energy_cost: 20,
-    buildup_duration: 0.4,
+    buildup_duration: 0.5,
     recover_duration: 0.1,
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 20,
+            damage: 12,
             knockback: Some(4),
-            energy: Some(16),
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 10,
-                strength: DamageFraction(0.1),
-                chance: 0.1,
-            )),
             damage_kind: Piercing,
             attack_effect: Some((
                 DebuffsVulnerable(
-                    mult: 1.0,
+                    mult: 0.4,
                     scaling: Sqrt,
-                    filter_attacker: true,
-                    filter_weapon: Some(Bow),
+                    filter_attacker: false,
                 ),
                 AttackSource(Projectile),
             ))

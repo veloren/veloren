@@ -5,7 +5,7 @@ BasicRanged(
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 30,
+            damage: 15,
             damage_kind: Piercing,
         )),
         lifetime_override: Some(30.0),

@@ -1,23 +1,18 @@
 RapidRanged(
-    energy_cost: 5,
+    energy_cost: 2,
     buildup_duration: 0.6,
-    shoot_duration: 0.2,
+    shoot_duration: 0.1,
     recover_duration: 0.4,
     options: (
-        max_projectiles: Some(20),
+        max_projectiles: Some(8),
     ),
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 8,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 10,
-                strength: DamageFraction(0.1),
-                chance: 0.025,
-            )),
+            damage: 1,
             without_combo: true,
             damage_kind: Piercing,
+            energy: Some(14.5),
         )),
     ),
     projectile_body: Object(Arrow),

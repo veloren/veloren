@@ -3,7 +3,7 @@ SelfBuff(
     cast_duration: 0.1,
     recover_duration: 0.1,
     buffs: [
-        BuffDesc(kind: DrenchArrow, data: BuffData(strength: 4.0, duration: None, secondary_duration: Some(10.0))),
+        BuffDesc(kind: DrenchArrow, data: BuffData(strength: 2.5, duration: None, secondary_duration: Some(20.0))),
     ],
     buff_cat: Some(WeaponCoating),
     energy_cost: 10,
