@@ -13,7 +13,7 @@ ChargedRanged(
             damage_kind: Energy,
         )),
         scaled: Some((
-            damage: 35,
+            damage: 38,
             knockback: Some(10),
         )),
     ),

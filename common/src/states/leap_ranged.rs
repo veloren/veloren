@@ -168,6 +168,8 @@ impl CharacterBehavior for Data {
                     && let CharacterState::LeapRanged(c) = &mut update.character
                 {
                     c.timer = tick_attack_or_default(data, self.timer, None);
+                } else {
+                    end_melee_ability(data, &mut update);
                 }
             },
             _ => {

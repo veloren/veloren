@@ -1,17 +1,11 @@
 BasicRanged(
     energy_cost: 15,
-    buildup_duration: 0.5,
+    buildup_duration: 0.45,
     recover_duration: 0.1,
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 25,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 5,
-                strength: DamageFraction(0.5),
-                chance: 0.33,
-            )),
+            damage: 8.5,
             damage_kind: Piercing,
         )),
         override_collider: Some((

@@ -3,8 +3,8 @@ SelfBuff(
     cast_duration: 0.1,
     recover_duration: 0.1,
     buffs: [
-        BuffDesc(kind: ArdentHunt, data: BuffData(strength: 0.25, duration: None)),
+        BuffDesc(kind: ArdentHunt, data: BuffData(strength: 0.1, duration: Some(25.0))),
     ],
-    energy_cost: 10,
+    energy_cost: 30,
     enforced_limit: false,
 )

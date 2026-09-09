@@ -1,6 +1,6 @@
 RapidRanged(
-    energy_cost: 4,
-    buildup_duration: 0.8,
+    energy_cost: 10,
+    buildup_duration: 0.55,
     shoot_duration: 0.05,
     recover_duration: 0.1,
     options: (
@@ -10,13 +10,7 @@ RapidRanged(
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 10.5,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 10,
-                strength: DamageFraction(0.1),
-                chance: 0.1,
-            )),
+            damage: 4.5,
             without_combo: true,
             damage_kind: Piercing,
         )),

@@ -5,18 +5,12 @@ BasicRanged(
     projectile: (
         kind: Simple,
         attack: Some((
-            damage: 8.5,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 5,
-                strength: DamageFraction(0.25),
-                chance: 0.15,
-            )),
+            damage: 6.5,
             without_combo: true,
             damage_kind: Piercing,
         )),
         split: Some((
-            split_on_terrain: true,
+            split_on_terrain: false,
             amount: 15,
             spread: 0.25,
             new_lifetime: 15.0,

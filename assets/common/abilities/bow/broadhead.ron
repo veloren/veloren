@@ -6,18 +6,12 @@ ChargedRanged(
         kind: Simple,
         attack: Some((
             damage: 0,
-            buff: Some((
-                kind: Bleeding,
-                dur_secs: 5,
-                strength: DamageFraction(0.075),
-                chance: 0.25,
-            )),
             damage_kind: Piercing,
         )),
         scaled: Some((
             damage: 25,
             knockback: Some(10),
-            energy: Some(30),
+            energy: Some(40),
         )),
     ),
     buildup_duration: 0.3,
