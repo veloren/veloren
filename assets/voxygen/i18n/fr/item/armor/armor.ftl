@@ -754,3 +754,7 @@ armor-cloth-woolen-head = Ushanka en laine
     .desc = Épaisse et prête pour la neige.
 armor-cloth-druid-head = Couronne de druide
     .desc = Incroyablement légère, mêlée à l'essence de la nature..
+armor-misc-chest-worker_pink_0 = Chemise de travail rose
+    .desc = Utilisée par un agriculteur, jusqu'à récemment.
+armor-misc-chest-worker_pink_1 = Chemise de travail rose
+    .desc = Utilisée par un agriculteur, jusqu'à récemment.

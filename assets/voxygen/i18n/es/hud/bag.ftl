@@ -69,3 +69,7 @@ hud-bag-split_swap_slots_drop_items =
 hud-context-menu-cancel = Cancelar
 hud-context-menu-drop = Soltar
 hud-context-menu-use = Usar
+hud-bag-gear-tab = Equipamiento
+hud-bag-ingredients-tab = Ingredientes
+hud-bag-quest-items-tab = Objetos de Misión
+hud-bag-toggle-expanded-window = Mostrar u ocultar la ventana expandida

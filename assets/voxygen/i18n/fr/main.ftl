@@ -39,7 +39,7 @@ main-login-untrusted_auth_server = Le serveur d'authentification n'est pas de co
 main-login-timeout = Timeout : Le serveur n'a pas répondu à temps. Remarque : il se peut que le serveur soit actuellement surchargé ou qu'il y ait des problèmes sur le réseau.
 main-login-server_shut_down = Extinction du Serveur.
 main-login-network_error = Problème Réseau.
-main-login-network_wrong_version = La version du serveur et du client ne correspond pas. Conseil : vous devez peut-être mettre à jour votre client de jeu.
+main-login-network_wrong_version = La version du serveur et du client ne correspond pas. Conseil : vous devez peut-être mettre à jour votre client de jeu ou contacter la personne responsable du serveur pour une mise à jour.
 main-login-failed_sending_request = Demande d'authentification serveur échouée.
 main-login-invalid_character = Le personnage sélectionné n'est pas valide.
 main-login-client_crashed = Le client a planté.
@@ -114,4 +114,4 @@ main-login-banned_until =
     Vous avez été temporairement banni pour la raison suivante : { $reason }
     Jusqu'au : { $end_date }
 main-singleplayer-map_large_extra_warning = Ces paramètres prendraient autant de ressources que générer environ { $count } mondes avec les options par défaut.
-main-credits-sound = Son
+main-credits-sound = Audio
