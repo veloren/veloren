@@ -16,8 +16,8 @@ ComboMelee2(
             hit_timing: 0.5,
             recover_duration: 0.25,
             custom_combo: (
-                base: Some(3),
-                conditional: Some((3, TargetHasBuff(Bleeding))),
+                base: Some(2),
+                conditional: Some((2, TargetHasBuff(Bleeding))),
             ),
         ),
     ],

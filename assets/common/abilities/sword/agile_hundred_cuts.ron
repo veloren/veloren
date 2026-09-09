@@ -16,5 +16,5 @@ RapidMelee(
     max_strikes: Some(10),
     move_modifier: 0.75,
     ori_modifier: 0.5,
-    minimum_combo: 10,
+    minimum_combo: 12,
 )

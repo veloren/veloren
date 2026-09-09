@@ -5,6 +5,6 @@ SelfBuff(
     buffs: [
         BuffDesc(kind: Fury, data: BuffData(strength: 1.0, duration: Some(15.0))),
     ],
-    energy_cost: 20,
+    energy_cost: 30,
     enforced_limit: false,
 )

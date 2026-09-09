@@ -17,5 +17,5 @@ FinisherMelee(
             TargetPoised,
         )),
     ),
-    minimum_combo: 10,
+    minimum_combo: 12,
 )
