@@ -316,6 +316,7 @@ widget_ids! {
         buttons,
         buffs,
         esc_menu,
+        pause_overlay,
         social_window,
         quest_window,
         tutorial_window,
@@ -3729,6 +3730,19 @@ impl Hud {
 
         self.new_messages.clear();
         self.new_notifications.clear();
+
+        // Render overlay when escape menu or settings window is open
+        if self.show.esc_menu || matches!(self.show.open_windows, Windows::Settings) {
+            Rectangle::fill([ui_widgets.win_w, ui_widgets.win_h])
+                .rgba(
+                    0.0,
+                    0.0,
+                    0.0,
+                    global_state.settings.interface.pause_menu_overlay_opacity,
+                )
+                .top_left_with_margins_on(ui_widgets.window, 0.0, 0.0)
+                .set(self.ids.pause_overlay, ui_widgets);
+        }
 
         // Settings
         if let Windows::Settings = self.show.open_windows {

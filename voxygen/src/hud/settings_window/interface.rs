@@ -62,6 +62,9 @@ widget_ids! {
         row_background_opacity_text,
         row_background_opacity_slider,
         row_background_opacity_value_text,
+        pause_menu_overlay_opacity_text,
+        pause_menu_overlay_opacity_slider,
+        pause_menu_overlay_opacity_value_text,
         //
         hotbar_title,
         bar_numbers_title,
@@ -196,6 +199,11 @@ impl Widget for Interface<'_> {
         let crosshair_type = self.global_state.settings.interface.crosshair_type;
         let ui_scale = self.global_state.settings.interface.ui_scale;
         let row_opacity = self.global_state.settings.interface.row_background_opacity;
+        let pause_overlay_opacity = self
+            .global_state
+            .settings
+            .interface
+            .pause_menu_overlay_opacity;
 
         Text::new(&self.localized_strings.get_msg("hud-settings-general"))
             .top_left_with_margins_on(state.ids.window, 5.0, 5.0)
@@ -450,9 +458,46 @@ impl Widget for Interface<'_> {
             .color(TEXT_COLOR)
             .set(state.ids.row_background_opacity_value_text, ui);
 
+        // Pause menu overlay opacity
+        Text::new(
+            &self
+                .localized_strings
+                .get_msg("hud-settings-pause_menu_overlay_opacity"),
+        )
+        .down_from(state.ids.row_background_opacity_slider, 10.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.pause_menu_overlay_opacity_text, ui);
+
+        if let Some(new_opacity) = ImageSlider::continuous(
+            pause_overlay_opacity,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.pause_menu_overlay_opacity_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.pause_menu_overlay_opacity_slider, ui)
+        {
+            events.push(PauseMenuOverlayOpacity(new_opacity));
+        }
+
+        Text::new(&format!("{:.3}", pause_overlay_opacity))
+            .right_from(state.ids.pause_menu_overlay_opacity_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .graphics_for(state.ids.pause_menu_overlay_opacity_slider)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.pause_menu_overlay_opacity_value_text, ui);
+
         // Ui Scale
         Text::new(&self.localized_strings.get_msg("hud-settings-ui_scale"))
-            .down_from(state.ids.row_background_opacity_slider, 10.0)
+            .down_from(state.ids.pause_menu_overlay_opacity_slider, 10.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
