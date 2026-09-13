@@ -189,3 +189,4 @@ hud-settings-game_buttons = Game Buttons
 hud-settings-game_layers = Game Layers
 hud-settings-menu_buttons = Menu Buttons
 hud-settings-row_background_opacity = Row Background Opacity
+hud-settings-pause_menu_overlay_opacity = Pause Menu Overlay Opacity

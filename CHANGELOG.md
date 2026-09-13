@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A 'particle chance' slider to control the amount of particles
 - An area kind where players can change battlemode: `/area_add name battlemode_change ...`
 - Toggle for the biome change popup
+- Overlay tint when game is paused
 
 ### Changed
 

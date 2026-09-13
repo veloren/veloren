@@ -60,6 +60,7 @@ pub struct InterfaceSettings {
     pub toggle_draggable_windows: bool,
     pub toggle_biome_change_popups: bool,
     pub toggle_compact_item_slots: bool,
+    pub pause_menu_overlay_opacity: f32,
 }
 
 impl Default for InterfaceSettings {
@@ -113,6 +114,7 @@ impl Default for InterfaceSettings {
             accum_experience: true,
             xp_bar_skillgroup: Some(SkillGroupKind::General),
             row_background_opacity: 0.025,
+            pause_menu_overlay_opacity: 0.6,
             toggle_draggable_windows: true,
             toggle_biome_change_popups: true,
             toggle_compact_item_slots: false,

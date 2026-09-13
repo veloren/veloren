@@ -168,6 +168,7 @@ pub enum Interface {
     ToggleShortcutNumbers(ShortcutNumbers),
     BuffPosition(BuffPosition),
     RowBackgroundOpacity(f32),
+    PauseMenuOverlayOpacity(f32),
 
     UiScale(ScaleChange),
     //Minimap
@@ -859,6 +860,9 @@ impl SettingsChange {
                     },
                     Interface::RowBackgroundOpacity(opacity) => {
                         settings.interface.row_background_opacity = opacity;
+                    },
+                    Interface::PauseMenuOverlayOpacity(opacity) => {
+                        settings.interface.pause_menu_overlay_opacity = opacity;
                     },
                 }
             },
