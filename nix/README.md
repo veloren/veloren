@@ -192,8 +192,7 @@ Modify the relevant `rev` field in `flake.lock` to what you need - you can use `
 
 Use [alejandra](https://github.com/kamadorueda/alejandra) to format files.
 
-To format every Nix file:
+Since the default formatter for this flake is set alejandra, formatting every Nix file can be done by running the following from the repository root:
 ```shell
-# From repository root
-alejandra .
+nix fmt .
 ```

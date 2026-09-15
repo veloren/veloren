@@ -228,6 +228,8 @@
             rust-crane.buildFlags = ["--bin=veloren-voxygen"];
           };
         };
+
+        formatter = pkgs.alejandra;
       };
     };
 }
