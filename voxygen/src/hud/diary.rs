@@ -10,7 +10,7 @@ use crate::{
     hud::{
         self,
         slots::{AbilitySlot, SlotManager},
-        util,
+        util::{self, formatted_float, formatted_float_signed},
     },
     ui::{
         ImageFrame, Tooltip, TooltipManager, Tooltipable,
@@ -1263,13 +1263,13 @@ impl Widget for Diary<'_> {
                                 *self.body,
                                 self.msm,
                             );
-                            format!("{:.2}", cr * 10.0)
+                            formatted_float(cr * 10.0, 2)
                         },
                         CharacterStat::Protection => {
                             let protection =
                                 combat::compute_protection(Some(self.inventory), self.msm);
                             match protection {
-                                Some(prot) => format!("{}", prot),
+                                Some(prot) => formatted_float(prot, 2),
                                 None => String::from("Invincible"),
                             }
                         },
@@ -1280,12 +1280,12 @@ impl Widget for Diary<'_> {
                                 None,
                                 self.stats,
                             );
-                            format!("{:.2}%", stun_res * 100.0)
+                            format!("{}%", formatted_float(stun_res * 100.0, 2))
                         },
                         CharacterStat::PrecisionPower => {
                             let precision_power =
                                 combat::compute_precision_mult(Some(self.inventory), self.msm);
-                            format!("x{:.2}", precision_power)
+                            format!("x{}", formatted_float(precision_power, 2))
                         },
                         CharacterStat::EnergyReward => {
                             let energy_rew =
@@ -1299,17 +1299,26 @@ impl Widget for Diary<'_> {
                                     None,
                                     self.msm,
                                 );
-                            let txt =
-                                format!("{:+.1}%", (1.0 - stealth_perception_multiplier) * 100.0);
+                            let txt = format!(
+                                "{}%",
+                                formatted_float_signed(
+                                    (1.0 - stealth_perception_multiplier) * 100.0,
+                                    1,
+                                )
+                            );
 
                             txt
                         },
                         CharacterStat::WeaponPower => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
-                                format!("{}   {}", m_stats.power * 10.0, o_stats.power * 10.0)
+                                format!(
+                                    "{}   {}",
+                                    formatted_float(m_stats.power * 10.0, 2),
+                                    formatted_float(o_stats.power * 10.0, 2),
+                                )
                             },
                             (Some(stats), None) | (None, Some(stats)) => {
-                                format!("{}", stats.power * 10.0)
+                                formatted_float(stats.power * 10.0, 2)
                             },
                             (None, None) => String::new(),
                         },
@@ -1332,12 +1341,12 @@ impl Widget for Diary<'_> {
                             (Some(m_stats), Some(o_stats)) => {
                                 format!(
                                     "{}   {}",
-                                    m_stats.effect_power * 10.0,
-                                    o_stats.effect_power * 10.0
+                                    formatted_float(m_stats.effect_power * 10.0, 2),
+                                    formatted_float(o_stats.effect_power * 10.0, 2),
                                 )
                             },
                             (Some(stats), None) | (None, Some(stats)) => {
-                                format!("{}", stats.effect_power * 10.0)
+                                formatted_float(stats.effect_power * 10.0, 2)
                             },
                             (None, None) => String::new(),
                         },
