@@ -11,9 +11,9 @@ mod widgets;
 use client::{Client, Join, LendJoin, World, WorldExt};
 use common::{
     cmd::ServerChatCommand,
-    comp,
-    comp::{Poise, PoiseState, inventory::item::armor::Friction},
+    comp::{self, Poise, PoiseState, inventory::item::armor::Friction},
     resources::Time,
+    uid,
 };
 use core::mem;
 use egui::{CollapsingHeader, Color32, Context, Grid, Pos2, ScrollArea, Slider, Ui, Window};
@@ -331,6 +331,7 @@ pub fn maintain_egui_inner(
         let ecs = client.state().ecs();
 
         let positions = client.state().ecs().read_storage::<comp::Pos>();
+        let uids = client.state().ecs().read_storage::<uid::Uid>();
         let client_pos = positions.get(client.entity());
 
         Window::new("ECS Entities")
@@ -421,10 +422,22 @@ pub fn maintain_egui_inner(
                                 ui.label(format!("{}", entity.id()));
 
                                 if let Some(pos) = pos {
-                                    ui.label(format!(
-                                        "{:.0},{:.0},{:.0}",
-                                        pos.0.x, pos.0.y, pos.0.z
-                                    ));
+                                    ui.horizontal(|ui| {
+                                        ui.label(format!(
+                                            "{:.0},{:.0},{:.0}",
+                                            pos.0.x, pos.0.y, pos.0.z
+                                        ));
+
+                                        if let Some(uid) = uids.get(entity)
+                                            && ui.button("GoTo").clicked()
+                                        {
+                                            // Teleports the client to this position
+                                            egui_actions.actions.push(EguiAction::ChatCommand {
+                                                cmd: ServerChatCommand::Tp,
+                                                args: vec![format!("uid@{uid}")],
+                                            })
+                                        }
+                                    });
                                 } else {
                                     ui.label("-");
                                 }
