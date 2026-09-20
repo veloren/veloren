@@ -3139,9 +3139,11 @@ impl Hud {
         let msm = ecs.read_resource::<MaterialStatManifest>();
         let time = ecs.read_resource::<Time>();
 
-        // Action text in bottom right corner
-        DynamicTutorial::new(global_state, client, &self.fonts, &self.imgs, i18n)
-            .set(self.ids.buttons, ui_widgets);
+        if global_state.settings.interface.toggle_hotkey_hints {
+            // Action text in bottom right corner
+            DynamicTutorial::new(global_state, client, &self.fonts, &self.imgs, i18n)
+                .set(self.ids.buttons, ui_widgets);
+        }
 
         // Group Window
         for event in Group::new(
