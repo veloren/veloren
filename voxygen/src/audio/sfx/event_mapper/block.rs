@@ -2,7 +2,7 @@
 /// chunk range of the player and emits ambient sfx
 use crate::{
     AudioFrontend,
-    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTag, SfxTriggerItem, SfxTriggers},
     scene::{Camera, FigureMgr, Terrain, terrain::BlocksOfInterest},
 };
 
@@ -224,6 +224,13 @@ impl EventMapper for BlockEventMapper {
                                 triggers.0.get_key_value(&sounds.sfx),
                                 temp,
                             ) {
+                                let tag = match sounds.sfx {
+                                    SfxEvent::Bees => SfxTag::Looping,
+                                    SfxEvent::RunningWaterSlow | SfxEvent::Lavapool => {
+                                        SfxTag::Ambient
+                                    },
+                                    _ => SfxTag::Blocksound,
+                                };
                                 // If the camera is within SFX distance
                                 if (block_pos.distance_squared(cam_pos)) < SFX_DIST_LIMIT_SQR {
                                     let sfx_trigger_item = triggers.0.get_key_value(&sounds.sfx);
@@ -231,6 +238,7 @@ impl EventMapper for BlockEventMapper {
                                         sfx_trigger_item,
                                         block_pos,
                                         Some(sounds.volume),
+                                        tag,
                                     );
                                 }
                                 internal_state.time = Instant::now();
