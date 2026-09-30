@@ -16,12 +16,12 @@ use kira::{
     track::{SpatialTrackHandle, TrackBuilder, TrackHandle},
 };
 use serde::Deserialize;
-use std::time::Duration;
+use std::{f32, time::Duration};
 use strum::EnumIter;
 use tracing::warn;
 use vek::*;
 
-use crate::audio;
+use crate::audio::{self, sfx::SfxTag};
 
 use super::soundcache::{AnySoundData, AnySoundHandle};
 
@@ -315,7 +315,7 @@ impl AmbienceChannel {
         if let Some(source) = self.source.as_ref() {
             source.state() == PlaybackState::Stopped
         } else {
-            false
+            true
         }
     }
 }
@@ -331,6 +331,8 @@ pub struct SfxChannel {
     source: Option<AnySoundHandle>,
     source_initial_volume: f32,
     pos: Vec3<f32>,
+    tag: Option<SfxTag>,
+    distance_sq: f32,
     // Increments every time we play a distinct sound through this channel
     pub play_counter: usize,
 }
@@ -342,6 +344,8 @@ impl SfxChannel {
             source: None,
             source_initial_volume: 0.0,
             pos: Vec3::zero(),
+            tag: None,
+            distance_sq: f32::MAX,
             play_counter: 0,
         }
     }
@@ -370,6 +374,8 @@ impl SfxChannel {
         source: AnySoundData,
         volume: f32,
         mut track: SpatialTrackHandle,
+        tag: SfxTag,
+        distance_sq: f32,
     ) -> usize {
         match track.play(source) {
             Ok(handle) => {
@@ -382,6 +388,8 @@ impl SfxChannel {
         }
         self.track = Some(track);
         self.play_counter += 1;
+        self.tag = Some(tag);
+        self.distance_sq = distance_sq;
         self.play_counter
     }
 
@@ -404,10 +412,28 @@ impl SfxChannel {
 
     pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
 
+    pub fn tag_priority(&self) -> usize {
+        if let Some(tag) = self.tag {
+            tag as usize
+        } else {
+            usize::MAX
+        }
+    }
+
+    pub fn distance_sq(&self) -> f32 { self.distance_sq }
+
     pub fn is_done(&self) -> bool {
         self.source
             .as_ref()
             .is_none_or(|source| source.state() == PlaybackState::Stopped)
+    }
+
+    pub fn is_lower_or_equal_priority_than(&self, tag: SfxTag) -> bool {
+        if let Some(channel_tag) = self.tag {
+            (tag as usize) <= (channel_tag as usize)
+        } else {
+            true
+        }
     }
 
     /// Update volume of sounds based on position of player

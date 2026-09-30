@@ -2,7 +2,7 @@
 /// emits sfx related to weapons and attacks/abilities
 use crate::{
     AudioFrontend,
-    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTriggerItem, SfxTriggers},
+    audio::sfx::{SFX_DIST_LIMIT_SQR, SfxEvent, SfxTag, SfxTriggerItem, SfxTriggers},
     scene::{Camera, FigureMgr, Terrain},
 };
 
@@ -77,7 +77,7 @@ impl EventMapper for CombatEventMapper {
                 // Check for SFX config entry for this movement
                 if Self::should_emit(sfx_state, triggers.0.get_key_value(&mapped_event)) {
                     let sfx_trigger_item = triggers.0.get_key_value(&mapped_event);
-                    audio.emit_sfx(sfx_trigger_item, pos.0, None);
+                    audio.emit_sfx(sfx_trigger_item, pos.0, None, SfxTag::Combat);
                     sfx_state.time = Instant::now();
                 }
 

@@ -27,9 +27,9 @@ use kira::{
     track::{SpatialTrackBuilder, TrackBuilder, TrackHandle},
 };
 use music::MusicTransitionManifest;
-use sfx::{SfxEvent, SfxTriggerItem};
+use sfx::{SfxEvent, SfxTag, SfxTriggerItem};
 use soundcache::load_ogg;
-use std::{collections::VecDeque, time::Duration};
+use std::{cmp::Ordering, collections::VecDeque, time::Duration};
 use strum::Display;
 use tracing::{debug, error, info, warn};
 
@@ -114,9 +114,42 @@ impl Channels {
         self.music.iter_mut().find(|c| c.get_tag() == channel_tag)
     }
 
-    /// Retrive an empty sfx channel from the list
-    fn get_empty_sfx_channel(&mut self) -> Option<(usize, &mut SfxChannel)> {
-        self.sfx.iter_mut().enumerate().find(|(_, c)| c.is_done())
+    /// Retrive a valid sfx channel from the list
+    fn get_valid_sfx_channel(
+        &mut self,
+        tag: SfxTag,
+        distance_sq: f32,
+    ) -> Option<(usize, &mut SfxChannel)> {
+        // Prioritize available channels
+        let index = if let Some(channel) = self.sfx.iter().position(|c| c.is_done()) {
+            Some(channel)
+        } else {
+            // Get the lowest available tag, and if the requested tag is higher or equal
+            // priority, and if the requested distance is closer, replace the
+            // furthest channel
+            self.sfx
+                .iter()
+                .enumerate()
+                .filter(|a| {
+                    a.1.is_lower_or_equal_priority_than(tag) && a.1.distance_sq() > distance_sq
+                })
+                .max_by(|a, b| {
+                    let tag_cmp = a.1.tag_priority().cmp(&b.1.tag_priority());
+                    if matches!(tag_cmp, Ordering::Equal) {
+                        a.1.distance_sq().total_cmp(&(b.1.distance_sq()))
+                    } else {
+                        tag_cmp
+                    }
+                })
+                .map(|channel| channel.0)
+        };
+        if let Some(index) = index {
+            Some((index, &mut self.sfx[index]))
+        } else {
+            // If all channels are filled with higher priority sfx than the requested, don't
+            // emit
+            None
+        }
     }
 
     fn get_sfx_channel(&mut self, sfx: &SfxHandle) -> Option<&mut SfxChannel> {
@@ -625,13 +658,16 @@ impl AudioFrontend {
         trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
         emitter_pos: Vec3<f32>,
         volume: Option<f32>,
+        tag: SfxTag,
     ) -> Option<SfxHandle> {
         if let Some((sfx_file, dur, subtitle)) = Self::get_sfx_file(trigger_item) {
             self.emit_subtitle(subtitle, Some(emitter_pos), dur);
             // Play sound in empty channel at given position
             if self.sfx_enabled()
+                && let distance_sq = Vec3::distance_squared(self.get_listener_pos(), emitter_pos)
                 && let Some(inner) = self.inner.as_mut()
-                && let Some((channel_idx, channel)) = inner.channels.get_empty_sfx_channel()
+                && let Some((channel_idx, channel)) =
+                    inner.channels.get_valid_sfx_channel(tag, distance_sq)
             {
                 let listener_id = inner.listener.handle.id();
                 let sound = load_ogg(sfx_file, false);
@@ -666,7 +702,7 @@ impl AudioFrontend {
                 if let Ok(track) = track {
                     Some(SfxHandle {
                         channel_idx,
-                        play_id: channel.play(source, source_volume, track),
+                        play_id: channel.play(source, source_volume, track, tag, distance_sq),
                     })
                 } else {
                     debug!("Could not add SpacialTrack to play sfx");
