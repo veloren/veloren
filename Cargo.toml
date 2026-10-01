@@ -193,7 +193,7 @@ hex = "0.4.3"
 inline_tweak = { version = "1.0.8" }
 image = { version = "0.25", default-features = false, features = ["png"] }
 itertools = { version = "0.14" }
-kiddo = "5"
+kiddo = "6"
 lazy_static = "1.4.0"
 mimalloc = "0.1"
 noise = { version = "0.9", default-features = false }
