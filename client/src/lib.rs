@@ -3,9 +3,10 @@
 
 pub mod addr;
 pub mod error;
+mod init;
 
 // Reexports
-pub use crate::error::Error;
+pub use crate::{error::Error, init::ClientInitStage};
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
@@ -81,7 +82,6 @@ use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
-use rustls::client::danger::ServerCertVerified;
 use specs::Component;
 use std::{
     collections::{BTreeMap, VecDeque},
@@ -140,22 +140,6 @@ pub enum Event {
 #[derive(Debug)]
 pub enum UserNotification {
     WaypointUpdated,
-}
-
-#[derive(Debug)]
-pub enum ClientInitStage {
-    /// A connection to the server is being created
-    ConnectionEstablish,
-    /// Waiting for server version
-    WatingForServerVersion,
-    /// We're currently authenticating with the server
-    Authentication,
-    /// Loading map data, site information, recipe information and other
-    /// initialization data
-    LoadingInitData,
-    /// Prepare data received by the server to be used by the client (insert
-    /// data into the ECS, render map)
-    StartingClient,
 }
 
 pub struct WorldData {
@@ -371,90 +355,6 @@ pub struct CharacterList {
     pub loading: bool,
 }
 
-async fn connect_quic(
-    network: &Network,
-    hostname: String,
-    override_port: Option<u16>,
-    prefer_ipv6: bool,
-    validate_tls: bool,
-) -> Result<network::Participant, crate::error::Error> {
-    let config = if validate_tls {
-        quinn::ClientConfig::try_with_platform_verifier()?
-    } else {
-        warn!(
-            "skipping validation of server identity. There is no guarantee that the server you're \
-             connected to is the one you expect to be connecting to."
-        );
-        #[derive(Debug)]
-        struct Verifier;
-        impl rustls::client::danger::ServerCertVerifier for Verifier {
-            fn verify_server_cert(
-                &self,
-                _end_entity: &rustls::pki_types::CertificateDer<'_>,
-                _intermediates: &[rustls::pki_types::CertificateDer<'_>],
-                _server_name: &rustls::pki_types::ServerName<'_>,
-                _ocsp_response: &[u8],
-                _now: rustls::pki_types::UnixTime,
-            ) -> Result<ServerCertVerified, rustls::Error> {
-                Ok(ServerCertVerified::assertion())
-            }
-
-            fn verify_tls12_signature(
-                &self,
-                _message: &[u8],
-                _cert: &rustls::pki_types::CertificateDer<'_>,
-                _dss: &rustls::DigitallySignedStruct,
-            ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
-            {
-                Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-            }
-
-            fn verify_tls13_signature(
-                &self,
-                _message: &[u8],
-                _cert: &rustls::pki_types::CertificateDer<'_>,
-                _dss: &rustls::DigitallySignedStruct,
-            ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
-            {
-                Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-            }
-
-            fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
-                vec![
-                    rustls::SignatureScheme::RSA_PKCS1_SHA1,
-                    rustls::SignatureScheme::ECDSA_SHA1_Legacy,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA256,
-                    rustls::SignatureScheme::ECDSA_NISTP256_SHA256,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA384,
-                    rustls::SignatureScheme::ECDSA_NISTP384_SHA384,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA512,
-                    rustls::SignatureScheme::ECDSA_NISTP521_SHA512,
-                    rustls::SignatureScheme::RSA_PSS_SHA256,
-                    rustls::SignatureScheme::RSA_PSS_SHA384,
-                    rustls::SignatureScheme::RSA_PSS_SHA512,
-                    rustls::SignatureScheme::ED25519,
-                    rustls::SignatureScheme::ED448,
-                ]
-            }
-        }
-
-        let mut cfg = rustls::ClientConfig::builder()
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(Verifier))
-            .with_no_client_auth();
-        cfg.enable_early_data = true;
-
-        quinn::ClientConfig::new(Arc::new(
-            quinn::crypto::rustls::QuicClientConfig::try_from(cfg).unwrap(),
-        ))
-    };
-
-    addr::try_connect(network, &hostname, override_port, prefer_ipv6, |a| {
-        ConnectAddr::Quic(a, config.clone(), hostname.clone())
-    })
-    .await
-}
-
 impl Client {
     pub async fn new(
         addr: ConnectionArgs,
@@ -560,8 +460,14 @@ impl Client {
                         let port = Some(srv_rr.port);
                         let conn_result = match conn_mode {
                             ConnMode::Quic => {
-                                connect_quic(&network, hostname, port, prefer_ipv6, validate_tls)
-                                    .await
+                                init::connect_quic(
+                                    &network,
+                                    hostname,
+                                    port,
+                                    prefer_ipv6,
+                                    validate_tls,
+                                )
+                                .await
                             },
                             ConnMode::Tcp => {
                                 addr::try_connect(
@@ -587,7 +493,7 @@ impl Client {
                         // This case is also hit if no SRV host was returned from the query, so we
                         // check for QUIC/TCP preference.
                         let c = if use_quic {
-                            connect_quic(&network, hostname, None, prefer_ipv6, validate_tls)
+                            init::connect_quic(&network, hostname, None, prefer_ipv6, validate_tls)
                                 .await?
                         } else {
                             match addr::try_connect(
@@ -623,7 +529,7 @@ impl Client {
                      TCP servers unless deactivated"
                 );
 
-                connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
+                init::connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };
