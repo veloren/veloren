@@ -13,7 +13,7 @@ use crate::{
 };
 use chrono::{DateTime, Local, Utc};
 use client::{
-    Client, ClientInitStage, Credentials, ServerInfo,
+    Client, ClientInitStage, ServerInfo,
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
 };
@@ -269,11 +269,8 @@ impl PlayState for MainMenuState {
                     }
                 },
                 Some(InitOutMsg::RequestCredentials(auth_server)) => {
-                    // TODO: here get credentials from a UI popup
-                    clientinit.provide_credentials(
-                        auth_server,
-                        Ok(Credentials::Username("xMAC94x".to_string())),
-                    );
+                    // No way of storing credentials yet, promt UI!
+                    self.main_menu_ui.credentials_prompt(auth_server.clone());
                 },
                 None => {},
             }
@@ -537,6 +534,11 @@ impl PlayState for MainMenuState {
                     self.init
                         .client()
                         .map(|init| init.auth_trust(auth_server, trust));
+                },
+                MainMenuEvent::CredentialsProvided(auth_server, credentials) => {
+                    self.init
+                        .client()
+                        .map(|init| init.provide_credentials(auth_server, credentials));
                 },
                 MainMenuEvent::DeleteServer { server_index } => {
                     let net_settings = &mut global_state.settings.networking;

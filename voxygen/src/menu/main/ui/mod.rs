@@ -1,6 +1,7 @@
 mod connecting;
 // Note: Keeping in case we re-add the disclaimer
 //mod disclaimer;
+mod credentials;
 mod credits;
 mod login;
 mod servers;
@@ -19,6 +20,7 @@ use crate::{
     },
     window,
 };
+use client::Credentials;
 use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
 //ImageFrame, Tooltip,
@@ -174,6 +176,7 @@ pub enum Event {
     // Note: Keeping in case we re-add the disclaimer
     //DisclaimerAccepted,
     AuthServerTrust(String, bool),
+    CredentialsProvided(Option<String>, Result<Credentials, ()>),
     DeleteServer {
         server_index: usize,
     },
@@ -188,6 +191,7 @@ pub struct LoginInfo {
 enum ConnectionState {
     InProgress,
     AuthTrustPrompt { auth_server: String, msg: String },
+    CredentialsPrompt { auth_server: Option<String> },
 }
 
 enum Screen {
@@ -285,6 +289,7 @@ enum Message {
     CancelConnect,
     TrustPromptAdd,
     TrustPromptCancel,
+    CredentialsSubmit,
     CloseError,
     DeleteServer,
     /* Note: Keeping in case we re-add the disclaimer
@@ -426,6 +431,7 @@ impl Controls {
                 &self.fonts,
                 &self.imgs,
                 connection_state,
+                &self.login_info,
                 init_stage,
                 self.time,
                 &self.i18n.read(),
@@ -561,11 +567,19 @@ impl Controls {
                 self.selected_server_index = Some(new_value);
                 self.login_info.server.clone_from(&servers[new_value]);
             },
-            Message::FocusPassword => {
-                if let Screen::Login { screen, .. } = &mut self.screen {
+            Message::FocusPassword => match &mut self.screen {
+                Screen::Login { screen, .. } => {
                     screen.banner.password = text_input::State::focused();
                     screen.banner.username = text_input::State::new();
-                }
+                },
+                Screen::Connecting {
+                    screen,
+                    connection_state: ConnectionState::CredentialsPrompt { auth_server, .. },
+                    ..
+                } if auth_server.is_some() => {
+                    screen.credentials.focus_password();
+                },
+                _ => {},
             },
             Message::CancelConnect => {
                 self.exit_connect_screen();
@@ -582,6 +596,32 @@ impl Controls {
 
                     *connection_state = ConnectionState::InProgress;
                     events.push(Event::AuthServerTrust(auth_server, added));
+                }
+            },
+            Message::CredentialsSubmit => {
+                if let Screen::Connecting {
+                    screen,
+                    connection_state,
+                    ..
+                } = &mut self.screen
+                    && let ConnectionState::CredentialsPrompt { auth_server, .. } = connection_state
+                {
+                    let credentials = {
+                        let username = self.login_info.username.trim().to_string();
+                        Ok(if auth_server.is_some() {
+                            Credentials::UsernamePassword(
+                                username,
+                                self.login_info.password.clone(),
+                            )
+                        } else {
+                            Credentials::Username(username)
+                        })
+                    };
+                    let auth_server = auth_server.take();
+
+                    screen.credentials = credentials::Prompt::default();
+                    *connection_state = ConnectionState::InProgress;
+                    events.push(Event::CredentialsProvided(auth_server, credentials));
                 }
             },
             Message::CloseError => {
@@ -625,13 +665,24 @@ impl Controls {
         {
             let msg = format!(
                 "Warning: The server you are trying to connect to has provided this \
-                 authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
-                 authentication servers.\n\nMake sure that you trust this site and owner to not \
-                 try and bruteforce your password!",
-                auth_server
+                 authentication server address:\n\n{auth_server}\n\nbut it is not in your list of \
+                 trusted authentication servers.\n\nMake sure that you trust this site and owner \
+                 to not try and bruteforce your password!"
             );
 
             *connection_state = ConnectionState::AuthTrustPrompt { auth_server, msg };
+        }
+    }
+
+    fn credentials_prompt(&mut self, auth_server: Option<String>) {
+        if let Screen::Connecting {
+            screen,
+            connection_state,
+            ..
+        } = &mut self.screen
+        {
+            screen.credentials.focus_username();
+            *connection_state = ConnectionState::CredentialsPrompt { auth_server };
         }
     }
 
@@ -678,6 +729,13 @@ impl Controls {
                 screen.banner.username = text_input::State::focused();
                 screen.banner.username.move_cursor_to_end();
             }
+        } else if let Screen::Connecting {
+            screen,
+            connection_state: ConnectionState::CredentialsPrompt { auth_server, .. },
+            ..
+        } = &mut self.screen
+        {
+            screen.credentials.tab(auth_server.is_some());
         }
     }
 }
@@ -742,6 +800,10 @@ impl MainMenuUi {
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {
         self.controls.auth_trust_prompt(auth_server);
+    }
+
+    pub fn credentials_prompt(&mut self, auth_server: Option<String>) {
+        self.controls.credentials_prompt(auth_server);
     }
 
     pub fn show_info(&mut self, msg: String) { self.controls.connection_error(msg); }
