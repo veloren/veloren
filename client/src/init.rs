@@ -5,7 +5,49 @@ use network::{ConnectAddr, Network};
 use rustls::client::danger::ServerCertVerified;
 use tracing::warn;
 
-use crate::addr;
+use crate::{Error, addr};
+
+#[derive(Clone)]
+pub enum Credentials {
+    UsernamePassword(String, String),
+    Username(String),
+}
+
+pub trait CredentialProvider {
+    ///provides a quick check to verify if a Auth Server is expected and
+    /// trusted This function is expected to return quickly.
+    fn auth_trusted(&self, auth_provider: &Option<String>) -> bool;
+
+    ///Called by the client once we are connected to the server and the server
+    /// is requiring us to provide Credentials.
+    /// This function is expected to trigger UI to wait for a result. So the
+    /// User might take a minute or so to log in.
+    /// Throw Error in case you want to abort login.
+    fn get_credentials(
+        &self,
+        auth_provider: &Option<String>,
+    ) -> impl std::future::Future<Output = Result<Credentials, ()>> + Send;
+}
+
+/// Use in case you already know your Auth provider Username and Password
+/// upfront.
+#[derive(Default)]
+pub struct StaticCredentialProvider {
+    pub credentials_by_auth: std::collections::HashMap<Option<String>, Credentials>,
+}
+
+impl CredentialProvider for StaticCredentialProvider {
+    fn auth_trusted(&self, auth_provider: &Option<String>) -> bool {
+        self.credentials_by_auth.contains_key(auth_provider)
+    }
+
+    async fn get_credentials(&self, auth_provider: &Option<String>) -> Result<Credentials, ()> {
+        self.credentials_by_auth
+            .get(auth_provider)
+            .cloned()
+            .ok_or(())
+    }
+}
 
 #[derive(Debug)]
 pub enum ClientInitStage {
@@ -21,6 +63,42 @@ pub enum ClientInitStage {
     /// Prepare data received by the server to be used by the client (insert
     /// data into the ECS, render map)
     StartingClient,
+}
+
+/// Use this to get the "token_or_username" which is required by a server, token
+/// if auth is used, username if it runs without auth.
+/// NOTE: only call it if you trust the auth_provider!
+pub(crate) async fn resolve_token_or_username(
+    credentials: Credentials,
+    trusted_auth_provider: &Option<String>,
+) -> Result<String, Error> {
+    match credentials {
+        Credentials::Username(username) => Ok(username),
+        Credentials::UsernamePassword(username, password) => match &trusted_auth_provider {
+            Some(addr) => {
+                let (scheme, authority) = match addr.split_once("://") {
+                    Some((s, a)) => (s, a),
+                    None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                };
+
+                let scheme = match scheme.parse::<authc::Scheme>() {
+                    Ok(s) => s,
+                    Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                };
+
+                let authority = match authority.parse::<authc::Authority>() {
+                    Ok(a) => a,
+                    Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
+                };
+
+                Ok(authc::AuthClient::new(scheme, authority)?
+                    .sign_in(username, password)
+                    .await?
+                    .serialize())
+            },
+            None => Ok(username),
+        },
+    }
 }
 
 pub(crate) async fn connect_quic(

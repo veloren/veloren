@@ -6,7 +6,10 @@ pub mod error;
 mod init;
 
 // Reexports
-pub use crate::{error::Error, init::ClientInitStage};
+pub use crate::{
+    error::Error,
+    init::{ClientInitStage, CredentialProvider, Credentials, StaticCredentialProvider},
+};
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
@@ -361,10 +364,8 @@ impl Client {
         runtime: Arc<Runtime>,
         // TODO: refactor to avoid needing to use this out parameter
         mismatched_server_info: &mut Option<ServerInfo>,
-        username: &str,
-        password: &str,
         locale: Option<String>,
-        auth_trusted: impl FnMut(&str) -> bool,
+        credential_provider: Box<impl CredentialProvider>,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
         #[cfg_attr(not(feature = "plugins"), expect(unused_variables))] config_dir: PathBuf,
@@ -563,12 +564,11 @@ impl Client {
         init_stage_update(ClientInitStage::Authentication);
         // Register client
         Self::register(
-            username,
-            password,
+            credential_provider,
             locale,
-            auth_trusted,
             &server_info,
             &mut register_stream,
+            &ping_stream,
         )
         .await?;
 
@@ -1040,46 +1040,48 @@ impl Client {
 
     /// Request a state transition to `ClientState::Registered`.
     async fn register(
-        username: &str,
-        password: &str,
+        credential_provider: Box<impl CredentialProvider>,
         locale: Option<String>,
-        mut auth_trusted: impl FnMut(&str) -> bool,
         server_info: &ServerInfo,
         register_stream: &mut Stream,
+        ping_stream: &Stream,
     ) -> Result<(), Error> {
-        // Authentication
-        let token_or_username = match &server_info.auth_provider {
-            Some(addr) => {
-                // Query whether this is a trusted auth server
-                if auth_trusted(addr) {
-                    let (scheme, authority) = match addr.split_once("://") {
-                        Some((s, a)) => (s, a),
-                        None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
+        // quick sanitation check if auth is trusted
+        if !credential_provider.auth_trusted(&server_info.auth_provider) {
+            return Err(Error::AuthServerNotTrusted);
+        }
 
-                    let scheme = match scheme.parse::<authc::Scheme>() {
-                        Ok(s) => s,
-                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
+        // fetching credentials from frontend, this might involve UI and take some time.
+        debug!("query frontend for credentials...");
+        let ping_timer = tokio::time::interval(Duration::from_secs(2));
+        let timeout = tokio::time::sleep(Duration::from_secs(300));
+        let credential_future = credential_provider.get_credentials(&server_info.auth_provider);
+        tokio::pin!(ping_timer);
+        tokio::pin!(timeout);
+        tokio::pin!(credential_future);
 
-                    let authority = match authority.parse::<authc::Authority>() {
-                        Ok(a) => a,
-                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
-
-                    Ok(authc::AuthClient::new(scheme, authority)?
-                        .sign_in(username, password)
-                        .await?
-                        .serialize())
-                } else {
-                    Err(Error::AuthServerNotTrusted)
+        let crendetials = loop {
+            tokio::select! {
+                crendetials = &mut credential_future => {
+                    // If client didn't send any credentials, dont trust Auth Server
+                    break crendetials.map_err(|_| Error::AuthServerNotTrusted);
                 }
-            },
-            None => Ok(username.to_owned()),
+
+                _ = ping_timer.tick() => {
+                    ping_stream.send(PingMsg::Ping)?;
+                }
+
+                _ = &mut timeout => {
+                    break Err(Error::ServerTimeout);
+                }
+            }
         }?;
 
-        debug!("Registering client...");
+        debug!("resolving token_or_username...");
+        let token_or_username =
+            init::resolve_token_or_username(crendetials, &server_info.auth_provider).await?;
 
+        debug!("Registering client...");
         register_stream.send(ClientRegister {
             token_or_username,
             locale,

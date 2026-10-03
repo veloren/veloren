@@ -1,5 +1,5 @@
 use client::{
-    Client, ClientInitStage, ServerInfo,
+    Client, ClientInitStage, Credentials, ServerInfo, StaticCredentialProvider,
     addr::ConnectionArgs,
     error::{Error as ClientError, NetworkConnectError, NetworkError},
 };
@@ -80,14 +80,22 @@ impl ClientInit {
                     break;
                 }
                 let mut mismatched_server_info = None;
+
+                // TODO: this is a ugly hack that should not be merged at this state:
+                let credential_provider = Box::new(StaticCredentialProvider {
+                    credentials_by_auth: [(
+                        Some("https://auth.veloren.net".to_string()),
+                        Credentials::UsernamePassword(username.clone(), password.clone()),
+                    )]
+                    .into(),
+                });
+
                 match Client::new(
                     connection_args.clone(),
                     Arc::clone(&runtime2),
                     &mut mismatched_server_info,
-                    &username,
-                    &password,
                     locale.clone(),
-                    trust_fn,
+                    credential_provider,
                     &|stage| {
                         let _ = init_stage_tx.send(stage);
                     },
