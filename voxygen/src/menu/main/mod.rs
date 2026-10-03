@@ -13,11 +13,11 @@ use crate::{
 };
 use chrono::{DateTime, Local, Utc};
 use client::{
-    Client, ClientInitStage, ServerInfo,
+    Client, ClientInitStage, Credentials, ServerInfo,
     addr::ConnectionArgs,
     error::{InitProtocolError, NetworkConnectError, NetworkError},
 };
-use client_init::{ClientInit, Error as InitError, Msg as InitMsg};
+use client_init::{ClientInit, Error as InitError, InitOutMsg};
 use common::{comp, event::UpdateCharacterMetadata};
 use common_base::span;
 use common_net::msg::ClientType;
@@ -127,7 +127,6 @@ impl PlayState for MainMenuState {
                         attempt_login(
                             &mut global_state.info_message,
                             "singleplayer".to_owned(),
-                            "".to_owned(),
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
@@ -221,55 +220,63 @@ impl PlayState for MainMenuState {
         }
 
         // Poll client creation.
-        match self.init.client().and_then(|init| init.poll()) {
-            Some(InitMsg::Done(Ok(mut client))) => {
-                // load local plugins needed by the server
-                #[cfg(feature = "plugins")]
-                for path in client.take_local_plugins().drain(..) {
-                    if let Err(e) = client
-                        .state_mut()
-                        .ecs_mut()
-                        .write_resource::<PluginMgr>()
-                        .load_server_plugin(path)
-                    {
-                        tracing::error!(?e, "load local plugin");
+        if let Some(clientinit) = self.init.client() {
+            match clientinit.poll() {
+                Some(InitOutMsg::Done(Ok(mut client))) => {
+                    // load local plugins needed by the server
+                    #[cfg(feature = "plugins")]
+                    for path in client.take_local_plugins().drain(..) {
+                        if let Err(e) = client
+                            .state_mut()
+                            .ecs_mut()
+                            .write_resource::<PluginMgr>()
+                            .load_server_plugin(path)
+                        {
+                            tracing::error!(?e, "load local plugin");
+                        }
                     }
-                }
-                // Register voxygen components / resources
-                crate::ecs::init(client.state_mut().ecs_mut());
-                self.init =
-                    InitState::Pipeline(Box::new(client), hud::PersistedHudState::default());
-            },
-            Some(InitMsg::Done(Err(e))) => {
-                self.init = InitState::None;
-                error!(?e, "Client Init failed raw error");
-                let e = get_client_init_msg_error(e, &global_state.i18n);
-                // Log error for possible additional use later or in case that the error
-                // displayed is cut of.
-                error!(?e, "Client Init failed");
-                global_state.info_message = Some(
-                    localized_strings
-                        .get_msg_ctx("main-login-client_init_failed", &i18n::fluent_args! {
-                            "init_fail_reason" => e
-                        })
-                        .into_owned(),
-                );
-            },
-            Some(InitMsg::IsAuthTrusted(auth_server)) => {
-                if global_state
-                    .settings
-                    .networking
-                    .trusted_auth_servers
-                    .contains(&auth_server)
-                {
-                    // Can't fail since we just polled it, it must be Some
-                    self.init.client().unwrap().auth_trust(auth_server, true);
-                } else {
-                    // Show warning that auth server is not trusted and prompt for approval
-                    self.main_menu_ui.auth_trust_prompt(auth_server);
-                }
-            },
-            None => {},
+                    // Register voxygen components / resources
+                    crate::ecs::init(client.state_mut().ecs_mut());
+                    self.init =
+                        InitState::Pipeline(Box::new(client), hud::PersistedHudState::default());
+                },
+                Some(InitOutMsg::Done(Err(e))) => {
+                    self.init = InitState::None;
+                    error!(?e, "Client Init failed raw error");
+                    let e = get_client_init_msg_error(e, &global_state.i18n);
+                    // Log error for possible additional use later or in case that the error
+                    // displayed is cut of.
+                    error!(?e, "Client Init failed");
+                    global_state.info_message = Some(
+                        localized_strings
+                            .get_msg_ctx("main-login-client_init_failed", &i18n::fluent_args! {
+                                "init_fail_reason" => e
+                            })
+                            .into_owned(),
+                    );
+                },
+                Some(InitOutMsg::IsAuthTrusted(auth_server)) => {
+                    if global_state
+                        .settings
+                        .networking
+                        .trusted_auth_servers
+                        .contains(&auth_server)
+                    {
+                        clientinit.auth_trust(auth_server, true);
+                    } else {
+                        // Show warning that auth server is not trusted and prompt for approval
+                        self.main_menu_ui.auth_trust_prompt(auth_server);
+                    }
+                },
+                Some(InitOutMsg::RequestCredentials(auth_server)) => {
+                    // TODO: here get credentials from a UI popup
+                    clientinit.provide_credentials(
+                        auth_server,
+                        Ok(Credentials::Username("xMAC94x".to_string())),
+                    );
+                },
+                None => {},
+            }
         }
 
         // Tick the client to keep the connection alive if we are waiting on pipelines
@@ -446,7 +453,6 @@ impl PlayState for MainMenuState {
                     attempt_login(
                         &mut global_state.info_message,
                         username,
-                        password,
                         connection_args,
                         &mut self.init,
                         &global_state.tokio_runtime,
@@ -719,7 +725,6 @@ fn get_client_init_msg_error(
 fn attempt_login(
     info_message: &mut Option<String>,
     username: String,
-    password: String,
     connection_args: ConnectionArgs,
     init: &mut InitState,
     runtime: &Arc<runtime::Runtime>,
@@ -755,8 +760,6 @@ fn attempt_login(
     if let InitState::None = init {
         *init = InitState::Client(ClientInit::new(
             connection_args,
-            username,
-            password,
             Arc::clone(runtime),
             locale,
             config_dir,

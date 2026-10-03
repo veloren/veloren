@@ -365,7 +365,7 @@ impl Client {
         // TODO: refactor to avoid needing to use this out parameter
         mismatched_server_info: &mut Option<ServerInfo>,
         locale: Option<String>,
-        credential_provider: Box<impl CredentialProvider>,
+        credential_provider: &impl CredentialProvider,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
         #[cfg_attr(not(feature = "plugins"), expect(unused_variables))] config_dir: PathBuf,
@@ -1040,7 +1040,7 @@ impl Client {
 
     /// Request a state transition to `ClientState::Registered`.
     async fn register(
-        credential_provider: Box<impl CredentialProvider>,
+        credential_provider: &impl CredentialProvider,
         locale: Option<String>,
         server_info: &ServerInfo,
         register_stream: &mut Stream,
