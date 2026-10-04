@@ -1,4 +1,4 @@
-use super::{FILL_FRAC_ONE, FILL_FRAC_TWO, Imgs, LoginInfo, Message, Showing};
+use super::{FILL_FRAC_ONE, FILL_FRAC_TWO, Imgs, Message, Showing};
 use crate::ui::{
     fonts::IcedFonts as Fonts,
     ice::{
@@ -43,7 +43,7 @@ impl Screen {
         fonts: &Fonts,
         imgs: &Imgs,
         server_field_locked: bool,
-        login_info: &LoginInfo,
+        server_address: &str,
         error: Option<&str>,
         i18n: &Localization,
         show: &Showing,
@@ -163,7 +163,7 @@ impl Screen {
                     fonts,
                     imgs,
                     server_field_locked,
-                    login_info,
+                    server_address,
                     i18n,
                     button_style,
                 ),
@@ -321,8 +321,6 @@ impl LanguageSelectBanner {
 
 #[derive(Default)]
 pub struct LoginBanner {
-    pub username: text_input::State,
-    pub password: text_input::State,
     pub server: text_input::State,
 
     multiplayer_button: button::State,
@@ -338,7 +336,7 @@ impl LoginBanner {
         fonts: &Fonts,
         imgs: &Imgs,
         server_field_locked: bool,
-        login_info: &LoginInfo,
+        server_address: &str,
         i18n: &Localization,
         button_style: style::button::Style,
     ) -> Element<'_, Message> {
@@ -365,7 +363,7 @@ impl LoginBanner {
             };
 
             Row::with_children(vec![
-                Text::new(&login_info.server)
+                Text::new(server_address)
                     .size(input_text_size)
                     .width(Length::Fill)
                     .height(Length::Shrink)
@@ -379,7 +377,7 @@ impl LoginBanner {
             TextInput::new(
                 &mut self.server,
                 &i18n.get_msg("main-server"),
-                &login_info.server,
+                server_address,
                 Message::Server,
             )
             .size(input_text_size)
@@ -389,37 +387,6 @@ impl LoginBanner {
 
         let banner_content = Column::with_children(vec![
             Column::with_children(vec![
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(INPUT_WIDTH))
-                        .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.username,
-                        &i18n.get_msg("main-username"),
-                        &login_info.username,
-                        Message::Username,
-                    )
-                    .size(input_text_size)
-                    .on_submit(Message::FocusPassword),
-                )
-                .padding(Padding::new().horizontal(7).top(5))
-                .into(),
-                BackgroundContainer::new(
-                    Image::new(imgs.input_bg)
-                        .width(Length::Units(INPUT_WIDTH))
-                        .fix_aspect_ratio(),
-                    TextInput::new(
-                        &mut self.password,
-                        &i18n.get_msg("main-password"),
-                        &login_info.password,
-                        Message::Password,
-                    )
-                    .size(input_text_size)
-                    .password()
-                    .on_submit(Message::Multiplayer),
-                )
-                .padding(Padding::new().horizontal(7).top(5))
-                .into(),
                 BackgroundContainer::new(
                     Image::new(imgs.input_bg)
                         .width(Length::Units(INPUT_WIDTH))

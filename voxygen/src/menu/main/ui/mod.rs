@@ -405,7 +405,7 @@ impl Controls {
                 &self.fonts,
                 &self.imgs,
                 self.server_field_locked,
-                &self.login_info,
+                &self.login_info.server,
                 error.as_deref(),
                 &self.i18n.read(),
                 &self.show,
@@ -573,19 +573,16 @@ impl Controls {
                 self.selected_server_index = Some(new_value);
                 self.login_info.server.clone_from(&servers[new_value]);
             },
-            Message::FocusPassword => match &mut self.screen {
-                Screen::Login { screen, .. } => {
-                    screen.banner.password = text_input::State::focused();
-                    screen.banner.username = text_input::State::new();
-                },
-                Screen::Connecting {
+            Message::FocusPassword => {
+                if let Screen::Connecting {
                     screen,
                     connection_state: ConnectionState::CredentialsPrompt { auth_server, .. },
                     ..
-                } if auth_server.is_some() => {
+                } = &mut self.screen
+                    && auth_server.is_some()
+                {
                     screen.credentials.focus_password();
-                },
-                _ => {},
+                }
             },
             Message::CancelConnect => {
                 self.exit_connect_screen();
@@ -721,26 +718,9 @@ impl Controls {
     fn tab(&mut self) {
         if let Screen::Login { screen, .. } = &mut self.screen {
             // TODO: add select all function in iced
-            if screen.banner.username.is_focused() {
-                screen.banner.username = text_input::State::new();
-                screen.banner.password = text_input::State::focused();
-                screen.banner.password.move_cursor_to_end();
-            } else if screen.banner.password.is_focused() {
-                screen.banner.password = text_input::State::new();
-                // Skip focusing server field if it isn't editable!
-                if self.server_field_locked {
-                    screen.banner.username = text_input::State::focused();
-                } else {
-                    screen.banner.server = text_input::State::focused();
-                }
+            if !self.server_field_locked {
+                screen.banner.server = text_input::State::focused();
                 screen.banner.server.move_cursor_to_end();
-            } else if screen.banner.server.is_focused() {
-                screen.banner.server = text_input::State::new();
-                screen.banner.username = text_input::State::focused();
-                screen.banner.username.move_cursor_to_end();
-            } else {
-                screen.banner.username = text_input::State::focused();
-                screen.banner.username.move_cursor_to_end();
             }
         } else if let Screen::Connecting {
             screen,
