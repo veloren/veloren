@@ -20,7 +20,7 @@ pub use self::{
 use airship::AirshipSim;
 use architect::Architect;
 use common::{resources::TimeOfDay, rtsim::ActorId};
-use enum_map::{EnumArray, EnumMap, enum_map};
+use enum_map::{Enum, EnumMap, enum_map};
 use serde::{Deserialize, Serialize, de, ser};
 use std::{
     cmp::PartialEq,
@@ -120,7 +120,7 @@ impl Data {
 }
 
 fn rugged_ser_enum_map<
-    K: EnumArray<V> + Serialize,
+    K: Enum + Serialize,
     V: From<i16> + PartialEq + Serialize,
     S: ser::Serializer,
     const DEFAULT: i16,
@@ -133,7 +133,7 @@ fn rugged_ser_enum_map<
 
 fn rugged_de_enum_map<
     'a,
-    K: EnumArray<V> + EnumArray<Option<V>> + Deserialize<'a>,
+    K: Enum + Deserialize<'a>,
     V: From<i16> + Deserialize<'a>,
     D: de::Deserializer<'a>,
     const DEFAULT: i16,
@@ -144,7 +144,7 @@ fn rugged_de_enum_map<
 
     impl<'de, K, V, const DEFAULT: i16> de::Visitor<'de> for Visitor<K, V, DEFAULT>
     where
-        K: EnumArray<V> + EnumArray<Option<V>> + Deserialize<'de>,
+        K: Enum + Deserialize<'de>,
         V: From<i16> + Deserialize<'de>,
     {
         type Value = EnumMap<K, V>;
