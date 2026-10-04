@@ -9,7 +9,7 @@ use common::{
     generation::{ChunkSupplement, EntityInfo, EntitySpawn},
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
-use kiddo::{SquaredEuclidean, float::kdtree::KdTree};
+use kiddo::{Eytzinger, KdTree, SquaredEuclidean, VecOfArrays};
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::collections::HashMap;
@@ -2101,7 +2101,8 @@ impl Tunnels {
         // HashMap<ChildNode, ParentNode>
         let mut parents = HashMap::new();
 
-        let mut kdtree: KdTree<f32, usize, 3, 32, u32> = KdTree::with_capacity(MAX_POINTS);
+        let mut kdtree: KdTree<f32, usize, Eytzinger, VecOfArrays<f32, usize, 3, 32>, 3, 32> =
+            KdTree::default();
         let startf = start.map(|a| (a + 1) as f32);
         let endf = end.map(|a| (a + 1) as f32);
 
@@ -2116,7 +2117,9 @@ impl Tunnels {
             startf.z.max(endf.z),
         );
 
-        kdtree.add(&[startf.x, startf.y, startf.z], node_index);
+        kdtree
+            .add(&[startf.x, startf.y, startf.z], node_index)
+            .ok()?;
         nodes.push(startf);
         node_index += 1;
         let mut connect = false;
@@ -2133,11 +2136,9 @@ impl Tunnels {
                 rng.random_range(min.z - 20.0..max.z - 7.0),
             );
             let nearest_index = kdtree
-                .nearest_one::<SquaredEuclidean>(&[
-                    sampled_point.x,
-                    sampled_point.y,
-                    sampled_point.z,
-                ])
+                .query(&[sampled_point.x, sampled_point.y, sampled_point.z])
+                .nearest_one::<SquaredEuclidean<f32>>()
+                .execute()
                 .item;
             let nearest = nodes[nearest_index];
             let dist_sqrd = sampled_point.distance_squared(nearest);
@@ -2150,7 +2151,9 @@ impl Tunnels {
                 nearest.map(|e| e.floor() as i32),
                 new_point.map(|e| e.floor() as i32),
             ) {
-                kdtree.add(&[new_point.x, new_point.y, new_point.z], node_index);
+                kdtree
+                    .add(&[new_point.x, new_point.y, new_point.z], node_index)
+                    .ok()?;
                 nodes.push(new_point);
                 parents.insert(node_index, nearest_index);
                 node_index += 1;
@@ -2162,9 +2165,11 @@ impl Tunnels {
 
         let mut path = Vec::new();
         let nearest_index = kdtree
-            .nearest_one::<SquaredEuclidean>(&[endf.x, endf.y, endf.z])
+            .query(&[endf.x, endf.y, endf.z])
+            .nearest_one::<SquaredEuclidean<f32>>()
+            .execute()
             .item;
-        kdtree.add(&[endf.x, endf.y, endf.z], node_index);
+        kdtree.add(&[endf.x, endf.y, endf.z], node_index).ok()?;
         nodes.push(endf);
         parents.insert(node_index, nearest_index);
         path.push(endf);

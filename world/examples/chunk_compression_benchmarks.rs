@@ -514,9 +514,14 @@ impl VoxelImageEncoding for MixedEncodingDenseSprites {
     }
 }
 
-use fixed::types::U32F0;
-use kiddo::fixed::{distance::SquaredEuclidean, kdtree::KdTree};
+use fixed::types::I32F0;
+use kiddo::{Eytzinger, KdTree, SquaredEuclidean, VecOfArrays};
 use rstar::{PointDistance, RTree, RTreeObject, RTreeParams};
+
+// TODO: evaluate `type PaletteKdTree = KdTree<u8, u16, Eytzinger,
+// VecOfArrays<u8, u16, 3, 32>, 3, 32>`. u8 coordinates with f32 distances might
+// reduce memory
+type PaletteKdTree = KdTree<I32F0, u16, Eytzinger, VecOfArrays<I32F0, u16, 3, 32>, 3, 32>;
 
 #[derive(Debug)]
 struct ColorPoint {
@@ -570,16 +575,17 @@ lazy_static::lazy_static! {
             })
             .collect()
     };
-    pub static ref PALETTE_KDTREE: HashMap<BlockKind, KdTree<U32F0, u16, 3, 32, u32>> = {
+    pub static ref PALETTE_KDTREE: HashMap<BlockKind, PaletteKdTree> = {
         let ron_bytes = include_bytes!("palettes.ron");
         let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> =
             ron::de::from_bytes(ron_bytes).expect("palette should parse");
         palettes
             .into_iter()
             .map(|(k, v)| {
-                let mut tree: KdTree<U32F0, u16, 3, 32, u32> = KdTree::new();
+                let mut tree = PaletteKdTree::default();
                 for (i, rgb) in v.into_iter().enumerate() {
-                    tree.add(&[U32F0::from(rgb.r), U32F0::from(rgb.g), U32F0::from(rgb.b)], i as u16);
+                    tree.add(&[I32F0::from(rgb.r), I32F0::from(rgb.g), I32F0::from(rgb.b)], i as u16)
+                        .expect("palette color should fit in the tree");
                 }
                 (k, tree)
             })
@@ -591,17 +597,15 @@ pub trait NearestNeighbor {
     fn nearest_neighbor(&self, x: &Rgb<u8>) -> Option<u8>;
 }
 
-impl NearestNeighbor for KdTree<U32F0, u16, 3, 32, u32> {
+impl NearestNeighbor for PaletteKdTree {
     fn nearest_neighbor(&self, x: &Rgb<u8>) -> Option<u8> {
         Some(
-            self.nearest_one::<SquaredEuclidean>(&[
-                U32F0::from(x.r),
-                U32F0::from(x.g),
-                U32F0::from(x.b),
-            ])
-            .item
-            .try_into()
-            .unwrap(),
+            self.query(&[I32F0::from(x.r), I32F0::from(x.g), I32F0::from(x.b)])
+                .nearest_one::<SquaredEuclidean<I32F0>>()
+                .execute()
+                .item
+                .try_into()
+                .unwrap(),
         )
     }
 }

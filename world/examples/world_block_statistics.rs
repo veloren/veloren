@@ -6,12 +6,9 @@ use common::{
 use fallible_iterator::FallibleIterator;
 use fixed::{
     FixedU8,
-    types::{U8F0, U32F0, extra::U0},
+    types::{I32F0, U8F0, extra::U0},
 };
-use kiddo::{
-    fixed::{distance::SquaredEuclidean, kdtree::KdTree},
-    nearest_neighbour::NearestNeighbour,
-};
+use kiddo::{Eytzinger, KdTree, QueryResultItem, SquaredEuclidean, VecOfArrays};
 use num_traits::identities::{One, Zero};
 use rayon::{
     ThreadPoolBuilder,
@@ -38,6 +35,12 @@ use veloren_world::{
 
 #[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq /* , Serialize, Deserialize */)]
 struct KiddoRgb(Rgb<U8F0>);
+
+// TODO: evaluate `type ColorKdTree = KdTree<u8, u16, Eytzinger,
+// VecOfArrays<u8, u16, 3, 32>, 3, 32>`. u8 coordinates with f32 distances might
+// reduce memory
+type ColorKdTree<const T: usize> =
+    KdTree<I32F0, KiddoRgb, Eytzinger, VecOfArrays<I32F0, KiddoRgb, 3, T>, 3, T>;
 
 impl PartialOrd for KiddoRgb {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
@@ -180,17 +183,17 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 world.generate_chunk(index.as_index_ref(), Vec2::new(x, y), None, || false, None)
             {
                 let end_time = SystemTime::now();
-                // TODO: The KiddoRgb wrapper type is necessary to satisfy trait bounds.
-                // We store the colors twice currently, once as coordinates and another time
-                // as Content. Kiddo version 6.x is supposed to add the ability to have
-                // Content be (), which would be useful here. Once that's added, do that.
+                // TODO: We store the colors twice currently, once as coordinates and another
+                // time as Content. Kiddo version 6.x adds the ability to have
+                // Content be (), which would be useful here. Do that.
+                // I32F0 can represent all squared RGB distances without overflow.
                 // TODO: dist_sq is the same type as the coordinates, and since squared
                 // euclidean distances between colors go way higher than 255,
                 // we're using a U32F0 here instead of the optimal U8F0 (A U16F0
                 // works too, but it could theoretically still overflow so U32F0
                 // is used to be safe). Kiddo version 6.x will change this — once that
                 // releases, replace U32F0 with U8F0.
-                let mut block_colors: KdTree<U32F0, KiddoRgb, 3, 32, u32> = KdTree::new();
+                let mut block_colors = ColorKdTree::<32>::default();
                 let mut block_counts = HashMap::new();
                 let mut sprite_counts = HashMap::new();
                 let lo = Vec3::new(0, 0, chunk.get_min_z());
@@ -199,15 +202,21 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 for (_, block) in chunk.vol_iter(lo, hi) {
                     let mut rgb =
                         KiddoRgb::from(block.get_color().unwrap_or_else(|| Rgb::new(0, 0, 0)));
-                    let color: [U32F0; 3] = [rgb.0.r.into(), rgb.0.g.into(), rgb.0.b.into()];
-                    let NearestNeighbour {
+                    let color: [I32F0; 3] = [rgb.0.r.into(), rgb.0.g.into(), rgb.0.b.into()];
+                    let QueryResultItem {
                         distance: dist_sq,
                         item: nearest,
-                    } = block_colors.nearest_one::<SquaredEuclidean>(&color);
-                    if dist_sq < 5_u32.pow(2) {
+                        ..
+                    } = block_colors
+                        .query(&color)
+                        .nearest_one::<SquaredEuclidean<I32F0>>()
+                        .execute();
+                    if dist_sq < 5_i32.pow(2) {
                         rgb = nearest;
                     } else {
-                        block_colors.add(&color, rgb);
+                        block_colors
+                            .add(&color, rgb)
+                            .expect("block color should fit in the tree");
                     }
                     *block_counts.entry((block.kind(), rgb)).or_insert(0) += 1;
                     if let Some(sprite) = block.get_sprite() {
@@ -303,22 +312,20 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
             continue;
         }
         let mut radius = 1024.0;
-        let mut tree: KdTree<U32F0, KiddoRgb, 3, 256, u32> = KdTree::new();
+        let mut tree = ColorKdTree::<256>::default();
         while palette.len() < 256 {
             if let Some((color, _)) = colors.iter().find(|(color, _)| {
-                tree.nearest_one::<SquaredEuclidean>(&[
-                    color.0.r.into(),
-                    color.0.g.into(),
-                    color.0.b.into(),
-                ])
-                .distance
+                tree.query(&[color.0.r.into(), color.0.g.into(), color.0.b.into()])
+                    .nearest_one::<SquaredEuclidean<I32F0>>()
+                    .execute()
+                    .distance
                     > radius
             }) {
                 palette.push(*color);
                 tree.add(
                     &[color.0.r.into(), color.0.g.into(), color.0.b.into()],
                     *color,
-                );
+                )?;
                 println!("{:?}, {:?}: {:?}", kind, radius, *color);
             } else {
                 radius -= 1.0;
