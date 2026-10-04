@@ -125,15 +125,12 @@ impl PlayState for MainMenuState {
                     Ok(Ok(())) => {
                         // Attempt login after the server is finished initializing
                         attempt_login(
-                            &mut global_state.info_message,
-                            "singleplayer".to_owned(),
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
                             global_state.settings.language.send_to_server.then_some(
                                 global_state.settings.language.selected_language.clone(),
                             ),
-                            &global_state.i18n,
                             &global_state.config_dir,
                             global_state.args.client_type.0,
                         );
@@ -409,16 +406,12 @@ impl PlayState for MainMenuState {
             .maintain(global_state, global_state.clock.real_dt())
         {
             match event {
-                MainMenuEvent::LoginAttempt {
-                    username,
-                    password,
-                    server_address,
-                } => {
+                MainMenuEvent::LoginAttempt { server_address } => {
                     let net_settings = &mut global_state.settings.networking;
                     let use_srv = net_settings.use_srv;
                     let use_quic = net_settings.use_quic;
                     let validate_tls = net_settings.validate_tls;
-                    net_settings.username.clone_from(&username);
+
                     net_settings.default_server.clone_from(&server_address);
                     if !server_address.is_empty() && !net_settings.servers.contains(&server_address)
                     {
@@ -448,8 +441,6 @@ impl PlayState for MainMenuState {
                         }
                     };
                     attempt_login(
-                        &mut global_state.info_message,
-                        username,
                         connection_args,
                         &mut self.init,
                         &global_state.tokio_runtime,
@@ -458,7 +449,6 @@ impl PlayState for MainMenuState {
                             .language
                             .send_to_server
                             .then_some(global_state.settings.language.selected_language.clone()),
-                        &global_state.i18n,
                         &global_state.config_dir,
                         global_state.args.client_type.0,
                     );
@@ -536,6 +526,21 @@ impl PlayState for MainMenuState {
                         .map(|init| init.auth_trust(auth_server, trust));
                 },
                 MainMenuEvent::CredentialsProvided(auth_server, credentials) => {
+                    // Once we provided Credentials, store the Server settings
+                    // and username
+                    let net_settings = &mut global_state.settings.networking;
+
+                    let _ = credentials.as_ref().map(|credentials| {
+                        let username = match credentials {
+                            client::Credentials::Username(username) => username,
+                            client::Credentials::UsernamePassword(username, _) => username,
+                        };
+                        net_settings.username.clone_from(username);
+                    });
+                    global_state
+                        .settings
+                        .save_to_file_warn(&global_state.config_dir);
+
                     self.init
                         .client()
                         .map(|init| init.provide_credentials(auth_server, credentials));
@@ -627,6 +632,9 @@ pub(crate) fn get_client_msg_error(
         Error::TooManyPlayers => localization.get_msg("main-login-server_full").into(),
         Error::AuthServerNotTrusted => localization
             .get_msg("main-login-untrusted_auth_server")
+            .into(),
+        Error::CredentialsNotProvided => localization
+            .get_msg("main-login-credentials_not_provided")
             .into(),
         Error::ServerTimeout => localization.get_msg("main-login-timeout").into(),
         Error::ServerShutdown => localization.get_msg("main-login-server_shut_down").into(),
@@ -725,39 +733,13 @@ fn get_client_init_msg_error(
 }
 
 fn attempt_login(
-    info_message: &mut Option<String>,
-    username: String,
     connection_args: ConnectionArgs,
     init: &mut InitState,
     runtime: &Arc<runtime::Runtime>,
     locale: Option<String>,
-    localized_strings: &LocalizationHandle,
     config_dir: &Path,
     client_type: ClientType,
 ) {
-    let localization = localized_strings.read();
-    if let Err(err) = comp::Player::alias_validate(&username) {
-        match err {
-            comp::AliasError::ForbiddenCharacters => {
-                *info_message = Some(
-                    localization
-                        .get_msg("main-login-username_bad_characters")
-                        .into_owned(),
-                );
-            },
-            comp::AliasError::TooLong => {
-                *info_message = Some(
-                    localization
-                        .get_msg_ctx("main-login-username_too_long", &i18n::fluent_args! {
-                            "max_len" => comp::MAX_ALIAS_LEN
-                        })
-                        .into_owned(),
-                );
-            },
-        }
-        return;
-    }
-
     // Don't try to connect if there is already a connection in progress.
     if let InitState::None = init {
         *init = InitState::Client(ClientInit::new(

@@ -1063,8 +1063,7 @@ impl Client {
         let crendetials = loop {
             tokio::select! {
                 crendetials = &mut credential_future => {
-                    // If client didn't send any credentials, dont trust Auth Server
-                    break crendetials.map_err(|_| Error::AuthServerNotTrusted);
+                    break crendetials.map_err(|_| Error::CredentialsNotProvided);
                 }
 
                 _ = ping_timer.tick() => {

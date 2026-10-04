@@ -56,6 +56,7 @@ main-login-failed_auth_server_url_invalid = Failed to connect to authentication 
 main-login-insecure_auth_scheme = The HTTP authentication scheme is not supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds.
 main-login-server_full = Server is full.
 main-login-untrusted_auth_server = Authentication server not trusted.
+main-login-credentials_not_provided = No Credentials Entered.
 main-login-timeout = Timeout: Server did not respond in time. Hint: the server might be currently overloaded or there are issues on the network.
 main-login-server_shut_down = Server shut down.
 main-login-network_error = Network error.

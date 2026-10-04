@@ -16,6 +16,7 @@ const INPUT_TEXT_SIZE: u16 = 20;
 /// Credential prompt for the connecting screen
 #[derive(Default)]
 pub struct Prompt {
+    pub(super) error: Option<String>,
     submit_button: button::State,
     username: text_input::State,
     password: text_input::State,
@@ -103,17 +104,26 @@ impl Prompt {
 
         let submit = Container::new(submit).width(Length::Fill).center_x();
 
-        let content = Column::with_children(vec![
-            title_text.into(),
-            msg_text.into(),
+        let mut children = vec![title_text.into(), msg_text.into()];
+        if let Some(error) = self.error.as_deref() {
+            children.push(
+                Text::new(error)
+                    .color(iced::Color::from_rgb(1.0, 0.7, 0.3))
+                    .size(fonts.cyri.scale(15))
+                    .into(),
+            );
+        }
+        children.extend([
             Space::new(Length::Shrink, Length::Units(16)).into(),
             inputs.into(),
             submit.into(),
-        ])
-        .spacing(4)
-        .max_width(320)
-        .width(Length::Fill)
-        .height(Length::Shrink);
+        ]);
+
+        let content = Column::with_children(children)
+            .spacing(4)
+            .max_width(320)
+            .width(Length::Fill)
+            .height(Length::Shrink);
 
         let prompt_window = Container::new(content)
             .style(

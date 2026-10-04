@@ -38,6 +38,7 @@ pub struct AuthResponseMsg(String, bool);
 pub struct CredentialsResponseMsg(Option<String>, Result<Credentials, ()>);
 
 struct UiCredentialProvider {
+    singleplayer: bool,
     request_tx: Sender<InitOutMsg>,
     auth_response_rx: Receiver<AuthResponseMsg>,
     credentials_response_rx: Receiver<CredentialsResponseMsg>,
@@ -61,6 +62,10 @@ impl CredentialProvider for UiCredentialProvider {
     }
 
     async fn get_credentials(&self, auth_provider: &Option<String>) -> Result<Credentials, ()> {
+        if self.singleplayer {
+            return Ok(Credentials::Username("singleplayer".to_string()));
+        }
+
         let _ = self
             .request_tx
             .send(InitOutMsg::RequestCredentials(auth_provider.clone()));
@@ -104,6 +109,7 @@ impl ClientInit {
 
         runtime.spawn(async move {
             let credential_provider = UiCredentialProvider {
+                singleplayer: matches!(connection_args, ConnectionArgs::Mpsc(_)),
                 request_tx: tx.clone(),
                 auth_response_rx: auth_rx,
                 credentials_response_rx: credentials_rx,

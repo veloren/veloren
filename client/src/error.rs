@@ -19,6 +19,7 @@ pub enum Error {
     AuthClientError(AuthClientError),
     AuthServerUrlInvalid(String),
     AuthServerNotTrusted,
+    CredentialsNotProvided,
     HostnameLookupFailed(std::io::Error),
     Banned(BanInfo),
     /// Persisted character data is invalid or missing

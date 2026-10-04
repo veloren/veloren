@@ -160,8 +160,6 @@ pub enum WorldsChange {
 
 pub enum Event {
     LoginAttempt {
-        username: String,
-        password: String,
         server_address: String,
     },
     CancelLoginAttempt,
@@ -548,13 +546,21 @@ impl Controls {
                 };
 
                 events.push(Event::LoginAttempt {
-                    username: self.login_info.username.trim().to_string(),
-                    password: self.login_info.password.clone(),
                     server_address: self.login_info.server.trim().to_string(),
                 });
             },
             Message::UnlockServerField => self.server_field_locked = false,
-            Message::Username(new_value) => self.login_info.username = new_value,
+            Message::Username(new_value) => {
+                self.login_info.username = new_value;
+                if let Screen::Connecting {
+                    screen,
+                    connection_state: ConnectionState::CredentialsPrompt { .. },
+                    ..
+                } = &mut self.screen
+                {
+                    screen.credentials.error = None;
+                }
+            },
             Message::LanguageChanged(new_value) => {
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
@@ -608,6 +614,12 @@ impl Controls {
                 {
                     let credentials = {
                         let username = self.login_info.username.trim().to_string();
+
+                        if let Err(err) = validate_username(&username, &self.i18n) {
+                            screen.credentials.error = Some(err);
+                            return;
+                        }
+
                         Ok(if auth_server.is_some() {
                             Credentials::UsernamePassword(
                                 username,
@@ -681,6 +693,7 @@ impl Controls {
             ..
         } = &mut self.screen
         {
+            screen.credentials.error = None;
             screen.credentials.focus_username();
             *connection_state = ConnectionState::CredentialsPrompt { auth_server };
         }
@@ -887,3 +900,22 @@ impl MainMenuUi {
 }
 
 pub fn rand_bg_image_spec() -> &'static str { BG_IMGS.choose(&mut rng()).unwrap() }
+
+fn validate_username(username: &str, localized_strings: &LocalizationHandle) -> Result<(), String> {
+    let localization = localized_strings.read();
+
+    if let Err(err) = common::comp::Player::alias_validate(username) {
+        match err {
+            common::comp::AliasError::ForbiddenCharacters => Err(localization
+                .get_msg("main-login-username_bad_characters")
+                .into_owned()),
+            common::comp::AliasError::TooLong => Err(localization
+                .get_msg_ctx("main-login-username_too_long", &i18n::fluent_args! {
+                    "max_len" => common::comp::MAX_ALIAS_LEN
+                })
+                .into_owned()),
+        }
+    } else {
+        Ok(())
+    }
+}
