@@ -11,7 +11,9 @@ use std::{
 };
 use tokio::runtime::Runtime;
 use tracing::{error, info};
-use veloren_client::{Client, ClientType, Event, addr::ConnectionArgs};
+use veloren_client::{
+    Client, ClientType, Credentials, Event, StaticCredentialProvider, addr::ConnectionArgs,
+};
 use voxygen_i18n_helpers::localize_chat_message;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
@@ -55,16 +57,21 @@ fn main() {
         hostname: server_addr,
     };
 
+    let provider = StaticCredentialProvider {
+        credentials_by_auth: [(
+            Some("https://auth.veloren.net".to_string()),
+            Credentials::UsernamePassword(username.to_string(), password.to_string()),
+        )]
+        .into(),
+    };
+
     // Create a client.
     let mut client = runtime
         .block_on(Client::new(
             addr,
             runtime2,
-            &mut None,
-            &username,
-            &password,
             None,
-            |provider| provider == "https://auth.veloren.net",
+            &provider,
             &|_| {},
             |_| {},
             Default::default(),

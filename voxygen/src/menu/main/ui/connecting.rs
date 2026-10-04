@@ -228,7 +228,8 @@ impl Screen {
                         ClientInitStage::WatingForServerVersion => {
                             i18n.get_msg("hud-init-stage-client-request-server-version")
                         },
-                        ClientInitStage::Authentication => {
+                        ClientInitStage::ServerVersionArrived(_)
+                        | ClientInitStage::Authentication => {
                             i18n.get_msg("hud-init-stage-client-authentication")
                         },
                         ClientInitStage::LoadingInitData => {
@@ -236,6 +237,9 @@ impl Screen {
                         },
                         ClientInitStage::StartingClient => {
                             i18n.get_msg("hud-init-stage-client-starting-client")
+                        },
+                        ClientInitStage::RequestingPlugins => {
+                            i18n.get_msg("hud-init-stage-client-requesting-plugins")
                         },
                     },
                     DetailedInitializationStage::CreatingRenderPipeline(done, total) => i18n
