@@ -10,7 +10,7 @@ use fxhash::FxBuildHasher;
 #[cfg(feature = "rrt_pathfinding")]
 use hashbrown::HashMap;
 #[cfg(feature = "rrt_pathfinding")]
-use kiddo::{SquaredEuclidean, float::kdtree::KdTree, nearest_neighbour::NearestNeighbour}; /* For RRT paths (disabled for now) */
+use kiddo::{Eytzinger, KdTree, QueryResultItem, SquaredEuclidean, VecOfArrays}; /* For RRT paths (disabled for now) */
 use rand::{RngExt, rng};
 #[cfg(feature = "rrt_pathfinding")]
 use rand::{
@@ -1152,16 +1152,27 @@ where
     let mut path2 = Vec::new();
 
     // K-d trees are used to find the closest nodes rapidly
-    let mut kdtree1: KdTree<f32, usize, 3, 32, u32> = KdTree::with_capacity(MAX_POINTS);
-    let mut kdtree2: KdTree<f32, usize, 3, 32, u32> = KdTree::with_capacity(MAX_POINTS);
+    let mut kdtree1: KdTree<f32, usize, Eytzinger, VecOfArrays<f32, usize, 3, 32>, 3, 32> =
+        KdTree::default();
+    let mut kdtree2: KdTree<f32, usize, Eytzinger, VecOfArrays<f32, usize, 3, 32>, 3, 32> =
+        KdTree::default();
+
+    macro_rules! drop_kiddo_error {
+        ($result:expr) => {
+            if let Err(e) = $result {
+                tracing::warn!(?e, "kiddo unsplittable leaf detected");
+                return (None, false);
+            }
+        };
+    }
 
     // Add the start as the first node of the first k-d tree
-    kdtree1.add(&[startf.x, startf.y, startf.z], node_index1);
+    drop_kiddo_error!(kdtree1.add(&[startf.x, startf.y, startf.z], node_index1));
     nodes1.push(startf);
     node_index1 += 1;
 
     // Add the end as the first node of the second k-d tree
-    kdtree2.add(&[endf.x, endf.y, endf.z], node_index2);
+    drop_kiddo_error!(kdtree2.add(&[endf.x, endf.y, endf.z], node_index2));
     nodes2.push(endf);
     node_index2 += 1;
 
@@ -1188,18 +1199,14 @@ where
 
         // Find the nearest nodes to the the sampled point
         let nearest_index1 = kdtree1
-            .nearest_one::<SquaredEuclidean>(&[
-                sampled_point1.x,
-                sampled_point1.y,
-                sampled_point1.z,
-            ])
+            .query(&[sampled_point1.x, sampled_point1.y, sampled_point1.z])
+            .nearest_one::<SquaredEuclidean<f32>>()
+            .execute()
             .item;
         let nearest_index2 = kdtree2
-            .nearest_one::<SquaredEuclidean>(&[
-                sampled_point2.x,
-                sampled_point2.y,
-                sampled_point2.z,
-            ])
+            .query(&[sampled_point2.x, sampled_point2.y, sampled_point2.z])
+            .nearest_one::<SquaredEuclidean<f32>>()
+            .execute()
             .item;
         let nearest1 = nodes1[nearest_index1];
         let nearest2 = nodes2[nearest_index2];
@@ -1210,19 +1217,21 @@ where
 
         // Ensure the new nodes are valid/traversable
         if is_valid_edge(&nearest1, &new_point1) {
-            kdtree1.add(&[new_point1.x, new_point1.y, new_point1.z], node_index1);
+            drop_kiddo_error!(
+                kdtree1.add(&[new_point1.x, new_point1.y, new_point1.z], node_index1)
+            );
             nodes1.push(new_point1);
             parents1.insert(node_index1, nearest_index1);
             node_index1 += 1;
             // Check if the trees connect
-            let NearestNeighbour {
+            let QueryResultItem {
                 distance: check,
                 item: index,
-            } = kdtree2.nearest_one::<SquaredEuclidean>(&[
-                new_point1.x,
-                new_point1.y,
-                new_point1.z,
-            ]);
+                ..
+            } = kdtree2
+                .query(&[new_point1.x, new_point1.y, new_point1.z])
+                .nearest_one::<SquaredEuclidean<f32>>()
+                .execute();
             if check < radius {
                 let connection = nodes2[index];
                 connection2_idx = index;
@@ -1235,19 +1244,21 @@ where
 
         // Repeat the validity check for the second tree
         if is_valid_edge(&nearest2, &new_point2) {
-            kdtree2.add(&[new_point2.x, new_point2.y, new_point1.z], node_index2);
+            drop_kiddo_error!(
+                kdtree2.add(&[new_point2.x, new_point2.y, new_point1.z], node_index2)
+            );
             nodes2.push(new_point2);
             parents2.insert(node_index2, nearest_index2);
             node_index2 += 1;
             // Again check for a connection
-            let NearestNeighbour {
+            let QueryResultItem {
                 distance: check,
                 item: index,
-            } = kdtree1.nearest_one::<SquaredEuclidean>(&[
-                new_point2.x,
-                new_point2.y,
-                new_point1.z,
-            ]);
+                ..
+            } = kdtree1
+                .query(&[new_point2.x, new_point2.y, new_point1.z])
+                .nearest_one::<SquaredEuclidean<f32>>()
+                .execute();
             if check < radius {
                 let connection = nodes1[index];
                 connection1_idx = index;
@@ -1283,7 +1294,9 @@ where
         // If the trees did not connect, construct a path from the start to
         // the closest node to the end
         let mut current_node_index1 = kdtree1
-            .nearest_one::<SquaredEuclidean>(&[endf.x, endf.y, endf.z])
+            .query(&[endf.x, endf.y, endf.z])
+            .nearest_one::<SquaredEuclidean<f32>>()
+            .execute()
             .item;
         // Attempt to pick a node other than the start node
         for _i in 0..3 {

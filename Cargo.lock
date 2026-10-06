@@ -2079,12 +2079,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "divrem"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69dde51e8fef5e12c1d65e0929b03d66e4c0c18282bc30ed2ca050ad6f44dd82"
-
-[[package]]
 name = "dlib"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2529,19 +2523,6 @@ name = "finl_unicode"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9844ddc3a6e533d62bba727eb6c28b5d360921d5175e9ff0f1e621a5c590a4d5"
-
-[[package]]
-name = "fixed"
-version = "1.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707070ccf8c4173548210893a0186e29c266901b71ed20cd9e2ca0193dfe95c3"
-dependencies = [
- "az",
- "bytemuck",
- "half",
- "num-traits",
- "typenum",
-]
 
 [[package]]
 name = "fixedbitset"
@@ -3979,22 +3960,21 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "kiddo"
-version = "5.3.2"
+version = "6.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da26797630e4a7511fa95300ecb03250d8d91f7e44fe756d61febefbce1ea3be"
+checksum = "032f79d801e9c4308f7aa16456bdd1b05deb43eb96f07d08c0a4f70db3b393b9"
 dependencies = [
  "aligned-vec",
  "array-init",
  "az",
  "cmov",
- "divrem",
- "fixed",
  "generator",
+ "nonmax",
  "num-traits",
- "ordered-float 5.3.0",
+ "rayon",
  "sorted-vec",
  "tracing",
- "tracing-subscriber",
+ "yep-cache-line-size",
 ]
 
 [[package]]
@@ -4674,6 +4654,12 @@ checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "nonmax"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "610a5acd306ec67f907abe5567859a3c693fb9886eb1f012ab8f2a47bef3db51"
 
 [[package]]
 name = "notify"
@@ -6283,6 +6269,15 @@ dependencies = [
  "time",
  "unicode-segmentation",
  "unicode-width",
+]
+
+[[package]]
+name = "raw-cpuid"
+version = "11.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "498cd0dc59d73224351ee52a95fee0f1a617a2eae0e7d9d720cc622c73a54186"
+dependencies = [
+ "bitflags 2.13.0",
 ]
 
 [[package]]
@@ -9108,7 +9103,6 @@ dependencies = [
  "enum-map",
  "enumset",
  "fallible-iterator",
- "fixed",
  "flate2",
  "fxhash",
  "hashbrown 0.17.1",
@@ -11305,6 +11299,16 @@ checksum = "b5f6765e852b9b4dc8e2a76843e4d64d1cea8e79bcde0b6901aea8e7c7f08282"
 dependencies = [
  "bit-vec 0.9.1",
  "time",
+]
+
+[[package]]
+name = "yep-cache-line-size"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59dea97e5518f64cbb9468f2cd1ac59c9d0186eeb5ee6198d4bb8adfa1465499"
+dependencies = [
+ "libc",
+ "raw-cpuid",
 ]
 
 [[package]]

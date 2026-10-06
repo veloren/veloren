@@ -60,7 +60,6 @@ serde = { workspace = true }
 ron = { workspace = true }
 # inline_tweak = { workspace = true, features = ["derive"] }
 kiddo = { workspace = true }
-fixed = "1"
 strum = { workspace = true }
 delaunator = "1.0.2"
 tiny-skia = { version = "0.12", optional = true }
