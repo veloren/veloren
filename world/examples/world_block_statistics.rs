@@ -4,25 +4,17 @@ use common::{
     vol::{IntoVolIterator, RectVolSize},
 };
 use fallible_iterator::FallibleIterator;
-use fixed::{
-    FixedU8,
-    types::{I32F0, U8F0, extra::U0},
-};
 use kiddo::{Eytzinger, KdTree, QueryResultItem, SquaredEuclidean, VecOfArrays};
-use num_traits::identities::{One, Zero};
 use rayon::{
     ThreadPoolBuilder,
     iter::{IntoParallelIterator, ParallelIterator},
 };
 use rusqlite::{Connection, ToSql, Transaction, TransactionBehavior};
-//use serde::{Serialize, Deserialize};
 use std::{
-    cmp::Ordering,
     collections::{HashMap, HashSet},
     error::Error,
     fs::File,
     io::Write,
-    ops::{Add, Mul, SubAssign},
     str::FromStr,
     sync::mpsc,
     time::{SystemTime, UNIX_EPOCH},
@@ -33,80 +25,7 @@ use veloren_world::{
     sim::{DEFAULT_WORLD_MAP, DEFAULT_WORLD_SEED, FileOpts, WorldOpts},
 };
 
-#[derive(Debug, Default, Clone, Copy, Hash, Eq, PartialEq /* , Serialize, Deserialize */)]
-struct KiddoRgb(Rgb<U8F0>);
-
-// TODO: evaluate `type ColorKdTree = KdTree<u8, u16, Eytzinger,
-// VecOfArrays<u8, u16, 3, 32>, 3, 32>`. u8 coordinates with f32 distances might
-// reduce memory
-type ColorKdTree<const T: usize> =
-    KdTree<I32F0, KiddoRgb, Eytzinger, VecOfArrays<I32F0, KiddoRgb, 3, T>, 3, T>;
-
-impl PartialOrd for KiddoRgb {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
-}
-
-impl Ord for KiddoRgb {
-    fn cmp(&self, other: &Self) -> Ordering {
-        (self.0.r, self.0.g, self.0.b).cmp(&(other.0.r, other.0.g, other.0.b))
-    }
-}
-
-impl Zero for KiddoRgb {
-    fn zero() -> Self { KiddoRgb(Rgb::zero()) }
-
-    fn is_zero(&self) -> bool { self == &Self::zero() }
-}
-
-impl One for KiddoRgb {
-    fn one() -> Self { KiddoRgb(Rgb::one()) }
-
-    fn is_one(&self) -> bool { self == &Self::one() }
-}
-
-impl SubAssign for KiddoRgb {
-    fn sub_assign(&mut self, other: Self) {
-        *self = Self(Rgb {
-            r: self.0.r - other.0.r,
-            g: self.0.g - other.0.g,
-            b: self.0.b - other.0.b,
-        });
-    }
-}
-
-impl Add for KiddoRgb {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        Self(Rgb {
-            r: self.0.r + other.0.r,
-            g: self.0.g + other.0.g,
-            b: self.0.b + other.0.b,
-        })
-    }
-}
-
-impl Mul for KiddoRgb {
-    type Output = Self;
-
-    fn mul(self, rhs: Self) -> Self {
-        Self(Rgb {
-            r: self.0.r * rhs.0.r,
-            g: self.0.g * rhs.0.g,
-            b: self.0.b * rhs.0.b,
-        })
-    }
-}
-
-impl From<Rgb<u8>> for KiddoRgb {
-    fn from(value: Rgb<u8>) -> Self {
-        Self(Rgb {
-            r: FixedU8::<U0>::from_num(value.r),
-            g: FixedU8::<U0>::from_num(value.g),
-            b: FixedU8::<U0>::from_num(value.b),
-        })
-    }
-}
+type ColorKdTree<const T: usize> = KdTree<u8, (), Eytzinger, VecOfArrays<u8, (), 3, T>, 3, T>;
 
 fn block_statistics_db(db_path: &str) -> Result<Connection, Box<dyn Error>> {
     let conn = Connection::open(db_path)?;
@@ -183,16 +102,6 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 world.generate_chunk(index.as_index_ref(), Vec2::new(x, y), None, || false, None)
             {
                 let end_time = SystemTime::now();
-                // TODO: We store the colors twice currently, once as coordinates and another
-                // time as Content. Kiddo version 6.x adds the ability to have
-                // Content be (), which would be useful here. Do that.
-                // I32F0 can represent all squared RGB distances without overflow.
-                // TODO: dist_sq is the same type as the coordinates, and since squared
-                // euclidean distances between colors go way higher than 255,
-                // we're using a U32F0 here instead of the optimal U8F0 (A U16F0
-                // works too, but it could theoretically still overflow so U32F0
-                // is used to be safe). Kiddo version 6.x will change this — once that
-                // releases, replace U32F0 with U8F0.
                 let mut block_colors = ColorKdTree::<32>::default();
                 let mut block_counts = HashMap::new();
                 let mut sprite_counts = HashMap::new();
@@ -200,22 +109,23 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 let hi = TerrainChunkSize::RECT_SIZE.as_().with_z(chunk.get_max_z());
                 let height = chunk.get_max_z() - chunk.get_min_z();
                 for (_, block) in chunk.vol_iter(lo, hi) {
-                    let mut rgb =
-                        KiddoRgb::from(block.get_color().unwrap_or_else(|| Rgb::new(0, 0, 0)));
-                    let color: [I32F0; 3] = [rgb.0.r.into(), rgb.0.g.into(), rgb.0.b.into()];
+                    let mut rgb = block.get_color().unwrap_or_else(|| Rgb::new(0, 0, 0));
+                    let color: [u8; 3] = [rgb.r, rgb.g, rgb.b];
                     let QueryResultItem {
+                        point: nearest,
                         distance: dist_sq,
-                        item: nearest,
                         ..
                     } = block_colors
                         .query(&color)
-                        .nearest_one::<SquaredEuclidean<I32F0>>()
+                        .nearest_one::<SquaredEuclidean<f32>>()
+                        .without_items()
+                        .with_points()
                         .execute();
-                    if dist_sq < 5_i32.pow(2) {
-                        rgb = nearest;
+                    if dist_sq < 5.0_f32.powi(2) {
+                        rgb = Rgb::from_slice(&nearest);
                     } else {
                         block_colors
-                            .add(&color, rgb)
+                            .add(&color, ())
                             .expect("block color should fit in the tree");
                     }
                     *block_counts.entry((block.kind(), rgb)).or_insert(0) += 1;
@@ -259,9 +169,9 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 &x as &dyn ToSql,
                 &y,
                 &format!("{:?}", kind),
-                &color.0.r.to_num::<u8>(),
-                &color.0.g.to_num::<u8>(),
-                &color.0.b.to_num::<u8>(),
+                &color.r,
+                &color.g,
+                &color.b,
                 &count,
             ])?;
         }
@@ -288,12 +198,12 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
 fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
     let mut stmt =
         conn.prepare("SELECT kind, r, g, b, SUM(quantity) FROM block GROUP BY kind, r, g, b")?;
-    let mut block_colors: HashMap<BlockKind, Vec<(KiddoRgb, i64)>> = HashMap::new();
+    let mut block_colors: HashMap<BlockKind, Vec<(Rgb<u8>, i64)>> = HashMap::new();
 
     let mut rows = stmt.query([])?;
     while let Some(row) = rows.next()? {
         let kind = BlockKind::from_str(&row.get::<_, String>(0)?)?;
-        let rgb: KiddoRgb = KiddoRgb::from(Rgb::new(row.get(1)?, row.get(2)?, row.get(3)?));
+        let rgb = Rgb::new(row.get(1)?, row.get(2)?, row.get(3)?);
         let count: i64 = row.get(4)?;
         block_colors.entry(kind).or_default().push((rgb, count));
     }
@@ -301,7 +211,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         v.sort_by_key(|b| std::cmp::Reverse(b.1));
     }
 
-    let mut palettes: HashMap<BlockKind, Vec<KiddoRgb>> = HashMap::new();
+    let mut palettes: HashMap<BlockKind, Vec<Rgb<u8>>> = HashMap::new();
     for (kind, colors) in block_colors.iter() {
         let palette = palettes.entry(*kind).or_default();
         if colors.len() <= 256 {
@@ -315,38 +225,21 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         let mut tree = ColorKdTree::<256>::default();
         while palette.len() < 256 {
             if let Some((color, _)) = colors.iter().find(|(color, _)| {
-                tree.query(&[color.0.r.into(), color.0.g.into(), color.0.b.into()])
-                    .nearest_one::<SquaredEuclidean<I32F0>>()
+                tree.query(&[color.r, color.g, color.b])
+                    .nearest_one::<SquaredEuclidean<f32>>()
+                    .without_items()
                     .execute()
                     .distance
                     > radius
             }) {
                 palette.push(*color);
-                tree.add(
-                    &[color.0.r.into(), color.0.g.into(), color.0.b.into()],
-                    *color,
-                )?;
+                tree.add(&[color.r, color.g, color.b], ())?;
                 println!("{:?}, {:?}: {:?}", kind, radius, *color);
             } else {
                 radius -= 1.0;
             }
         }
     }
-    let palettes: HashMap<BlockKind, Vec<Rgb<u8>>> = palettes
-        .iter()
-        .map(|(k, v)| {
-            (
-                *k,
-                v.iter()
-                    .map(|c| Rgb {
-                        r: c.0.r.to_num::<u8>(),
-                        g: c.0.g.to_num::<u8>(),
-                        b: c.0.b.to_num::<u8>(),
-                    })
-                    .collect(),
-            )
-        })
-        .collect();
     let mut f = File::create("palettes.ron")?;
     let pretty = ron::ser::PrettyConfig::default().depth_limit(2);
     write!(f, "{}", ron::ser::to_string_pretty(&palettes, pretty)?)?;

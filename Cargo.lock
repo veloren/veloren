@@ -2571,19 +2571,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9844ddc3a6e533d62bba727eb6c28b5d360921d5175e9ff0f1e621a5c590a4d5"
 
 [[package]]
-name = "fixed"
-version = "1.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707070ccf8c4173548210893a0186e29c266901b71ed20cd9e2ca0193dfe95c3"
-dependencies = [
- "az",
- "bytemuck",
- "half",
- "num-traits",
- "typenum",
-]
-
-[[package]]
 name = "fixedbitset"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4021,7 +4008,6 @@ dependencies = [
  "array-init",
  "az",
  "cmov",
- "fixed",
  "generator",
  "nonmax",
  "num-traits",
@@ -9178,7 +9164,6 @@ dependencies = [
  "enum-map",
  "enumset",
  "fallible-iterator",
- "fixed",
  "flate2",
  "fxhash",
  "hashbrown 0.17.1",
