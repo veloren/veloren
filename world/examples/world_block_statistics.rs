@@ -102,7 +102,9 @@ fn generate(db_path: &str, ymin: Option<i32>, ymax: Option<i32>) -> Result<(), B
                 world.generate_chunk(index.as_index_ref(), Vec2::new(x, y), None, || false, None)
             {
                 let end_time = SystemTime::now();
-                let mut block_colors = ColorKdTree::<32>::default();
+                // TODO: Bucket size of 32 causes panics here for some reason. If that gets
+                // fixed then we could turn it back down to that again.
+                let mut block_colors = ColorKdTree::<64>::default();
                 let mut block_counts = HashMap::new();
                 let mut sprite_counts = HashMap::new();
                 let lo = Vec3::new(0, 0, chunk.get_min_z());
