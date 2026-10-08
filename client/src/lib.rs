@@ -1058,10 +1058,10 @@ impl Client {
         tokio::pin!(timeout);
         tokio::pin!(credential_future);
 
-        let crendetials = loop {
+        let credentials = loop {
             tokio::select! {
-                crendetials = &mut credential_future => {
-                    break crendetials.map_err(|_| Error::CredentialsNotProvided);
+                credentials = &mut credential_future => {
+                    break credentials.map_err(|_| Error::CredentialsNotProvided);
                 }
 
                 _ = ping_timer.tick() => {
@@ -1076,7 +1076,7 @@ impl Client {
 
         debug!("resolving token_or_username...");
         let token_or_username =
-            init::resolve_token_or_username(crendetials, &server_info.auth_provider).await?;
+            init::resolve_token_or_username(credentials, &server_info.auth_provider).await?;
 
         debug!("Registering client...");
         register_stream.send(ClientRegister {

@@ -631,6 +631,8 @@ impl Controls {
                     screen.credentials = credentials::Prompt::default();
                     *connection_state = ConnectionState::InProgress;
                     events.push(Event::CredentialsProvided(auth_server, credentials));
+                } else {
+                    tracing::warn!("trying to submit credentials while not in correct screen");
                 }
             },
             Message::CloseError => {
