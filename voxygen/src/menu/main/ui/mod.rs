@@ -1,6 +1,7 @@
 mod connecting;
 // Note: Keeping in case we re-add the disclaimer
 //mod disclaimer;
+mod credentials;
 mod credits;
 mod login;
 mod servers;
@@ -19,6 +20,7 @@ use crate::{
     },
     window,
 };
+use client::Credentials;
 use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
 //ImageFrame, Tooltip,
@@ -158,8 +160,6 @@ pub enum WorldsChange {
 
 pub enum Event {
     LoginAttempt {
-        username: String,
-        password: String,
         server_address: String,
     },
     CancelLoginAttempt,
@@ -174,6 +174,7 @@ pub enum Event {
     // Note: Keeping in case we re-add the disclaimer
     //DisclaimerAccepted,
     AuthServerTrust(String, bool),
+    CredentialsProvided(Option<String>, Result<Credentials, ()>),
     DeleteServer {
         server_index: usize,
     },
@@ -187,7 +188,8 @@ pub struct LoginInfo {
 
 enum ConnectionState {
     InProgress,
-    AuthTrustPrompt { auth_server: String, msg: String },
+    AuthTrustPrompt { auth_server: String },
+    CredentialsPrompt { auth_server: Option<String> },
 }
 
 enum Screen {
@@ -285,6 +287,7 @@ enum Message {
     CancelConnect,
     TrustPromptAdd,
     TrustPromptCancel,
+    CredentialsSubmit,
     CloseError,
     DeleteServer,
     /* Note: Keeping in case we re-add the disclaimer
@@ -402,7 +405,7 @@ impl Controls {
                 &self.fonts,
                 &self.imgs,
                 self.server_field_locked,
-                &self.login_info,
+                &self.login_info.server,
                 error.as_deref(),
                 &self.i18n.read(),
                 &self.show,
@@ -426,6 +429,7 @@ impl Controls {
                 &self.fonts,
                 &self.imgs,
                 connection_state,
+                &self.login_info,
                 init_stage,
                 self.time,
                 &self.i18n.read(),
@@ -542,13 +546,21 @@ impl Controls {
                 };
 
                 events.push(Event::LoginAttempt {
-                    username: self.login_info.username.trim().to_string(),
-                    password: self.login_info.password.clone(),
                     server_address: self.login_info.server.trim().to_string(),
                 });
             },
             Message::UnlockServerField => self.server_field_locked = false,
-            Message::Username(new_value) => self.login_info.username = new_value,
+            Message::Username(new_value) => {
+                self.login_info.username = new_value;
+                if let Screen::Connecting {
+                    screen,
+                    connection_state: ConnectionState::CredentialsPrompt { .. },
+                    ..
+                } = &mut self.screen
+                {
+                    screen.credentials.error = None;
+                }
+            },
             Message::LanguageChanged(new_value) => {
                 events.push(Event::ChangeLanguage(language_metadatas.remove(new_value)));
             },
@@ -562,9 +574,14 @@ impl Controls {
                 self.login_info.server.clone_from(&servers[new_value]);
             },
             Message::FocusPassword => {
-                if let Screen::Login { screen, .. } = &mut self.screen {
-                    screen.banner.password = text_input::State::focused();
-                    screen.banner.username = text_input::State::new();
+                if let Screen::Connecting {
+                    screen,
+                    connection_state: ConnectionState::CredentialsPrompt { auth_server, .. },
+                    ..
+                } = &mut self.screen
+                    && auth_server.is_some()
+                {
+                    screen.credentials.focus_password();
                 }
             },
             Message::CancelConnect => {
@@ -575,13 +592,47 @@ impl Controls {
                 if let Screen::Connecting {
                     connection_state, ..
                 } = &mut self.screen
-                    && let ConnectionState::AuthTrustPrompt { auth_server, .. } = connection_state
+                    && let ConnectionState::AuthTrustPrompt { auth_server } = connection_state
                 {
                     let auth_server = std::mem::take(auth_server);
                     let added = matches!(msg, Message::TrustPromptAdd);
 
                     *connection_state = ConnectionState::InProgress;
                     events.push(Event::AuthServerTrust(auth_server, added));
+                }
+            },
+            Message::CredentialsSubmit => {
+                if let Screen::Connecting {
+                    screen,
+                    connection_state,
+                    ..
+                } = &mut self.screen
+                    && let ConnectionState::CredentialsPrompt { auth_server, .. } = connection_state
+                {
+                    let credentials = {
+                        let username = self.login_info.username.trim().to_string();
+
+                        if let Err(err) = validate_username(&username, &self.i18n) {
+                            screen.credentials.error = Some(err);
+                            return;
+                        }
+
+                        Ok(if auth_server.is_some() {
+                            Credentials::UsernamePassword(
+                                username,
+                                self.login_info.password.clone(),
+                            )
+                        } else {
+                            Credentials::Username(username)
+                        })
+                    };
+                    let auth_server = auth_server.take();
+
+                    screen.credentials = credentials::Prompt::default();
+                    *connection_state = ConnectionState::InProgress;
+                    events.push(Event::CredentialsProvided(auth_server, credentials));
+                } else {
+                    tracing::warn!("trying to submit credentials while not in correct screen");
                 }
             },
             Message::CloseError => {
@@ -623,15 +674,20 @@ impl Controls {
             connection_state, ..
         } = &mut self.screen
         {
-            let msg = format!(
-                "Warning: The server you are trying to connect to has provided this \
-                 authentication server address:\n\n{}\n\nbut it is not in your list of trusted \
-                 authentication servers.\n\nMake sure that you trust this site and owner to not \
-                 try and bruteforce your password!",
-                auth_server
-            );
+            *connection_state = ConnectionState::AuthTrustPrompt { auth_server };
+        }
+    }
 
-            *connection_state = ConnectionState::AuthTrustPrompt { auth_server, msg };
+    fn credentials_prompt(&mut self, auth_server: Option<String>) {
+        if let Screen::Connecting {
+            screen,
+            connection_state,
+            ..
+        } = &mut self.screen
+        {
+            screen.credentials.error = None;
+            screen.credentials.focus_username();
+            *connection_state = ConnectionState::CredentialsPrompt { auth_server };
         }
     }
 
@@ -657,27 +713,17 @@ impl Controls {
     fn tab(&mut self) {
         if let Screen::Login { screen, .. } = &mut self.screen {
             // TODO: add select all function in iced
-            if screen.banner.username.is_focused() {
-                screen.banner.username = text_input::State::new();
-                screen.banner.password = text_input::State::focused();
-                screen.banner.password.move_cursor_to_end();
-            } else if screen.banner.password.is_focused() {
-                screen.banner.password = text_input::State::new();
-                // Skip focusing server field if it isn't editable!
-                if self.server_field_locked {
-                    screen.banner.username = text_input::State::focused();
-                } else {
-                    screen.banner.server = text_input::State::focused();
-                }
+            if !self.server_field_locked {
+                screen.banner.server = text_input::State::focused();
                 screen.banner.server.move_cursor_to_end();
-            } else if screen.banner.server.is_focused() {
-                screen.banner.server = text_input::State::new();
-                screen.banner.username = text_input::State::focused();
-                screen.banner.username.move_cursor_to_end();
-            } else {
-                screen.banner.username = text_input::State::focused();
-                screen.banner.username.move_cursor_to_end();
             }
+        } else if let Screen::Connecting {
+            screen,
+            connection_state: ConnectionState::CredentialsPrompt { auth_server, .. },
+            ..
+        } = &mut self.screen
+        {
+            screen.credentials.tab(auth_server.is_some());
         }
     }
 }
@@ -742,6 +788,10 @@ impl MainMenuUi {
 
     pub fn auth_trust_prompt(&mut self, auth_server: String) {
         self.controls.auth_trust_prompt(auth_server);
+    }
+
+    pub fn credentials_prompt(&mut self, auth_server: Option<String>) {
+        self.controls.credentials_prompt(auth_server);
     }
 
     pub fn show_info(&mut self, msg: String) { self.controls.connection_error(msg); }
@@ -825,3 +875,22 @@ impl MainMenuUi {
 }
 
 pub fn rand_bg_image_spec() -> &'static str { BG_IMGS.choose(&mut rng()).unwrap() }
+
+fn validate_username(username: &str, localized_strings: &LocalizationHandle) -> Result<(), String> {
+    let localization = localized_strings.read();
+
+    if let Err(err) = common::comp::Player::alias_validate(username) {
+        match err {
+            common::comp::AliasError::ForbiddenCharacters => Err(localization
+                .get_msg("main-login-username_bad_characters")
+                .into_owned()),
+            common::comp::AliasError::TooLong => Err(localization
+                .get_msg_ctx("main-login-username_too_long", &i18n::fluent_args! {
+                    "max_len" => common::comp::MAX_ALIAS_LEN
+                })
+                .into_owned()),
+        }
+    } else {
+        Ok(())
+    }
+}

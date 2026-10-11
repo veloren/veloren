@@ -3,9 +3,13 @@
 
 pub mod addr;
 pub mod error;
+mod init;
 
 // Reexports
-pub use crate::error::Error;
+pub use crate::{
+    error::Error,
+    init::{ClientInitStage, CredentialProvider, Credentials, StaticCredentialProvider},
+};
 pub use authc::AuthClientError;
 pub use common_net::msg::ServerInfo;
 pub use specs::{
@@ -81,7 +85,6 @@ use image::DynamicImage;
 use network::{ConnectAddr, Network, Participant, Pid, Stream};
 use num::traits::FloatConst;
 use rayon::prelude::*;
-use rustls::client::danger::ServerCertVerified;
 use specs::Component;
 use std::{
     collections::{BTreeMap, VecDeque},
@@ -140,22 +143,6 @@ pub enum Event {
 #[derive(Debug)]
 pub enum UserNotification {
     WaypointUpdated,
-}
-
-#[derive(Debug)]
-pub enum ClientInitStage {
-    /// A connection to the server is being created
-    ConnectionEstablish,
-    /// Waiting for server version
-    WatingForServerVersion,
-    /// We're currently authenticating with the server
-    Authentication,
-    /// Loading map data, site information, recipe information and other
-    /// initialization data
-    LoadingInitData,
-    /// Prepare data received by the server to be used by the client (insert
-    /// data into the ECS, render map)
-    StartingClient,
 }
 
 pub struct WorldData {
@@ -371,100 +358,12 @@ pub struct CharacterList {
     pub loading: bool,
 }
 
-async fn connect_quic(
-    network: &Network,
-    hostname: String,
-    override_port: Option<u16>,
-    prefer_ipv6: bool,
-    validate_tls: bool,
-) -> Result<network::Participant, crate::error::Error> {
-    let config = if validate_tls {
-        quinn::ClientConfig::try_with_platform_verifier()?
-    } else {
-        warn!(
-            "skipping validation of server identity. There is no guarantee that the server you're \
-             connected to is the one you expect to be connecting to."
-        );
-        #[derive(Debug)]
-        struct Verifier;
-        impl rustls::client::danger::ServerCertVerifier for Verifier {
-            fn verify_server_cert(
-                &self,
-                _end_entity: &rustls::pki_types::CertificateDer<'_>,
-                _intermediates: &[rustls::pki_types::CertificateDer<'_>],
-                _server_name: &rustls::pki_types::ServerName<'_>,
-                _ocsp_response: &[u8],
-                _now: rustls::pki_types::UnixTime,
-            ) -> Result<ServerCertVerified, rustls::Error> {
-                Ok(ServerCertVerified::assertion())
-            }
-
-            fn verify_tls12_signature(
-                &self,
-                _message: &[u8],
-                _cert: &rustls::pki_types::CertificateDer<'_>,
-                _dss: &rustls::DigitallySignedStruct,
-            ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
-            {
-                Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-            }
-
-            fn verify_tls13_signature(
-                &self,
-                _message: &[u8],
-                _cert: &rustls::pki_types::CertificateDer<'_>,
-                _dss: &rustls::DigitallySignedStruct,
-            ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
-            {
-                Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
-            }
-
-            fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
-                vec![
-                    rustls::SignatureScheme::RSA_PKCS1_SHA1,
-                    rustls::SignatureScheme::ECDSA_SHA1_Legacy,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA256,
-                    rustls::SignatureScheme::ECDSA_NISTP256_SHA256,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA384,
-                    rustls::SignatureScheme::ECDSA_NISTP384_SHA384,
-                    rustls::SignatureScheme::RSA_PKCS1_SHA512,
-                    rustls::SignatureScheme::ECDSA_NISTP521_SHA512,
-                    rustls::SignatureScheme::RSA_PSS_SHA256,
-                    rustls::SignatureScheme::RSA_PSS_SHA384,
-                    rustls::SignatureScheme::RSA_PSS_SHA512,
-                    rustls::SignatureScheme::ED25519,
-                    rustls::SignatureScheme::ED448,
-                ]
-            }
-        }
-
-        let mut cfg = rustls::ClientConfig::builder()
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(Verifier))
-            .with_no_client_auth();
-        cfg.enable_early_data = true;
-
-        quinn::ClientConfig::new(Arc::new(
-            quinn::crypto::rustls::QuicClientConfig::try_from(cfg).unwrap(),
-        ))
-    };
-
-    addr::try_connect(network, &hostname, override_port, prefer_ipv6, |a| {
-        ConnectAddr::Quic(a, config.clone(), hostname.clone())
-    })
-    .await
-}
-
 impl Client {
     pub async fn new(
         addr: ConnectionArgs,
         runtime: Arc<Runtime>,
-        // TODO: refactor to avoid needing to use this out parameter
-        mismatched_server_info: &mut Option<ServerInfo>,
-        username: &str,
-        password: &str,
         locale: Option<String>,
-        auth_trusted: impl FnMut(&str) -> bool,
+        credential_provider: &impl CredentialProvider,
         init_stage_update: &(dyn Fn(ClientInitStage) + Send + Sync),
         add_foreign_systems: impl Fn(&mut DispatcherBuilder) + Send + 'static,
         #[cfg_attr(not(feature = "plugins"), expect(unused_variables))] config_dir: PathBuf,
@@ -560,8 +459,14 @@ impl Client {
                         let port = Some(srv_rr.port);
                         let conn_result = match conn_mode {
                             ConnMode::Quic => {
-                                connect_quic(&network, hostname, port, prefer_ipv6, validate_tls)
-                                    .await
+                                init::connect_quic(
+                                    &network,
+                                    hostname,
+                                    port,
+                                    prefer_ipv6,
+                                    validate_tls,
+                                )
+                                .await
                             },
                             ConnMode::Tcp => {
                                 addr::try_connect(
@@ -587,7 +492,7 @@ impl Client {
                         // This case is also hit if no SRV host was returned from the query, so we
                         // check for QUIC/TCP preference.
                         let c = if use_quic {
-                            connect_quic(&network, hostname, None, prefer_ipv6, validate_tls)
+                            init::connect_quic(&network, hostname, None, prefer_ipv6, validate_tls)
                                 .await?
                         } else {
                             match addr::try_connect(
@@ -623,7 +528,7 @@ impl Client {
                      TCP servers unless deactivated"
                 );
 
-                connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
+                init::connect_quic(&network, hostname, None, prefer_ipv6, validate_tls).await?
             },
             ConnectionArgs::Mpsc(id) => network.connect(ConnectAddr::Mpsc(id)).await?,
         };
@@ -647,22 +552,19 @@ impl Client {
                 *common::util::DISPLAY_VERSION,
             );
         }
-        // Pass the server info back to the caller to ensure they can access it even
-        // if this function errors.
-        *mismatched_server_info = Some(server_info.clone());
         debug!("Auth Server: {:?}", server_info.auth_provider);
+        init_stage_update(ClientInitStage::ServerVersionArrived(server_info.clone()));
 
         ping_stream.send(PingMsg::Ping)?;
 
         init_stage_update(ClientInitStage::Authentication);
         // Register client
         Self::register(
-            username,
-            password,
+            credential_provider,
             locale,
-            auth_trusted,
             &server_info,
             &mut register_stream,
+            &ping_stream,
         )
         .await?;
 
@@ -1019,6 +921,8 @@ impl Client {
             ))
         });
 
+        init_stage_update(ClientInitStage::RequestingPlugins);
+
         let (
             state,
             lod_base,
@@ -1134,46 +1038,47 @@ impl Client {
 
     /// Request a state transition to `ClientState::Registered`.
     async fn register(
-        username: &str,
-        password: &str,
+        credential_provider: &impl CredentialProvider,
         locale: Option<String>,
-        mut auth_trusted: impl FnMut(&str) -> bool,
         server_info: &ServerInfo,
         register_stream: &mut Stream,
+        ping_stream: &Stream,
     ) -> Result<(), Error> {
-        // Authentication
-        let token_or_username = match &server_info.auth_provider {
-            Some(addr) => {
-                // Query whether this is a trusted auth server
-                if auth_trusted(addr) {
-                    let (scheme, authority) = match addr.split_once("://") {
-                        Some((s, a)) => (s, a),
-                        None => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
+        // quick sanitation check if auth is trusted
+        if !credential_provider.auth_trusted(&server_info.auth_provider) {
+            return Err(Error::AuthServerNotTrusted);
+        }
 
-                    let scheme = match scheme.parse::<authc::Scheme>() {
-                        Ok(s) => s,
-                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
+        // fetching credentials from frontend, this might involve UI and take some time.
+        debug!("query frontend for credentials...");
+        let ping_timer = tokio::time::interval(Duration::from_secs(2));
+        let timeout = tokio::time::sleep(Duration::from_secs(300));
+        let credential_future = credential_provider.get_credentials(&server_info.auth_provider);
+        tokio::pin!(ping_timer);
+        tokio::pin!(timeout);
+        tokio::pin!(credential_future);
 
-                    let authority = match authority.parse::<authc::Authority>() {
-                        Ok(a) => a,
-                        Err(_) => return Err(Error::AuthServerUrlInvalid(addr.to_string())),
-                    };
-
-                    Ok(authc::AuthClient::new(scheme, authority)?
-                        .sign_in(username, password)
-                        .await?
-                        .serialize())
-                } else {
-                    Err(Error::AuthServerNotTrusted)
+        let credentials = loop {
+            tokio::select! {
+                credentials = &mut credential_future => {
+                    break credentials.map_err(|_| Error::CredentialsNotProvided);
                 }
-            },
-            None => Ok(username.to_owned()),
+
+                _ = ping_timer.tick() => {
+                    ping_stream.send(PingMsg::Ping)?;
+                }
+
+                _ = &mut timeout => {
+                    break Err(Error::ServerTimeout);
+                }
+            }
         }?;
 
-        debug!("Registering client...");
+        debug!("resolving token_or_username...");
+        let token_or_username =
+            init::resolve_token_or_username(credentials, &server_info.auth_provider).await?;
 
+        debug!("Registering client...");
         register_stream.send(ClientRegister {
             token_or_username,
             locale,
@@ -3603,17 +3508,23 @@ mod tests {
         let username = "Foo";
         let password = "Bar";
         let auth_server = "auth.veloren.net";
+
+        let provider = StaticCredentialProvider {
+            credentials_by_auth: [(
+                Some(auth_server.to_string()),
+                Credentials::UsernamePassword(username.to_string(), password.to_string()),
+            )]
+            .into(),
+        };
+
         let veloren_client: Result<Client, Error> = runtime.block_on(Client::new(
             ConnectionArgs::Tcp {
                 hostname: "127.0.0.1:9000".to_owned(),
                 prefer_ipv6: false,
             },
             runtime2,
-            &mut None,
-            username,
-            password,
             None,
-            |suggestion: &str| suggestion == auth_server,
+            &provider,
             &|_| {},
             |_| {},
             PathBuf::default(),

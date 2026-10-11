@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::runtime::Runtime;
 use tracing::{info, trace, warn};
-use veloren_client::{Client, ClientType, addr::ConnectionArgs};
+use veloren_client::{
+    Client, ClientInitStage, ClientType, Credentials, StaticCredentialProvider,
+    addr::ConnectionArgs,
+};
 
 mod settings;
 mod tui;
@@ -64,21 +67,36 @@ pub fn make_client(
         prefer_ipv6: false,
         hostname: server.to_owned(),
     };
-    runtime
+
+    let provider = StaticCredentialProvider {
+        credentials_by_auth: [(
+            Some("https://auth.veloren.net".to_string()),
+            Credentials::UsernamePassword(username.to_string(), password.to_string()),
+        )]
+        .into(),
+    };
+
+    let mismatched_server_info: Arc<std::sync::Mutex<Option<ServerInfo>>> = Default::default();
+
+    let res = runtime
         .block_on(Client::new(
             addr,
             runtime_clone,
-            server_info,
-            username,
-            password,
             None,
-            |_| true,
-            &|_| {},
+            &provider,
+            &|stage| {
+                if let ClientInitStage::ServerVersionArrived(ref info) = stage {
+                    *mismatched_server_info.lock().unwrap() = Some(info.clone());
+                }
+            },
             |_| {},
             Default::default(),
             ClientType::Game,
         ))
-        .ok()
+        .ok();
+
+    *server_info = mismatched_server_info.lock().unwrap().take();
+    res
 }
 
 impl BotClient {
