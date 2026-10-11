@@ -188,7 +188,7 @@ pub struct LoginInfo {
 
 enum ConnectionState {
     InProgress,
-    AuthTrustPrompt { auth_server: String, msg: String },
+    AuthTrustPrompt { auth_server: String },
     CredentialsPrompt { auth_server: Option<String> },
 }
 
@@ -592,7 +592,7 @@ impl Controls {
                 if let Screen::Connecting {
                     connection_state, ..
                 } = &mut self.screen
-                    && let ConnectionState::AuthTrustPrompt { auth_server, .. } = connection_state
+                    && let ConnectionState::AuthTrustPrompt { auth_server } = connection_state
                 {
                     let auth_server = std::mem::take(auth_server);
                     let added = matches!(msg, Message::TrustPromptAdd);
@@ -674,14 +674,7 @@ impl Controls {
             connection_state, ..
         } = &mut self.screen
         {
-            let msg = format!(
-                "Warning: The server you are trying to connect to has provided this \
-                 authentication server address:\n\n{auth_server}\n\nbut it is not in your list of \
-                 trusted authentication servers.\n\nMake sure that you trust this site and owner \
-                 to not try and bruteforce your password!"
-            );
-
-            *connection_state = ConnectionState::AuthTrustPrompt { auth_server, msg };
+            *connection_state = ConnectionState::AuthTrustPrompt { auth_server };
         }
     }
 

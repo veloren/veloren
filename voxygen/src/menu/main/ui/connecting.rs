@@ -306,7 +306,13 @@ impl Screen {
 
         let content = match connection_state {
             ConnectionState::InProgress => Space::new(Length::Fill, Length::Fill).into(),
-            ConnectionState::AuthTrustPrompt { msg, .. } => {
+            ConnectionState::AuthTrustPrompt { auth_server } => {
+                let msg = i18n.get_msg_ctx(
+                    "main-login-trust-auth-server-warning",
+                    &i18n::fluent_args! {
+                        "server" => auth_server
+                    },
+                );
                 let text = Text::new(msg).size(fonts.cyri.scale(25));
 
                 let cancel = neat_button(

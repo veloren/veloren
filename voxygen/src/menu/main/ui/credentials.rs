@@ -35,9 +35,11 @@ impl Prompt {
         let title_text = Text::new("Login").size(fonts.cyri.scale(25));
         let password_required = auth_server.is_some();
         let msg = if let Some(auth_server) = auth_server {
-            format!("Enter credentials for auth server: {auth_server}")
+            i18n.get_msg_ctx("main-login-enter-credentials", &i18n::fluent_args! {
+                "server" => auth_server
+            })
         } else {
-            "Enter Username to join".to_string()
+            i18n.get_msg("main-login-enter-username")
         };
         let msg_text = Text::new(msg).size(fonts.cyri.scale(15));
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
