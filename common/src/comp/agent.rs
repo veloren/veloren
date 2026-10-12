@@ -643,6 +643,7 @@ pub struct Agent {
     pub bearing: Vec2<f32>,
     pub sounds_heard: Vec<Sound>,
     pub multi_pid_controllers: Option<PidControllers<16>>,
+    pub mark: Option<Mark>,
     /// Position from which to flee. Intended to be the agent's position plus a
     /// random position offset, to be used when a random flee direction is
     /// required and reset each time the flee timer is reset.
@@ -760,6 +761,7 @@ impl Agent {
             bearing: Vec2::zero(),
             sounds_heard: Vec::new(),
             multi_pid_controllers: None,
+            mark: None,
             flee_from_pos: None,
             stay_pos: None,
             awareness: Awareness::new(0.0),
