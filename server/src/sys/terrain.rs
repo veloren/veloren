@@ -542,6 +542,8 @@ impl SpawnEntityData {
                     .with_trade_site(trade_for_site),
             );
 
+            agent.mark = agent_mark;
+
             // Non-humanoids get a patrol origin to stop them moving too far
             if !matches!(body, comp::Body::Humanoid(_)) {
                 agent = agent.with_patrol_origin(pos);
