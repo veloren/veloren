@@ -56,6 +56,9 @@ img-export/**/*.png
 ## Gram
 .gram/
 
+## Zed
+.zed/
+
 ## lldb
 .env
 

@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct InterfaceSettings {
+    pub use_secure_service: bool,
     pub toggle_debug: bool,
     pub toggle_egui_debug: bool,
     pub toggle_hitboxes: bool,
@@ -67,6 +68,7 @@ pub struct InterfaceSettings {
 impl Default for InterfaceSettings {
     fn default() -> Self {
         Self {
+            use_secure_service: false,
             toggle_debug: false,
             toggle_egui_debug: false,
             toggle_hitboxes: false,

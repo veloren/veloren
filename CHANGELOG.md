@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toggle for the biome change popup
 - Overlay tint when game is paused
 - Sfx priority system; more important sfx can override less important ones
+- Added a "Remember password" option to the menu for securely storing login credentials on Linux
 
 ### Changed
 

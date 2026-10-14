@@ -23,17 +23,27 @@ use common_base::span;
 use common_net::msg::ClientType;
 #[cfg(feature = "plugins")]
 use common_state::plugin::PluginMgr;
+use credentialstore::*;
 use i18n::{LocalizationGuard, LocalizationHandle, fluent_args};
 #[cfg(feature = "singleplayer")]
 use server::ServerInitStage;
 #[cfg(any(feature = "singleplayer", feature = "plugins"))]
 use specs::WorldExt;
 use std::{cell::RefCell, path::Path, rc::Rc, sync::Arc};
-use tokio::runtime;
+use tokio::{
+    runtime,
+    sync::mpsc,
+    time::{Duration, interval},
+};
 use tracing::error;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 
 pub use ui::rand_bg_image_spec;
+
+pub enum CredentialResponse {
+    Status(CredentialStatus),
+    Password(Result<String, CredentialError>),
+}
 
 #[derive(Debug)]
 pub enum DetailedInitializationStage {
@@ -68,6 +78,10 @@ pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
     init: InitState,
     scene: Scene,
+    secure_service: SecureService,
+    secure_service_rx: Option<mpsc::UnboundedReceiver<CredentialResponse>>,
+    secure_service_tx: Option<mpsc::Sender<String>>,
+    pending_credentials: Option<Credentials>,
 }
 
 impl MainMenuState {
@@ -77,6 +91,10 @@ impl MainMenuState {
             main_menu_ui: MainMenuUi::new(global_state),
             init: InitState::None,
             scene: Scene::new(global_state.window.renderer_mut()),
+            secure_service: SecureService::default(),
+            secure_service_rx: None,
+            secure_service_tx: None,
+            pending_credentials: None,
         }
     }
 }
@@ -107,6 +125,31 @@ impl PlayState for MainMenuState {
 
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
+
+        // Poll the credential store status to auto-fill password on unlock.
+        // Update UI on status changes.
+        if let Some(receiver) = &mut self.secure_service_rx
+            && let Some(transmitter) = &mut self.secure_service_tx
+        {
+            while let Ok(response) = receiver.try_recv() {
+                match response {
+                    CredentialResponse::Status(status) => {
+                        self.main_menu_ui.update_secure_service_status(status);
+                        if status == CredentialStatus::Ready
+                            && global_state.settings.interface.use_secure_service
+                        {
+                            let _ = transmitter.try_send(self.main_menu_ui.username());
+                        }
+                    },
+                    CredentialResponse::Password(Ok(password)) => {
+                        self.main_menu_ui.set_password(password)
+                    },
+                    CredentialResponse::Password(Err(error)) => {
+                        tracing::warn!(?error, "{error}")
+                    },
+                }
+            }
+        }
 
         // Pull in localizations
         let localized_strings = &global_state.i18n.read();
@@ -220,6 +263,18 @@ impl PlayState for MainMenuState {
         if let Some(clientinit) = self.init.client() {
             match clientinit.poll() {
                 Some(InitOutMsg::Done(Ok(mut client))) => {
+                    // Stop secure service tasks and save pending credentials.
+                    self.secure_service_rx = None;
+                    self.secure_service_tx = None;
+                    if let Some(credentials) = self.pending_credentials.take() {
+                        let service = self.secure_service.clone();
+                        global_state.tokio_runtime.spawn(async move {
+                            let _ = service
+                                .save(credentials)
+                                .await
+                                .map_err(|error| tracing::warn!(?error, "{error}"));
+                        });
+                    }
                     // load local plugins needed by the server
                     #[cfg(feature = "plugins")]
                     for path in client.take_local_plugins().drain(..) {
@@ -241,6 +296,9 @@ impl PlayState for MainMenuState {
                     self.init = InitState::None;
                     error!(?e, "Client Init failed raw error");
                     let e = get_client_init_msg_error(e, &global_state.i18n);
+                    // Stop secure service tasks.
+                    self.secure_service_rx = None;
+                    self.secure_service_tx = None;
                     // Log error for possible additional use later or in case that the error
                     // displayed is cut of.
                     error!(?e, "Client Init failed");
@@ -266,8 +324,49 @@ impl PlayState for MainMenuState {
                     }
                 },
                 Some(InitOutMsg::RequestCredentials(auth_server)) => {
-                    // No way of storing credentials yet, promt UI!
-                    self.main_menu_ui.credentials_prompt(auth_server.clone());
+                    // Reset secure service state and start polling.
+                    if self.secure_service.is_supported()
+                        && let Some(auth_server) = auth_server.clone()
+                    {
+                        let service = self.secure_service.clone();
+                        let (command_tx, mut command_rx) = mpsc::channel::<String>(1);
+                        let (updates_tx, updates_rx) =
+                            mpsc::unbounded_channel::<CredentialResponse>();
+                        self.secure_service_rx = Some(updates_rx);
+                        self.secure_service_tx = Some(command_tx);
+                        global_state.tokio_runtime.spawn(async move {
+                            let mut interval = interval(Duration::from_secs(2));
+                            let mut request = String::new();
+                            let mut status = CredentialStatus::Disabled;
+                            while !updates_tx.is_closed() {
+                                tokio::select! {
+                                    _ = interval.tick() => {
+                                        let new_status = service.status().await;
+                                        if new_status != status {
+                                            status = new_status;
+                                            let _ = updates_tx.send(CredentialResponse::Status(status));
+                                        }
+                                    },
+                                    command = command_rx.recv() => {
+                                        match command {
+                                            Some(username) => {
+                                                if request != username {
+                                                    let password = service.load(auth_server.clone(), username.clone()).await;
+                                                    if password.is_ok() {
+                                                        request = username;
+                                                    }
+                                                    let _ = updates_tx.send(CredentialResponse::Password(password));
+                                                }
+                                            },
+                                            None => break,
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    self.main_menu_ui.credentials_prompt(auth_server);
                 },
                 None => {},
             }
@@ -411,7 +510,6 @@ impl PlayState for MainMenuState {
                     let use_srv = net_settings.use_srv;
                     let use_quic = net_settings.use_quic;
                     let validate_tls = net_settings.validate_tls;
-
                     net_settings.default_server.clone_from(&server_address);
                     if !server_address.is_empty() && !net_settings.servers.contains(&server_address)
                     {
@@ -454,6 +552,9 @@ impl PlayState for MainMenuState {
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
+                    // Stop secure service tasks.
+                    self.secure_service_rx = None;
+                    self.secure_service_tx = None;
                     // init contains InitState::Client(ClientInit), which spawns a thread which
                     // contains a TcpStream::connect() call This call is
                     // blocking TODO fix when the network rework happens
@@ -526,9 +627,23 @@ impl PlayState for MainMenuState {
                         .map(|init| init.auth_trust(auth_server, trust));
                 },
                 MainMenuEvent::CredentialsProvided(auth_server, credentials) => {
-                    // Once we provided Credentials, store the Server settings
-                    // and username
+                    // Once we provided Credentials, store the Server settings and username.
+                    // Keep pending credentials to save them on successful login.
                     let net_settings = &mut global_state.settings.networking;
+
+                    self.pending_credentials = if global_state.settings.interface.use_secure_service
+                        && let Some(auth_server) = auth_server.as_ref()
+                        && let Ok(client::Credentials::UsernamePassword(username, password)) =
+                            credentials.as_ref()
+                    {
+                        Some(Credentials {
+                            auth_server: auth_server.clone(),
+                            username: username.clone(),
+                            password: password.clone(),
+                        })
+                    } else {
+                        None
+                    };
 
                     let _ = credentials.as_ref().map(|credentials| {
                         let username = match credentials {
@@ -552,6 +667,20 @@ impl PlayState for MainMenuState {
                     global_state
                         .settings
                         .save_to_file_warn(&global_state.config_dir);
+                },
+                MainMenuEvent::UseSecureService(enabled) => {
+                    global_state.settings.interface.use_secure_service = enabled;
+                    global_state
+                        .settings
+                        .save_to_file_warn(&global_state.config_dir);
+                    // Load credentials immediately when "Remember password" is enabled. Calls with
+                    // the same values will be rejected inside the task and the queue is limited.
+                    if enabled
+                        && let Some(transmitter) = &mut self.secure_service_tx
+                        && let Err(error) = transmitter.try_send(self.main_menu_ui.username())
+                    {
+                        tracing::warn!(?error, "Credential store is overloaded")
+                    }
                 },
             }
         }

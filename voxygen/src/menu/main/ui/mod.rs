@@ -21,6 +21,7 @@ use crate::{
     window,
 };
 use client::Credentials;
+use credentialstore::CredentialStatus;
 use i18n::{LanguageMetadata, LocalizationHandle};
 use iced::{Column, Container, HorizontalAlignment, Length, Row, Space, text_input};
 //ImageFrame, Tooltip,
@@ -178,12 +179,15 @@ pub enum Event {
     DeleteServer {
         server_index: usize,
     },
+    UseSecureService(bool),
 }
 
 pub struct LoginInfo {
     pub username: String,
     pub password: String,
     pub server: String,
+    pub use_secure_service: bool,
+    pub secure_service_status: CredentialStatus,
 }
 
 enum ConnectionState {
@@ -281,6 +285,7 @@ enum Message {
     OpenLanguageMenu,
     Username(String),
     Password(String),
+    UseSecureService(bool),
     Server(String),
     ServerChanged(usize),
     FocusPassword,
@@ -324,6 +329,8 @@ impl Controls {
             username: settings.networking.username.clone(),
             password: String::new(),
             server: server.unwrap_or_else(|| settings.networking.default_server.clone()),
+            use_secure_service: settings.interface.use_secure_service,
+            secure_service_status: CredentialStatus::Disabled,
         };
         let selected_server_index = settings
             .networking
@@ -566,6 +573,10 @@ impl Controls {
             },
             Message::OpenLanguageMenu => self.show.toggle(Showing::Languages),
             Message::Password(new_value) => self.login_info.password = new_value,
+            Message::UseSecureService(new_value) => {
+                self.login_info.use_secure_service = new_value;
+                events.push(Event::UseSecureService(new_value));
+            },
             Message::Server(new_value) => {
                 self.login_info.server = new_value;
             },
@@ -772,6 +783,16 @@ impl MainMenuUi {
     }
 
     pub fn bg_img_spec(&self) -> &'static str { self.bg_img_spec }
+
+    pub fn username(&self) -> String { self.controls.login_info.username.clone() }
+
+    pub fn update_secure_service_status(&mut self, status: CredentialStatus) {
+        self.controls.login_info.secure_service_status = status;
+    }
+
+    pub fn set_password(&mut self, password: String) {
+        self.controls.login_info.password = password;
+    }
 
     pub fn update_language(&mut self, i18n: LocalizationHandle, settings: &Settings) {
         self.controls.i18n = i18n;

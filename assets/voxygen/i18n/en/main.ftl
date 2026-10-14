@@ -1,6 +1,7 @@
 main-username = Username
 main-server = Server
 main-password = Password
+main-remember-password = Remember password
 main-connecting = Connecting
 main-creating_world = Creating world
 main-tip = Tip:
