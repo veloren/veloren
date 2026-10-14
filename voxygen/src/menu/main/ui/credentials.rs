@@ -1,4 +1,4 @@
-use super::{Imgs, LoginInfo, Message};
+use super::{Imgs, LoginInfo, Message, TEXT_COLOR};
 use crate::ui::{
     fonts::IcedFonts as Fonts,
     ice::{
@@ -7,8 +7,11 @@ use crate::ui::{
     },
 };
 
+use credentialstore::CredentialStatus;
 use i18n::Localization;
-use iced::{Align, Button, Column, Container, Length, Space, Text, TextInput, button, text_input};
+use iced::{
+    Align, Button, Column, Container, Length, Row, Space, Text, TextInput, button, text_input,
+};
 
 const INPUT_WIDTH: u16 = 230;
 const INPUT_TEXT_SIZE: u16 = 20;
@@ -17,6 +20,7 @@ const INPUT_TEXT_SIZE: u16 = 20;
 #[derive(Default)]
 pub struct Prompt {
     pub(super) error: Option<String>,
+    secure_service_button: button::State,
     submit_button: button::State,
     username: text_input::State,
     password: text_input::State,
@@ -83,6 +87,41 @@ impl Prompt {
                 .padding(Padding::new().horizontal(7).top(5))
                 .into(),
             );
+
+            if login_info.secure_service_status > CredentialStatus::Disabled {
+                let text_color = if login_info.secure_service_status == CredentialStatus::Ready {
+                    TEXT_COLOR
+                } else {
+                    // XAG 102 (Inactive Elements)
+                    iced::Color::from_rgba(1.0, 1.0, 1.0, 0.4)
+                };
+                let checkmark = if login_info.use_secure_service {
+                    "[X]"
+                } else {
+                    "[ ]"
+                };
+                let checkbox = Button::new(
+                    &mut self.secure_service_button,
+                    Row::with_children(vec![
+                        Text::new(checkmark)
+                            .size(input_text_size)
+                            .color(text_color)
+                            .into(),
+                        Text::new(i18n.get_msg("main-remember-password"))
+                            .size(input_text_size)
+                            .color(text_color)
+                            .into(),
+                    ])
+                    .spacing(6),
+                );
+                let checkbox = if login_info.secure_service_status == CredentialStatus::Ready {
+                    checkbox.on_press(Message::UseSecureService(!login_info.use_secure_service))
+                } else {
+                    checkbox
+                };
+
+                inputs.push(checkbox.into());
+            };
         }
 
         let inputs = Column::with_children(inputs)

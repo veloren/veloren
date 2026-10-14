@@ -1,0 +1,15 @@
+[package]
+name = "veloren-voxygen-credentialstore"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { version = "2.0" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+secret-service = { version = "5", features = ["rt-tokio", "crypto-rust"] }
+
+[lints]
+workspace = true
