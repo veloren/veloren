@@ -43,7 +43,7 @@ pub fn is_steering(entity: EcsEntity, read_data: &ReadData) -> bool {
 
 /// Gets alignment of owner if alignment given is `Owned`.
 /// Returns original alignment if not owned.
-pub fn try_owner_alignment<'a>(
+fn try_owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
 ) -> Option<&'a Alignment> {
@@ -102,26 +102,16 @@ fn should_let_target_escape(
     (dist_to_home_sqrd / own_health_fraction) * dur_since_last_attacked as f32 * 0.005
 }
 
-pub fn entity_looks_like_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
-    let number_of_cultist_items_equipped = read_data.inventories.get(entity).map_or(0, |inv| {
-        inv.equipped_items()
-            .filter(|item| item.tags().contains(&ItemTag::Cultist))
-            .count()
-    });
-
-    number_of_cultist_items_equipped > 2
-}
-
 // FIXME: `Alignment::Npc` doesn't necessarily mean villager.
-pub fn is_villager(alignment: Option<&Alignment>) -> bool {
+pub(crate) fn is_villager(alignment: Option<&Alignment>) -> bool {
     alignment.is_some_and(|alignment| matches!(alignment, Alignment::Npc))
 }
 
-pub fn is_village_guard(agent: &Agent) -> bool {
+pub(crate) fn is_village_guard(agent: &Agent) -> bool {
     agent.mark == Some(common::comp::agent::Mark::Guard)
 }
 
-pub fn are_our_owners_hostile(
+pub(crate) fn are_our_owners_hostile(
     our_alignment: Option<&Alignment>,
     their_alignment: Option<&Alignment>,
     read_data: &ReadData,
@@ -133,7 +123,7 @@ pub fn are_our_owners_hostile(
     })
 }
 
-pub fn entities_have_line_of_sight(
+pub(crate) fn entities_have_line_of_sight(
     pos: &Pos,
     body: Option<&Body>,
     scale: f32,
@@ -153,7 +143,7 @@ pub fn entities_have_line_of_sight(
     positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
 }
 
-pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
+fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
     let dist_sqrd = pos_b.0.distance_squared(pos_a.0);
 
     read_data
@@ -166,7 +156,7 @@ pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadDa
         >= (dist_sqrd - 0.01)
 }
 
-pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
+pub(crate) fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
     read_data.inventories.get(entity).is_some_and(|inventory| {
         inventory
             .equipped_items()
@@ -176,7 +166,7 @@ pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
     })
 }
 
-pub fn is_dressed_as_witch(entity: EcsEntity, read_data: &ReadData) -> bool {
+pub(crate) fn is_dressed_as_witch(entity: EcsEntity, read_data: &ReadData) -> bool {
     read_data.inventories.get(entity).is_some_and(|inventory| {
         inventory
             .equipped_items()
@@ -186,7 +176,7 @@ pub fn is_dressed_as_witch(entity: EcsEntity, read_data: &ReadData) -> bool {
     })
 }
 
-pub fn is_dressed_as_pirate(entity: EcsEntity, read_data: &ReadData) -> bool {
+pub(crate) fn is_dressed_as_pirate(entity: EcsEntity, read_data: &ReadData) -> bool {
     read_data.inventories.get(entity).is_some_and(|inventory| {
         inventory
             .equipped_items()
@@ -196,7 +186,7 @@ pub fn is_dressed_as_pirate(entity: EcsEntity, read_data: &ReadData) -> bool {
     })
 }
 
-pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
+pub(crate) fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
     read_data
         .healths
         .get(entity)
@@ -238,7 +228,7 @@ impl AgentData<'_> {
 /// Handles whether an agent should attack and how the agent moves around.
 /// Returns whether the agent should attack (so that individual tactics can
 /// determine what specific attack to use)
-pub fn handle_attack_aggression(
+pub(crate) fn handle_attack_aggression(
     agent_data: &AgentData,
     agent: &mut Agent,
     controller: &mut Controller,
