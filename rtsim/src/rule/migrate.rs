@@ -191,7 +191,7 @@ impl Rule for Migrate {
 
             data.architect.population = Population::default();
 
-            for npc in data.actors.values() {
+            for npc in data.actors.values().filter(|actor| actor.npc().is_some()) {
                 let pop = TrackedPopulation::from_body_and_role(&npc.body, &npc.role);
                 data.architect.population.add(pop, 1);
             }
