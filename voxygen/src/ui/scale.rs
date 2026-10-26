@@ -69,9 +69,10 @@ impl Scale {
             * match self.mode {
                 ScaleMode::Absolute(scale) => scale,
                 ScaleMode::DpiFactor => 1.0 * self.scale_factor,
-                ScaleMode::RelativeToWindow(dims) => (f64::from(self.physical_resolution.x)
-                    / dims.x)
-                    .min(f64::from(self.physical_resolution.y) / dims.y),
+                // TODO: Reconsider iced UI scaling. Iced should support more adaptive widget
+                // scaling, and a RelativeToWindow may not be needed at all. But either way, the
+                // current iced scaling has problems that need addressing.
+                ScaleMode::RelativeToWindow(dims) => f64::from(self.physical_resolution.y) / dims.y,
             }
     }
 
