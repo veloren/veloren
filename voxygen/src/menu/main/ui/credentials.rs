@@ -9,9 +9,7 @@ use crate::ui::{
 
 use credentialstore::CredentialStatus;
 use i18n::Localization;
-use iced::{
-    Align, Button, Column, Container, Length, Row, Space, Text, TextInput, button, text_input,
-};
+use iced::{Align, Button, Column, Container, Length, Space, Text, TextInput, button, text_input};
 
 const INPUT_WIDTH: u16 = 230;
 const INPUT_TEXT_SIZE: u16 = 20;
@@ -45,7 +43,9 @@ impl Prompt {
         } else {
             i18n.get_msg("main-login-enter-username")
         };
-        let msg_text = Text::new(msg).size(fonts.cyri.scale(15));
+        let msg_text = Text::new(msg)
+            .size(fonts.cyri.scale(15))
+            .width(Length::Fill);
         let input_text_size = fonts.cyri.scale(INPUT_TEXT_SIZE);
 
         let username = BackgroundContainer::new(
@@ -100,19 +100,15 @@ impl Prompt {
                 } else {
                     "[ ]"
                 };
+                let password_text =
+                    format!("{checkmark} {}", i18n.get_msg("main-remember-password"));
                 let checkbox = Button::new(
                     &mut self.secure_service_button,
-                    Row::with_children(vec![
-                        Text::new(checkmark)
-                            .size(input_text_size)
-                            .color(text_color)
-                            .into(),
-                        Text::new(i18n.get_msg("main-remember-password"))
-                            .size(input_text_size)
-                            .color(text_color)
-                            .into(),
-                    ])
-                    .spacing(6),
+                    Text::new(password_text)
+                        .size(input_text_size)
+                        .color(text_color)
+                        .width(Length::Fill)
+                        .horizontal_alignment(iced::HorizontalAlignment::Center),
                 );
                 let checkbox = if login_info.secure_service_status == CredentialStatus::Ready {
                     checkbox.on_press(Message::UseSecureService(!login_info.use_secure_service))
