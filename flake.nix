@@ -184,6 +184,7 @@
             udev
             alsa-lib
             vulkan-loader
+	    libGL
             stdenv.cc.cc.lib
           ];
           depsDrvConfig = {
