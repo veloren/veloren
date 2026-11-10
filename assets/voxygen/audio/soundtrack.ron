@@ -17,6 +17,74 @@
         // Overworld exploration tracks
 
         Individual((
+            title: "Oasis en el Desierto",
+            path: "voxygen.audio.soundtrack.overworld.oasis_en_el_desierto",
+            length: 190.0,
+            timing: Day,
+            weather: None,
+            biomes: [
+                (Desert, 1),
+                (Savannah, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
+        Individual((
+            title: "Jungla Estrellada",
+            path: "voxygen.audio.soundtrack.overworld.jungla_estrellada",
+            length: 207.0,
+            timing: Day,
+            weather: None,
+            biomes: [
+                (Jungle, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
+        Individual((
+            title: "Ecos del Paraiso",
+            path: "voxygen.audio.soundtrack.overworld.ecos_del_paraiso",
+            length: 185.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Jungle, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
+        Individual((
+            title: "ALMA",
+            path: "voxygen.audio.soundtrack.overworld.alma",
+            length: 222.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Snowland, 1),
+                (Mountain, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
+        Individual((
+            title: "Ahuyo del Desierto",
+            path: "voxygen.audio.soundtrack.overworld.ahuyo_del_desierto",
+            length: 236.0,
+            timing: Night,
+            weather: None,
+            biomes: [
+                (Desert, 1),
+                (Savannah, 1),
+            ],
+            sites: [Void],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
+        Individual((
             title: "Soaring Skies",
             path: "voxygen.audio.soundtrack.overworld.soaring_skies",
             length: 239.0,
@@ -620,6 +688,20 @@
 
         // Town music
 
+        Individual((
+            title: "Mi Claro de Luna",
+            path: "voxygen.audio.soundtrack.town.mi_claro_de_luna",
+            length: 110.0,
+            timing: Night,
+            weather: None,
+            biomes: [],
+            sites: [
+                Settlement(Default),
+                Settlement(CoastalTown)
+            ],
+            music_state: Activity(Explore),
+            artist: ("KHANIBALMUSIC", "https://youtube.com/@khanibalmusic"),
+        )),
         Individual((
             title: "Where Frost Played",
             path: "voxygen.audio.soundtrack.town.where_frost_played",
